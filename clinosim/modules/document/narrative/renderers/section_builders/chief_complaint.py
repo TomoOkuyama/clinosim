@@ -27,9 +27,13 @@ from clinosim.countries import has_authored_narrative
 from clinosim.determinism import sha_index
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules.document.narrative._narrative_utils import _age_at
 from clinosim.modules.document.narrative._template_helpers import _pick_localized
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
-from clinosim.modules.document.reference_data_loaders import load_chief_complaint_variants
+from clinosim.modules.document.reference_data_loaders import (
+    ChiefComplaintVariant,
+    load_chief_complaint_variant_rules,
+)
 from clinosim.types.document import DocumentType, NarrativeContext
 
 if TYPE_CHECKING:
@@ -204,29 +208,66 @@ def _maybe_swap_cc_variant(
     if not has_authored_narrative(lang) or not text:
         return text, None
     try:
-        variants = load_chief_complaint_variants()
+        variants = load_chief_complaint_variant_rules()
     except (OSError, ValueError):
         # Loader errors are non-fatal — narrative must never raise.
         return text, None
 
     # Priority 1 — disease_protocol
     if disease_id and canonical_cc and text == canonical_cc:
-        pool = variants.get(disease_id) or []
+        pool = _compatible_pool(variants.get(disease_id) or [], ctx)
         if len(pool) > 1:
             idx = _cc_variant_index(disease_id, ctx, len(pool))
-            return pool[idx], f"chief_complaint_variants.{disease_id}[{idx}]"
+            return pool[idx].text, f"chief_complaint_variants.{disease_id}[{idx}]"
 
     # Priority 2 — encounter_protocol
     if encounter_condition_id and canonical_encounter_cc and text == canonical_encounter_cc:
-        pool = variants.get(encounter_condition_id) or []
+        pool = _compatible_pool(variants.get(encounter_condition_id) or [], ctx)
         if len(pool) > 1:
             idx = _cc_variant_index(encounter_condition_id, ctx, len(pool))
             return (
-                pool[idx],
+                pool[idx].text,
                 f"chief_complaint_variants.{encounter_condition_id}[{idx}]",
             )
 
     return text, None
+
+
+def _compatible_pool(pool: list[ChiefComplaintVariant], ctx: NarrativeContext) -> list[ChiefComplaintVariant]:
+    """The variants of ``pool`` that fit the visit (Issue #3275): the
+    patient's age at the visit, the disease's onset type and the encounter
+    type must satisfy each variant's conditions. A condition whose visit value
+    is unknown excludes nothing; the head (the canonical complaint) is
+    unconditional, so it is always kept."""
+    age = _age_at(ctx)
+    onset_type = _visit_onset_type(ctx)
+    enc_type = _visit_encounter_type(ctx)
+    return [
+        v
+        for v in pool
+        if (
+            (v.min_age is None or age is None or age >= v.min_age)
+            and (v.max_age is None or age is None or age <= v.max_age)
+            and (not v.onset_types or onset_type is None or onset_type in v.onset_types)
+            and (not v.encounter_types or enc_type is None or enc_type in v.encounter_types)
+        )
+    ]
+
+
+def _visit_onset_type(ctx: NarrativeContext) -> str | None:
+    """The disease's ``hpi_template.onset_type``, ``None`` when it has none."""
+    if ctx.disease_protocol is None:
+        return None
+    narrative = _o(ctx.disease_protocol, "narrative", None)
+    hpi_tmpl = _o(narrative, "hpi_template", None) if narrative is not None else None
+    onset = _o(hpi_tmpl, "onset_type", None) if hpi_tmpl is not None else None
+    return str(onset) if onset else None
+
+
+def _visit_encounter_type(ctx: NarrativeContext) -> str | None:
+    enc_type = ctx.encounter_type
+    value = getattr(enc_type, "value", enc_type)
+    return str(value) if value else None
 
 
 def _cc_variant_index(pool_key: str, ctx: NarrativeContext, pool_size: int) -> int:

@@ -28,7 +28,7 @@ FHIR resource ID prefixes every consumer imports.
   ([`reference_data_loaders.py`](reference_data_loaders.py) —
   `load_physical_exam_findings`, `load_discharge_instructions`
   with 6-layer validators, plus `load_hpi_pertinent_negatives`,
-  `load_chief_complaint_variants`, `load_bedside_procedure_codes`,
+  `load_chief_complaint_variant_rules`, `load_bedside_procedure_codes`,
   `load_nursing_content`); per-encounter document-type dispatch
   (`_pick_document_author`, `_referral_note_fires`,
   `_enc_type_value`, `_enc_status_value`, `_compute_los_days`,

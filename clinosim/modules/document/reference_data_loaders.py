@@ -591,30 +591,65 @@ def load_disease_exam() -> DiseaseExam:
 # ─────────────────────────────────────────────────────────────────
 
 
-class ChiefComplaintVariants(BaseModel):
-    """Shape of chief_complaint_variants.yaml: per disease, a non-empty list
-    of non-empty JP chief-complaint strings."""
+class ChiefComplaintVariant(BaseModel):
+    """One chief-complaint phrasing and the visit conditions it requires
+    (Issue #3275). A bare string in the YAML is a variant with no condition.
+
+    ``min_age`` / ``max_age`` bound the patient's age at the visit;
+    ``onset_types`` lists the disease ``hpi_template.onset_type`` values the
+    phrasing fits (a "today" phrasing fits ``acute``, an "N days ago" one
+    ``subacute``); ``encounter_types`` lists the encounter types it fits. An
+    empty field is no constraint, and a constraint whose visit value is
+    unknown does not exclude the variant.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
-    variants: dict[str, Annotated[list[_Text], Field(min_length=1)]] = Field(min_length=1)
+    text: _Text
+    min_age: int | None = Field(default=None, ge=0)
+    max_age: int | None = Field(default=None, ge=0)
+    onset_types: list[_Text] = Field(default_factory=list)
+    encounter_types: list[_Text] = Field(default_factory=list)
+
+
+class ChiefComplaintVariants(BaseModel):
+    """Shape of chief_complaint_variants.yaml: per disease, a non-empty list
+    of JP chief-complaint strings or conditioned variants. The first entry of
+    a pool is the canonical complaint and carries no condition."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    variants: dict[str, Annotated[list[_Text | ChiefComplaintVariant], Field(min_length=1)]] = Field(min_length=1)
 
     @model_validator(mode="before")
     @classmethod
     def _non_empty(cls, data: Any) -> Any:
         return _not_empty(data, "chief_complaint_variants.yaml")
 
+    @model_validator(mode="after")
+    def _head_is_unconditional(self) -> ChiefComplaintVariants:
+        for key, pool in self.variants.items():
+            head = pool[0]
+            if isinstance(head, ChiefComplaintVariant) and (
+                head.min_age is not None or head.max_age is not None or head.onset_types or head.encounter_types
+            ):
+                raise ValueError(f"chief_complaint_variants.yaml: the first variant of {key!r} must carry no condition")
+        return self
+
 
 @lru_cache(maxsize=1)
-def load_chief_complaint_variants() -> dict[str, list[str]]:
+def load_chief_complaint_variant_rules() -> dict[str, list[ChiefComplaintVariant]]:
     """Load chief_complaint_variants.yaml + validate. Cached singleton.
 
-    Returns ``{disease_id: [variant_ja, ...]}`` — flattened for O(1) lookup
-    at narrative-build time (Issue #983). JP-only by design; US narrative
-    keeps the existing single canonical CC (English disease_protocol chain).
+    Returns ``{pool_key: [ChiefComplaintVariant, ...]}`` with a bare string
+    normalised to a variant with no condition (Issue #3275).
     """
-    data = load_validated_yaml(_NARRATIVE_REF_DIR / "chief_complaint_variants.yaml", ChiefComplaintVariants)
-    return dict(data["variants"])
+    raw = load_validated_yaml(_NARRATIVE_REF_DIR / "chief_complaint_variants.yaml", ChiefComplaintVariants)
+    model = ChiefComplaintVariants.model_validate(raw)
+    return {
+        key: [v if isinstance(v, ChiefComplaintVariant) else ChiefComplaintVariant(text=v) for v in pool]
+        for key, pool in model.variants.items()
+    }
 
 
 # ─────────────────────────────────────────────────────────────────

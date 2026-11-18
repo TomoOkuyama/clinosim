@@ -264,8 +264,10 @@ clinosim/modules/document/narrative/
   _visit_reason.py                         visit_kind / kind_lines / vital_findings / next_visit_line — outpatient SOAP by visit reason (Issues #3249, #3251, #3252)
   _narrative_interpretation_thresholds.py  interpretation cutoff scalars (Issue #637)
   reference_data/
-    chief_complaint_variants.yaml          chief-complaint phrasing variants (load_chief_complaint_variants)
+    chief_complaint_variants.yaml          chief-complaint phrasing variants (load_chief_complaint_variant_rules)
 ```
+
+Chief-complaint variants may carry visit conditions (`min_age`, `max_age`, `onset_types`, `encounter_types`); only the variants the visit meets are picked, by a SHA-256 index of patient and encounter id (Issue #3275).
 
 The subpackage has **no `audit.py` and no `enricher.py`**; apart
 from `chief_complaint_variants.yaml`, reference data lives in the

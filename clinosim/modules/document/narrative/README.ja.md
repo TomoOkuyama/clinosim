@@ -248,8 +248,10 @@ clinosim/modules/document/narrative/
   _visit_reason.py                         visit_kind / kind_lines / vital_findings / next_visit_line — 受診理由別の外来 SOAP (Issue #3249、#3251、#3252)
   _narrative_interpretation_thresholds.py  interpretation cutoff scalars (Issue #637)
   reference_data/
-    chief_complaint_variants.yaml          chief-complaint phrasing variants (load_chief_complaint_variants)
+    chief_complaint_variants.yaml          chief-complaint phrasing variants (load_chief_complaint_variant_rules)
 ```
+
+主訴 variant は受診条件(`min_age`、`max_age`、`onset_types`、`encounter_types`)を持てる。受診に合う variant のみを、患者 ID と受診 ID の SHA-256 で選ぶ(Issue #3275)。
 
 **`audit.py` / `enricher.py` は存在しない**。
 `chief_complaint_variants.yaml` 以外の reference data は親 `document`
