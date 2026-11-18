@@ -89,7 +89,8 @@ drug_safety.conflict_display(verdict)  # → ("Penicillin allergy", "ペニシ�
 # 薬剤-疾患の判定は rule の疾患名を返す (Issue #3283)
 drug_safety.conflict_display(hf_verdict)  # → ("heart failure", "心不全")
 # 入院中の gate: 投与中の薬剤の新規オーダーはその用量・速度の変更であり、
-# その薬剤自身とは照合しない (Issue #3283)。既定は off
+# その薬剤自身とは照合しない (Issue #3283)。既定は off。
+# ED の治療 gate も使う (Issue #3310): ACS 疑いの aspirin 負荷量と常用 aspirin は再投与。退院処方は off のまま
 drug_safety.check_candidate_against_active("Heparin increase_rate_by_20%", ["Heparin"], same_drug_reorder=True)  # → []
 
 # 年齢 / 性別 gate

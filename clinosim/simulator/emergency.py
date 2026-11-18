@@ -285,11 +285,18 @@ def _ed_medication_skipped(
     visit_time: datetime,
     cond_name: str,
     hint: str,
+    same_drug_reorder: bool = False,
 ) -> bool:
     """Demographic, drug-drug, drug-disease and drug-allergy gates for an ED
     medication (ED treatment orders and, Issue #2155, discharge
     prescriptions). Logs the skip on ``patient.safety_skip_log`` and returns
-    True when the drug is dropped."""
+    True when the drug is dropped.
+
+    ``same_drug_reorder`` (Issue #3310): an ED dose of a drug the patient
+    already takes is a re-dose of that drug, not an interaction with it (the
+    aspirin load of suspected ACS beside daily aspirin); the interaction
+    rules between different drugs still apply. Take-home scripts keep it off:
+    a duplicate of a home drug is a reconciliation matter there."""
     from clinosim.modules import drug_safety
     from clinosim.modules.drug_safety import check_demographic_gate
     from clinosim.modules.drug_safety.verdict import SEVERITY_RANK, SafetySkipEntry, SafetyVerdict
@@ -343,7 +350,9 @@ def _ed_medication_skipped(
     # Drops on "skip" severity (major / contraindicated); logs
     # a SafetySkipEntry so downstream verification can prove the
     # gate fired instead of the drug silently disappearing.
-    _ddi_verdicts = drug_safety.check_candidate_against_active(drug_name, active_drugs)
+    _ddi_verdicts = drug_safety.check_candidate_against_active(
+        drug_name, active_drugs, same_drug_reorder=same_drug_reorder
+    )
     # Issue #2855: drug-vs-disease rules (oxidant drugs in G6PD deficiency,
     # NSAIDs in heart failure, ...) apply to ED orders and take-home scripts.
     _ddi_verdicts = list(_ddi_verdicts) + drug_safety.check_candidate_against_disease_state(
@@ -839,6 +848,7 @@ def _simulate_ed_visit(
                 visit_time,
                 cond_name,
                 "ed_treatment",
+                same_drug_reorder=True,
             ):
                 continue
         orders.append(

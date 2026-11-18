@@ -99,7 +99,9 @@ drug_safety.conflict_display(verdict)  # → ("Penicillin allergy", "ペニシ�
 # a drug-condition verdict names the rule's condition (Issue #3283)
 drug_safety.conflict_display(hf_verdict)  # → ("heart failure", "心不全")
 # The in-stay gate: a new order of a drug already given is a dose / rate
-# change of it, not checked against it (Issue #3283); off by default
+# change of it, not checked against it (Issue #3283); off by default.
+# The ED treatment gate uses it too (Issue #3310): the aspirin load of suspected
+# ACS beside daily aspirin is a re-dose; take-home scripts keep it off.
 drug_safety.check_candidate_against_active("Heparin increase_rate_by_20%", ["Heparin"], same_drug_reorder=True)  # → []
 
 # Demographic (age / sex) gate
