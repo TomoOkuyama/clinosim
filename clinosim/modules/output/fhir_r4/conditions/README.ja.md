@@ -22,7 +22,7 @@ MedicationRequest の reasonReference 等が encounter primary reason
   (custom survey `Observation`、JP encounter は
   `meta.profile = JP_Observation_Common`)、`primary_condition_ref`
   + `primary_condition_ref_from_codes` + `is_chronic_primary` +
-  `_chronic_index_for_primary` + `_icd_base` (canonical
+  `_matching_chronic_index` + `_icd_base` (canonical
   primary-Condition resolver)、`_ecs_diagnosis_type_extension`,
   `_bodysite_for`, `_jfagy_coding_for_category` (JP 固有 fragment
   builder)。
@@ -107,14 +107,19 @@ sort するため line 順は決定論的。
 - **Canonical primary-Condition resolver** (`primary_ref.py`) —
   single-source-of-truth ルール:
   - encounter の `clinical_diagnosis.discharge_diagnosis_code`
-    (または admission-code fallback) の 3 文字 ICD base を、患者の
-    `chronic_conditions[].code` base と比較。
+    (または admission-code fallback) を患者の
+    `chronic_conditions[].code` と比較。完全一致を優先し、無ければ
+    3 文字 ICD base が同じ最初の chronic に一致させる。
   - **一致** → 患者スコープの chronic Condition id (structural key
     `chronic-{patient_id}-{index:02d}`) を返す。別途
     encounter-primary Condition を emit すると row 重複や ICD 粒度
     drift (I50 vs I50.9) が発生する。
   - **不一致** → encounter スコープ id (structural key
     `{encounter_id}-primary`) を返す。
+  - `_build_conditions` の重複排除は 3 文字カテゴリではなく、出力される
+    (国別マップ後の) 完全コード単位 (Issue #3333)。同一患者の E11.9 /
+    E11.311 / E11.42 は 3 件の Condition。JP で複数の元コードが同一の
+    出力コードに写る場合のみ 1 件にまとまる。
   - id は opaque (Issue #854): `_resolve_condition_id` により
     `cond-` + sha256(structural key) の先頭 12 hex。
   - encounter primary reason を参照する全下流 builder は必ず

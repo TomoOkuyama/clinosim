@@ -150,6 +150,8 @@ def needs_admission_diagnosis_condition(
     admit_dx_code: str,
     primary_dx_code: str,
     chronic_condition_codes: list[str] | None,
+    *,
+    primary_merged: bool | None = None,
 ) -> bool:
     """Return True when the admission dx should be emitted as its own Condition.
 
@@ -168,7 +170,8 @@ def needs_admission_diagnosis_condition(
     ## Chronic-primary suppression awareness
 
     ``_build_conditions`` suppresses the encounter-primary Condition when the
-    primary's ICD base matches a chronic's base (``is_chronic_primary``) — the
+    primary matches a chronic entry (``_matching_chronic_index``: identical code,
+    or the chronic is the bare category) — the
     chronic Condition then carries the encounter diagnosis. In that case the
     codes actually present in ``Encounter.diagnosis[]`` are the chronic codes
     only, NOT ``primary_dx_code``. Example: COPD-exacerbation admission emits
@@ -187,13 +190,16 @@ def needs_admission_diagnosis_condition(
     if not admit_dx_code:
         return False
     chronic_codes = [c for c in (chronic_condition_codes or []) if c]
-    chronic_bases = {c.split(".")[0] for c in chronic_codes}
     # Codes actually emitted as Conditions in this patient's record.
     codes_in_conditions: set[str] = set(chronic_codes)
-    primary_base = (primary_dx_code or "").split(".")[0]
-    # Encounter-primary Condition is emitted only when its base does NOT match
-    # a chronic base (see ``is_chronic_primary`` / ``_build_conditions``).
-    if primary_dx_code and primary_base and primary_base not in chronic_bases:
+    # Encounter-primary Condition is emitted only when it does NOT merge into a
+    # chronic entry (see ``is_chronic_primary`` / ``_build_conditions``).
+    # ``primary_merged`` lets a caller that passes locale-mapped codes supply the
+    # merge decision made on the raw codes (mapping changes granularity, e.g.
+    # a bare chronic ``J44`` becomes ``J44.9``).
+    if primary_merged is None:
+        primary_merged = _matching_chronic_index(primary_dx_code or "", chronic_codes) is not None
+    if primary_dx_code and not primary_merged:
         codes_in_conditions.add(primary_dx_code)
     if admit_dx_code in codes_in_conditions:
         return False
@@ -205,25 +211,44 @@ def _icd_base(code: str) -> str:
     return code.split(".")[0] if code else ""
 
 
-def _chronic_index_for_primary(record: dict, primary_base: str) -> int | None:
-    """Return the 0-based index into `patient.chronic_conditions` whose code
-    base matches `primary_base`. None if no match.
+def _matching_chronic_index(primary_dx_code: str, chronic_codes: list[str]) -> int | None:
+    """Index of the chronic code a primary diagnosis merges into, or None.
 
-    Iterates in list order — first match wins. In practice a patient's
-    chronic_conditions do not repeat the same base code, so at most one
-    entry can match.
+    A primary merges into a chronic problem-list entry when the codes are
+    identical, or when the two are the same disease at different granularity:
+    one of them is the bare 3-character category (chronic ``I50`` / primary
+    ``I50.9``, or primary ``I50`` / chronic ``I50.9``), or the primary is the
+    "unspecified" ``.9`` form of a category whose specific code the patient
+    already carries (primary ``I50.9`` / chronic ``I50.5``). Two distinct
+    specific codes of one category (chronic E11.9 / primary E11.65, or chronic
+    E11.9 / E11.311) are different diagnoses and never merge (Issue #3333).
     """
-    if not primary_base:
+    base = _icd_base(primary_dx_code)
+    if not base:
         return None
-    chronics = (record.get("patient") or {}).get("chronic_conditions", []) or []
-    for i, chronic in enumerate(chronics):
-        if isinstance(chronic, str):
-            c_code = chronic
-        else:
-            c_code = _o(chronic, "code", "") or ""
-        if _icd_base(str(c_code)) == primary_base:
+    for i, c_code in enumerate(chronic_codes):
+        if c_code == primary_dx_code:
+            return i
+    primary_is_general = primary_dx_code == base or primary_dx_code.endswith(".9")
+    for i, c_code in enumerate(chronic_codes):
+        if _icd_base(c_code) == base and (c_code == base or primary_is_general):
             return i
     return None
+
+
+def primary_merges_into_chronic(primary_dx_code: str, chronic_condition_codes: list[str] | None) -> bool:
+    """True when the primary dx is carried by an existing chronic Condition."""
+    return _matching_chronic_index(primary_dx_code or "", [c for c in (chronic_condition_codes or []) if c]) is not None
+
+
+def _chronic_index_for_primary(record: dict, primary_dx_code: str) -> int | None:
+    """Return the 0-based index into `patient.chronic_conditions` that the
+    primary diagnosis merges into (exact code, else same ICD base). None if no
+    match.
+    """
+    chronics = (record.get("patient") or {}).get("chronic_conditions", []) or []
+    codes = [str(chronic if isinstance(chronic, str) else (_o(chronic, "code", "") or "")) for chronic in chronics]
+    return _matching_chronic_index(primary_dx_code, codes)
 
 
 def primary_condition_ref(record: dict, patient_id: str, encounter_id: str) -> str:
@@ -239,8 +264,7 @@ def primary_condition_ref(record: dict, patient_id: str, encounter_id: str) -> s
     """
     dx = record.get("clinical_diagnosis", {}) or {}
     dx_code = dx.get("discharge_diagnosis_code") or dx.get("admission_diagnosis_code", "") or ""
-    base = _icd_base(str(dx_code))
-    idx = _chronic_index_for_primary(record, base)
+    idx = _chronic_index_for_primary(record, str(dx_code))
     if idx is not None:
         return chronic_condition_id(patient_id, idx)
     return encounter_primary_condition_id(patient_id, encounter_id)
@@ -260,11 +284,10 @@ def primary_condition_ref_from_codes(
     return `cond-chronic-{patient}-{i:02d}` (i = index in the passed
     chronic list), else return `cond-{enc}-primary`.
     """
-    base = _icd_base(str(primary_dx_code or ""))
-    if base and chronic_condition_codes:
-        for i, c_code in enumerate(chronic_condition_codes):
-            if _icd_base(str(c_code or "")) == base:
-                return chronic_condition_id(patient_id, i)
+    if chronic_condition_codes:
+        idx = _matching_chronic_index(str(primary_dx_code or ""), [str(c or "") for c in chronic_condition_codes])
+        if idx is not None:
+            return chronic_condition_id(patient_id, idx)
     return encounter_primary_condition_id(patient_id, encounter_id)
 
 
@@ -274,5 +297,4 @@ def is_chronic_primary(record: dict) -> bool:
     encounter-primary Condition emission."""
     dx = record.get("clinical_diagnosis", {}) or {}
     dx_code = dx.get("discharge_diagnosis_code") or dx.get("admission_diagnosis_code", "") or ""
-    base = _icd_base(str(dx_code))
-    return _chronic_index_for_primary(record, base) is not None
+    return _chronic_index_for_primary(record, str(dx_code)) is not None

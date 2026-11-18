@@ -22,7 +22,7 @@ primary reason points at the SAME `Condition.id` everywhere.
   survey `Observation`, JP encounters carry
   `meta.profile = JP_Observation_Common`); `primary_condition_ref`
   + `primary_condition_ref_from_codes` + `is_chronic_primary` +
-  `_chronic_index_for_primary` + `_icd_base` (canonical
+  `_matching_chronic_index` + `_icd_base` (canonical
   primary-Condition resolver); `_ecs_diagnosis_type_extension`,
   `_bodysite_for`, `_jfagy_coding_for_category` (JP-specific
   fragment builders).
@@ -110,14 +110,19 @@ the emitted NDJSON by resource id so line order is deterministic.
 - **Canonical primary-Condition resolver** (`primary_ref.py`) —
   single-source-of-truth rule:
   - Given an encounter's `clinical_diagnosis.discharge_diagnosis_code`
-    (or admission-code fallback), compare its 3-char ICD base
-    against the patient's `chronic_conditions[].code` bases.
+    (or admission-code fallback), compare it against the patient's
+    `chronic_conditions[].code`: an exact code match wins, otherwise the
+    first chronic with the same 3-char ICD base.
   - **Match** → return the patient-scoped chronic Condition id
     (structural key `chronic-{patient_id}-{index:02d}`). Emitting a
     parallel encounter-primary Condition would duplicate the row and
     drift ICD granularity (e.g. I50 vs I50.9).
   - **No match** → return the encounter-scoped id (structural key
     `{encounter_id}-primary`).
+  - De-duplication in `_build_conditions` is by the full emitted
+    (country-mapped) code, not the 3-char category (Issue #3333): E11.9,
+    E11.311 and E11.42 on one patient are three Conditions; two source
+    codes that map to one emitted code (JP) are one Condition.
   - Ids are opaque (Issue #854): `cond-` + 12 hex chars of
     sha256(structural key), via `_resolve_condition_id`.
   - Every downstream builder that references the encounter's

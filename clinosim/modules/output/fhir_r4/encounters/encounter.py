@@ -22,9 +22,11 @@ from clinosim.locale.loader import map_diagnosis_code, vocab_display
 from clinosim.locale.localized import localized_field
 from clinosim.modules.diagnosis.nonspecific_codes import is_never_principal_dx, is_visit_reason_zcode
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
+    chronic_condition_id,
     encounter_admission_condition_id,
     needs_admission_diagnosis_condition,
     primary_condition_ref_from_codes,
+    primary_merges_into_chronic,
 )
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
@@ -431,35 +433,29 @@ def _set_diagnoses(
         # with `use=CM` (Comorbidity, from HL7 diagnosis-role valueset) and
         # rank 2..N. References the patient-scoped chronic Condition ids
         # emitted by _fhir_conditions (`cond-chronic-{patient}-{i:02d}`).
-        # De-dupe when the chronic base matches the primary dx (already
-        # emitted as rank=1).
+        # De-dupe when the chronic Condition is the one the primary dx already
+        # resolved to (rank=1), and when an earlier chronic emits the same
+        # code (the builder keeps one Condition per emitted code).
         if chronic_condition_codes:
-            _primary_base = primary_dx_code.split(".")[0] if primary_dx_code else ""
-            _emitted_bases: set[str] = set()
+            _emitted_codes: set[str] = set()
             _rank = 2
             for _i, _ccode in enumerate(chronic_condition_codes):
                 if not _ccode:
                     continue
-                _base = _ccode.split(".")[0]
-                if _base == _primary_base:
+                _emitted_code = map_diagnosis_code(_ccode, country, sex=patient_sex) or _ccode
+                if chronic_condition_id(patient_id, _i) == _dd_ref:
+                    _emitted_codes.add(_emitted_code)
                     continue  # already emitted as primary rank=1
-                # Phase 3 longitudinal (Issue #1697): sub-code chronics
-                # (e.g. E11.21 nephropathy alongside E11.9 base DM) share
-                # a base with another chronic; the sibling conditions
-                # builder dedups emission by base so only one Condition
-                # exists per base. Skip the comorbidity ref for any
-                # already-seen base to avoid a dangling Condition
-                # reference. Clinical sub-code specificity is preserved
-                # at the CIF/activator layer and in the chronic
-                # Condition.stage / problem-list entry.
-                if _base in _emitted_bases:
+                # Issue #3333: chronic codes that share an ICD-10 category
+                # (E11.9 / E11.311 / E11.42) are distinct problem-list
+                # Conditions, so only an identical emitted code is skipped to
+                # avoid a duplicate diagnosis[] entry for one Condition.
+                if _emitted_code in _emitted_codes:
                     continue
-                _emitted_bases.add(_base)
+                _emitted_codes.add(_emitted_code)
                 # Issue #854 Bucket B (PR-condition): route through the
                 # shared resolver so this reference stays byte-consistent
                 # with the chronic Condition emit.
-                from clinosim.modules.output.fhir_r4.conditions.primary_ref import chronic_condition_id
-
                 diagnosis_list.append(
                     {
                         "condition": {
@@ -499,7 +495,12 @@ def _set_diagnoses(
         # admission Condition, causing a dangling reference.
         if not _admit_dx_is_visit_reason and (
             needs_admission_diagnosis_condition(admit_dx_code, primary_dx_code, chronic_condition_codes)
-            and needs_admission_diagnosis_condition(_mapped_admit, _mapped_primary, _mapped_chronics)
+            and needs_admission_diagnosis_condition(
+                _mapped_admit,
+                _mapped_primary,
+                _mapped_chronics,
+                primary_merged=primary_merges_into_chronic(primary_dx_code, chronic_condition_codes),
+            )
         ):
             diagnosis_list.append(
                 {
