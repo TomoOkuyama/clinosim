@@ -3857,7 +3857,8 @@
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
-        "encounter.triage_data"
+        "encounter.triage_data",
+        "ctx.vitals[0]"
       ],
       "generated_at": "2024-06-15T00:31:00+09:00",
       "generator": "llm-mock",
@@ -3866,7 +3867,7 @@
         "lang": "ja"
       },
       "sections": {},
-      "text": "トリアージレベル: JTAS レベル2\n来院形態: 救急車搬送\n主訴: 発熱・意識変容・低血圧"
+      "text": "トリアージレベル: JTAS レベル2\n来院形態: 救急車搬送\n主訴: 発熱・意識変容・低血圧\nトリアージ時バイタルサイン: BP 105/66 mmHg, HR 117/min, T 39.9°C, SpO2 89% (RA), RR 19/min, 疼痛 NRS 4/10"
     }
   }
 }

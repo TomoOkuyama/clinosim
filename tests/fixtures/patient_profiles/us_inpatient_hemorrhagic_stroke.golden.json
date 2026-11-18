@@ -1099,7 +1099,8 @@
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
-        "encounter.triage_data"
+        "encounter.triage_data",
+        "ctx.vitals[0]"
       ],
       "generated_at": "2024-06-15T02:16:00Z",
       "generator": "template",
@@ -1108,7 +1109,7 @@
         "lang": "en"
       },
       "sections": {},
-      "text": "Triage level: ESI Level 2\nArrival mode: Ambulance\nChief complaint: Sudden severe headache, vomiting, altered consciousness"
+      "text": "Triage level: ESI Level 2\nArrival mode: Ambulance\nChief complaint: Sudden severe headache, vomiting, altered consciousness\nTriage vital signs: BP 131/74 mmHg, HR 96/min, T 36.3°C, SpO2 94% (RA), RR 18/min, pain 4/10"
     }
   }
 }

@@ -487,7 +487,8 @@
     "encounter_id": "ENC-FORCED-0001-710895237827",
     "narrative": {
       "facts_used": [
-        "encounter.triage_data"
+        "encounter.triage_data",
+        "ctx.vitals[0]"
       ],
       "generated_at": "2024-06-15T02:16:00Z",
       "generator": "template",
@@ -496,7 +497,7 @@
         "lang": "en"
       },
       "sections": {},
-      "text": "Triage level: ESI Level 1\nArrival mode: Helicopter/air transport\nChief complaint: Nausea, vomiting, abdominal pain, polyuria, altered consciousness"
+      "text": "Triage level: ESI Level 1\nArrival mode: Helicopter/air transport\nChief complaint: Nausea, vomiting, abdominal pain, polyuria, altered consciousness\nTriage vital signs: BP 105/69 mmHg, HR 125/min, T 36.1°C, SpO2 100% (RA), RR 21/min, pain 1/10"
     }
   }
 }
