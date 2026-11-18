@@ -70,6 +70,11 @@ def render_ed_triage_note(ctx: NarrativeContext, spec: DocumentTypeSpec) -> Narr
     if vitals:
         facts.append("ctx.vitals[0]")
         lines.append(t("triage_note.vitals_line", lang, vitals=vitals))
+    from clinosim.modules.document.narrative.renderers.section_builders.patient_history import allergy_text
+
+    allergies, _ = allergy_text(ctx)
+    facts.append("ctx.allergies")
+    lines.append(t("triage_note.allergies_line", lang, list=allergies))
     raw_text = "\n".join(lines)
 
     return NarrativeOutput(

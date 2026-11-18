@@ -1886,6 +1886,7 @@
         "ctx.encounter.chief_complaint",
         "ctx.patient.chronic_conditions",
         "encounter.triage_data",
+        "ctx.allergies",
         "ctx.vitals[0]",
         "physical_exam_findings.dip_then_recovery.day_0",
         "encounter.chief_complaint:pe_respiratory",
@@ -1907,7 +1908,7 @@
         "ed_workup": "検査: CBC (全血球算定)、CRP、PCT、クレアチニン、BUN、Na、K、血糖。画像: 胸部レントゲン (正面・側面)、胸部 CT。投薬: サルブタモール、イプラトロピウム、プレドニゾロン、ステロイド: プレドニゾロン 40mg 経口 1日1回 x5 日間、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）。処置指示: 気管支拡張薬: サルブタモール 2.5mg ネブライザー 4時間毎 (急性期は1時間毎に頓用)、気管支拡張薬: イプラトロピウム 0.5mg ネブライザー 6時間毎",
         "hpi": "[Mock LLM response #18 — hpi]",
         "physical_exam": "来院時所見: BP 126/79 mmHg, HR 86 回/分, RR 28 回/分, SpO2 81%, T 37.1°C。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし。",
-        "triage_details": "トリアージレベル: JTAS レベル2。来院形態: 救急車搬送。"
+        "triage_details": "トリアージレベル: JTAS レベル2。来院形態: 救急車搬送。アレルギー: 薬物アレルギーなし（NKDA）。"
       },
       "text": ""
     }
@@ -1918,7 +1919,8 @@
     "narrative": {
       "facts_used": [
         "encounter.triage_data",
-        "ctx.vitals[0]"
+        "ctx.vitals[0]",
+        "ctx.allergies"
       ],
       "generated_at": "2024-06-15T10:01:00+09:00",
       "generator": "llm-mock",
@@ -1927,7 +1929,7 @@
         "lang": "ja"
       },
       "sections": {},
-      "text": "トリアージレベル: JTAS レベル2\n来院形態: 救急車搬送\n主訴: 呼吸困難増悪・喀痰増加・喘鳴\nトリアージ時バイタルサイン: BP 126/79 mmHg, HR 86/min, T 37.1°C, SpO2 81% (RA), RR 28/min, 疼痛 NRS 4/10"
+      "text": "トリアージレベル: JTAS レベル2\n来院形態: 救急車搬送\n主訴: 呼吸困難増悪・喀痰増加・喘鳴\nトリアージ時バイタルサイン: BP 126/79 mmHg, HR 86/min, T 37.1°C, SpO2 81% (RA), RR 28/min, 疼痛 NRS 4/10\nアレルギー: 薬物アレルギーなし（NKDA）"
     }
   }
 }

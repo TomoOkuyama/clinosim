@@ -262,7 +262,12 @@ def build_triage_details(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
         level_text = t("control_status.not_assessed", lang)
 
     mode_display = arrival_display or t("triage_details.arrival_unknown", lang)
-    return t("triage_details.line", lang, level=level_text, mode=mode_display), facts
+    from clinosim.modules.document.narrative.renderers.section_builders.patient_history import allergy_text
+
+    allergies, _ = allergy_text(ctx)
+    facts.append("ctx.allergies")
+    line = t("triage_details.line", lang, level=level_text, mode=mode_display)
+    return line + t("triage_details.allergies", lang, list=allergies), facts
 
 
 @section("physical_exam")
@@ -710,7 +715,7 @@ def build_ed_disposition(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
 def _discharge_prescription_text(ctx: NarrativeContext, lang: str) -> str:
     """The take-home prescription of the ED visit, one entry per drug with its
     dose, in the note language (Issue #3244); ``""`` when none was written."""
-    from clinosim.locale.free_text import localize_drug_name
+    from clinosim.locale.free_text import _localize_dosage_terms, localize_drug_name
 
     names: list[str] = []
     seen: set[str] = set()
@@ -721,8 +726,17 @@ def _discharge_prescription_text(ctx: NarrativeContext, lang: str) -> str:
         seen.add(drug.casefold())
         shown = localize_drug_name(drug, lang) or drug
         dose = str(localized_field(med, "dose", lang) or _o(med, "dose", "") or "").strip()
+        bits = [shown]
         # The strength is often part of the drug name already ("Ibuprofen 600mg").
-        names.append(f"{shown} {dose}" if dose and dose not in drug else shown)
+        if dose and dose not in drug:
+            bits.append(dose)
+        frequency = str(_o(med, "rx_frequency", "") or "")
+        if frequency:
+            bits.append(_localize_dosage_terms(frequency, lang))
+        days = _o(med, "rx_duration_days", None)
+        if days:
+            bits.append(t("prescription.days_supply_suffix", lang, days=days))
+        names.append(" ".join(bits))
     return t("list_sep.serial", lang).join(names)
 
 

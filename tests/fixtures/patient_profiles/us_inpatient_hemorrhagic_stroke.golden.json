@@ -1070,6 +1070,7 @@
         "ctx.encounter.chief_complaint",
         "disease_protocol.narrative.hpi_template.onset_type.acute",
         "encounter.triage_data",
+        "ctx.allergies",
         "ctx.vitals[0]",
         "ctx.orders.ed",
         "ctx.diagnoses.admission_diagnosis_code",
@@ -1089,7 +1090,7 @@
         "ed_workup": "Labs: PT-INR, APTT, fibrinogen, creatinine, BUN, Na, K, glucose. Imaging: CT head (non-contrast), head CT angiography, head CT (without contrast). Medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h",
         "hpi": "Symptoms began suddenly and worsened rapidly; brought in by ambulance.",
         "physical_exam": "On arrival: BP 131/74 mmHg, HR 96 bpm, RR 18 /min, SpO2 94%, T 36.3°C.",
-        "triage_details": "Triage level: ESI Level 2. Arrival mode: Ambulance."
+        "triage_details": "Triage level: ESI Level 2. Arrival mode: Ambulance. Allergies: No known drug allergies (NKDA)."
       },
       "text": ""
     }
@@ -1100,7 +1101,8 @@
     "narrative": {
       "facts_used": [
         "encounter.triage_data",
-        "ctx.vitals[0]"
+        "ctx.vitals[0]",
+        "ctx.allergies"
       ],
       "generated_at": "2024-06-15T02:16:00Z",
       "generator": "template",
@@ -1109,7 +1111,7 @@
         "lang": "en"
       },
       "sections": {},
-      "text": "Triage level: ESI Level 2\nArrival mode: Ambulance\nChief complaint: Sudden severe headache, vomiting, altered consciousness\nTriage vital signs: BP 131/74 mmHg, HR 96/min, T 36.3°C, SpO2 94% (RA), RR 18/min, pain 4/10"
+      "text": "Triage level: ESI Level 2\nArrival mode: Ambulance\nChief complaint: Sudden severe headache, vomiting, altered consciousness\nTriage vital signs: BP 131/74 mmHg, HR 96/min, T 36.3°C, SpO2 94% (RA), RR 18/min, pain 4/10\nAllergies: No known drug allergies (NKDA)"
     }
   }
 }

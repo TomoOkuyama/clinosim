@@ -135,7 +135,14 @@ def build_medications_at_home(generator: TemplateNarrativeGenerator, ctx: Narrat
 
 @section("allergies")
 def build_allergies(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
-    """Build allergies section from ctx.allergies.
+    """Build allergies section from ctx.allergies (see :func:`allergy_text`)."""
+    return allergy_text(ctx)
+
+
+def allergy_text(ctx: NarrativeContext) -> tuple[str, list[str]]:
+    """The patient's allergies in the note language: each allergen with its
+    criticality, or the no-known-allergies phrase. Also read by the ED notes
+    (Issue #3244).
 
     Resolves display via code_lookup ( — CIF stores allergen_code
     only, not display text; this mirrors build_discharge_diagnoses'
@@ -144,7 +151,7 @@ def build_allergies(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
     facts: list[str] = []
     lang = ctx.target_lang
 
-    allergies = ctx.allergies or []
+    allergies = getattr(ctx, "allergies", None) or []
     if not allergies:
         return t("fallback.nkda", lang), facts
 

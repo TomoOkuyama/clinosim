@@ -3827,6 +3827,7 @@
         "ctx.encounter.chief_complaint",
         "ctx.patient.chronic_conditions",
         "encounter.triage_data",
+        "ctx.allergies",
         "ctx.vitals[0]",
         "physical_exam_findings.dip_then_recovery.day_0",
         "ctx.orders.ed",
@@ -3847,7 +3848,7 @@
         "ed_workup": "検査: CBC (全血球算定)、LFT (肝機能パネル)、血液培養 (セット 1)、血液培養 (セット 2)、乳酸、CRP、PCT、クレアチニン。画像: 胸部レントゲン (正面・側面)、腹部・骨盤 CT、胸部レントゲン (臥位正面)。投薬: メロペネム、バンコマイシン、輸液: 乳酸リンゲル液 30 mL/kg ボーラス 以内 3 時間、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）",
         "hpi": "[Mock LLM response #34 — hpi]",
         "physical_exam": "来院時所見: BP 105/66 mmHg, HR 117 回/分, RR 19 回/分, SpO2 89%, T 39.9°C。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし。",
-        "triage_details": "トリアージレベル: JTAS レベル2。来院形態: 救急車搬送。"
+        "triage_details": "トリアージレベル: JTAS レベル2。来院形態: 救急車搬送。アレルギー: 薬物アレルギーなし（NKDA）。"
       },
       "text": ""
     }
@@ -3858,7 +3859,8 @@
     "narrative": {
       "facts_used": [
         "encounter.triage_data",
-        "ctx.vitals[0]"
+        "ctx.vitals[0]",
+        "ctx.allergies"
       ],
       "generated_at": "2024-06-15T00:31:00+09:00",
       "generator": "llm-mock",
@@ -3867,7 +3869,7 @@
         "lang": "ja"
       },
       "sections": {},
-      "text": "トリアージレベル: JTAS レベル2\n来院形態: 救急車搬送\n主訴: 発熱・意識変容・低血圧\nトリアージ時バイタルサイン: BP 105/66 mmHg, HR 117/min, T 39.9°C, SpO2 89% (RA), RR 19/min, 疼痛 NRS 4/10"
+      "text": "トリアージレベル: JTAS レベル2\n来院形態: 救急車搬送\n主訴: 発熱・意識変容・低血圧\nトリアージ時バイタルサイン: BP 105/66 mmHg, HR 117/min, T 39.9°C, SpO2 89% (RA), RR 19/min, 疼痛 NRS 4/10\nアレルギー: 薬物アレルギーなし（NKDA）"
     }
   }
 }
