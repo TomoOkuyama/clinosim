@@ -10,7 +10,8 @@
    reference-range flag 付与。`generate_lab_result` は各 simulator
    が lab `OrderResult` を組み立てる前に呼ぶ共通の値生成ステップ
    (variability + rounding、qualitative test は categorical draw)。
-   H / L / critical flag は `determine_flag` が付与。`reference_range_lab.yaml`
+   H / L / critical flag は `determine_flag` が付与 (`panic_thresholds` の上限値以上、
+   または下限値未満は critical。K 6.5 mmol/L 以上など、#3334)。`reference_range_lab.yaml`
    の `therapeutic_ranges` に載っている薬 (ワルファリン服用中の INR) を服用中の
    患者は、その治療域で判定する (`therapeutic_range`、#2205)。
 2. **看護 flowsheet 観測** (`nursing.py` + `nursing_enricher.py`)

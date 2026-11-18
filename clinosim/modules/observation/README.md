@@ -12,7 +12,8 @@ Owns three related emission-layer concerns for observed clinical data:
    value-generation step (variability + rounding, or a categorical
    draw for qualitative tests) the simulators call before building
    a lab `OrderResult`; `determine_flag` assigns the H / L /
-   critical flag. A patient on a drug listed under `therapeutic_ranges`
+   critical flag (a result at or above a `panic_thresholds` high cut-off,
+   or below a low one, is critical: K >= 6.5 mmol/L, #3334). A patient on a drug listed under `therapeutic_ranges`
    in `reference_range_lab.yaml` (INR on warfarin) is judged against that
    therapeutic range instead (`therapeutic_range`, #2205).
 2. **Nursing flowsheet observations** (`nursing.py` +

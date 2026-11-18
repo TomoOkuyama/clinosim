@@ -151,7 +151,7 @@ def panic_side(lab_name: str, value: Any) -> str | None:
     low, high = limits
     if low is not None and value < low:
         return "low"
-    if high is not None and value > high:
+    if high is not None and value >= high:
         return "high"
     return None
 
@@ -398,7 +398,9 @@ def determine_flag(
 
     Panic / critical thresholds (:data:`_PANIC_THRESHOLDS`, from
     ``lab_constants.yaml``) are safety-critical absolute cutoffs shared across
-    locales.
+    locales. A high cut-off is the lowest critical value (a result at it is
+    critical, K 6.5 mmol/L = "severe" hyperkalaemia); a low cut-off is the
+    highest non-critical value (critical only below it).
 
     Qualitative results (``value: str`` from ``generate_lab_result`` for
     Urinalysis / Rapid_Strep / etc.) return ``None`` (unflagged) — they have
@@ -429,7 +431,7 @@ def determine_flag(
         p_lo, p_hi = _PANIC_THRESHOLDS[lab_name]
         if p_lo is not None and value < p_lo:
             return "critical"
-        if p_hi is not None and value > p_hi:
+        if p_hi is not None and value >= p_hi:
             return "critical"
 
     if value < low:
