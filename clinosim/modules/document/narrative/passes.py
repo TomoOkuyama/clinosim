@@ -50,6 +50,9 @@ from clinosim.types.document import NarrativeContext, NarrativeGenerator, Narrat
 
 logger = logging.getLogger(__name__)
 
+# Documents that cite the latest earlier lab of a chronic problem (Issue #3273).
+_PRIOR_LAB_DOCUMENTS = frozenset({"outpatient_soap", "admission_hp"})
+
 
 def _naive(value: Any) -> datetime | None:
     """``parse_iso_datetime`` with the tzinfo dropped, so mixed values compare."""
@@ -266,6 +269,15 @@ class NarrativePass(ABC):
             # (e.g. the 3 daily_3shift stubs for one hospital day).
             ctx_cache: dict[tuple[str, str, str], Any] = {}
             results: list[dict[str, Any]] = []
+            prior_labs: list[list[Any]] = []
+
+            def _prior_labs() -> list[Any]:
+                # Issue #3273: the lab results of the patient's other
+                # encounters, read once per patient and only for a document
+                # that cites a stage.
+                if not prior_labs:
+                    prior_labs.append(self._patient_prior_labs(structural_dir, pf))
+                return prior_labs[0]
 
             for spec, language in iter_specs_x_lang:
                 if not self._spec_applies(spec, patient_dict):
@@ -282,6 +294,8 @@ class NarrativePass(ABC):
                     _cached = ctx_cache.get(cache_key)
                     if _cached is None:
                         _cached = self._build_context(patient_dict, enc, _spec, _lang)
+                        if _spec.type_key in _PRIOR_LAB_DOCUMENTS:
+                            _cached.prior_lab_results = _prior_labs()
                         ctx_cache[cache_key] = _cached
                     return _cached, enc, enc_id
 
@@ -630,6 +644,23 @@ class NarrativePass(ABC):
         if spec.format_type.value == "composition":
             ctx.section_facts = extract_for_composition(ctx, spec)
         return ctx
+
+    def _patient_prior_labs(self, structural_dir: str, own_file: str) -> list[Any]:
+        """The lab results (country reporting unit) of the patient's other
+        structural records: the files sharing ``own_file``'s ``ENC-<patient>``
+        prefix. Issue #3273."""
+        prefix = own_file.rsplit("-", 1)[0] + "-"
+        labs: list[Any] = []
+        for name in sorted(os.listdir(structural_dir)):
+            if name == own_file or not name.startswith(prefix) or not name.endswith(".json"):
+                continue
+            try:
+                with open(os.path.join(structural_dir, name), encoding="utf-8") as f:
+                    other = json.load(f)
+            except (OSError, ValueError):
+                continue
+            labs.extend(other.get("lab_results") or [])
+        return list(reported_lab_results(labs, self.country))
 
     @staticmethod
     def _parse_rehab_sessions(raw: list[Any]) -> list[Any]:

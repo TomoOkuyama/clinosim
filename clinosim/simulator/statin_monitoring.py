@@ -50,6 +50,9 @@ _DOSE_MG = re.compile(r"^\s*(\d+(?:\.\d+)?)\s*mg\b", re.IGNORECASE)
 
 
 LdlTargetTier = Literal["secondary_prevention", "high_risk_primary_prevention", "primary_prevention"]
+# The risk group of a US step-up threshold (2018 ACC/AHA): no LDL target, a
+# decision threshold (Issue #3272).
+LdlThresholdBasis = Literal["clinical_ascvd", "severe_hypercholesterolemia"]
 
 
 class _StepUpRule(BaseModel):
@@ -58,6 +61,13 @@ class _StepUpRule(BaseModel):
     value_set: str | None = None
     ldl_mg_dl: float = Field(gt=0)
     tier: LdlTargetTier | None = None
+    basis: LdlThresholdBasis | None = None
+
+    @model_validator(mode="after")
+    def _one_kind(self) -> _StepUpRule:
+        if self.tier is not None and self.basis is not None:
+            raise ValueError("a step-up rule has a tier (target) or a basis (threshold), not both")
+        return self
 
 
 class _CountryRules(BaseModel):
@@ -180,6 +190,18 @@ def ldl_target(patient: Any, country: str) -> tuple[float, LdlTargetTier] | None
     if rule is None or rule.tier is None:
         return None
     return rule.ldl_mg_dl, rule.tier
+
+
+def ldl_risk_threshold(patient: Any, country: str) -> tuple[float, LdlThresholdBasis] | None:
+    """The risk-based LDL decision threshold (mg/dL) the patient's note states,
+    with its risk group: the step-up threshold that applies to them, when the
+    country's rules are threshold-based (a rule with a ``basis``, the US);
+    ``None`` otherwise (a country with LDL targets, or without rules)."""
+    rules = statin_monitoring_rules().countries.get(country.upper())
+    rule = _first_matching_rule(patient, rules.step_up_ldl) if rules is not None else None
+    if rule is None or rule.basis is None:
+        return None
+    return rule.ldl_mg_dl, rule.basis
 
 
 def step_up_ldl(patient: Any, country: str) -> float | None:

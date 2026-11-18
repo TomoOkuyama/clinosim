@@ -1169,6 +1169,57 @@ chronic_monitoring:
 # per-condition target + medication-continuation tail and the
 # non-condition-specific measurement fallback.
 # Placeholders: {sbp}/{dbp}/{ldl}/{med}/{joined}/{label}.
+# Results and medications of the outpatient SOAP (Issues #3231, #3250, #3273):
+# flagged lab results, screening scores, the plan lines they call for, the
+# difference of today's prescription from the medications at the start of the
+# visit, and the date of a result taken from an earlier visit.
+outpatient_results:
+  measured_on:
+    ja: "（{date} 測定）"
+    en: " (measured {date})"
+  abnormal_labs:
+    ja: "本日の異常値: {list}。"
+    en: "Abnormal results this visit: {list}."
+  plan_abnormal_labs:
+    ja: "上記の異常値は再検し、原因を評価する。"
+    en: "Recheck the abnormal results above and evaluate the cause."
+  objective_labs:
+    ja: "異常値: {list}。"
+    en: "Flagged results: {list}."
+  screening_scores:
+    ja: "スクリーニングスコア: {list}。"
+    en: "Screening scores: {list}."
+  objective_scores:
+    ja: "スクリーニングスコア: {list}。"
+    en: "Screening scores: {list}."
+  positive_screen:
+    ja: "（陽性）"
+    en: "(positive screen)"
+  follow_up_suicide_risk:
+    ja: "C-SSRS 陽性: 自殺リスクの評価と安全計画の作成を行い、危機相談窓口の情報を提供する。"
+    en: "Positive C-SSRS screen: complete a suicide risk assessment and a safety plan, and provide crisis resources."
+  plan_bp_above_target:
+    ja: "血圧が目標を上回る: 家庭血圧を確認し、高値が続く場合は降圧薬の調整を検討する。"
+    en: "Blood pressure above target: review home readings and adjust antihypertensive therapy if it stays above target."
+  plan_doac_renal_check:
+    ja: "DOAC 用量確認のため、血清クレアチニン・eGFR と血算を測定する。"
+    en: "Check serum creatinine, eGFR and blood count for DOAC dosing."
+  med_changes:
+    ja: "来院時の内服との差異: {parts}。"
+    en: "Compared with the medications at the start of the visit: {parts}."
+  med_started:
+    ja: "開始 {list}"
+    en: "started {list}"
+  med_changed:
+    ja: "用量変更 {list}"
+    en: "dose changed {list}"
+  med_not_renewed:
+    ja: "本日の処方なし {list}"
+    en: "not on today's prescription {list}"
+  med_unchanged:
+    ja: "来院時の内服から処方の変更なし。"
+    en: "Prescription unchanged from the medications at the start of the visit."
+
 chronic_assessment:
   bp_target:
     ja: "目標 {sbp}/{dbp} mmHg 未満"
@@ -1183,6 +1234,20 @@ chronic_assessment:
   ldl_target_primary_prevention:
     ja: "目標 {ldl} mg/dL 未満 (一次予防)"
     en: "target < {ldl} mg/dL (primary prevention)"
+  # Issue #3272: the LDL against the risk-based decision threshold of a
+  # country whose guideline sets no LDL target (statin_monitoring.yaml `basis`).
+  ldl_threshold_above_clinical_ascvd:
+    ja: "臨床的 ASCVD の閾値 {ldl} mg/dL 以上、スタチン強化または非スタチン併用の適応"
+    en: "above the {ldl} mg/dL threshold for clinical ASCVD; statin intensification or a non-statin add-on indicated"
+  ldl_threshold_below_clinical_ascvd:
+    ja: "臨床的 ASCVD の閾値 {ldl} mg/dL 未満"
+    en: "below the {ldl} mg/dL threshold for clinical ASCVD"
+  ldl_threshold_above_severe_hypercholesterolemia:
+    ja: "高度高コレステロール血症の閾値 {ldl} mg/dL 以上、高強度スタチンの適応"
+    en: "above the {ldl} mg/dL threshold for severe hypercholesterolemia; high-intensity statin indicated"
+  ldl_threshold_below_severe_hypercholesterolemia:
+    ja: "高度高コレステロール血症の閾値 {ldl} mg/dL 未満"
+    en: "below the {ldl} mg/dL threshold for severe hypercholesterolemia"
   inr_target_standard:
     ja: "目標 2.0-3.0"
     en: "target 2.0-3.0"
@@ -1190,6 +1255,10 @@ chronic_assessment:
   doac_renal_bleeding_review:
     ja: "DOAC 用量に関わる腎機能・出血徴候を確認"
     en: "renal function and bleeding reviewed for DOAC dosing"
+  # Issue #3231: no renal result is available, so the review is not claimed.
+  doac_renal_to_check:
+    ja: "DOAC 用量に関わる腎機能は未測定、測定予定"
+    en: "renal function for DOAC dosing not yet measured, to be checked"
   med_continue_tail:
     ja: "、{med} 継続"
     en: "; {med} continue"
@@ -1205,6 +1274,11 @@ chronic_assessment:
   chronic_stage_stable:
     ja: "{label}（{stage}）、本日は増悪所見なく、現行管理継続。"
     en: "{label} ({stage}); management continued, no acute change this visit."
+  # Issue #3273: a stored stage that is an HbA1c above target is not "no
+  # acute change".
+  chronic_stage_above_target:
+    ja: "{label}（{stage}）、目標を上回る、治療内容を見直す。"
+    en: "{label} ({stage}); above target, treatment review planned."
   # Issue #3253: a staged condition whose follow-up names a medication class
   # (chronic_followup.yaml `medication_class`) the patient does not take.
   chronic_stage_untreated:
