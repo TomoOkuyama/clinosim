@@ -230,6 +230,7 @@ from clinosim.modules.physiology._state_coupling_thresholds import (
     PH_RENAL_ACID_RENAL_THRESHOLD,
     PRERENAL_HIT_PERFUSION_SCALE,
     PRERENAL_HIT_PERFUSION_THRESHOLD,
+    PRERENAL_RECOVERY_FRACTION,
     RENAL_FUNCTION_FLOOR,
     VOLUME_HYPERVOLEMIA_CARDIAC_DYSFUNCTION_THRESHOLD,
     VOLUME_HYPERVOLEMIA_PERFUSION_PENALTY,
@@ -617,9 +618,20 @@ def apply_coupling_rules(state: PhysiologicalState) -> None:
     )
 
     # Renal depends on perfusion (pre-renal)
-    if state.perfusion_status < PRERENAL_HIT_PERFUSION_THRESHOLD:
-        hit = (PRERENAL_HIT_PERFUSION_THRESHOLD - state.perfusion_status) * PRERENAL_HIT_PERFUSION_SCALE
-        state.renal_function = clamp(state.renal_function - hit, RENAL_FUNCTION_FLOOR, 1.0)
+    # Issue #3355: the pre-renal loss follows the CURRENT perfusion deficit — it
+    # deepens at once and resolves over days once perfusion recovers — instead
+    # of being subtracted again at every call. Intrinsic injury is the rest of
+    # ``renal_function`` and recovers at the course archetype's rate. The loss
+    # already taken is ``state.prerenal_loss``; at a constant deficit a call
+    # changes nothing.
+    deficit_loss = max(0.0, PRERENAL_HIT_PERFUSION_THRESHOLD - state.perfusion_status) * PRERENAL_HIT_PERFUSION_SCALE
+    held = state.prerenal_loss
+    new_loss = deficit_loss if deficit_loss >= held else held - (held - deficit_loss) * PRERENAL_RECOVERY_FRACTION
+    if new_loss != held:
+        before = state.renal_function
+        state.renal_function = clamp(before + held - new_loss, RENAL_FUNCTION_FLOOR, 1.0)
+        # Only the loss actually taken (the floor may cap it) can be restored.
+        state.prerenal_loss = max(0.0, held + before - state.renal_function)
 
     # pH depends on renal + perfusion
     renal_acid = 0.0
