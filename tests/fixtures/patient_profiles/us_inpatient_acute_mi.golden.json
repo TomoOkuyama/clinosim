@@ -133,11 +133,11 @@
       },
       "sections": {
         "assessment": "Notable labs (past 24 h): troponin I 97.882 ng/mL [H] (prior 68.499; troponin elevation), BUN 20.1 mg/dL [H], glucose 119 mg/dL [H], CK-MB 58.5 ng/mL [H], +3 other abnormal.",
-        "objective": "BP 117/73 mmHg, HR 106 bpm, RR 22 /min, SpO2 99% (RA), T 37.7°C, weaned off supplemental O2 (past 24 h: Tmax 39.2°C, HR max 117 bpm, SpO2 min 92%)",
+        "objective": "BP 117/73 mmHg, HR 107 bpm, RR 22 /min, SpO2 99% (RA), T 37.7°C, weaned off supplemental O2 (past 24 h: Tmax 39.2°C, HR max 117 bpm, SpO2 min 92%)",
         "plan": "Continue current medications: Heparin, Nitroglycerin. Given once: Aspirin, Ticagrelor.",
         "subjective": "Hospital day 2. New-onset fever 39.2°C. Persistent chest pain (NRS 6). Level of consciousness remains decreased (AVPU V)."
       },
-      "text": "S: Hospital day 2. New-onset fever 39.2°C. Persistent chest pain (NRS 6). Level of consciousness remains decreased (AVPU V).\nO: BP 117/73 mmHg, HR 106 bpm, RR 22 /min, SpO2 99% (RA), T 37.7°C, weaned off supplemental O2 (past 24 h: Tmax 39.2°C, HR max 117 bpm, SpO2 min 92%)\nA: Notable labs (past 24 h): troponin I 97.882 ng/mL [H] (prior 68.499; troponin elevation), BUN 20.1 mg/dL [H], glucose 119 mg/dL [H], CK-MB 58.5 ng/mL [H], +3 other abnormal.\nP: Continue current medications: Heparin, Nitroglycerin. Given once: Aspirin, Ticagrelor."
+      "text": "S: Hospital day 2. New-onset fever 39.2°C. Persistent chest pain (NRS 6). Level of consciousness remains decreased (AVPU V).\nO: BP 117/73 mmHg, HR 107 bpm, RR 22 /min, SpO2 99% (RA), T 37.7°C, weaned off supplemental O2 (past 24 h: Tmax 39.2°C, HR max 117 bpm, SpO2 min 92%)\nA: Notable labs (past 24 h): troponin I 97.882 ng/mL [H] (prior 68.499; troponin elevation), BUN 20.1 mg/dL [H], glucose 119 mg/dL [H], CK-MB 58.5 ng/mL [H], +3 other abnormal.\nP: Continue current medications: Heparin, Nitroglycerin. Given once: Aspirin, Ticagrelor."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-04": {
@@ -183,11 +183,11 @@
       },
       "sections": {
         "assessment": "Notable labs (past 24 h): troponin I 82.519 ng/mL [H] (prior 97.882; troponin elevation), glucose 118 mg/dL [H] (prior 119), CK-MB 42.4 ng/mL [H] (prior 58.5), BNP 107.4 pg/mL [H] (prior 104.5).",
-        "objective": "BP 113/68 mmHg, HR 106 bpm, RR 17 /min, SpO2 98% (RA), T 37.0°C, weaned off supplemental O2 (past 24 h: Tmax 39.1°C, HR max 117 bpm, RR max 23 /min, SpO2 min 92%)",
+        "objective": "BP 113/68 mmHg, HR 106 bpm, RR 17 /min, SpO2 98% (RA), T 37.0°C, weaned off supplemental O2 (past 24 h: Tmax 39.1°C, HR max 119 bpm, RR max 23 /min, SpO2 min 92%)",
         "plan": "Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor.",
         "subjective": "Hospital day 3. Persistent fever 39.1°C. Level of consciousness remains decreased (AVPU P)."
       },
-      "text": "S: Hospital day 3. Persistent fever 39.1°C. Level of consciousness remains decreased (AVPU P).\nO: BP 113/68 mmHg, HR 106 bpm, RR 17 /min, SpO2 98% (RA), T 37.0°C, weaned off supplemental O2 (past 24 h: Tmax 39.1°C, HR max 117 bpm, RR max 23 /min, SpO2 min 92%)\nA: Notable labs (past 24 h): troponin I 82.519 ng/mL [H] (prior 97.882; troponin elevation), glucose 118 mg/dL [H] (prior 119), CK-MB 42.4 ng/mL [H] (prior 58.5), BNP 107.4 pg/mL [H] (prior 104.5).\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor."
+      "text": "S: Hospital day 3. Persistent fever 39.1°C. Level of consciousness remains decreased (AVPU P).\nO: BP 113/68 mmHg, HR 106 bpm, RR 17 /min, SpO2 98% (RA), T 37.0°C, weaned off supplemental O2 (past 24 h: Tmax 39.1°C, HR max 119 bpm, RR max 23 /min, SpO2 min 92%)\nA: Notable labs (past 24 h): troponin I 82.519 ng/mL [H] (prior 97.882; troponin elevation), glucose 118 mg/dL [H] (prior 119), CK-MB 42.4 ng/mL [H] (prior 58.5), BNP 107.4 pg/mL [H] (prior 104.5).\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-05": {
@@ -233,11 +233,11 @@
       },
       "sections": {
         "assessment": "Notable labs (past 24 h): troponin I 75.914 ng/mL [H] (prior 82.519; troponin elevation), CK-MB 35.1 ng/mL [H] (prior 42.4), glucose 116 mg/dL [H] (prior 118).",
-        "objective": "BP 113/71 mmHg, HR 102 bpm, RR 20 /min, SpO2 96% (RA), T 37.5°C (past 24 h: Tmax 38.8°C, HR max 114 bpm, SpO2 min 92%)",
+        "objective": "BP 113/71 mmHg, HR 103 bpm, RR 20 /min, SpO2 96% (RA), T 37.5°C (past 24 h: Tmax 38.8°C, HR max 114 bpm, SpO2 min 92%)",
         "plan": "Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor.",
         "subjective": "Hospital day 4. Persistent fever 38.8°C. Level of consciousness remains decreased (AVPU P)."
       },
-      "text": "S: Hospital day 4. Persistent fever 38.8°C. Level of consciousness remains decreased (AVPU P).\nO: BP 113/71 mmHg, HR 102 bpm, RR 20 /min, SpO2 96% (RA), T 37.5°C (past 24 h: Tmax 38.8°C, HR max 114 bpm, SpO2 min 92%)\nA: Notable labs (past 24 h): troponin I 75.914 ng/mL [H] (prior 82.519; troponin elevation), CK-MB 35.1 ng/mL [H] (prior 42.4), glucose 116 mg/dL [H] (prior 118).\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor."
+      "text": "S: Hospital day 4. Persistent fever 38.8°C. Level of consciousness remains decreased (AVPU P).\nO: BP 113/71 mmHg, HR 103 bpm, RR 20 /min, SpO2 96% (RA), T 37.5°C (past 24 h: Tmax 38.8°C, HR max 114 bpm, SpO2 min 92%)\nA: Notable labs (past 24 h): troponin I 75.914 ng/mL [H] (prior 82.519; troponin elevation), CK-MB 35.1 ng/mL [H] (prior 42.4), glucose 116 mg/dL [H] (prior 118).\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-06": {
@@ -283,11 +283,11 @@
       },
       "sections": {
         "assessment": "Notable labs (past 24 h): troponin I 82.481 ng/mL [H] (prior 75.914; troponin elevation), creatinine 1.40 mg/dL [H] (prior 1.29), glucose 109 mg/dL [H] (prior 116), CK-MB 43.5 ng/mL [H] (prior 35.1).",
-        "objective": "BP 116/69 mmHg, HR 105 bpm, RR 19 /min, SpO2 94% (RA), T 36.6°C (past 24 h: Tmax 38.1°C, HR max 114 bpm, SpO2 min 93%)",
+        "objective": "BP 115/68 mmHg, HR 106 bpm, RR 19 /min, SpO2 94% (RA), T 36.6°C (past 24 h: Tmax 38.1°C, HR max 114 bpm, SpO2 min 93%)",
         "plan": "Started: Dobutamine 2ug/kg/min IV drip. Continue current medications: Heparin, Aspirin, Ticagrelor. Held: Nitroglycerin (on vasopressor or inotrope infusion).",
         "subjective": "Hospital day 5. Persistent fever 38.1°C. Level of consciousness remains decreased (AVPU P)."
       },
-      "text": "S: Hospital day 5. Persistent fever 38.1°C. Level of consciousness remains decreased (AVPU P).\nO: BP 116/69 mmHg, HR 105 bpm, RR 19 /min, SpO2 94% (RA), T 36.6°C (past 24 h: Tmax 38.1°C, HR max 114 bpm, SpO2 min 93%)\nA: Notable labs (past 24 h): troponin I 82.481 ng/mL [H] (prior 75.914; troponin elevation), creatinine 1.40 mg/dL [H] (prior 1.29), glucose 109 mg/dL [H] (prior 116), CK-MB 43.5 ng/mL [H] (prior 35.1).\nP: Started: Dobutamine 2ug/kg/min IV drip. Continue current medications: Heparin, Aspirin, Ticagrelor. Held: Nitroglycerin (on vasopressor or inotrope infusion)."
+      "text": "S: Hospital day 5. Persistent fever 38.1°C. Level of consciousness remains decreased (AVPU P).\nO: BP 115/68 mmHg, HR 106 bpm, RR 19 /min, SpO2 94% (RA), T 36.6°C (past 24 h: Tmax 38.1°C, HR max 114 bpm, SpO2 min 93%)\nA: Notable labs (past 24 h): troponin I 82.481 ng/mL [H] (prior 75.914; troponin elevation), creatinine 1.40 mg/dL [H] (prior 1.29), glucose 109 mg/dL [H] (prior 116), CK-MB 43.5 ng/mL [H] (prior 35.1).\nP: Started: Dobutamine 2ug/kg/min IV drip. Continue current medications: Heparin, Aspirin, Ticagrelor. Held: Nitroglycerin (on vasopressor or inotrope infusion)."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-07": {
@@ -333,11 +333,11 @@
       },
       "sections": {
         "assessment": "Notable labs (past 24 h): troponin I 76.194 ng/mL [H] (prior 82.481; troponin elevation), CK-MB 45.6 ng/mL [H] (prior 43.5), creatinine 1.61 mg/dL [H] (prior 1.40), glucose 107 mg/dL [H] (prior 109).",
-        "objective": "BP 113/71 mmHg, HR 103 bpm, RR 15 /min, SpO2 94% (RA), T 36.5°C, weaned off supplemental O2 (past 24 h: Tmax 38.1°C, HR max 112 bpm, SpO2 min 93%)",
+        "objective": "BP 113/70 mmHg, HR 104 bpm, RR 15 /min, SpO2 94% (RA), T 36.5°C, weaned off supplemental O2 (past 24 h: Tmax 38.1°C, HR max 113 bpm, SpO2 min 93%)",
         "plan": "Continue current medications: Dobutamine 2ug/kg/min IV drip, Heparin, Aspirin, Ticagrelor. Held: Nitroglycerin (on vasopressor or inotrope infusion).",
         "subjective": "Hospital day 6. Persistent fever 38.1°C. Level of consciousness remains decreased (AVPU V)."
       },
-      "text": "S: Hospital day 6. Persistent fever 38.1°C. Level of consciousness remains decreased (AVPU V).\nO: BP 113/71 mmHg, HR 103 bpm, RR 15 /min, SpO2 94% (RA), T 36.5°C, weaned off supplemental O2 (past 24 h: Tmax 38.1°C, HR max 112 bpm, SpO2 min 93%)\nA: Notable labs (past 24 h): troponin I 76.194 ng/mL [H] (prior 82.481; troponin elevation), CK-MB 45.6 ng/mL [H] (prior 43.5), creatinine 1.61 mg/dL [H] (prior 1.40), glucose 107 mg/dL [H] (prior 109).\nP: Continue current medications: Dobutamine 2ug/kg/min IV drip, Heparin, Aspirin, Ticagrelor. Held: Nitroglycerin (on vasopressor or inotrope infusion)."
+      "text": "S: Hospital day 6. Persistent fever 38.1°C. Level of consciousness remains decreased (AVPU V).\nO: BP 113/70 mmHg, HR 104 bpm, RR 15 /min, SpO2 94% (RA), T 36.5°C, weaned off supplemental O2 (past 24 h: Tmax 38.1°C, HR max 113 bpm, SpO2 min 93%)\nA: Notable labs (past 24 h): troponin I 76.194 ng/mL [H] (prior 82.481; troponin elevation), CK-MB 45.6 ng/mL [H] (prior 43.5), creatinine 1.61 mg/dL [H] (prior 1.40), glucose 107 mg/dL [H] (prior 109).\nP: Continue current medications: Dobutamine 2ug/kg/min IV drip, Heparin, Aspirin, Ticagrelor. Held: Nitroglycerin (on vasopressor or inotrope infusion)."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-08": {
@@ -383,11 +383,11 @@
       },
       "sections": {
         "assessment": "Notable labs (past 24 h): troponin I 87.134 ng/mL [H] (prior 78.826; troponin elevation), creatinine 1.87 mg/dL [H] (prior 1.61; AKI by KDIGO criteria), K 5.4 mmol/L [H] (prior 4.8), CK-MB 37.5 ng/mL [H] (prior 45.6), +1 other abnormal.",
-        "objective": "BP 118/70 mmHg, HR 102 bpm, RR 16 /min, SpO2 98% (RA), T 37.9°C (past 24 h: Tmax 38.9°C, HR max 112 bpm, SpO2 min 93%)",
+        "objective": "BP 118/70 mmHg, HR 104 bpm, RR 16 /min, SpO2 98% (RA), T 37.9°C (past 24 h: Tmax 38.9°C, HR max 113 bpm, SpO2 min 93%)",
         "plan": "Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor. Stopped: Dobutamine 2ug/kg/min IV drip.",
         "subjective": "Hospital day 7. Fever 38.9°C, worsening trend. Level of consciousness remains decreased (AVPU V)."
       },
-      "text": "S: Hospital day 7. Fever 38.9°C, worsening trend. Level of consciousness remains decreased (AVPU V).\nO: BP 118/70 mmHg, HR 102 bpm, RR 16 /min, SpO2 98% (RA), T 37.9°C (past 24 h: Tmax 38.9°C, HR max 112 bpm, SpO2 min 93%)\nA: Notable labs (past 24 h): troponin I 87.134 ng/mL [H] (prior 78.826; troponin elevation), creatinine 1.87 mg/dL [H] (prior 1.61; AKI by KDIGO criteria), K 5.4 mmol/L [H] (prior 4.8), CK-MB 37.5 ng/mL [H] (prior 45.6), +1 other abnormal.\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor. Stopped: Dobutamine 2ug/kg/min IV drip."
+      "text": "S: Hospital day 7. Fever 38.9°C, worsening trend. Level of consciousness remains decreased (AVPU V).\nO: BP 118/70 mmHg, HR 104 bpm, RR 16 /min, SpO2 98% (RA), T 37.9°C (past 24 h: Tmax 38.9°C, HR max 113 bpm, SpO2 min 93%)\nA: Notable labs (past 24 h): troponin I 87.134 ng/mL [H] (prior 78.826; troponin elevation), creatinine 1.87 mg/dL [H] (prior 1.61; AKI by KDIGO criteria), K 5.4 mmol/L [H] (prior 4.8), CK-MB 37.5 ng/mL [H] (prior 45.6), +1 other abnormal.\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor. Stopped: Dobutamine 2ug/kg/min IV drip."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-09": {
@@ -433,11 +433,11 @@
       },
       "sections": {
         "assessment": "Notable labs (past 24 h): troponin I 83.302 ng/mL [H] (prior 87.134; troponin elevation), creatinine 2.15 mg/dL [H] (prior 1.87; AKI by KDIGO criteria), CK-MB 33.8 ng/mL [H] (prior 37.5), K 5.2 mmol/L [H] (prior 5.4), +1 other abnormal.",
-        "objective": "BP 114/69 mmHg, HR 103 bpm, RR 19 /min, SpO2 96% (RA), T 36.7°C, weaned off supplemental O2 (past 24 h: Tmax 38.2°C, HR max 112 bpm, SpO2 min 92%)",
+        "objective": "BP 113/69 mmHg, HR 104 bpm, RR 19 /min, SpO2 96% (RA), T 36.7°C, weaned off supplemental O2 (past 24 h: Tmax 38.2°C, HR max 114 bpm, SpO2 min 92%)",
         "plan": "Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor.",
         "subjective": "Hospital day 8. Persistent fever 38.2°C. Level of consciousness remains decreased (AVPU V)."
       },
-      "text": "S: Hospital day 8. Persistent fever 38.2°C. Level of consciousness remains decreased (AVPU V).\nO: BP 114/69 mmHg, HR 103 bpm, RR 19 /min, SpO2 96% (RA), T 36.7°C, weaned off supplemental O2 (past 24 h: Tmax 38.2°C, HR max 112 bpm, SpO2 min 92%)\nA: Notable labs (past 24 h): troponin I 83.302 ng/mL [H] (prior 87.134; troponin elevation), creatinine 2.15 mg/dL [H] (prior 1.87; AKI by KDIGO criteria), CK-MB 33.8 ng/mL [H] (prior 37.5), K 5.2 mmol/L [H] (prior 5.4), +1 other abnormal.\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor."
+      "text": "S: Hospital day 8. Persistent fever 38.2°C. Level of consciousness remains decreased (AVPU V).\nO: BP 113/69 mmHg, HR 104 bpm, RR 19 /min, SpO2 96% (RA), T 36.7°C, weaned off supplemental O2 (past 24 h: Tmax 38.2°C, HR max 114 bpm, SpO2 min 92%)\nA: Notable labs (past 24 h): troponin I 83.302 ng/mL [H] (prior 87.134; troponin elevation), creatinine 2.15 mg/dL [H] (prior 1.87; AKI by KDIGO criteria), CK-MB 33.8 ng/mL [H] (prior 37.5), K 5.2 mmol/L [H] (prior 5.4), +1 other abnormal.\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-10": {
@@ -483,11 +483,11 @@
       },
       "sections": {
         "assessment": "Notable labs (past 24 h): troponin I 61.221 ng/mL [H] (prior 83.302; troponin elevation), creatinine 2.54 mg/dL [H] (prior 2.15; AKI by KDIGO criteria), BNP 106.8 pg/mL [H] (prior 71.8), CK-MB 30.8 ng/mL [H] (prior 33.8), +1 other abnormal.",
-        "objective": "BP 111/71 mmHg, HR 100 bpm, RR 18 /min, SpO2 94% (RA), T 36.9°C, weaned off supplemental O2 (past 24 h: Tmax 38.0°C, HR max 109 bpm, SpO2 min 92%)",
+        "objective": "BP 111/71 mmHg, HR 101 bpm, RR 18 /min, SpO2 94% (RA), T 36.9°C, weaned off supplemental O2 (past 24 h: Tmax 38.0°C, HR max 110 bpm, SpO2 min 92%)",
         "plan": "Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor.",
         "subjective": "Hospital day 9. Persistent fever 38.0°C. Level of consciousness remains decreased (AVPU V)."
       },
-      "text": "S: Hospital day 9. Persistent fever 38.0°C. Level of consciousness remains decreased (AVPU V).\nO: BP 111/71 mmHg, HR 100 bpm, RR 18 /min, SpO2 94% (RA), T 36.9°C, weaned off supplemental O2 (past 24 h: Tmax 38.0°C, HR max 109 bpm, SpO2 min 92%)\nA: Notable labs (past 24 h): troponin I 61.221 ng/mL [H] (prior 83.302; troponin elevation), creatinine 2.54 mg/dL [H] (prior 2.15; AKI by KDIGO criteria), BNP 106.8 pg/mL [H] (prior 71.8), CK-MB 30.8 ng/mL [H] (prior 33.8), +1 other abnormal.\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor."
+      "text": "S: Hospital day 9. Persistent fever 38.0°C. Level of consciousness remains decreased (AVPU V).\nO: BP 111/71 mmHg, HR 101 bpm, RR 18 /min, SpO2 94% (RA), T 36.9°C, weaned off supplemental O2 (past 24 h: Tmax 38.0°C, HR max 110 bpm, SpO2 min 92%)\nA: Notable labs (past 24 h): troponin I 61.221 ng/mL [H] (prior 83.302; troponin elevation), creatinine 2.54 mg/dL [H] (prior 2.15; AKI by KDIGO criteria), BNP 106.8 pg/mL [H] (prior 71.8), CK-MB 30.8 ng/mL [H] (prior 33.8), +1 other abnormal.\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-11": {
@@ -533,11 +533,11 @@
       },
       "sections": {
         "assessment": "Notable labs (past 24 h): creatinine 2.66 mg/dL [H] (prior 2.54; AKI by KDIGO criteria), K 5.8 mmol/L [H] (prior 5.2; hyperkalemia), troponin I 65.608 ng/mL [H] (prior 61.221; troponin elevation), glucose 108 mg/dL [H] (prior 118), +1 other abnormal.",
-        "objective": "BP 118/68 mmHg, HR 100 bpm, RR 20 /min, SpO2 94% (RA), T 35.8°C (past 24 h: HR max 109 bpm, RR max 21 /min, SpO2 min 93%)",
+        "objective": "BP 119/68 mmHg, HR 99 bpm, RR 20 /min, SpO2 94% (RA), T 35.8°C (past 24 h: HR max 110 bpm, RR max 21 /min, SpO2 min 93%)",
         "plan": "Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor.",
         "subjective": "Hospital day 10. Hypothermia 35.8°C noted. Level of consciousness remains decreased (AVPU V)."
       },
-      "text": "S: Hospital day 10. Hypothermia 35.8°C noted. Level of consciousness remains decreased (AVPU V).\nO: BP 118/68 mmHg, HR 100 bpm, RR 20 /min, SpO2 94% (RA), T 35.8°C (past 24 h: HR max 109 bpm, RR max 21 /min, SpO2 min 93%)\nA: Notable labs (past 24 h): creatinine 2.66 mg/dL [H] (prior 2.54; AKI by KDIGO criteria), K 5.8 mmol/L [H] (prior 5.2; hyperkalemia), troponin I 65.608 ng/mL [H] (prior 61.221; troponin elevation), glucose 108 mg/dL [H] (prior 118), +1 other abnormal.\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor."
+      "text": "S: Hospital day 10. Hypothermia 35.8°C noted. Level of consciousness remains decreased (AVPU V).\nO: BP 119/68 mmHg, HR 99 bpm, RR 20 /min, SpO2 94% (RA), T 35.8°C (past 24 h: HR max 110 bpm, RR max 21 /min, SpO2 min 93%)\nA: Notable labs (past 24 h): creatinine 2.66 mg/dL [H] (prior 2.54; AKI by KDIGO criteria), K 5.8 mmol/L [H] (prior 5.2; hyperkalemia), troponin I 65.608 ng/mL [H] (prior 61.221; troponin elevation), glucose 108 mg/dL [H] (prior 118), +1 other abnormal.\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-12": {
@@ -583,11 +583,11 @@
       },
       "sections": {
         "assessment": "Notable labs (past 24 h): troponin I 94.249 ng/mL [H] (prior 65.608; troponin elevation), K 5.6 mmol/L [H] (prior 5.8; hyperkalemia), creatinine 2.59 mg/dL [H] (prior 2.66; AKI by KDIGO criteria), glucose 112 mg/dL [H] (prior 108), +1 other abnormal.",
-        "objective": "BP 117/70 mmHg, HR 101 bpm, RR 23 /min, SpO2 96% (RA), T 36.0°C (past 24 h: Tmax 38.7°C, HR max 106 bpm, SpO2 min 94%)",
+        "objective": "BP 117/70 mmHg, HR 102 bpm, RR 23 /min, SpO2 96% (RA), T 36.0°C (past 24 h: Tmax 38.7°C, HR max 105 bpm, SpO2 min 94%)",
         "plan": "Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor.",
         "subjective": "Hospital day 11. New-onset fever 38.7°C. Level of consciousness remains decreased (AVPU V)."
       },
-      "text": "S: Hospital day 11. New-onset fever 38.7°C. Level of consciousness remains decreased (AVPU V).\nO: BP 117/70 mmHg, HR 101 bpm, RR 23 /min, SpO2 96% (RA), T 36.0°C (past 24 h: Tmax 38.7°C, HR max 106 bpm, SpO2 min 94%)\nA: Notable labs (past 24 h): troponin I 94.249 ng/mL [H] (prior 65.608; troponin elevation), K 5.6 mmol/L [H] (prior 5.8; hyperkalemia), creatinine 2.59 mg/dL [H] (prior 2.66; AKI by KDIGO criteria), glucose 112 mg/dL [H] (prior 108), +1 other abnormal.\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor."
+      "text": "S: Hospital day 11. New-onset fever 38.7°C. Level of consciousness remains decreased (AVPU V).\nO: BP 117/70 mmHg, HR 102 bpm, RR 23 /min, SpO2 96% (RA), T 36.0°C (past 24 h: Tmax 38.7°C, HR max 105 bpm, SpO2 min 94%)\nA: Notable labs (past 24 h): troponin I 94.249 ng/mL [H] (prior 65.608; troponin elevation), K 5.6 mmol/L [H] (prior 5.8; hyperkalemia), creatinine 2.59 mg/dL [H] (prior 2.66; AKI by KDIGO criteria), glucose 112 mg/dL [H] (prior 108), +1 other abnormal.\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-13": {
@@ -633,11 +633,11 @@
       },
       "sections": {
         "assessment": "Notable labs (past 24 h): troponin I 58.303 ng/mL [H] (prior 94.249; troponin elevation), K 6.0 mmol/L [H] (prior 5.6; hyperkalemia), creatinine 2.72 mg/dL [H] (prior 2.59; AKI by KDIGO criteria), BNP 107.5 pg/mL [H] (prior 81.8), +2 other abnormal.",
-        "objective": "BP 112/69 mmHg, HR 100 bpm, RR 17 /min, SpO2 94% (RA), T 36.4°C (past 24 h: HR max 109 bpm, RR max 23 /min)",
+        "objective": "BP 112/69 mmHg, HR 99 bpm, RR 17 /min, SpO2 94% (RA), T 36.4°C (past 24 h: HR max 109 bpm, RR max 23 /min)",
         "plan": "Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor. Given once: Insulin, Regular, Human 10 units IV, Calcium Gluconate 1 g IV, Dextrose 50% 50 mL IV, Patiromer 8.4 g PO.",
         "subjective": "Hospital day 12. Level of consciousness improved, now alert (prev AVPU V)."
       },
-      "text": "S: Hospital day 12. Level of consciousness improved, now alert (prev AVPU V).\nO: BP 112/69 mmHg, HR 100 bpm, RR 17 /min, SpO2 94% (RA), T 36.4°C (past 24 h: HR max 109 bpm, RR max 23 /min)\nA: Notable labs (past 24 h): troponin I 58.303 ng/mL [H] (prior 94.249; troponin elevation), K 6.0 mmol/L [H] (prior 5.6; hyperkalemia), creatinine 2.72 mg/dL [H] (prior 2.59; AKI by KDIGO criteria), BNP 107.5 pg/mL [H] (prior 81.8), +2 other abnormal.\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor. Given once: Insulin, Regular, Human 10 units IV, Calcium Gluconate 1 g IV, Dextrose 50% 50 mL IV, Patiromer 8.4 g PO."
+      "text": "S: Hospital day 12. Level of consciousness improved, now alert (prev AVPU V).\nO: BP 112/69 mmHg, HR 99 bpm, RR 17 /min, SpO2 94% (RA), T 36.4°C (past 24 h: HR max 109 bpm, RR max 23 /min)\nA: Notable labs (past 24 h): troponin I 58.303 ng/mL [H] (prior 94.249; troponin elevation), K 6.0 mmol/L [H] (prior 5.6; hyperkalemia), creatinine 2.72 mg/dL [H] (prior 2.59; AKI by KDIGO criteria), BNP 107.5 pg/mL [H] (prior 81.8), +2 other abnormal.\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor. Given once: Insulin, Regular, Human 10 units IV, Calcium Gluconate 1 g IV, Dextrose 50% 50 mL IV, Patiromer 8.4 g PO."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-14": {
@@ -683,11 +683,11 @@
       },
       "sections": {
         "assessment": "Notable labs (past 24 h): K 5.6 mmol/L [H] (prior 6.0; hyperkalemia), troponin I 67.335 ng/mL [H] (prior 58.303; troponin elevation), creatinine 2.94 mg/dL [H] (prior 2.72; AKI by KDIGO criteria), glucose 106 mg/dL [H] (prior 117), +1 other abnormal.",
-        "objective": "BP 116/72 mmHg, HR 101 bpm, RR 16 /min, SpO2 98% (RA), T 36.9°C (past 24 h: Tmax 38.2°C, HR max 106 bpm, SpO2 min 93%)",
+        "objective": "BP 117/72 mmHg, HR 97 bpm, RR 16 /min, SpO2 98% (RA), T 36.9°C (past 24 h: Tmax 38.2°C, HR max 104 bpm, SpO2 min 93%)",
         "plan": "Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor.",
         "subjective": "Hospital day 13. New-onset fever 38.2°C."
       },
-      "text": "S: Hospital day 13. New-onset fever 38.2°C.\nO: BP 116/72 mmHg, HR 101 bpm, RR 16 /min, SpO2 98% (RA), T 36.9°C (past 24 h: Tmax 38.2°C, HR max 106 bpm, SpO2 min 93%)\nA: Notable labs (past 24 h): K 5.6 mmol/L [H] (prior 6.0; hyperkalemia), troponin I 67.335 ng/mL [H] (prior 58.303; troponin elevation), creatinine 2.94 mg/dL [H] (prior 2.72; AKI by KDIGO criteria), glucose 106 mg/dL [H] (prior 117), +1 other abnormal.\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor."
+      "text": "S: Hospital day 13. New-onset fever 38.2°C.\nO: BP 117/72 mmHg, HR 97 bpm, RR 16 /min, SpO2 98% (RA), T 36.9°C (past 24 h: Tmax 38.2°C, HR max 104 bpm, SpO2 min 93%)\nA: Notable labs (past 24 h): K 5.6 mmol/L [H] (prior 6.0; hyperkalemia), troponin I 67.335 ng/mL [H] (prior 58.303; troponin elevation), creatinine 2.94 mg/dL [H] (prior 2.72; AKI by KDIGO criteria), glucose 106 mg/dL [H] (prior 117), +1 other abnormal.\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-15": {
@@ -733,11 +733,11 @@
       },
       "sections": {
         "assessment": "Notable labs (past 24 h): troponin I 54.537 ng/mL [H] (prior 67.335; troponin elevation), K 5.4 mmol/L [H] (prior 5.6), CK-MB 38.3 ng/mL [H] (prior 35.7), glucose 106 mg/dL [H] (prior 106), +1 other abnormal.",
-        "objective": "BP 119/74 mmHg, HR 97 bpm, RR 17 /min, SpO2 94% (RA), T 36.4°C, weaned off supplemental O2 (past 24 h: HR max 105 bpm, SpO2 min 93%)",
+        "objective": "BP 120/75 mmHg, HR 93 bpm, RR 17 /min, SpO2 94% (RA), T 36.4°C, weaned off supplemental O2 (past 24 h: HR max 101 bpm, SpO2 min 93%)",
         "plan": "Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor.",
         "subjective": "Hospital day 14. Hypothermia 35.9°C noted."
       },
-      "text": "S: Hospital day 14. Hypothermia 35.9°C noted.\nO: BP 119/74 mmHg, HR 97 bpm, RR 17 /min, SpO2 94% (RA), T 36.4°C, weaned off supplemental O2 (past 24 h: HR max 105 bpm, SpO2 min 93%)\nA: Notable labs (past 24 h): troponin I 54.537 ng/mL [H] (prior 67.335; troponin elevation), K 5.4 mmol/L [H] (prior 5.6), CK-MB 38.3 ng/mL [H] (prior 35.7), glucose 106 mg/dL [H] (prior 106), +1 other abnormal.\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor."
+      "text": "S: Hospital day 14. Hypothermia 35.9°C noted.\nO: BP 120/75 mmHg, HR 93 bpm, RR 17 /min, SpO2 94% (RA), T 36.4°C, weaned off supplemental O2 (past 24 h: HR max 101 bpm, SpO2 min 93%)\nA: Notable labs (past 24 h): troponin I 54.537 ng/mL [H] (prior 67.335; troponin elevation), K 5.4 mmol/L [H] (prior 5.6), CK-MB 38.3 ng/mL [H] (prior 35.7), glucose 106 mg/dL [H] (prior 106), +1 other abnormal.\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-16": {
@@ -865,7 +865,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 2\nPatient status: BP 117/72, HR 107, SpO2 98%, T 37.5°C; simple face mask 4.9 L/min.\nMeds administered: Aspirin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 2\nPatient status: BP 117/72, HR 109, SpO2 98%, T 37.5°C; simple face mask 4.9 L/min.\nMeds administered: Aspirin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-21-day": {
@@ -887,7 +887,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 2\nPatient status: BP 118/72, HR 112, SpO2 99%, T 36.6°C.\nMeds administered: Ticagrelor, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 2\nPatient status: BP 118/72, HR 113, SpO2 99%, T 36.6°C.\nMeds administered: Ticagrelor, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-22-evening": {
@@ -909,7 +909,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 2\nPatient status: BP 113/70, HR 112, SpO2 94%, T 37.6°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 2\nPatient status: BP 113/70, HR 113, SpO2 94%, T 37.6°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-23-night": {
@@ -997,7 +997,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 4\nPatient status: BP 113/66, HR 106, SpO2 98%, T 37.3°C.\nMeds administered: Aspirin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 4\nPatient status: BP 113/66, HR 107, SpO2 98%, T 37.3°C.\nMeds administered: Aspirin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-27-day": {
@@ -1041,7 +1041,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 4\nPatient status: BP 112/70, HR 107, SpO2 94%, T 36.3°C.\nMeds administered: Ticagrelor, Dobutamine 2ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 4\nPatient status: BP 112/70, HR 108, SpO2 94%, T 36.3°C.\nMeds administered: Ticagrelor, Dobutamine 2ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-29-night": {
@@ -1063,7 +1063,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 5\nPatient status: BP 115/70, HR 105, SpO2 93%, T 38.1°C.\nMeds administered: Dobutamine 2ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 5\nPatient status: BP 114/69, HR 106, SpO2 93%, T 38.1°C.\nMeds administered: Dobutamine 2ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-30-day": {
@@ -1085,7 +1085,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 5\nPatient status: BP 112/69, HR 111, SpO2 94%, T 37.3°C.\nMeds administered: Aspirin, Ticagrelor, Heparin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 5\nPatient status: BP 111/68, HR 112, SpO2 94%, T 37.3°C.\nMeds administered: Aspirin, Ticagrelor, Heparin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-31-evening": {
@@ -1107,7 +1107,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 5\nPatient status: BP 113/72, HR 105, SpO2 98%, T 37.6°C.\nMeds administered: Ticagrelor, Dobutamine 2ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 5\nPatient status: BP 112/71, HR 106, SpO2 98%, T 37.6°C.\nMeds administered: Ticagrelor, Dobutamine 2ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-32-night": {
@@ -1129,7 +1129,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 6\nPatient status: BP 113/71, HR 105, SpO2 94%, T 36.1°C.\nMeds administered: Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 6\nPatient status: BP 113/70, HR 106, SpO2 94%, T 36.1°C.\nMeds administered: Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-33-day": {
@@ -1151,7 +1151,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 6\nPatient status: BP 114/69, HR 108, SpO2 95%, T 38.0°C.\nMeds administered: Aspirin, Ticagrelor, Heparin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 6\nPatient status: BP 114/68, HR 109, SpO2 95%, T 38.0°C.\nMeds administered: Aspirin, Ticagrelor, Heparin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-34-evening": {
@@ -1173,7 +1173,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 6\nPatient status: BP 113/71, HR 105, SpO2 97%, T 37.5°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 6\nPatient status: BP 113/70, HR 106, SpO2 97%, T 37.5°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-35-night": {
@@ -1195,7 +1195,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 7\nPatient status: BP 110/67, HR 102, SpO2 96%, T 37.6°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 7\nPatient status: BP 110/67, HR 104, SpO2 96%, T 37.6°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-36-day": {
@@ -1217,7 +1217,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 7\nPatient status: BP 113/70, HR 107, SpO2 98%, T 38.2°C.\nMeds administered: Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 7\nPatient status: BP 113/70, HR 108, SpO2 98%, T 38.2°C.\nMeds administered: Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-37-evening": {
@@ -1239,7 +1239,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 7\nPatient status: BP 112/68, HR 105, SpO2 92%, T 37.0°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 7\nPatient status: BP 112/68, HR 107, SpO2 92%, T 37.0°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-38-night": {
@@ -1261,7 +1261,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 8\nPatient status: BP 114/71, HR 103, SpO2 95%, T 37.2°C.\nMeds administered: Aspirin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 8\nPatient status: BP 113/71, HR 104, SpO2 95%, T 37.2°C.\nMeds administered: Aspirin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-39-day": {
@@ -1283,7 +1283,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 8\nPatient status: BP 115/72, HR 107, SpO2 96%, T 37.8°C.\nMeds administered: Ticagrelor, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 8\nPatient status: BP 114/72, HR 108, SpO2 96%, T 37.8°C.\nMeds administered: Ticagrelor, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-40-evening": {
@@ -1305,7 +1305,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 8\nPatient status: BP 112/69, HR 109, SpO2 97%, T 37.4°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 8\nPatient status: BP 111/69, HR 110, SpO2 97%, T 37.4°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-41-night": {
@@ -1327,7 +1327,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 9\nPatient status: BP 114/70, HR 104, SpO2 93%, T 36.9°C.\nMeds administered: Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 9\nPatient status: BP 114/70, HR 105, SpO2 93%, T 36.9°C.\nMeds administered: Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-42-day": {
@@ -1349,7 +1349,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 9\nPatient status: BP 113/74, HR 106, SpO2 98%, T 37.3°C.\nMeds administered: Aspirin, Ticagrelor, Heparin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 9\nPatient status: BP 113/74, HR 107, SpO2 98%, T 37.3°C.\nMeds administered: Aspirin, Ticagrelor, Heparin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-43-evening": {
@@ -1371,7 +1371,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 9\nPatient status: BP 115/70, HR 104, SpO2 100%, T 37.1°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 9\nPatient status: BP 115/70, HR 105, SpO2 100%, T 37.1°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-44-night": {
@@ -1393,7 +1393,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 10\nPatient status: BP 111/72, HR 104, SpO2 96%, T 36.6°C.\nMeds administered: Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 10\nPatient status: BP 112/72, HR 103, SpO2 96%, T 36.6°C.\nMeds administered: Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-45-day": {
@@ -1415,7 +1415,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 10\nPatient status: BP 112/66, HR 105, SpO2 96%, T 38.1°C.\nMeds administered: Aspirin, Ticagrelor, Heparin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 10\nPatient status: BP 113/66, HR 104, SpO2 96%, T 38.1°C.\nMeds administered: Aspirin, Ticagrelor, Heparin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-46-evening": {
@@ -1437,7 +1437,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 10\nPatient status: BP 113/69, HR 102, SpO2 94%, T 38.0°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 10\nPatient status: BP 114/69, HR 101, SpO2 94%, T 38.0°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-47-night": {
@@ -1459,7 +1459,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 11\nPatient status: BP 115/68, HR 98, SpO2 94%, T 36.5°C.\nMeds administered: Aspirin, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 11\nPatient status: BP 115/68, HR 99, SpO2 94%, T 36.5°C.\nMeds administered: Aspirin, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-48-day": {
@@ -1503,7 +1503,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 11\nPatient status: BP 115/72, HR 102, SpO2 98%, T 37.1°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 11\nPatient status: BP 115/72, HR 103, SpO2 98%, T 37.1°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-50-night": {
@@ -1525,7 +1525,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 12\nPatient status: BP 114/69, HR 101, SpO2 95%, T 36.6°C.\nMeds administered: Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 12\nPatient status: BP 114/69, HR 100, SpO2 95%, T 36.6°C.\nMeds administered: Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-51-day": {
@@ -1547,7 +1547,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 12\nPatient status: BP 114/74, HR 105, SpO2 96%, T 37.0°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 12\nPatient status: BP 114/74, HR 103, SpO2 96%, T 37.0°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-52-evening": {
@@ -1569,7 +1569,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 12\nPatient status: BP 118/70, HR 102, SpO2 94%, T 37.5°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 12\nPatient status: BP 118/70, HR 101, SpO2 94%, T 37.5°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-53-night": {
@@ -1591,7 +1591,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 13\nPatient status: BP 117/69, HR 102, SpO2 96%, T 36.5°C.\nMeds administered: Ticagrelor, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 13\nPatient status: BP 118/69, HR 98, SpO2 96%, T 36.5°C.\nMeds administered: Ticagrelor, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-54-day": {
@@ -1613,7 +1613,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 13\nPatient status: BP 115/70, HR 98, SpO2 95%, T 36.2°C.\nMeds administered: Aspirin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 13\nPatient status: BP 116/70, HR 94, SpO2 95%, T 36.2°C.\nMeds administered: Aspirin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-55-evening": {
@@ -1635,7 +1635,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 13\nPatient status: BP 118/73, HR 100, SpO2 93%, T 36.6°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 13\nPatient status: BP 119/73, HR 96, SpO2 93%, T 36.6°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-56-night": {
@@ -1657,7 +1657,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 14\nPatient status: BP 118/71, HR 100, SpO2 95%, T 36.6°C.\nMeds administered: Aspirin, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 14\nPatient status: BP 119/72, HR 96, SpO2 95%, T 36.6°C.\nMeds administered: Aspirin, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-57-day": {
@@ -1679,7 +1679,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 14\nPatient status: BP 117/70, HR 103, SpO2 98%, T 37.9°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 14\nPatient status: BP 118/71, HR 98, SpO2 98%, T 37.9°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-58-evening": {
@@ -1701,7 +1701,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 14\nPatient status: BP 120/70, HR 101, SpO2 98%, T 36.3°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 14\nPatient status: BP 121/71, HR 97, SpO2 98%, T 36.3°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-59": {
@@ -1724,7 +1724,7 @@
       "sections": {
         "admission_status": "Hospital stay: 14 days. Admission reason: Chest pain, diaphoresis, dyspnea. Not yet safe for home; discharged to skilled nursing facility for continued care.",
         "discharge_readiness": "Discharge readiness: Discharge Barthel 95/100.",
-        "nursing_interventions_provided": "Cumulative IN 20178 mL / OUT 10344 mL (net +9834 mL).",
+        "nursing_interventions_provided": "Cumulative IN 17091 mL / OUT 15505 mL (net +1586 mL).",
         "patient_education": "Patient education: continuing prescribed drugs (e.g. antiplatelets) and watching for bleeding; cardiac rehabilitation and pacing of activity; calling emergency services if chest pain recurs."
       },
       "text": ""

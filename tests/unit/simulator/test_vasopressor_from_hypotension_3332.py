@@ -144,3 +144,31 @@ def test_forced_sepsis_stays_start_a_vasopressor_only_after_a_low_pressure(count
     if country == "US":
         assert started, "no forced sudden-deterioration sepsis stay started a vasopressor"
     # The JP stays of this seed stay normotensive: none starts one.
+
+
+def test_no_vasopressor_dose_is_charted_after_the_death() -> None:
+    """A vasopressor started for the terminal hypotension charts the doses of
+    the rest of the hospital day; those after the death time are not given."""
+    from clinosim.simulator import run_forced
+    from clinosim.types.config import ForcedScenario, SimulatorConfig
+
+    logging.disable(logging.WARNING)
+    try:
+        ds = run_forced(
+            ForcedScenario(disease_id="sepsis", count=6, severity="severe", archetype="sudden_deterioration"),
+            SimulatorConfig(random_seed=23, country="JP"),
+        )
+    finally:
+        logging.disable(logging.NOTSET)
+    deaths = 0
+    for record in ds.patients:
+        enc = record.encounters[0]
+        if enc.discharge_disposition != "exp" or enc.discharge_datetime is None:
+            continue
+        deaths += 1
+        for mar in record.medication_administrations:
+            when = mar.actual_datetime or mar.scheduled_datetime
+            assert when <= enc.discharge_datetime, (
+                f"{mar.drug_id} charted at {when} after death {enc.discharge_datetime}"
+            )
+    assert deaths

@@ -177,6 +177,14 @@ from clinosim.modules.observation.microbiology import (
     intake / output balance 閾値: aggressive IV / maintenance /
     restrictive regimen の mean + SD、urine-output サンプリングの
     anuria floor。
+  - [`fluid_balance_model.py`](fluid_balance_model.py) +
+    `reference_data/fluid_balance.yaml` (Issue #3271) — 日次 intake /
+    output 記録の生理学的連動: 水分制限 / 蘇生輸液の IV regimen、摂取量・
+    腎機能・volume status・灌流・当日の loop 利尿薬に追従する尿量
+    (腎不全では KDIGO の乏尿基準 0.5 mL/kg/h 未満に留まる)、不感蒸泄の
+    推定値 (70 kg 成人で約 800 mL/日、「その他」排泄に計上)、日次 net
+    balance の `volume_status` へのフィードバック。パラメータと出典
+    (出典未確認のものは「modelling choice」) は YAML に記載。
   - [`oxygenation.py`](oxygenation.py) (Issue #561) — 酸素療法
     escalation の SpO₂ トリガー
     (`SPO2_HYPOXEMIA_TRIGGER = 92 %`、`SPO2_SEVERE_HYPOXEMIA = 88 %`)。

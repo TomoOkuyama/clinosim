@@ -1,0 +1,75 @@
+# Daily fluid balance model (Issue #3271): how the charted intake / output
+# record couples to the patient's physiology. Consumed by
+# clinosim/modules/observation/fluid_balance_model.py.
+#
+# Sources read while writing this file:
+#   * Insensible loss: Brandis, Fluid Physiology (LibreTexts), "3.02 Insensible
+#     Water Loss": skin about 400 mL/day and respiratory tract about 400 mL/day
+#     in an unstressed adult, "the minimal insensible loss in an adult is about
+#     800 mls/day".
+#   * Oliguria: KDIGO AKI urine-output criterion "urine volume < 0.5 mL/kg/h for
+#     6 hours" (as quoted in the Wikipedia article "Acute kidney injury"; RIFLE
+#     failure < 0.3 mL/kg/h for 24 h or anuria for 12 h).
+# Every other value is a modelling choice of this simulator (marked), not a
+# published clinical constant: no guideline for it was read.
+metadata:
+  kind: reference
+  name: fluid_balance
+  source: clinosim
+
+# Volumes in the reference tables scale with body weight relative to this adult.
+reference_weight_kg: 70.0
+weight_scale_min: 0.2     # modelling choice: a small child does not get adult volumes
+weight_scale_max: 1.3     # modelling choice: intake does not scale linearly above ~90 kg
+
+# Charted as part of "other" output (with stool); not measured on a ward.
+insensible_ml_per_day_at_reference: 800   # Brandis: minimal adult insensible loss
+
+kidney:
+  # Between these renal_function values the kidney goes from failing (fixed
+  # oliguria) to fully regulating (excretes the intake it is given).
+  renal_failing_below: 0.15   # modelling choice
+  renal_regulating_above: 0.5 # modelling choice
+  oliguria_ml_per_kg_per_h: 0.5            # KDIGO urine-output criterion
+  failing_urine_fraction_of_oliguria: 0.5  # modelling choice: failing kidney makes half the oliguria ceiling
+  excretion_capacity_ml_per_unit_renal: 3000  # modelling choice: maximum daily urine at renal_function 1.0
+  volume_gain: 0.5            # modelling choice: urine x (1 + gain * volume_status)
+  volume_factor_min: 0.5
+  volume_factor_max: 1.5
+  perfusion_oliguria_below: 0.5   # modelling choice: shock reduces renal blood flow
+  perfusion_factor_min: 0.3
+
+loop_diuretic:
+  drug_classes: ["diuretic.loop"]   # codes/data/drugs.yaml class
+  net_negative_target_ml: 1000      # modelling choice: net daily balance a responding patient is driven to
+  # The drive fades as the patient is decongested: the full target applies from
+  # this volume_status up, the minimum fraction at volume_status 0, none below.
+  full_effect_volume_status: 0.2     # modelling choice
+  minimum_fraction_at_euvolemia: 0.25  # modelling choice
+  # Response fades with renal function the same way kidney regulation does.
+
+intake:
+  # Disease ids for which resuscitation / rehydration volumes apply in the acute phase.
+  resuscitation_diseases:
+    - sepsis
+    - diabetic_ketoacidosis
+    - gi_bleeding
+    - traffic_accident_severe
+    - industrial_burn_severe
+  # Disease ids managed with fluid restriction.
+  restricted_diseases:
+    - heart_failure_exacerbation
+    - liver_cirrhosis_decompensated
+  restrict_if_volume_status_at_or_above: 0.15  # modelling choice
+  restrict_if_cardiac_function_below: 0.5      # modelling choice
+  restrict_if_renal_function_below: 0.3        # modelling choice
+  kvo_iv_ml: 100            # modelling choice: carrier fluid for IV drugs
+  kvo_iv_sd: 50
+  restricted_oral_ml: 1000  # modelling choice
+  early_day_iv_ml: 800      # modelling choice: acute-phase IV for patients not being resuscitated
+  early_day_iv_sd: 200
+
+volume_feedback:
+  # One litre of net positive balance moves volume_status by 1000 / this value
+  # (at the reference weight). modelling choice.
+  ml_per_unit_volume_status: 10000

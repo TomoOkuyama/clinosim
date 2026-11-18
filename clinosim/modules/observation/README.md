@@ -191,6 +191,16 @@ from clinosim.modules.observation.microbiology import (
     intake / output balance thresholds: aggressive-IV / maintenance
     / restrictive regimen means + SDs, anuria floor for urine-output
     sampling.
+  - [`fluid_balance_model.py`](fluid_balance_model.py) +
+    `reference_data/fluid_balance.yaml` (Issue #3271) — physiological
+    coupling of the daily intake / output record: fluid-restricted vs
+    resuscitation IV regimens, urine output that follows intake, renal
+    function, volume status, perfusion and a loop diuretic given that day
+    (a failing kidney stays below the KDIGO 0.5 mL/kg/h oliguria
+    criterion), the estimated insensible loss (about 800 mL/day for a
+    70 kg adult) charted with "other" output, and the feedback of the net
+    balance into `volume_status`. Parameters and their sources (or "modelling
+    choice" where no source was read) are in the YAML.
   - [`oxygenation.py`](oxygenation.py) (Issue #561) — SpO₂ trigger
     thresholds for oxygen-therapy escalation
     (`SPO2_HYPOXEMIA_TRIGGER = 92 %`,

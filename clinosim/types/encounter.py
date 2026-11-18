@@ -389,7 +389,7 @@ class IntakeOutputRecord:
     intake_other_ml: int = 0  # blood products, tube feeding
     output_urine_ml: int = 0
     output_drain_ml: int = 0  # surgical drain, NG tube
-    output_other_ml: int = 0  # emesis, stool
+    output_other_ml: int = 0  # stool, emesis and the estimated insensible loss (Issue #3271)
     net_balance_ml: int = 0  # intake - output
 
 
