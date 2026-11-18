@@ -88,6 +88,7 @@ from clinosim.simulator._setup import (
 from clinosim.simulator._setup import (
     _TimeRangeBounds as _TimeRangeBounds,
 )
+from clinosim.simulator.chronic_reconcile import reconcile_chronic_onsets
 from clinosim.simulator.complications import build_complication
 from clinosim.simulator.enrichers import (
     POST_POPULATION,
@@ -280,6 +281,9 @@ def run_beta(
     # were activated for visits before the death.
     _vital_as_of = snapshot_dt.date() if snapshot_dt else _raw_end
     sync_profile_death_dates(patient_records, population, as_of=_vital_as_of)
+    # Issue #3263: a chronic condition's onset never precedes an earlier
+    # encounter of the same patient that did not list it.
+    reconcile_chronic_onsets(patient_records)
     sim_log.info(
         "engine",
         "deaths_by_place",

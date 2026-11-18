@@ -216,7 +216,11 @@ only part of the disease's patients is listed in
 code -> share, with its source); each patient is drawn once from a hash of
 `(patient_id, disease_id, code)`, and a code not listed is carried by every
 patient. Implied codes are added to the encounter's problem list and to the
-person record, so the person's later encounters keep them (Issue #3263).
+person record, so the person's later encounters keep them (Issue #3263). After
+the forward loop `simulator/chronic_reconcile.py` moves a chronic onset that
+precedes an earlier encounter which did not list the condition to the day after
+that encounter (capped at the first encounter that lists it), so no encounter
+contradicts an onset.
 
 Other optional `DiseaseProtocol` fields used by some YAMLs:
 `presenting_symptoms`, `diagnostic` (`differential`, `likelihood_ratios`,
