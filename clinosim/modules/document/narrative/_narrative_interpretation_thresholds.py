@@ -382,6 +382,20 @@ class ProgressVitalExtreme(BaseModel):
     inclusive: bool = False
 
 
+class ComplaintPainSite(BaseModel):
+    """A pain site named when the chief complaint contains one of its terms."""
+
+    model_config = ConfigDict(extra="forbid")
+    terms: dict[str, list[str]]
+    site: dict[str, str]
+
+    @model_validator(mode="after")
+    def _english(self) -> ComplaintPainSite:
+        if "en" not in self.terms or not self.terms["en"] or "en" not in self.site or not self.site["en"].strip():
+            raise ValueError("progress_vitals.yaml: complaint pain sites need English terms and an English site")
+        return self
+
+
 class ProgressVitalsRules(BaseModel):
     """``progress_vitals.yaml`` (Issues #3235, #3247)."""
 
@@ -390,6 +404,7 @@ class ProgressVitalsRules(BaseModel):
     self_report_avpu: list[Literal["A", "V", "P", "U"]] = Field(min_length=1)
     extremes: list[ProgressVitalExtreme] = Field(min_length=1)
     pain_sites: dict[str, dict[str, str]]
+    complaint_pain_sites: list[ComplaintPainSite] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def _known_diseases(self) -> ProgressVitalsRules:

@@ -68,7 +68,7 @@ def _note(vitals: list[dict], exam: dict = _EXAM, traj_objective: str = "") -> s
     traj = {"subjective": "", "objective": traj_objective, "assessment": "", "plan": ""}
     with (
         patch.object(gen, "_resolve_daily_trajectory_with_source", return_value=(traj, "")),
-        patch.object(gen, "_resolve_physical_exam", return_value=exam),
+        patch.object(gen, "_resolve_physical_exam", side_effect=lambda c, a, d: exam if d == c.day_index else {}),
     ):
         return render_progress_note(gen, _ctx(vitals), spec).sections["objective"]
 
