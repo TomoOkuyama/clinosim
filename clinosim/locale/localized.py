@@ -3,7 +3,9 @@
 Fallback order, for every localized source (code-mapping spec §6): the
 requested language, then English, then the caller's explicit ``fallback``.
 Never Japanese or another language, never the key, a raw code or a slug —
-a missing English entry is a data bug that a test should catch.
+a missing English entry is a data bug that a test should catch. A language
+slot present with ``""`` is intentionally empty and is returned as empty;
+only an absent slot falls back (Issue #3339).
 
 - ``localized(entry, lang, *, fallback)`` — a ``{lang: text}`` entry (a bare
   string is language-neutral and returned as is).
@@ -23,20 +25,31 @@ from typing import Any
 
 from clinosim.countries import normalize_lang
 
-__all__ = ["label", "language_slot", "localized", "localized_field", "normalize_lang"]
+__all__ = ["label", "language_slot", "localized", "localized_field", "localized_or_none", "normalize_lang"]
 
 
-def localized(entry: Any, lang: str | None, *, fallback: str = "") -> str:
-    """Text of ``entry`` in ``lang``, else English, else ``fallback``."""
+def localized_or_none(entry: Any, lang: str | None) -> str | None:
+    """Text of ``entry`` in ``lang``, else English; ``None`` when neither slot
+    is a string. A slot present with ``""`` is an intentionally empty phrase
+    (Japanese has no space after a full stop) and is returned as ``""``; only
+    an absent slot falls back to English (code-mapping spec section 6)."""
     if isinstance(entry, str):
         return entry
     if not isinstance(entry, Mapping) or not entry:
-        return fallback
+        return None
     for key in (normalize_lang(lang), "en"):
         value = entry.get(key)
-        if isinstance(value, str) and value:
+        if isinstance(value, str):
             return value
-    return fallback
+    return None
+
+
+def localized(entry: Any, lang: str | None, *, fallback: str = "") -> str:
+    """Text of ``entry`` in ``lang``, else English, else ``fallback``. An empty
+    string in the requested language is returned as empty, not replaced by
+    English (Issue #3339)."""
+    text = localized_or_none(entry, lang)
+    return fallback if text is None else text
 
 
 def localized_field(record: Any, base: str, lang: str | None, *, fallback: str = "") -> str:

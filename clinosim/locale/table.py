@@ -21,7 +21,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import Any, ClassVar, final
 
-from clinosim.locale.localized import localized
+from clinosim.locale.localized import localized_or_none
 
 __all__ = ["ImagingExamTable", "LocalizedTable", "localized_table", "localized_tables"]
 
@@ -54,13 +54,14 @@ class LocalizedTable:
     @final
     def get(self, key: str, lang: str, *, fallback: str = "") -> str:
         """``key`` in ``lang`` (then English) from the first candidate that has
-        text; else the humanised key (``humanize_unknown``) or ``fallback``."""
+        an entry (an empty string in ``lang`` is returned as empty, Issue #3339);
+        else the humanised key (``humanize_unknown``) or ``fallback``."""
         entries = self.entries()
         for candidate in self.candidates(key):
             entry = entries.get(candidate)
             if isinstance(entry, Mapping):
-                text = localized(entry, lang)
-                if text:
+                text = localized_or_none(entry, lang)
+                if text is not None:  # "" is an intentionally empty entry (#3339)
                     return text
         if self.humanize_unknown and key:
             return str(key).replace("_", " ")

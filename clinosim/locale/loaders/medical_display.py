@@ -72,7 +72,7 @@ def department_display(dept: str, lang: str) -> str:
     """Display name of department ``dept`` in ``lang``: the table entry, then
     English, then the humanised key (Issue #2270; never a title-cased slug)."""
     entry = load_department_display().get(dept) or {}
-    return str(entry.get(lang) or entry.get("en") or dept.replace("_", " "))
+    return localized(entry, lang, fallback=dept.replace("_", " "))
 
 
 def department_specialty_snomed(dept: str) -> str:
