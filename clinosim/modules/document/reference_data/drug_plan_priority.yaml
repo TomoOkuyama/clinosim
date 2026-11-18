@@ -10,7 +10,9 @@
 #   its administration route is in; every other drug comes after the tiers
 #   (chronic oral drugs). Within a tier the drugs keep the order the
 #   medication record lists them in. Life-sustaining infusions come first,
-#   then antimicrobials, anticoagulation, insulin and analgesia, then other
+#   then antimicrobials, antithrombotics (anticoagulants, thrombolytics and
+#   antiplatelets: aspirin is an antiplatelet in ACS and stroke, so it ranks
+#   here ahead of its nsaid class), insulin and analgesia, then other
 #   parenteral drugs.
 # one_time_frequencies: order frequencies (case-insensitive) of a one-time
 #   order; such a dose (or one of an order marked single_dose) is written as
@@ -33,8 +35,8 @@ tiers:
     classes: [vasopressor, inotrope]
   - name: antimicrobial
     classes: [antibiotic, antifungal, antiviral]
-  - name: anticoagulant
-    classes: [anticoagulant, thrombolytic]
+  - name: antithrombotic
+    classes: [anticoagulant, thrombolytic, antiplatelet]
   - name: insulin
     classes: [insulin]
   - name: analgesic

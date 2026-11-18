@@ -134,7 +134,7 @@ def test_course_names_procedure_complication_and_treated_potassium(lang: str) ->
 def test_treatments_grouped_by_tier_without_fluids(lang: str) -> None:
     sentence, _ = hc.treatments_sentence(_stay(lang))
     anti = t("hospital_course.treatment_tier.antimicrobial", lang)
-    antico = t("hospital_course.treatment_tier.anticoagulant", lang)
+    antico = t("hospital_course.treatment_tier.antithrombotic", lang)
     assert anti in sentence and antico in sentence
     assert sentence.index(anti) < sentence.index(antico)  # tier order
     assert ("Normal Saline" if lang == "en" else "生理食塩液") not in sentence

@@ -50,9 +50,9 @@ def test_complication_is_new_on_its_onset_day_and_ongoing_after() -> None:
     onset = compose_progress_assessment_from_state(
         _ctx(day=3, events=[_CEREBRAL_EDEMA], authored=datetime(2026, 2, 27, 20, 0))
     )
-    assert onset.startswith("New complication (cerebral edema)")
+    assert onset.startswith("New complication (cerebral edema, onset hospital day 4)")
     later = compose_progress_assessment_from_state(_ctx(day=4, events=[_CEREBRAL_EDEMA]))
-    assert later.startswith("Complications noted (cerebral edema)")
+    assert later.startswith("Complications noted (cerebral edema, onset hospital day 4)")
 
 
 def test_complication_later_on_the_note_day_is_not_yet_known() -> None:
@@ -66,13 +66,13 @@ def test_complication_after_one_note_is_new_in_the_next() -> None:
     out = compose_progress_assessment_from_state(
         _ctx(day=4, events=[_CEREBRAL_EDEMA], authored=datetime(2026, 2, 28, 9, 0))
     )
-    assert out.startswith("New complication (cerebral edema)")
+    assert out.startswith("New complication (cerebral edema, onset hospital day 4)")
 
 
 def test_ja_complication_new_and_ongoing() -> None:
     onset = compose_progress_assessment_from_state(_ctx("ja", day=3, events=[_CEREBRAL_EDEMA]))
     later = compose_progress_assessment_from_state(_ctx("ja", day=5, events=[_CEREBRAL_EDEMA]))
-    assert "新たに 脳浮腫 を合併" in onset
+    assert "新たに 脳浮腫 (入院4日目発症) を合併" in onset
     assert "合併症" in later and "対応継続中" in later
 
 

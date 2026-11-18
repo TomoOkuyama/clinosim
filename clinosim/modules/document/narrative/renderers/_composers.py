@@ -183,13 +183,14 @@ def _note_period_vitals(ctx: NarrativeContext, *, previous: bool = False) -> lis
     from clinosim.modules.document.narrative._narrative_interpretation_thresholds import notable_lab_rules
 
     as_of = getattr(ctx, "authored_datetime", None)
+    vitals = getattr(ctx, "vitals", None) or []
     if as_of is None:
         day = ctx.day_index - 1 if previous else ctx.day_index
-        return _filter_vitals_for_day(ctx.vitals, day, ctx.encounter) if day >= 0 else []
+        return _filter_vitals_for_day(vitals, day, getattr(ctx, "encounter", None)) if day >= 0 else []
     window = timedelta(hours=notable_lab_rules().window_hours)
     end = as_of - window if previous else as_of
     timed = []
-    for i, v in enumerate(ctx.vitals or []):
+    for i, v in enumerate(vitals):
         when = parse_iso_datetime(_o(v, "timestamp", None), lenient=True)
         if when is not None and end - window < when <= end:
             timed.append((when, i, v))
@@ -310,9 +311,12 @@ def pick_stable_progress_phrase(ctx: NarrativeContext, *, lang: str) -> str:
     return resolve_localized_display(pool[idx], lang, fallback="")
 
 
-def _complications_known_on_day(ctx: NarrativeContext, as_of: Any) -> tuple[list[str], list[str]]:
+def _complications_known_on_day(
+    ctx: NarrativeContext, as_of: Any
+) -> tuple[list[tuple[str, int]], list[tuple[str, int]]]:
     """The stay's complications a note of hospital day ``ctx.day_index``
-    knows (Issue #3229), as (new, ongoing) name lists in onset order. A
+    knows (Issue #3229), as (new, ongoing) lists of ``(name, onset_day)`` in
+    onset order (Issue #3247: the note names the day of onset). A
     complication counts from its ``onset_day``, and only once its
     ``onset_datetime`` is at or before ``as_of`` (the authored time). It is
     new when it began since the previous day's note (within the notes'
@@ -323,12 +327,13 @@ def _complications_known_on_day(ctx: NarrativeContext, as_of: Any) -> tuple[list
 
     from clinosim.modules.document.narrative._narrative_interpretation_thresholds import notable_lab_rules
 
-    new: list[str] = []
-    ongoing: list[str] = []
+    new: list[tuple[str, int]] = []
+    ongoing: list[tuple[str, int]] = []
+    seen: set[str] = set()
     for event in list(getattr(ctx, "complications_events", []) or []):
         name = str(_o(event, "name", "") or "")
         onset_day = _o(event, "onset_day", None)
-        if not name or onset_day is None or int(onset_day) > ctx.day_index or name in new or name in ongoing:
+        if not name or onset_day is None or int(onset_day) > ctx.day_index or name in seen:
             continue
         onset_at = parse_iso_datetime(_o(event, "onset_datetime", None), lenient=True)
         if as_of is not None and onset_at is not None:
@@ -337,7 +342,8 @@ def _complications_known_on_day(ctx: NarrativeContext, as_of: Any) -> tuple[list
             is_new = onset_at > as_of - timedelta(hours=notable_lab_rules().window_hours)
         else:
             is_new = int(onset_day) == ctx.day_index
-        (new if is_new else ongoing).append(name)
+        seen.add(name)
+        (new if is_new else ongoing).append((name, int(onset_day)))
     return new, ongoing
 
 
@@ -360,13 +366,28 @@ def compose_progress_assessment_from_state(ctx: NarrativeContext) -> str:
     sep = t("list_sep.serial", lang)
     parts: list[str] = []
     as_of = getattr(ctx, "authored_datetime", None)
+    # Issue #3247: the post-operative day, the complications with their day of
+    # onset, and how the course changed from the previous period.
+    post_op = _post_operative_line(ctx, as_of)
+    if post_op:
+        parts.append(post_op)
     new_comps, ongoing_comps = _complications_known_on_day(ctx, as_of)
+
+    def with_onset(comps: list[tuple[str, int]]) -> list[str]:
+        return [
+            t("progress.complication_with_onset", lang, name=_localize_complication(name, lang), day=onset_day + 1)
+            for name, onset_day in comps[:3]
+        ]
+
     if new_comps:
-        localised = [_localize_complication(c, lang) for c in new_comps[:3]]
-        parts.append(t("progress.complication_new", lang, list=sep.join(localised)))
+        parts.append(t("progress.complication_new", lang, list=sep.join(with_onset(new_comps))))
     if ongoing_comps:
-        localised = [_localize_complication(c, lang) for c in ongoing_comps[:3]]
-        parts.append(t("progress.complications_noted", lang, list=sep.join(localised)))
+        parts.append(t("progress.complications_noted", lang, list=sep.join(with_onset(ongoing_comps))))
+    from clinosim.modules.document.narrative._progress_exam import course_line
+
+    course = course_line(ctx, _note_period_vitals(ctx), _note_period_vitals(ctx, previous=True), lang)
+    if course:
+        parts.append(course)
     # Issues #3230 / #3241: the day's flagged results known at the note's
     # authored time, ranked and one per analyte (lab_timeseries.select_notable_labs).
     from clinosim.modules.document.narrative._narrative_interpretation_thresholds import notable_lab_rules
@@ -406,6 +427,42 @@ def newborn_screening_to_date(ctx: NarrativeContext) -> str:
         return ""
     known = newborn_workup_known_at(workup, getattr(ctx, "authored_datetime", None))
     return _render_newborn_workup_summary(known, lang=ctx.target_lang, screening_only=True)
+
+
+def _post_operative_line(ctx: NarrativeContext, as_of: Any) -> str:
+    """ "Post-operative day N (operation)" of the latest operation of the stay
+    started by the note's time (Issue #3247), or "day of surgery" on its day;
+    ``""`` without one. The note's day is the authored date, else the
+    admission date plus the hospital day."""
+    from datetime import timedelta
+
+    from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
+
+    enc = getattr(ctx, "encounter", None)
+    enc_id = _o(enc, "encounter_id", "") or ""
+    admitted = parse_iso_datetime(_o(enc, "admission_datetime", None), lenient=True)
+    note_day = (
+        as_of.date() if as_of is not None else (admitted.date() + timedelta(days=ctx.day_index) if admitted else None)
+    )
+    if note_day is None:
+        return ""
+    done = []
+    for proc in getattr(ctx, "procedures", None) or []:
+        if str(_o(proc, "category_code", "") or "") != SURGICAL_PROCEDURE or _o(proc, "encounter_id", "") != enc_id:
+            continue
+        start = parse_iso_datetime(_o(proc, "start_datetime", None), lenient=True)
+        if start is not None and start.date() <= note_day and (as_of is None or start <= as_of):
+            done.append((start, proc))
+    if not done:
+        return ""
+    start, proc = max(done, key=lambda item: item[0])
+    names = procedure_names([proc], ctx.target_lang)
+    if not names:
+        return ""
+    days = (note_day - start.date()).days
+    if days == 0:
+        return t("progress.op_day", ctx.target_lang, proc=names[0])
+    return t("progress.post_op_day", ctx.target_lang, n=days, proc=names[0])
 
 
 def compose_progress_held_line(ctx: NarrativeContext) -> str:
@@ -545,7 +602,9 @@ def compose_pe_vitals_line(ctx: NarrativeContext) -> str:
     return format_vitals_line(reading, PHYSICAL_EXAM, ctx.target_lang)
 
 
-def apply_cc_pe_consistency(text: str, ctx: NarrativeContext) -> tuple[str, list[str]]:
+def apply_cc_pe_consistency(
+    text: str, ctx: NarrativeContext, *, use_chief_complaint: bool = True
+) -> tuple[str, list[str]]:
     """Rewrite PE clauses contradicted by the chief_complaint (Issue #980).
 
     Reads the JA chief_complaint from CIF (encounter.chief_complaint_ja /
@@ -561,7 +620,9 @@ def apply_cc_pe_consistency(text: str, ctx: NarrativeContext) -> tuple[str, list
 
     Returns ``(rewritten_text, facts)``. ``facts`` names the rewrite
     rule(s) applied so downstream provenance tools can see it. If no
-    rewrite fires, ``text`` is returned unchanged.
+    rewrite fires, ``text`` is returned unchanged. ``use_chief_complaint=False``
+    applies the AVPU rewrite only (a daily note's exam follows the day's
+    readings, not the admission complaint; Issue #3235).
     """
     facts: list[str] = []
     if not text or not has_authored_narrative(ctx.target_lang):
@@ -589,7 +650,7 @@ def apply_cc_pe_consistency(text: str, ctx: NarrativeContext) -> tuple[str, list
 
     cc = _o(enc, "chief_complaint_ja", None) or _o(enc, "chief_complaint", None) or ""
     cc = str(cc)
-    if not cc:
+    if not cc or not use_chief_complaint:
         return text, facts
 
     if _cc_keyword_positively_present(cc, _cc_altered_consciousness_keywords()):
