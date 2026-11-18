@@ -329,9 +329,12 @@ specs:
       - referral_purpose
       - diagnoses_and_complaint
       - present_illness_ref
+      - past_history_ref
+      - family_history_ref
       - clinical_course_ref
       - test_results_ref
       - medication_orders_ref
+      - remarks_ref
     stage2_strategy: template_seed_bundle
     llm_enabled_sections: [referral_purpose, present_illness_ref]
 

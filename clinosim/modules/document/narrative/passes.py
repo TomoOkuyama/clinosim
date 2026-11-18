@@ -31,6 +31,7 @@ from clinosim.modules.document.narrative.context import (
     _build_newborn_workup,
     _build_safety_skips,
     build_prior_safety_holds,
+    encounter_microbiology,
     icu_transfer_day,
     visit_reason_fields,
 )
@@ -633,6 +634,8 @@ class NarrativePass(ABC):
             # Issues #3249 / #3252: the visit kind, the vaccines given and the
             # imaging studies of this encounter (outpatient SOAP).
             **visit_reason_fields(patient_dict, encounter_dict),
+            # Issue #3268: the encounter's culture results.
+            microbiology=encounter_microbiology(patient_dict, encounter_dict),
             # Issue #3246: readmission (H&P HPI and discharge summary).
             is_readmission=bool(patient_dict.get("is_readmission", False)),
             readmission_number=int(patient_dict.get("readmission_number", 0) or 0),

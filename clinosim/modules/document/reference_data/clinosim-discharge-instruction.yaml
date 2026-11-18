@@ -20,6 +20,8 @@
 #     an unknown age keeps the entry)
 #   conditions / exclude_conditions: codes/data/valuesets.yaml groups, matched
 #     against chronic conditions and the encounter's diagnoses
+#   vitamin_k_given: true (newborn set) - the newborn's medication record has a
+#     vitamin K dose
 #   discharge_drugs: catalog drug ids or classes (codes/data/drugs.yaml); at
 #     least one must be on the discharge prescription. `{drugs}` in the text
 #     names the prescribed drugs that matched.
@@ -84,6 +86,12 @@ neonatal:
   jaundice:
     en: "Check your baby's skin and eyes for yellowing in good light; call your pediatrician if the yellow color spreads, or if your baby is very sleepy or feeds poorly."
     ja: "明るい場所で皮膚や白目の黄色みを確認し、黄色みが広がる、または眠りがちで哺乳が弱いときは小児科に連絡してください。"
+  # Only when vitamin K is on the medication administration record. The record
+  # shows one dose in hospital; no further dose or schedule is stated.
+  vitamin_k:
+    en: "Your baby was given vitamin K in the hospital to prevent bleeding; ask your pediatrician whether any further dose is planned."
+    ja: "入院中にビタミン K2 シロップを投与しました。追加の投与の時期 (退院時・1 か月健診時など) は、小児科医の指示に従ってください。"
+    applies_when: {vitamin_k_given: true}
   weight:
     en: "Your baby's weight is checked at the follow-up visit to confirm that feeding is adequate."
     ja: "授乳が足りているかを確認するため、受診時に赤ちゃんの体重を測定します。"

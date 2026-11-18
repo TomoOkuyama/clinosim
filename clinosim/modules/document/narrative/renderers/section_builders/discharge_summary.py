@@ -97,6 +97,7 @@ def compose_hospital_course(ctx: NarrativeContext, *, with_results: bool = True)
         hc.complications_sentence,
         hc.notable_labs_sentence,
         hc.medication_changes_sentence,
+        hc.newborn_prophylaxis_sentence,
         hc.discharge_condition_sentence,
     )
     for build in builders:

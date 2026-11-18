@@ -171,8 +171,10 @@ extension leak を浮上させた。
 - `Composition.section` は 2 レベル tree:
   - Top-level: **920** 紹介元 / **910** 紹介先 / **300** 構造情報
   - 300 の下: **950** 紹介目的 / **340** 傷病名・主訴 /
-    **360** 現病歴。続けて、文書に内容があれば任意の **330** 臨床経過 /
-    **620** 検査結果 / **430** 投薬指示 (JP-CLINS document-section
+    **360** 現病歴。続けて、文書に内容があれば任意の **370** 既往歴 / **550** 家族歴 /
+    **330** 臨床経過 / **620** 検査結果 (異常検査・画像所見・培養) /
+    **430** 投薬指示。300 の後に最上位の **220** 備考・連絡情報
+    (アレルギー・コードステータス) (JP-CLINS document-section
     CodeSystem の REF 系コード; profile の `clinicalCourseSection` /
     `examsStudySection` / `medicationSection`)
 

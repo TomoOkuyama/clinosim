@@ -150,7 +150,9 @@ def test_ward_and_room_includes_ward_and_bed() -> None:
     ctx = _make_ctx(encounter=enc)
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, spec)
-    assert "4W" in out.sections["ward_and_room"]
+    # Issue #3267: the ward is written as its name, not the raw ward code.
+    assert "4階西病棟" in out.sections["ward_and_room"]
+    assert "4W" not in out.sections["ward_and_room"]
     assert "401-2" in out.sections["ward_and_room"]
 
 

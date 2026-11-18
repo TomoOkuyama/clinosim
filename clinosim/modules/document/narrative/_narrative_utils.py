@@ -63,16 +63,45 @@ def _is_smoker(patient: Any) -> bool:
     return str(_o(patient, "smoking_status", "") or "") != "never"
 
 
-def _acute_nursing_entry(ctx: NarrativeContext) -> dict[str, Any] | None:
-    """The ``acute_disease`` entry of the admission's disease, or ``None``."""
+def _acute_nursing_entry(ctx: NarrativeContext) -> tuple[dict[str, Any] | None, str]:
+    """The nursing-content entry that plans the admission problem and the fact
+    that selected it: the newborn entry for a neonate, else the disease's
+    ``acute_disease`` entry, else (an admission without a disease protocol)
+    the ``diagnosis_category`` entry of the admission diagnosis (Issues #3260,
+    #3267). ``(None, "")`` when none applies."""
     from clinosim.modules.document.reference_data_loaders import load_nursing_content
 
-    disease_id = getattr(ctx.disease_protocol, "disease_id", "") or "" if ctx.disease_protocol is not None else ""
     try:
-        entry = (load_nursing_content().get("acute_disease") or {}).get(disease_id)
+        data = load_nursing_content()
     except (FileNotFoundError, ValueError, OSError):
-        return None
-    return entry if isinstance(entry, dict) else None
+        return None, ""
+    if is_neonate(ctx) and isinstance(data.get("neonatal"), dict):
+        return data["neonatal"], "ctx.patient.date_of_birth"
+    disease_id = getattr(ctx.disease_protocol, "disease_id", "") or "" if ctx.disease_protocol is not None else ""
+    entry = (data.get("acute_disease") or {}).get(disease_id)
+    if isinstance(entry, dict):
+        return entry, "ctx.disease_protocol.disease_id"
+    category = _diagnosis_category_entry(ctx, data.get("diagnosis_category") or {})
+    return (category, "ctx.diagnoses") if category is not None else (None, "")
+
+
+def _diagnosis_category_entry(ctx: NarrativeContext, categories: dict[str, Any]) -> dict[str, Any] | None:
+    """The category entry whose ICD-10 prefix is the longest match of the
+    encounter's admission diagnosis code."""
+    codes = [
+        str(_o(dx, key, "") or "").upper()
+        for dx in getattr(ctx, "diagnoses", None) or []
+        for key in ("admission_diagnosis_code", "discharge_diagnosis_code")
+    ]
+    best: tuple[int, dict[str, Any]] | None = None
+    for code in (c for c in codes if c):
+        for entry in categories.values():
+            for prefix in entry.get("icd10_prefixes") or []:
+                if code.startswith(str(prefix).upper()) and (best is None or len(prefix) > best[0]):
+                    best = (len(prefix), entry)
+        if best is not None:
+            break
+    return best[1] if best is not None else None
 
 
 def nursing_care_plan_detail(ctx: NarrativeContext, lang: str) -> dict[str, Any] | None:
@@ -80,12 +109,13 @@ def nursing_care_plan_detail(ctx: NarrativeContext, lang: str) -> dict[str, Any]
     ``{"problem", "goal", "observation", "care", "education"}`` for a disease
     whose acute entry carries ``care_plan_detail``; ``None`` otherwise. The
     problem is the entry's main (first) nursing diagnosis."""
-    entry = _acute_nursing_entry(ctx)
+    entry, fact = _acute_nursing_entry(ctx)
     detail = (entry or {}).get("care_plan_detail")
     if not detail:
         return None
     diagnoses = ((entry or {}).get("nursing_diagnoses") or {}).get(lang) or []
     return {
+        "fact": fact,
         "problem": diagnoses[0] if diagnoses else "",
         "goal": str((detail.get("goal") or {}).get(lang) or "").rstrip("。."),
         "observation": list((detail.get("observation") or {}).get(lang) or []),
@@ -126,7 +156,7 @@ def _lookup_nursing_content(ctx: NarrativeContext, field: str, lang: str, cap: i
     smoker = _is_smoker(ctx.patient) if ctx.patient is not None else True
 
     # --- Acute-first: ctx.disease_protocol.disease_id anchor ----------
-    acute_entry = _acute_nursing_entry(ctx)
+    acute_entry, acute_fact = _acute_nursing_entry(ctx)
     if acute_entry is not None:
         for x in _entry_items(acute_entry, field, lang, smoker):
             if not x or x in seen:
@@ -136,7 +166,7 @@ def _lookup_nursing_content(ctx: NarrativeContext, field: str, lang: str, cap: i
             if len(items) >= cap:
                 break
         if items:
-            facts.append("ctx.disease_protocol.disease_id")
+            facts.append(acute_fact)
 
     # --- Chronic-second: ctx.patient.chronic_conditions ---------------
     chronic_axis = data.get("chronic_icd10") or {}

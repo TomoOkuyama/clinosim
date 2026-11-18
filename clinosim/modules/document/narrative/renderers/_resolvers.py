@@ -286,6 +286,8 @@ def _instruction_applies(gate: dict[str, Any] | None, ctx: NarrativeContext) -> 
     for group in gate.get("exclude_conditions") or ():
         if any(concept_group(group).contains(c) for c in codes):
             return False
+    if gate.get("vitamin_k_given") and not (getattr(ctx, "newborn_workup", None) or {}).get("has_vitamin_k"):
+        return False
     refs = gate.get("discharge_drugs") or []
     return not refs or bool(_gate_drugs(ctx, refs))
 

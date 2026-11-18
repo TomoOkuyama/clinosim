@@ -264,6 +264,7 @@ class DischargeInstructionGate(BaseModel):
     conditions: Annotated[list[str], AfterValidator(_known_condition_groups)] = Field(default_factory=list)
     exclude_conditions: Annotated[list[str], AfterValidator(_known_condition_groups)] = Field(default_factory=list)
     discharge_drugs: Annotated[list[str], AfterValidator(_known_drugs)] = Field(default_factory=list)
+    vitamin_k_given: bool | None = None
 
 
 class _BilingualText(BaseModel):
@@ -762,6 +763,13 @@ class _NursingContentEntry(BaseModel):
         return self
 
 
+class _NursingCategoryEntry(_NursingContentEntry):
+    """A diagnosis-category entry: the ICD-10 code prefixes it covers (the
+    longest matching prefix of the admission diagnosis wins)."""
+
+    icd10_prefixes: list[_Text] = Field(min_length=1)
+
+
 class NursingContent(BaseModel):
     """Shape of clinosim-nursing-content.yaml (session-104 Tier 2): at least
     one of the ``acute_disease`` / ``chronic_icd10`` axes, each a non-empty
@@ -772,6 +780,8 @@ class NursingContent(BaseModel):
 
     acute_disease: dict[str, _NursingContentEntry] | None = Field(default=None, min_length=1)
     chronic_icd10: dict[str, _NursingContentEntry] | None = Field(default=None, min_length=1)
+    neonatal: _NursingContentEntry | None = None
+    diagnosis_category: dict[str, _NursingCategoryEntry] | None = Field(default=None, min_length=1)
 
     @model_validator(mode="before")
     @classmethod

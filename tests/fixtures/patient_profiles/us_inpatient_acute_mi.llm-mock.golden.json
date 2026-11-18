@@ -1711,7 +1711,11 @@
       "facts_used": [
         "ctx.los_days",
         "encounter.discharge_disposition",
+        "ctx.medications",
+        "ctx.vitals",
+        "ctx.procedures",
         "ctx.intake_output_records",
+        "ctx.disease_protocol.disease_id",
         "ctx.disease_protocol.disease_id",
         "ctx.adl_assessments@authored"
       ],
@@ -1724,7 +1728,7 @@
       "sections": {
         "admission_status": "Hospital stay: 14 days. Admission reason: Chest pain, diaphoresis, dyspnea. Not yet safe for home; discharged to skilled nursing facility for continued care.",
         "discharge_readiness": "Discharge readiness: Discharge Barthel 95/100.",
-        "nursing_interventions_provided": "Cumulative IN 17091 mL / OUT 15505 mL (net +1586 mL).",
+        "nursing_interventions_provided": "Medication administration: 142 doses (9 drugs); Vital-sign monitoring: 268 sets; Oxygen therapy: observed on 8 sets of vital signs; Procedures: Urinary catheter insertion, Arterial line insertion, Transthoracic echocardiography, Percutaneous coronary intervention (PCI); Cumulative IN 17091 mL / OUT 15505 mL (net +1586 mL); Education: Explain that chest pain or palpitations should be reported at once by call bell.",
         "patient_education": "Patient education: continuing prescribed drugs (e.g. antiplatelets) and watching for bleeding; cardiac rehabilitation and pacing of activity; calling emergency services if chest pain recurs."
       },
       "text": ""
