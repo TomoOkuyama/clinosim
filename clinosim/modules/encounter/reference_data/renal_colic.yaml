@@ -44,7 +44,10 @@ workup:
         weights: [0.30, 0.35, 0.20, 0.15]
     - {test: "Ca", probability: 0.3}
   imaging:
-    - {test: "CT_abdomen_pelvis_noncontrast", probability: 0.7}
+    # Issue #3294: 388 of 604 ED patients with acute flank pain and suspected
+    # urolithiasis had a stone on noncontrast CT (64%; Alnazari et al., Urol
+    # Ann 2024;16(1):71-74, PMC10896326, a single-centre retrospective study).
+    - {test: "CT_abdomen_pelvis_noncontrast", probability: 0.7, abnormal_rate_by_severity: {any: 0.64}}
     - {test: "Renal_ultrasound", probability: 0.3}
 
 # Issue #2134: ketorolac is not marketed in Japan; JP ED analgesia is IV

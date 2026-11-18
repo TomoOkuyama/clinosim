@@ -823,3 +823,73 @@ templates:
         impression:
           en: "Anterior glenohumeral dislocation."
           ja: "肩関節前方脱臼。"
+
+  # Issue #3294: ED conditions whose abnormal-read share is a published yield
+  # (rates in the encounter protocols' ``abnormal_rate_by_severity``).
+  migraine:
+    CT_head:
+      normal:
+        findings:
+          en: "No acute intracranial hemorrhage, mass effect or midline shift. Ventricles and sulci are normal in size."
+          ja: "急性頭蓋内出血、占拠性病変、正中偏位を認めない。脳室・脳溝の大きさは正常。"
+        impression:
+          en: "No acute intracranial abnormality."
+          ja: "急性頭蓋内病変なし。"
+      abnormal:
+        findings:
+          en: "A focal intracranial abnormality is present. No midline shift."
+          ja: "頭蓋内に限局性の異常所見を認める。正中偏位なし。"
+        impression:
+          en: "Intracranial abnormality; MRI recommended for further characterization."
+          ja: "頭蓋内異常所見あり。精査としてMRIを推奨。"
+
+  elderly_fall:
+    CT_head:
+      normal:
+        findings:
+          en: "No acute intracranial hemorrhage, mass effect or midline shift. No calvarial fracture."
+          ja: "急性頭蓋内出血、占拠性病変、正中偏位を認めない。頭蓋骨骨折なし。"
+        impression:
+          en: "No acute traumatic intracranial abnormality."
+          ja: "急性外傷性頭蓋内病変なし。"
+      abnormal:
+        findings:
+          en: "Acute traumatic intracranial hemorrhage."
+          ja: "急性外傷性頭蓋内出血を認める。"
+        impression:
+          en: "Acute traumatic intracranial hemorrhage."
+          ja: "急性外傷性頭蓋内出血。"
+
+  ankle_sprain:
+    CR_ankle:
+      normal:
+        findings:
+          en: "No acute fracture or dislocation. The ankle mortise is symmetric. Soft-tissue swelling over the lateral ankle."
+          ja: "明らかな骨折・脱臼を認めない。足関節の関節裂隙は左右対称。外側の軟部組織に腫脹を認める。"
+        impression:
+          en: "No acute fracture."
+          ja: "明らかな骨折なし。"
+      abnormal:
+        findings:
+          en: "Acute fracture of the ankle with adjacent soft-tissue swelling."
+          ja: "足関節に新鮮骨折を認め、周囲の軟部組織に腫脹を伴う。"
+        impression:
+          en: "Acute ankle fracture."
+          ja: "足関節の新鮮骨折。"
+
+  renal_colic:
+    CT_abdomen:
+      normal:
+        findings:
+          en: "No urinary tract calculus. No hydronephrosis or perinephric stranding."
+          ja: "尿路結石を認めない。水腎症・腎周囲の脂肪織濃度上昇なし。"
+        impression:
+          en: "No urolithiasis."
+          ja: "尿路結石なし。"
+      abnormal:
+        findings:
+          en: "Urinary tract calculus."
+          ja: "尿路結石を認める。"
+        impression:
+          en: "Urolithiasis."
+          ja: "尿路結石。"
