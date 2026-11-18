@@ -36,6 +36,8 @@ __all__ = [
     "period_states",
     "progress_exam_findings",
     "progress_exam_rules",
+    "unchanged_systems",
+    "worst_avpu",
 ]
 
 _YAML = Path(__file__).resolve().parents[1] / "reference_data" / "progress_exam.yaml"
@@ -295,3 +297,23 @@ def course_line(ctx: NarrativeContext, readings: list, previous: list, lang: str
         return t("progress.course_worsening", lang, list=sep.join(n for n in now if n not in before))
     common = [n for n in now if n in before]
     return t("progress.course_persisting", lang, list=sep.join(common)) if common else ""
+
+
+def worst_avpu(readings: list) -> str:
+    """The worst AVPU level among ``readings`` (``""`` when none recorded)."""
+    order = {"A": 0, "V": 1, "P": 2, "U": 3}
+    levels = [str(_o(r, "consciousness_level", "") or "") for r in readings]
+    levels = [lv for lv in levels if lv in order]
+    return max(levels, key=order.__getitem__) if levels else ""
+
+
+def unchanged_systems(findings: dict[str, str], previous: dict[str, str], consciousness_changed: bool) -> list[str]:
+    """The body systems whose exam text is identical to the previous day's
+    (Issue #3235), in exam order. The general system, which carries the
+    consciousness clause, counts as changed when the day's worst AVPU
+    changed. A system without text is never "unchanged"."""
+    return [
+        system
+        for system, text in findings.items()
+        if text and previous.get(system) == text and not (system == "general" and consciousness_changed)
+    ]

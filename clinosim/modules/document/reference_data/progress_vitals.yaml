@@ -109,3 +109,26 @@ pain_sites:
   vertebral_compression_fracture: {ja: 腰背部痛, en: back pain}
   wrist_fracture_surgical: {ja: 手関節部痛, en: wrist pain}
   cellulitis: {ja: 患部痛, en: pain at the affected site}
+
+# The pain a progress note names when the disease has no single pain site
+# above: the first entry one of whose ``terms`` the admission chief complaint
+# contains (Japanese terms in the Japanese complaint, English terms, case-
+# insensitive, in the English complaint). A complaint naming no listed pain
+# leaves the generic "pain" (Issue #3235).
+complaint_pain_sites:
+  - terms: {ja: [胸痛, 胸部痛], en: [chest pain]}
+    site: {ja: 胸痛, en: chest pain}
+  - terms: {ja: [側腹部痛], en: [flank pain]}
+    site: {ja: 側腹部痛, en: flank pain}
+  - terms: {ja: [腹痛, 下腹部痛, 上腹部痛], en: [abdominal pain, epigastric pain]}
+    site: {ja: 腹痛, en: abdominal pain}
+  - terms: {ja: [頭痛], en: [headache]}
+    site: {ja: 頭痛, en: headache}
+  - terms: {ja: [腰痛, 背部痛], en: [back pain]}
+    site: {ja: 腰背部痛, en: back pain}
+  - terms: {ja: [咽頭痛, のどの痛み], en: [sore throat]}
+    site: {ja: 咽頭痛, en: sore throat}
+  - terms: {ja: [関節痛], en: [joint pain]}
+    site: {ja: 関節痛, en: joint pain}
+  - terms: {ja: [創部痛], en: [wound pain]}
+    site: {ja: 創部痛, en: wound pain}

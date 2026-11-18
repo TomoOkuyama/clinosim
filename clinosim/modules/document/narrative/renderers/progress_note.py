@@ -16,6 +16,7 @@ makes that migration path explicit.
 
 from __future__ import annotations
 
+from copy import copy
 from typing import TYPE_CHECKING
 
 from clinosim.countries import has_authored_narrative
@@ -26,6 +27,8 @@ from clinosim.modules.document.narrative._progress_exam import (
     any_abnormal,
     period_states,
     progress_exam_findings,
+    unchanged_systems,
+    worst_avpu,
 )
 from clinosim.modules.document.narrative._template_helpers import (
     _render_safety_skips_line,
@@ -163,10 +166,29 @@ def render_progress_note(
         )
         if exam_source:
             facts.append(exam_source)
+        findings = progress_exam_findings(ctx, readings, phys_exam, str(ctx.severity or ""), lang) if phys_exam else {}
+        # Issue #3235: a system whose exam is the previous day's word for word
+        # is stated as unchanged instead of repeated.
+        unchanged: list[str] = []
+        if findings and ctx.day_index >= 1:
+            prev_ctx = copy(ctx)
+            prev_ctx.day_index = ctx.day_index - 1
+            prev_readings = _note_period_vitals(ctx, previous=True)
+            prev_reading = pe_vitals_reading(prev_ctx)
+            prev_phys, _ = exam_findings(
+                generator,
+                prev_ctx,
+                prev_reading,
+                arrival_vital_states(prev_reading, prev_ctx) if prev_reading is not None else {},
+            )
+            prev_findings = (
+                progress_exam_findings(ctx, prev_readings, prev_phys, str(ctx.severity or ""), lang)
+                if prev_phys
+                else {}
+            )
+            unchanged = unchanged_systems(findings, prev_findings, worst_avpu(readings) != worst_avpu(prev_readings))
         phys_summary = generator._format_physical_exam(
-            progress_exam_findings(ctx, readings, phys_exam, str(ctx.severity or ""), lang) if phys_exam else {},
-            ctx.severity,
-            lang,
+            {k: v for k, v in findings.items() if k not in unchanged}, ctx.severity, lang
         )
         # Issue #2086: the consciousness clause follows the day's AVPU. The
         # admission chief-complaint rewrites (altered consciousness, severe
@@ -174,6 +196,14 @@ def render_progress_note(
         if phys_summary:
             phys_summary, pe_facts = apply_cc_pe_consistency(phys_summary, ctx, use_chief_complaint=False)
             facts.extend(pe_facts)
+        if unchanged:
+            if len(unchanged) == len(findings):
+                same = t("progress.exam_all_unchanged", lang)
+            else:
+                names = [_label("body_system", system, lang, fallback=system) for system in unchanged]
+                same = t("progress.exam_unchanged", lang, systems=t("list_sep.serial", lang).join(names))
+            phys_summary = f"{phys_summary}{t('list_sep.period_space', lang)}{same}" if phys_summary else same
+            facts.append("ctx.exam.unchanged_from_previous_day")
         if phys_summary:
             objective = f"{objective}。{phys_summary}"
 

@@ -1,0 +1,42 @@
+# What a daily progress note says about the hospital course beyond its vital
+# signs and drug list (Issues #3235, #3247). Read by
+# narrative/_progress_course.py and applied by
+# narrative/renderers/_composers.py (Assessment and Plan).
+
+metadata:
+  kind: reference
+  name: progress_course
+  source: clinosim
+
+# Procedure types the Assessment counts as "day N after the procedure"
+# ("処置後N日目") rather than as an operation ("術後N日目"). A surgical
+# procedure of any other type is an operation. These are done through a
+# vascular or body access or without an incision (catheter intervention,
+# cardioversion, closed reduction, long-tube placement, chest tube).
+post_procedure_types:
+  - coronary_pci
+  - cardioversion
+  - reduction_closed
+  - ileus_tube_placement
+  - chest_tube
+
+# The key labs of the admission problem are the analytes of the disease's
+# ``expected_lab_distributions.admission``. A key lab measured on the note's
+# day is compared with its previous result (lab_timeseries.lab_trend: flag
+# severity first, then a change of more than 10 % in the direction of the
+# flag); at most ``max_listed`` analytes are named per direction.
+lab_course:
+  max_listed: 3
+
+# The Plan names the discharge arrangement when the note's hospital day is
+# within ``days_before_discharge`` days of the last day of the stay (the stay's
+# length is the record's). ``groups`` maps the encounter's discharge
+# disposition to the phrase group (narrative_phrases.yaml
+# progress.discharge_planning); a disposition not listed (death) gets none.
+discharge_planning:
+  days_before_discharge: 1
+  groups:
+    home: home
+    hosp: transfer
+    other-hcf: transfer
+    snf: transfer

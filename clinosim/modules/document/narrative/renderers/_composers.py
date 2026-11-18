@@ -232,21 +232,22 @@ def _progress_symptom_phrases(ctx: NarrativeContext, today: list, prev: list, la
     # Issue #3235: a self-reported score only while the patient can give one
     # (no behavioural pain scale is recorded), named by the disease's pain.
     pain, prev_pain = _max(today, "pain_score"), _max(prev, "pain_score")
-    if pain is not None and (not avpu or avpu in rules.self_report_avpu):
-        disease_id = getattr(getattr(ctx, "disease_protocol", None), "disease_id", "") or ""
-        from clinosim.locale.loader import resolve_localized_display
-
-        site = rules.pain_sites.get(disease_id)
-        label = (resolve_localized_display(site, lang, fallback="") if site else "") or t("progress.pain_generic", lang)
-        if prev_pain is not None and prev_pain >= _SUBJ_PAIN_NOTABLE and pain < _SUBJ_PAIN_NOTABLE:
-            out.append(t("progress.pain_controlled", lang, pain=label, p=prev_pain, q=pain))
+    if pain is not None:
+        label = _pain_label(ctx, rules, lang)
+        if not avpu or avpu in rules.self_report_avpu:
+            if prev_pain is not None and prev_pain >= _SUBJ_PAIN_NOTABLE and pain < _SUBJ_PAIN_NOTABLE:
+                out.append(t("progress.pain_controlled", lang, pain=label, p=prev_pain, q=pain))
+            elif pain >= _SUBJ_PAIN_NOTABLE:
+                if prev_pain is not None and pain <= prev_pain - _SUBJ_PAIN_CHANGE:
+                    out.append(t("progress.pain_improving", lang, pain=label, p=prev_pain, q=pain))
+                elif prev_pain is not None and pain >= prev_pain + _SUBJ_PAIN_CHANGE:
+                    out.append(t("progress.pain_worsening", lang, pain=label, p=prev_pain, q=pain))
+                else:
+                    out.append(t("progress.pain_persistent", lang, pain=label, q=pain))
         elif pain >= _SUBJ_PAIN_NOTABLE:
-            if prev_pain is not None and pain <= prev_pain - _SUBJ_PAIN_CHANGE:
-                out.append(t("progress.pain_improving", lang, pain=label, p=prev_pain, q=pain))
-            elif prev_pain is not None and pain >= prev_pain + _SUBJ_PAIN_CHANGE:
-                out.append(t("progress.pain_worsening", lang, pain=label, p=prev_pain, q=pain))
-            else:
-                out.append(t("progress.pain_persistent", lang, pain=label, q=pain))
+            # Issue #3235: the patient cannot self-report; no scale score is
+            # recorded, so none is stated.
+            out.append(t("progress.pain_not_self_reportable", lang, pain=label))
 
     if avpu and avpu != "A":
         key = "progress.confusion_persistent" if prev_avpu and prev_avpu != "A" else "progress.confusion_new"
@@ -262,6 +263,32 @@ def _progress_symptom_phrases(ctx: NarrativeContext, today: list, prev: list, la
         elif hr is not None and prev_hr is not None and prev_hr > _SUBJ_WITHDRAWAL_HR:
             out.append(t("progress.withdrawal_settling", lang, hr=hr))
     return out
+
+
+def _pain_label(ctx: NarrativeContext, rules: Any, lang: str) -> str:
+    """The pain a progress note names (Issue #3235): the disease's pain site,
+    else the site the admission chief complaint names, else "pain"."""
+    from clinosim.locale.loader import resolve_localized_display
+    from clinosim.locale.localized import normalize_lang
+
+    disease_id = getattr(getattr(ctx, "disease_protocol", None), "disease_id", "") or ""
+    site = rules.pain_sites.get(disease_id)
+    if site:
+        label = resolve_localized_display(site, lang, fallback="")
+        if label:
+            return label
+    code = normalize_lang(lang)
+    enc = getattr(ctx, "encounter", None)
+    complaints = {
+        "ja": str(_o(enc, "chief_complaint_ja", "") or ""),
+        "en": str(_o(enc, "chief_complaint", "") or ""),
+    }
+    complaint = complaints.get(code) or complaints["en"]
+    for entry in rules.complaint_pain_sites:
+        terms = entry.terms.get(code) or entry.terms["en"]
+        if any(term.lower() in complaint.lower() for term in terms):
+            return entry.site.get(code) or entry.site["en"]
+    return t("progress.pain_generic", lang)
 
 
 def pick_stable_progress_phrase(ctx: NarrativeContext, *, lang: str) -> str:
@@ -368,7 +395,9 @@ def compose_progress_assessment_from_state(ctx: NarrativeContext) -> str:
     as_of = getattr(ctx, "authored_datetime", None)
     # Issue #3247: the post-operative day, the complications with their day of
     # onset, and how the course changed from the previous period.
-    post_op = _post_operative_line(ctx, as_of)
+    from clinosim.modules.document.narrative._progress_course import lab_course_lines, post_procedure_line
+
+    post_op = post_procedure_line(ctx, as_of)
     if post_op:
         parts.append(post_op)
     new_comps, ongoing_comps = _complications_known_on_day(ctx, as_of)
@@ -388,6 +417,7 @@ def compose_progress_assessment_from_state(ctx: NarrativeContext) -> str:
     course = course_line(ctx, _note_period_vitals(ctx), _note_period_vitals(ctx, previous=True), lang)
     if course:
         parts.append(course)
+    parts.extend(lab_course_lines(ctx, as_of))
     # Issues #3230 / #3241: the day's flagged results known at the note's
     # authored time, ranked and one per analyte (lab_timeseries.select_notable_labs).
     from clinosim.modules.document.narrative._narrative_interpretation_thresholds import notable_lab_rules
@@ -429,42 +459,6 @@ def newborn_screening_to_date(ctx: NarrativeContext) -> str:
     return _render_newborn_workup_summary(known, lang=ctx.target_lang, screening_only=True)
 
 
-def _post_operative_line(ctx: NarrativeContext, as_of: Any) -> str:
-    """ "Post-operative day N (operation)" of the latest operation of the stay
-    started by the note's time (Issue #3247), or "day of surgery" on its day;
-    ``""`` without one. The note's day is the authored date, else the
-    admission date plus the hospital day."""
-    from datetime import timedelta
-
-    from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
-
-    enc = getattr(ctx, "encounter", None)
-    enc_id = _o(enc, "encounter_id", "") or ""
-    admitted = parse_iso_datetime(_o(enc, "admission_datetime", None), lenient=True)
-    note_day = (
-        as_of.date() if as_of is not None else (admitted.date() + timedelta(days=ctx.day_index) if admitted else None)
-    )
-    if note_day is None:
-        return ""
-    done = []
-    for proc in getattr(ctx, "procedures", None) or []:
-        if str(_o(proc, "category_code", "") or "") != SURGICAL_PROCEDURE or _o(proc, "encounter_id", "") != enc_id:
-            continue
-        start = parse_iso_datetime(_o(proc, "start_datetime", None), lenient=True)
-        if start is not None and start.date() <= note_day and (as_of is None or start <= as_of):
-            done.append((start, proc))
-    if not done:
-        return ""
-    start, proc = max(done, key=lambda item: item[0])
-    names = procedure_names([proc], ctx.target_lang)
-    if not names:
-        return ""
-    days = (note_day - start.date()).days
-    if days == 0:
-        return t("progress.op_day", ctx.target_lang, proc=names[0])
-    return t("progress.post_op_day", ctx.target_lang, n=days, proc=names[0])
-
-
 def compose_progress_held_line(ctx: NarrativeContext) -> str:
     """The plan line naming today's held drugs ("Held: ..."), or ``""`` — for
     an authored daily-trajectory plan, which lists no drugs (Issue #2981)."""
@@ -503,6 +497,17 @@ def compose_progress_plan_from_state(ctx: NarrativeContext) -> str:
     if procs:
         sep = t("list_sep.serial", lang)
         parts.append(t("progress.procs_today", lang, list=sep.join(procs)))
+    # Issue #3247: diet, rehabilitation and the discharge arrangement.
+    from clinosim.modules.document.narrative._progress_course import (
+        diet_line,
+        discharge_planning_line,
+        rehab_line,
+    )
+
+    as_of = getattr(ctx, "authored_datetime", None)
+    for line in (diet_line(ctx, as_of), rehab_line(ctx, as_of), discharge_planning_line(ctx)):
+        if line:
+            parts.append(line)
     if not parts:
         parts.append(t("progress.observation_fallback", lang))
     return t("list_sep.chunk", lang).join(parts)

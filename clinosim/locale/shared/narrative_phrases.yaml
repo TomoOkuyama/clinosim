@@ -100,6 +100,11 @@ progress:
   # Issue #2095: pain / consciousness / withdrawal trends from recorded vitals.
   # {pain} is the disease's pain (progress_vitals.yaml pain_sites), else
   # pain_generic (Issue #3235).
+  # The patient cannot self-report (AVPU P / U) and no behavioural pain scale
+  # is recorded, so no score is stated (Issue #3235).
+  pain_not_self_reportable:
+    ja: "意識レベル低下のため{pain}の自己申告は困難 (疼痛スケールの記録なし)。"
+    en: "Self-report of {pain} is not possible with the reduced level of consciousness (no behavioural pain scale recorded)."
   pain_generic:
     ja: "疼痛"
     en: "pain"
@@ -191,6 +196,13 @@ progress:
   procs_today:
     ja: "本日の処置: {list}。"
     en: "Procedures today: {list}."
+  # A body system whose exam equals the previous day's (Issue #3235).
+  exam_unchanged:
+    ja: "{systems}: 前日と著変なし"
+    en: "{systems}: unchanged from the previous day"
+  exam_all_unchanged:
+    ja: "身体所見: 前日と著変なし"
+    en: "Physical exam: unchanged from the previous day"
   # The post-operative day of the latest operation known at the note time
   # (Issue #3247); ``proc`` is the operation's name.
   op_day:
@@ -214,6 +226,38 @@ progress:
   course_persisting:
     ja: "{list}が持続、改善に乏しい。"
     en: "Abnormal vital signs persisting ({list}); no improvement yet."
+  # The Assessment's course of the key labs of the admission problem (Issue
+  # #3247) and the day after a non-operative procedure.
+  labs_course_improving:
+    ja: "主要検査は改善傾向 ({list})。"
+    en: "Key labs improving ({list})."
+  labs_course_worsening:
+    ja: "主要検査は増悪 ({list})。"
+    en: "Key labs worsening ({list})."
+  procedure_day:
+    ja: "処置当日 ({proc})。"
+    en: "Day of procedure ({proc})."
+  post_procedure_day:
+    ja: "処置後{n}日目 ({proc})。"
+    en: "Post-procedure day {n} ({proc})."
+  # Plan items beyond drugs (Issue #3247): the diet, rehabilitation and the
+  # discharge arrangement.
+  diet_continue:
+    ja: "食事: {diet}。"
+    en: "Diet: {diet}."
+  diet_changed:
+    ja: "食事を{diet}へ変更。"
+    en: "Diet changed to {diet}."
+  rehab_continue:
+    ja: "リハビリテーション継続 ({types})。"
+    en: "Rehabilitation continued ({types})."
+  discharge_planning:
+    home:
+      ja: "退院に向けて調整中 (自宅退院予定)。"
+      en: "Discharge planning in progress (home)."
+    transfer:
+      ja: "転院・施設退院に向けて調整中。"
+      en: "Arranging transfer or facility discharge."
   observation_fallback:
     ja: "治療継続、経過観察。"
     en: "Continue current management, observe course."
