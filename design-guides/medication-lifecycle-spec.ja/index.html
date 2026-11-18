@@ -2534,6 +2534,11 @@
 <td><code>tests/unit/simulator/test_vasoactive_hold_3233.py</code></td>
 </tr>
 <tr>
+<td>昇圧薬の持続投与は、固定の archetype 日ではなく記録された血圧から開始する。その日のバイタル記録後(その日に死亡が決まる場合は終末期のバイタルも含む)、プロトコルが昇圧薬を持つ入院(その archetype 自身の開始、<code>vasopressors</code> / <code>escalation</code> ブロック、いずれかの archetype の開始)で昇圧薬の持続投与が動いていないものは、その日の平均動脈圧が離脱目標(65 mmHg)未満の記録が 2 回以上あり、いずれも最初の輸液オーダーから 3 時間以上後であるとき、第一選択の昇圧薬を開始する。オーダーは 2 回目の記録の 30 分後に置き、その日の残りの投与は入院エンカウンターと病日から seed を作った別系列の RNG で記録する(入院の乱数列には draw を足さない)。疾患プロトコルの固定日の昇圧薬開始(archetype の <code>treatment_modifications</code>、escalation ブロック)はその日には適用しない。そこに書かれた 2 剤目の昇圧薬(バソプレシン)は、昇圧薬が動いており、その開始後に記録した血圧が目標未満であるときに限り、その日に開始する。</td>
+<td><code>simulator/vasopressor_initiation.py</code>, <code>daily_loop.py</code> (<code>_start_vasopressor_for_hypotension</code>, <code>_start_archetype_treatments</code>, <code>_escalate_treatment</code>); データ <code>simulator/reference_data/vasopressor_initiation.yaml</code></td>
+<td><code>tests/unit/simulator/test_vasopressor_from_hypotension_3332.py</code></td>
+</tr>
+<tr>
 <td>昇圧薬・強心薬の持続投与は、直前 24 時間に記録した血圧がすべて平均動脈圧 65 mmHg 以上(2 回以上の記録)、その間に新たな昇圧薬・強心薬の開始がなく、ショックを脱している(日次ループの <code>in_shock</code>)とき、その病日の開始時点で中止する。持続投与中の昇圧薬・強心薬はまとめて中止し(status stopped、終了時刻はその病日の開始)、以後は投与しない。最終病日に持続投与があった患者は退院可能とも自宅退院可能とも判定せず、そのために入院期間をプロトコルの最大在院日数から最大 <code>max_extension_days</code> 日まで延長する。</td>
 <td><code>simulator/vasoactive_support.py</code>(<code>stop_weaned_vasoactive_infusions</code>, <code>vasoactive_support_after</code>)、<code>medication_pipeline.py::is_vasoactive_infusion</code>。データ <code>simulator/reference_data/vasoactive_weaning.yaml</code>。<code>daily_loop.py</code>(<code>_wean_vasoactive_support</code>, <code>_on_vasoactive_support</code>)と <code>discharge_gate.py</code> で適用</td>
 <td><code>tests/unit/simulator/test_vasoactive_weaning_3270.py</code></td>
