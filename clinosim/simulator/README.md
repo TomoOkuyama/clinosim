@@ -154,6 +154,8 @@ clinosim/simulator/
   vasopressor_initiation.py  starts a vasopressor from the recorded mean arterial
                          pressure (low despite fluids) instead of a fixed day
                          (Issue #3332)
+  aki_response.py        acute kidney injury (KDIGO creatinine definition): drugs held
+                         while it is active and the discharge gate (Issue #3281)
   discharge_rx.py        discharge-time prescription builder
   antithrombotic_plan.py in-stay and discharge antithrombotic regimen of a
                          stroke (protocol `antithrombotic_plan`, Issue #3277)
@@ -265,6 +267,7 @@ Reference data (`reference_data/`, 8 YAMLs):
   reference_data/vasoactive_hold.yaml         drugs held during vasopressor / inotrope infusions (medication_pipeline.py)
   reference_data/vasopressor_initiation.yaml  starting a vasopressor from low pressure after fluids (vasopressor_initiation.py)
   reference_data/vasoactive_weaning.yaml      vasopressor / inotrope weaning and the discharge gate after it (vasoactive_support.py)
+  reference_data/aki_response.yaml            AKI detection, drugs held during AKI, discharge gate (aki_response.py)
 ```
 
 Extracted threshold constants (14 files, `_<area>_thresholds.py`):

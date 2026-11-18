@@ -148,6 +148,8 @@ clinosim/simulator/
                          離脱後に退院まで 1 病日観察する判定 (Issue #3270)
   vasopressor_initiation.py  記録された平均血圧が輸液後も低い場合に昇圧薬を開始する
                          (固定病日ではなく生理状態駆動, Issue #3332)
+  aki_response.py        急性腎障害 (KDIGO のクレアチニン基準): 活動期間中の薬剤保留と
+                         退院判定 (Issue #3281)
   discharge_rx.py        退院時処方ビルダー
   antithrombotic_plan.py 脳梗塞の入院中・退院時の抗血栓療法
                          (プロトコルの `antithrombotic_plan`, Issue #3277)
@@ -254,6 +256,7 @@ CLI サブコマンドハンドラ (11 ファイル):
   reference_data/vasoactive_hold.yaml         昇圧薬・強心薬の持続投与中に保留する薬 (medication_pipeline.py)
   reference_data/vasopressor_initiation.yaml  低血圧と輸液後の昇圧薬開始条件 (vasopressor_initiation.py)
   reference_data/vasoactive_weaning.yaml      昇圧薬・強心薬の離脱条件と離脱後の退院判定 (vasoactive_support.py)
+  reference_data/aki_response.yaml            AKI の判定・AKI 中に保留する薬剤・退院判定 (aki_response.py)
 ```
 
 抽出済閾値定数 (14 ファイル、`_<area>_thresholds.py`):

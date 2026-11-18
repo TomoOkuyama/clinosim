@@ -202,6 +202,7 @@ def build_discharge_rx(
     final_renal_function: float = 1.0,
     ordered_drugs: Iterable[str] = (),
     severity: str = "",
+    aki_active: bool = False,
 ) -> PrescriptionRecord:
     """Build discharge prescription from protocol.
 
@@ -209,6 +210,11 @@ def build_discharge_rx(
     home medications they are the drugs a discharge hold may name (Issue #2992).
     ``severity`` is the stay's severity category (the antithrombotic plan of a
     stroke protocol, Issue #3277).
+
+    ``aki_active`` (Issue #3281): the final creatinine still meets the KDIGO AKI
+    definition — the nephrotoxic and renally cleared drugs of
+    ``reference_data/aki_response.yaml`` are held and logged; once it no longer
+    does they continue (restart).
 
     Applies renal contraindication checks so that nephrotoxic drugs or drugs
     requiring renal clearance are not prescribed at discharge if the patient's
@@ -276,6 +282,28 @@ def build_discharge_rx(
     # ("Insulin glargine" vs "Insulin glargine 4 units/kg/day") because
     # dose/formulation differences are clinically meaningful and belong in
     # separate line items.
+
+    def _aki_hold(drug_name: str, drug_name_ja: str) -> bool:
+        """Issue #3281: True (and logged) when the final creatinine still
+        meets the AKI definition and ``drug_name`` is nephrotoxic or renally
+        cleared (``aki_response.yaml``); it continues once AKI has resolved."""
+        from clinosim.locale.loader import hold_reason_display
+        from clinosim.simulator.aki_response import aki_response_rules, holds_for_aki
+
+        if not aki_active or not holds_for_aki(drug_name):
+            return False
+        reason = aki_response_rules().reason
+        _log_discharge_hold(
+            patient,
+            encounter_id=encounter_id,
+            held_drug_name=drug_name,
+            held_drug_name_ja=drug_name_ja or drug_name,
+            hold_reason=hold_reason_display(reason, "en"),
+            hold_reason_ja=hold_reason_display(reason, "ja"),
+            timestamp=admission_time,
+            taken=taken,
+        )
+        return True
 
     def _reconcile_conflict(drug_name: str, drug_name_ja: str) -> bool:
         """Issue #2713: True (and logged) when ``drug_name`` duplicates the
@@ -383,6 +411,8 @@ def build_discharge_rx(
                 timestamp=admission_time,
                 taken=taken,
             )
+            return
+        if _aki_hold(drug_name, drug_name_ja or drug_name):
             return
         # Issue #1335: apply the disease-protocol medication_holds at
         # discharge as well, matched by drug identity (Issue #2377).
@@ -527,6 +557,8 @@ def build_discharge_rx(
             continue
         if final_renal_function < DISCHARGE_RENAL_HOLD_THRESHOLD and drug_key(drug_name) in renal_hold_drugs():
             continue  # do not restart nephrotoxic drug at discharge
+        if _dedup_key(drug_name) not in seen_dedup_keys and _aki_hold(drug_name, med.drug_name_ja or drug_name):
+            continue  # Issue #3281: held while AKI persists
         if _dedup_key(drug_name) not in seen_dedup_keys and _allergy_conflict(drug_name, True):
             continue  # Issue #2924: not continued against a recorded allergy
         key = _dedup_key(drug_name)
