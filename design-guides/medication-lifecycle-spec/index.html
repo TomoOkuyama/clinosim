@@ -2549,6 +2549,11 @@
 <td><code>tests/unit/simulator/test_non_daily_mar_2982.py</code></td>
 </tr>
 <tr>
+<td>No administration precedes its order: a scheduled slot before the order time (or the admission) is not given, and the early side of the timing jitter stops at the order time. On the day an order starts, a STAT order gets its first dose 30-60 minutes after the order, and an order placed after every slot of that day gets one first dose 30-60 minutes after the order; otherwise the first dose is the first slot after the order time.</td>
+<td><code>medication_pipeline.py::_generate_mar</code></td>
+<td><code>tests/unit/simulator/test_mar_not_before_order_3311.py</code>, <code>tests/unit/simulator/test_mar_late_admission_first_dose.py</code></td>
+</tr>
+<tr>
 <td>Orders placed outside the loop (VTE prophylaxis enricher, delivery bundle) get administrations from one helper set that draws no RNG: fixed daily times and a nurse picked by a stable hash. Enrichers that schedule their own doses (HAI antibiotic regimens, newborn birth-admission prophylaxis) still name the giving nurse through the same <code>stable_nurse</code>.</td>
 <td><code>modules/order/placed_order_mar.py</code> (<code>daily_times</code>, <code>stable_nurse</code>, <code>administrations_for</code>)</td>
 <td><code>tests/unit/modules/order/test_placed_order_mar_spec.py</code>, <code>tests/unit/test_hai_abx_giving_nurse_2823.py</code>, <code>tests/unit/modules/newborn/test_newborn_giving_nurse_2824.py</code></td>
