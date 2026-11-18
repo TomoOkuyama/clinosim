@@ -847,6 +847,16 @@ codes:
   '159026005':
     en: Speech and language therapist
     ja: 言語聴覚士
+  # Rehabilitation session procedures (Issue #3319; tx.fhir.org $lookup 2026-11-18).
+  '91251008':
+    en: Physical therapy procedure
+    ja: 理学療法
+  '84478008':
+    en: Occupational therapy
+    ja: 作業療法
+  '311555007':
+    en: Speech and language therapy regime
+    ja: 言語聴覚療法
   '159033005':
     en: Dietitian
     ja: 管理栄養士

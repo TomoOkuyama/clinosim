@@ -49,6 +49,7 @@ from clinosim.modules.procedure.engine import (
 from clinosim.modules.staff.engine import (
     FALLBACK_PHYSICIAN_ID,
     StaffRoster,
+    assign_rehab_therapist,
     assign_staff,
     select_surgical_team,
 )
@@ -846,6 +847,7 @@ def _simulate_patient(
             target_los,
             rng,
             config.country,
+            therapist_id=assign_rehab_therapist(roster, "PT", encounter.encounter_id),
         )
 
     # Bedside / routine procedures (disease-driven rules)

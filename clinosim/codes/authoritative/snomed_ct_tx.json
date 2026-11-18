@@ -5,7 +5,7 @@
     "source_file": "https://tx.fhir.org/r4/CodeSystem/$lookup (preferred term, synonyms, FSN)",
     "extracted_at": "2026-11-10",
     "edition_version": "http://snomed.info/sct/900000000000207008/version/20250201",
-    "clinosim_codes_total": 266,
+    "clinosim_codes_total": 269,
     "clinosim_codes_missing_from_source": [
       "303408005"
     ],
@@ -1859,6 +1859,36 @@
         {
           "use": "900000000000003001",
           "value": "Partial colectomy specimen (specimen)"
+        }
+      ]
+    },
+    {
+      "code": "311555007",
+      "display": "Speech and language therapy regime",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Speech and language therapy regimes"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Speech and language therapy regimes (procedure)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Speech and language therapy regimes (regime/therapy)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Speech and language therapy treatments and procedures"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Speech and language pathology care"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Speech and language therapy regime (regime/therapy)"
         }
       ]
     },
@@ -4729,6 +4759,28 @@
       ]
     },
     {
+      "code": "84478008",
+      "display": "Occupational therapy",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Occupational therapy (regime/therapy)(procedure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "OT - Occupational therapy"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Occupational therapy (regime/therapy)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Occupational therapist service"
+        }
+      ]
+    },
+    {
       "code": "8517006",
       "display": "Ex-smoker",
       "designation": [
@@ -4897,6 +4949,44 @@
         {
           "use": "900000000000013009",
           "value": "Bladder structure"
+        }
+      ]
+    },
+    {
+      "code": "91251008",
+      "display": "Physical therapy procedure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Physical therapy procedure, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Physiotherapy procedure, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Physiotherapy, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Physiotherapy procedure"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Physiotherapy"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Physical therapy procedure (regime/therapy)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Physical therapy procedure (procedure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "PT - Physiotherapy"
         }
       ]
     },

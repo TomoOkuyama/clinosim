@@ -15,6 +15,10 @@
 #     display pair used when materialising a practitioner Resource
 #     from the roster.
 #
+#   * `rehab_discipline` / `rehab_session_snomed` — set on the therapist roles:
+#     the RehabSession.therapy_type the role delivers and the SNOMED CT
+#     procedure of one of its sessions (Issue #3319).
+#
 # The role_key is the canonical slug every module uses to look up any
 # of the three facets; adding a new clinician role is one yaml row,
 # not three Python edits across two files.
@@ -65,6 +69,8 @@ roles:
     suffix: {en: respiratory therapist, ja: 呼吸療法士}
 
   physical_therapist:
+    rehab_discipline: PT   # RehabSession.therapy_type this role delivers (Issue #3319)
+    rehab_session_snomed: "91251008"   # Procedure.code of one session (tx.fhir.org $lookup 2026-11-18)
     title: {en: "Physical therapist", ja: "理学療法士"}
     occupation_snomed: "36682004"
     staff_prefix: PT
@@ -74,6 +80,8 @@ roles:
       display: {en: Physical Therapist, ja: 理学療法士}
 
   occupational_therapist:
+    rehab_discipline: OT   # RehabSession.therapy_type this role delivers (Issue #3319)
+    rehab_session_snomed: "84478008"   # Procedure.code of one session (tx.fhir.org $lookup 2026-11-18)
     title: {en: "Occupational therapist", ja: "作業療法士"}
     occupation_snomed: "80546007"
     staff_prefix: OT
@@ -83,6 +91,8 @@ roles:
       display: {en: Occupational Therapist, ja: 作業療法士}
 
   speech_therapist:
+    rehab_discipline: ST   # RehabSession.therapy_type this role delivers (Issue #3319)
+    rehab_session_snomed: "311555007"   # Procedure.code of one session (tx.fhir.org $lookup 2026-11-18)
     title: {en: "Speech-language therapist", ja: "言語聴覚士"}
     occupation_snomed: "159026005"
     staff_prefix: ST

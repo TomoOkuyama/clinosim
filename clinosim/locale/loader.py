@@ -102,6 +102,8 @@ from clinosim.locale.loaders.medical_display import (
     load_med_terms_ja,
     load_medication_hold_reasons,
     load_occupation_display,
+    rehab_discipline_role,
+    rehab_session_snomed,
     role_display,
 )
 from clinosim.locale.loaders.narrative import (
@@ -168,6 +170,8 @@ __all__ = [
     "department_specialty_snomed",
     "load_clinician_roles",
     "load_department_display",
+    "rehab_discipline_role",
+    "rehab_session_snomed",
     "role_display",
     "load_diet_type_display",
     "hold_reason_display",

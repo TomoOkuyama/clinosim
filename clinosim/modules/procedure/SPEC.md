@@ -13,9 +13,9 @@
 > loss and an ASA class; every other `ProcedureRecord` leaves them None
 > (not recorded) and takes its anesthesia from the procedure catalog
 > (Issue #3257). The real `RehabSession`
-> (`clinosim/types/procedure.py`) has no `therapist_id`, `goals_addressed`
-> or `notes`, uses `pain_score` instead of `pain_during_session`, and adds
-> `day_post_op`. See [`README.md`](README.md).
+> (`clinosim/types/procedure.py`) has no `goals_addressed` or `notes`, uses `pain_score` instead of `pain_during_session`, and adds
+> `day_post_op`. Its `therapist_id` is the roster physical therapist of the
+> stay (Issue #3319). See [`README.md`](README.md).
 
 ## Purpose
 Model the workflow of surgeries and invasive procedures: pre-operative assessment, informed consent, the procedure itself, and post-operative recovery. Essential for hip fracture (Phase 1) and any surgical disease module.

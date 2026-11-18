@@ -1699,6 +1699,9 @@ diagnoses_and_complaint:
 # Issue #3261: the plan is written when rehabilitation starts, so these lines
 # carry the evaluation in force at that time and planned values only.
 rp_note:
+  therapist_named:
+    ja: "担当者：{names}"
+    en: "Named therapist: {names}"
   rehab_team_line:
     ja: "担当リハビリ職種：{disciplines}／{therapist_note}"
     en: "Rehab discipline(s): {disciplines} / {therapist_note}"
@@ -3275,6 +3278,9 @@ fhir_emit_text:
   referral_letter:
     ja: "診療情報提供書"
     en: "Referral letter"
+  rehab_session_declined:
+    ja: "患者がリハビリテーションの実施を拒否"
+    en: "Patient declined the session"
   section_title_suffix:
     ja: "セクション"
     en: " section"

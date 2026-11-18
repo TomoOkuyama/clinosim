@@ -89,6 +89,24 @@ def load_clinician_roles() -> dict[str, dict[str, Any]]:
     return {str(k): v for k, v in (raw.get("roles") or {}).items() if isinstance(v, dict)}
 
 
+def rehab_discipline_role(therapy_type: str) -> str:
+    """Staff role (``physical_therapist`` ...) delivering the rehabilitation
+    discipline ``therapy_type`` (PT / OT / ST), from the ``rehab_discipline``
+    of the clinician-role registry; ``""`` for an unknown discipline
+    (Issue #3319)."""
+    for role, row in load_clinician_roles().items():
+        if row.get("rehab_discipline") == therapy_type:
+            return role
+    return ""
+
+
+def rehab_session_snomed(therapy_type: str) -> str:
+    """SNOMED CT procedure code of one ``therapy_type`` session, ``""`` when
+    unregistered (Issue #3319)."""
+    row = load_clinician_roles().get(rehab_discipline_role(therapy_type)) or {}
+    return str(row.get("rehab_session_snomed") or "")
+
+
 def role_display(role: str, lang: str, *, facet: str = "title") -> str:
     """Display of staff ``role`` in ``lang`` (then English, then the humanised
     role): ``facet`` "title" (Physical therapist / 理学療法士), "suffix" (the

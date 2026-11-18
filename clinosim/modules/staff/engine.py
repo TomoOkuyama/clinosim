@@ -9,8 +9,9 @@ from __future__ import annotations
 import numpy as np
 
 from clinosim.country_profile import country_profile
-from clinosim.locale.loader import load_addresses, load_names
+from clinosim.locale.loader import load_addresses, load_names, rehab_discipline_role
 from clinosim.locale.patterns import draw_pattern
+from clinosim.modules._shared import pick_allied_staff_id
 from clinosim.modules.staff._staff_thresholds import (
     ALLIED_HEALTH_QUALIFICATION_YEAR_END_EXCLUSIVE,
     ALLIED_HEALTH_QUALIFICATION_YEAR_START,
@@ -58,6 +59,7 @@ __all__ = [
     "FALLBACK_TECH_ID",
     "StaffMember",
     "StaffRoster",
+    "assign_rehab_therapist",
     "assign_staff",
     "generate_roster",
 ]
@@ -378,6 +380,20 @@ def scoped_nurses(roster: StaffRoster, *, ward: str = "", department: str = "") 
         if match:
             return match
     return nurses
+
+
+def assign_rehab_therapist(roster: StaffRoster, therapy_type: str, encounter_id: str) -> str:
+    """Roster id of the therapist delivering ``therapy_type`` (PT / OT / ST)
+    on ``encounter_id``, ``""`` when the roster has none (Issue #3319).
+
+    Deterministic per (discipline, encounter) and RNG-free
+    (``pick_allied_staff_id``), so one stay keeps one therapist per discipline
+    and it is the same person the encounter's CareTeam lists.
+    """
+    role = rehab_discipline_role(therapy_type)
+    if not role:
+        return ""
+    return pick_allied_staff_id([m.staff_id for m in roster.get_by_role(role)], role, encounter_id)
 
 
 def assign_staff(

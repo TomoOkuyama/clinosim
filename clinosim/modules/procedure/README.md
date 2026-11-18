@@ -24,7 +24,11 @@ Owns per-encounter procedure emission for three families:
 3. **Post-op rehabilitation** (`generate_rehab_sessions`) — daily
    PT schedule from post-op day 1 through discharge, with
    early / mid / late phase activities, a pain model, skip-day and
-   refusal probabilities.
+   refusal probabilities. Every session records the roster therapist of
+   the discipline (`therapist_id`, Issue #3319): the simulator picks it with
+   `staff.assign_rehab_therapist` (deterministic per encounter and discipline,
+   no RNG draw — the same therapist the encounter's CareTeam lists) and passes
+   it in.
 4. **Intubation** (`build_intubation_procedure`, Issue #2091) —
    deterministic intubation `ProcedureRecord` built by
    `simulator/daily_loop.py` when the state crosses the airway

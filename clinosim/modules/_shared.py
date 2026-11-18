@@ -301,6 +301,22 @@ def practitioner_name(staff_id: str, roster_map: dict[str, dict] | None) -> str:
     return str((staff or {}).get("name", "") or "").strip()
 
 
+def pick_allied_staff_id(pool: list[str], role: str, encounter_id: str) -> str:
+    """The allied-health staff id of ``role`` assigned to ``encounter_id``,
+    or ``""`` when ``pool`` is empty.
+
+    Deterministic and RNG-free: the index is the character-code sum of
+    ``"<role>:<encounter_id>"`` modulo the sorted pool size, so every record
+    that names the encounter's therapist (the CareTeam participant and the
+    rehabilitation sessions, Issue #3319) resolves to the same person. The
+    role salt keeps different roles from co-varying on one encounter.
+    """
+    ids = sorted(pool)
+    if not ids:
+        return ""
+    return ids[sum(ord(c) for c in f"{role}:{encounter_id}") % len(ids)]
+
+
 def get_attr_or_key(obj: Any, name: str, default: Any = None) -> Any:
     """Read ``name`` from ``obj`` whether ``obj`` is a dict or has attributes.
 

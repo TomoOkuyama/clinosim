@@ -36,7 +36,11 @@ FHIR taxonomy が Immunization を Procedure ファミリに配置している
   `Procedure` を `performedPeriod` 付きで合成、単一 timestamp event
   は flag sample を挟む `_SINGLE_TIMESTAMP_DWELL =
   timedelta(minutes=15)` の窓で dwell 化);
-  `_SNOMED_OXYGEN_THERAPY = "57485005"`。
+  `_SNOMED_OXYGEN_THERAPY = "57485005"`;
+  `_bb_rehab_sessions` (Issue #3319 — CIF `RehabSession` 1 件につき
+  `Procedure` 1 件: 職種ごとの SNOMED セッションコード (clinician-role
+  registry)、`performedPeriod`、`performer` = roster の担当療法士 (`function`
+  は療法士の SNOMED 職種)。拒否されたセッションは `statusReason` 付き `not-done`)。
 - **Out of scope**: procedure / device / immunization / nursing の
   **生成**
   ([`clinosim.modules.procedure`](../../../procedure/README.ja.md)、
@@ -164,6 +168,7 @@ clinosim/modules/output/fhir_r4/procedures/
   device.py                          _bb_device + _bb_device_use (extensions["device"] 由来)
   nursing.py                         _bb_nursing_observations (NEWS2 / GCS / Braden / Morse / Barthel / intake-output survey Observation)
   oxygen_therapy.py                  _bb_oxygen_therapy + _SINGLE_TIMESTAMP_DWELL + _SNOMED_OXYGEN_THERAPY (Issue #796)
+  rehab_sessions.py                  _bb_rehab_sessions (RehabSession ごとの Procedure と担当療法士 performer、Issue #3319)
   surgical_specimens.py              _bb_procedure_specimens (ProcedureRecord.specimens_sent ごとの Specimen、Issue #3284)
 ```
 
