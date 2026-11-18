@@ -47,6 +47,7 @@ from clinosim.modules.document.narrative._replacement_renderers import (
     _stay_phase,
 )
 from clinosim.modules.document.narrative._safety_skips import safety_skip_line
+from clinosim.modules.document.narrative.context import newborn_workup_known_at
 from clinosim.modules.document.reference_data_loaders import NarrativeExtrasWhitelists
 from clinosim.types.document import DocumentTypeSpec, NarrativeContext
 
@@ -469,7 +470,10 @@ def _build_extra_context(
         # neonatal admission_hp block for the expected cadence.
         newborn_workup = getattr(ctx, "newborn_workup", None) or {}
         if newborn_workup.get("is_neonate"):
-            summary = _render_newborn_workup_summary(newborn_workup, lang=ctx.target_lang)
+            summary = _render_newborn_workup_summary(
+                newborn_workup_known_at(newborn_workup, getattr(ctx, "authored_datetime", None)),
+                lang=ctx.target_lang,
+            )
             if summary:
                 extra["newborn_workup_summary"] = summary
     elif doc_type == "discharge_summary":

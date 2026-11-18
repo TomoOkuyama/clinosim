@@ -138,6 +138,12 @@ physical_examination:
     ja: "身体所見"
   loinc: "29545-1"
 
+admission_results:
+  title:
+    en: "Results at admission"
+    ja: "入院時検査結果"
+  loinc: "30954-2"
+
 triage_details:
   title:
     en: "Triage details"

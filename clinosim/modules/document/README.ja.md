@@ -186,6 +186,7 @@ clinosim/modules/document/
     clinosim-discharge-instruction.yaml  退院指導。項目は `applies_when` (性別・喫煙・飲酒・疾患・退院薬、および喘息増悪のピークフロー・長期管理薬・コントロール評価文の `age_min` / `age_max`; Issue #3264) で絞れる
     asthma-control-instruments.yaml  年齢別の喘息コントロール評価 (12 歳以上 ACT、4-11 歳 C-ACT、4 歳未満は保護者への症状聴取; Issue #3264, GINA 2024)
     chronic-med-class-hints.yaml     慢性疾患 assessment の薬効分類 hint (narrative/renderers/section_builders/outpatient_soap.py)
+    disease_exam.yaml                疾患ごとの入院時身体所見 (疾患が及ぶ系統の所見、英語・日本語)、AVPU による意識の句、心房細動の脈の規則、急性期脳卒中の局所神経症状と NIHSS の範囲 (load_disease_exam)
     ed_note_admitted.yaml            ED 経由入院の ED 記録: 来院時バイタルの成人の判定範囲とバイタルを述べる所見語 (来院時の測定値と矛盾する day-0 身体所見の句は書かない)、トリアージの来院手段と照合する救急搬入の HPI 表現 (load_ed_note_admitted)
     hpi_pertinent_negatives.yaml     HPI pertinent negative、疾患ごとに言語別の文言と否定する症状語 (hpi_pertinent_negatives(disease_id, lang)、英語にフォールバック)。主訴の症状を否定する negative は出力しない
     bedside_procedure_codes.yaml     bedside procedure code (load_bedside_procedure_codes)

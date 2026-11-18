@@ -352,10 +352,10 @@ def test_progress_note_day_0_contains_assessment() -> None:
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, spec)
     assert out.raw_text != "", "raw_text must not be empty"
-    # bacterial_pneumonia day_0 assessment = "初期診断確定、治療開始"
-    assert "初期診断" in out.raw_text or "治療開始" in out.raw_text or "診断" in out.raw_text, (
-        f"Day-0 assessment text not found in: {out.raw_text!r}"
-    )
+    # Issue #3245: the disease YAML no longer carries the placeholder
+    # "初期診断確定、治療開始"; the day-0 assessment is composed from the record.
+    assert "初期診断確定" not in out.raw_text, f"placeholder assessment in: {out.raw_text!r}"
+    assert "A（評価）" in out.raw_text, out.raw_text
 
 
 def test_progress_note_emits_sections_and_rejoin_metadata() -> None:

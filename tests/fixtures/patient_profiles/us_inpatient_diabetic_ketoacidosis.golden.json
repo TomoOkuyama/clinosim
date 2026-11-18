@@ -5,29 +5,36 @@
     "narrative": {
       "facts_used": [
         "ctx.encounter.chief_complaint",
-        "generic:hpi_onset_en.severe",
+        "disease_protocol.narrative.hpi_template.onset_type.subacute",
+        "ctx.patient.demographics",
+        "ctx.encounter.chief_complaint",
+        "ctx.patient.chronic_conditions",
         "ctx.patient.chronic_conditions",
         "ctx.patient.smoking_status",
         "ctx.patient.alcohol_use",
         "ctx.patient.occupation",
         "ctx.vitals[day_0]",
+        "physical_exam_findings.disease_exam.diabetic_ketoacidosis",
+        "ctx.lab_results.known_at_note_time",
+        "ctx.imaging_studies.known_at_note_time",
         "composed:cif_state_en"
       ],
-      "generated_at": "2024-06-15T04:16:00Z",
+      "generated_at": "2024-06-15T07:16:00Z",
       "generator": "template",
       "generator_metadata": {
         "generator": "template",
         "lang": "en"
       },
       "sections": {
+        "admission_results": "Laboratory (abnormal): glucose 551 mg/dL [critical] (prior 578); pH 7.04 [critical]; Cl 107 mmol/L [H]; lactate 3.0 mmol/L [H]; +4 other abnormal. Imaging and studies: chest X-ray PA (Lungs clear. Heart size normal); ECG (Sinus tachycardia without ischemic changes); chest X-ray AP (Left lower lobe consolidation)",
         "allergies": "No known drug allergies (NKDA)",
         "assessment_and_plan": "Assessment: Admitted for evaluation and management of: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Working diagnosis: diabetic ketoacidosis (severity: severe). Comorbidities: Type 2 diabetes (DM), Dyslipidemia. Plan: Estimated length of stay: ~5 days. Initial medications: Enoxaparin, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0. Workup / procedures: Central venous catheter insertion.",
         "chief_complaint": "Nausea, vomiting, abdominal pain, polyuria, altered consciousness",
         "family_history": "No significant family history",
-        "hpi": "Patient reports rapid symptom worsening prompting today's presentation.",
+        "hpi": "34 y/o female patient. Chief complaint: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Symptoms that began over the preceding days worsened rapidly, prompting today's presentation. History: Type 2 diabetes (DM), Dyslipidemia. ROS: no fever, no diarrhea.",
         "medications_at_home": "No home medications",
         "past_medical_history": "Type 2 diabetes mellitus without complications [E11.9]; Hyperlipidemia, unspecified [E78.5]",
-        "physical_examination": "Vital signs: BP 107/67 mmHg, HR 113/min, T 36.3°C, SpO2 94% (RA), RR 22/min. General: no additional exam findings recorded.",
+        "physical_examination": "Vital signs: BP 107/67 mmHg, HR 113/min, T 36.3°C, SpO2 94% (RA), RR 22/min. General: alert, dehydrated, in distress. Skin: dry mucous membranes, decreased skin turgor. Respiratory: deep, rapid (Kussmaul) respirations, fruity breath odor. Abdomen: diffuse mild tenderness without guarding",
         "social_history": "Smoking: Non-smoker; Alcohol: Non-drinker; Occupation: Other"
       },
       "text": ""
@@ -458,9 +465,13 @@
       "facts_used": [
         "ctx.encounter.chief_complaint",
         "disease_protocol.narrative.hpi_template.onset_type.subacute",
+        "ctx.patient.demographics",
+        "ctx.encounter.chief_complaint",
+        "ctx.patient.chronic_conditions",
         "encounter.triage_data",
         "ctx.allergies",
         "ctx.vitals[0]",
+        "physical_exam_findings.disease_exam",
         "ctx.orders.ed",
         "ctx.diagnoses.admission_diagnosis_code",
         "ctx.encounter.chief_complaint",
@@ -477,8 +488,8 @@
         "chief_complaint": "Nausea, vomiting, abdominal pain, polyuria, altered consciousness",
         "disposition": "Admitted (Nausea, vomiting, abdominal pain, polyuria, altered consciousness)",
         "ed_workup": "Labs: glucose, β-hydroxybutyrate, Na, K, Cl, HCO3, BUN, creatinine. Imaging: chest X-ray PA, ECG, chest X-ray AP. Medications: Insulin, Regular, Human, Normal Saline, Potassium Chloride, IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0",
-        "hpi": "Symptoms that began over the preceding days worsened rapidly, prompting today's presentation.",
-        "physical_exam": "On arrival: BP 105/69 mmHg, HR 125 bpm, RR 21 /min, SpO2 100%, T 36.1°C.",
+        "hpi": "34 y/o female patient. Chief complaint: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Symptoms that began over the preceding days worsened rapidly, prompting today's presentation. History: Type 2 diabetes (DM), Dyslipidemia. ROS: no fever, no diarrhea.",
+        "physical_exam": "On arrival: BP 105/69 mmHg, HR 125 bpm, RR 21 /min, SpO2 100%, T 36.1°C. General: alert, dehydrated, in distress. Skin: dry mucous membranes, decreased skin turgor. Respiratory: deep, rapid (Kussmaul) respirations, fruity breath odor. Abdomen: diffuse mild tenderness without guarding.",
         "triage_details": "Triage level: ESI Level 1. Arrival mode: Helicopter/air transport. Allergies: No known drug allergies (NKDA)."
       },
       "text": ""

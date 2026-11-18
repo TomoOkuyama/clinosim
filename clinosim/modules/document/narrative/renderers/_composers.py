@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING, Any
 from clinosim.countries import has_authored_narrative
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules.document.narrative._as_of import recorded_by
 from clinosim.modules.document.narrative._localization import (
     _localize_complication,
 )
@@ -491,6 +492,19 @@ def _vital_limit(ctx: NarrativeContext, vital: str, side: str, adult: float) -> 
     return child.high if side == "max" else child.low
 
 
+def pe_vitals_reading(ctx: NarrativeContext) -> Any | None:
+    """The vital-sign record the physical-examination vitals line quotes: the
+    first reading of the note's day taken by its authored time (Issue #3241),
+    else the earliest reading taken by then; ``None`` when there is none."""
+    vitals = recorded_by(list(ctx.vitals or []), getattr(ctx, "authored_datetime", None))
+    if not vitals:
+        return None
+    picks = _filter_vitals_for_day(vitals, ctx.day_index, ctx.encounter)
+    if not picks:
+        picks = [vitals[0]]
+    return picks[0]
+
+
 def compose_pe_vitals_line(ctx: NarrativeContext) -> str:
     """Compose a JA vital-signs prose line for the physical_examination
     section (Issue #979).
@@ -501,21 +515,17 @@ def compose_pe_vitals_line(ctx: NarrativeContext) -> str:
     vitals via ``_filter_vitals_for_day`` (which handles the CIF
     ``timestamp`` vs ``day`` divergence — see helper docstring).
 
-    If the target day has no vitals, falls back to the encounter's
-    earliest vitals record (day 0) so admission_hp / ED_NOTE / progress
-    notes still emit a vitals block whenever the CIF has any vitals at
-    all. Returns "" only when ``ctx.vitals`` is entirely empty.
+    Only readings taken by the note's authored time count (Issue #3241); if
+    the target day has none of them, the encounter's earliest reading taken
+    by then is quoted. Returns "" when no reading existed at the authored time.
 
     Format matches real JP acute-care admission notes:
         "BP 130/80 mmHg, HR 88/min, T 37.5°C, SpO2 96% (RA), RR 20/min"
     """
-    vitals = list(ctx.vitals or [])
-    if not vitals:
+    reading = pe_vitals_reading(ctx)
+    if reading is None:
         return ""
-    picks = _filter_vitals_for_day(vitals, ctx.day_index, ctx.encounter)
-    if not picks:
-        picks = [vitals[0]]
-    return format_vitals_line(picks[0], PHYSICAL_EXAM, ctx.target_lang)
+    return format_vitals_line(reading, PHYSICAL_EXAM, ctx.target_lang)
 
 
 def apply_cc_pe_consistency(text: str, ctx: NarrativeContext) -> tuple[str, list[str]]:

@@ -33,14 +33,20 @@ from clinosim.locale.i18n import t
 from clinosim.locale.loader import map_family_history_code
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules.document.narrative._as_of import recorded_by
 from clinosim.modules.document.narrative._localization import _localize_stage
 from clinosim.modules.document.narrative._narrative_utils import is_neonate
 from clinosim.modules.document.narrative._template_helpers import (
     _render_home_med_name,
     allergen_display,
 )
+from clinosim.modules.document.narrative.renderers._composers import pe_vitals_reading
+from clinosim.modules.document.narrative.renderers._disease_exam import exam_findings
+from clinosim.modules.document.narrative.renderers._exam_agreement import arrival_vital_states
 from clinosim.modules.document.narrative.renderers._resolvers import resolve_neonatal_exam
-from clinosim.modules.document.narrative.renderers._shared_helpers import diagnosis_coded
+from clinosim.modules.document.narrative.renderers._shared_helpers import (
+    diagnosis_coded,
+)
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section, section_builder
 from clinosim.types.document import NarrativeContext
 
@@ -351,40 +357,44 @@ def build_physical_examination(generator: TemplateNarrativeGenerator, ctx: Narra
     """
     facts: list[str] = []
     lang = ctx.target_lang
+    neonate = is_neonate(ctx)
+    vitals_line = generator._compose_pe_vitals_line(ctx)
+    if vitals_line:
+        facts.append(f"ctx.vitals[day_{ctx.day_index}]")
 
-    # Issue #1156: EN PE previously short-circuited to a bare
-    # "No special findings" placeholder. The JP-only per-disease
-    # ``physical_exam_findings`` YAML content still cannot be reused
-    # (would leak CJK), but the vitals line ``_compose_pe_vitals_line``
-    # produces a language-neutral prose string ("BP 130/80 mmHg, HR
-    # 88/min, T 37.5°C, SpO2 96% (RA), RR 20/min") that reads
-    # cleanly in either locale. EN now prepends the vitals block
-    # so admission H&P PE carries at least the encounter's
-    # objective vitals instead of being blank.
+    # Issue #3245: the exam of the admission day is the admitting disease's
+    # (disease_exam.yaml, in the document language) with the vital-sign
+    # clauses the quoted reading contradicts left out; later days (and a
+    # disease without one) use the protocol / baseline exam, written for
+    # languages with authored narrative content.
+    findings: dict[str, str] = {}
+    source = ""
+    if neonate:
+        # Issue #3260: the newborn exam set carries every language.
+        findings = {
+            k: v for k, v in resolve_neonatal_exam(ctx, ctx.day_index).items() if isinstance(v, str) and v.strip()
+        }
+        source = "physical_exam_findings.neonatal"
+    else:
+        reading = pe_vitals_reading(ctx)
+        states = arrival_vital_states(reading, ctx) if reading is not None else {}
+        findings, source = exam_findings(generator, ctx, reading, states)
+    if source:
+        facts.append(source)
+
+    text = generator._format_physical_exam(findings, ctx.severity, lang)
     if not has_authored_narrative(lang):
-        vitals_line = generator._compose_pe_vitals_line(ctx)
-        # Issue #3260: the newborn exam set carries every language, so a
-        # neonate gets it in English too.
-        neonatal_text = ""
-        if is_neonate(ctx):
-            neonatal_text = generator._format_physical_exam(
-                resolve_neonatal_exam(ctx, ctx.day_index), ctx.severity, lang
-            )
-            facts.append("physical_exam_findings.neonatal")
-        if vitals_line:
-            facts.append(f"ctx.vitals[day_{ctx.day_index}]")
-            text = neonatal_text or t("physical_exam.no_other_findings", lang)
-            return t("ed_physical_exam.vitals_prepend", lang, vitals=vitals_line, text=text), facts
-        if neonatal_text:
-            return neonatal_text, facts
-        facts.append("generic:physical_exam_en")
-        return t("fallback.generic_fallback", lang), facts
+        # English: the findings of the disease; none authored for the day says
+        # so (the vitals line alone carries the reading).
+        if not text:
+            if not vitals_line:
+                facts.append("generic:physical_exam_en")
+                return t("fallback.generic_fallback", lang), facts
+            text = t("physical_exam.no_other_findings", lang)
+        return (
+            t("ed_physical_exam.vitals_prepend", lang, vitals=vitals_line, text=text) if vitals_line else text
+        ), facts
 
-    phys_exam = generator._resolve_physical_exam(ctx, ctx.clinical_course_archetype, ctx.day_index)
-    if phys_exam:
-        facts.append(f"physical_exam_findings.{ctx.clinical_course_archetype}.day_{ctx.day_index}")
-
-    text = generator._format_physical_exam(phys_exam, ctx.severity, lang)
     if not text:
         text = t("fallback.generic_fallback", lang)
 
@@ -395,12 +405,68 @@ def build_physical_examination(generator: TemplateNarrativeGenerator, ctx: Narra
     facts.extend(cc_facts)
 
     # #979: prepend vital-signs prose line for this day.
-    vitals_line = generator._compose_pe_vitals_line(ctx)
     if vitals_line:
-        facts.append(f"ctx.vitals[day_{ctx.day_index}]")
         text = t("ed_physical_exam.vitals_prepend", lang, vitals=vitals_line, text=text)
 
     return text, facts
+
+
+@section("admission_results")
+def build_admission_results(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
+    """The results the admission H&P cites (Issue #3245): the abnormal
+    laboratory results and the imaging / ECG reports available at the note's
+    authored time (Issue #3241) — a result reported later is not in the note.
+    The labs are worded as the progress-note Assessment words them (flag,
+    previous value, the abnormality a result names); a stay with lab orders
+    but no result back yet says the results are pending."""
+    from clinosim.locale.loader import imaging_exam_display
+    from clinosim.modules.document.narrative._narrative_interpretation_thresholds import notable_lab_rules
+    from clinosim.modules.document.narrative._notable_labs import notable_lab_entries
+
+    facts: list[str] = []
+    lang = ctx.target_lang
+    as_of = getattr(ctx, "authored_datetime", None)
+    sep = t("list_sep.semicolon", lang)
+    parts: list[str] = []
+
+    known_labs = recorded_by(list(ctx.lab_results or []), as_of, "result_datetime")
+    if known_labs:
+        facts.append("ctx.lab_results.known_at_note_time")
+        entries = notable_lab_entries(
+            known_labs,
+            _o(ctx.encounter, "admission_datetime", None),
+            None,
+            lang,
+            limit=notable_lab_rules().max_items.note,
+            as_of=as_of,
+        )
+        if entries:
+            parts.append(t("admission_results.labs_abnormal", lang, list=sep.join(entries)))
+        else:
+            parts.append(t("admission_results.labs_normal", lang, n=len(known_labs)))
+    elif any(str(_o(o, "order_type", "") or "").lower() == "lab" for o in ctx.orders or []):
+        parts.append(t("admission_results.labs_pending", lang))
+
+    studies: list[str] = []
+    for study in ctx.imaging_studies or []:
+        report = _o(study, "report", None) or {}
+        issued = recorded_by([report], as_of, "issued_datetime")
+        impression = _o(report, f"impression_text_{lang}", None) or _o(report, "impression_text", None) or ""
+        if not issued or not impression:
+            continue
+        name = imaging_exam_display(str(_o(study, "description", "") or ""), lang)
+        studies.append(
+            t("admission_results.imaging_item", lang, name=name, impression=str(impression).strip().rstrip("。."))
+            if name
+            else str(impression).strip()
+        )
+    if studies:
+        facts.append("ctx.imaging_studies.known_at_note_time")
+        parts.append(t("admission_results.imaging", lang, list=sep.join(studies)))
+
+    if not parts:
+        return t("admission_results.none_yet", lang), facts
+    return t("list_sep.period_space", lang).join(parts), facts
 
 
 @section("admission_summary")

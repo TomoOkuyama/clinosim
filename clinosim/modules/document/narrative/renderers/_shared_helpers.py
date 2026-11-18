@@ -45,8 +45,9 @@ def pydantic_day_findings_to_dict(day_findings: Any) -> dict[str, Any]:
     return result
 
 
-# Head-to-toe order of the exam systems. ``head`` / ``skin`` / ``umbilicus`` /
-# ``hips`` appear only in the newborn exam set (Issue #3260).
+# Head-to-toe order of the exam systems. ``umbilicus`` / ``hips`` appear only
+# in the newborn exam set (Issue #3260); ``head`` / ``skin`` / ``musculoskeletal``
+# / ``extremities`` in the newborn set and the disease exams (Issue #3245).
 PHYSICAL_EXAM_SYSTEMS: tuple[str, ...] = (
     "general",
     "head",
@@ -54,6 +55,8 @@ PHYSICAL_EXAM_SYSTEMS: tuple[str, ...] = (
     "cardiovascular",
     "respiratory",
     "abdominal",
+    "musculoskeletal",
+    "extremities",
     "umbilicus",
     "hips",
     "neurological",

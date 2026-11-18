@@ -109,7 +109,7 @@ def test_admitted_ed_hpi_ja_has_the_injury_onset_and_history() -> None:
 def test_admitted_ed_hpi_en_uses_the_onset_type_of_the_disease() -> None:
     """An injury is not described as symptoms developing over several days."""
     text, facts = build_hpi(TemplateNarrativeGenerator(), _ctx("hip_fracture", "en", cc=("転倒", "Fall")))
-    assert text.startswith("Injured today"), text
+    assert "Injured today and presented" in text, text
     assert "disease_protocol.narrative.hpi_template.onset_type.injury" in facts
 
 
@@ -144,32 +144,35 @@ def test_admission_hp_hpi_is_unchanged_by_the_arrival_mode() -> None:
 
 def test_admitted_ed_exam_ja_is_the_day0_exam_after_the_arrival_vitals() -> None:
     vitals = [_vital(_ARRIVAL, heart_rate=121), _vital(datetime(2025, 11, 21, 0, 2), heart_rate=83)]
-    text, facts = build_ed_physical_exam(TemplateNarrativeGenerator(), _ctx("acute_mi", "ja", vitals=vitals))
+    text, facts = build_ed_physical_exam(
+        TemplateNarrativeGenerator(), _ctx("heart_failure_exacerbation", "ja", vitals=vitals)
+    )
     assert text.startswith("来院時所見: "), text
     assert "HR 121" in text and "HR 83" not in text, text
-    assert "一般状態: 意識清明、蒼白、冷汗、苦悶様" in text, text
-    assert "循環器: 頻脈" in text, text
+    assert "一般状態: 意識清明、中等度の苦痛様" in text, text
+    assert "循環器: 頻脈、III 音（ギャロップ）を聴取、頸静脈怒張" in text, text
     assert "特記" not in text, text
     assert text.endswith("。"), text
-    assert "physical_exam_findings.smooth_recovery.day_0" in facts
+    assert "physical_exam_findings.disease_exam" in facts
 
 
 def test_admitted_ed_exam_drops_tachycardia_when_the_arrival_hr_is_normal() -> None:
     text, _ = build_ed_physical_exam(
-        TemplateNarrativeGenerator(), _ctx("acute_mi", "ja", severity="mild", vitals=[_vital(_ARRIVAL, heart_rate=84)])
+        TemplateNarrativeGenerator(),
+        _ctx("heart_failure_exacerbation", "ja", severity="mild", vitals=[_vital(_ARRIVAL, heart_rate=84)]),
     )
     assert "頻脈" not in text, text
-    assert "循環器: 心雑音なし" in text, text
+    assert "循環器: III 音（ギャロップ）を聴取、頸静脈怒張" in text, text
 
 
 @pytest.mark.parametrize(("sbp", "kept"), [(128, False), (82, True)])
 def test_admitted_ed_exam_hypotension_follows_the_arrival_bp(sbp: int, kept: bool) -> None:
     vitals = [_vital(_ARRIVAL, heart_rate=118, systolic_bp=sbp)]
     text, _ = build_ed_physical_exam(
-        TemplateNarrativeGenerator(), _ctx("acute_mi", "ja", severity="severe", vitals=vitals)
+        TemplateNarrativeGenerator(), _ctx("sepsis", "ja", severity="severe", vitals=vitals)
     )
     assert "頻脈" in text, text
-    assert ("低血圧" in text) is kept, text
+    assert ("血圧低下" in text) is kept, text
 
 
 def test_admitted_ed_exam_rewrites_alert_when_the_arrival_avpu_is_not_alert() -> None:
@@ -183,12 +186,15 @@ def test_admitted_ed_exam_rewrites_alert_when_the_arrival_avpu_is_not_alert() ->
     assert "意識清明" not in text, text
 
 
-def test_admitted_ed_exam_en_quotes_the_arrival_vitals_only() -> None:
-    """The authored day-0 exam is Japanese; the English note keeps the vitals."""
+def test_admitted_ed_exam_en_is_the_disease_exam_after_the_arrival_vitals() -> None:
+    """Issue #3245: the English note writes the disease's exam in English
+    (without the clause the arrival reading contradicts), never a CJK text."""
     text, _ = build_ed_physical_exam(
-        TemplateNarrativeGenerator(), _ctx("acute_mi", "en", vitals=[_vital(_ARRIVAL, heart_rate=121)])
+        TemplateNarrativeGenerator(),
+        _ctx("heart_failure_exacerbation", "en", vitals=[_vital(_ARRIVAL, heart_rate=84)]),
     )
-    assert text.startswith("On arrival: ") and "HR 121" in text, text
+    assert text.startswith("On arrival: ") and "HR 84" in text, text
+    assert "S3 gallop" in text and "tachycardia" not in text, text
     assert "No focal" not in text and not any("぀" <= ch <= "ヿ" or "一" <= ch <= "鿿" for ch in text)
 
 

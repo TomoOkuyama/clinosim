@@ -89,11 +89,10 @@ def build_assessment_and_plan(generator: TemplateNarrativeGenerator, ctx: Narrat
     assessment = (
         traj_a if (traj_a and traj_a not in _placeholders) else (_compose_ap_assessment_from_state(ctx) or _generic_a)
     )
-    plan = (
-        traj_p
-        if (traj_p and traj_p not in _placeholders)
-        else (_compose_ap_plan_from_state(generator, ctx) or _generic_p)
-    )
+    if traj_p and traj_p not in _placeholders:
+        plan = t("list_sep.chunk", lang).join([traj_p, *admission_plan_items(ctx)])
+    else:
+        plan = _compose_ap_plan_from_state(generator, ctx) or _generic_p
     text = t("ap_combined.assessment_plan_block", lang, assessment=assessment, plan=plan)
     return text, facts
 
@@ -201,6 +200,32 @@ def _compose_ap_plan_from_state(generator: TemplateNarrativeGenerator, ctx: Narr
     if procs:
         sep = t("list_sep.serial", lang)
         parts.append(t("ap_plan.workup_procedures", lang, list=sep.join(procs)))
+    parts.extend(admission_plan_items(ctx))
     if not parts:
         parts.append(t("ap_plan.observation_fallback", lang))
     return t("list_sep.chunk", lang).join(parts)
+
+
+def admission_plan_items(ctx: NarrativeContext) -> list[str]:
+    """The problem-specific items of the admission plan (Issue #3245): the
+    operation an admission for a surgical disease plans (the disease protocol's
+    ``requires_surgery``, named from the stay's operation record) and the
+    code status the record assigned. Nothing is written for a problem the
+    record gives no basis for."""
+    from clinosim.codes import display as registry_display
+    from clinosim.modules.document.narrative.renderers._shared_helpers import (
+        primary_surgical_procedure,
+        procedure_prose_name,
+    )
+
+    lang = ctx.target_lang
+    items: list[str] = []
+    if ctx.disease_protocol is not None and bool(_o(ctx.disease_protocol, "requires_surgery", False)):
+        surgery = primary_surgical_procedure(ctx)
+        name = procedure_prose_name(surgery, lang) if surgery is not None else ""
+        if name:
+            items.append(t("ap_plan.planned_surgery", lang, name=name))
+    status = registry_display("snomed-ct", ctx.code_status, lang) if ctx.code_status else ""
+    if status:
+        items.append(t("ap_plan.code_status", lang, status=status))
+    return items

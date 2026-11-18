@@ -45,8 +45,8 @@ def test_bacterial_pneumonia_archetype_has_daily_trajectory() -> None:
     assert "subjective" in dt["day_0"], "subjective missing in day_0"
     assert dt["day_0"]["subjective"], "subjective is empty in day_0"
     assert "objective" in dt["day_0"], "objective missing in day_0"
-    assert "assessment" in dt["day_0"], "assessment missing in day_0"
-    assert "plan" in dt["day_0"], "plan missing in day_0"
+    # Issue #3245: no placeholder assessment / plan; they are composed from the record.
+    assert "assessment" not in dt["day_0"] and "plan" not in dt["day_0"], dt["day_0"]
 
 
 def test_all_diseases_have_narrative() -> None:

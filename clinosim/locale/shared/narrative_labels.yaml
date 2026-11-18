@@ -140,6 +140,9 @@ body_system:
   skin: {en: Skin, ja: 皮膚}
   umbilicus: {en: Umbilicus, ja: 臍}
   hips: {en: Hips, ja: 股関節}
+  # Disease exams (Issue #3245).
+  musculoskeletal: {en: Musculoskeletal, ja: 運動器}
+  extremities: {en: Extremities, ja: 四肢}
 
 # Sex-label vocabulary used in patient demographics prose.
 # Keys mirror the values ``PatientProfile.sex`` may carry

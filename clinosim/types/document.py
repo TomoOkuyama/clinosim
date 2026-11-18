@@ -118,6 +118,12 @@ class DocumentTypeSpec:
     'emergency'). Populated by Task 9 for the 6 new encounter-scoped document types.
     """
 
+    authored_after_admission_hours: float = 0.0
+    """Hours after the admission at which an ``admission_once`` document is
+    authored (Issue #3241): 0 = at the admission. A history and physical is
+    written once the admission work-up has results, so it can cite them; the
+    document still belongs to hospital day 0."""
+
     composition_sections_jp: tuple[str, ...] = field(default_factory=tuple)
     """JP-CLINS-compliant section list.
 

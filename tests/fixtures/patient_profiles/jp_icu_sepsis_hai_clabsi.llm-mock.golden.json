@@ -14,16 +14,19 @@
         "ctx.patient.smoking_status",
         "ctx.patient.alcohol_use",
         "ctx.patient.occupation",
-        "physical_exam_findings.dip_then_recovery.day_0",
-        "ctx.vitals[day_0]"
+        "ctx.vitals[day_0]",
+        "physical_exam_findings.disease_exam.sepsis",
+        "ctx.lab_results.known_at_note_time",
+        "ctx.imaging_studies.known_at_note_time"
       ],
-      "generated_at": "2024-06-15T02:31:00+09:00",
+      "generated_at": "2024-06-15T05:31:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
         "generator": "llm",
         "lang": "ja"
       },
       "sections": {
+        "admission_results": "検査（異常値）: K 5.4 mmol/L [H]、血糖 154 mg/dL [H]、PaO2 64.3 mmHg [L]、CRP 33.77 mg/dL [H]、ほか異常値 9 項目。画像・生理検査: 胸部レントゲン (正面・側面)（胸部単純写真上、敗血症の肺由来源を示唆する所見なし）、腹部・骨盤 CT（今回撮像範囲内に急性期異常所見を認めず）、胸部レントゲン (臥位正面)（両側下葉肺炎、敗血症の感染源として矛盾せず）",
         "allergies": "薬物アレルギーなし（NKDA）",
         "assessment_and_plan": "[Mock LLM response #1 — assessment_and_plan]",
         "chief_complaint": "3日前より倦怠感・本日ぐったり",
@@ -31,7 +34,7 @@
         "hpi": "[Mock LLM response #1 — hpi]",
         "medications_at_home": "常用薬なし",
         "past_medical_history": "慢性腎臓病 [N18.9]",
-        "physical_examination": "バイタルサイン: BP 107/65 mmHg, HR 119/min, T 38.0°C, SpO2 96%, RR 22/min。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+        "physical_examination": "バイタルサイン: BP 107/65 mmHg, HR 119/min, T 38.0°C, SpO2 96%, RR 22/min。一般状態: 意識清明、重篤感がある。皮膚: 皮膚のまだら模様、四肢冷感。循環器: 頻脈、毛細血管再充満時間の延長。呼吸器: 呼吸数増加",
         "social_history": "喫煙歴: 非喫煙者; 飲酒歴: 飲酒なし; 職業: その他"
       },
       "text": ""
@@ -43,7 +46,7 @@
     "narrative": {
       "facts_used": [
         "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_0",
+        "physical_exam_findings.disease_exam.sepsis",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -77,11 +80,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #2 — assessment]",
-        "objective": "BP 105/66 mmHg, HR 117 回/分, RR 19 回/分, SpO2 89% (RA), T 39.9°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+        "objective": "BP 105/66 mmHg, HR 117 回/分, RR 19 回/分, SpO2 89% (RA), T 39.9°C。特記事項なし。一般状態: 意識清明、重篤感がある。皮膚: 皮膚のまだら模様、四肢冷感。循環器: 頻脈、毛細血管再充満時間の延長",
         "plan": "[Mock LLM response #2 — plan]",
         "subjective": "[Mock LLM response #2 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #2 — subjective]\nO（客観） BP 105/66 mmHg, HR 117 回/分, RR 19 回/分, SpO2 89% (RA), T 39.9°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #2 — assessment]\nP（計画） [Mock LLM response #2 — plan]"
+      "text": "S（主観） [Mock LLM response #2 — subjective]\nO（客観） BP 105/66 mmHg, HR 117 回/分, RR 19 回/分, SpO2 89% (RA), T 39.9°C。特記事項なし。一般状態: 意識清明、重篤感がある。皮膚: 皮膚のまだら模様、四肢冷感。循環器: 頻脈、毛細血管再充満時間の延長\nA（評価） [Mock LLM response #2 — assessment]\nP（計画） [Mock LLM response #2 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-03": {
@@ -3832,7 +3835,7 @@
         "encounter.triage_data",
         "ctx.allergies",
         "ctx.vitals[0]",
-        "physical_exam_findings.dip_then_recovery.day_0",
+        "physical_exam_findings.disease_exam",
         "ctx.orders.ed",
         "ctx.diagnoses.admission_diagnosis_code",
         "ctx.encounter.chief_complaint",
@@ -3850,7 +3853,7 @@
         "disposition": "[Mock LLM response #34 — disposition]",
         "ed_workup": "検査: CBC (全血球算定)、LFT (肝機能パネル)、血液培養 (セット 1)、血液培養 (セット 2)、乳酸、CRP、PCT、クレアチニン。画像: 胸部レントゲン (正面・側面)、腹部・骨盤 CT、胸部レントゲン (臥位正面)。投薬: メロペネム、バンコマイシン、輸液: 乳酸リンゲル液 30 mL/kg ボーラス 以内 3 時間、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）",
         "hpi": "[Mock LLM response #34 — hpi]",
-        "physical_exam": "来院時所見: BP 105/66 mmHg, HR 117 回/分, RR 19 回/分, SpO2 89%, T 39.9°C。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし。",
+        "physical_exam": "来院時所見: BP 105/66 mmHg, HR 117 回/分, RR 19 回/分, SpO2 89%, T 39.9°C。一般状態: 意識清明、重篤感がある。皮膚: 皮膚のまだら模様、四肢冷感。循環器: 頻脈、毛細血管再充満時間の延長。",
         "triage_details": "トリアージレベル: JTAS レベル2。来院形態: 救急車搬送。アレルギー: 薬物アレルギーなし（NKDA）。"
       },
       "text": ""
