@@ -36,7 +36,7 @@ from clinosim.simulator._daily_loop_thresholds import (
 )
 from clinosim.simulator.vitals_pipeline import _loc_for, _o2_for, spo2_on_oxygen
 from clinosim.types.clinical import PhysiologicalState
-from clinosim.types.encounter import VitalSignRecord
+from clinosim.types.encounter import Order, OrderResult, OrderStatus, OrderType, VitalSignRecord
 from clinosim.types.patient import PatientProfile
 
 # A recovering note does not belong to the final hours.
@@ -132,3 +132,22 @@ def apply_terminal_course(
         )
         vitals.append(observe(template))
         vitals.sort(key=lambda v: v.timestamp)
+
+
+def drop_results_after_death(orders: list[Order], lab_results: list[OrderResult], death_time: datetime) -> None:
+    """Issue #3280: no specimen is collected and nothing is resulted after
+    the patient died. The death time is the calendar midnight after the last
+    hospital day, while a hospital day runs 24 hours from the admission time,
+    so an evening admission has the last day's scheduled labs ordered after
+    it. A lab order placed after ``death_time`` is removed; a result timed
+    after it (a specimen held over the night) is removed from ``lab_results``
+    and from its order, which is then cancelled — as the vitals and
+    administrations end at the death time. Draws nothing; runs after the
+    day's results, so no other stay's stream is touched."""
+    orders[:] = [o for o in orders if not (o.order_type == OrderType.LAB and o.ordered_datetime > death_time)]
+    late = {id(o.result) for o in orders if o.result is not None and o.result.result_datetime > death_time}
+    lab_results[:] = [r for r in lab_results if r.result_datetime <= death_time]
+    for order in orders:
+        if order.result is not None and id(order.result) in late:
+            order.result = None
+            order.status = OrderStatus.CANCELLED

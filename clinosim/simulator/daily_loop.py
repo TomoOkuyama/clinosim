@@ -1124,15 +1124,18 @@ def _record_terminal_course(stay: _Stay, run: _Run, day: int) -> None:
     (``terminal_course.apply_terminal_course``). The death time is the one
     the inpatient simulator records (00:mm after the last hospital day)."""
     from clinosim.simulator.inpatient import _planned_discharge_datetime
-    from clinosim.simulator.terminal_course import apply_terminal_course
+    from clinosim.simulator.terminal_course import apply_terminal_course, drop_results_after_death
 
+    death_time = _planned_discharge_datetime(stay.admission_time, day + 1, 0)
+    # Issue #3280: no lab result is timed after the death.
+    drop_results_after_death(run.orders, run.lab_results, death_time)
     apply_terminal_course(
         run.vitals,
         run.state_history,
         stay.patient,
         disease_id=stay.disease_id,
         encounter_id=stay.encounter_id,
-        death_time=_planned_discharge_datetime(stay.admission_time, day + 1, 0),
+        death_time=death_time,
     )
 
 
