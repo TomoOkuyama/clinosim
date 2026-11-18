@@ -138,6 +138,10 @@ from clinosim.modules.patient.activator import (
   `pick_active_chemo_regimen` (遅延)。
 - `clinosim.modules.population._pediatric_anthropometry` — 小児分岐の
   成長曲線身長 parameter。
+- 喘息 (J45) の自宅内服は `chronic_medications.yaml` の `age_min` / `age_max`
+  で年齢帯に分ける (Issue #3264): 2-5 歳はブデソニド吸入液、6-11 歳はフルチカゾン
+  プロピオン酸エステル pMDI、12 歳以上はフルチカゾン/サルメテロール (GINA 2024
+  Box 11-3 / Box 4-2。帯は乱数を引かない)。
 - `clinosim.locale.loader` — `load_names(country)` (緊急連絡先の
   名)、`load_chronic_medications`、`load_chemo_regimens`。
 - `clinosim.seeding` — `chronic_medication_seed`、

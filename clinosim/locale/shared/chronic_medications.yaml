@@ -286,7 +286,20 @@ J45:  # Asthma
     # フルチカゾンプロピオン酸エステル 250 μg / サルメテロール 50 μg 配合、
     # 1回1吸入・1日2回 (通常維持量、成人)。The 250μg fluticasone strength is
     # the reference strength that FHIR consumers use for dispensing.
-    - {drug_id: fluticasone_salmeterol, dose: "250mcg", route: "INH", frequency: "bid"}
+    # Age bands (Issue #3264). Controller therapy follows age: GINA 2024
+    # (Box 11-3, 11-2) low-dose ICS is the daily controller for children 5
+    # years and younger, Box 4-2 gives the low dose for children 6-11 years,
+    # and the ICS/LABA combination below is the adult / adolescent (12+)
+    # maintenance regimen. Budesonide nebulized 0.25 mg bid (0.5 mg/day) is
+    # the GINA low dose from 1 year of age, the US Pulmicort Respules label
+    # starting dose for 12 months-8 years and the Japanese パルミコート吸入液
+    # 小児 label dose (0.25 mg bid, PMDA). Fluticasone propionate pMDI 50 mcg
+    # bid (100 mcg/day) is the top of the GINA 6-11 y low-dose range (50-100).
+    # The entries are mutually exclusive by age band (probability 1, so no
+    # RNG draw is consumed).
+    - {drug_id: budesonide, dose: "250mcg", route: "INH", frequency: "bid", age_min: 2, age_max: 5}
+    - {drug_id: fluticasone_propionate, dose: "50mcg", route: "INH", frequency: "bid", age_min: 6, age_max: 11}
+    - {drug_id: fluticasone_salmeterol, dose: "250mcg", route: "INH", frequency: "bid", age_min: 12}
     # Salbutamol pMDI (サルタノール / ベネトリン): 1 puff = 100 μg salbutamol、
     # 発作時 1-2 puff 頓用 (成人)、添付文書: サルタノールインヘラー 100μg.
     - {drug_id: albuterol, dose: "100mcg", route: "INH", frequency: "q4-6h PRN"}

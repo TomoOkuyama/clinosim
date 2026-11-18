@@ -1114,6 +1114,12 @@ chronic_monitoring:
   act_control_review:
     ja: "、ACT で コントロール状況確認。"
     en: "; ACT control review."
+  cact_control_review:
+    ja: "、小児喘息コントロールテスト (C-ACT) でコントロール状況確認。"
+    en: "; Childhood ACT control review."
+  symptom_control_review:
+    ja: "、保護者からの聴取で症状・夜間覚醒・発作治療薬の使用頻度を確認。"
+    en: "; symptom control reviewed with the caregiver (daytime symptoms, night waking, reliever use)."
 
 # Chronic-assessment prose fragments (Phase 1d-46).
 # From template_generator._compose_chronic_assessment_integrated —

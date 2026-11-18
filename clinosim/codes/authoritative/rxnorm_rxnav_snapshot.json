@@ -331,6 +331,12 @@
    "tty": "SCD"
   },
   {
+   "code": "19831",
+   "status": "Active",
+   "name": "budesonide",
+   "tty": "IN"
+  },
+  {
    "code": "1991302",
    "status": "Active",
    "name": "semaglutide",
@@ -742,6 +748,12 @@
    "code": "40790",
    "status": "Active",
    "name": "pantoprazole",
+   "tty": "IN"
+  },
+  {
+   "code": "41126",
+   "status": "Active",
+   "name": "fluticasone",
    "tty": "IN"
   },
   {

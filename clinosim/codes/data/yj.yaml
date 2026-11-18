@@ -459,6 +459,12 @@ codes:
   2254700G4037:
     en: "Albuterol"
     ja: "サルタノールインヘラー１００μｇ"
+  2290701G4020:
+    en: "Budesonide"
+    ja: "パルミコート吸入液０．２５ｍｇ"
+  2290700G7032:
+    en: "Fluticasone propionate"
+    ja: "フルタイド５０μｇエアゾール１２０吸入用"
   2259702G2021:
     en: "Ipratropium"
     ja: "アトロベントエロゾル２０μｇ"

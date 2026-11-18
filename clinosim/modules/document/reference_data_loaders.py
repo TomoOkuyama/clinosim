@@ -651,6 +651,23 @@ class ChronicMedClassHints(BaseModel):
     classes: dict[str, _ChronicMedClassHint]
 
 
+class _AsthmaControlBand(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    age_min: int | None = None
+    age_max: int | None = None
+    phrase: str
+
+
+class AsthmaControlInstruments(BaseModel):
+    """Shape of asthma-control-instruments.yaml: the control-instrument phrase
+    of an outpatient asthma note by age band, in match order (Issue #3264)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    bands: list[_AsthmaControlBand] = Field(min_length=1)
+
+
 class JaOnlyFallbackSections(BaseModel):
     """Shape of ja_only_fallback_sections.yaml: the section slugs excused from
     the US Japanese-character gate."""

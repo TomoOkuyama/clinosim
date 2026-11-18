@@ -55,5 +55,5 @@ classes:
 
   asthma:
     prefix: J45
-    en: [ICS, Salmeterol, Montelukast]
-    ja: [ICS, サルメテロール, モンテルカスト]
+    en: [ICS, Salmeterol, Montelukast, Budesonide, Fluticasone]
+    ja: [ICS, サルメテロール, モンテルカスト, ブデソニド, フルチカゾン]
