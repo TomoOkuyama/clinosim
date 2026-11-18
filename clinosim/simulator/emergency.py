@@ -18,7 +18,8 @@ from clinosim.locale.loader import order_test_display, treatment_intent_display
 from clinosim.modules._shared import normalize_probabilities
 from clinosim.modules.disease.severity import sample_severity_category
 from clinosim.modules.encounter.engine import create_inpatient_encounter
-from clinosim.modules.encounter.protocol import imaging_red_flag
+from clinosim.modules.encounter.protocol import imaging_red_flag, study_in_country
+from clinosim.modules.imaging.engine import load_impression_templates
 from clinosim.modules.observation.engine import get_lab_unit
 from clinosim.modules.observation.order_routing import lab_order_targets
 from clinosim.modules.order.label_dose import within_label
@@ -759,6 +760,10 @@ def _simulate_ed_visit(
             )
         else:
             order_offset = rng.normal(ED_IMAGING_ORDER_OFFSET_MEAN_MIN, ED_IMAGING_ORDER_OFFSET_STD_MIN)
+        # Issue #3294: a study listed for other countries is not ordered here
+        # (after the draws above, so the visit stream does not depend on it).
+        if not study_in_country(img_spec, country):
+            continue
         orders.append(
             Order(
                 order_id=f"ORD-{encounter.encounter_id}-ED-I{i}",
@@ -772,6 +777,8 @@ def _simulate_ed_visit(
                 ordered_datetime=visit_time + timedelta(minutes=int(order_offset)),
                 ordered_by=encounter.attending_physician_id,
                 status=OrderStatus.PLACED,
+                # Issue #3294: the share of reads abnormal, by severity.
+                imaging_spec_meta={"abnormal_rate_by_severity": dict(img_spec.get("abnormal_rate_by_severity") or {})},
             )
         )
 
@@ -1050,14 +1057,22 @@ def _simulate_ed_visit(
             run_stage,
         )
 
-        run_stage(
-            POST_ENCOUNTER,
-            EnricherContext(
-                config=config,
-                master_seed=config.random_seed,  # type: ignore[attr-defined]
-                records=[record],
-                roster=roster,
-            ),
-        )
+        # Issue #3294: the visit's imaging reads with the report templates of
+        # its condition (the imaging enricher's transient ``_disease_id`` key),
+        # where the condition has any.
+        if _mb_cond in load_impression_templates():
+            record.extensions["_disease_id"] = _mb_cond
+        try:
+            run_stage(
+                POST_ENCOUNTER,
+                EnricherContext(
+                    config=config,
+                    master_seed=config.random_seed,  # type: ignore[attr-defined]
+                    records=[record],
+                    roster=roster,
+                ),
+            )
+        finally:
+            record.extensions.pop("_disease_id", None)
 
     return record

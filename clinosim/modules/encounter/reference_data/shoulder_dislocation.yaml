@@ -35,8 +35,11 @@ workup:
   vitals: true
   labs: []  # no routine labs unless sedation planned
   imaging:
-    - {test: "Shoulder_Xray_AP_Lateral", probability: 0.95, note: "pre-reduction"}
-    - {test: "Shoulder_Xray_Post_Reduction", probability: 0.95, note: "confirm relocation"}
+    # Issue #3294: the pre-reduction film shows the dislocation, the
+    # post-reduction film the relocated joint (impression_templates.yaml,
+    # shoulder_dislocation).
+    - {test: "Shoulder_Xray_AP_Lateral", probability: 0.95, note: "pre-reduction", abnormal_rate_by_severity: {any: 1.0}}
+    - {test: "Shoulder_Xray_Post_Reduction", probability: 0.95, note: "confirm relocation", abnormal_rate_by_severity: {any: 0.0}}
 
 treatment:
   - {name: "Procedural sedation (Propofol/Midazolam)", probability: 0.7, route: "IV", intent: "facilitate closed reduction"}

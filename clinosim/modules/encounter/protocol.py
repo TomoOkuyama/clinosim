@@ -225,6 +225,15 @@ class _WorkupImaging(BaseModel):
     required_if: list[_ImagingRedFlag] = Field(default_factory=list)
 
 
+def study_in_country(spec: Mapping[str, Any], country: str) -> bool:
+    """True when the workup entry ``spec`` applies in ``country``: an entry
+    without ``countries`` applies everywhere (Issue #3294)."""
+    from clinosim.countries import country_slot
+
+    countries = spec.get("countries")
+    return not countries or country_slot(country) in {str(c).lower() for c in countries}
+
+
 def imaging_red_flag(spec: Mapping[str, Any], patient: Any, when: datetime) -> bool:
     """True when ``patient`` meets one of the ``required_if`` red flags of the
     workup imaging entry ``spec`` at the visit time ``when`` (Issue #3238)."""

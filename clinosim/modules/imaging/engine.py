@@ -133,6 +133,9 @@ SUPPORTED_IMAGING_DISEASES: frozenset[str] = frozenset(
         "wrist_fracture_surgical",
         # Issue #2870: the screening mammogram of the healthcare calendar.
         "mammography_screening",
+        # Issue #3294: ED conditions whose film shows the visit diagnosis.
+        "wrist_fracture",
+        "shoulder_dislocation",
     }
 )
 

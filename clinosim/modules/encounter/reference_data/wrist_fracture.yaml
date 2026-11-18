@@ -35,7 +35,9 @@ workup:
   vitals: true
   labs: []  # no labs for isolated wrist fracture
   imaging:
-    - {test: "Wrist_Xray_AP_Lateral", probability: 0.95}
+    # Issue #3294: the visit's diagnosis is the film's finding, so the read is
+    # abnormal (impression_templates.yaml, wrist_fracture).
+    - {test: "Wrist_Xray_AP_Lateral", probability: 0.95, abnormal_rate_by_severity: {any: 1.0}}
 
 treatment:
   - {name: "Ice pack application", probability: 0.9, route: "topical"}
