@@ -142,3 +142,32 @@ def test_the_authored_rates_follow_the_visit_diagnosis() -> None:
     shoulder = {s["test"]: s for s in load_encounter_condition("shoulder_dislocation")["workup"]["imaging"]}
     assert shoulder["Shoulder_Xray_AP_Lateral"]["abnormal_rate_by_severity"] == {"any": 1.0}
     assert shoulder["Shoulder_Xray_Post_Reduction"]["abnormal_rate_by_severity"] == {"any": 0.0}
+
+
+# --- published yields (rates sourced in the encounter protocols) -------------------
+
+_SOURCED = [
+    ("migraine", "CT_Head", 0.037),
+    ("elderly_fall", "CT_Head", 0.044),
+    ("ankle_sprain", "Ankle_Xray", 0.109),
+    ("renal_colic", "CT_abdomen_pelvis_noncontrast", 0.64),
+]
+
+
+@pytest.mark.parametrize(("cond", "test", "rate"), _SOURCED)
+def test_the_sourced_rate_is_on_the_protocol_entry(cond: str, test: str, rate: float) -> None:
+    spec = next(s for s in load_encounter_condition(cond)["workup"]["imaging"] if s["test"] == test)
+    assert spec["abnormal_rate_by_severity"] == {"any": rate}
+
+
+@pytest.mark.parametrize(("cond", "test", "rate"), _SOURCED)
+def test_the_condition_reads_both_variants(serve, cond: str, test: str, rate: float) -> None:
+    from clinosim.modules.imaging.engine import load_impression_templates
+
+    tmpl = load_impression_templates()[cond]
+    [(_key, bucket)] = tmpl.items()
+    assert "normal" in bucket and "abnormal" in bucket
+    normal = _report(serve, cond, test, 5, {"any": 0.0})
+    abnormal = _report(serve, cond, test, 5, {"any": 1.0})
+    assert normal.impression_text != abnormal.impression_text
+    assert abnormal.impression_text_ja and normal.impression_text_ja

@@ -42,8 +42,12 @@ workup:
     # heparin), where a head strike is not excluded, is imaged for
     # intracranial bleeding (NICE NG232 Head injury, 2023, recommendation
     # 1.5.13).
+    # Issue #3294: 72 of 1,620 older adults who had a head CT after a
+    # ground-level fall had a significant acute traumatic intracranial
+    # haemorrhage (4.4%; Dubucs et al., PLOS Med 2026;23(8):e1004935).
     - test: "CT_Head"
       probability: 0.3
+      abnormal_rate_by_severity: {any: 0.044}
       required_if:
         - {medication_classes: [anticoagulant]}
 

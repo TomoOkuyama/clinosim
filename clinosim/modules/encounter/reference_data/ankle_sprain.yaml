@@ -35,7 +35,11 @@ workup:
   vitals: true
   labs: []  # no labs for isolated ankle sprain
   imaging:
-    - {test: "Ankle_Xray", probability: 0.7}  # Ottawa ankle rules
+    # Ottawa ankle rules. Issue #3294: 17 of 156 radiographed adults with an
+    # acute ankle sprain had a fracture (10.9%; Schiper et al., Acta Ortop
+    # Bras 2023;31(5):e266034, PMC10592341, pre- and post-implementation
+    # groups pooled from the reported counts, a small single-centre study).
+    - {test: "Ankle_Xray", probability: 0.7, abnormal_rate_by_severity: {any: 0.109}}
 
 treatment:
   - {name: "Ice pack application", probability: 0.9, route: "topical"}

@@ -136,6 +136,11 @@ SUPPORTED_IMAGING_DISEASES: frozenset[str] = frozenset(
         # Issue #3294: ED conditions whose film shows the visit diagnosis.
         "wrist_fracture",
         "shoulder_dislocation",
+        # Issue #3294: ED conditions whose CT / film yield is a published rate.
+        "migraine",
+        "elderly_fall",
+        "ankle_sprain",
+        "renal_colic",
     }
 )
 

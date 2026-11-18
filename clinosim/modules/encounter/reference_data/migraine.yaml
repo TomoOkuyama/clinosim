@@ -44,8 +44,12 @@ workup:
     # years) of onset", "history of cancer or immunocompromise"): CT head
     # without IV contrast usually appropriate. Otherwise the flat share
     # stands (worst headache, first episode or atypical features).
+    # Issue #3294: 57 of 1,522 ED patients with non-traumatic headache and no
+    # neurological deficit who had a cranial CT had intracranial pathology
+    # (3.7%; Serinken et al., West J Emerg Med 2026;27(2):298-303, PMC13016052).
     - test: "CT_Head"
       probability: 0.3
+      abnormal_rate_by_severity: {any: 0.037}
       required_if:
         - {min_age: 50, without_conditions: [primary_headache_disorder]}
         - {conditions: [immunosuppressed]}
