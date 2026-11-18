@@ -182,6 +182,7 @@ from clinosim.modules.encounter.discharge_outcome import discharge_outcome
   `transfer_pediatric` disposition (HL7 `other-hcf`); a hospital with a
   pediatric inpatient ward gets no such ED visits
   (`admitted_with_inpatient_unit`).
+- **ED imaging country and abnormal rate** (Issue #3294): a `workup.imaging` entry with `countries` is ordered only in those countries (`protocol.py::study_in_country`, applied after the draws so the visit stream is unchanged). Its `abnormal_rate_by_severity` rides on the order to the imaging enricher, which reads the study with the report templates of the visit's condition when `impression_templates.yaml` has them (wrist fracture and shoulder dislocation do: the film shows the visit diagnosis); other conditions keep the generic negative report.
 - **ED imaging red flags** (Issue #3238): a `workup.imaging` entry may list
   `required_if` red flags; one met orders the study even when its
   `probability` draw skips it (`protocol.py::imaging_red_flag`, read by the

@@ -168,6 +168,7 @@ from clinosim.modules.encounter.discharge_outcome import discharge_outcome
   体重あたりの抗菌薬初回投与を行い、`transfer_pediatric` (HL7
   `other-hcf`) で転院搬送する。小児病棟のある病院ではこの ED 受診は生じない
   (`admitted_with_inpatient_unit`)。
+- **ED 画像検査の国別指定と異常率** (Issue #3294): `countries` を持つ `workup.imaging` 項目はその国でのみオーダーする (`protocol.py::study_in_country`、抽選の後で適用するため受診の乱数列は変わらない)。`abnormal_rate_by_severity` はオーダーに載って画像 enricher に渡り、`impression_templates.yaml` に受診疾患のテンプレートがあればそれで読影する (手関節骨折・肩関節脱臼は film が受診診断を示す)。他の疾患は従来どおり汎用の陰性レポート。
 - **ED 画像検査のレッドフラグ** (Issue #3238): `workup.imaging` の各項目は
   `required_if` にレッドフラグを列挙できる。いずれかに該当すると、
   `probability` の抽選で外れても検査をオーダーする (`protocol.py::imaging_red_flag`、

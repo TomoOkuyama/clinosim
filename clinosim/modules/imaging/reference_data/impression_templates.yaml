@@ -786,3 +786,40 @@ templates:
         impression:
           en: "Incomplete (BI-RADS 0). Recall for diagnostic mammography and ultrasound."
           ja: "判定保留（BI-RADS カテゴリー0）。精密検査（診断的マンモグラフィ・超音波）を推奨。"
+
+  # Issue #3294: ED visits whose diagnosis is itself the radiographic finding.
+  # The encounter protocol sets the abnormal rate (the pre-reduction and
+  # fracture films read abnormal, the post-reduction film reads normal).
+  wrist_fracture:
+    CR_wrist:
+      normal:
+        findings:
+          en: "No acute fracture or dislocation of the wrist. Soft tissues unremarkable."
+          ja: "手関節に明らかな骨折・脱臼を認めない。軟部組織に異常なし。"
+        impression:
+          en: "No acute fracture."
+          ja: "明らかな骨折なし。"
+      abnormal:
+        findings:
+          en: "Transverse fracture of the distal radius with dorsal angulation. Soft-tissue swelling over the dorsal wrist."
+          ja: "橈骨遠位端に横骨折を認め、背側へ角状変形あり。手関節背側に軟部組織の腫脹を認める。"
+        impression:
+          en: "Distal radius fracture."
+          ja: "橈骨遠位端骨折。"
+
+  shoulder_dislocation:
+    CR_shoulder:
+      normal:
+        findings:
+          en: "The humeral head is seated in the glenoid fossa. No displaced fracture."
+          ja: "上腕骨頭は関節窩に整復されている。転位のある骨折を認めない。"
+        impression:
+          en: "Glenohumeral joint reduced."
+          ja: "肩関節は整復位。"
+      abnormal:
+        findings:
+          en: "The humeral head lies anterior and inferior to the glenoid fossa. No displaced fracture is seen."
+          ja: "上腕骨頭は関節窩の前下方に脱臼している。転位のある骨折は認めない。"
+        impression:
+          en: "Anterior glenohumeral dislocation."
+          ja: "肩関節前方脱臼。"
