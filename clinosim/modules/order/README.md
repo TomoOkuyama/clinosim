@@ -250,6 +250,17 @@ from clinosim.modules.order.label_dose import within_label  # (name, frequency, 
   matching so the same tables cover English encounter-YAML names
   and English disease-YAML detail strings. Localisation to JP is
   intentionally deferred to the FHIR builder.
+- **Dose ranges** ([`reference_data/dose_range_resolution.yaml`](reference_data/dose_range_resolution.yaml),
+  read by `dose_range.py`; Issue #3265): a disease protocol may write a dose
+  as a range ("25-100mg PO daily", "15-20mg/kg IV q12h", "NS 80-125 mL/h"),
+  but an order, a prescription and a MAR line state one dose.
+  `load_disease_protocol` resolves every `dose` / `detail` range once, by the
+  rule of the range's unit: the starting (lower) dose by default, the upper
+  rate for a maintenance-fluid rate in mL/h (the rate the MAR has always
+  given, and the written adult rate the pediatric Holliday-Segar rule caps).
+  The written range stays on the entry as `titration_range`. A range with no
+  dose unit ("target INR 1.5-2.5", "q6-8h") or after "target" / a comparison
+  sign is not a dose and is left. No random draw.
 - **Pediatric dosing** ([`reference_data/pediatric_dosing.yaml`](reference_data/pediatric_dosing.yaml),
   read by `pediatric_dose.py`, validated by `PediatricDosingFile`,
   `extra="forbid"`): `adult_age_years` plus per-drug `mg_per_kg`,
@@ -314,6 +325,7 @@ clinosim/modules/order/
   prescription_supersede.py          prescription_closures — renewal / supply-end closure of take-home prescriptions at FHIR export (Issue #2610)
   placed_order_mar.py                daily_times + stable_nurse + administrations_for — RNG-free MAR for orders placed outside the daily loop (Issue #2607)
   absolute_dose.py                   absolute_dose + body_surface_area + is_continuous_infusion + is_one_time_infusion — per-kg / per-m2 dose amounts (Issue #2750), infusion kinds (Issue #3043)
+  dose_range.py                      resolve_dose_ranges / resolve_protocol_dose_ranges — a protocol dose range becomes one dose (Issue #3265)
   pediatric_dose.py                  pediatric_order_name / redose_order_for_child / pediatric_dose_text — weight-based doses for children (Issue #2857, #3004)
   label_dose.py                      within_label — per-country label dose limits (Issue #3012)
   audit.py                           AD-60 audit plug-in (per-module) — 7-check lift_firing_proof + basedon_coverage
@@ -323,6 +335,7 @@ clinosim/modules/order/
   _state_delay_thresholds.py         hospital-state delay constants (Issue #637)
   reference_data/
     medication_supersede.yaml        class switches + PRN markers read by supersede.py (Issues #2615, #2983)
+    dose_range_resolution.yaml       which end of a protocol dose range is stated, by unit (Issue #3265)
     pediatric_dosing.yaml            per-drug mg/kg, max mg, minimum age; per-fluid mL/kg, per-country overrides, Holliday-Segar bands, neonatal postnatal-age bands (Issue #2857, #2977, #3012, #3004, #3082, #3063)
     label_dose_limits.yaml           per-country label dose, doses a day, daily max read by label_dose.py (Issue #3012)
     admission_order_sets.yaml        supportive order types that are ward care in the admission order set (Issue #3242)

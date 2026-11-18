@@ -596,7 +596,7 @@ def place_admission_orders(
 
     if not admission.get("supportive"):
         admission["supportive"] = [
-            {"type": "IV_fluid", "detail": "NS 80-125 mL/h"},
+            {"type": "IV_fluid", "detail": "NS 125 mL/h"},
             {"type": "DVT_prophylaxis", "detail": "Enoxaparin 2000IU SC daily"},
         ]
 

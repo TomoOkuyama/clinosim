@@ -460,7 +460,7 @@
         "admission_summary": "Chief complaint: Sudden severe headache, vomiting, altered consciousness. Admitted for inpatient care.",
         "discharge_diagnoses": "Nontraumatic intracerebral hemorrhage, unspecified (I61.9)",
         "discharge_instructions": "[Mock LLM response #10 — discharge_instructions]",
-        "discharge_medications": "Amlodipine 5-10mg PO daily; Levetiracetam 500mg PO BID",
+        "discharge_medications": "Amlodipine 5mg PO daily; Levetiracetam 500mg PO BID",
         "follow_up": "Neurology/neurosurgery follow-up within 2-4 weeks. Repeat imaging per plan.",
         "hospital_course": "[Mock LLM response #10 — hospital_course]"
       },

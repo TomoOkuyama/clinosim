@@ -805,7 +805,15 @@ def load_disease_protocol(disease_id: str) -> DiseaseProtocol:
     if not protocol_path.exists():
         raise FileNotFoundError(f"Disease protocol not found: {protocol_path}")
 
-    data = load_data_yaml(protocol_path)
+    # Issue #3265: an order or prescription states one dose, so every dose
+    # range the protocol writes is resolved to one dose here (the written
+    # range stays on the entry as ``titration_range``). On a copy: the parsed
+    # YAML is shared.
+    from copy import deepcopy
+
+    from clinosim.modules.order.dose_range import resolve_protocol_dose_ranges
+
+    data = resolve_protocol_dose_ranges(deepcopy(load_data_yaml(protocol_path)))
 
     protocol = DiseaseProtocol(**data)
     _validate_incidence_block(disease_id, data.get("incidence") or {})

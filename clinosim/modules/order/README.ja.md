@@ -236,6 +236,16 @@ from clinosim.modules.order.label_dose import within_label  # (name, frequency, 
   frozenset (`MEDICATION_TYPE_HINTS`, `CARE_PLAN_TYPE_HINTS`)。text-based 部分文字列 match で、英語
   encounter-YAML 名と英語 disease-YAML detail の両方をカバー。
   JP への localization は FHIR builder に意図的に deferred。
+- **用量の範囲** ([`reference_data/dose_range_resolution.yaml`](reference_data/dose_range_resolution.yaml)、
+  `dose_range.py` が読む; Issue #3265): 疾患プロトコルは用量を範囲
+  ("25-100mg PO daily"、"15-20mg/kg IV q12h"、"NS 80-125 mL/h") で書くことが
+  あるが、オーダー・処方・MAR は 1 つの用量を示す。`load_disease_protocol` が
+  `dose` / `detail` の範囲を読み込み時に 1 回だけ単位ごとの規則で 1 つに
+  決める: 既定は開始用量 (下限)、mL/h の維持輸液速度のみ上限 (MAR が従来
+  記録してきた速度であり、小児の Holliday-Segar 則が上限とする成人速度)。
+  書かれた範囲は `titration_range` として項目に残る。用量単位を持たない範囲
+  ("target INR 1.5-2.5"、"q6-8h")、"target" や比較記号の後の範囲は用量でない
+  ので触れない。乱数は引かない。
 - **小児投与量** ([`reference_data/pediatric_dosing.yaml`](reference_data/pediatric_dosing.yaml)、
   `pediatric_dose.py` が読み、`PediatricDosingFile` (`extra="forbid"`) で
   検証): `adult_age_years` と薬剤ごとの `mg_per_kg` / `max_mg` /
@@ -294,6 +304,7 @@ clinosim/modules/order/
   prescription_supersede.py          prescription_closures — FHIR export 時に持ち帰り処方の更新 / 供給終了で終了を決定 (Issue #2610)
   placed_order_mar.py                daily_times + stable_nurse + administrations_for — 日次 loop 外で発注された order の RNG-free MAR (Issue #2607)
   absolute_dose.py                   absolute_dose + body_surface_area + is_continuous_infusion + is_one_time_infusion — per-kg / per-m2 投与量の絶対量 (Issue #2750)、投与形態の判定 (Issue #3043)
+  dose_range.py                      resolve_dose_ranges / resolve_protocol_dose_ranges — プロトコルの用量範囲を 1 つの用量にする (Issue #3265)
   pediatric_dose.py                  pediatric_order_name / redose_order_for_child / pediatric_dose_text — 小児投与量の体重換算 (Issue #2857, #3004)
   label_dose.py                      within_label — 国別の添付文書用量上限 (Issue #3012)
   audit.py                           AD-60 audit plug-in (per-module) — 7-check lift_firing_proof + basedon_coverage
@@ -303,6 +314,7 @@ clinosim/modules/order/
   _state_delay_thresholds.py         hospital-state delay 定数 (Issue #637)
   reference_data/
     medication_supersede.yaml        supersede.py が読む class 切替 + PRN marker (Issue #2615, #2983)
+    dose_range_resolution.yaml       プロトコルの用量範囲のどちらの端を示すか (単位別、Issue #3265)
     pediatric_dosing.yaml            pediatric_dose.py が読む薬剤ごとの mg/kg・上限・最低年齢、輸液ごとの mL/kg、国別上書き、Holliday-Segar 帯、新生児の生後日数帯 (Issue #2857, #2977, #3012, #3004, #3082, #3063)
     label_dose_limits.yaml           label_dose.py が読む国別の 1 回量・1 日回数・1 日最大量 (Issue #3012)
     admission_order_sets.yaml        入院時オーダーセットのうち病棟ケアにあたる支持療法オーダーの種類 (Issue #3242)
