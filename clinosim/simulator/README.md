@@ -141,7 +141,8 @@ clinosim/simulator/
                          (`_dispatch_hospital_events`)
   daily_loop.py          per-day loop extracted from engine
   terminal_course.py     final hours before an in-hospital death: terminal
-                         state + the last 12 h of vitals follow it (Issue #2985)
+                         state + the last 12 h of vitals follow it (Issue #2985);
+                         no lab order or result is timed after the death (Issue #3280)
   hospital_ops.py        hospital operations orchestration
   inpatient.py           inpatient encounter simulator
   outpatient.py          outpatient encounter simulator

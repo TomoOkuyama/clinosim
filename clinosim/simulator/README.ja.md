@@ -137,7 +137,8 @@ clinosim/simulator/
                          (`_dispatch_hospital_events`)
   daily_loop.py          engine から抽出した per-day ループ
   terminal_course.py     院内死亡の直前数時間: 終末期の状態と、それに沿う
-                         最終 12 時間の vitals (Issue #2985)
+                         最終 12 時間の vitals (Issue #2985);
+                         死亡時刻より後の検査オーダー・結果は作らない (Issue #3280)
   hospital_ops.py        病院運用オーケストレーション
   inpatient.py           入院エンカウンターシミュレータ
   outpatient.py          外来エンカウンターシミュレータ
