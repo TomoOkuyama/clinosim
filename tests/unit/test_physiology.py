@@ -1044,3 +1044,42 @@ def test_pt_derived_consistency_with_warfarin_shift():
     state = PhysiologicalState()
     labs = derive_lab_values(state, sex="M", age=60, on_warfarin=True)
     assert labs["PT"] == pytest.approx(12.0 * labs["PT_INR"], abs=0.01)
+
+
+@pytest.mark.unit
+class TestPrerenalLossIsReversible:
+    """Issue #3355: the pre-renal part of the renal-function loss follows the
+    current perfusion deficit and resolves once perfusion recovers."""
+
+    def _shock(self) -> PhysiologicalState:
+        return PhysiologicalState(cardiac_function=0.3, renal_function=0.9)
+
+    def test_repeated_calls_at_constant_perfusion_do_not_ratchet(self):
+        state = self._shock()
+        apply_coupling_rules(state)
+        first = state.renal_function
+        for _ in range(10):
+            apply_coupling_rules(state)
+        assert state.renal_function == pytest.approx(first)
+        assert state.renal_function < 0.9
+
+    def test_renal_function_returns_toward_baseline_after_perfusion_recovers(self):
+        state = self._shock()
+        apply_coupling_rules(state)
+        depressed = state.renal_function
+        state.cardiac_function = 1.0
+        apply_coupling_rules(state)
+        assert state.renal_function > depressed
+        for _ in range(30):
+            apply_coupling_rules(state)
+        assert state.renal_function == pytest.approx(0.9, abs=1e-3)
+        assert state.prerenal_loss == pytest.approx(0.0, abs=1e-3)
+
+    def test_intrinsic_injury_is_not_restored_by_perfusion(self):
+        state = self._shock()
+        apply_coupling_rules(state)
+        state.renal_function -= 0.2  # an intrinsic hit
+        state.cardiac_function = 1.0
+        for _ in range(30):
+            apply_coupling_rules(state)
+        assert state.renal_function == pytest.approx(0.7, abs=1e-3)

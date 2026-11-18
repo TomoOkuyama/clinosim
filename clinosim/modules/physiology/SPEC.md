@@ -205,10 +205,16 @@ def apply_coupling_rules(state: PhysiologicalState):
     )
     
     # === Renal function depends on perfusion (pre-renal) ===
-    # Poor perfusion → acute kidney injury
-    if state.perfusion_status < 0.5:
-        pre_renal_hit = (0.5 - state.perfusion_status) * 0.3
-        state.renal_function = clamp(state.renal_function - pre_renal_hit, 0.0, 1.0)
+    # Poor perfusion → pre-renal injury, a function of the CURRENT deficit
+    # (Issue #3355): it deepens at once and resolves over days once perfusion
+    # recovers (state.prerenal_loss holds the part already taken), so a
+    # constant deficit takes nothing more at the next call. Intrinsic injury
+    # recovers at the course archetype's rate.
+    deficit_loss = max(0.0, 0.5 - state.perfusion_status) * 0.3
+    held = state.prerenal_loss
+    new_loss = deficit_loss if deficit_loss >= held else held - (held - deficit_loss) * 0.4
+    state.renal_function = clamp(state.renal_function + held - new_loss, 0.0, 1.0)
+    state.prerenal_loss = new_loss
     
     # === pH depends on renal function and perfusion ===
     # Poor renal function → metabolic acidosis (can't excrete acid)

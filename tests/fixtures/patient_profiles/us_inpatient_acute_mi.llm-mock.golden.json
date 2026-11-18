@@ -26,7 +26,7 @@
         "lang": "en"
       },
       "sections": {
-        "admission_results": "Laboratory (abnormal): troponin I 97.882 ng/mL [H] (prior 68.499; troponin elevation); BUN 20.1 mg/dL [H]; glucose 119 mg/dL [H]; CK-MB 58.5 ng/mL [H]; +1 other abnormal. Imaging and studies: 12-lead ECG (ST-T changes suggesting acute myocardial ischemia); echocardiogram (No acute abnormal findings within the imaged range); chest X-ray PA (No acute cardiopulmonary process); coronary angiography (Culprit lesion identified; indication for percutaneous coronary intervention); chest X-ray AP (Cardiogenic pulmonary congestion, consider left ventricular dysfunction from acute MI)",
+        "admission_results": "Laboratory (abnormal): troponin I 97.881 ng/mL [H] (prior 68.499; troponin elevation); glucose 119 mg/dL [H]; CK-MB 58.5 ng/mL [H]; BNP 104.5 pg/mL [H]. Imaging and studies: 12-lead ECG (ST-T changes suggesting acute myocardial ischemia); echocardiogram (No acute abnormal findings within the imaged range); chest X-ray PA (No acute cardiopulmonary process); coronary angiography (Culprit lesion identified; indication for percutaneous coronary intervention); chest X-ray AP (Cardiogenic pulmonary congestion, consider left ventricular dysfunction from acute MI)",
         "allergies": "No known drug allergies (NKDA)",
         "assessment_and_plan": "[Mock LLM response #1 — assessment_and_plan]",
         "chief_complaint": "Chest pain, diaphoresis, dyspnea",
@@ -533,11 +533,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #11 — assessment]",
-        "objective": "BP 119/68 mmHg, HR 99 bpm, RR 20 /min, SpO2 94% (RA), T 35.8°C (past 24 h: HR max 110 bpm, RR max 21 /min, SpO2 min 93%)",
+        "objective": "BP 119/68 mmHg, HR 100 bpm, RR 20 /min, SpO2 94% (RA), T 35.8°C (past 24 h: HR max 109 bpm, RR max 21 /min, SpO2 min 93%)",
         "plan": "[Mock LLM response #11 — plan]",
         "subjective": "[Mock LLM response #11 — subjective]"
       },
-      "text": "S: [Mock LLM response #11 — subjective]\nO: BP 119/68 mmHg, HR 99 bpm, RR 20 /min, SpO2 94% (RA), T 35.8°C (past 24 h: HR max 110 bpm, RR max 21 /min, SpO2 min 93%)\nA: [Mock LLM response #11 — assessment]\nP: [Mock LLM response #11 — plan]"
+      "text": "S: [Mock LLM response #11 — subjective]\nO: BP 119/68 mmHg, HR 100 bpm, RR 20 /min, SpO2 94% (RA), T 35.8°C (past 24 h: HR max 109 bpm, RR max 21 /min, SpO2 min 93%)\nA: [Mock LLM response #11 — assessment]\nP: [Mock LLM response #11 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-12": {
@@ -583,11 +583,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #12 — assessment]",
-        "objective": "BP 117/70 mmHg, HR 102 bpm, RR 23 /min, SpO2 96% (RA), T 36.0°C (past 24 h: Tmax 38.7°C, HR max 105 bpm, SpO2 min 94%)",
+        "objective": "BP 117/70 mmHg, HR 101 bpm, RR 23 /min, SpO2 96% (RA), T 36.0°C (past 24 h: Tmax 38.7°C, HR max 106 bpm, SpO2 min 94%)",
         "plan": "[Mock LLM response #12 — plan]",
         "subjective": "[Mock LLM response #12 — subjective]"
       },
-      "text": "S: [Mock LLM response #12 — subjective]\nO: BP 117/70 mmHg, HR 102 bpm, RR 23 /min, SpO2 96% (RA), T 36.0°C (past 24 h: Tmax 38.7°C, HR max 105 bpm, SpO2 min 94%)\nA: [Mock LLM response #12 — assessment]\nP: [Mock LLM response #12 — plan]"
+      "text": "S: [Mock LLM response #12 — subjective]\nO: BP 117/70 mmHg, HR 101 bpm, RR 23 /min, SpO2 96% (RA), T 36.0°C (past 24 h: Tmax 38.7°C, HR max 106 bpm, SpO2 min 94%)\nA: [Mock LLM response #12 — assessment]\nP: [Mock LLM response #12 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-13": {
@@ -683,11 +683,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #14 — assessment]",
-        "objective": "BP 117/72 mmHg, HR 97 bpm, RR 16 /min, SpO2 98% (RA), T 36.9°C (past 24 h: Tmax 38.2°C, HR max 104 bpm, SpO2 min 93%)",
+        "objective": "BP 116/72 mmHg, HR 99 bpm, RR 16 /min, SpO2 98% (RA), T 36.9°C (past 24 h: Tmax 38.2°C, HR max 104 bpm, SpO2 min 93%)",
         "plan": "[Mock LLM response #14 — plan]",
         "subjective": "[Mock LLM response #14 — subjective]"
       },
-      "text": "S: [Mock LLM response #14 — subjective]\nO: BP 117/72 mmHg, HR 97 bpm, RR 16 /min, SpO2 98% (RA), T 36.9°C (past 24 h: Tmax 38.2°C, HR max 104 bpm, SpO2 min 93%)\nA: [Mock LLM response #14 — assessment]\nP: [Mock LLM response #14 — plan]"
+      "text": "S: [Mock LLM response #14 — subjective]\nO: BP 116/72 mmHg, HR 99 bpm, RR 16 /min, SpO2 98% (RA), T 36.9°C (past 24 h: Tmax 38.2°C, HR max 104 bpm, SpO2 min 93%)\nA: [Mock LLM response #14 — assessment]\nP: [Mock LLM response #14 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-15": {
@@ -733,11 +733,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #15 — assessment]",
-        "objective": "BP 120/75 mmHg, HR 93 bpm, RR 17 /min, SpO2 94% (RA), T 36.4°C, weaned off supplemental O2 (past 24 h: HR max 101 bpm, SpO2 min 93%)",
+        "objective": "BP 119/74 mmHg, HR 95 bpm, RR 16 /min, SpO2 94% (RA), T 36.4°C, weaned off supplemental O2 (past 24 h: HR max 103 bpm, SpO2 min 93%)",
         "plan": "[Mock LLM response #15 — plan]",
         "subjective": "[Mock LLM response #15 — subjective]"
       },
-      "text": "S: [Mock LLM response #15 — subjective]\nO: BP 120/75 mmHg, HR 93 bpm, RR 17 /min, SpO2 94% (RA), T 36.4°C, weaned off supplemental O2 (past 24 h: HR max 101 bpm, SpO2 min 93%)\nA: [Mock LLM response #15 — assessment]\nP: [Mock LLM response #15 — plan]"
+      "text": "S: [Mock LLM response #15 — subjective]\nO: BP 119/74 mmHg, HR 95 bpm, RR 16 /min, SpO2 94% (RA), T 36.4°C, weaned off supplemental O2 (past 24 h: HR max 103 bpm, SpO2 min 93%)\nA: [Mock LLM response #15 — assessment]\nP: [Mock LLM response #15 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-16": {
@@ -1393,7 +1393,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 10\nPatient status: BP 112/72, HR 103, SpO2 96%, T 36.6°C.\nMeds administered: Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 10\nPatient status: BP 112/72, HR 104, SpO2 96%, T 36.6°C.\nMeds administered: Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-45-day": {
@@ -1415,7 +1415,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 10\nPatient status: BP 113/66, HR 104, SpO2 96%, T 38.1°C.\nMeds administered: Aspirin, Ticagrelor, Heparin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 10\nPatient status: BP 113/66, HR 105, SpO2 96%, T 38.1°C.\nMeds administered: Aspirin, Ticagrelor, Heparin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-46-evening": {
@@ -1437,7 +1437,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 10\nPatient status: BP 114/69, HR 101, SpO2 94%, T 38.0°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 10\nPatient status: BP 114/69, HR 102, SpO2 94%, T 38.0°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-47-night": {
@@ -1459,7 +1459,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 11\nPatient status: BP 115/68, HR 99, SpO2 94%, T 36.5°C.\nMeds administered: Aspirin, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 11\nPatient status: BP 115/68, HR 98, SpO2 94%, T 36.5°C.\nMeds administered: Aspirin, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-48-day": {
@@ -1481,7 +1481,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 11\nPatient status: BP 113/71, HR 103, SpO2 96%, T 37.5°C.\nMeds administered: Ticagrelor, Nitroglycerin, Calcium Gluconate 1 g IV.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 11\nPatient status: BP 113/71, HR 103, SpO2 96%, T 37.5°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-49-evening": {
@@ -1503,7 +1503,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 11\nPatient status: BP 115/72, HR 103, SpO2 98%, T 37.1°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 11\nPatient status: BP 115/72, HR 102, SpO2 98%, T 37.1°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-50-night": {
@@ -1591,7 +1591,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 13\nPatient status: BP 118/69, HR 98, SpO2 96%, T 36.5°C.\nMeds administered: Ticagrelor, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 13\nPatient status: BP 117/69, HR 100, SpO2 96%, T 36.5°C.\nMeds administered: Ticagrelor, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-54-day": {
@@ -1613,7 +1613,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 13\nPatient status: BP 116/70, HR 94, SpO2 95%, T 36.2°C.\nMeds administered: Aspirin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 13\nPatient status: BP 115/70, HR 96, SpO2 95%, T 36.2°C.\nMeds administered: Aspirin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-55-evening": {
@@ -1635,7 +1635,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 13\nPatient status: BP 119/73, HR 96, SpO2 93%, T 36.6°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 13\nPatient status: BP 118/73, HR 98, SpO2 93%, T 36.6°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-56-night": {
@@ -1657,7 +1657,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 14\nPatient status: BP 119/72, HR 96, SpO2 95%, T 36.6°C.\nMeds administered: Aspirin, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 14\nPatient status: BP 118/71, HR 98, SpO2 95%, T 36.6°C.\nMeds administered: Aspirin, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-57-day": {
@@ -1679,7 +1679,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 14\nPatient status: BP 118/71, HR 98, SpO2 98%, T 37.9°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 14\nPatient status: BP 117/70, HR 100, SpO2 98%, T 37.9°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-58-evening": {
@@ -1701,7 +1701,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 14\nPatient status: BP 121/71, HR 97, SpO2 98%, T 36.3°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 14\nPatient status: BP 120/70, HR 99, SpO2 98%, T 36.3°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-59": {
@@ -1728,7 +1728,7 @@
       "sections": {
         "admission_status": "Hospital stay: 14 days. Admission reason: Chest pain, diaphoresis, dyspnea. Not yet safe for home; discharged to skilled nursing facility for continued care.",
         "discharge_readiness": "Discharge readiness: Discharge Barthel 95/100.",
-        "nursing_interventions_provided": "Medication administration: 142 doses (9 drugs); Vital-sign monitoring: 268 sets; Oxygen therapy: observed on 8 sets of vital signs; Procedures: Urinary catheter insertion, Arterial line insertion, Transthoracic echocardiography, Percutaneous coronary intervention (PCI); Cumulative IN 17091 mL / OUT 15505 mL (net +1586 mL); Education: Explain that chest pain or palpitations should be reported at once by call bell.",
+        "nursing_interventions_provided": "Medication administration: 138 doses (5 drugs); Vital-sign monitoring: 268 sets; Oxygen therapy: observed on 8 sets of vital signs; Procedures: Urinary catheter insertion, Arterial line insertion, Transthoracic echocardiography, Percutaneous coronary intervention (PCI); Cumulative IN 17091 mL / OUT 16300 mL (net +791 mL); Education: Explain that chest pain or palpitations should be reported at once by call bell.",
         "patient_education": "Patient education: continuing prescribed drugs (e.g. antiplatelets) and watching for bleeding; cardiac rehabilitation and pacing of activity; calling emergency services if chest pain recurs."
       },
       "text": ""

@@ -42,6 +42,7 @@ __all__ = [
     "PERFUSION_CARDIAC_BASE_OFFSET",
     "PERFUSION_CARDIAC_SCALE",
     "PRERENAL_HIT_PERFUSION_SCALE",
+    "PRERENAL_RECOVERY_FRACTION",
     "PRERENAL_HIT_PERFUSION_THRESHOLD",
     "RENAL_FUNCTION_FLOOR",
     "VOLUME_HYPERVOLEMIA_CARDIAC_DYSFUNCTION_THRESHOLD",
@@ -110,8 +111,17 @@ PRERENAL_HIT_PERFUSION_THRESHOLD: float = 0.5
 begins accumulating."""
 
 PRERENAL_HIT_PERFUSION_SCALE: float = 0.3
-"""Scaling factor for the pre-renal hit:
-``hit = (0.5 - perfusion) * scale``."""
+"""Scaling factor for the pre-renal loss:
+``loss = (0.5 - perfusion) * scale`` — a function of the current perfusion
+deficit, not a per-call decrement (Issue #3355)."""
+
+PRERENAL_RECOVERY_FRACTION: float = 0.4
+"""Fraction of the gap between the pre-renal loss held in
+``PhysiologicalState.prerenal_loss`` and the loss the current perfusion
+deficit implies that closes at each coupling step (one hospital day) once
+perfusion has improved: the pre-renal loss resolves over days rather than
+instantly (Issue #3355). A clinosim modelling choice — a half-life of about
+1.4 days; the KDIGO 2012 AKI guideline gives no recovery rate."""
 
 RENAL_FUNCTION_FLOOR: float = 0.05
 """Minimum ``renal_function`` value after applying pre-renal hits.

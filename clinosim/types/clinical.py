@@ -65,6 +65,10 @@ class PhysiologicalState:
     # (HbA1c ~12%). None = non-diabetic. Patient-stable; seeded from the E11 ChronicCondition
     # by initialize_state and NOT moved by acute disease onset (HbA1c is a ~3-month average).
     glycemic_control: float | None = None
+    # Issue #3355: the part of the renal-function loss caused by the current
+    # perfusion deficit (pre-renal), kept apart from intrinsic injury so it can
+    # resolve when perfusion recovers. Already subtracted from renal_function.
+    prerenal_loss: float = 0.0  # 0.0 - 0.15
 
 
 @dataclass
