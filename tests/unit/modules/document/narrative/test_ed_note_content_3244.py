@@ -266,3 +266,11 @@ def test_the_collector_carries_the_schedule_of_an_ed_prescription() -> None:
     rx = {"items": [{"drug_name": "Ibuprofen", "dose": "600mg", "frequency": "tid", "duration_days": 10}]}
     [med] = NarrativePass._collect_discharge_medications({"discharge_prescription": rx})
     assert med["rx_frequency"] == "tid" and med["rx_duration_days"] == 10
+
+
+def test_a_non_numeric_supply_is_not_a_duration() -> None:
+    from clinosim.modules.document.narrative.passes import NarrativePass
+
+    rx = {"items": [{"drug_name": "Metformin", "dose": "500mg", "days_supply": "ongoing"}]}
+    [med] = NarrativePass._collect_discharge_medications({"discharge_prescription": rx})
+    assert "rx_duration_days" not in med
