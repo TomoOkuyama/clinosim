@@ -199,7 +199,6 @@ def test_jp_locale_admission_hp_uses_disease_yaml_chief_complaint() -> None:
     swap does not silently pass just because the disease connection is
     still visible.
     """
-    from clinosim.modules.document.reference_data_loaders import load_chief_complaint_variants
 
     protocol = load_disease_protocol("bacterial_pneumonia")
     spec = _get_spec(DocumentType.ADMISSION_HP)
@@ -212,7 +211,7 @@ def test_jp_locale_admission_hp_uses_disease_yaml_chief_complaint() -> None:
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, spec)
     cc_text = out.sections.get("chief_complaint", "")
-    pool = load_chief_complaint_variants().get("bacterial_pneumonia") or []
+    pool = _texts().get("bacterial_pneumonia") or []
     assert cc_text in pool, f"JP chief_complaint {cc_text!r} not in bacterial_pneumonia variants {pool}"
 
 
@@ -1018,3 +1017,9 @@ def test_localize_lab_name_ja_handles_ed_workup_panels() -> None:
     # Bare "Troponin" (as opposed to Troponin_I / Troponin_T which had
     # entries pre-Phase-1c-4).
     assert _localize_lab_name("Troponin", "ja") == "トロポニン"
+
+
+def _texts() -> dict[str, list[str]]:
+    from clinosim.modules.document.reference_data_loaders import load_chief_complaint_variant_rules as _rules
+
+    return {k: [v.text for v in pool] for k, pool in _rules().items()}

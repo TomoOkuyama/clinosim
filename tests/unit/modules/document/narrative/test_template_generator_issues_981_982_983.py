@@ -23,7 +23,6 @@ from clinosim.modules.document.narrative.renderers.section_builders.chief_compla
 from clinosim.modules.document.narrative.renderers.section_builders.ed_note import build_ed_disposition, build_ed_workup
 from clinosim.modules.document.narrative.renderers.section_builders.patient_history import build_family_history
 from clinosim.modules.document.narrative.template_generator import TemplateNarrativeGenerator
-from clinosim.modules.document.reference_data_loaders import load_chief_complaint_variants
 from clinosim.types.document import DocumentType, NarrativeContext
 from clinosim.types.patient import PatientProfile
 
@@ -274,7 +273,7 @@ def test_chief_complaint_variant_pool_covers_every_disease() -> None:
         "reference_data",
     )
     disease_ids = {os.path.splitext(f)[0] for f in os.listdir(disease_dir) if f.endswith(".yaml")}
-    variant_ids = set(load_chief_complaint_variants().keys())
+    variant_ids = set(_texts().keys())
     missing = disease_ids - variant_ids
     assert not missing, f"disease ids missing chief_complaint variants: {missing}"
 
@@ -327,7 +326,7 @@ def test_chief_complaint_variant_distribution_across_patients() -> None:
         )
         text, _ = build_chief_complaint(gen, ctx)
         seen.add(text)
-    pool = load_chief_complaint_variants()["heart_failure_exacerbation"]
+    pool = _texts()["heart_failure_exacerbation"]
     assert len(seen) >= min(3, len(pool)), f"expected variants to rotate — saw {len(seen)}: {seen}"
 
 
@@ -376,3 +375,9 @@ def test_chief_complaint_variant_only_ja_locale() -> None:
     text, facts = build_chief_complaint(gen, ctx)
     assert text == "Dyspnea on exertion, orthopnea, lower extremity edema"
     assert not any(f.startswith("chief_complaint_variants") for f in facts)
+
+
+def _texts() -> dict[str, list[str]]:
+    from clinosim.modules.document.reference_data_loaders import load_chief_complaint_variant_rules as _rules
+
+    return {k: [v.text for v in pool] for k, pool in _rules().items()}
