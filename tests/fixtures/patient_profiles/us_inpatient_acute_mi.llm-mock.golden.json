@@ -1796,7 +1796,8 @@
     "encounter_id": "ENC-FORCED-0001-308142489017",
     "narrative": {
       "facts_used": [
-        "encounter.triage_data"
+        "encounter.triage_data",
+        "ctx.vitals[0]"
       ],
       "generated_at": "2024-06-15T02:16:00Z",
       "generator": "llm-mock",
@@ -1805,7 +1806,7 @@
         "lang": "en"
       },
       "sections": {},
-      "text": "Triage level: ESI Level 2\nArrival mode: Private vehicle\nChief complaint: Chest pain, diaphoresis, dyspnea"
+      "text": "Triage level: ESI Level 2\nArrival mode: Private vehicle\nChief complaint: Chest pain, diaphoresis, dyspnea\nTriage vital signs: BP 121/75 mmHg, HR 108/min, T 37.9°C, SpO2 98% (RA), RR 22/min, pain 7/10"
     }
   }
 }
