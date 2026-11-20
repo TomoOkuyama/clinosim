@@ -283,11 +283,11 @@
       },
       "sections": {
         "assessment": "Post-operative day 4 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new fever). Notable labs (past 24 h): WBC 11445 /uL [H] (prior 13374), glucose 127 mg/dL [H] (prior 115).",
-        "objective": "BP 132/81 mmHg, HR 99 bpm, RR 19 /min, SpO2 96% (RA), T 38.2°C, weaned off supplemental O2 (past 24 h: Tmax 38.5°C, HR max 108 bpm, SpO2 min 92%)",
-        "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Given once: Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line. Diet: Soft diet.",
+        "objective": "BP 132/82 mmHg, HR 96 bpm, RR 19 /min, SpO2 96% (RA), T 38.2°C, weaned off supplemental O2 (past 24 h: Tmax 38.5°C, HR max 108 bpm, SpO2 min 92%)",
+        "plan": "Continue current medications: Nicardipine, Labetalol. Given once: Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line. Stopped: IV fluids: NS 80 mL/h. Diet: Soft diet.",
         "subjective": "Hospital day 5. Persistent fever 38.2°C (peak 38.5°C in the past 24 h). Improving headache (NRS 7 → 4). Level of consciousness remains decreased (AVPU V)."
       },
-      "text": "S: Hospital day 5. Persistent fever 38.2°C (peak 38.5°C in the past 24 h). Improving headache (NRS 7 → 4). Level of consciousness remains decreased (AVPU V).\nO: BP 132/81 mmHg, HR 99 bpm, RR 19 /min, SpO2 96% (RA), T 38.2°C, weaned off supplemental O2 (past 24 h: Tmax 38.5°C, HR max 108 bpm, SpO2 min 92%)\nA: Post-operative day 4 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new fever). Notable labs (past 24 h): WBC 11445 /uL [H] (prior 13374), glucose 127 mg/dL [H] (prior 115).\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Given once: Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line. Diet: Soft diet."
+      "text": "S: Hospital day 5. Persistent fever 38.2°C (peak 38.5°C in the past 24 h). Improving headache (NRS 7 → 4). Level of consciousness remains decreased (AVPU V).\nO: BP 132/82 mmHg, HR 96 bpm, RR 19 /min, SpO2 96% (RA), T 38.2°C, weaned off supplemental O2 (past 24 h: Tmax 38.5°C, HR max 108 bpm, SpO2 min 92%)\nA: Post-operative day 4 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new fever). Notable labs (past 24 h): WBC 11445 /uL [H] (prior 13374), glucose 127 mg/dL [H] (prior 115).\nP: Continue current medications: Nicardipine, Labetalol. Given once: Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line. Stopped: IV fluids: NS 80 mL/h. Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-07": {
@@ -332,12 +332,12 @@
         }
       },
       "sections": {
-        "assessment": "Post-operative day 5 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new tachycardia, low SpO2). Notable labs (past 24 h): WBC 12528 /uL [H] (prior 11445), glucose 118 mg/dL [H] (prior 127).",
-        "objective": "BP 132/77 mmHg, HR 103 bpm, RR 19 /min, SpO2 93% (RA), T 37.6°C, weaned off supplemental O2 (past 24 h: Tmax 38.7°C, HR max 109 bpm, RR max 21 /min, SpO2 min 92%)",
-        "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet: Soft diet.",
+        "assessment": "Post-operative day 5 (Craniotomy for intracranial hematoma evacuation). Notable labs (past 24 h): WBC 12528 /uL [H] (prior 11445), glucose 118 mg/dL [H] (prior 127).",
+        "objective": "BP 134/78 mmHg, HR 98 bpm, RR 19 /min, SpO2 93% (RA), T 37.6°C, weaned off supplemental O2 (past 24 h: Tmax 38.7°C, HR max 105 bpm, RR max 21 /min, SpO2 min 92%)",
+        "plan": "Continue current medications: Nicardipine, Labetalol. Diet: Soft diet.",
         "subjective": "Hospital day 6. Fever up to 38.7°C in the past 24 h; now 37.6°C, below the fever threshold. Worsening headache (NRS 4 → 6). Level of consciousness improved, now alert (prev AVPU V)."
       },
-      "text": "S: Hospital day 6. Fever up to 38.7°C in the past 24 h; now 37.6°C, below the fever threshold. Worsening headache (NRS 4 → 6). Level of consciousness improved, now alert (prev AVPU V).\nO: BP 132/77 mmHg, HR 103 bpm, RR 19 /min, SpO2 93% (RA), T 37.6°C, weaned off supplemental O2 (past 24 h: Tmax 38.7°C, HR max 109 bpm, RR max 21 /min, SpO2 min 92%)\nA: Post-operative day 5 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new tachycardia, low SpO2). Notable labs (past 24 h): WBC 12528 /uL [H] (prior 11445), glucose 118 mg/dL [H] (prior 127).\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet: Soft diet."
+      "text": "S: Hospital day 6. Fever up to 38.7°C in the past 24 h; now 37.6°C, below the fever threshold. Worsening headache (NRS 4 → 6). Level of consciousness improved, now alert (prev AVPU V).\nO: BP 134/78 mmHg, HR 98 bpm, RR 19 /min, SpO2 93% (RA), T 37.6°C, weaned off supplemental O2 (past 24 h: Tmax 38.7°C, HR max 105 bpm, RR max 21 /min, SpO2 min 92%)\nA: Post-operative day 5 (Craniotomy for intracranial hematoma evacuation). Notable labs (past 24 h): WBC 12528 /uL [H] (prior 11445), glucose 118 mg/dL [H] (prior 127).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-08": {
@@ -382,12 +382,12 @@
         }
       },
       "sections": {
-        "assessment": "Post-operative day 6 (Craniotomy for intracranial hematoma evacuation). Abnormal vital signs persisting (tachycardia, low SpO2); no improvement yet. Notable labs (past 24 h): WBC 11395 /uL [H] (prior 12528), glucose 119 mg/dL [H] (prior 118).",
-        "objective": "BP 132/77 mmHg, HR 101 bpm, RR 20 /min, SpO2 93% (RA), T 37.3°C, weaned off supplemental O2 (past 24 h: Tmax 38.5°C, HR max 109 bpm, RR max 21 /min)",
-        "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet: Soft diet.",
+        "assessment": "Post-operative day 6 (Craniotomy for intracranial hematoma evacuation). Abnormal vital signs persisting (low SpO2); no improvement yet. Notable labs (past 24 h): WBC 11395 /uL [H] (prior 12528), glucose 119 mg/dL [H] (prior 118).",
+        "objective": "BP 134/78 mmHg, HR 96 bpm, RR 20 /min, SpO2 93% (RA), T 37.3°C, weaned off supplemental O2 (past 24 h: Tmax 38.5°C, HR max 105 bpm, RR max 21 /min)",
+        "plan": "Continue current medications: Nicardipine, Labetalol. Diet: Soft diet.",
         "subjective": "Hospital day 7. Fever up to 38.5°C in the past 24 h; now 37.3°C, below the fever threshold. Improving headache (NRS 6 → 4). New decrease in level of consciousness (AVPU V); orientation being monitored."
       },
-      "text": "S: Hospital day 7. Fever up to 38.5°C in the past 24 h; now 37.3°C, below the fever threshold. Improving headache (NRS 6 → 4). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 132/77 mmHg, HR 101 bpm, RR 20 /min, SpO2 93% (RA), T 37.3°C, weaned off supplemental O2 (past 24 h: Tmax 38.5°C, HR max 109 bpm, RR max 21 /min)\nA: Post-operative day 6 (Craniotomy for intracranial hematoma evacuation). Abnormal vital signs persisting (tachycardia, low SpO2); no improvement yet. Notable labs (past 24 h): WBC 11395 /uL [H] (prior 12528), glucose 119 mg/dL [H] (prior 118).\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet: Soft diet."
+      "text": "S: Hospital day 7. Fever up to 38.5°C in the past 24 h; now 37.3°C, below the fever threshold. Improving headache (NRS 6 → 4). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 134/78 mmHg, HR 96 bpm, RR 20 /min, SpO2 93% (RA), T 37.3°C, weaned off supplemental O2 (past 24 h: Tmax 38.5°C, HR max 105 bpm, RR max 21 /min)\nA: Post-operative day 6 (Craniotomy for intracranial hematoma evacuation). Abnormal vital signs persisting (low SpO2); no improvement yet. Notable labs (past 24 h): WBC 11395 /uL [H] (prior 12528), glucose 119 mg/dL [H] (prior 118).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-09": {
@@ -433,11 +433,11 @@
       },
       "sections": {
         "assessment": "Post-operative day 7 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (low SpO2 resolved). Notable labs (past 24 h): glucose 133 mg/dL [H] (prior 119), WBC 11893 /uL [H] (prior 11395).",
-        "objective": "BP 133/80 mmHg, HR 102 bpm, RR 17 /min, SpO2 98% (RA), T 37.3°C, weaned off supplemental O2 (past 24 h: Tmax 39.0°C, HR max 109 bpm, RR max 21 /min, SpO2 min 92%)",
-        "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet: Soft diet.",
+        "objective": "BP 134/81 mmHg, HR 96 bpm, RR 17 /min, SpO2 98% (RA), T 37.3°C, weaned off supplemental O2 (past 24 h: Tmax 39.0°C, HR max 103 bpm, RR max 21 /min, SpO2 min 92%)",
+        "plan": "Continue current medications: Nicardipine, Labetalol. Diet: Soft diet.",
         "subjective": "Hospital day 8. Fever up to 39.0°C in the past 24 h; now 37.3°C, below the fever threshold. Well-controlled headache (NRS 4 → 3). Level of consciousness remains decreased (AVPU V)."
       },
-      "text": "S: Hospital day 8. Fever up to 39.0°C in the past 24 h; now 37.3°C, below the fever threshold. Well-controlled headache (NRS 4 → 3). Level of consciousness remains decreased (AVPU V).\nO: BP 133/80 mmHg, HR 102 bpm, RR 17 /min, SpO2 98% (RA), T 37.3°C, weaned off supplemental O2 (past 24 h: Tmax 39.0°C, HR max 109 bpm, RR max 21 /min, SpO2 min 92%)\nA: Post-operative day 7 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (low SpO2 resolved). Notable labs (past 24 h): glucose 133 mg/dL [H] (prior 119), WBC 11893 /uL [H] (prior 11395).\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet: Soft diet."
+      "text": "S: Hospital day 8. Fever up to 39.0°C in the past 24 h; now 37.3°C, below the fever threshold. Well-controlled headache (NRS 4 → 3). Level of consciousness remains decreased (AVPU V).\nO: BP 134/81 mmHg, HR 96 bpm, RR 17 /min, SpO2 98% (RA), T 37.3°C, weaned off supplemental O2 (past 24 h: Tmax 39.0°C, HR max 103 bpm, RR max 21 /min, SpO2 min 92%)\nA: Post-operative day 7 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (low SpO2 resolved). Notable labs (past 24 h): glucose 133 mg/dL [H] (prior 119), WBC 11893 /uL [H] (prior 11395).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-10": {
@@ -483,11 +483,11 @@
       },
       "sections": {
         "assessment": "Post-operative day 8 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new low SpO2). Notable labs (past 24 h): glucose 124 mg/dL [H] (prior 133), WBC 11258 /uL [H] (prior 11893).",
-        "objective": "BP 134/81 mmHg, HR 103 bpm, RR 15 /min, SpO2 94% (RA), T 37.4°C, weaned off supplemental O2 (past 24 h: Tmax 38.4°C, HR max 112 bpm, RR max 21 /min, SpO2 min 93%)",
-        "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet: Soft diet.",
+        "objective": "BP 135/82 mmHg, HR 98 bpm, RR 15 /min, SpO2 94% (RA), T 37.4°C, weaned off supplemental O2 (past 24 h: Tmax 38.4°C, HR max 107 bpm, RR max 21 /min, SpO2 min 93%)",
+        "plan": "Continue current medications: Nicardipine, Labetalol. Diet: Soft diet.",
         "subjective": "Hospital day 9. Fever up to 38.4°C in the past 24 h; now 37.4°C, below the fever threshold. Level of consciousness improved, now alert (prev AVPU V)."
       },
-      "text": "S: Hospital day 9. Fever up to 38.4°C in the past 24 h; now 37.4°C, below the fever threshold. Level of consciousness improved, now alert (prev AVPU V).\nO: BP 134/81 mmHg, HR 103 bpm, RR 15 /min, SpO2 94% (RA), T 37.4°C, weaned off supplemental O2 (past 24 h: Tmax 38.4°C, HR max 112 bpm, RR max 21 /min, SpO2 min 93%)\nA: Post-operative day 8 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new low SpO2). Notable labs (past 24 h): glucose 124 mg/dL [H] (prior 133), WBC 11258 /uL [H] (prior 11893).\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet: Soft diet."
+      "text": "S: Hospital day 9. Fever up to 38.4°C in the past 24 h; now 37.4°C, below the fever threshold. Level of consciousness improved, now alert (prev AVPU V).\nO: BP 135/82 mmHg, HR 98 bpm, RR 15 /min, SpO2 94% (RA), T 37.4°C, weaned off supplemental O2 (past 24 h: Tmax 38.4°C, HR max 107 bpm, RR max 21 /min, SpO2 min 93%)\nA: Post-operative day 8 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new low SpO2). Notable labs (past 24 h): glucose 124 mg/dL [H] (prior 133), WBC 11258 /uL [H] (prior 11893).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-11": {
@@ -533,11 +533,11 @@
       },
       "sections": {
         "assessment": "Post-operative day 9 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (low SpO2 resolved). Notable labs (past 24 h): WBC 13163 /uL [H] (prior 11258).",
-        "objective": "BP 133/81 mmHg, HR 101 bpm, RR 20 /min, SpO2 96% (RA), T 37.2°C (past 24 h: Tmax 38.8°C, HR max 106 bpm, SpO2 min 93%)",
-        "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet: Soft diet.",
+        "objective": "BP 134/82 mmHg, HR 96 bpm, RR 20 /min, SpO2 96% (RA), T 37.2°C (past 24 h: Tmax 38.8°C, HR max 101 bpm, SpO2 min 93%)",
+        "plan": "Continue current medications: Nicardipine, Labetalol. Diet: Soft diet.",
         "subjective": "Hospital day 10. Fever up to 38.8°C in the past 24 h; now 37.2°C, below the fever threshold."
       },
-      "text": "S: Hospital day 10. Fever up to 38.8°C in the past 24 h; now 37.2°C, below the fever threshold.\nO: BP 133/81 mmHg, HR 101 bpm, RR 20 /min, SpO2 96% (RA), T 37.2°C (past 24 h: Tmax 38.8°C, HR max 106 bpm, SpO2 min 93%)\nA: Post-operative day 9 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (low SpO2 resolved). Notable labs (past 24 h): WBC 13163 /uL [H] (prior 11258).\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet: Soft diet."
+      "text": "S: Hospital day 10. Fever up to 38.8°C in the past 24 h; now 37.2°C, below the fever threshold.\nO: BP 134/82 mmHg, HR 96 bpm, RR 20 /min, SpO2 96% (RA), T 37.2°C (past 24 h: Tmax 38.8°C, HR max 101 bpm, SpO2 min 93%)\nA: Post-operative day 9 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (low SpO2 resolved). Notable labs (past 24 h): WBC 13163 /uL [H] (prior 11258).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-12": {
@@ -583,11 +583,11 @@
       },
       "sections": {
         "assessment": "Post-operative day 10 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new reduced consciousness). Notable labs (past 24 h): WBC 12649 /uL [H] (prior 13163), glucose 118 mg/dL [H] (prior 124).",
-        "objective": "BP 133/78 mmHg, HR 103 bpm, RR 17 /min, SpO2 94% (RA), T 37.0°C (past 24 h: Tmax 38.6°C, HR max 108 bpm, RR max 21 /min)",
-        "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet: Soft diet. Discharge planning in progress (home).",
+        "objective": "BP 134/79 mmHg, HR 98 bpm, RR 17 /min, SpO2 94% (RA), T 37.0°C (past 24 h: Tmax 38.6°C, HR max 103 bpm, RR max 21 /min)",
+        "plan": "Continue current medications: Nicardipine, Labetalol. Diet: Soft diet. Discharge planning in progress (home).",
         "subjective": "Hospital day 11. Fever up to 38.6°C in the past 24 h; now 37.0°C, below the fever threshold. Worsening headache (NRS 2 → 4). New decrease in level of consciousness (AVPU V); orientation being monitored."
       },
-      "text": "S: Hospital day 11. Fever up to 38.6°C in the past 24 h; now 37.0°C, below the fever threshold. Worsening headache (NRS 2 → 4). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 133/78 mmHg, HR 103 bpm, RR 17 /min, SpO2 94% (RA), T 37.0°C (past 24 h: Tmax 38.6°C, HR max 108 bpm, RR max 21 /min)\nA: Post-operative day 10 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new reduced consciousness). Notable labs (past 24 h): WBC 12649 /uL [H] (prior 13163), glucose 118 mg/dL [H] (prior 124).\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet: Soft diet. Discharge planning in progress (home)."
+      "text": "S: Hospital day 11. Fever up to 38.6°C in the past 24 h; now 37.0°C, below the fever threshold. Worsening headache (NRS 2 → 4). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 134/79 mmHg, HR 98 bpm, RR 17 /min, SpO2 94% (RA), T 37.0°C (past 24 h: Tmax 38.6°C, HR max 103 bpm, RR max 21 /min)\nA: Post-operative day 10 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new reduced consciousness). Notable labs (past 24 h): WBC 12649 /uL [H] (prior 13163), glucose 118 mg/dL [H] (prior 124).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet. Discharge planning in progress (home)."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-13": {
@@ -633,11 +633,11 @@
       },
       "sections": {
         "assessment": "Post-operative day 11 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new fever, low SpO2). Notable labs (past 24 h): glucose 120 mg/dL [H] (prior 118).",
-        "objective": "BP 129/75 mmHg, HR 102 bpm, RR 17 /min, SpO2 93% (RA), T 38.2°C (past 24 h: HR max 106 bpm)",
-        "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet: Soft diet. Discharge planning in progress (home).",
+        "objective": "BP 131/76 mmHg, HR 94 bpm, RR 17 /min, SpO2 93% (RA), T 38.2°C",
+        "plan": "Continue current medications: Nicardipine, Labetalol. Diet: Soft diet. Discharge planning in progress (home).",
         "subjective": "Hospital day 12. Persistent fever 38.2°C. Well-controlled headache (NRS 4 → 3). Level of consciousness improved, now alert (prev AVPU V)."
       },
-      "text": "S: Hospital day 12. Persistent fever 38.2°C. Well-controlled headache (NRS 4 → 3). Level of consciousness improved, now alert (prev AVPU V).\nO: BP 129/75 mmHg, HR 102 bpm, RR 17 /min, SpO2 93% (RA), T 38.2°C (past 24 h: HR max 106 bpm)\nA: Post-operative day 11 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new fever, low SpO2). Notable labs (past 24 h): glucose 120 mg/dL [H] (prior 118).\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet: Soft diet. Discharge planning in progress (home)."
+      "text": "S: Hospital day 12. Persistent fever 38.2°C. Well-controlled headache (NRS 4 → 3). Level of consciousness improved, now alert (prev AVPU V).\nO: BP 131/76 mmHg, HR 94 bpm, RR 17 /min, SpO2 93% (RA), T 38.2°C\nA: Post-operative day 11 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new fever, low SpO2). Notable labs (past 24 h): glucose 120 mg/dL [H] (prior 118).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet. Discharge planning in progress (home)."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-14": {
@@ -896,7 +896,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 4\nPatient status: BP 134/78, HR 102, SpO2 95%, T 37.5°C; nasal cannula 3.5 L/min.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 4\nPatient status: BP 134/78, HR 102, SpO2 95%, T 37.5°C; nasal cannula 3.5 L/min.\nMeds administered: Nicardipine, Labetalol.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-25-day": {
@@ -918,7 +918,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 4\nPatient status: BP 133/80, HR 106, SpO2 93%, T 38.5°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 4\nPatient status: BP 133/80, HR 106, SpO2 93%, T 38.5°C.\nMeds administered: Nicardipine, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-26-evening": {
@@ -940,7 +940,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 4\nPatient status: BP 133/74, HR 102, SpO2 97%, T 38.2°C; nasal cannula 3.9 L/min.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 4\nPatient status: BP 133/74, HR 102, SpO2 97%, T 38.2°C; nasal cannula 3.9 L/min.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-27-night": {
@@ -962,7 +962,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 5\nPatient status: BP 131/79, HR 104, SpO2 92%, T 37.7°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 5\nPatient status: BP 131/80, HR 100, SpO2 92%, T 37.7°C.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-28-day": {
@@ -984,7 +984,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 5\nPatient status: BP 136/75, HR 109, SpO2 96%, T 37.7°C; simple face mask 4.8 L/min.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 5\nPatient status: BP 136/76, HR 105, SpO2 96%, T 37.7°C; simple face mask 4.8 L/min.\nMeds administered: Nicardipine, Labetalol.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-29-evening": {
@@ -1006,7 +1006,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 5\nPatient status: BP 129/79, HR 100, SpO2 96%, T 38.1°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 5\nPatient status: BP 129/80, HR 97, SpO2 96%, T 38.1°C.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-30-night": {
@@ -1028,7 +1028,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 6\nPatient status: BP 135/78, HR 100, SpO2 94%, T 37.1°C.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 6\nPatient status: BP 137/79, HR 95, SpO2 94%, T 37.1°C.\nMeds administered: Nicardipine, Labetalol.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-31-day": {
@@ -1050,7 +1050,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 6\nPatient status: BP 130/79, HR 109, SpO2 97%, T 38.5°C; nasal cannula 3.6 L/min.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 6\nPatient status: BP 132/80, HR 105, SpO2 97%, T 38.5°C; nasal cannula 3.6 L/min.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-32-evening": {
@@ -1072,7 +1072,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 6\nPatient status: BP 129/77, HR 101, SpO2 93%, T 37.5°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 6\nPatient status: BP 131/78, HR 97, SpO2 93%, T 37.5°C.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-33-night": {
@@ -1094,7 +1094,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 7\nPatient status: BP 132/77, HR 104, SpO2 93%, T 37.3°C.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 7\nPatient status: BP 134/78, HR 98, SpO2 93%, T 37.3°C.\nMeds administered: Nicardipine, Labetalol.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-34-day": {
@@ -1116,7 +1116,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 7\nPatient status: BP 131/77, HR 109, SpO2 93%, T 38.3°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 7\nPatient status: BP 133/78, HR 103, SpO2 93%, T 38.3°C.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-35-evening": {
@@ -1138,7 +1138,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 7\nPatient status: BP 134/78, HR 103, SpO2 96%, T 37.6°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 7\nPatient status: BP 136/79, HR 98, SpO2 96%, T 37.6°C.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-36-night": {
@@ -1160,7 +1160,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 8\nPatient status: BP 131/80, HR 100, SpO2 94%, T 37.3°C.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 8\nPatient status: BP 132/81, HR 94, SpO2 94%, T 37.3°C.\nMeds administered: Nicardipine, Labetalol.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-37-day": {
@@ -1182,7 +1182,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 8\nPatient status: BP 132/79, HR 106, SpO2 95%, T 37.8°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 8\nPatient status: BP 133/80, HR 101, SpO2 95%, T 37.8°C.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-38-evening": {
@@ -1204,7 +1204,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 8\nPatient status: BP 134/81, HR 103, SpO2 94%, T 37.4°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 8\nPatient status: BP 135/82, HR 98, SpO2 94%, T 37.4°C.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-39-night": {
@@ -1226,7 +1226,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 9\nPatient status: BP 133/77, HR 101, SpO2 97%, T 37.6°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 9\nPatient status: BP 134/78, HR 96, SpO2 97%, T 37.6°C.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-40-day": {
@@ -1248,7 +1248,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 9\nPatient status: BP 130/82, HR 106, SpO2 93%, T 38.0°C.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 9\nPatient status: BP 131/83, HR 101, SpO2 93%, T 38.0°C.\nMeds administered: Nicardipine, Labetalol.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-41-evening": {
@@ -1270,7 +1270,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 9\nPatient status: BP 133/81, HR 101, SpO2 96%, T 37.2°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 9\nPatient status: BP 134/82, HR 96, SpO2 96%, T 37.2°C.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-42-night": {
@@ -1292,7 +1292,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 10\nPatient status: BP 131/80, HR 101, SpO2 97%, T 38.2°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 10\nPatient status: BP 132/81, HR 96, SpO2 97%, T 38.2°C.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-43-day": {
@@ -1314,7 +1314,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 10\nPatient status: BP 129/82, HR 108, SpO2 95%, T 38.5°C.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 10\nPatient status: BP 130/83, HR 103, SpO2 95%, T 38.5°C.\nMeds administered: Nicardipine, Labetalol.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-44-evening": {
@@ -1336,7 +1336,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 10\nPatient status: BP 133/78, HR 103, SpO2 94%, T 37.0°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 10\nPatient status: BP 134/79, HR 98, SpO2 94%, T 37.0°C.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-45-night": {
@@ -1358,7 +1358,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 11\nPatient status: BP 131/76, HR 100, SpO2 94%, T 37.4°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 11\nPatient status: BP 133/77, HR 92, SpO2 94%, T 37.4°C.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-46-day": {
@@ -1380,7 +1380,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 11\nPatient status: BP 131/79, HR 106, SpO2 96%, T 37.9°C.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 11\nPatient status: BP 133/80, HR 99, SpO2 96%, T 37.9°C.\nMeds administered: Nicardipine, Labetalol.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-47-evening": {
@@ -1402,7 +1402,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 11\nPatient status: BP 129/75, HR 102, SpO2 93%, T 38.2°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 11\nPatient status: BP 131/76, HR 94, SpO2 93%, T 38.2°C.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-48-night": {
@@ -1424,7 +1424,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 12\nPatient status: BP 130/78, HR 100, SpO2 98%, T 37.0°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 12\nPatient status: BP 132/79, HR 92, SpO2 98%, T 37.0°C.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-49-day": {
@@ -1446,7 +1446,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 12\nPatient status: BP 127/80, HR 107, SpO2 98%, T 37.4°C.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 12\nPatient status: BP 129/81, HR 99, SpO2 98%, T 37.4°C.\nMeds administered: Nicardipine, Labetalol.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-50-evening": {
@@ -1468,7 +1468,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 12\nPatient status: BP 128/78, HR 102, SpO2 96%, T 37.1°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 12\nPatient status: BP 130/79, HR 95, SpO2 96%, T 37.1°C.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-51": {
@@ -1496,7 +1496,7 @@
       "sections": {
         "admission_status": "Hospital stay: 12 days. Admission reason: Sudden severe headache, vomiting, altered consciousness. Fever had not resolved; discharged with outpatient follow-up arranged.",
         "discharge_readiness": "Discharge readiness: Discharge Barthel 95/100.",
-        "nursing_interventions_provided": "Medication administration: 155 doses (4 drugs); Vital-sign monitoring: 180 sets; Oxygen therapy: observed on 43 sets of vital signs; Procedures: Urinary catheter insertion, Nasogastric tube insertion, Transthoracic echocardiography, Central venous catheter insertion, Craniotomy for intracranial hematoma evacuation; Cumulative IN 10773 mL / OUT 11445 mL (net -672 mL); Education: Ask the patient to report headache, nausea or weakness at once.",
+        "nursing_interventions_provided": "Medication administration: 101 doses (4 drugs); Vital-sign monitoring: 180 sets; Oxygen therapy: observed on 43 sets of vital signs; Procedures: Urinary catheter insertion, Nasogastric tube insertion, Transthoracic echocardiography, Central venous catheter insertion, Craniotomy for intracranial hematoma evacuation; Cumulative IN 13524 mL / OUT 13183 mL (net +341 mL); Education: Ask the patient to report headache, nausea or weakness at once.",
         "patient_education": "Patient education: BP control, salt restriction and medication adherence; recurrence signs and when to call for help; continuing rehabilitation and home safety."
       },
       "text": ""

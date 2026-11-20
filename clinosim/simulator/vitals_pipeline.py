@@ -191,6 +191,7 @@ from clinosim.simulator._vitals_schedule_thresholds import (
     VITALS_TID_HOURS,
 )
 from clinosim.simulator.adl_ceiling import barthel_item_caps
+from clinosim.simulator.maintenance_iv_fluid import maintenance_iv_fluid_rules
 from clinosim.simulator.ventricular_rate import VentricularRateCourse
 from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.encounter import (
@@ -312,6 +313,7 @@ def _generate_daily_io(
     rng: np.random.Generator,
     disease_id: str = "",
     on_loop_diuretic: bool = False,
+    maintenance_iv_stopped: bool = False,
 ) -> IntakeOutputRecord:
     """Generate daily intake/output record.
 
@@ -321,6 +323,12 @@ def _generate_daily_io(
     volume status, perfusion, a loop diuretic given today) and the charted
     output includes the estimated insensible loss. See
     ``clinosim.modules.observation.fluid_balance_model``.
+
+    Issue #3409: once the maintenance IV-fluid order is stopped
+    (``maintenance_iv_stopped``) the IV draw is still made (the stream is unchanged) but its
+    value is discarded, so the day carries no IV intake except the KVO line of a
+    fluid-restricted patient, and the oral intake mean is at least the
+    rules' ``oral_intake_mean_ml_after_stop`` (the patient drinks to cover it).
     """
     ctx = FluidContext(disease_id=disease_id, weight_kg=patient.weight_kg, on_loop_diuretic=on_loop_diuretic)
     scale = weight_scale(ctx.weight_kg)
@@ -337,13 +345,22 @@ def _generate_daily_io(
     else:
         iv = int(rng.normal(MAINTENANCE_IV_ML * scale, MAINTENANCE_IV_SD * scale))  # maintenance
 
+    if maintenance_iv_stopped and regimen != "restricted":
+        iv = 0
+
     # Oral intake: improves as patient recovers
+    oral_mean: float
+    oral_sd: float
     if day == 0:
         oral_mean, oral_sd = IO_ORAL_DAY0_MEAN_ML, IO_ORAL_DAY0_STD_ML  # NPO or minimal
     elif state.inflammation_level > IO_POOR_APPETITE_INFLAMMATION_THRESHOLD:
         oral_mean, oral_sd = IO_ORAL_POOR_APPETITE_MEAN_ML, IO_ORAL_POOR_APPETITE_STD_ML  # poor appetite
     else:
         oral_mean, oral_sd = IO_ORAL_RECOVERING_MEAN_ML, IO_ORAL_RECOVERING_STD_ML  # recovering
+    if maintenance_iv_stopped:
+        stopped_rules = maintenance_iv_fluid_rules()
+        oral_mean = max(oral_mean, stopped_rules.oral_intake_mean_ml_after_stop)
+        oral_sd = max(oral_sd, stopped_rules.oral_intake_sd_ml_after_stop)
     oral_cap = oral_cap_ml(state, ctx)
     scaled_oral_mean = oral_mean * scale if oral_cap is None else min(oral_mean * scale, oral_cap)
     oral = int(rng.normal(scaled_oral_mean, oral_sd * scale))

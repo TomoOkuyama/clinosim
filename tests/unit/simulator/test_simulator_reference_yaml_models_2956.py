@@ -17,6 +17,7 @@ from clinosim.simulator.aki_response import AkiResponseRules
 from clinosim.simulator.diagnosis_rules import DiagnosisRulesFile
 from clinosim.simulator.helpers import ChronicPropagationRules
 from clinosim.simulator.implied_chronic import ImpliedChronicPrevalence
+from clinosim.simulator.maintenance_iv_fluid import MaintenanceIVFluidRules
 from clinosim.simulator.medication_pipeline import RenalMedicationRules, VasoactiveHoldRules
 from clinosim.simulator.sex_gating import SexRestrictionRules
 from clinosim.simulator.statin_monitoring import StatinMonitoringRules
@@ -34,6 +35,7 @@ _MODELS: dict[str, type[BaseModel]] = {
     "icd10_sex_restrictions.yaml": SexRestrictionRules,
     "implied_chronic_prevalence.yaml": ImpliedChronicPrevalence,
     "aki_response.yaml": AkiResponseRules,
+    "maintenance_iv_fluid.yaml": MaintenanceIVFluidRules,
     "renal_medication_rules.yaml": RenalMedicationRules,
     "statin_monitoring.yaml": StatinMonitoringRules,
     "vasoactive_hold.yaml": VasoactiveHoldRules,
@@ -77,6 +79,7 @@ _NESTED: dict[str, Callable[[dict[str, Any]], None]] = {
     "icd10_sex_restrictions.yaml": lambda d: d["male_only"].append({"code": "N40"}),
     "implied_chronic_prevalence.yaml": lambda d: d["prevalence"]["cerebral_infarction"].update(I48=1.5),
     "aki_response.yaml": lambda d: d.update(fever_celsius="hot"),
+    "maintenance_iv_fluid.yaml": lambda d: d.update(grace_days={"days": 1}),
     "renal_medication_rules.yaml": lambda d: d["renal_drugs"].update(metformin="hld"),
     "statin_monitoring.yaml": lambda d: _rename(d["countries"]["US"]["step_up_ldl"][0], "ldl_mg_dl", "ldl_mgdl"),
     "vasoactive_hold.yaml": lambda d: d["held_classes"].append("antihypertensives"),
