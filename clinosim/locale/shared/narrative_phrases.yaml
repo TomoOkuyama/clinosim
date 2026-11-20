@@ -3239,6 +3239,13 @@ imaging_report:
   generic_negative_impression:
     ja: "今回撮像範囲内に急性期異常所見を認めず。"
     en: "No acute abnormal findings within the imaged range."
+  # Issue #3394: the study's side in a report text ({side}).
+  side_left:
+    ja: "左"
+    en: "left"
+  side_right:
+    ja: "右"
+    en: "right"
 
 # ECG and coronary angiography reports (Issue #3020). An ECG states rhythm,
 # rate, axis, intervals and ST-T findings; an angiogram the culprit lesion.

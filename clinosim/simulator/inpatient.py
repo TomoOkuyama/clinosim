@@ -31,6 +31,7 @@ from clinosim.modules.disease.protocol import DiseaseProtocol
 from clinosim.modules.disease.severity import category_from_score
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.order.engine import (
+    drop_legacy_duplicate_imaging,
     first_line_alternative_groups,
     place_admission_orders,
     place_imaging_orders,
@@ -752,6 +753,9 @@ def _simulate_patient(
         rng=rng,
         sequence_counter=imaging_seq_counter,
     )
+    # Issue #3394: the structured study replaces the legacy order of the same
+    # body part (placed above, so the stay's RNG stream is unchanged).
+    admission_orders = drop_legacy_duplicate_imaging(admission_orders, adm_imaging)
     admission_orders.extend(adm_imaging)
 
     # Home medication orders (chronic condition continuation)

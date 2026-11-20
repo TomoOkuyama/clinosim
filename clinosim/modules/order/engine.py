@@ -249,6 +249,53 @@ def place_imaging_orders(
     return orders
 
 
+def _report_group(body_site_key: str) -> str:
+    """The body-site group whose studies read alike: the site's
+    ``report_template_site`` (cervical / lumbar spine -> spine), else itself."""
+    return str((load_body_sites().get(body_site_key) or {}).get("report_template_site") or body_site_key)
+
+
+def drop_legacy_duplicate_imaging(admission_orders: list[Order], structured_orders: list[Order]) -> list[Order]:
+    """``admission_orders`` without the legacy display-name imaging orders
+    (``order_protocols.admission_orders.imaging``) that a structured day-0 order
+    already covers (Issue #3394).
+
+    The legacy list carries no abnormal rate, so its study always read normal
+    while the structured study of the same body part read abnormal by severity:
+    one note reported both. A legacy order is dropped when a structured order
+    has the same modality and the same report group (``_report_group``), or when
+    it is a whole-body study (``covers_other_sites``) and a structured order of
+    its modality exists. The structured order wins; a legacy order with no
+    structured counterpart, or whose name resolves to no study, stays. The
+    legacy order is still placed first, so the stay's RNG stream is unchanged.
+    """
+    if not structured_orders:
+        return admission_orders
+    from clinosim.modules.imaging.engine import _body_site_key_from_snomed
+    from clinosim.modules.imaging.inference import infer_imaging_metadata
+
+    covered: set[tuple[str, str]] = set()
+    modalities: set[str] = set()
+    for o in structured_orders:
+        if o.imaging_modality and o.imaging_body_site_code:
+            modalities.add(o.imaging_modality)
+            covered.add((o.imaging_modality, _report_group(_body_site_key_from_snomed(o.imaging_body_site_code))))
+
+    sites = load_body_sites()
+    kept: list[Order] = []
+    for o in admission_orders:
+        if o.order_type == OrderType.IMAGING and not o.imaging_modality and "-ADM-I" in o.order_id:
+            meta = infer_imaging_metadata(o.display_name or "")
+            if meta:
+                site = meta["body_site_key"]
+                if (meta["modality"], _report_group(site)) in covered or (
+                    (sites.get(site) or {}).get("covers_other_sites") and meta["modality"] in modalities
+                ):
+                    continue
+        kept.append(o)
+    return kept
+
+
 def enrich_medication_order(order: Order, dose_str: str = "") -> Order:
     """Populate dose/frequency/route fields by parsing display_name and dose_str.
 

@@ -26,7 +26,7 @@
         "lang": "en"
       },
       "sections": {
-        "admission_results": "Laboratory (abnormal): glucose 119 mg/dL [H]; CRP 11.6 mg/L [H]; albumin 3.2 g/dL [L]; WBC 11275 /uL [H]. Imaging and studies: CT head (non-contrast) (No acute intracranial process)",
+        "admission_results": "Laboratory (abnormal): glucose 119 mg/dL [H]; CRP 11.6 mg/L [H]; albumin 3.2 g/dL [L]; WBC 11275 /uL [H]. Imaging and studies: head CT (without contrast) (Acute right basal ganglia intracerebral hemorrhage with mass effect)",
         "allergies": "No known drug allergies (NKDA)",
         "assessment_and_plan": "[Mock LLM response #1 — assessment_and_plan]",
         "chief_complaint": "Sudden severe headache, vomiting, altered consciousness",
@@ -1567,7 +1567,7 @@
         "assessment": "[Mock LLM response #15 — assessment]",
         "chief_complaint": "Sudden severe headache, vomiting, altered consciousness",
         "disposition": "[Mock LLM response #15 — disposition]",
-        "ed_workup": "Labs: PT-INR, APTT, fibrinogen, creatinine, BUN, Na, K, glucose. Imaging: CT head (non-contrast), head CT angiography, head CT (without contrast). Medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h",
+        "ed_workup": "Labs: PT-INR, APTT, fibrinogen, creatinine, BUN, Na, K, glucose. Imaging: head CT (without contrast). Medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h",
         "hpi": "[Mock LLM response #15 — hpi]",
         "physical_exam": "On arrival: BP 131/74 mmHg, HR 96 bpm, RR 18 /min, SpO2 94%, T 36.3°C. General: drowsy, responds to voice, acutely ill-appearing, in marked distress. Neurological: dense left hemiplegia (MMT 0-1/5), left facial palsy, dysarthria, left hemispatial neglect, forced gaze deviation to the right; NIHSS 24.",
         "triage_details": "Triage level: ESI Level 2. Arrival mode: Ambulance. Allergies: No known drug allergies (NKDA)."

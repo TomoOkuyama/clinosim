@@ -37,7 +37,16 @@ multi-series expansion logic MUST live in
   report); per-encounter duplicate suppression (same start time +
   canonicalised display name, Issue #822) and series-as-studies
   consolidation (same CT / MR / US / XA modality + body site within
-  60 min, Issue #918).
+  60 min, Issue #918); report content that follows the stay (Issue #3394):
+  a template keyed by the order's own region (`CT_cervical_spine`) is read
+  before the shared one (`CT_spine`), an abnormal read takes the variant of
+  the stay's admission diagnosis code (`abnormal_by_code`: ICD-10 prefix ->
+  text, or `normal` when the injury is at another site), and `{side}` in a
+  text is the study's laterality (`imaging_report.side_left` / `side_right`
+  in `narrative_phrases.yaml`). The single normal/abnormal draw is unchanged.
+  `body_sites.yaml` `covers_other_sites` marks a whole-body study, which the
+  order module's `drop_legacy_duplicate_imaging` treats as covering every
+  region.
 - **In scope (audit)**: [`audit.py`](audit.py) — fourth per-module
   AD-60 plug-in (after hai, antibiotic, order). Registers 7
   `canonical_constants` (`IMAGING_STUDY_ID_PREFIX`

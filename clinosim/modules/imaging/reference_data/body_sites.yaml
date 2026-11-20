@@ -360,6 +360,7 @@ body_sites:
         jp_k_code: "E001"
   whole_body:
     snomed: "38266002"                           # Entire body as a whole
+    covers_other_sites: true                     # Issue #3394: a pan-scan images every region
     procedure_codes:
       CT_contrast:                               # trauma pan-scan (head to pelvis, IV contrast)
         loinc: "46306-7"                         # CT Whole body W contrast IV
