@@ -181,7 +181,7 @@ clinosim/modules/document/
   reference_data_loaders.py          load_physical_exam_findings + load_discharge_instructions (6-layer) + other cached loaders
   audit.py                           AD-60 audit plug-in #5 — 49-check lift_firing_proof
   reference_data/
-    document_type_specs.yaml         per-document-type registry (nutrition_care_plan is authored 8 h after admission, after the day-0 diet order, so its diet and supply route follow the active diet order via narrative/_progress_course.py diet_order_at)
+    document_type_specs.yaml         per-document-type registry (the ed_note spec has authored_at: period_end, so the ED physician note is authored at the end of the ED visit and quotes only what existed by then; nutrition_care_plan is authored 8 h after admission, after the day-0 diet order, so its diet and supply route follow the active diet order via narrative/_progress_course.py diet_order_at)
     section_catalog.yaml             Composition section slug catalog (narrative/registry.py, composition.py)
     physical_exam_findings.yaml      per-disease PE findings (baseline + newborn set + override)
     disease_exam.yaml                admission exam per disease in English and Japanese (the findings of the systems the disease affects), the consciousness clause by AVPU, the atrial-fibrillation rhythm rule the acute-stroke deficit / NIHSS bands and the obstetric exam of a delivery admission by mode of delivery, antepartum before the delivery procedure ends and postpartum after (Issue #3403) (load_disease_exam)
