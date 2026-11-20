@@ -2570,6 +2570,11 @@
 <td><code>tests/unit/modules/document/narrative/test_ed_note_admitted_hpi_exam_3243.py</code></td>
 </tr>
 <tr>
+<td>ED 医師記録は、方針が決まった ED 受診の終了時点で記載する (Issue #3397): <code>document_type_specs.yaml</code> の <code>ed_note</code> は <code>authored_at: period_end</code> (既定は <code>admission</code> = 来院時。トリアージ記録は来院時、ED 経由入院では ED 中間時刻のまま)。ED 経由入院の ED 記録は入院時刻に記載する。ワークアップはその時点で存在したものだけを書く: 記載後に報告された検査値・画像レポートは引用せず、記載後の指示・開始された処置は載せない。ED 経由入院の ED 指示は入院時の初期オーダセットで、CIF 上は ED 期間の後に時刻が付くため、時刻でなくオーダセットで選ぶ (入院中のその後の指示は載せない)。</td>
+<td><code>engine.py::_plan_encounter_once</code> / <code>_ed_companion_documents</code>, <code>renderers/section_builders/ed_note.py::_ed_cutoff</code> / <code>build_ed_workup</code>, <code>reference_data/document_type_specs.yaml</code></td>
+<td><code>tests/unit/modules/document/narrative/test_ed_note_as_of_3397.py</code></td>
+</tr>
+<tr>
 <td>入院時記録 (H&amp;P) は入院の原因疾患から書く (Issue #3245): 身体所見は疾患が及ぶ系統の所見を記録の言語で書く (<code>reference_data/disease_exam.yaml</code>: 英語・日本語。引用するバイタルと矛盾する句は書かず、意識の句はそのバイタルの AVPU に合わせ、疾患が関与しない系統に「正常」を作らない)。HPI は両言語で同じ構成 (年齢・性別、主訴、疾患の <code>onset_type</code> の発症文、既往、常用薬、ROS の陰性所見)。<code>admission_results</code> セクションは記録時点で得られている異常検査値と画像・心電図の所見を載せ、なければ結果待ちと書く。方針には、手術を要する疾患の予定手術と、記録された蘇生方針を加える。疾患 YAML に仮の評価 (「初期診断確定」) は置かず、評価と方針は記録から組み立てる。</td>
 <td><code>renderers/_disease_exam.py</code>, <code>renderers/section_builders/patient_history.py::build_physical_examination</code> / <code>build_admission_results</code>, <code>renderers/section_builders/hpi.py</code>, <code>renderers/section_builders/assessment_and_plan.py::admission_plan_items</code>, <code>reference_data/disease_exam.yaml</code></td>
 <td><code>tests/unit/modules/document/narrative/test_admission_hp_exam_3245.py</code></td>
