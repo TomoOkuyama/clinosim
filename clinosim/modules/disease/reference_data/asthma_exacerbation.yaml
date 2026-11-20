@@ -143,7 +143,7 @@ order_protocols:
     supportive:
       - {type: "nebulizer", detail: "Salbutamol 2.5mg NEB q20min x3, then q1-4h PRN"}
       - {type: "nebulizer", detail: "Ipratropium 0.5mg NEB q20min x3"}
-      - {type: "O2", detail: "Nasal cannula or mask SpO2 >= 94%"}
+      - {type: "O2", detail: "Nasal cannula, SpO2 >= 94%"}
       - {type: "IV_fluid", detail: "NS 80 mL/h"}
 
   daily_monitoring:

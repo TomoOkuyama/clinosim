@@ -109,7 +109,7 @@ order_protocols:
     imaging: []
     supportive:
       - {type: "suicide_precautions", detail: "Ligature-safe room, belongings search, observation level per risk"}
-      - {type: "monitoring", detail: "1:1 or q15min checks until suicide risk reassessed"}
+      - {type: "monitoring", detail: "q15min checks until suicide risk reassessed"}
   daily_monitoring:
     labs: []
     vitals:

@@ -280,7 +280,7 @@ order_protocols:
       - {test: "Chest_Xray", urgency: "stat"}
       - {test: "Pelvis_Xray", urgency: "stat"}
     supportive:
-      - {type: "IV_fluid", detail: "NS or LR wide open, titrate to MAP > 65"}
+      - {type: "IV_fluid", detail: "NS wide open, titrate to MAP > 65"}
       - {type: "massive_transfusion_protocol", detail: "Activate if hemorrhagic shock"}
       - {type: "pain_management", detail: "Fentanyl 25-50mcg IV PRN, avoid sedation if TBI"}
       - {type: "DVT_prophylaxis", detail: "Enoxaparin when bleeding risk resolved"}

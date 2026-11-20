@@ -108,7 +108,7 @@ order_protocols:
       - {test: "CK", urgency: "routine"}
     imaging: []
     supportive:
-      - {type: "safety_observation", detail: "Observation level per risk of harm to self or others"}
+      - {type: "safety_observation", detail: "Observation level per risk of harm to self/others"}
       - {type: "monitoring", detail: "Agitation scale each shift; seclusion / restraint only per protocol"}
   daily_monitoring:
     labs: []

@@ -184,7 +184,7 @@ order_protocols:
       - {type: "BP_management", detail: "Permissive hypertension: allow SBP < 220 (or < 185 if tPA given)"}
       - {type: "neuro_checks", detail: "NIHSS q2h for first 24h, then q4h"}
       - {type: "continuous_telemetry", detail: "Cardiac monitoring for AF detection x48h minimum"}
-      - {type: "HOB_elevation", detail: "Head of bed flat or 30 degrees per protocol"}
+      - {type: "HOB_elevation", detail: "Head of bed 30 degrees per protocol"}
 
   daily_monitoring:
     labs:

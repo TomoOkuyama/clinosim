@@ -248,7 +248,7 @@ order_protocols:
       - {test: "Chest_Xray", urgency: "stat"}
       - {test: "Pelvis_Xray", urgency: "stat"}
     supportive:
-      - {type: "IV_fluid", detail: "NS or LR wide open, titrate to MAP > 65"}
+      - {type: "IV_fluid", detail: "NS wide open, titrate to MAP > 65"}
       - {type: "cervical_immobilization", detail: "Cervical collar until cleared"}
       - {type: "pain_management", detail: "Fentanyl 25-50mcg IV PRN"}
       - {type: "DVT_prophylaxis", detail: "Sequential compression devices initially"}
