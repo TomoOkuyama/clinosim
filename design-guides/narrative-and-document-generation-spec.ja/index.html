@@ -2443,7 +2443,7 @@
 <td><code>tests/unit/modules/document/narrative/test_vaccination_visit_own_data_2869.py</code></td>
 </tr>
 <tr>
-<td>文書は作成時刻 (<code>NarrativeContext.authored_datetime</code>、narrative pass が stub ごとに設定) までに記録されたものだけを反映する。日付つきの評価 (Barthel ADL、Braden / Morse リスク) はその時刻に有効なものを使い、入院時看護アセスメントは入院時の評価を、看護サマリーは最後の評価を記載する。看護記録 (勤務帯) は自分の勤務帯のバイタル (各項目の最新値と、現在値が閾値未満のときに勤務帯内で NEWS2 が緊急対応閾値以上だった先行測定) だけを記載し、他の勤務帯の値を流用しない。実際の在院日数はどの記録にも書かない。入院時の推定入院期間は疾患プロトコルの <code>target_los</code> から取り、無ければ「未定」とする。</td>
+<td>文書は作成時刻 (<code>NarrativeContext.authored_datetime</code>、narrative pass が stub ごとに設定) までに記録されたものだけを反映する。日付つきの評価 (Barthel ADL、Braden / Morse リスク) はその時刻に有効なものを使い、入院時看護アセスメントは入院時の評価を、看護サマリーは最後の評価を記載する。看護記録 (勤務帯) は勤務帯の終了時刻に作成し (退院・死亡後に及ぶ勤務帯はその時刻まで)、窓と作成時刻が一致する。自分の勤務帯の作成時刻までのバイタル・NEWS2・与薬だけを記載し (薬剤行の見出しは「与薬」で、単回投与を「継続」とは書かない)、自分の勤務帯のバイタル (各項目の最新値と、現在値が閾値未満のときに勤務帯内で NEWS2 が緊急対応閾値以上だった先行測定) だけを記載し、他の勤務帯の値を流用しない。実際の在院日数はどの記録にも書かない。入院時の推定入院期間は疾患プロトコルの <code>target_los</code> から取り、無ければ「未定」とする。</td>
 <td><code>clinosim/modules/document/narrative/_as_of.py::in_force_at</code>, <code>_vitals_line.py::vitals_in_window</code>, <code>latest_vitals_set</code></td>
 <td><code>tests/unit/modules/document/narrative/test_nursing_time_correct_3236.py</code>, <code>tests/unit/test_narrative_context_wiring.py::test_per_stub_authored_datetime_via_run</code></td>
 </tr>
