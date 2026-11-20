@@ -10,6 +10,9 @@
 #   logged in `patient.safety_skip_log`, event type `hold`) is stated in the
 #   Plan of an outpatient visit within this many days of the hold: resumed on
 #   today's prescription, or still on hold (Issue #3250).
+# pending_lab_limit: at most this many tests are named in the "drawn today,
+#   results pending" sentence of a note authored before its labs were reported
+#   (Issue #3396); the rest are counted.
 # screening_scores: scores reported as "<name> <value>" in the Assessment.
 #   positive_from: a score at or above it is a positive screen, followed by the
 #   plan line `follow_up` (locale/shared/narrative_phrases.yaml
@@ -24,6 +27,8 @@ metadata:
 prior_lab_analytes: [HbA1c, LDL, eGFR, Creatinine, Hb]
 
 hold_followup_days: 90
+
+pending_lab_limit: 6
 
 screening_scores:
   PHQ-9: {}

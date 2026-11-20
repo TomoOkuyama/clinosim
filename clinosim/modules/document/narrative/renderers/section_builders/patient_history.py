@@ -36,7 +36,11 @@ from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._as_of import recorded_by
 from clinosim.modules.document.narrative._localization import _localize_stage
 from clinosim.modules.document.narrative._narrative_utils import is_neonate
-from clinosim.modules.document.narrative._outpatient_results import latest_lab_stage, prior_lab_values
+from clinosim.modules.document.narrative._outpatient_results import (
+    latest_lab_stage,
+    prior_lab_values,
+    stage_from_pending_lab,
+)
 from clinosim.modules.document.narrative._template_helpers import (
     _render_home_med_name,
     allergen_display,
@@ -91,7 +95,13 @@ def build_past_medical_history(generator: TemplateNarrativeGenerator, ctx: Narra
         # Issue #3273: a stage a lab states (CKD G category, HbA1c) is the
         # latest result known at the note, not the stage stored on the problem
         # list.
-        stage = latest_lab_stage(str(code), str(stage or ""), known_labs) or stage
+        # Issue #3396: a stored stage restated from a result reported after
+        # the note was authored is not known to it.
+        known_stage = latest_lab_stage(str(code), str(stage or ""), known_labs)
+        if known_stage:
+            stage = known_stage
+        elif stage and stage_from_pending_lab(ctx, str(code), str(stage)):
+            stage = ""
         emit_code, display = diagnosis_coded(code, country, lang, sex)
         # Phase 1c-6 (2026-09-23): localize the severity /
         # persistence descriptor via ``_localize_stage`` so JA

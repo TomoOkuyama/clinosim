@@ -254,8 +254,14 @@ def _abnormal(lab: Any) -> bool:
     return str(_o(lab, "flag", "") or "").upper() not in ("", "N", "NORMAL")
 
 
-def _labs(ctx: Any) -> list[Any]:
-    return [lab for lab in (ctx.lab_results or []) if _o(lab, "lab_name", None) and _o(lab, "value", None) is not None]
+def _labs(ctx: Any, *, known_only: bool = True) -> list[Any]:
+    """The visit's lab results with a value; by default only those reported by
+    the note's authored time (Issue #3396), ``known_only=False`` every drawn
+    test (the names of the tests of a screening visit)."""
+    from clinosim.modules.document.narrative._outpatient_results import known_labs
+
+    labs = known_labs(ctx) if known_only else (ctx.lab_results or [])
+    return [lab for lab in labs if _o(lab, "lab_name", None) and _o(lab, "value", None) is not None]
 
 
 def _lab_values(ctx: Any, values: dict[str, Any]) -> None:
@@ -263,7 +269,8 @@ def _lab_values(ctx: Any, values: dict[str, Any]) -> None:
     sep = t("list_sep.serial", lang)
     labs = _labs(ctx)
     if not labs:
-        values["no_labs"] = ""
+        # Tests drawn at the visit and not yet reported are pending, not absent.
+        values["labs_pending" if _labs(ctx, known_only=False) else "no_labs"] = ""
         return
     values["labs"] = sep.join(_lab_entry(lab, lang) for lab in labs)
     abnormal = [_lab_entry(lab, lang) for lab in labs if _abnormal(lab)]
@@ -297,7 +304,7 @@ def _screening_items(ctx: Any) -> str:
 
     lang = ctx.target_lang
     names: list[str] = []
-    for lab in _labs(ctx):
+    for lab in _labs(ctx, known_only=False):
         name = lab_display(str(_o(lab, "lab_name", "")), lang)
         if name not in names:
             names.append(name)

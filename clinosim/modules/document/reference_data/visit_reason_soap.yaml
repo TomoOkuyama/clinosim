@@ -12,7 +12,7 @@
 # ``narrative/_visit_reason.py``; a line whose placeholder has no value for the
 # visit is left out (a fact the record does not hold is not written). A few
 # placeholders are conditions with an empty value (``{no_rx}``, ``{all_normal}``,
-# ``{no_labs}``): the line is written only in that case.
+# ``{no_labs}``, ``{labs_pending}``): the line is written only in that case.
 # ``conditions`` adds lines for one visit condition after the kind's lines.
 #
 # Text records findings and decisions, never instructions to the reader
@@ -150,6 +150,8 @@ kinds:
         ja: "結果を説明、血液検査の異常なし{all_normal}。"
       - en: "Results explained to the patient{no_labs}."
         ja: "結果を説明{no_labs}。"
+      - en: "Results to be explained to the patient once reported{labs_pending}."
+        ja: "結果は報告後に説明{labs_pending}。"
 
   vaccination:
     assessment:
