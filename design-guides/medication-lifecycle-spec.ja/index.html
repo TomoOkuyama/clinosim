@@ -2544,6 +2544,11 @@
 <td><code>tests/unit/simulator/test_vasoactive_weaning_3270.py</code></td>
 </tr>
 <tr>
+<td>入院時の維持輸液オーダー (支持療法 <code>IV_fluid</code>。ボーラスや用量調整・蘇生輸液は対象外) は、食事が経口食 (軟食・常食) になった日から <code>grace_days</code> 日後の病日の開始時点、経口にならない場合は病日 <code>max_days</code> の開始時点で中止する (status stopped、終了時刻はその病日の開始)。以後は投与せず、その日の I/O 記録に維持輸液の IV 量を入れず、経口摂取量の平均を <code>oral_intake_mean_ml_after_stop</code> 以上とする (補うために飲む) (IV の乱数は引き続き引くので、入院の乱数列は変わらない)。値はモデル上の選択であり、ガイドラインの数値ではない。</td>
+<td><code>simulator/maintenance_iv_fluid.py</code> (<code>stop_maintenance_iv_fluid</code>, <code>maintenance_iv_fluid_stopped</code>)。データ <code>simulator/reference_data/maintenance_iv_fluid.yaml</code>。<code>daily_loop.py</code> と <code>vitals_pipeline.py::_generate_daily_io</code> で適用</td>
+<td><code>tests/unit/simulator/test_maintenance_iv_fluid_stop_3409.py</code></td>
+</tr>
+<tr>
 <td>直近の血清クレアチニンが KDIGO 2012 の AKI 定義(48 時間以内に 0.3 mg/dL 以上の上昇、または入院中のそれまでの最低値(基準値)の 1.5 倍以上)を満たす間は、NSAID(アスピリンを除く)・ACE 阻害薬・ARB・サイアザイド系またはカリウム保持性利尿薬・メトホルミンの予定投与をすべて「急性腎障害」を理由に保留し、クレアチニンが定義を満たさなくなれば再開する。退院処方も、最終クレアチニンが定義を満たす間は同じ薬剤を処方せず(保留として記録)、満たさなくなっていれば継続する。クレアチニンが定義を満たしピークから 10% 以上低下していない間、または直近 24 時間に 38.0 °C 以上の体温が記録された間は退院可としない。入院はサンプルした在院日数から最長 5 日延長し、上限に達しても未解決の場合は、本来の退院先をそのまま用い、最終クレアチニンが定義を満たしているときは退院時指導に、退院後 1 週間ほどでの外来クレアチニン再検査、約 3 か月後の腎機能再評価(KDIGO 2012 推奨 2.3.4)、保留した薬剤は再検査の結果を確認してから再開する旨を加える。</td>
 <td><code>aki_response.py</code>、<code>medication_pipeline.py::_generate_mar</code>、<code>discharge_gate.py</code>、<code>discharge_rx.py::build_discharge_rx</code>、値は <code>reference_data/aki_response.yaml</code></td>
 <td></td>
