@@ -2610,6 +2610,11 @@
 <td><code>tests/unit/modules/document/narrative/test_one_chief_complaint_per_encounter_3390.py</code></td>
 </tr>
 <tr>
+<td>The ROS pertinent negatives never deny what the record shows (Issue #3391): a negative in <code>reference_data/hpi_pertinent_negatives.yaml</code> may list <code>contradicted_by</code> rules (<code>head_imaging_abnormal</code>: a head CT/MRI of the encounter whose impression is not the template's normal impression, judged by <code>imaging_report_is_abnormal</code>; <code>consciousness_impaired</code>: arrival AVPU below Alert or GCS below 15) and is left out of the ROS when one holds. Rule names are a closed set validated at load.</td>
+<td><code>narrative/_ros_contradictions.py</code>, <code>modules/imaging/engine.py::imaging_report_is_abnormal</code>, <code>section_builders/hpi.py::_ros_line</code></td>
+<td><code>tests/unit/test_ros_contradictions_3391.py</code></td>
+</tr>
+<tr>
 <td>The day-0 progress note is authored after the H&amp;P of the same day (<code>authored_after_admission_hours</code> of the <code>progress_note</code> spec; later days keep the admission time of day), and a delivery stay, a mixed-diagnosis admission and an admission without a diagnosis have an exam too (Issue #3245): the obstetric exam of the mode of delivery the admission diagnosis gives (O80 / O82) with the gestational age from the pregnancy period's LMP; the exam of the principal disease of a mixed condition event (<code>principal_disease_id</code>); the general appearance alone, with no system declared normal, when there is no diagnosis.</td>
 <td><code>engine.py::_plan_daily</code>, <code>renderers/_disease_exam.py::_delivery_exam</code> / <code>admission_general_exam</code>, <code>narrative/passes.py::_principal_disease_id</code>, <code>reference_data/disease_exam.yaml</code></td>
 <td><code>tests/unit/modules/document/narrative/test_admission_hp_complete_3245.py</code></td>

@@ -2610,6 +2610,11 @@
 <td><code>tests/unit/modules/document/narrative/test_one_chief_complaint_per_encounter_3390.py</code></td>
 </tr>
 <tr>
+<td>ROS の陰性所見は記録が示す事実を否定しない (Issue #3391): <code>reference_data/hpi_pertinent_negatives.yaml</code> の陰性所見は <code>contradicted_by</code> の規則を持てる (<code>head_imaging_abnormal</code>: 受診の頭部 CT/MRI の読影所見が正常所見テンプレートと異なる (<code>imaging_report_is_abnormal</code> で判定)、<code>consciousness_impaired</code>: 来院時の AVPU が Alert 未満または GCS 15 未満)。いずれかが成り立てば ROS から除く。規則名は閉じた集合で、読込時に検証する。</td>
+<td><code>narrative/_ros_contradictions.py</code>, <code>modules/imaging/engine.py::imaging_report_is_abnormal</code>, <code>section_builders/hpi.py::_ros_line</code></td>
+<td><code>tests/unit/test_ros_contradictions_3391.py</code></td>
+</tr>
+<tr>
 <td>入院日 0 日目の経過記録は同日の H&amp;P より後に記載する (<code>progress_note</code> の <code>authored_after_admission_hours</code>。2 日目以降は従来どおり入院時刻)。分娩入院・複数診断の入院・診断のない入院にも身体所見を書く (Issue #3245): 入院診断 (O80 / O82) の分娩様式の産科所見に、妊娠期間の LMP から求めた在胎週数を添える。複数診断 (<code>mixed</code>) の入院は主診断 (<code>principal_disease_id</code>) の所見。診断のない入院は一般状態のみで、所見のない系統を正常と書かない。</td>
 <td><code>engine.py::_plan_daily</code>, <code>renderers/_disease_exam.py::_delivery_exam</code> / <code>admission_general_exam</code>, <code>narrative/passes.py::_principal_disease_id</code>, <code>reference_data/disease_exam.yaml</code></td>
 <td><code>tests/unit/modules/document/narrative/test_admission_hp_complete_3245.py</code></td>
