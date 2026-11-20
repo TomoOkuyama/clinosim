@@ -1,0 +1,49 @@
+# When the maintenance IV-fluid order of an admission is stopped (Issue #3409).
+#
+# Read by clinosim/simulator/maintenance_iv_fluid.py and applied in the
+# inpatient daily loop (simulator/daily_loop.py). The admission supportive
+# entry `IV_fluid` (for example "NS 125 mL/h") is a standing order; without a
+# stop rule it ran on every day of the stay, weeks after the patient ate.
+#
+#   - Oral diet. The order is stopped at the start of the hospital day that is
+#     `grace_days` days after the day the diet order first reached one of
+#     `oral_diets`; no dose is given from then on, and the day's I/O record
+#     carries no maintenance IV intake (the oral intake covers it).
+#   - Cap. The order is stopped at the start of hospital day `max_days` when
+#     the diet has not advanced by then.
+#   - Oral intake. With the IV fluid off, the patient drinks to cover it: the
+#     day's oral intake mean is at least `oral_intake_mean_ml_after_stop`
+#     (standard deviation `oral_intake_sd_ml_after_stop`), at the reference
+#     body weight. Without it the stopped IV volume is not replaced and the
+#     charted balance dehydrates the patient.
+#   - Scope. Only an order whose display name starts with
+#     `order_display_prefix` and whose detail has none of
+#     `excluded_detail_markers` (a bolus, a titrated or resuscitation regimen,
+#     a burn formula) is a maintenance fluid; those are left to run.
+#
+# Source: none read for these values. They are model choices that keep the
+# order inside the days of an acute stay; they are not guideline figures.
+metadata:
+  kind: reference
+  name: maintenance_iv_fluid
+  source: clinosim
+
+oral_diets:
+  - soft_diet
+  - regular_diet
+grace_days: 1
+max_days: 7
+oral_intake_mean_ml_after_stop: 1500
+oral_intake_sd_ml_after_stop: 300
+order_display_prefix: "IV_fluid:"
+excluded_detail_markers:
+  - bolus
+  - wide open
+  - titrate
+  - Parkland
+  - aggressive
+  - "then "
+  - "until oral intake"
+  - restrict
+  - thiamine
+  - "mL/kg"

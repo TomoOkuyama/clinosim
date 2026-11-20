@@ -118,6 +118,11 @@ from clinosim.simulator.discharge_gate import (
     mortality_state_multiplier,
 )
 from clinosim.simulator.lab_pipeline import _run_lab_result_pipeline, patient_true_labs
+from clinosim.simulator.maintenance_iv_fluid import (
+    maintenance_iv_fluid_rules,
+    maintenance_iv_fluid_stopped,
+    stop_maintenance_iv_fluid,
+)
 from clinosim.simulator.medication_pipeline import (
     ChildDosing,
     _generate_mar,
@@ -343,6 +348,7 @@ class _Run:
     intubated_day: int | None = None  # Issue #2101: complication context
     escalation_procedures: list = field(default_factory=list)  # Issue #2091: state-driven intubation records
     prev_diet: str = ""  # last diet ordered for this patient
+    oral_diet_since_day: int | None = None  # Issue #3409: day the diet first became oral (None: not oral)
     # Admission orders, including the components an admission panel order
     # was expanded into (Issue #2582); the drug-safety gate checks the rest.
     admission_order_ids: set[str] = field(default_factory=set)
@@ -1135,6 +1141,11 @@ def _order_diet(stay: _Stay, run: _Run, day: int) -> None:
             )
         )
         run.prev_diet = diet
+    # Issue #3409: the day the diet became oral starts the maintenance IV-fluid stop.
+    if diet not in maintenance_iv_fluid_rules().oral_diets:
+        run.oral_diet_since_day = None
+    elif run.oral_diet_since_day is None:
+        run.oral_diet_since_day = day
 
 
 def _ventricular_rate_course(stay: _Stay, run: _Run) -> VentricularRateCourse | None:
@@ -1207,6 +1218,7 @@ def _record_bedside_observations(stay: _Stay, run: _Run, day: int) -> None:
         rng,
         disease_id=stay.disease_id,
         on_loop_diuretic=_loop_diuretic_given(run.mars, io_date),
+        maintenance_iv_stopped=maintenance_iv_fluid_stopped(run.orders, hospital_day_start(stay.admission_time, day)),
     )
     run.io_records.append(io)
     apply_state_delta(run.state, "volume_status", volume_status_shift(io.net_balance_ml, patient.weight_kg))
@@ -1524,6 +1536,10 @@ def _run_daily_loop(
         if day == TREATMENT_ESCALATION_DAY and run.state.inflammation_level > TREATMENT_ESCALATION_INFLAMMATION_MIN:
             _escalate_treatment(stay, run, day)
         _wean_vasoactive_support(stay, run, day)
+        # Issue #3409: the maintenance IV fluid ends once the patient eats.
+        stop_maintenance_iv_fluid(
+            run.orders, day, run.oral_diet_since_day, hospital_day_start(stay.admission_time, day)
+        )
         mars_today = _generate_mar(
             patient,
             run.orders,
