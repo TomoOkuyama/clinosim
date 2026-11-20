@@ -38,6 +38,11 @@ ServiceRequest.
 
 - **In scope**: `place_admission_orders`, `place_daily_lab_orders`,
   `place_imaging_orders` (Tier 1 #2 imaging-chain DRY entry point);
+  `drop_legacy_duplicate_imaging` (a legacy `admission_orders.imaging`
+  display-name order is dropped when a structured day-0 imaging order has
+  the same modality and report group, or is a whole-body study and a
+  structured order of its modality exists, #3394; the legacy order is still
+  placed first so the stay's RNG stream is unchanged);
   `enrich_medication_order` + `parse_dose_string` (a "X loading, then
   Y" dose string parses as the maintenance regimen Y; in
   `place_admission_orders` it becomes a one-time loading order X plus the
@@ -113,6 +118,7 @@ from clinosim.modules.order.engine import (
     place_admission_orders,             # (protocol, patient_id, encounter_id, admission_time, country, rng, ordered_by="", patient_age=None, patient_weight_kg=None) -> list[Order]
     place_daily_lab_orders,             # (protocol, patient_id, encounter_id, day_number, order_time, lab_frequency_multiplier, rng, ordered_by="") -> list[Order]
     place_imaging_orders,               # (disease_protocol, encounter_id, patient_id, admission_dt, day_index, severity, rng, sequence_counter) -> list[Order]
+    drop_legacy_duplicate_imaging,      # (admission_orders, structured_orders) -> list[Order]
     enrich_medication_order,            # (order, dose_str="") -> Order
     parse_dose_string,                  # (dose_str) -> dict
     calculate_lab_result_time,          # (order, rng) -> datetime

@@ -442,6 +442,43 @@ templates:
         impression:
           en: 'L1 burst fracture with retropulsion.'
           ja: 'L1破裂骨折、椎体後方偏位。'
+      abnormal_by_code:
+        'S32.0':
+          findings:
+            en: 'L1 burst fracture with retropulsion.'
+            ja: 'L1破裂骨折、椎体後方偏位。'
+          impression:
+            en: 'L1 burst fracture with retropulsion.'
+            ja: 'L1破裂骨折、椎体後方偏位。'
+        'S22.0':
+          findings:
+            en: 'T12 burst fracture with retropulsion.'
+            ja: 'T12破裂骨折、椎体後方偏位。'
+          impression:
+            en: 'T12 burst fracture with retropulsion.'
+            ja: 'T12破裂骨折、椎体後方偏位。'
+        'S72.0': normal
+        'S06.9': normal
+    CT_cervical_spine:
+      normal:
+        findings:
+          en: 'Cervical alignment normal, no fracture.'
+          ja: '頸椎配列正常、骨折なし。'
+        impression:
+          en: 'Cervical alignment normal, no fracture.'
+          ja: '頸椎配列正常、骨折なし。'
+      abnormal:
+        findings:
+          en: 'C5 vertebral body fracture without canal compromise.'
+          ja: 'C5椎体骨折、脊柱管狭窄なし。'
+        impression:
+          en: 'C5 vertebral body fracture without canal compromise.'
+          ja: 'C5椎体骨折、脊柱管狭窄なし。'
+      abnormal_by_code:
+        'S32.0': normal
+        'S22.0': normal
+        'S72.0': normal
+        'S06.9': normal
     CR_chest:
       normal:
         findings:
@@ -486,11 +523,33 @@ templates:
           ja: '骨折なし。'
       abnormal:
         findings:
-          en: 'Left intertrochanteric femoral fracture, displaced.'
-          ja: '左大腿骨転子部骨折、転位あり。'
+          en: 'Displaced fracture of the proximal {side} femur.'
+          ja: '{side}大腿骨近位部骨折、転位あり。'
         impression:
-          en: 'Left intertrochanteric femoral fracture, displaced.'
-          ja: '左大腿骨転子部骨折、転位あり。'
+          en: 'Displaced fracture of the proximal {side} femur.'
+          ja: '{side}大腿骨近位部骨折、転位あり。'
+      abnormal_by_code:
+        'S72.0':
+          findings:
+            en: 'Displaced fracture of the {side} femoral neck.'
+            ja: '{side}大腿骨頸部骨折、転位あり。'
+          impression:
+            en: 'Displaced fracture of the {side} femoral neck.'
+            ja: '{side}大腿骨頸部骨折、転位あり。'
+        'S72.1':
+          findings:
+            en: 'Displaced intertrochanteric fracture of the {side} femur.'
+            ja: '{side}大腿骨転子部骨折、転位あり。'
+          impression:
+            en: 'Displaced intertrochanteric fracture of the {side} femur.'
+            ja: '{side}大腿骨転子部骨折、転位あり。'
+        'S72.2':
+          findings:
+            en: 'Displaced subtrochanteric fracture of the {side} femur.'
+            ja: '{side}大腿骨転子下骨折、転位あり。'
+          impression:
+            en: 'Displaced subtrochanteric fracture of the {side} femur.'
+            ja: '{side}大腿骨転子下骨折、転位あり。'
     CT_hip:
       normal:
         findings:
@@ -501,11 +560,33 @@ templates:
           ja: '骨折なし、関節整合性保たれる。'
       abnormal:
         findings:
-          en: 'Intertrochanteric fracture with detailed fragment displacement.'
-          ja: '転子部骨折、詳細な骨片転位。'
+          en: 'Fracture of the proximal {side} femur with fragment displacement.'
+          ja: '{side}大腿骨近位部骨折、骨片転位あり。'
         impression:
-          en: 'Intertrochanteric fracture with detailed fragment displacement.'
-          ja: '転子部骨折、詳細な骨片転位。'
+          en: 'Fracture of the proximal {side} femur with fragment displacement.'
+          ja: '{side}大腿骨近位部骨折、骨片転位あり。'
+      abnormal_by_code:
+        'S72.0':
+          findings:
+            en: 'Fracture of the {side} femoral neck with fragment displacement.'
+            ja: '{side}大腿骨頸部骨折、骨片転位あり。'
+          impression:
+            en: 'Fracture of the {side} femoral neck with fragment displacement.'
+            ja: '{side}大腿骨頸部骨折、骨片転位あり。'
+        'S72.1':
+          findings:
+            en: 'Intertrochanteric fracture of the {side} femur with fragment displacement.'
+            ja: '{side}大腿骨転子部骨折、骨片転位あり。'
+          impression:
+            en: 'Intertrochanteric fracture of the {side} femur with fragment displacement.'
+            ja: '{side}大腿骨転子部骨折、骨片転位あり。'
+        'S72.2':
+          findings:
+            en: 'Subtrochanteric fracture of the {side} femur with fragment displacement.'
+            ja: '{side}大腿骨転子下骨折、骨片転位あり。'
+          impression:
+            en: 'Subtrochanteric fracture of the {side} femur with fragment displacement.'
+            ja: '{side}大腿骨転子下骨折、骨片転位あり。'
 
   ileus:
     CR_abdomen:
@@ -734,6 +815,14 @@ templates:
         impression:
           en: 'Anterior wedge deformity of L1 vertebral body, compression fracture.'
           ja: 'L1椎体前方楔状変形、圧迫骨折。'
+      abnormal_by_code:
+        'S22.0':
+          findings:
+            en: 'Anterior wedge deformity of T12 vertebral body, compression fracture.'
+            ja: 'T12椎体前方楔状変形、圧迫骨折。'
+          impression:
+            en: 'Anterior wedge deformity of T12 vertebral body, compression fracture.'
+            ja: 'T12椎体前方楔状変形、圧迫骨折。'
     MR_spine:
       normal:
         findings:
@@ -749,6 +838,14 @@ templates:
         impression:
           en: 'Bone marrow edema at L1 consistent with acute compression fracture.'
           ja: 'L1椎体骨髄浮腫、急性圧迫骨折と矛盾せず。'
+      abnormal_by_code:
+        'S22.0':
+          findings:
+            en: 'Bone marrow edema at T12 consistent with acute compression fracture.'
+            ja: 'T12椎体骨髄浮腫、急性圧迫骨折と矛盾せず。'
+          impression:
+            en: 'Bone marrow edema at T12 consistent with acute compression fracture.'
+            ja: 'T12椎体骨髄浮腫、急性圧迫骨折と矛盾せず。'
 
   wrist_fracture_surgical:
     CR_wrist:

@@ -13,7 +13,7 @@ import re
 from datetime import datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, field_validator, model_validator
@@ -290,6 +290,9 @@ class _BodySite(BaseModel):
     paired: bool = False
     # Body site whose impression template this one reuses (e.g. lumbar_spine -> spine).
     report_template_site: str | None = None
+    # A study of every region (a trauma pan-scan): ordering it replaces a
+    # same-modality admission study of any single region (Issue #3394).
+    covers_other_sites: bool = False
 
     @field_validator("snomed")
     @classmethod
@@ -345,6 +348,13 @@ class _ReportVariants(BaseModel):
 
     normal: _ReportText | None = None
     abnormal: _ReportText | None = None
+    # Issue #3394: the abnormal read that follows the stay's diagnosis. Keys are
+    # ICD-10 code prefixes (dots ignored; the longest matching prefix wins);
+    # a value is the abnormal text for that diagnosis, or "normal" when the
+    # diagnosis is an injury of another site (the study reads clear). A code
+    # with no entry takes ``abnormal``. ``{side}`` in a text is the study's
+    # laterality (paired sites only).
+    abnormal_by_code: dict[str, _ReportText | Literal["normal"]] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def _has_a_variant(self) -> _ReportVariants:
@@ -723,6 +733,19 @@ def _expand_views_to_series(
     return series_list
 
 
+def _diagnosis_variant(by_code: dict[str, Any], code: str) -> Any:
+    """The ``abnormal_by_code`` entry of the longest key that prefixes ``code``
+    (dots ignored), else ``None`` (Issue #3394)."""
+    norm = (code or "").replace(".", "").upper()
+    best: Any = None
+    best_len = -1
+    for key, entry in by_code.items():
+        k = key.replace(".", "").upper()
+        if norm.startswith(k) and len(k) > best_len:
+            best, best_len = entry, len(k)
+    return best
+
+
 def _select_report_template(
     disease_id: str,
     modality: str,
@@ -730,12 +753,20 @@ def _select_report_template(
     severity: str,
     abnormal_rate_by_severity: dict[str, float],
     rng: np.random.Generator,
+    diagnosis_code: str = "",
+    laterality: str = "",
 ) -> tuple[str, dict[str, Any]]:
     """Select normal/abnormal report template based on disease + severity.
 
     Returns (variant_kind, template_dict).
     Raises ValueError when disease × modality_body_site is missing (forward-coverage
     guard — silent-no-op defense).
+
+    Issue #3394: a template keyed by the order's own region (``CT_cervical_spine``)
+    is read before the shared one (``CT_spine``); an abnormal read takes the
+    variant of the stay's ``diagnosis_code`` (``abnormal_by_code``), and a
+    ``{side}`` in it is the study's ``laterality``. The one random draw is
+    unchanged.
     """
     templates = load_impression_templates()
     disease_templates = templates.get(disease_id, {})
@@ -743,7 +774,8 @@ def _select_report_template(
     # (abdomen + pelvis uses the abdomen reports).
     template_site = (load_body_sites().get(body_site_key) or {}).get("report_template_site") or body_site_key
     key = f"{modality}_{template_site}"
-    bucket = disease_templates.get(key, {})
+    own_key = f"{modality}_{body_site_key}"
+    bucket = disease_templates.get(own_key) or disease_templates.get(key, {})
     if not bucket:
         raise ValueError(
             f"impression_templates.yaml missing disease={disease_id!r} "
@@ -755,8 +787,23 @@ def _select_report_template(
     variant = "abnormal" if is_abnormal else "normal"
     if variant not in bucket:
         # e.g. disease only defines "abnormal" with any:1.0 — use the only key.
-        variant = next(iter(bucket.keys()))
+        variant = next(k for k in bucket if k in ("normal", "abnormal"))
+    if variant == "abnormal":
+        entry = _diagnosis_variant(bucket.get("abnormal_by_code") or {}, diagnosis_code)
+        if entry == "normal" and "normal" in bucket:
+            return "normal", bucket["normal"]
+        if isinstance(entry, dict):
+            return variant, entry
     return variant, bucket[variant]
+
+
+def _with_side(text: str, laterality: str, lang: str) -> str:
+    """``text`` with its ``{side}`` the study's side in ``lang`` (English when
+    the language has no term); a text without ``{side}`` is unchanged."""
+    if "{side}" not in text:
+        return text
+    term = t(f"imaging_report.side_{laterality}", lang) if laterality in ("left", "right") else ""
+    return text.replace("{side}", term)
 
 
 #: Generic negative-findings radiology report content. Emitted whenever
@@ -788,6 +835,11 @@ def _build_generic_negative_report(encounter_id: str, idx: int) -> RadiologyRepo
         impression_text=t("imaging_report.generic_negative_impression", "en"),
         impression_text_ja=t("imaging_report.generic_negative_impression", "ja"),
     )
+
+
+def _stay_diagnosis_code(record: Any) -> str:
+    """The stay's admission diagnosis code ("" when the record carries none)."""
+    return str(_o(_o(record, "clinical_diagnosis", None), "admission_diagnosis_code", "") or "")
 
 
 def imaging_enricher(ctx: Any) -> None:
@@ -985,6 +1037,7 @@ def imaging_enricher(ctx: Any) -> None:
             # combination — e.g. the ED / unknown_condition path), emit
             # the study only (``report=None``); that preserves meaning
             # better than a silent drop.
+            _laterality = imaging_laterality(_o(order, "encounter_id", "") or "", body_site_key)
             try:
                 _variant, template = _select_report_template(
                     disease_id,
@@ -993,6 +1046,8 @@ def imaging_enricher(ctx: Any) -> None:
                     severity,
                     abnormal_rate,
                     rng,
+                    _stay_diagnosis_code(record),
+                    _laterality,
                 )
                 encounter_id: str = _o(order, "encounter_id", "") or ""
                 report = RadiologyReport(
@@ -1000,10 +1055,10 @@ def imaging_enricher(ctx: Any) -> None:
                     status="final",
                     # The CIF record's English and Japanese slots, from the
                     # template's language maps (Issue #2505).
-                    findings_text=localized(template["findings"], "en"),
-                    findings_text_ja=localized(template["findings"], "ja"),
-                    impression_text=localized(template["impression"], "en"),
-                    impression_text_ja=localized(template["impression"], "ja"),
+                    findings_text=_with_side(localized(template["findings"], "en"), _laterality, "en"),
+                    findings_text_ja=_with_side(localized(template["findings"], "ja"), _laterality, "ja"),
+                    impression_text=_with_side(localized(template["impression"], "en"), _laterality, "en"),
+                    impression_text_ja=_with_side(localized(template["impression"], "ja"), _laterality, "ja"),
                     # findings_codes: forward-compat slot — PR1 leaves empty.
                 )
             except ValueError:
@@ -1047,7 +1102,7 @@ def imaging_enricher(ctx: Any) -> None:
                 endpoint_id=f"{ENDPOINT_ID_PREFIX}{study_uid}",
                 contrast=contrast,
                 views=list(views),
-                laterality=imaging_laterality(encounter_id, body_site_key),
+                laterality=_laterality,
                 report=report,
                 description=_non_stub_display,
             )

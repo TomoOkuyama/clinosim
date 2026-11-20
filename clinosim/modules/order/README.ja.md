@@ -33,6 +33,11 @@ ServiceRequest への `basedOn` を持つことを要求する
 
 - **In scope**: `place_admission_orders`, `place_daily_lab_orders`,
   `place_imaging_orders` (Tier 1 #2 imaging-chain DRY entry point)、
+  `drop_legacy_duplicate_imaging` (旧 `admission_orders.imaging` の
+  表示名 order は、同 modality・同 report group の構造化 day-0 imaging
+  order があるとき、または全身 study で同 modality の構造化 order が
+  あるときに除く, #3394。旧 order は先に placement するので stay の
+  RNG stream は不変)、
   `enrich_medication_order` + `parse_dose_string` (「X loading, then Y」
   の用量文字列は維持量 Y として解析する。`place_admission_orders` では
   1 回限りの負荷投与オーダー X と、それを `prior_order_id` で置き換え
@@ -105,6 +110,7 @@ from clinosim.modules.order.engine import (
     place_admission_orders,             # (protocol, patient_id, encounter_id, admission_time, country, rng, ordered_by="", patient_age=None, patient_weight_kg=None) -> list[Order]
     place_daily_lab_orders,             # (protocol, patient_id, encounter_id, day_number, order_time, lab_frequency_multiplier, rng, ordered_by="") -> list[Order]
     place_imaging_orders,               # (disease_protocol, encounter_id, patient_id, admission_dt, day_index, severity, rng, sequence_counter) -> list[Order]
+    drop_legacy_duplicate_imaging,      # (admission_orders, structured_orders) -> list[Order]
     enrich_medication_order,            # (order, dose_str="") -> Order
     parse_dose_string,                  # (dose_str) -> dict
     calculate_lab_result_time,          # (order, rng) -> datetime

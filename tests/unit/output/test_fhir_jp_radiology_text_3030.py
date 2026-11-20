@@ -98,7 +98,7 @@ def test_japanese_report_templates_use_japanese_finding_terms() -> None:
                     yield from walk(value)
 
     for text in walk(load_impression_templates()):
-        words = set(re.findall(r"[A-Za-z][A-Za-z\-]*", text))
+        words = set(re.findall(r"[A-Za-z][A-Za-z\-]*", text.replace("{side}", "")))
         assert words <= _ALLOWED_LATIN, (words - _ALLOWED_LATIN, text)
 
 

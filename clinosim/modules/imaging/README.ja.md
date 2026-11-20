@@ -35,7 +35,15 @@ multi-series 展開ロジックは必ず `engine._expand_views_to_series` に
   display_name`・汎用陰性所見 report 付きの stub study を emit);
   encounter 内重複抑止 (同開始時刻 + 正規化 display name、Issue #822)
   と series-as-studies 統合 (同一 CT / MR / US / XA modality + body site
-  で 60 分以内、Issue #918)。
+  で 60 分以内、Issue #918); 滞在に沿った report 内容 (Issue #3394):
+  order 自身の部位 key の template (`CT_cervical_spine`) を共有 template
+  (`CT_spine`) より先に引き、異常所見は滞在の入院時診断コードの variant
+  (`abnormal_by_code`: ICD-10 prefix -> 文、または他部位の外傷なら
+  `normal`) を取り、文中の `{side}` は study の laterality
+  (`narrative_phrases.yaml` の `imaging_report.side_left` / `side_right`)。
+  正常/異常の乱数 draw は 1 回のまま不変。`body_sites.yaml` の
+  `covers_other_sites` は全身 study を示し、order module の
+  `drop_legacy_duplicate_imaging` は全部位を覆うものとして扱う。
 - **In scope (audit)**: [`audit.py`](audit.py) — 4 番目の per-module
   AD-60 plug-in (hai, antibiotic, order の次)。7 個の
   `canonical_constants` (`IMAGING_STUDY_ID_PREFIX`
