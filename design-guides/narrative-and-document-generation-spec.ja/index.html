@@ -2569,6 +2569,11 @@
 <td><code>renderers/_disease_exam.py::stroke_deficit</code> / <code>apply_exam_rules</code>, <code>reference_data/disease_exam.yaml</code></td>
 <td><code>tests/unit/modules/document/narrative/test_admission_hp_exam_3245.py</code></td>
 </tr>
+<tr>
+<td>JP の主訴は、受診に合致する言い換えの中からのみ選ぶ。<code>chief_complaint_variants.yaml</code> の各 variant は <code>min_age</code> / <code>max_age</code>(受診時の年齢)、<code>onset_types</code>(疾患の HPI <code>onset_type</code>)、<code>encounter_types</code> を持てる。条件を満たさない variant は選ばれず、受診側の値が不明な条件は除外しない。variant は患者の訴えを述べ、診察所見や受診時の主訴にない受傷機転は含まない。入院時 H&amp;P の主訴欄と HPI の主訴は同じ関数を使う。</td>
+<td><code>clinosim/modules/document/narrative/renderers/section_builders/chief_complaint.py::_compatible_pool</code></td>
+<td><code>tests/unit/modules/document/narrative/test_chief_complaint_variant_compat_3275.py</code></td>
+</tr>
 </tbody>
 </table>
 <h2 id="4-本書の対象外">4. 本書の対象外<a class="headerlink" href="#4-本書の対象外" title="Permanent link">&para;</a></h2>

@@ -2569,6 +2569,11 @@
 <td><code>renderers/_disease_exam.py::stroke_deficit</code> / <code>apply_exam_rules</code>, <code>reference_data/disease_exam.yaml</code></td>
 <td><code>tests/unit/modules/document/narrative/test_admission_hp_exam_3245.py</code></td>
 </tr>
+<tr>
+<td>A JP chief complaint is swapped for a phrasing variant only among the variants the visit meets: each variant of <code>chief_complaint_variants.yaml</code> may carry <code>min_age</code> / <code>max_age</code> (the patient's age at the visit), <code>onset_types</code> (the disease's HPI <code>onset_type</code>) and <code>encounter_types</code>, a variant whose condition the visit fails is never picked, and an unknown visit value excludes nothing. A variant states what the patient reports, never an examination finding or a mechanism the visit's complaint lacks. The H&amp;P chief-complaint section and the HPI chief complaint use the same function.</td>
+<td><code>clinosim/modules/document/narrative/renderers/section_builders/chief_complaint.py::_compatible_pool</code></td>
+<td><code>tests/unit/modules/document/narrative/test_chief_complaint_variant_compat_3275.py</code></td>
+</tr>
 </tbody>
 </table>
 <h2 id="4-not-in-scope-here">4. Not in scope here<a class="headerlink" href="#4-not-in-scope-here" title="Permanent link">&para;</a></h2>
