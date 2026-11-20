@@ -768,7 +768,7 @@
         "admission_summary": "Chief complaint: Chest pain, diaphoresis, dyspnea. Admitted for inpatient care.",
         "discharge_diagnoses": "Acute myocardial infarction, unspecified (I21.9)",
         "discharge_instructions": "[Mock LLM response #16 — discharge_instructions]",
-        "discharge_medications": "Aspirin 81mg PO daily; Ticagrelor 90mg PO BID; Atorvastatin 80mg PO daily",
+        "discharge_medications": "Aspirin 81mg PO daily x365d; Ticagrelor 90mg PO BID x365d; Atorvastatin 80mg PO daily x365d",
         "follow_up": "Cardiology follow-up within 1-2 weeks. Cardiac rehabilitation enrollment recommended.",
         "hospital_course": "[Mock LLM response #16 — hospital_course]"
       },

@@ -220,7 +220,7 @@
         "admission_summary": "Chief complaint: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Admitted for inpatient care.",
         "discharge_diagnoses": "Type 2 diabetes mellitus with hyperglycemia (E11.65). Secondary diagnoses: aspiration pneumonia, DVT.",
         "discharge_instructions": "[Mock LLM response #5 — discharge_instructions]",
-        "discharge_medications": "Insulin Glargine",
+        "discharge_medications": "Insulin Glargine SC x28d",
         "follow_up": "Follow up with PCP in 7-10 days.",
         "hospital_course": "[Mock LLM response #5 — hospital_course]"
       },

@@ -200,7 +200,7 @@ class PrescriptionRecord:
     prescriber_id: str = ""
     issue_date: datetime = field(default_factory=lambda: _UNSET_DATETIME)
     items: list[dict] = field(default_factory=list)
-    # Each item: {drug_name, drug_id, dose, frequency, route, days_supply, generic_name,
+    # Each item: {drug_name, drug_id, dose, frequency, route, duration_days, generic_name,
     # course?}; drug_id (catalog id) is filled from drug_name when missing (Issue #2297);
     # course is ACUTE_COURSE for a short course of an acute illness.
 
