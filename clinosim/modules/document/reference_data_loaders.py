@@ -563,6 +563,8 @@ class DeliveryModeExam(BaseModel):
     general: _EnglishLangMap
     obstetric: _EnglishLangMap
     obstetric_no_age: _EnglishLangMap
+    general_postpartum: _EnglishLangMap
+    obstetric_postpartum: _EnglishLangMap
 
     @model_validator(mode="after")
     def _placeholders(self) -> DeliveryModeExam:

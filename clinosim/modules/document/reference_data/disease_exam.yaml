@@ -115,6 +115,13 @@ delivery:
       obstetric_no_age:
         en: "gravid uterus, uterine contractions palpable"
         ja: "妊娠子宮を触知し、子宮収縮を触知する"
+      # A note written after the birth (Issue #3403): the postpartum exam.
+      general_postpartum:
+        en: "comfortable, in no acute distress"
+        ja: "著明な苦痛なし"
+      obstetric_postpartum:
+        en: "fundus firm at or below the umbilicus, lochia rubra moderate, perineum without hematoma"
+        ja: "子宮底は臍高以下で硬く収縮良好、悪露は赤色で中等量、会陰に血腫なし"
     cesarean:
       general:
         en: "in no acute distress"
@@ -125,6 +132,12 @@ delivery:
       obstetric_no_age:
         en: "gravid uterus"
         ja: "妊娠子宮を触知する"
+      general_postpartum:
+        en: "in no acute distress"
+        ja: "著明な苦痛なし"
+      obstetric_postpartum:
+        en: "fundus firm at or below the umbilicus, lochia scant to moderate, abdominal incision dressing clean, dry and intact"
+        ja: "子宮底は臍高以下で硬く収縮良好、悪露は少量から中等量、腹部の創部ドレッシングは清潔乾燥で滲出なし"
 
 diseases:
   acute_appendicitis:
