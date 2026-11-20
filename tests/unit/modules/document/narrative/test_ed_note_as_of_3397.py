@@ -97,15 +97,17 @@ def test_a_flagged_result_after_the_note_is_not_listed_as_abnormal() -> None:
     assert "6.8" not in text, text
 
 
-def test_an_admitted_ed_set_is_selected_by_order_set_not_by_time() -> None:
-    """A via-ED admission's initial order set is timed after the ED period, so
-    it is not cut by the authored time (Issue #3242); the stay's later orders
-    are not listed."""
-    initial = dict(_med("Aspirin", 1.0), order_set="admission_initial", ordered_datetime=_at(4))
-    ward = dict(_med("Heparin", 30.0), order_set="daily")
-    ctx = _ctx("low_back_pain", "en", orders=[initial, ward])
+def test_an_admitted_ed_set_is_the_initial_order_set_placed_in_the_ed() -> None:
+    """A via-ED admission's ED set is the initial order set placed in the ED
+    period (Issue #3242, #3434): the stay's later orders and an initial order
+    timed after the note are not listed."""
+    initial = dict(_med("Aspirin", 1.0), order_set="admission_initial")
+    late_initial = dict(_med("Oxygen", 4.0), order_set="admission_initial")
+    ward = dict(_med("Heparin", 1.5), order_set="daily")
+    ctx = _ctx("low_back_pain", "en", orders=[initial, late_initial, ward])
     ctx.encounter.encounter_type.value = "inpatient"
     ctx.encounter.admission_datetime = _DEPARTURE
     ctx.authored_datetime = _DEPARTURE
     text = build_ed_workup(_GEN, ctx)[0]
-    assert "Aspirin" in text and "Heparin" not in text, text
+    assert "Aspirin" in text, text
+    assert "Heparin" not in text and "Oxygen" not in text, text

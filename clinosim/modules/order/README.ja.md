@@ -107,9 +107,9 @@ from clinosim.modules.order import (
 
 # Order engine (各 simulator が直接 import)
 from clinosim.modules.order.engine import (
-    place_admission_orders,             # (protocol, patient_id, encounter_id, admission_time, country, rng, ordered_by="", patient_age=None, patient_weight_kg=None) -> list[Order]
+    place_admission_orders,             # (protocol, patient_id, encounter_id, admission_time, country, rng, ordered_by="", patient_age=None, patient_weight_kg=None, ed_period=None) -> list[Order]
     place_daily_lab_orders,             # (protocol, patient_id, encounter_id, day_number, order_time, lab_frequency_multiplier, rng, ordered_by="") -> list[Order]
-    place_imaging_orders,               # (disease_protocol, encounter_id, patient_id, admission_dt, day_index, severity, rng, sequence_counter) -> list[Order]
+    place_imaging_orders,               # (disease_protocol, encounter_id, patient_id, admission_dt, day_index, severity, rng, sequence_counter, ed_period=None) -> list[Order]
     drop_legacy_duplicate_imaging,      # (admission_orders, structured_orders) -> list[Order]
     enrich_medication_order,            # (order, dose_str="") -> Order
     parse_dose_string,                  # (dose_str) -> dict
@@ -294,8 +294,19 @@ from clinosim.modules.order.label_dose import within_label  # (name, frequency, 
   `"admission_care"` を持つ。薬剤安全性チェックによる代替薬は置き換えた
   オーダーの order_set を引き継ぐ。それ以外のオーダー (持参薬の継続、
   連日・以後のオーダー、救急外来受診のみのオーダー) は `""`。入院患者の
-  救急外来記録は `"admission_initial"` のオーダーだけを検査・処置として
-  記載する。生成時に設定し、乱数は引かない。
+  救急外来記録は、記載時点までに出された `"admission_initial"` のオーダーだけを
+  検査・処置として記載する。生成時に設定し、乱数は引かない。
+- **救急外来経由入院のオーダー時刻** (Issue #3434): 救急外来経由で入院する
+  患者には、simulator が `ed_period=(救急外来到着, 入院)` (救急外来の期間は
+  `[入院 - admitted_ed_stay(), 入院]`) を `place_admission_orders` と入院日の
+  `place_imaging_orders` に渡す。初期オーダーセット (検査、画像、第一選択薬、
+  酸素・ネブライザー・輸液ボーラスなどの初期支持療法) は、救急外来到着時刻
+  に従来と同じ発注オフセットを足した時刻 (救急外来の期間内に収める、
+  `workup_order_time`) に出る。病棟ケア (`care_supportive_types`) と維持輸液
+  (`simulator.maintenance_iv_fluid.is_maintenance_iv_fluid_name`) は入院時刻の
+  まま。変えるのは基準時刻だけで、乱数の追加・順序変更はない。検体採取、
+  結果時刻、画像検査時刻、MAR の初回投与 (`_generate_mar(dose_floor=救急外来到着)`)
+  はオーダー時刻に従う。
 
 ## ディレクトリ構造
 

@@ -55,6 +55,7 @@ from clinosim.modules.staff.engine import (
     assign_staff,
     select_surgical_team,
 )
+from clinosim.modules.triage.engine import admitted_ed_stay
 from clinosim.simulator._stay_thresholds import (
     ELECTIVE_SURGERY_ADMISSION_HOUR_WEIGHTS,
     ELECTIVE_SURGERY_ADMISSION_HOURS,
@@ -752,6 +753,13 @@ def _simulate_patient(
     from clinosim.simulator.medication_pipeline import child_dosing
 
     _child = child_dosing(patient, encounter.encounter_id, admission_time, country_key)
+    # Issue #3434: a patient admitted through the ED has the work-up ordered
+    # in the ED, [admission - admitted_ed_stay(), admission].
+    ed_period = (
+        (admission_time - admitted_ed_stay(), admission_time)
+        if _admission_route_fields(protocol, disease_id)[0] == AdmitSource.EMD
+        else None
+    )
     admission_orders = place_admission_orders(
         protocol.model_dump(),
         patient.patient_id,
@@ -768,6 +776,7 @@ def _simulate_patient(
         # Issue #2611: weight-based fluid boluses (30 mL/kg) — for a minor per
         # kg of the weight charted at admission (Issue #3004).
         patient_weight_kg=_child.weight_kg if _child else float(getattr(patient, "weight_kg", 0) or 0) or None,
+        ed_period=ed_period,
     )
 
     # Imaging orders from disease YAML imaging_orders[] (Tier 1 #2 PR1).
@@ -783,6 +792,7 @@ def _simulate_patient(
         severity=severity,
         rng=rng,
         sequence_counter=imaging_seq_counter,
+        ed_period=ed_period,
     )
     # Issue #3394: the structured study replaces the legacy order of the same
     # body part (placed above, so the stay's RNG stream is unchanged).
@@ -965,6 +975,7 @@ def _simulate_patient(
         department=department,
         severity=severity,
         imaging_seq_counter=imaging_seq_counter,
+        ed_start=ed_period[0] if ed_period else None,
         symptom_floor=symptom_floor,
         max_los=int(los_cfg.get("max", target_los)),
         surgery=surgery_pain,

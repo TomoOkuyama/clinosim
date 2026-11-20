@@ -1567,7 +1567,7 @@
         "assessment": "[Mock LLM response #15 — assessment]",
         "chief_complaint": "Sudden severe headache, vomiting, altered consciousness",
         "disposition": "[Mock LLM response #15 — disposition]",
-        "ed_workup": "Labs: PT-INR, APTT, fibrinogen, creatinine, BUN, Na, K, glucose. Imaging: head CT (without contrast). Medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h",
+        "ed_workup": "Labs: PT-INR 1.0, APTT 29.6 s, fibrinogen 383.0 mg/dL, creatinine 0.84 mg/dL, BUN 17.3 mg/dL, Na 139.0 mmol/L, K 4.2 mmol/L, glucose 119.0 mg/dL [H]. Imaging: head CT (without contrast) (Acute right basal ganglia intracerebral hemorrhage with mass effect). Medications: Nicardipine, Labetalol",
         "hpi": "[Mock LLM response #15 — hpi]",
         "physical_exam": "On arrival: BP 131/74 mmHg, HR 96 bpm, RR 18 /min, SpO2 94%, T 36.3°C. General: drowsy, responds to voice, acutely ill-appearing, in marked distress. Neurological: dense left hemiplegia (MMT 0-1/5), left facial palsy, dysarthria, left hemispatial neglect, forced gaze deviation to the right; NIHSS 24.",
         "triage_details": "Triage level: ESI Level 2. Arrival mode: Ambulance. Allergies: No known drug allergies (NKDA)."

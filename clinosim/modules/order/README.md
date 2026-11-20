@@ -115,9 +115,9 @@ from clinosim.modules.order import (
 
 # Order engine (imported directly by each simulator)
 from clinosim.modules.order.engine import (
-    place_admission_orders,             # (protocol, patient_id, encounter_id, admission_time, country, rng, ordered_by="", patient_age=None, patient_weight_kg=None) -> list[Order]
+    place_admission_orders,             # (protocol, patient_id, encounter_id, admission_time, country, rng, ordered_by="", patient_age=None, patient_weight_kg=None, ed_period=None) -> list[Order]
     place_daily_lab_orders,             # (protocol, patient_id, encounter_id, day_number, order_time, lab_frequency_multiplier, rng, ordered_by="") -> list[Order]
-    place_imaging_orders,               # (disease_protocol, encounter_id, patient_id, admission_dt, day_index, severity, rng, sequence_counter) -> list[Order]
+    place_imaging_orders,               # (disease_protocol, encounter_id, patient_id, admission_dt, day_index, severity, rng, sequence_counter, ed_period=None) -> list[Order]
     drop_legacy_duplicate_imaging,      # (admission_orders, structured_orders) -> list[Order]
     enrich_medication_order,            # (order, dose_str="") -> Order
     parse_dose_string,                  # (dose_str) -> dict
@@ -315,8 +315,21 @@ from clinosim.modules.order.label_dose import within_label  # (name, frequency, 
   substitute keeps the order set of the order it replaces. Every other order
   (continued home medications, daily and later orders, ED-visit orders)
   carries `""`. The ED note of an admitted patient lists only the
-  `"admission_initial"` orders as its workup. Written at creation, no
-  random draw.
+  `"admission_initial"` orders placed by the time it is authored as its
+  workup. Written at creation, no random draw.
+- **Via-ED order times** (Issue #3434): for a patient admitted through the ED
+  the simulator passes `ed_period=(ED arrival, admission)` (the ED phase is
+  `[admission - admitted_ed_stay(), admission]`) to `place_admission_orders`
+  and the admission day's `place_imaging_orders`. The initial order set (labs,
+  imaging, first-line drugs and the initial supportive treatment such as
+  oxygen, a nebulised bronchodilator or a fluid bolus) is placed at the ED
+  arrival plus the same placement offset, kept within the ED period
+  (`workup_order_time`); ward care (`care_supportive_types`) and the
+  maintenance IV fluid
+  (`simulator.maintenance_iv_fluid.is_maintenance_iv_fluid_name`) stay at the
+  admission time. Only the anchor changes, no draw is added or reordered.
+  Specimen collection, result times, imaging study times and the MAR first
+  doses (`_generate_mar(dose_floor=ED arrival)`) follow the order time.
 
 ## Directory contents
 

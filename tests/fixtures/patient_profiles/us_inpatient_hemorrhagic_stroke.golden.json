@@ -132,12 +132,12 @@
         }
       },
       "sections": {
-        "assessment": "Post-operative day 1 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new fever, tachycardia, oxygen therapy). Notable labs (past 24 h): glucose 119 mg/dL [H], CRP 11.6 mg/L [H], albumin 3.2 g/dL [L], WBC 11275 /uL [H].",
+        "assessment": "Post-operative day 1 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new fever, tachycardia, oxygen therapy).",
         "objective": "BP 132/81 mmHg, HR 101 bpm, RR 15 /min, SpO2 96% (nasal cannula 3.8 L/min), T 38.2°C (past 24 h: Tmax 38.9°C, HR max 105 bpm, SpO2 min 92%)",
         "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet changed to NPO (nothing by mouth).",
         "subjective": "Hospital day 2. New-onset fever 38.2°C (peak 38.9°C in the past 24 h). Worsening headache (NRS 4 → 6). Level of consciousness remains decreased (AVPU V)."
       },
-      "text": "S: Hospital day 2. New-onset fever 38.2°C (peak 38.9°C in the past 24 h). Worsening headache (NRS 4 → 6). Level of consciousness remains decreased (AVPU V).\nO: BP 132/81 mmHg, HR 101 bpm, RR 15 /min, SpO2 96% (nasal cannula 3.8 L/min), T 38.2°C (past 24 h: Tmax 38.9°C, HR max 105 bpm, SpO2 min 92%)\nA: Post-operative day 1 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new fever, tachycardia, oxygen therapy). Notable labs (past 24 h): glucose 119 mg/dL [H], CRP 11.6 mg/L [H], albumin 3.2 g/dL [L], WBC 11275 /uL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet changed to NPO (nothing by mouth)."
+      "text": "S: Hospital day 2. New-onset fever 38.2°C (peak 38.9°C in the past 24 h). Worsening headache (NRS 4 → 6). Level of consciousness remains decreased (AVPU V).\nO: BP 132/81 mmHg, HR 101 bpm, RR 15 /min, SpO2 96% (nasal cannula 3.8 L/min), T 38.2°C (past 24 h: Tmax 38.9°C, HR max 105 bpm, SpO2 min 92%)\nA: Post-operative day 1 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new fever, tachycardia, oxygen therapy).\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet changed to NPO (nothing by mouth)."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-04": {
@@ -1567,7 +1567,7 @@
         "assessment": "ED diagnosis: Hemorrhagic stroke (ICH). Chief complaint: Sudden severe headache, vomiting, altered consciousness.",
         "chief_complaint": "Sudden severe headache, vomiting, altered consciousness",
         "disposition": "Admitted (Sudden severe headache, vomiting, altered consciousness)",
-        "ed_workup": "Labs: PT-INR, APTT, fibrinogen, creatinine, BUN, Na, K, glucose. Imaging: head CT (without contrast). Medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h",
+        "ed_workup": "Labs: PT-INR 1.0, APTT 29.6 s, fibrinogen 383.0 mg/dL, creatinine 0.84 mg/dL, BUN 17.3 mg/dL, Na 139.0 mmol/L, K 4.2 mmol/L, glucose 119.0 mg/dL [H]. Imaging: head CT (without contrast) (Acute right basal ganglia intracerebral hemorrhage with mass effect). Medications: Nicardipine, Labetalol",
         "hpi": "71 y/o female patient. Chief complaint: Sudden severe headache, vomiting, altered consciousness. Symptoms began suddenly and worsened rapidly; brought in by ambulance. History: Hypertension (HTN), Atrial fibrillation (AF). ROS: no trauma, no seizures.",
         "physical_exam": "On arrival: BP 131/74 mmHg, HR 96 bpm, RR 18 /min, SpO2 94%, T 36.3°C. General: drowsy, responds to voice, acutely ill-appearing, in marked distress. Neurological: dense left hemiplegia (MMT 0-1/5), left facial palsy, dysarthria, left hemispatial neglect, forced gaze deviation to the right; NIHSS 24.",
         "triage_details": "Triage level: ESI Level 2. Arrival mode: Ambulance. Allergies: No known drug allergies (NKDA)."

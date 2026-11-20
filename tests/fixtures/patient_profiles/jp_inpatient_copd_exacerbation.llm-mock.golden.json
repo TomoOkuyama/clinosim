@@ -26,7 +26,7 @@
         "lang": "ja"
       },
       "sections": {
-        "admission_results": "検査（異常値）: PaO2 61 mmHg [L]、クレアチニン 1.18 mg/dL [H]、血糖 117 mg/dL [H]、CRP 0.28 mg/dL [H]、ほか異常値 5 項目。画像・生理検査: 胸部 CT（今回撮像範囲内に急性期異常所見を認めず）、胸部単純X線撮影 PA・側面（肺過膨張、横隔膜平坦化、胸骨後腔拡大）",
+        "admission_results": "検査（異常値）: PaO2 61 mmHg [L]、クレアチニン 1.18 mg/dL [H]、血糖 117 mg/dL [H]、CRP 0.28 mg/dL [H]、ほか異常値 6 項目。画像・生理検査: 胸部 CT（今回撮像範囲内に急性期異常所見を認めず）、胸部単純X線撮影 PA・側面（肺過膨張、横隔膜平坦化、胸骨後腔拡大）",
         "allergies": "薬物アレルギーなし（NKDA）",
         "assessment_and_plan": "[Mock LLM response #1 — assessment_and_plan]",
         "chief_complaint": "1週間前より痰の量と粘稠度が増加",
@@ -1917,7 +1917,7 @@
       "sections": {
         "admission_status": "入院期間: 16日間。入院理由: 1週間前より痰の量と粘稠度が増加。経過中の合併症: せん妄。退院基準を満たし退院となった。",
         "discharge_readiness": "退院準備: 退院時 Barthel 100/100。",
-        "nursing_interventions_provided": "与薬 225 回 (薬剤 7 種類)、バイタルサイン測定 239 回、酸素投与下の観察 21 回、入院期間合計 IN 15441 mL / OUT 15901 mL (差 -460 mL)、指導: 吸入器の使い方を一緒に確認し、息切れが強いときは早めに知らせるよう説明する。",
+        "nursing_interventions_provided": "与薬 226 回 (薬剤 7 種類)、バイタルサイン測定 239 回、酸素投与下の観察 21 回、入院期間合計 IN 15441 mL / OUT 15901 mL (差 -460 mL)、指導: 吸入器の使い方を一緒に確認し、息切れが強いときは早めに知らせるよう説明する。",
         "patient_education": "患者教育: 吸入器手技の再確認 (定量吸入・スペーサ使用法)、増悪の早期サイン認識 (痰の色調変化・SpO2 低下)、呼吸リハビリの継続方法。"
       },
       "text": ""
@@ -2008,6 +2008,7 @@
         "ctx.vitals[0]",
         "physical_exam_findings.disease_exam",
         "ctx.orders.ed",
+        "ctx.lab_results.abnormal",
         "ctx.diagnoses.admission_diagnosis_code",
         "ctx.encounter.chief_complaint",
         "ctx.encounter.disposition"
@@ -2022,7 +2023,7 @@
         "assessment": "[Mock LLM response #19 — assessment]",
         "chief_complaint": "1週間前より痰の量と粘稠度が増加",
         "disposition": "[Mock LLM response #19 — disposition]",
-        "ed_workup": "検査: CBC (全血球算定)、CRP、PCT、クレアチニン、BUN、Na、K、血糖。画像: 胸部 CT、胸部レントゲン (正面・側面)。投薬: サルブタモール、イプラトロピウム、プレドニゾロン、ステロイド: プレドニゾロン 40mg 経口 1日1回 x5 日間、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）。処置指示: 気管支拡張薬: サルブタモール 2.5mg ネブライザー 4時間毎 (急性期は1時間毎に頓用)、気管支拡張薬: イプラトロピウム 0.5mg ネブライザー 6時間毎",
+        "ed_workup": "検査: WBC 10583.0 /uL [H]、CRP 2.8 mg/L [H]、PCT、クレアチニン 1.18 mg/dL [H]、BUN 24.0 mg/dL [H]、Na 140.0 mmol/L、K 4.9 mmol/L [H]、血糖 117.0 mg/dL [H]。画像: 胸部 CT（今回撮像範囲内に急性期異常所見を認めず）、胸部レントゲン (正面・側面)（肺過膨張、横隔膜平坦化、胸骨後腔拡大）。投薬: サルブタモール、イプラトロピウム、プレドニゾロン、ステロイド: プレドニゾロン 40mg 経口 1日1回 x5 日間、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）。処置指示: 気管支拡張薬: サルブタモール 2.5mg ネブライザー 4時間毎 (急性期は1時間毎に頓用)、気管支拡張薬: イプラトロピウム 0.5mg ネブライザー 6時間毎。異常値: CRP 0.28 mg/dL [H]",
         "hpi": "[Mock LLM response #19 — hpi]",
         "physical_exam": "来院時所見: BP 126/79 mmHg, HR 86 回/分, RR 28 回/分, SpO2 81%, T 37.1°C。一般状態: 意識清明、中等度の苦痛様。呼吸器: 喘鳴、呼吸音減弱、呼気延長、呼吸数増加。",
         "triage_details": "トリアージレベル: JTAS レベル2。来院形態: 救急車搬送。アレルギー: 薬物アレルギーなし（NKDA）。"
