@@ -1060,8 +1060,8 @@ imaging_orders:
 # (simulator/antithrombotic_plan.py; the drugs are the `antiplatelet` and
 # `anticoagulation` blocks of `drugs`).
 # - A patient with an oral-anticoagulant indication (a chronic condition
-#   matching `oac_indication_codes`, or an anticoagulant already taken at
-#   home) gets the anticoagulant, not an antiplatelet, on top of it: the
+#   matching `oac_indication_codes` on the patient's own chronic list, or an
+#   anticoagulant already taken at home) gets the anticoagulant, not an antiplatelet, on top of it: the
 #   in-stay anticoagulant starts on `anticoagulant_start_day` of the stay's
 #   severity (an aspirin bridge from `antiplatelet_start_day` until then) and
 #   the discharge prescription carries it without an antiplatelet (AHA/ASA 2019
@@ -1099,6 +1099,9 @@ antithrombotic_plan:
       dapt_start_day: 0
       anticoagulant_start_day: {mild: 4, moderate: 7, severe: 14}
 
+# I48 is implied for a share of the patients only (known atrial fibrillation
+# before the stroke, `simulator/reference_data/implied_chronic_prevalence.yaml`,
+# Issue #3277): the other patients have no anticoagulant indication.
 implied_chronic_codes: ["I10", "I48", "I25", "E78"]
 
 # Chronic sequela recorded on survival at discharge (moved from

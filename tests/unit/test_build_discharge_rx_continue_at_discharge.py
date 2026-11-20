@@ -46,7 +46,7 @@ def test_cerebral_infarction_discharge_always_has_exactly_one_anticoagulant_japa
     protocol = _ci_protocol()
     for seed in range(200):
         rx = build_discharge_rx(
-            patient_factory(),
+            patient_factory(chronic_icds=["I48"]),
             "cerebral_infarction",
             protocol,
             "PR-1",
@@ -67,7 +67,7 @@ def test_cerebral_infarction_japan_probability_matches_yaml_declared_split(patie
     n = 2000
     for seed in range(n):
         rx = build_discharge_rx(
-            patient_factory(),
+            patient_factory(chronic_icds=["I48"]),
             "cerebral_infarction",
             protocol,
             "PR-1",
@@ -93,7 +93,7 @@ def test_cerebral_infarction_us_probability_matches_yaml_declared_split(patient_
     n = 2000
     for seed in range(n):
         rx = build_discharge_rx(
-            patient_factory(),
+            patient_factory(chronic_icds=["I48"]),
             "cerebral_infarction",
             protocol,
             "PR-1",
@@ -144,7 +144,7 @@ def test_cross_source_dedup_i48_chronic_suppresses_new_loop_anticoag(patient_fac
 
 
 def test_cross_source_dedup_without_chronic_af_allows_new_loop_anticoag(patient_factory):
-    """Same patient minus the I48 chronic condition: covered_classes is
+    """Same patient with I48 but no home anticoagulant: covered_classes is
     empty, so the new loop DOES add an anticoagulant (JP: Edoxaban or
     Warfarin categorical). Regression guard against an over-eager
     covered_classes derivation that would suppress the loop unconditionally.
@@ -153,7 +153,7 @@ def test_cross_source_dedup_without_chronic_af_allows_new_loop_anticoag(patient_
     seen = 0
     for seed in range(20):
         rx = build_discharge_rx(
-            patient_factory(current_meds=[], chronic_icds=[]),
+            patient_factory(current_meds=[], chronic_icds=["I48"]),
             "cerebral_infarction",
             protocol,
             "PR-1",
@@ -188,7 +188,7 @@ def test_continue_at_discharge_items_default_to_28_day_chronic_duration(patient_
     seen_default = 0
     for seed in range(20):
         rx = build_discharge_rx(
-            patient_factory(current_meds=[], chronic_icds=[]),
+            patient_factory(current_meds=[], chronic_icds=["I48"]),
             "cerebral_infarction",
             protocol,
             "PR-1",

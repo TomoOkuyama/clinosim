@@ -59,11 +59,16 @@ def home_anticoagulant(patient: PatientProfile) -> bool:
 
 def anticoagulant_indicated(patient: PatientProfile, protocol: DiseaseProtocol, plan: AntithromboticPlanSpec) -> bool:
     """True when the patient has a chronic condition of the plan's
-    ``oac_indication_codes`` (atrial fibrillation), or the protocol implies
-    one (``implied_chronic_codes``, which the problem list carries for every
-    patient of the disease), or takes an oral anticoagulant at home."""
-    codes = [str(getattr(c, "code", c) or "") for c in patient.chronic_conditions or []]
-    for code in [*codes, *protocol.implied_chronic_codes]:
+    ``oac_indication_codes`` (atrial fibrillation), or takes an oral
+    anticoagulant at home.
+
+    The patient's chronic list is the single source of truth: it holds the
+    atrial fibrillation the population model gave the patient, and the one the
+    protocol's ``implied_chronic_codes`` added for the share of patients that
+    ``implied_chronic_prevalence.yaml`` gives it. The problem list, the
+    discharge prescription and the narratives read the same list."""
+    for c in patient.chronic_conditions or []:
+        code = str(getattr(c, "code", c) or "")
         if code and any(code.startswith(prefix) for prefix in plan.oac_indication_codes):
             return True
     return home_anticoagulant(patient)
