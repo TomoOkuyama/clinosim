@@ -401,6 +401,7 @@ def _finalize_discharge(
     symptom_floor: dict[str, float] | None = None,
     on_vasoactive_support: bool = False,
     aki_at_discharge: bool = False,
+    discharge_time: datetime | None = None,
 ) -> Any:
     """Build the discharge prescription + populate discharge-related
     ``encounter`` fields (physicians, admit source, disposition,
@@ -436,6 +437,7 @@ def _finalize_discharge(
             country_key=country_key,
             final_renal_function=final_renal,
             aki_active=aki_at_discharge,
+            discharge_time=discharge_time,
             # Issue #2992: a discharge hold names only a drug the patient took.
             ordered_drugs=[o.display_name for o in all_orders if o.order_type == OrderType.MEDICATION],
             severity=str(getattr(encounter, "severity", "") or ""),
@@ -1016,6 +1018,14 @@ def _simulate_patient(
         ground_truth_diseases=gt_diseases,
     )
 
+    # Discharge time: daytime (09-16) for planned discharge, any time for death
+    # Clinical convention: discharges happen during daytime business hours
+    # (Issue #3441: drawn before the discharge Rx, which stamps its holds with
+    # it; _finalize_discharge draws nothing from ``rng``, so the order is neutral)
+    dc_hour = 0 if death_occurred else int(rng.normal(PLANNED_DISCHARGE_HOUR_MEAN, PLANNED_DISCHARGE_HOUR_STD))
+    dc_hour = max(PLANNED_DISCHARGE_HOUR_MIN, min(PLANNED_DISCHARGE_HOUR_MAX, dc_hour)) if not death_occurred else 0
+    planned_discharge = _planned_discharge_datetime(admission_time, actual_los, dc_hour)
+
     discharge_rx = _finalize_discharge(
         patient=patient,
         disease_id=disease_id,
@@ -1031,13 +1041,9 @@ def _simulate_patient(
         symptom_floor=symptom_floor,
         on_vasoactive_support=loop_result.on_vasoactive_support,
         aki_at_discharge=loop_result.aki_at_discharge,
+        discharge_time=planned_discharge,
     )
 
-    # Discharge time: daytime (09-16) for planned discharge, any time for death
-    # Clinical convention: discharges happen during daytime business hours
-    dc_hour = 0 if death_occurred else int(rng.normal(PLANNED_DISCHARGE_HOUR_MEAN, PLANNED_DISCHARGE_HOUR_STD))
-    dc_hour = max(PLANNED_DISCHARGE_HOUR_MIN, min(PLANNED_DISCHARGE_HOUR_MAX, dc_hour)) if not death_occurred else 0
-    planned_discharge = _planned_discharge_datetime(admission_time, actual_los, dc_hour)
     # Issue #3043: a one-time order placed on the last stay day but dated the
     # next calendar day is still given before discharge.
     from clinosim.simulator.medication_pipeline import missed_single_doses

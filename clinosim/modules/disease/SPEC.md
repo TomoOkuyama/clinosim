@@ -239,6 +239,13 @@ anticoagulant follow the drug_safety `triple_therapy_after_acs` plan). There are
 `category`, `reimbursement` (DPC / DRG) or `readmission` blocks;
 readmission is driven by `readmission_eligible` and the simulator.
 
+Each `medication_holds` entry is `{drugs: [...], reason: "...", applies_at_discharge: bool}`.
+The hold gates the home medications of the stay; with `applies_at_discharge: true` it is
+applied again when the discharge prescription is built (the default, omitted, is
+admission only, e.g. the oral to IV diuretic change of acute heart failure). A discharge
+hold is logged on `safety_skip_log` (`discharge-medication-hold`, stamped with the
+discharge time) only for a drug that the final discharge prescription does not contain.
+
 ---
 
 ### Severity Determination Algorithm

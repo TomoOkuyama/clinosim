@@ -16,11 +16,17 @@ encounter_type: medical
 requires_surgery: false
 readmission_eligible: true
 
+# ``applies_at_discharge`` (Issue #3441): the hold is applied again when the
+# discharge prescription is built (omitted = admission only). AKI holds carry it
+# on every entry: the renal contraindication persists until renal function
+# recovers, which the discharge does not decide.
 medication_holds:
   - drugs: ["Metformin"]
     reason: "AKI — lactic acidosis risk, renal clearance impaired"
+    applies_at_discharge: true
   - drugs: ["Celecoxib", "Ibuprofen", "Naproxen", "Diclofenac", "Loxoprofen", "Meloxicam", "Ketorolac", "Indomethacin"]
     reason: "AKI — NSAIDs contraindicated in renal impairment (afferent arteriolar vasoconstriction)"
+    applies_at_discharge: true
   # Issue #1335 (META #1392 Cluster A part 3): ACE-I / ARB block efferent
   # arteriolar tone and worsen intraglomerular hemodynamics in AKI. KDIGO
   # 2012 § 3.5.2 recommends holding RAAS blockade until renal function
@@ -30,8 +36,10 @@ medication_holds:
   # remains safe in AKI so is NOT added here.
   - drugs: ["Enalapril", "Lisinopril", "Captopril", "Ramipril", "Perindopril", "Benazepril"]
     reason: "AKI — ACE-I blocks efferent arteriolar tone, worsens renal hemodynamics (KDIGO 2012 § 3.5.2)"
+    applies_at_discharge: true
   - drugs: ["Losartan", "Valsartan", "Candesartan", "Olmesartan", "Telmisartan", "Irbesartan", "Azilsartan"]
     reason: "AKI — ARB same efferent-arteriole mechanism as ACE-I (KDIGO 2012 § 3.5.2)"
+    applies_at_discharge: true
 
 icd_codes:
   primary: "N17.9"  # Acute kidney failure, unspecified

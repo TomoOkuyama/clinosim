@@ -20,6 +20,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from datetime import datetime
+from typing import Any
 
 import numpy as np
 
@@ -203,6 +204,7 @@ def build_discharge_rx(
     ordered_drugs: Iterable[str] = (),
     severity: str = "",
     aki_active: bool = False,
+    discharge_time: datetime | None = None,
 ) -> PrescriptionRecord:
     """Build discharge prescription from protocol.
 
@@ -215,6 +217,11 @@ def build_discharge_rx(
     definition — the nephrotoxic and renally cleared drugs of
     ``reference_data/aki_response.yaml`` are held and logged; once it no longer
     does they continue (restart).
+
+    ``discharge_time`` (Issue #3441): the discharge datetime, the timestamp of the
+    discharge holds logged on ``patient.safety_skip_log`` (the admission time when
+    not given). A hold is logged only once the final item list is known to lack
+    the drug: a drug that ends up on the prescription was not held.
 
     Applies renal contraindication checks so that nephrotoxic drugs or drugs
     requiring renal clearance are not prescribed at discharge if the patient's
@@ -267,10 +274,23 @@ def build_discharge_rx(
     protocol_held: set[str] = set()
     if protocol and getattr(protocol, "medication_holds", None):
         for _hold in protocol.medication_holds or []:
+            # Issue #3441: a hold applies at discharge only when its YAML entry
+            # says so (``applies_at_discharge``); the default is admission only
+            # (e.g. oral -> IV diuretic during decompensation).
+            if not _hold.get("applies_at_discharge", False):
+                continue
             for _d in _hold.get("drugs", []) or []:
                 _dk = drug_key(str(_d))
                 if _dk:
                     protocol_held.add(_dk)
+
+    hold_time = discharge_time or admission_time
+    pending_holds: list[dict] = []
+
+    def _record_hold(**kwargs: Any) -> None:
+        """Issue #3441: queue a discharge hold; ``pending_holds`` is logged
+        after the item list is final, for the drugs it does not contain."""
+        pending_holds.append(kwargs)
 
     # A' Phase 1 (Issue #440) dedup: with `patient.current_medications` now
     # tracking newly started drugs across encounters, both the protocol
@@ -293,14 +313,12 @@ def build_discharge_rx(
         if not aki_active or not holds_for_aki(drug_name):
             return False
         reason = aki_response_rules().reason
-        _log_discharge_hold(
-            patient,
+        _record_hold(
             encounter_id=encounter_id,
             held_drug_name=drug_name,
             held_drug_name_ja=drug_name_ja or drug_name,
             hold_reason=hold_reason_display(reason, "en"),
             hold_reason_ja=hold_reason_display(reason, "ja"),
-            timestamp=admission_time,
             taken=taken,
         )
         return True
@@ -315,14 +333,12 @@ def build_discharge_rx(
         on_rx = [it["drug_name"] for it in items if it.get("drug_name")]
         for verdict in drug_safety.check_candidate_against_active(drug_name, on_rx):
             if verdict.rule_id in rules:
-                _log_discharge_hold(
-                    patient,
+                _record_hold(
                     encounter_id=encounter_id,
                     held_drug_name=drug_name,
                     held_drug_name_ja=drug_name_ja,
                     hold_reason=verdict.rationale_en or str(verdict.rule_id),
                     hold_reason_ja=verdict.rationale_ja or str(verdict.rule_id),
-                    timestamp=admission_time,
                     taken=taken,
                 )
                 return True
@@ -401,14 +417,12 @@ def build_discharge_rx(
             # Issue #1403: log renal-driven hold for narrative surface
             # (matches inpatient medication_pipeline._log_disease_medication_hold
             # semantic — discharge Rx side).
-            _log_discharge_hold(
-                patient,
+            _record_hold(
                 encounter_id=encounter_id,
                 held_drug_name=drug_name,
                 held_drug_name_ja=drug_name_ja or drug_name,
                 hold_reason=t("order_intent.renal_impairment", "en"),
                 hold_reason_ja=t("order_intent.renal_impairment", "ja"),
-                timestamp=admission_time,
                 taken=taken,
             )
             return
@@ -419,14 +433,12 @@ def build_discharge_rx(
         if protocol_held and drug_key(drug_name) in protocol_held:
             # Issue #1403: log the silent protocol-driven hold at
             # discharge for narrative surface.
-            _log_discharge_hold(
-                patient,
+            _record_hold(
                 encounter_id=encounter_id,
                 held_drug_name=drug_name,
                 held_drug_name_ja=drug_name_ja or drug_name,
                 hold_reason=_discharge_protocol_hold_reason_en(disease_id),
                 hold_reason_ja=_discharge_protocol_hold_reason_ja(disease_id),
-                timestamp=admission_time,
                 taken=taken,
             )
             return
@@ -671,6 +683,11 @@ def build_discharge_rx(
         if child is not None:
             for item in items:
                 item["dose"] = pediatric_dose_text(str(item.get("drug_name", "")), str(item.get("dose", "")), *child)
+    prescribed_keys = {drug_key(str(it.get("drug_name", ""))) for it in items}
+    for hold in pending_holds:
+        if drug_key(hold["held_drug_name"]) in prescribed_keys:
+            continue  # Issue #3441: on the final prescription, so not held
+        _log_discharge_hold(patient, timestamp=hold_time, **hold)
     return PrescriptionRecord(
         prescription_id=f"RX-{patient.patient_id}-DC",
         patient_id=patient.patient_id,

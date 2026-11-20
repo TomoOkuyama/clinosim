@@ -18,11 +18,17 @@ readmission_eligible: true
 minimum_severity: moderate
 
 # Hold ALL anticoagulants and antiplatelets during active intracranial hemorrhage
+# (``applies_at_discharge``: the hold is applied again when the discharge
+# prescription is built; omitted = admission only. Issue #3441: the
+# antithrombotic contraindication of an intracranial hemorrhage is not lifted
+# by the discharge itself, so both entries carry the flag.)
 medication_holds:
   - drugs: ["Apixaban", "Rivaroxaban", "Dabigatran", "Edoxaban", "Warfarin", "Heparin", "Enoxaparin"]
     reason: "Active intracranial hemorrhage — anticoagulation contraindicated"
+    applies_at_discharge: true
   - drugs: ["Aspirin", "Clopidogrel", "Prasugrel", "Ticagrelor"]
     reason: "Active intracranial hemorrhage — antiplatelet contraindicated"
+    applies_at_discharge: true
 
 icd_codes:
   primary: "I61.9"  # Nontraumatic intracerebral hemorrhage, unspecified
