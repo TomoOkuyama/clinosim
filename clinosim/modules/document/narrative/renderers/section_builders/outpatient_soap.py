@@ -417,17 +417,16 @@ def build_outpatient_objective(generator: TemplateNarrativeGenerator, ctx: Narra
             # supply the section.
             template_prose = ""
 
-    sep = t("list_sep.period_space", lang)
-    tail = f"{sep}{results}" if results else ""
-    if vital_line and template_prose:
+    prose = template_prose.strip()
+    if vital_line and prose:
         facts.extend(["ctx.vitals", "outpatient_soap_template.objective"])
-        return f"{vital_line}。{template_prose.strip()}{tail}", facts
+        return join_sentences([vital_line, prose, results], lang), facts
     if vital_line:
         facts.append("ctx.vitals")
-        return f"{vital_line}{tail}", facts
-    if template_prose:
+        return join_sentences([vital_line, results], lang), facts
+    if prose:
         facts.append("outpatient_soap_template.objective")
-        return f"{template_prose.strip()}{tail}", facts
+        return join_sentences([prose, results], lang), facts
     if results:
         return results, facts
     return fallback, facts
