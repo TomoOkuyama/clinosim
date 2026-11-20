@@ -2492,7 +2492,7 @@
 <tr>
 <td>日々の経過記録の身体所見・一般状態・評価 (A) は、バイタルと入院の経過に従う。所見の文は、H&amp;P と同じ疾患別の所見 (心房細動の脈の不整や脳卒中の麻痺を含む) を記録の日について求めたものを使い、バイタルを述べる句 (発熱日の「全身状態良好」、呼吸数が多い日の「呼吸数正常」、心拍数が正常の日の「頻脈」) が記録の対象期間の測定と矛盾するなら書かず、所見が述べていない異常値 (発熱・頻脈・徐脈・血圧低下・頻呼吸・SpO2 低下・酸素投与) はその系統に加える (<code>reference_data/progress_exam.yaml</code>、バイタルを述べる語は <code>ed_note_admitted.yaml</code> と共通、小児は年齢別範囲)。異常値があるのに「特記事項なし」の定型文は書かず、入院時の主訴による所見の書き換えは後日の記録に適用しない。A には、記録時点で既知の直近の手術の術後日数 (手術当日は「手術当日」)、各合併症とその発症した入院日、期間のバイタルの異常が前の期間より改善・増悪・持続のいずれかを書く。</td>
 <td><code>clinosim/modules/document/narrative/_progress_exam.py::progress_exam_findings</code>, <code>agreeing_clauses</code>, <code>course_line</code>; <code>renderers/_composers.py::compose_progress_assessment_from_state</code></td>
-<td><code>tests/unit/modules/document/narrative/test_progress_exam_course_3235_3247.py</code></td>
+<td><code>tests/unit/modules/document/narrative/test_progress_exam_course_3235_3247.py</code> 患者の今の状態を述べる文 (所見に加える異常値、バイタルの経過の行、S の発熱・SpO2 低下・増悪の句) は、O が書く各バイタルの最新値で判定する。経過の行は「バイタルサイン」と書き、検査の経過と食い違わないようにする。期間中の以前のピークは時間を付けてだけ書き (「直近24時間に最高 38.1°C の発熱、現在 36.7°C」)、「出現・持続・増悪」は最新値自体が異常のときだけ書く。COPD の患者 (疾患または J44 の診断) は SpO2 の下限を 88 % で判定する (<code>progress_exam.yaml</code> の <code>limit_overrides</code>) (Issue #3401)。</td>
 </tr>
 <tr>
 <td>日々の経過記録は、バイタルと薬剤以外の入院経過にも従う (<code>reference_data/progress_course.yaml</code>、<code>progress_vitals.yaml</code>)。S の疼痛は、疾患の疼痛部位、無ければ入院時主訴が示す部位 (<code>complaint_pain_sites</code>)、無ければ「疼痛」と書く。AVPU が P / U の患者には NRS を書かず、自己申告は困難と書く (行動観察による疼痛スケールは記録されないので、点数は書かない)。前日と一字一句同じ身体所見の系統は「前日と著変なし」と 1 度だけ書く (その日の最悪の AVPU が変わった日は一般状態は変化ありとする)。A は、<code>post_procedure_types</code> の処置 (PCI・カルジオバージョン・徒手整復・ロングチューブ・胸腔ドレーン) には「処置後 N 日目」、それ以外の手術には「術後 N 日目」と書き、入院の主病態の主要検査 (疾患の <code>expected_lab_distributions.admission</code> の項目) が前回値からどう動いたかを、記録時点で既知の結果から書く。P には、食事 (とその変更)、期間のリハビリテーション、退院する入院の最後の <code>days_before_discharge</code> + 1 日には退院調整を加える。</td>
@@ -2540,7 +2540,7 @@
 <td><code>tests/unit/modules/document/narrative/test_outpatient_soap_results_3231.py</code></td>
 </tr>
 <tr>
-<td>死亡診断書は記録を一度たどって得た一つの因果の連鎖を記し、死亡退院サマリーの死因も同じ連鎖を使う (NCHS Physicians' Handbook 2003 Part I / Part II、厚生労働省「死亡診断書（死体検案書）記入マニュアル」Ⅰ欄・Ⅱ欄)。直接死因は死亡の原因となりうる入院中の合併症のうち最も遅く発症したもの (停止などの機序ではなく疾患・合併症)。原死因は入院の最終診断を完全なコードで記す。ただし続発の状態を表すコード (重症敗血症・敗血症性ショック) は原死因にせず、入院時診断 (感染症) の上の行に置く。直接死因までの期間は、記録に発症時刻があればそこから数える。影響を及ぼした傷病名は、死因の行にない関連区分の慢性疾患と、その他の入院中の合併症で、締めの文は一度だけ書く。</td>
+<td>死亡診断書は記録を一度たどって得た一つの因果の連鎖を記し、死亡退院サマリーの死因も同じ連鎖を使う (NCHS Physicians' Handbook 2003 Part I / Part II、厚生労働省「死亡診断書（死体検案書）記入マニュアル」Ⅰ欄・Ⅱ欄)。直接死因は死亡の原因となりうる入院中の合併症のうち最も遅く発症したもの (停止などの機序ではなく疾患・合併症)。原死因は入院の最終診断を完全なコードで記す。ただし続発の状態を表すコード (重症敗血症・敗血症性ショック) は原死因にせず、入院時診断 (感染症) の上の行に置く。記録が単一の疾患のみを示す場合、原死因の行は疾患を繰り返さず（ア）の疾患に同じと記す。直接死因までの期間は、記録に発症時刻があればそこから数え、なければ発症時期不詳と記す。死亡診断書には死亡年月日時刻（セクション <code>time_of_death</code>、セクション LOINC なし）を記し、死亡時点の解剖は予定・所見は後日報告として記す。影響を及ぼした傷病名は、死因の行にない関連区分の慢性疾患と、その他の入院中の合併症で、締めの文は一度だけ書く。</td>
 <td><code>clinosim/modules/document/narrative/renderers/section_builders/mortality.py::_dc_cause_chain</code>、<code>reference_data/death_cause_chain.yaml</code></td>
 <td><code>tests/unit/modules/document/narrative/test_death_cause_chain_3255.py</code></td>
 </tr>
