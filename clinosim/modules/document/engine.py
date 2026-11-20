@@ -350,7 +350,13 @@ def _plan_admission_once(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
 def _plan_admission_once_los_gt_7(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
     # MHLW mandate: 栄養管理計画書 required only for admissions > 7 days
     # (design spec §3a).
-    return [_point(f.admission_dt)] if f.los_days > 7 else []
+    # Issue #3412: authored once the day-0 diet order exists (placed 7 h after
+    # the admission), so the plan states the diet in force; never after the stay.
+    if f.los_days <= 7:
+        return []
+    offset = timedelta(hours=float(getattr(spec, "authored_after_admission_hours", 0.0) or 0.0))
+    authored = min(f.admission_dt + offset, f.end_dt) if offset else f.admission_dt
+    return [_DocPlan(authored.isoformat(), f.admission_dt.isoformat(), authored.isoformat())]
 
 
 def _plan_admission_once_if_rehab_sessions(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:

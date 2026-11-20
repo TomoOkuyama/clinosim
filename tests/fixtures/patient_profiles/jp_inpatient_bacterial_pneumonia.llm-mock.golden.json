@@ -2218,16 +2218,18 @@
         "encounter.attending_physician_id",
         "patient.bmi",
         "patient.bmi",
-        "patient.weight_kg"
+        "patient.weight_kg",
+        "ctx.orders.diet",
+        "ctx.orders.diet"
       ],
-      "generated_at": "2024-06-15T12:01:00+09:00",
+      "generated_at": "2024-06-15T20:01:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
         "generator": "template",
         "lang": "ja"
       },
       "sections": {
-        "dietary_content": "食事内容：常食",
+        "dietary_content": "食事内容：絶食（経過をみて食上げを検討）",
         "dietitian": "担当なし",
         "discharge_evaluation": "退院時及び終了時の総合的評価：退院時に評価予定",
         "dysphagia_diet": "嚥下調整食の必要性：なし",
@@ -2235,7 +2237,7 @@
         "nutrition_counseling": "栄養食事相談：必要に応じて実施",
         "nutrition_goals": "栄養管理計画の目標：現在の栄養状態を維持",
         "nutrition_risk": "低栄養リスク：低（BMI 22.0、リスクなし）",
-        "nutrition_supply": "エネルギー：1298kcal／日　たんぱく質：51.9g／日　補給方法：経口",
+        "nutrition_supply": "エネルギー：1298kcal／日　たんぱく質：51.9g／日　補給方法：絶食中のため経口摂取なし",
         "other_issues": "その他栄養管理上の課題：特記事項なし",
         "reassessment_timing": "栄養状態の再評価：入院後1週間を目安に実施",
         "ward_and_physician": "病棟：4E　担当医師：若林 淳"

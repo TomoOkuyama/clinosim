@@ -6,7 +6,7 @@ Data: ``reference_data/progress_course.yaml``."""
 
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -24,7 +24,9 @@ if TYPE_CHECKING:
 
 __all__ = [
     "ProgressCourseRules",
+    "diet_display",
     "diet_line",
+    "diet_order_at",
     "discharge_planning_line",
     "lab_course_lines",
     "post_procedure_line",
@@ -150,17 +152,11 @@ def lab_course_lines(ctx: NarrativeContext, as_of: Any) -> list[str]:
     ]
 
 
-def diet_line(ctx: NarrativeContext, as_of: Any) -> str:
-    """ "Diet: soft diet" — the stay's latest diet order known at the note's
-    time ("Diet changed to ..." when it was placed since the previous note);
-    ``""`` without a diet order."""
-    from clinosim.locale.loader import resolve_localized_display
-    from clinosim.locale.loaders.medical_display import load_diet_type_display
-    from clinosim.modules.document.narrative._narrative_interpretation_thresholds import notable_lab_rules
-
-    lang = ctx.target_lang
+def diet_order_at(ctx: NarrativeContext, as_of: Any) -> tuple[datetime, str] | None:
+    """The stay's latest diet order known at ``as_of`` as ``(placed, slug)``
+    (``as_of`` None: the orders up to the hospital day), ``None`` without one.
+    Shared by the progress note and the nutrition care plan (Issue #3412)."""
     admitted = parse_iso_datetime(_o(getattr(ctx, "encounter", None), "admission_datetime", None), lenient=True)
-    window = timedelta(hours=notable_lab_rules().window_hours)
     latest = None
     for order in getattr(ctx, "orders", None) or []:
         if str(_o(order, "order_type", "") or "").lower().rsplit(".", 1)[-1] != "diet":
@@ -173,12 +169,34 @@ def diet_line(ctx: NarrativeContext, as_of: Any) -> str:
         if latest is None or placed >= latest[0]:
             latest = (placed, order)
     if latest is None:
-        return ""
-    placed, order = latest
-    slug = str(_o(order, "display_name", "") or "")
-    name = resolve_localized_display(load_diet_type_display().get(slug) or {}, lang, fallback="") or slug.replace(
+        return None
+    return latest[0], str(_o(latest[1], "display_name", "") or "")
+
+
+def diet_display(slug: str, lang: str) -> str:
+    """A diet slug's name in ``lang`` (English fallback, then the slug as words)."""
+    from clinosim.locale.loader import resolve_localized_display
+    from clinosim.locale.loaders.medical_display import load_diet_type_display
+
+    return resolve_localized_display(load_diet_type_display().get(slug) or {}, lang, fallback="") or slug.replace(
         "_", " "
     )
+
+
+def diet_line(ctx: NarrativeContext, as_of: Any) -> str:
+    """ "Diet: soft diet" — the stay's latest diet order known at the note's
+    time ("Diet changed to ..." when it was placed since the previous note);
+    ``""`` without a diet order."""
+    from clinosim.modules.document.narrative._narrative_interpretation_thresholds import notable_lab_rules
+
+    lang = ctx.target_lang
+    admitted = parse_iso_datetime(_o(getattr(ctx, "encounter", None), "admission_datetime", None), lenient=True)
+    window = timedelta(hours=notable_lab_rules().window_hours)
+    latest = diet_order_at(ctx, as_of)
+    if latest is None:
+        return ""
+    placed, slug = latest
+    name = diet_display(slug, lang)
     if as_of is not None:
         changed = placed > as_of - window
     elif admitted is not None:

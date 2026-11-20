@@ -1914,8 +1914,23 @@ ncp:
     ja: "病棟：{ward}　担当医師：{physician}"
     en: "Ward: {ward}, Attending physician: {physician}"
   nutrition_supply_line:
-    ja: "エネルギー：{energy}kcal／日　たんぱく質：{protein}g／日　補給方法：経口"
-    en: "Energy: {energy} kcal/day, Protein: {protein} g/day, Route: oral"
+    ja: "エネルギー：{energy}kcal／日　たんぱく質：{protein}g／日　補給方法：{route}"
+    en: "Energy: {energy} kcal/day, Protein: {protein} g/day, Route: {route}"
+  supply_route_oral:
+    ja: 経口
+    en: oral
+  supply_route_none:
+    ja: 絶食中のため経口摂取なし
+    en: none by mouth (fasting)
+  dietary_content_line:
+    ja: "食事内容：{diet}"
+    en: "Dietary content: {diet}"
+  dietary_content_npo_line:
+    ja: "食事内容：{diet}（経過をみて食上げを検討）"
+    en: "Dietary content: {diet} (diet to be advanced as the course allows)"
+  dietary_content_undetermined:
+    ja: "食事内容：未定"
+    en: "Dietary content: to be determined"
   nutrition_low_risk_line:
     ja: "低栄養リスク：低（BMI {bmi}、リスクなし）"
     en: "Malnutrition risk: low (BMI {bmi}, no risk identified)"
@@ -2737,7 +2752,6 @@ fallback:
   interventions_fallback: {en: 'Nursing interventions provided: no significant findings', ja: 実施した看護介入：特記事項なし}
   ncp_assessment_fallback: {en: 'Nutrition status assessment: no significant findings', ja: 栄養状態の評価と課題：特記事項なし}
   ncp_counseling_fallback: {en: 'Nutrition counseling: to be provided as needed', ja: 栄養食事相談：必要に応じて実施}
-  ncp_dietary_content_fallback: {en: 'Dietary content: regular diet', ja: 食事内容：常食}
   ncp_dietitian_fallback: {en: No dietitian assigned, ja: 担当なし}
   ncp_discharge_eval_fallback: {en: 'Comprehensive evaluation at discharge: pending, to be assessed at discharge', ja: 退院時及び終了時の総合的評価：退院時に評価予定}
   ncp_dysphagia_none: {en: 'Dysphagia diet required: No', ja: 嚥下調整食の必要性：なし}

@@ -38,3 +38,9 @@ diet_types:
   renal_diet:
     en: Renal diet
     ja: 腎臓食
+
+# Supply route of each diet (nutrition care plan 補給方法, Issue #3412).
+# "none" = nothing by mouth; a diet not listed here is taken orally. The CIF
+# holds no parenteral-nutrition order, so no IV route is stated.
+diet_supply_route:
+  NPO: none
