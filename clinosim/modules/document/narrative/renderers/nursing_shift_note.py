@@ -35,10 +35,14 @@ from clinosim.timeutil import parse_iso_datetime
 from clinosim.types.document import NarrativeContext, NarrativeOutput
 
 
-def _shift_window(encounter: Any, day_index: int, shift_key: str) -> tuple[datetime, datetime] | None:
+def _shift_window(
+    encounter: Any, day_index: int, shift_key: str, authored: Any = None
+) -> tuple[datetime, datetime] | None:
     """[start, end) of the note's shift on hospital day ``day_index`` (calendar
     day ``day_index`` after admission); the whole day when ``shift_key`` is
-    empty or unknown. ``None`` without an admission time."""
+    empty or unknown. ``None`` without an admission time. The end never runs
+    past ``authored`` (Issue #3395: a note quotes nothing recorded after it
+    was written)."""
     adm = parse_iso_datetime(_o(encounter, "admission_datetime", None) if encounter is not None else None, lenient=True)
     if adm is None:
         return None
@@ -46,8 +50,13 @@ def _shift_window(encounter: Any, day_index: int, shift_key: str) -> tuple[datet
     starts = dict(SHIFT_SCHEDULE)
     if shift_key in starts:
         start = day_start + timedelta(hours=starts[shift_key])
-        return (start, start + timedelta(hours=SHIFT_HOURS))
-    return (day_start, day_start + timedelta(days=1))
+        end = start + timedelta(hours=SHIFT_HOURS)
+    else:
+        start, end = day_start, day_start + timedelta(days=1)
+    cap = parse_iso_datetime(authored, lenient=True) if authored else None
+    if cap is not None and start < cap < end:
+        end = cap
+    return (start, end)
 
 
 def _unstable_reading(readings: list[Any], current: dict[str, Any]) -> Any | None:
@@ -104,7 +113,7 @@ def render_nursing_shift_note(ctx: NarrativeContext, spec: DocumentTypeSpec) -> 
     # Issue #3239: the vital signs of this shift's window (the latest value
     # of each vital, plus an earlier unstable reading of the shift), never
     # another shift's readings. Without an admission time, the calendar day.
-    window = _shift_window(ctx.encounter, ctx.day_index, shift_key)
+    window = _shift_window(ctx.encounter, ctx.day_index, shift_key, getattr(ctx, "authored_datetime", None))
     if window is not None:
         picks = vitals_in_window(ctx.vitals, window[0], window[1])
     else:

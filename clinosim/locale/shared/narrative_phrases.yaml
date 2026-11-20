@@ -911,7 +911,7 @@ nursing_shift:
     ja: "{time} NEWS2 {score} ({vitals})"
     en: "NEWS2 {score} at {time} ({vitals})"
   meds_head:
-    ja: "投薬継続: "
+    ja: "与薬: "
     en: "Meds administered: "
   observations_default:
     ja: "観察・ケア継続、特記事項なし。"
