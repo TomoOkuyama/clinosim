@@ -494,6 +494,12 @@ def _build_safety_skips(patient: Any, encounter: Any) -> list[dict[str, Any]]:
                 # Issue #2930: allergy / disease / interaction, read from the
                 # verdict's rule id, so an allergy skip is worded as an allergy.
                 "conflict_kind": rule_kind(_o(verdict, "rule_id", None)),
+                # Issue #3411: the rule that logged the event (a discharge
+                # prescription hold is not an in-stay hold) and the stored
+                # reason text (a hold of the table's change kind is worded as
+                # a change).
+                "rule_id": _o(verdict, "rule_id", None),
+                "hold_reason_key": _o(verdict, "matched_active_drug", None),
             }
         )
     return out

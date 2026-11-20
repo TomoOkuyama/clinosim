@@ -10,12 +10,14 @@ Both read the event the same way through :func:`safety_skip_line`.
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Collection
 
+from clinosim.codes.drugs import drug_key
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import hold_reason_change
 from clinosim.locale.localized import localized_field
 
-__all__ = ["safety_skip_line"]
+__all__ = ["progress_note_safety_skips", "safety_skip_line"]
 
 # event_type -> phrase-key stem; an absent or unknown event is the legacy
 # pair-conflict avoidance (Issue #1403).
@@ -29,6 +31,46 @@ _EVENTS_WITHOUT_SUBSTITUTE_VARIANT = frozenset({"hold"})
 # conflict_kind -> phrase-key stem of an avoidance that is not a drug-drug
 # conflict (the conflict is the allergy or the condition, not a drug).
 _AVOID_KIND_STEMS = {"allergy": "avoid_allergy", "disease": "avoid_condition"}
+# rule_id of the hold logged while writing the discharge prescription
+# (``simulator/discharge_rx.py``): a decision about the prescription, not a
+# hold during the stay.
+_DISCHARGE_HOLD_RULE = "discharge-medication-hold"
+
+
+def progress_note_safety_skips(skips: list[dict], held_refs: Collection[str] = ()) -> list[dict]:
+    """The safety events a daily progress note's plan states (Issue #3411):
+    the in-stay ones, one hold per drug and each other event once.
+
+    A hold logged by the discharge prescription is left to the discharge
+    documents; a drug is held once, by the first hold event (a protocol logs
+    the admission hold and the discharge one for the same drug); and a drug
+    the day's medication record already names as held (``held_refs``: drug
+    keys) is not stated a second time, its record carrying the day's reason.
+    """
+    out: list[dict] = []
+    held = set(held_refs)
+    seen: set[tuple] = set()
+    for skip in skips:
+        if skip.get("rule_id") == _DISCHARGE_HOLD_RULE:
+            continue
+        # The same event logged twice (a candidate drug avoided for the same
+        # reason on two orders) is stated once.
+        same = (
+            str(skip.get("event_type") or "avoid").lower(),
+            str(skip.get("considered") or ""),
+            str(skip.get("avoided_due_to") or ""),
+            str(skip.get("substituted_with") or ""),
+        )
+        if same in seen:
+            continue
+        seen.add(same)
+        if str(skip.get("event_type") or "avoid").lower() == "hold":
+            ref = drug_key(str(skip.get("considered") or ""))
+            if ref in held:
+                continue
+            held.add(ref)
+        out.append(skip)
+    return out
 
 
 def safety_skip_line(
@@ -58,8 +100,20 @@ def safety_skip_line(
     day_phrase = (
         t("safety_skips.day_phrase_specific", lang, day=int(day)) if day else t("safety_skips.day_phrase_default", lang)
     )
+    reason_key = str(skip.get("hold_reason_key") or "")
+    change = hold_reason_change(reason_key, lang) if stem == "hold" and prefix == "safety_skips" else ""
+    if change:
+        # Issue #3411: the oral diuretic "held" at a heart-failure admission is
+        # a route switch; the reason beside it is the clinical state.
+        return t(
+            f"{prefix}.change",
+            lang,
+            considered=considered,
+            change=change,
+            conflict=hold_reason_change(reason_key, lang, reason_text=True),
+        )
     if stem in _EVENTS_WITHOUT_SUBSTITUTE_VARIANT:
-        key = f"{prefix}.{stem}"
+        key = f"{prefix}.{stem}" if conflict or prefix != "safety_skips" else f"{prefix}.hold_no_reason"
     else:
         key = f"{prefix}.{stem}_with_sub" if substituted else f"{prefix}.{stem}_no_sub"
     return t(key, lang, considered=considered, conflict=conflict, substituted=substituted, day_phrase=day_phrase)

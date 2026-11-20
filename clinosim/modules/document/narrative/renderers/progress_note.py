@@ -210,7 +210,14 @@ def render_progress_note(
     # Issue #1066 (drug_safety): append avoidance-and-substitution
     # reasoning to plan when this encounter carries safety_skip_log
     # entries. Same content flows into the LLM prompt via Task 10/11.
-    skips_addendum = _render_safety_skips_line(getattr(ctx, "safety_skips", None) or [], lang)
+    # Issue #3411: the in-stay events, one hold per drug, none of a drug the
+    # day's medication record already lists as held.
+    from clinosim.modules.document.narrative._medication_plan import note_medications
+    from clinosim.modules.document.narrative._safety_skips import progress_note_safety_skips
+
+    skips_addendum = _render_safety_skips_line(
+        progress_note_safety_skips(getattr(ctx, "safety_skips", None) or [], note_medications(ctx).held_refs), lang
+    )
     if skips_addendum:
         plan = f"{plan}\n{skips_addendum}" if plan else skips_addendum
         facts.append("ctx.safety_skips")

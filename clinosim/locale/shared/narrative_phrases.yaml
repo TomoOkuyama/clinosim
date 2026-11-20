@@ -212,6 +212,10 @@ progress:
   meds_held:
     ja: "休薬: {list}。"
     en: "Held: {list}."
+  # Issue #3411: drugs held in an earlier period and given again.
+  meds_resumed:
+    ja: "再開: {list}。"
+    en: "Resumed: {list}."
   meds_stopped:
     ja: "中止: {list}。"
     en: "Stopped: {list}."
@@ -2136,9 +2140,19 @@ rp_note:
 # switch/deescalate/avoid event with {considered}, {conflict},
 # {substituted}, {day_phrase} placeholders.
 safety_skips:
+  # Issue #3411: the reason sits in parentheses, so a reason that is itself a
+  # parenthesised phrase does not end in ")のため".
   hold:
-    ja: "・{considered}：{conflict}のため今回入院中は保留。"
+    ja: "・{considered}：今回入院中は保留（{conflict}）。"
     en: "- {considered} was held during this admission because of {conflict}."
+  hold_no_reason:
+    ja: "・{considered}：今回入院中は保留。"
+    en: "- {considered} was held during this admission."
+  # A hold-table entry that records a change, not a hold (the home oral
+  # diuretic replaced by IV furosemide).
+  change:
+    ja: "・{considered}：{change}（{conflict}）。"
+    en: "- {considered} was {change} ({conflict})."
   substitute_with_sub:
     ja: "・{considered} を {substituted} に切替（理由：{conflict}）。"
     en: "- {considered} was substituted with {substituted} (rationale: {conflict})."
