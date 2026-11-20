@@ -310,6 +310,11 @@ def _nursing_author_ratio(cif_dir: str) -> float:
         for doc in patient.get("documents") or []:
             if doc.get("loinc_code") not in NURSING_LOINCS:
                 continue
+            # Issue #3408: a shift note is written by the nurse on duty, so
+            # only the assessment / care plan / discharge summary are held to
+            # the primary nurse.
+            if doc.get("task_type") == "nursing_shift_note":
+                continue
             total += 1
             author = doc.get("author_practitioner_id", "") or ""
             nurse_id = nurse_by_encounter.get(doc.get("encounter_id", ""), "")

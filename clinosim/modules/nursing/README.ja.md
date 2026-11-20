@@ -32,6 +32,13 @@ POST_ENCOUNTER enricher (登録名 **`nursing_assignment`**) と、
     department=...)` (encounter の病棟の看護師、無ければ診療科、
     無ければ全看護師、Issue #2700) から uniform sampling。RNG の seed は
     caller 責任。
+  - `shift_note_author` — 看護 shift 記録 1 件の記録者 (Issue #3408)。
+    担当看護師が日勤を `day_shift_primary_share` の割合で担当し、それ以外の
+    shift は同日に勤務していない同一病棟の別の看護師が、encounter id・日付・
+    shift の SHA-256 で決まる (RNG 不使用)。パラメータは
+    `reference_data/nursing_shift_rotation.yaml`
+    (`load_nursing_shift_rotation`)。入院時看護評価・看護計画・退院時看護
+    サマリは担当看護師のまま。
   - `load_nursing_assessment` — `nursing_assessment.yaml` reference
     データの loader (`NursingAssessment` Pydantic model で検証)。
   - 公開定数: `SUPPORTED_ADL_CATEGORIES` (5 ADL カテゴリ)、

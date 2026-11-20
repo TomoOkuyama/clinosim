@@ -1,0 +1,23 @@
+# Who writes each nursing shift note of an inpatient stay (Issue #3408)
+#
+# import-time validator: the NursingShiftRotation model in engine.py
+#
+# The admission's primary nurse keeps the admission assessment and the care
+# plan. A shift note is written by the nurse on duty for that shift: a ward
+# nurse works at most one shift per calendar day, and the primary nurse is on
+# the day shift for part of the stay (continuity of care). Every other shift is
+# taken by another nurse of the ward, chosen by a SHA-256 hash of the encounter
+# id, the shift date and the shift (no RNG draw).
+
+metadata:
+  kind: reference
+  name: nursing_shift_rotation
+  source: clinosim
+
+# Fraction of day shifts taken by the admission's primary nurse (0-1).
+# Assumption (no published source): a primary nurse covers the day shift on
+# roughly three days of five, which is the usual primary-nursing pattern of
+# one nurse following a patient through the working week.
+day_shift_primary_share: 0.6
+# Shift key (document engine SHIFT_SCHEDULE) on which the primary nurse works.
+primary_nurse_shift: day
