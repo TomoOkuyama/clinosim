@@ -2780,7 +2780,10 @@ extension leak を浮上させた。</p>
 <li><code>Composition.section</code> は 2 レベル tree:</li>
 <li>Top-level: <strong>920</strong> 紹介元 / <strong>910</strong> 紹介先 / <strong>300</strong> 構造情報</li>
 <li>300 の下: <strong>950</strong> 紹介目的 / <strong>340</strong> 傷病名・主訴 /
-    <strong>360</strong> 現病歴</li>
+    <strong>360</strong> 現病歴。続けて、文書に内容があれば任意の <strong>330</strong> 臨床経過 /
+    <strong>620</strong> 検査結果 / <strong>430</strong> 投薬指示 (JP-CLINS document-section
+    CodeSystem の REF 系コード; profile の <code>clinicalCourseSection</code> /
+    <code>examsStudySection</code> / <code>medicationSection</code>)</li>
 </ul>
 <p>シミュレーション近似:
 - <strong>紹介元</strong> = 当院 (clinosim は単一施設をシミュレート)。
@@ -2788,8 +2791,12 @@ extension leak を浮上させた。</p>
   <code>(patient_id, encounter_id)</code> の sha256 で決定的に選んだ外部病院。
   参照された病院はそれぞれ <code>Organization</code> リソースとして emit
   (<code>clinosim/modules/output/fhir_r4/documents/referral_orgs.py</code>)。
-- <strong>紹介目的</strong> = <code>encounter_id</code> ハッシュに基づく <code>{継続加療 / 精査
-  依頼 / 他科紹介 / リハビリテーション継続}</code> の決定的選択。
+- <strong>紹介目的</strong> = 継続加療、入院中にリハビリテーションを実施した場合は
+  リハビリテーション継続 (紹介先は常に他院なので、院内の他科紹介は
+  書かない)。院内死亡の入院では診療情報提供書を出さない。
+- <strong>臨床経過 / 検査結果 / 投薬指示</strong> = 退院時サマリーの入院経過 (検査結果
+  の文を除く)・主な異常検査結果の文・退院処方を再利用。現病歴は入院時
+  ROS を含めない。
 - <strong>傷病名・主訴</strong> = エンカウンター診断リスト (code + 日本語 display)
   と疾患 YAML の chief complaint を結合。
 - <strong>現病歴</strong> = <code>disease_protocol.narrative.hpi_template</code> 由来の HPI

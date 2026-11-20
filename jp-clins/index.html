@@ -2721,12 +2721,13 @@ this document continue to hold.</p>
 <li><code>Composition.type.coding[0]</code> = <code>{system: doc-typecodes, code: 57133-1, display: 診療情報提供書}</code> (single coding; no separate LOINC coding).</li>
 <li><code>Composition.section</code> is a two-level tree:</li>
 <li>Top-level: <strong>920</strong> 紹介元 / <strong>910</strong> 紹介先 / <strong>300</strong> 構造情報</li>
-<li>Under 300: <strong>950</strong> 紹介目的 / <strong>340</strong> 傷病名・主訴 / <strong>360</strong> 現病歴</li>
+<li>Under 300: <strong>950</strong> 紹介目的 / <strong>340</strong> 傷病名・主訴 / <strong>360</strong> 現病歴, then the optional <strong>330</strong> 臨床経過 (hospital course), <strong>620</strong> 検査結果 (significant results) and <strong>430</strong> 投薬指示 (discharge prescription) when the document carries them (the REF-branch codes of the JP-CLINS document-section CodeSystem; slices <code>clinicalCourseSection</code> / <code>examsStudySection</code> / <code>medicationSection</code> of the profile)</li>
 </ul>
 <p>Simulation approximations:
 - <strong>紹介元</strong> = this hospital (clinosim simulates a single facility).
 - <strong>紹介先</strong> = an external hospital picked deterministically (sha256 of <code>(patient_id, encounter_id)</code>) from <code>clinosim/locale/jp/external_organizations.yaml</code>; each referenced hospital is emitted as its own <code>Organization</code> resource (<code>clinosim/modules/output/fhir_r4/documents/referral_orgs.py</code>).
-- <strong>紹介目的</strong> = deterministic pick from <code>{継続加療 / 精査依頼 / 他科紹介 / リハビリテーション継続}</code> per <code>encounter_id</code> hash.
+- <strong>紹介目的</strong> = 継続加療, or リハビリテーション継続 when the stay included rehabilitation (the destination is always another institution, so no internal-referral purpose is written). No referral note is emitted for an in-hospital death.
+- <strong>臨床経過 / 検査結果 / 投薬指示</strong> reuse the discharge summary's hospital-course sentences (without the results sentence), its significant-results sentence and its discharge prescription; the 現病歴 leaves out the admission ROS.
 - <strong>傷病名・主訴</strong> = combines the encounter's diagnosis list (code + Japanese display) with the disease-YAML chief complaint.
 - <strong>現病歴</strong> = HPI derived from <code>disease_protocol.narrative.hpi_template</code> (same source as the discharge summary's present_illness section).</p>
 <p><strong>US path</strong>: referral notes are not emitted for <code>country=US</code> (<code>countries_supported: [jp]</code>). US clinical practice uses ordinary referral letters, not the JP-CLINS eReferral profile.</p>
