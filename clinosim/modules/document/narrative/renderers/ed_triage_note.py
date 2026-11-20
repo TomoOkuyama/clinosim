@@ -17,6 +17,10 @@ from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative.registry import DocumentTypeSpec
+from clinosim.modules.document.narrative.renderers.section_builders.chief_complaint import (
+    encounter_chief_complaint,
+    raw_encounter_chief_complaint,
+)
 from clinosim.types.document import NarrativeContext, NarrativeOutput
 
 
@@ -48,7 +52,10 @@ def render_ed_triage_note(ctx: NarrativeContext, spec: DocumentTypeSpec) -> Narr
     arrival_mode = _o(triage, "arrival_mode", "") or ""
     # Issue #3243: an admission's ``chief_complaint`` is English with the
     # localized text on ``chief_complaint_<lang>``; read that first.
-    cc_summary = _o(ctx.encounter, f"chief_complaint_{lang}", "") or _o(triage, "chief_complaint_summary", "") or ""
+    # The triage nurse's own summary is the fallback when the encounter has no
+    # complaint in the note language.
+    localized_cc = encounter_chief_complaint(ctx) if raw_encounter_chief_complaint(ctx, localized_only=True) else ""
+    cc_summary = localized_cc or _o(triage, "chief_complaint_summary", "") or ""
     arrival_display = _label("arrival_mode", arrival_mode, lang, fallback=arrival_mode)
 
     level_line = (

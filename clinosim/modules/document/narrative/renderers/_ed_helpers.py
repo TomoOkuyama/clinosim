@@ -71,10 +71,13 @@ def ed_disposition_reason(ctx: NarrativeContext, lang: str) -> str:
 
     enc = ctx.encounter
     if enc is not None:
-        preferred_key = f"chief_complaint_{lang}"
-        cc = _o(enc, preferred_key, "") or _o(enc, "chief_complaint", "")
+        from clinosim.modules.document.narrative.renderers.section_builders.chief_complaint import (
+            encounter_chief_complaint,
+        )
+
+        cc = encounter_chief_complaint(ctx)
         if cc:
-            return str(cc)
+            return cc
     if ctx.disease_protocol is not None:
         proto_cc = _o(ctx.disease_protocol, "chief_complaint", None)
         if isinstance(proto_cc, dict):

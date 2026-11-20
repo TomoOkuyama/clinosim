@@ -21,7 +21,12 @@ def _ctx(lang: str, **enc_fields: str) -> SimpleNamespace:
     triage = TriageData(
         level="2", level_system="JTAS", arrival_mode="ambulance", chief_complaint_summary="Fever, cough"
     )
-    return SimpleNamespace(target_lang=lang, encounter=SimpleNamespace(triage_data=triage, **enc_fields))
+    return SimpleNamespace(
+        target_lang=lang,
+        disease_protocol=None,
+        encounter_protocol=None,
+        encounter=SimpleNamespace(triage_data=triage, **enc_fields),
+    )
 
 
 def test_ja_note_of_an_admission_uses_the_japanese_chief_complaint() -> None:

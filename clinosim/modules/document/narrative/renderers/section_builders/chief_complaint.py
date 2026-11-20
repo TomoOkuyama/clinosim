@@ -159,6 +159,63 @@ def build_chief_complaint(generator: TemplateNarrativeGenerator, ctx: NarrativeC
     return swapped, facts
 
 
+def displayed_chief_complaint(cc: str, ctx: NarrativeContext) -> str:
+    """``cc`` as the encounter's one displayed complaint: a disease-default
+    complaint is shown as the encounter's variant (Issue #983), every other
+    complaint unchanged."""
+    disease_protocol = getattr(ctx, "disease_protocol", None)
+    encounter_protocol = getattr(ctx, "encounter_protocol", None)
+    disease_id = _o(disease_protocol, "disease_id", None) if disease_protocol is not None else None
+    condition_id = _o(encounter_protocol, "condition_id", None) if encounter_protocol is not None else None
+    swapped, _ = _maybe_swap_cc_variant(
+        cc,
+        disease_id,
+        _disease_canonical_cc(disease_protocol, ctx.target_lang),
+        ctx.target_lang,
+        ctx,
+        encounter_condition_id=condition_id,
+        canonical_encounter_cc=_disease_canonical_cc(encounter_protocol, ctx.target_lang),
+    )
+    return swapped
+
+
+def raw_encounter_chief_complaint(ctx: NarrativeContext, *, localized_only: bool = False) -> str:
+    """The encounter's own chief complaint as recorded (localized slot first,
+    then the base slot unless ``localized_only``), before any variant swap;
+    ``""`` when it has none."""
+    enc = ctx.encounter
+    if enc is None:
+        return ""
+    keys = (
+        (f"chief_complaint_{ctx.target_lang}",)
+        if localized_only
+        else (f"chief_complaint_{ctx.target_lang}", "chief_complaint")
+    )
+    for key in keys:
+        raw = _o(enc, key, None)
+        if raw:
+            return str(raw)
+    return ""
+
+
+def encounter_chief_complaint(ctx: NarrativeContext) -> str:
+    """The canonical chief complaint of the encounter (Issue #3390): the one
+    complaint every section of every document of the encounter writes — the
+    chief_complaint section, the HPI, the assessment, the discharge header,
+    the ED notes and the outpatient reason. ``""`` when the encounter has
+    none. Sections must call this, never read ``chief_complaint`` slots."""
+    raw = raw_encounter_chief_complaint(ctx)
+    return displayed_chief_complaint(raw, ctx) if raw else ""
+
+
+def chief_complaint_texts(ctx: NarrativeContext) -> tuple[str, ...]:
+    """The displayed complaint and the encounter's recorded one (they differ
+    when a variant is shown): a symptom of either is a presented symptom."""
+    raw = raw_encounter_chief_complaint(ctx)
+    shown = encounter_chief_complaint(ctx)
+    return tuple(dict.fromkeys(x for x in (shown, raw) if x))
+
+
 def _disease_canonical_cc(disease_protocol: Any, lang: str) -> str | None:
     """Return the disease-protocol canonical chief_complaint (single string).
 

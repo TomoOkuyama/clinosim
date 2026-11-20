@@ -74,11 +74,18 @@ def compose_hospital_course(ctx: NarrativeContext, *, with_results: bool = True)
         # ``chief_complaint_<lang>`` slots first; fall back to the
         # base slots. For lang=en both localized slots are typically
         # absent so lookup drops to the base fields on its own.
-        primary_reason = _o(ctx.encounter, f"primary_diagnosis_{lang}", None) or _o(
-            ctx.encounter, f"chief_complaint_{lang}", None
+        # Issue #3390: the complaint is the encounter's canonical one.
+        from clinosim.modules.document.narrative.renderers.section_builders.chief_complaint import (
+            encounter_chief_complaint,
+            raw_encounter_chief_complaint,
+        )
+
+        cc = encounter_chief_complaint(ctx)
+        primary_reason = _o(ctx.encounter, f"primary_diagnosis_{lang}", None) or (
+            cc if raw_encounter_chief_complaint(ctx, localized_only=True) else None
         )
         if not primary_reason:
-            primary_reason = _o(ctx.encounter, "primary_diagnosis", None) or _o(ctx.encounter, "chief_complaint", None)
+            primary_reason = _o(ctx.encounter, "primary_diagnosis", None) or cc
     if primary_reason:
         parts.append(t("hospital_course.los_head_with_reason", lang, los=los, reason=str(primary_reason)[:80]))
     else:

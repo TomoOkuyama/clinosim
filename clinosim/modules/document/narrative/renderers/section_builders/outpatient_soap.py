@@ -88,6 +88,7 @@ from clinosim.modules.document.narrative.renderers._shared_helpers import (
     ordered_chronic_conditions,
 )
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
+from clinosim.modules.document.narrative.renderers.section_builders.chief_complaint import encounter_chief_complaint
 from clinosim.modules.document.narrative.renderers.section_builders.patient_history import (
     home_medications_at_admission,
 )
@@ -321,10 +322,7 @@ def _compose_outpatient_subjective_from_state(ctx: NarrativeContext) -> str:
     sex_label = _label("sex_label", str(sex_raw).lower(), lang, fallback="")
     # chief_complaint — encounter first (v9 chief_complaint bug fix),
     # skip English-in-JA leak.
-    cc = ""
-    if enc is not None:
-        cc = _o(enc, f"chief_complaint_{lang}", None) or _o(enc, "chief_complaint", None) or ""
-    cc = str(cc)
+    cc = encounter_chief_complaint(ctx) if enc is not None else ""
     # Chronic condition follow-up context (code-lookup localized).
     # Issue #1333: route CIF base code through map_diagnosis_code so the
     # narrative display matches the FHIR emit-target (US F00 → F03.90
@@ -592,7 +590,6 @@ def _compose_encounter_reason_line(ctx: NarrativeContext) -> str:
     enc = getattr(ctx, "encounter", None)
     if enc is None:
         return ""
-    lang = ctx.target_lang
     # Phase 1c-6 (2026-09-23): prefer the locale-specific
     # ``chief_complaint_{ja,en}`` over the raw ``chief_complaint``
     # so JA output emits 「来院理由: 予防接種」 rather than the
@@ -600,8 +597,7 @@ def _compose_encounter_reason_line(ctx: NarrativeContext) -> str:
     # (immunization / vaccination visits, ED follow-ups) whose
     # emitters populate both language slots. Mirrors the pattern in
     # `_render_outpatient_chronic_soap` (line 5258).
-    cc = _o(enc, f"chief_complaint_{lang}", None) or _o(enc, "chief_complaint", "") or ""
-    cc = str(cc).strip()
+    cc = encounter_chief_complaint(ctx).strip()
     primary_dx = _o(enc, "primary_diagnosis", "") or _o(enc, "primary_dx", "") or ""
     primary_dx = str(primary_dx).strip()
 

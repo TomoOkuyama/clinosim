@@ -738,7 +738,11 @@ def build_ed_assessment(generator: TemplateNarrativeGenerator, ctx: NarrativeCon
         return section_builder("assessment")(generator, ctx)
     facts = ["ctx.diagnoses.admission_diagnosis_code"]
     enc = ctx.encounter
-    cc = str(_o(enc, f"chief_complaint_{lang}", "") or _o(enc, "chief_complaint", "") or "").strip() if enc else ""
+    from clinosim.modules.document.narrative.renderers.section_builders.chief_complaint import (
+        encounter_chief_complaint,
+    )
+
+    cc = encounter_chief_complaint(ctx).strip() if enc else ""
     if cc and cc.lower() != dx.lower():
         facts.append("ctx.encounter.chief_complaint")
         return t("ed.assessment_diagnosis", lang, dx=dx, cc=cc), facts

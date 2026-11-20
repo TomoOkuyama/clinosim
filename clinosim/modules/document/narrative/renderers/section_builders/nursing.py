@@ -39,6 +39,7 @@ from clinosim.modules.document.narrative._narrative_utils import (
 from clinosim.modules.document.narrative._template_helpers import _resolve_staff_name, allergen_display
 from clinosim.modules.document.narrative.renderers._shared_helpers import procedure_prose_name
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
+from clinosim.modules.document.narrative.renderers.section_builders.chief_complaint import encounter_chief_complaint
 from clinosim.types.document import NarrativeContext
 
 if TYPE_CHECKING:
@@ -81,9 +82,7 @@ def build_nursing_history(generator: TemplateNarrativeGenerator, ctx: NarrativeC
         facts.append("encounter.primary_nurse_id")
         nurse_disp = _resolve_staff_name(nurse_id, ctx.roster_map)
         parts.append(t("admission_status.assigned_nurse", lang, name=nurse_disp))
-    cc = ""
-    if ctx.encounter is not None:
-        cc = _o(ctx.encounter, f"chief_complaint_{lang}", None) or _o(ctx.encounter, "chief_complaint", None) or ""
+    cc = encounter_chief_complaint(ctx)
     if cc:
         parts.append(t("admission_status.admission_reason", lang, cc=cc))
     # Chronic summary — Issue #1333: route CIF base code through
@@ -391,9 +390,7 @@ def build_nursing_admission_status(
     lang = ctx.target_lang
     los = ctx.los_days or 1
     facts.append("ctx.los_days")
-    cc = ""
-    if ctx.encounter is not None:
-        cc = _o(ctx.encounter, f"chief_complaint_{lang}", None) or _o(ctx.encounter, "chief_complaint", None) or ""
+    cc = encounter_chief_complaint(ctx)
     comps = list(getattr(ctx, "complications_occurred", []) or [])
     # Phase 1c-2 (2026-09-22): localize complication tokens (31 leaks
     # in JP p=500 admission_status audit — "経過中の合併症: urosepsis"
