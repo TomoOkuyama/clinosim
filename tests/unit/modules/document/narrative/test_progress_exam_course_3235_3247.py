@@ -191,15 +191,15 @@ def test_course_improving_worsening_and_persisting() -> None:
     febrile = {"temperature_celsius": 38.6, "heart_rate": 112}
     well = {"temperature_celsius": 36.8, "heart_rate": 80}
     improving = compose_progress_assessment_from_state(_ctx([_v(1, 8, **febrile), _v(2, 8, **well)], day=2, lang="en"))
-    assert "Improving" in improving and "fever" in improving
+    assert "Vital signs improving" in improving and "fever" in improving
     worsening = compose_progress_assessment_from_state(_ctx([_v(1, 8, **well), _v(2, 8, **febrile)], day=2, lang="en"))
-    assert "Worsening" in worsening and "tachycardia" in worsening
+    assert "Vital signs worsening" in worsening and "tachycardia" in worsening
     persisting = compose_progress_assessment_from_state(
         _ctx([_v(1, 8, **febrile), _v(2, 8, **febrile)], day=2, lang="ja")
     )
     assert "持続" in persisting
     stable = compose_progress_assessment_from_state(_ctx([_v(1, 8, **well), _v(2, 8, **well)], day=2, lang="en"))
-    assert "Improving" not in stable and "Worsening" not in stable
+    assert "improving" not in stable and "worsening" not in stable
 
 
 # ---- aspirin and fluids (Issue #3247 comment) ------------------------------

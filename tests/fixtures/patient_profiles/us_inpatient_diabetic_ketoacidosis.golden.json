@@ -132,12 +132,12 @@
         }
       },
       "sections": {
-        "assessment": "Worsening compared with the previous day (new low SpO2). Notable labs (past 24 h): glucose 551 mg/dL [critical] (prior 578), pH 7.04 [critical], Cl 107 mmol/L [H], lactate 3.0 mmol/L [H], +5 other abnormal.",
+        "assessment": "Abnormal vital signs persisting (tachycardia); no improvement yet. Notable labs (past 24 h): glucose 551 mg/dL [critical] (prior 578), pH 7.04 [critical], Cl 107 mmol/L [H], lactate 3.0 mmol/L [H], +5 other abnormal.",
         "objective": "BP 117/72 mmHg, HR 107 bpm, RR 19 /min, SpO2 93% (RA), T 35.7°C (past 24 h: HR max 121 bpm, RR max 24 /min)",
         "plan": "Continue current medications: Enoxaparin, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0. Diet changed to NPO (nothing by mouth). Discharge planning in progress (home).",
         "subjective": "Hospital day 2. Hypothermia 35.7°C noted."
       },
-      "text": "S: Hospital day 2. Hypothermia 35.7°C noted.\nO: BP 117/72 mmHg, HR 107 bpm, RR 19 /min, SpO2 93% (RA), T 35.7°C (past 24 h: HR max 121 bpm, RR max 24 /min)\nA: Worsening compared with the previous day (new low SpO2). Notable labs (past 24 h): glucose 551 mg/dL [critical] (prior 578), pH 7.04 [critical], Cl 107 mmol/L [H], lactate 3.0 mmol/L [H], +5 other abnormal.\nP: Continue current medications: Enoxaparin, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0. Diet changed to NPO (nothing by mouth). Discharge planning in progress (home)."
+      "text": "S: Hospital day 2. Hypothermia 35.7°C noted.\nO: BP 117/72 mmHg, HR 107 bpm, RR 19 /min, SpO2 93% (RA), T 35.7°C (past 24 h: HR max 121 bpm, RR max 24 /min)\nA: Abnormal vital signs persisting (tachycardia); no improvement yet. Notable labs (past 24 h): glucose 551 mg/dL [critical] (prior 578), pH 7.04 [critical], Cl 107 mmol/L [H], lactate 3.0 mmol/L [H], +5 other abnormal.\nP: Continue current medications: Enoxaparin, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0. Diet changed to NPO (nothing by mouth). Discharge planning in progress (home)."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-04": {
@@ -182,12 +182,12 @@
         }
       },
       "sections": {
-        "assessment": "Improving compared with the previous day (low SpO2 resolved). Notable labs (past 24 h): Na 146 mmol/L [H] (prior 145; hypernatremia), Cl 109 mmol/L [H] (prior 105), HCO3 12.3 mmol/L [L] (prior 11.5), glucose 409 mg/dL [H] (prior 435), +3 other abnormal.",
+        "assessment": "Vital signs improving compared with the previous day (low SpO2 resolved). Notable labs (past 24 h): Na 146 mmol/L [H] (prior 145; hypernatremia), Cl 109 mmol/L [H] (prior 105), HCO3 12.3 mmol/L [L] (prior 11.5), glucose 409 mg/dL [H] (prior 435), +3 other abnormal.",
         "objective": "BP 113/74 mmHg, HR 104 bpm, RR 19 /min, SpO2 98% (RA), T 36.1°C (past 24 h: HR max 106 bpm, RR max 21 /min)",
         "plan": "Continue current medications: Enoxaparin, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0. Diet changed to Regular diet. Discharge planning in progress (home).",
         "subjective": "Hospital day 3. Day before planned discharge; symptoms stable, discharge instructions reviewed."
       },
-      "text": "S: Hospital day 3. Day before planned discharge; symptoms stable, discharge instructions reviewed.\nO: BP 113/74 mmHg, HR 104 bpm, RR 19 /min, SpO2 98% (RA), T 36.1°C (past 24 h: HR max 106 bpm, RR max 21 /min)\nA: Improving compared with the previous day (low SpO2 resolved). Notable labs (past 24 h): Na 146 mmol/L [H] (prior 145; hypernatremia), Cl 109 mmol/L [H] (prior 105), HCO3 12.3 mmol/L [L] (prior 11.5), glucose 409 mg/dL [H] (prior 435), +3 other abnormal.\nP: Continue current medications: Enoxaparin, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0. Diet changed to Regular diet. Discharge planning in progress (home)."
+      "text": "S: Hospital day 3. Day before planned discharge; symptoms stable, discharge instructions reviewed.\nO: BP 113/74 mmHg, HR 104 bpm, RR 19 /min, SpO2 98% (RA), T 36.1°C (past 24 h: HR max 106 bpm, RR max 21 /min)\nA: Vital signs improving compared with the previous day (low SpO2 resolved). Notable labs (past 24 h): Na 146 mmol/L [H] (prior 145; hypernatremia), Cl 109 mmol/L [H] (prior 105), HCO3 12.3 mmol/L [L] (prior 11.5), glucose 409 mg/dL [H] (prior 435), +3 other abnormal.\nP: Continue current medications: Enoxaparin, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0. Diet changed to Regular diet. Discharge planning in progress (home)."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-05": {

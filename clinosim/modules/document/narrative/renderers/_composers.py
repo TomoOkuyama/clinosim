@@ -101,13 +101,35 @@ def compose_progress_subjective_from_state(ctx: NarrativeContext) -> str:
     spo2_min = _extreme(picks, "spo2", min)
     prev_tmax, prev_spo2 = _extreme(prev, "temperature_celsius", max), _extreme(prev, "spo2", min)
 
+    # Issue #3401: a trend word states the patient's present condition, so it
+    # is written only when the latest reading of the period is itself beyond
+    # the threshold, with that reading and the period's peak; a peak the latest
+    # reading no longer shows is stated time-qualified.
+    from clinosim.modules.document.narrative._narrative_interpretation_thresholds import notable_lab_rules
+    from clinosim.modules.document.narrative._progress_exam import spo2_low_override
+
+    when = (
+        t("progress.period_recent", lang, hours=notable_lab_rules().window_hours)
+        if getattr(ctx, "authored_datetime", None) is not None
+        else t("progress.period_today", lang)
+    )
+    cur_t, cur_spo2 = _latest(picks, "temperature_celsius"), _latest(picks, "spo2")
+    spo2_floor = spo2_low_override(ctx)
+    spo2_below = trend.spo2_desaturation_below if spo2_floor is None else spo2_floor
+    spo2_recovered = trend.spo2_recovered_at_least if spo2_floor is None else spo2_floor
+
     if tmax is not None and tmax >= trend.fever_c:
-        if prev_tmax is not None and prev_tmax < trend.fever_c:
-            parts.append(t("progress.fever_new_onset", lang, t=tmax))
-        elif prev_tmax is not None and tmax > prev_tmax + trend.fever_rise_c:
-            parts.append(t("progress.fever_worsening", lang, t=tmax))
+        now_t = tmax if cur_t is None else cur_t
+        if now_t < trend.fever_c:
+            parts.append(t("progress.fever_peak_resolved", lang, tmax=tmax, t=now_t, when=when))
         else:
-            parts.append(t("progress.fever_persistent", lang, t=tmax))
+            peak = t("progress.fever_peak", lang, tmax=tmax, when=when) if round(tmax, 1) != round(now_t, 1) else ""
+            if prev_tmax is not None and prev_tmax < trend.fever_c:
+                parts.append(t("progress.fever_new_onset", lang, t=now_t, peak=peak))
+            elif prev_tmax is not None and now_t > prev_tmax + trend.fever_rise_c:
+                parts.append(t("progress.fever_worsening", lang, t=now_t, peak=peak))
+            else:
+                parts.append(t("progress.fever_persistent", lang, t=now_t, peak=peak))
         abnormal_added = True
     elif tmin is not None and tmin < trend.hypothermia_below_c:
         parts.append(t("progress.hypothermia", lang, t=tmin))
@@ -121,18 +143,20 @@ def compose_progress_subjective_from_state(ctx: NarrativeContext) -> str:
         parts.append(t("progress.fever_resolving", lang, pt=prev_tmax, t=tmax))
         abnormal_added = True
 
-    if spo2_min is not None and spo2_min < trend.spo2_desaturation_below:
-        if prev_spo2 is not None and spo2_min < prev_spo2 - trend.spo2_drop:
-            parts.append(t("progress.spo2_worsening", lang, s=spo2_min))
+    if spo2_min is not None and spo2_min < spo2_below:
+        now_s = spo2_min if cur_spo2 is None else cur_spo2
+        if now_s >= spo2_below:
+            parts.append(t("progress.spo2_transient_low", lang, smin=spo2_min, s=now_s, when=when))
         else:
-            parts.append(t("progress.spo2_desaturating", lang, s=spo2_min))
+            peak = t("progress.spo2_peak", lang, smin=spo2_min, when=when) if round(now_s) != round(spo2_min) else ""
+            key = (
+                "progress.spo2_worsening"
+                if prev_spo2 is not None and now_s < prev_spo2 - trend.spo2_drop
+                else "progress.spo2_desaturating"
+            )
+            parts.append(t(key, lang, s=now_s, peak=peak))
         abnormal_added = True
-    elif (
-        prev_spo2 is not None
-        and prev_spo2 < trend.spo2_desaturation_below
-        and spo2_min is not None
-        and spo2_min >= trend.spo2_recovered_at_least
-    ):
+    elif prev_spo2 is not None and prev_spo2 < spo2_below and spo2_min is not None and spo2_min >= spo2_recovered:
         parts.append(t("progress.spo2_recovering", lang, ps=prev_spo2, s=spo2_min))
         abnormal_added = True
 
@@ -196,6 +220,16 @@ def _note_period_vitals(ctx: NarrativeContext, *, previous: bool = False) -> lis
             timed.append((when, i, v))
     timed.sort(key=lambda x: (x[0], x[1]))
     return [v for _, _, v in timed]
+
+
+def _latest(readings: list, attr: str) -> float | None:
+    """The latest recorded value of ``attr`` over ``readings`` (oldest first);
+    ``None`` when no reading records it."""
+    for r in reversed(readings):
+        x = _o(r, attr, None)
+        if x is not None:
+            return float(x)
+    return None
 
 
 def _extreme(readings: list, attr: str, pick: Any) -> float | None:
