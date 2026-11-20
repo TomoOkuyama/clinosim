@@ -82,12 +82,12 @@
         }
       },
       "sections": {
-        "assessment": "Notable labs (past 24 h): troponin I 97.881 ng/mL [H] (prior 68.499; troponin elevation), glucose 119 mg/dL [H], CK-MB 58.5 ng/mL [H], BNP 104.5 pg/mL [H].",
+        "assessment": "Notable labs (past 24 h): troponin I 97.881 ng/mL [H] (prior 68.499; troponin elevation), glucose 119 mg/dL [H], CK-MB 58.5 ng/mL [H], BNP 104.5 pg/mL [H], +1 other abnormal.",
         "objective": "BP 115/71 mmHg, HR 110 bpm, RR 18 /min, SpO2 95% (RA), T 38.0°C (past 24 h: HR max 112 bpm, RR max 22 /min)",
         "plan": "Continue current medications: Heparin, Nitroglycerin. Given once: Aspirin, Ticagrelor. Procedures today: Urinary catheter insertion, Arterial line insertion, Transthoracic echocardiography, Percutaneous coronary intervention (PCI).",
         "subjective": "Hospital day 1. Persistent fever 38.0°C. Persistent chest pain (NRS 7). New decrease in level of consciousness (AVPU V); orientation being monitored."
       },
-      "text": "S: Hospital day 1. Persistent fever 38.0°C. Persistent chest pain (NRS 7). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 115/71 mmHg, HR 110 bpm, RR 18 /min, SpO2 95% (RA), T 38.0°C (past 24 h: HR max 112 bpm, RR max 22 /min)\nA: Notable labs (past 24 h): troponin I 97.881 ng/mL [H] (prior 68.499; troponin elevation), glucose 119 mg/dL [H], CK-MB 58.5 ng/mL [H], BNP 104.5 pg/mL [H].\nP: Continue current medications: Heparin, Nitroglycerin. Given once: Aspirin, Ticagrelor. Procedures today: Urinary catheter insertion, Arterial line insertion, Transthoracic echocardiography, Percutaneous coronary intervention (PCI)."
+      "text": "S: Hospital day 1. Persistent fever 38.0°C. Persistent chest pain (NRS 7). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 115/71 mmHg, HR 110 bpm, RR 18 /min, SpO2 95% (RA), T 38.0°C (past 24 h: HR max 112 bpm, RR max 22 /min)\nA: Notable labs (past 24 h): troponin I 97.881 ng/mL [H] (prior 68.499; troponin elevation), glucose 119 mg/dL [H], CK-MB 58.5 ng/mL [H], BNP 104.5 pg/mL [H], +1 other abnormal.\nP: Continue current medications: Heparin, Nitroglycerin. Given once: Aspirin, Ticagrelor. Procedures today: Urinary catheter insertion, Arterial line insertion, Transthoracic echocardiography, Percutaneous coronary intervention (PCI)."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-03": {
@@ -132,12 +132,12 @@
         }
       },
       "sections": {
-        "assessment": "Notable labs (past 24 h): troponin I 97.881 ng/mL [H] (prior 68.499; troponin elevation), glucose 119 mg/dL [H], CK-MB 58.5 ng/mL [H], BNP 104.5 pg/mL [H], +2 other abnormal.",
+        "assessment": "Notable labs (past 24 h): troponin I 97.881 ng/mL [H] (prior 68.499; troponin elevation), glucose 119 mg/dL [H], CK-MB 58.5 ng/mL [H], BNP 104.5 pg/mL [H], +4 other abnormal.",
         "objective": "BP 117/73 mmHg, HR 107 bpm, RR 22 /min, SpO2 99% (RA), T 37.7°C, weaned off supplemental O2 (past 24 h: Tmax 39.2°C, HR max 117 bpm, SpO2 min 92%)",
         "plan": "Continue current medications: Heparin, Nitroglycerin. Given once: Aspirin, Ticagrelor.",
         "subjective": "Hospital day 2. New-onset fever 39.2°C. Persistent chest pain (NRS 6). Level of consciousness remains decreased (AVPU V)."
       },
-      "text": "S: Hospital day 2. New-onset fever 39.2°C. Persistent chest pain (NRS 6). Level of consciousness remains decreased (AVPU V).\nO: BP 117/73 mmHg, HR 107 bpm, RR 22 /min, SpO2 99% (RA), T 37.7°C, weaned off supplemental O2 (past 24 h: Tmax 39.2°C, HR max 117 bpm, SpO2 min 92%)\nA: Notable labs (past 24 h): troponin I 97.881 ng/mL [H] (prior 68.499; troponin elevation), glucose 119 mg/dL [H], CK-MB 58.5 ng/mL [H], BNP 104.5 pg/mL [H], +2 other abnormal.\nP: Continue current medications: Heparin, Nitroglycerin. Given once: Aspirin, Ticagrelor."
+      "text": "S: Hospital day 2. New-onset fever 39.2°C. Persistent chest pain (NRS 6). Level of consciousness remains decreased (AVPU V).\nO: BP 117/73 mmHg, HR 107 bpm, RR 22 /min, SpO2 99% (RA), T 37.7°C, weaned off supplemental O2 (past 24 h: Tmax 39.2°C, HR max 117 bpm, SpO2 min 92%)\nA: Notable labs (past 24 h): troponin I 97.881 ng/mL [H] (prior 68.499; troponin elevation), glucose 119 mg/dL [H], CK-MB 58.5 ng/mL [H], BNP 104.5 pg/mL [H], +4 other abnormal.\nP: Continue current medications: Heparin, Nitroglycerin. Given once: Aspirin, Ticagrelor."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-04": {

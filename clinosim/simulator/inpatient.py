@@ -862,6 +862,16 @@ def _simulate_patient(
     protocol_diagnostic = protocol.diagnostic if hasattr(protocol, "diagnostic") else {}
     differential = initialize_differential(disease_id, patient.age, protocol_diagnostic=protocol_diagnostic)
 
+    # Issue #3277: the chronic conditions the disease implies (atrial
+    # fibrillation for a share of stroke patients) are on the patient's list
+    # before the stay's orders, so the antithrombotic plan, the discharge
+    # prescription, the problem list and the narratives read one list.
+    _attach_implied_chronic_conditions(
+        disease_id=disease_id,
+        patient=patient,
+        admission_time=admission_time,
+    )
+
     # Daily simulation loop
     # `target_los_config` (Issue #550) returns dict[str, float]; `min_los` param
     # is typed `int`. Cast at the boundary rather than widening the param type.
@@ -1021,12 +1031,6 @@ def _simulate_patient(
         config=config,
         snapshot_dt=snapshot_dt,
         orders=all_orders,
-    )
-
-    _attach_implied_chronic_conditions(
-        disease_id=disease_id,
-        patient=patient,
-        admission_time=admission_time,
     )
 
     # seed=400 verification: propagate in-hospital death to the

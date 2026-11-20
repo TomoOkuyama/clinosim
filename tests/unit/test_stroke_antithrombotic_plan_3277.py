@@ -27,9 +27,15 @@ _ANTICOAGULANTS = ("Edoxaban", "Warfarin", "Apixaban")
 _ANTIPLATELETS = ("Aspirin", "Clopidogrel")
 
 
-def _protocol(af_implied: bool) -> DiseaseProtocol:
-    protocol = load_disease_protocol("cerebral_infarction")
-    return protocol if af_implied else protocol.model_copy(update={"implied_chronic_codes": ["I10", "E78"]})
+def _protocol(af_implied: bool = True) -> DiseaseProtocol:
+    """The stroke protocol. ``af_implied`` is kept for readability of the call
+    sites: AF is a property of the patient (``_af``), not of the protocol."""
+    return load_disease_protocol("cerebral_infarction")
+
+
+def _af(patient_factory, af: bool, **kwargs):
+    """A patient with atrial fibrillation (I48 on the chronic list) or without."""
+    return patient_factory(chronic_icds=["I48"] if af else [], **kwargs)
 
 
 def _steps(patient, protocol, *, severity="moderate", country="us", day, running=(), hemorrhage=False):
@@ -51,8 +57,8 @@ def _drugs(steps, action):
 
 @pytest.mark.parametrize("country", ["us", "japan"])
 def test_aspirin_is_started_within_24_to_48_hours_without_an_anticoagulant_indication(patient_factory, country):
-    protocol = _protocol(af_implied=False)
-    patient = patient_factory()
+    protocol = _protocol()
+    patient = _af(patient_factory, False)
     assert _drugs(_steps(patient, protocol, day=0, country=country), "start") == []
     day1 = _steps(patient, protocol, day=1, country=country)
     assert _drugs(day1, "start") == ["aspirin"]  # 24-48 h after the admission day
@@ -61,8 +67,8 @@ def test_aspirin_is_started_within_24_to_48_hours_without_an_anticoagulant_indic
 
 
 def test_minor_stroke_gets_short_term_dapt_with_a_defined_duration(patient_factory):
-    protocol = _protocol(af_implied=False)
-    steps = _steps(patient_factory(), protocol, severity="mild", day=0)
+    protocol = _protocol()
+    steps = _steps(_af(patient_factory, False), protocol, severity="mild", day=0)
     assert _drugs(steps, "start") == ["aspirin", "clopidogrel"]
     clopidogrel = next(s.spec for s in steps if s.spec["drug_id"] == "clopidogrel")
     assert clopidogrel["duration_days"] == protocol.antithrombotic_plan.dapt_days == 21
@@ -75,8 +81,8 @@ def test_minor_stroke_gets_short_term_dapt_with_a_defined_duration(patient_facto
 def test_anticoagulant_starts_on_the_severity_day_and_replaces_the_aspirin_bridge(
     patient_factory, country, severity, day
 ):
-    protocol = _protocol(af_implied=True)  # every stroke patient carries AF (implied I48)
-    patient = patient_factory()
+    protocol = _protocol()  # every stroke patient carries AF (implied I48)
+    patient = _af(patient_factory, True)
     kwargs = {"country": country, "severity": severity}
     assert _drugs(_steps(patient, protocol, day=1, **kwargs), "start") == ["aspirin"]
     for d in range(2, day):
@@ -95,15 +101,15 @@ def test_anticoagulant_window_is_inside_the_guideline_range(patient_factory):
 
 
 def test_a_home_anticoagulant_continues_and_nothing_is_added(patient_factory):
-    protocol = _protocol(af_implied=False)
+    protocol = _protocol()
     patient = patient_factory(current_meds=["Warfarin 3mg"])
     for day in range(0, 8):
         assert _steps(patient, protocol, day=day) == []
 
 
 def test_hemorrhagic_transformation_stops_running_agents_and_starts_none(patient_factory):
-    protocol = _protocol(af_implied=False)
-    steps = _steps(patient_factory(), protocol, day=1, running=("aspirin",), hemorrhage=True)
+    protocol = _protocol()
+    steps = _steps(_af(patient_factory, False), protocol, day=1, running=("aspirin",), hemorrhage=True)
     assert [(s.action, s.spec["drug_id"]) for s in steps] == [("stop", "aspirin")]
 
 
@@ -133,17 +139,17 @@ def _names(items):
 
 @pytest.mark.parametrize("country", ["us", "japan"])
 def test_discharge_with_an_indication_has_an_anticoagulant_and_no_antiplatelet(patient_factory, country):
-    protocol = _protocol(af_implied=True)
+    protocol = _protocol()
     for seed in range(40):
-        names = _names(_items(patient_factory(), protocol, country, seed=seed))
+        names = _names(_items(_af(patient_factory, True), protocol, country, seed=seed))
         assert sum(any(a in n for a in _ANTICOAGULANTS) for n in names) == 1, names
         assert not any(a in n for n in names for a in _ANTIPLATELETS), names
 
 
 @pytest.mark.parametrize("country", ["us", "japan"])
 def test_discharge_without_an_indication_has_aspirin_and_no_anticoagulant(patient_factory, country):
-    protocol = _protocol(af_implied=False)
-    items = _items(patient_factory(), protocol, country)
+    protocol = _protocol()
+    items = _items(_af(patient_factory, False), protocol, country)
     names = _names(items)
     assert any("Aspirin" in n for n in names) and not any(a in n for n in names for a in _ANTICOAGULANTS)
     assert not any("Clopidogrel" in n for n in names)  # DAPT is for a minor stroke only
@@ -153,7 +159,7 @@ def test_discharge_without_an_indication_has_aspirin_and_no_anticoagulant(patien
 
 
 def test_discharge_after_a_minor_stroke_has_dapt_with_a_defined_clopidogrel_duration(patient_factory):
-    items = _items(patient_factory(), _protocol(af_implied=False), "us", severity="mild")
+    items = _items(_af(patient_factory, False), _protocol(), "us", severity="mild")
     clopidogrel = next(i for i in items if "Clopidogrel" in i["drug_name"])
     assert clopidogrel["duration_days"] == 21
     assert "loading" not in clopidogrel["dose"].lower()
@@ -162,15 +168,15 @@ def test_discharge_after_a_minor_stroke_has_dapt_with_a_defined_clopidogrel_dura
 def test_no_discharge_item_carries_loading_dose_text(patient_factory):
     for af in (True, False):
         for country in ("us", "japan"):
-            for item in _items(patient_factory(), _protocol(af), country):
+            for item in _items(_af(patient_factory, af), _protocol(), country):
                 assert "loading" not in item["dose"].lower(), item
 
 
 def test_the_in_stay_anticoagulant_is_the_discharge_anticoagulant(patient_factory):
-    protocol = _protocol(af_implied=True)
+    protocol = _protocol()
     for seed in range(30):
         steps = steps_for_day(
-            patient_factory(),
+            _af(patient_factory, True),
             protocol,
             severity="moderate",
             country_key="japan",
@@ -181,7 +187,7 @@ def test_the_in_stay_anticoagulant_is_the_discharge_anticoagulant(patient_factor
         )
         in_stay = _drugs(steps, "start")[0]
         discharged = discharge_specs(
-            patient_factory(),
+            _af(patient_factory, True),
             protocol,
             "anticoagulation",
             severity="moderate",
@@ -195,8 +201,8 @@ def test_the_in_stay_anticoagulant_is_the_discharge_anticoagulant(patient_factor
 def test_the_stay_hospital_started_aspirin_is_not_carried_over_an_anticoagulant(patient_factory):
     """The aspirin bridge is in ``current_medications`` at discharge; it must not
     block (or join) the anticoagulant the plan prescribes."""
-    protocol = _protocol(af_implied=True)
-    patient = patient_factory(current_meds=["Aspirin 100mg"])
+    protocol = _protocol()
+    patient = _af(patient_factory, True, current_meds=["Aspirin 100mg"])
     names = _names(_items(patient, protocol, "japan"))
     assert any(a in n for n in names for a in _ANTICOAGULANTS)
     assert not any("Aspirin" in n for n in names)
@@ -216,9 +222,9 @@ def test_plan_is_validated_at_load():
 
 def test_no_discharge_rng_draw_for_the_plan_blocks(patient_factory):
     """An injected rng still works (test escape hatch) and the plan blocks read none."""
-    protocol = _protocol(af_implied=True)
+    protocol = _protocol()
     rx = build_discharge_rx(
-        patient_factory(),
+        _af(patient_factory, True),
         "cerebral_infarction",
         protocol,
         "PR-1",
@@ -229,6 +235,64 @@ def test_no_discharge_rng_draw_for_the_plan_blocks(patient_factory):
         severity="moderate",
     )
     assert any("Apixaban" in n or "Warfarin" in n for n in _names(rx.items))
+
+
+def test_a_stroke_patient_without_af_is_not_given_af_by_the_protocol(patient_factory):
+    """The protocol's implied chronic codes (a share of patients, Issue #3263) are not
+    an anticoagulant indication by themselves: only the patient's own I48 is."""
+    from clinosim.simulator.antithrombotic_plan import anticoagulant_indicated
+
+    protocol = _protocol()
+    plan = protocol.antithrombotic_plan
+    assert not anticoagulant_indicated(_af(patient_factory, False), protocol, plan)
+    assert anticoagulant_indicated(_af(patient_factory, True), protocol, plan)
+
+
+@pytest.mark.parametrize("country", ["us", "japan"])
+def test_non_af_stroke_has_aspirin_in_stay_and_aspirin_not_anticoagulant_at_discharge(patient_factory, country):
+    protocol = _protocol()
+    patient = _af(patient_factory, False)
+    assert _drugs(_steps(patient, protocol, day=1, country=country), "start") == ["aspirin"]
+    for day in range(2, 15):  # aspirin alone, no anticoagulant is ever started
+        assert _steps(patient, protocol, day=day, country=country, running=("aspirin",)) == []
+    names = _names(_items(patient, protocol, country))
+    assert any("Aspirin" in n for n in names) and not any(a in n for n in names for a in _ANTICOAGULANTS)
+
+
+@pytest.mark.parametrize("country", ["us", "japan"])
+def test_af_stroke_takes_the_anticoagulant_path(patient_factory, country):
+    protocol = _protocol()
+    patient = _af(patient_factory, True)
+    start_day = protocol.antithrombotic_plan.by_country[country].anticoagulant_start_day["moderate"]
+    on_day = _steps(patient, protocol, day=start_day, country=country, running=("aspirin",))
+    assert _drugs(on_day, "stop") == ["aspirin"] and len(_drugs(on_day, "start")) == 1
+    names = _names(_items(patient, protocol, country))
+    assert any(a in n for n in names for a in _ANTICOAGULANTS) and not any("Aspirin" in n for n in names)
+
+
+def test_af_share_of_stroke_patients_matches_the_yaml_value():
+    """The share of ischemic stroke patients who carry I48 is the YAML prevalence
+    (an RNG-free per-patient hash draw)."""
+    from clinosim.simulator.implied_chronic import _prevalence, implied_chronic_codes_to_add
+
+    target = _prevalence()["cerebral_infarction"]["I48"]
+    n = 4000
+    with_af = sum(
+        "I48"
+        in implied_chronic_codes_to_add(
+            "cerebral_infarction", patient_id=f"POP-{i:06d}", sex="M", age=72, have_bases=set()
+        )
+        for i in range(n)
+    )
+    assert abs(with_af / n - target) < 0.03
+    # A patient who already has I48 (population model) keeps it and is not added twice.
+    assert "I48" not in implied_chronic_codes_to_add(
+        "cerebral_infarction", patient_id="POP-000001", sex="M", age=72, have_bases={"I48"}
+    )
+
+
+def _problem_list(record: dict) -> list[dict]:
+    return record["patient"]["chronic_conditions"]
 
 
 def _cohort(tmp_path, disease: str, country: str) -> list[dict]:
@@ -263,8 +327,13 @@ def test_simulated_ischemic_stroke_stays_get_aspirin_within_48_hours_and_an_anti
         if record["deceased"]:
             continue
         names = [i["drug_name"] for i in record["discharge_prescription"]["items"]]
-        assert sum(any(a in n for a in _ANTICOAGULANTS) for n in names) == 1
-        assert not any(a in n for n in names for a in _ANTIPLATELETS)
+        has_af = any(c["code"].startswith("I48") for c in _problem_list(record))
+        n_anticoagulants = sum(any(a in n for a in _ANTICOAGULANTS) for n in names)
+        n_antiplatelets = sum(any(a in n for a in _ANTIPLATELETS) for n in names)
+        if has_af:
+            assert n_anticoagulants == 1 and n_antiplatelets == 0, names
+        else:
+            assert n_anticoagulants == 0 and n_antiplatelets >= 1, names
 
 
 def test_simulated_hemorrhagic_stroke_stays_get_no_antithrombotic(tmp_path):
