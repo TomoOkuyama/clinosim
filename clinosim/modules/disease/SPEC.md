@@ -169,8 +169,9 @@ course_archetypes:                 # archetype → probability + per-day state d
       …
     order_modifications: {}
     treatment_modifications: {}
-    daily_trajectory:              # DailyTrajectoryEntry per day (SOAP seeds)
-      day_0: {subjective: "…", objective: "…", assessment: "…", plan: "…"}
+    # optional `daily_trajectory` (per-day authored SOAP text) is supported by the resolver but currently
+    # unused: a generic string there overrides the composed S/A/P in Japanese progress notes (Issue #3400,
+    # guarded by tests/unit/modules/disease/test_narrative_yaml.py)
   dip_then_recovery:
     …
     treatment_modifications:       # day_N → stop / start / action

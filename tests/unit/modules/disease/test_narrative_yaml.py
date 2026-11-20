@@ -2,7 +2,7 @@
 
 Three tests:
 1. bacterial_pneumonia has narrative block with expected sub-fields.
-2. bacterial_pneumonia smooth_recovery archetype has daily_trajectory with SOAP entries.
+2. No course archetype carries authored daily S/O/A/P narrative text (Issue #3400).
 3. Forward-coverage gate: ALL disease YAMLs (32) must have narrative block.
 
 Note: The brief referenced "30 diseases" but the reference_data directory
@@ -13,6 +13,9 @@ files present so it automatically covers future additions.
 from __future__ import annotations
 
 import os
+from pathlib import Path
+
+import yaml
 
 from clinosim.modules.disease.protocol import load_disease_protocol
 
@@ -29,24 +32,28 @@ def test_bacterial_pneumonia_has_narrative_block() -> None:
     assert p.narrative.discharge_instructions.emergency, "emergency empty"
 
 
-def test_bacterial_pneumonia_archetype_has_daily_trajectory() -> None:
-    """smooth_recovery archetype in bacterial_pneumonia must have daily_trajectory.
+def test_no_course_archetype_carries_authored_daily_narrative() -> None:
+    """No disease YAML course archetype may carry authored S/O/A/P text (Issue #3400).
 
-    Note: course_archetypes is typed as dict[str, Any] in DiseaseProtocol to
-    preserve dict-style access used throughout the simulator (inpatient.py, etc.).
-    daily_trajectory is stored as a plain nested dict inside the archetype dict.
+    The same generic strings (symptom relief, good treatment response, improved
+    findings, continue treatment) used to sit on one archetype of 23 diseases. In
+    Japanese progress notes they replaced the whole day's Subjective / Assessment /
+    Plan, dropping complications, the lab course, medications and diet, and asserted
+    improvement regardless of the day's data. The notes compose those sections from
+    the record instead (as English notes always did), so a ``daily_trajectory`` that
+    carries subjective / objective / assessment / plan text would override the
+    composers again. Real per-day text must be authored as a composer rule, not here.
     """
-    p = load_disease_protocol("bacterial_pneumonia")
-    arch = p.course_archetypes.get("smooth_recovery")
-    assert arch is not None, "smooth_recovery archetype missing"
-    assert "daily_trajectory" in arch, "daily_trajectory missing in smooth_recovery"
-    dt = arch["daily_trajectory"]
-    assert "day_0" in dt, "day_0 missing in daily_trajectory"
-    assert "subjective" in dt["day_0"], "subjective missing in day_0"
-    assert dt["day_0"]["subjective"], "subjective is empty in day_0"
-    assert "objective" in dt["day_0"], "objective missing in day_0"
-    # Issue #3245: no placeholder assessment / plan; they are composed from the record.
-    assert "assessment" not in dt["day_0"] and "plan" not in dt["day_0"], dt["day_0"]
+    disease_dir = Path("clinosim/modules/disease/reference_data")
+    offenders = []
+    for path in sorted(disease_dir.glob("*.yaml")):
+        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        for arch_id, arch in (data.get("course_archetypes") or {}).items():
+            for day, entry in ((arch or {}).get("daily_trajectory") or {}).items():
+                for key in ("subjective", "objective", "assessment", "plan"):
+                    if (entry or {}).get(key):
+                        offenders.append(f"{path.name}:{arch_id}:{day}:{key}")
+    assert not offenders, offenders
 
 
 def test_all_diseases_have_narrative() -> None:
