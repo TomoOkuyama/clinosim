@@ -27,7 +27,12 @@ metadata:
 #   respiratory_rate high 20 /min: adult reference 12-20 /min.
 #   spo2 low 94 %: below the BTS 2017 target range of 94-98 % for adults not
 #     at risk of hypercapnia (O'Driscoll BR et al., Thorax 2017;72:i1-i90).
-#   systolic_bp low 90 mmHg: hypotension (shock work-up cut-off).
+#   systolic_bp low 90 mmHg: hypotension (shock work-up cut-off). For a
+#     child the low limit is the age band's ``critical_low`` (``child_low:
+#     critical_low``), the PALS 2020 hypotension threshold documented in
+#     pediatric_reference_ranges.yaml, not the band's normal-range ``low``
+#     (a newborn baseline of 68 mmHg lies just above the 0-0 band's low of 67,
+#     so ordinary readings would otherwise be called hypotension; Issue #3402).
 #   pain_score high 3 (0-10 NRS): a score of 4 or more is notable pain
 #     (the Subjective's pain threshold, composers._SUBJ_PAIN_NOTABLE).
 # A child is judged against the age-banded range of
@@ -38,7 +43,7 @@ limits:
   heart_rate: {low: 60, high: 100}
   respiratory_rate: {low: 12, high: 20}
   spo2: {low: 94}
-  systolic_bp: {low: 90}
+  systolic_bp: {low: 90, child_low: critical_low}
   pain_score: {high: 3}
 
 # Exam clauses are split at these separators (outermost first); a clause is
