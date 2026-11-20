@@ -517,6 +517,7 @@ def compose_progress_plan_from_state(ctx: NarrativeContext) -> str:
         ("progress.meds_continue", meds.continued),
         ("progress.meds_given_once", meds.given_once),
         ("progress.meds_held", meds.held),
+        ("progress.meds_resumed", meds.resumed),
         ("progress.meds_stopped", meds.stopped),
     ):
         if names:

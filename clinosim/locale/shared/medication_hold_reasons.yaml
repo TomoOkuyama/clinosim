@@ -41,6 +41,15 @@ reasons:
   "Acute HF exacerbation — oral diuretic replaced by IV furosemide":
     en: "acute HF exacerbation (oral diuretic held, IV furosemide substituted)"
     ja: "急性心不全増悪 (内服利尿薬を静注フロセミドに変更)"
+    # Issue #3411: not a hold — the home oral diuretic is replaced by IV
+    # furosemide. A progress note words it as a change (`change`), with the
+    # clinical state as the reason (`change_reason`).
+    change:
+      en: "switched from oral to IV"
+      ja: "内服 → 静注に変更"
+    change_reason:
+      en: "acute HF exacerbation"
+      ja: "急性心不全増悪"
   "Acute illness with lactic acidosis risk + NPO status":
     en: "acute illness (lactic acidosis risk + NPO)"
     ja: "急性疾患 (乳酸アシドーシスリスク + 絶食状態のため保留)"

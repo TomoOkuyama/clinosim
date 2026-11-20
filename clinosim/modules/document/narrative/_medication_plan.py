@@ -80,13 +80,16 @@ def medication_plan_rules() -> MedicationPlanRules:
 @dataclass
 class NoteMedications:
     """The drugs of a note's period by what happened to them, each list
-    ranked and in the note's language; ``held`` carries the hold reason."""
+    ranked and in the note's language; ``held`` carries the hold reason and
+    ``held_refs`` the drug keys of ``held``."""
 
     started: list[str] = field(default_factory=list)
     continued: list[str] = field(default_factory=list)
     given_once: list[str] = field(default_factory=list)
     held: list[str] = field(default_factory=list)
+    resumed: list[str] = field(default_factory=list)
     stopped: list[str] = field(default_factory=list)
+    held_refs: set[str] = field(default_factory=set)
 
 
 @dataclass
@@ -102,6 +105,10 @@ class _Drug:
     previous_scheduled: bool = False
     previous_as_needed_only: bool = True
     later: bool = False
+    # The latest dose before the note's period (Issue #3411): when it was held
+    # the hold carries on until a dose is given.
+    prior_at: tuple[datetime, int] | None = None
+    prior_held_reason: str | None = None
 
 
 def drug_tier(drug_ref: str, route: str) -> int:
@@ -218,7 +225,7 @@ def note_medications(ctx: NarrativeContext) -> NoteMedications:
 
     drugs: dict[str, _Drug] = {}
     keys: dict[int, str] = {}
-    for m in list(getattr(ctx, "medications", None) or []):
+    for index, m in enumerate(list(getattr(ctx, "medications", None) or [])):
         name = _o(m, "drug_name", None) or _o(m, "medication", None) or _o(m, "name", None)
         p = period(m)
         if not name:
@@ -242,6 +249,15 @@ def note_medications(ctx: NarrativeContext) -> NoteMedications:
                 drug.current_as_needed_only = drug.current_as_needed_only and as_needed
         else:
             drug.previous_any = True
+            # Issue #3411: the latest earlier dose decides whether a hold
+            # carries on into this period.
+            day_of = _day(m, admitted)
+            stamp = _when(m) or (datetime.min + timedelta(days=day_of or 0))
+            if drug.prior_at is None or (stamp, index) >= drug.prior_at:
+                drug.prior_at = (stamp, index)
+                drug.prior_held_reason = (
+                    str(_o(m, "hold_reason", None) or "") if _o(m, "status", None) == "held" else None
+                )
         if p == -1 and not is_once:
             drug.previous_scheduled = True
             drug.previous_as_needed_only = drug.previous_as_needed_only and as_needed
@@ -249,10 +265,17 @@ def note_medications(ctx: NarrativeContext) -> NoteMedications:
     out = NoteMedications()
     for drug in _ranked(list(drugs.values()), keys):
         shown = localize_drug_name(drug.name, lang)
-        if drug.held_reason is not None:
+        # A hold goes on until a dose is given (Issue #3411): a drug whose
+        # latest earlier dose was held and has none in this period stays held.
+        carried = not drug.current and drug.prior_held_reason is not None
+        reason = drug.prior_held_reason if carried else drug.held_reason
+        if reason is not None:
             # The reason in the note's language (Issue #3233); a measured
             # value ("SBP < 90", "K 6.5 mmol/L") is written as stored.
-            out.held.append(f"{shown} ({hold_reason_display(drug.held_reason, lang)})" if drug.held_reason else shown)
+            out.held.append(f"{shown} ({hold_reason_display(reason, lang)})" if reason else shown)
+            out.held_refs.add(drug_key(keys[drug.position]))
+        elif drug.current and drug.current_scheduled and drug.prior_held_reason is not None:
+            out.resumed.append(shown)
         elif drug.current and not drug.current_scheduled:
             out.given_once.append(shown)
         elif drug.current:

@@ -193,3 +193,15 @@ def hold_reason_display(reason: str, lang: str) -> str:
     (a measured value such as "SBP < 90" or "K 6.1 mmol/L") displays as
     stored (Issue #3233)."""
     return localized(load_medication_hold_reasons().get(reason), lang, fallback=reason)
+
+
+def hold_reason_change(reason: str, lang: str, *, reason_text: bool = False) -> str:
+    """The change a stored hold reason really records, in ``lang`` ("" for a
+    reason that is a hold): the home oral diuretic that "held" at an acute
+    heart-failure admission is replaced by IV furosemide, a route switch and
+    not a hold (Issue #3411). ``reason_text`` gives the reason shown beside the
+    change (``change_reason`` in ``medication_hold_reasons.yaml``) rather than
+    the change itself (``change``)."""
+    entry = load_medication_hold_reasons().get(reason) or {}
+    block = entry.get("change_reason" if reason_text else "change")
+    return localized(block, lang, fallback="") if isinstance(block, dict) else ""
