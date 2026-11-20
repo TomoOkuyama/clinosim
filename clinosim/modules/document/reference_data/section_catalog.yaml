@@ -570,6 +570,12 @@ manner_of_death:
     ja: "死因の種類"
   loinc: "69449-7"
 
+time_of_death:
+  title:
+    en: "Date and time of death"
+    ja: "死亡年月日時刻"
+  loinc: ""  # no LOINC section code means this section (Issue #3405)
+
 circumstances_of_death:
   title:
     en: "Circumstances of death"

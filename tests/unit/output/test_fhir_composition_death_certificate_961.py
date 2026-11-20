@@ -528,7 +528,7 @@ def test_dds_autopsy_and_dc_autopsy_agree_per_encounter() -> None:
     dc_text, _ = build_dc_autopsy_status(gen, ctx)
     dds_text, _ = build_dds_autopsy_status_and_findings(gen, ctx)
     # DC uses "解剖の有無: 有（病理解剖）" for performed, "解剖の有無: 無" for none
-    dc_performed = "有（病理解剖）" in dc_text
+    dc_performed = "有（病理解剖" in dc_text
     dds_performed = "剖検は施行せず" not in dds_text
     assert dc_performed == dds_performed, f"DC and DDS autopsy status disagreed: DC={dc_text!r}, DDS={dds_text!r}"
 
@@ -541,7 +541,7 @@ def test_dc_duration_uses_bucket_for_multi_day_stay_ja() -> None:
     gen = TemplateNarrativeGenerator()
     text, _ = build_dc_duration_of_immediate_cause(gen, ctx)
     assert "3日" in text
-    assert "入院前の経過は本記録範囲外" in text
+    assert "発症時期は不詳" in text and "範囲外" not in text
 
 
 def test_dc_contributing_conditions_includes_chronic_and_complication_ja() -> None:

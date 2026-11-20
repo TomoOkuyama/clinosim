@@ -485,13 +485,17 @@ def build_dc_underlying_cause(generator: TemplateNarrativeGenerator, ctx: Narrat
     """原死因 / Underlying cause of death (the lowest line of Part I).
 
     The disease that started the sequence (``_dc_cause_chain``), with its
-    full code. It is the immediate cause too when the record shows a
-    single condition.
+    full code. When the record shows a single condition it is the immediate
+    cause too, and this line points back to line (a) (Issue #3405).
     """
     lang = ctx.target_lang
     chain = _dc_cause_chain(ctx)
     if chain is None:
         return t("death_cert.underlying_cause_not_documented", lang), []
+    if chain.due_to is None and chain.immediate.internal == chain.underlying.internal:
+        # One condition is the whole sequence: line (a) names it and this
+        # line points back to it rather than repeating the disease.
+        return t("death_cert_line.underlying_same_as_immediate", lang), [chain.underlying.fact]
     return t("death_cert_line.underlying_cause", lang, cause=_cause_text(chain.underlying, lang)), [
         chain.underlying.fact
     ]
@@ -542,7 +546,6 @@ def build_dc_contributing_conditions(
         if emit[:3] in cause_categories:
             continue
         parts.append(t("list_item.inline_dx_with_code", lang, display=display, code=emit))
-    parts = parts[:5]
     if parts:
         facts.append("ctx.patient.chronic_conditions")
 
@@ -614,6 +617,34 @@ def build_dc_manner_of_death(generator: TemplateNarrativeGenerator, ctx: Narrati
     lang = ctx.target_lang
     facts: list[str] = []
     return t("death_cert_line.manner_natural", lang), facts
+
+
+@section("time_of_death")
+def build_dc_time_of_death(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
+    """死亡年月日時刻 / Date and time of death (Issue #3405).
+
+    The death datetime of the record: the terminating encounter's discharge
+    datetime, else the patient's death datetime. Never fabricated: a record
+    without one says so.
+    """
+    lang = ctx.target_lang
+    for value, fact in (
+        (_o(ctx.encounter, "discharge_datetime", None), "ctx.encounter.discharge_datetime"),
+        (_o(ctx.patient, "death_datetime", None) if ctx.patient else None, "ctx.patient.death_datetime"),
+    ):
+        when = _as_datetime(value)
+        if when is not None:
+            text = t(
+                "death_cert_line.time_of_death",
+                lang,
+                year=when.year,
+                month=when.month,
+                day=when.day,
+                hour=when.hour,
+                minute=when.minute,
+            )
+            return text, [fact]
+    return t("death_cert.time_of_death_not_documented", lang), []
 
 
 @section("autopsy_status")
@@ -1068,10 +1099,9 @@ def build_dds_autopsy_status_and_findings(
 
     Uses the SAME SHA256 sampling helper as the DC autopsy_status
     section so the two documents always agree (~7% autopsy rate).
-    When autopsy=true, appends a defensible "所見は主要臓器の病理
-    学的評価にて確認された" boilerplate — clinosim does not model
-    pathological findings, so this stays generic rather than
-    fabricating specific gross/microscopic descriptions.
+    The summary is written at the time of death and clinosim does not model
+    pathological findings, so an autopsy is stated as planned with the
+    findings to follow (Issue #3405), never as a result.
     """
     lang = ctx.target_lang
     facts: list[str] = ["encounter.id::autopsy_sample"]

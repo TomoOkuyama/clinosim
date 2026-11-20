@@ -108,7 +108,8 @@ def test_latest_terminal_complication_is_the_immediate_cause_and_the_disease_und
 
 
 def test_underlying_code_is_the_full_code() -> None:
-    underlying, _ = build_dc_underlying_cause(None, _ctx("ja", adm="I63.9", dis="I63.9"))
+    ctx = _ctx("ja", adm="I63.9", dis="I63.9", comps=[_comp("acute_heart_failure", 6)])
+    underlying, _ = build_dc_underlying_cause(None, ctx)
     assert "（I63.9）" in underlying
     assert "（I63）" not in underlying
 

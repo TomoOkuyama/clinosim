@@ -1781,14 +1781,14 @@ proc_note:
 # build_dds_autopsy_status_and_findings.
 autopsy:
   status_yes:
-    ja: "解剖の有無: 有（病理解剖）。"
-    en: "Autopsy performed: yes (pathological autopsy)."
+    ja: "解剖の有無: 有（病理解剖を予定、遺族の承諾あり）。"
+    en: "Autopsy performed: yes (pathological autopsy planned with family consent)."
   status_no:
     ja: "解剖の有無: 無。"
     en: "Autopsy performed: no."
   findings_yes:
-    ja: "剖検の有無・所見: 病理解剖を施行。臨床診断と主要臓器の病理所見に大きな乖離は認めなかった。"
-    en: "Autopsy status and findings: pathological autopsy performed. Major-organ pathological findings were consistent with the clinical diagnosis."
+    ja: "剖検の有無・所見: 病理解剖を予定（遺族の承諾あり）。所見は後日報告する。"
+    en: "Autopsy status and findings: pathological autopsy planned with family consent; findings to follow."
   findings_no:
     ja: "剖検の有無・所見: 剖検は施行せず（家族同意得られず）。"
     en: "Autopsy status and findings: autopsy not performed (no family consent)."
@@ -2300,8 +2300,8 @@ dc_duration:
     ja: "入院より約{weeks}週間の長期経過で死亡{suffix}"
     en: "died after a prolonged {weeks}-week course during this admission{suffix}"
   tail:
-    ja: "。入院前の経過は本記録範囲外。"
-    en: ". Pre-admission course not captured in this record."
+    ja: "。発症時期は不詳。"
+    en: ". Date of onset unknown."
   # Issue #3255: an immediate cause that began during the stay (an
   # in-hospital complication) is timed from its onset.
   onset_body_hours:
@@ -2622,6 +2622,12 @@ death_cert_line:
   underlying_cause:
     ja: "原死因: {cause}。"
     en: "Underlying cause of death: {cause}."
+  underlying_same_as_immediate:
+    ja: "原死因: （ア）の疾患に同じ。"
+    en: "Underlying cause of death: the disease on the immediate cause line."
+  time_of_death:
+    ja: "死亡年月日時刻: {year}年{month}月{day}日 {hour:02d}時{minute:02d}分。"
+    en: "Date and time of death: {year}-{month:02d}-{day:02d} {hour:02d}:{minute:02d}."
   manner_natural:
     ja: "死因の種類: 病死及び自然死。"
     en: "Manner of death: natural / disease-related."
@@ -2650,6 +2656,9 @@ death_cert:
   immediate_cause_not_documented:
     ja: "直接死因: 記録なし。"
     en: "Immediate cause of death: not documented."
+  time_of_death_not_documented:
+    ja: "死亡年月日時刻: 記録なし。"
+    en: "Date and time of death: not documented."
   underlying_cause_not_documented:
     ja: "原死因: 記録なし。"
     en: "Underlying cause of death: not documented."
