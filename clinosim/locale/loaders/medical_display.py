@@ -173,6 +173,13 @@ def load_diet_type_display() -> dict[str, dict[str, str]]:
 
 
 @lru_cache(maxsize=1)
+def load_diet_supply_route() -> dict[str, str]:
+    """Supply route of a diet slug ({slug: "none"}; a slug not listed is oral)."""
+    raw = _load_yaml(_LOCALE_DIR / "shared" / "diet_type_display.yaml", fallback={})
+    return {str(k): str(v) for k, v in (raw.get("diet_supply_route") or {}).items()}
+
+
+@lru_cache(maxsize=1)
 def load_medication_hold_reasons() -> dict[str, dict[str, str]]:
     """Medication hold-reason displays (``locale/shared/medication_hold_reasons.yaml``,
     Issue #2405), keyed by the reason text stored with the hold (a disease

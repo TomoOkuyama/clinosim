@@ -26,6 +26,7 @@ from clinosim.countries import country_code
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.locale.loader import vocab_display
+from clinosim.locale.loaders.medical_display import load_diet_supply_route
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._as_of import in_force_at
 from clinosim.modules.document.narrative._localization import _localize_proc_type
@@ -34,6 +35,7 @@ from clinosim.modules.document.narrative._narrative_interpretation_thresholds im
     NUTRITION_PROTEIN_G_PER_KG_MIDPOINT,
     bmi_band,
 )
+from clinosim.modules.document.narrative._progress_course import diet_display, diet_order_at
 from clinosim.modules.document.narrative._template_helpers import _resolve_staff_name, allergen_display
 from clinosim.modules.document.narrative.renderers._shared_helpers import diagnosis_coded
 from clinosim.modules.document.narrative.renderers.section_builders._registry import (
@@ -309,7 +311,8 @@ def build_ncp_nutrition_supply(generator: TemplateNarrativeGenerator, ctx: Narra
     """栄養補給に関する事項 (エネルギー/たんぱく質/補給方法) — standard
     initial-planning estimation formulas from PatientProfile.weight_kg
     (25-30 kcal/kg/day energy midpoint, 1.0-1.2 g/kg/day protein
-    midpoint — design spec §3c). Route fixed to 経口 (oral) MVP default."""
+    midpoint — design spec §3c). The route follows the diet order active at
+    the plan's authored time (Issue #3412): 経口, or none while fasting."""
     facts: list[str] = []
     lang = ctx.target_lang
     weight = _o(ctx.patient, "weight_kg", None)
@@ -319,7 +322,26 @@ def build_ncp_nutrition_supply(generator: TemplateNarrativeGenerator, ctx: Narra
     facts.append("patient.weight_kg")
     energy = round(float(weight) * NUTRITION_ENERGY_KCAL_PER_KG_MIDPOINT)
     protein = round(float(weight) * NUTRITION_PROTEIN_G_PER_KG_MIDPOINT, 1)
-    return t("ncp.nutrition_supply_line", lang, energy=energy, protein=protein), facts
+    route_key = "ncp.supply_route_oral"
+    active = diet_order_at(ctx, ctx.authored_datetime)
+    if active is not None and load_diet_supply_route().get(active[1]) == "none":
+        route_key = "ncp.supply_route_none"
+        facts.append("ctx.orders.diet")
+    route = t(route_key, lang)
+    return t("ncp.nutrition_supply_line", lang, energy=energy, protein=protein, route=route), facts
+
+
+@section("dietary_content")
+def build_ncp_dietary_content(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
+    """食事内容 — the diet order active at the plan's authored time (Issue
+    #3412), not a fixed regular diet; "to be determined" before any order."""
+    lang = ctx.target_lang
+    active = diet_order_at(ctx, ctx.authored_datetime)
+    if active is None:
+        return t("ncp.dietary_content_undetermined", lang), []
+    slug = active[1]
+    key = "ncp.dietary_content_npo_line" if load_diet_supply_route().get(slug) == "none" else "ncp.dietary_content_line"
+    return t(key, lang, diet=diet_display(slug, lang)), ["ctx.orders.diet"]
 
 
 @section("other_issues")
@@ -519,7 +541,6 @@ _FIXED_PHRASE_SECTIONS: dict[str, str] = {
     "dietitian": "fallback.ncp_dietitian_fallback",  # 担当管理栄養士名
     "nutrition_goals": "fallback.ncp_goals_fallback",  # 栄養管理計画 目標
     "dysphagia_diet": "fallback.ncp_dysphagia_none",  # 嚥下調整食の必要性
-    "dietary_content": "fallback.ncp_dietary_content_fallback",  # 食事内容
     "nutrition_counseling": "fallback.ncp_counseling_fallback",  # 栄養食事相談に関する事項
     "reassessment_timing": "fallback.ncp_reassessment_fallback",  # 栄養状態の再評価の時期
     "discharge_evaluation": "fallback.ncp_discharge_eval_fallback",  # 退院時及び終了時の総合的評価

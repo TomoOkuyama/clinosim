@@ -177,7 +177,7 @@ clinosim/modules/document/
   reference_data_loaders.py          load_physical_exam_findings + load_discharge_instructions (6-layer) + 他の cached loader
   audit.py                           AD-60 audit plug-in #5 — 49-check lift_firing_proof
   reference_data/
-    document_type_specs.yaml         文書種別 registry
+    document_type_specs.yaml         文書種別 registry (nutrition_care_plan は入院8時間後、初日の食事オーダー後に作成し、食事内容と補給方法は有効な食事オーダーに従う: narrative/_progress_course.py diet_order_at)
     section_catalog.yaml             Composition section slug catalog (narrative/registry.py, composition.py)
     physical_exam_findings.yaml      per-disease PE 所見 (baseline + 新生児セット + override)
     clinosim-discharge-instruction.yaml  退院指導 (load_discharge_instructions、旧 discharge_instructions.yaml、#1862)。各項目に `applies_when` 条件 (性別・喫煙/飲酒状況・疾患群・退院処方薬、該当薬は `{drugs}` に展開) を付けられ、renderers/_resolvers.py resolve_discharge_instructions が評価し重複文を除く (#3254)

@@ -210,3 +210,63 @@ def test_nutrition_assessment_shows_the_recorded_bmi_and_its_band() -> None:
     from clinosim.locale.i18n import t
 
     assert f"BMI 25.0 ({t('bmi_band.overweight', 'en')})" in out.sections["nutrition_assessment"]
+
+
+# Issue #3412: diet and route come from the diet order active at the plan's time.
+
+
+def _diet_ctx(diets: list[tuple[str, datetime]], authored: datetime | None, lang: str = "ja") -> NarrativeContext:
+    ctx = _make_ctx(target_lang=lang, locale="jp" if lang == "ja" else "us")
+    ctx.orders = [
+        SimpleNamespace(order_type="diet", display_name=slug, ordered_datetime=placed.isoformat())
+        for slug, placed in diets
+    ]
+    ctx.authored_datetime = authored
+    return ctx
+
+
+def _sections(ctx: NarrativeContext) -> dict[str, str]:
+    return TemplateNarrativeGenerator().generate(ctx, _make_spec()).sections
+
+
+def test_npo_admission_states_fasting_and_no_oral_route() -> None:
+    adm = datetime(2026, 7, 1, 10, 0)
+    out = _sections(_diet_ctx([("NPO", adm.replace(hour=17))], adm.replace(hour=18)))
+    assert "絶食" in out["dietary_content"]
+    assert "常食" not in out["dietary_content"]
+    assert "経口摂取なし" in out["nutrition_supply"]
+
+
+def test_regular_diet_states_regular_and_oral() -> None:
+    adm = datetime(2026, 7, 1, 10, 0)
+    out = _sections(_diet_ctx([("regular_diet", adm.replace(hour=17))], adm.replace(hour=18)))
+    assert out["dietary_content"] == "食事内容：常食"
+    assert out["nutrition_supply"].endswith("補給方法：経口")
+
+
+def test_diet_ordered_after_authoring_is_not_stated() -> None:
+    adm = datetime(2026, 7, 1, 10, 0)
+    out = _sections(_diet_ctx([("NPO", adm.replace(hour=17))], adm))
+    assert "未定" in out["dietary_content"]
+    assert "常食" not in out["dietary_content"]
+
+
+def test_latest_diet_order_at_authored_time_wins_en() -> None:
+    adm = datetime(2026, 7, 1, 10, 0)
+    diets = [("NPO", adm.replace(hour=17)), ("clear_liquid", adm.replace(day=2, hour=17))]
+    out = _sections(_diet_ctx(diets, adm.replace(day=3), lang="en"))
+    assert out["dietary_content"] == "Dietary content: Clear liquids"
+    assert out["nutrition_supply"].endswith("Route: oral")
+
+
+def test_nutrition_care_plan_is_authored_after_the_day0_diet_order() -> None:
+    from clinosim.modules.document.engine import _plan_admission_once_los_gt_7
+    from clinosim.modules.document.narrative.registry import load_document_type_specs
+
+    spec = load_document_type_specs()[DocumentType.NUTRITION_CARE_PLAN]
+    assert spec.authored_after_admission_hours >= 7
+    adm = datetime(2026, 7, 1, 10, 0)
+    facts = SimpleNamespace(admission_dt=adm, end_dt=adm.replace(day=12), los_days=11)
+    (plan,) = _plan_admission_once_los_gt_7(spec, facts)  # type: ignore[arg-type]
+    assert plan.authored == adm.replace(hour=10 + int(spec.authored_after_admission_hours)).isoformat()
+    assert _plan_admission_once_los_gt_7(spec, SimpleNamespace(admission_dt=adm, end_dt=adm, los_days=5)) == []  # type: ignore[arg-type]

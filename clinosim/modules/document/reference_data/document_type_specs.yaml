@@ -254,6 +254,9 @@ specs:
     countries_supported: [jp]
     encounter_types_supported: [inpatient, icu]
     generation_frequency: admission_once_los_gt_7
+    # Authored after the day-0 diet order (placed 7 h after the admission), so
+    # the plan states the diet in force (Issue #3412); a modelling choice.
+    authored_after_admission_hours: 8
     composition_sections:
       - ward_and_physician
       - dietitian
