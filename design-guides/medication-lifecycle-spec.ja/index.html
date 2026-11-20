@@ -2549,6 +2549,11 @@
 <td><code>tests/unit/simulator/test_maintenance_iv_fluid_stop_3409.py</code></td>
 </tr>
 <tr>
+<td>混合入院 (<code>condition_type</code> が "mixed"。プロトコルがあれば細菌性肺炎) の併存疾患は、その疾患プロトコルの入院時オーダーで検査・治療する。オーダーは入院のオーダーに統合し、固有の ID (<code>ADM-C...</code>) と固有のシード付き乱数で置く (入院の乱数列は読まない)。入院が既に検査を出している項目、既に撮像した部位・モダリティの検査、既にある型の支持療法 (<code>IV_fluid</code> と <code>DVT_prophylaxis</code> は重ねない)、入院中の有効な処方が既に含む、または置き換える (supersede 規則: β ラクタム 2 剤) 第一選択薬は出さない。オーダーは入院日に置く。遅れて認識した併存疾患 (入院の <code>delayed_recognition_probability</code> の割合。エンカウンター ID の SHA で決める。入院の見逃し診断) は病日 <code>recognition_day_min</code> から <code>recognition_day_max</code> に置く。治療開始日から <code>recovery_days</code> 日かけて、発症で上がった軸を元に戻す。ICD コードはエンカウンターの副診断になる。値はモデル上の選択であり、ガイドラインの数値ではない。</td>
+<td><code>simulator/mixed_condition.py</code>。データ <code>simulator/reference_data/mixed_condition.yaml</code>。<code>inpatient.py</code> と <code>daily_loop.py</code> で適用。<code>modules/order/engine.py::place_admission_orders</code> (<code>id_infix</code>)</td>
+<td><code>tests/unit/simulator/test_mixed_co_disease_3392.py</code></td>
+</tr>
+<tr>
 <td>直近の血清クレアチニンが KDIGO 2012 の AKI 定義(48 時間以内に 0.3 mg/dL 以上の上昇、または入院中のそれまでの最低値(基準値)の 1.5 倍以上)を満たす間は、NSAID(アスピリンを除く)・ACE 阻害薬・ARB・サイアザイド系またはカリウム保持性利尿薬・メトホルミンの予定投与をすべて「急性腎障害」を理由に保留し、クレアチニンが定義を満たさなくなれば再開する。退院処方も、最終クレアチニンが定義を満たす間は同じ薬剤を処方せず(保留として記録)、満たさなくなっていれば継続する。クレアチニンが定義を満たしピークから 10% 以上低下していない間、または直近 24 時間に 38.0 °C 以上の体温が記録された間は退院可としない。入院はサンプルした在院日数から最長 5 日延長し、上限に達しても未解決の場合は、本来の退院先をそのまま用い、最終クレアチニンが定義を満たしているときは退院時指導に、退院後 1 週間ほどでの外来クレアチニン再検査、約 3 か月後の腎機能再評価(KDIGO 2012 推奨 2.3.4)、保留した薬剤は再検査の結果を確認してから再開する旨を加える。</td>
 <td><code>aki_response.py</code>、<code>medication_pipeline.py::_generate_mar</code>、<code>discharge_gate.py</code>、<code>discharge_rx.py::build_discharge_rx</code>、値は <code>reference_data/aki_response.yaml</code></td>
 <td></td>

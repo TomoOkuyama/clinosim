@@ -2580,6 +2580,11 @@
 <td><code>tests/unit/modules/document/narrative/test_admission_hp_exam_3245.py</code></td>
 </tr>
 <tr>
+<td>入院時記録 (H&amp;P) は入院の原因疾患から書く (Issue #3245): 身体所見は疾患が及ぶ系統の所見を記録の言語で書く (<code>reference_data/disease_exam.yaml</code>: 英語・日本語。引用するバイタルと矛盾する句は書かず、意識の句はそのバイタルの AVPU に合わせ、疾患が関与しない系統に「正常」を作らない)。HPI は両言語で同じ構成 (年齢・性別、主訴、疾患の <code>onset_type</code> の発症文、既往、常用薬、ROS の陰性所見)。<code>admission_results</code> セクションは記録時点で得られている異常検査値と画像・心電図の所見を載せ、なければ結果待ちと書く。方針には、手術を要する疾患の予定手術と、記録された蘇生方針を加える。疾患 YAML に仮の評価 (「初期診断確定」) は置かず、評価と方針は記録から組み立てる。 混合診断の入院のアセスメントは、主たる疾患の行と併存疾患ごとの行を持つ (Issue #3392: <code>NarrativeContext.co_disease_ids</code>、重症度は <code>CO_DISEASE_SEVERITY</code>)。退院時診断はその入院の副診断コード (併存疾患を含む) を列挙する。</td>
+<td><code>renderers/_disease_exam.py</code>, <code>renderers/section_builders/patient_history.py::build_physical_examination</code> / <code>build_admission_results</code>, <code>renderers/section_builders/hpi.py</code>, <code>renderers/section_builders/assessment_and_plan.py::admission_plan_items</code>, <code>reference_data/disease_exam.yaml</code></td>
+<td><code>tests/unit/modules/document/narrative/test_admission_hp_exam_3245.py</code></td>
+</tr>
+<tr>
 <td>文書は記載時点で存在したデータだけを含む (Issue #3241): H&amp;P は入院後 <code>authored_after_admission_hours</code> (<code>document_type_specs.yaml</code>) 時間、入院時検査の結果が出てから記載され (入院日 0 日目の文書のまま)、バイタルは記載時点までの最初の測定値を引用し (なければバイタルの行を書かない)、新生児の H&amp;P は Apgar を残し、記載より後のスクリーニング・測定・投与を書かない。</td>
 <td><code>narrative/_as_of.py::recorded_by</code>, <code>renderers/_composers.py::pe_vitals_reading</code>, <code>narrative/context.py::newborn_workup_known_at</code>, <code>engine.py::_plan_admission_once</code></td>
 <td><code>tests/unit/modules/document/narrative/test_admission_hp_exam_3245.py</code></td>
