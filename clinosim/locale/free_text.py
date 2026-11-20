@@ -28,6 +28,7 @@ import re
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_allergen_display_dict as _load_allergen_display_dict
+from clinosim.locale.loader import load_dose_phrase_dict as _load_dose_phrase_dict
 from clinosim.locale.loader import load_drug_display_dict as _load_drug_display_dict
 from clinosim.locale.loader import load_med_terms as _load_med_terms
 from clinosim.locale.loader import load_medication_order_phrase_dict as _load_medication_order_phrase_dict
@@ -49,6 +50,7 @@ __all__ = [
     "_localize_rate_adjustment",
     "_split_rate_adjustment_suffix",
     "localize_allergen_name",
+    "localize_dose_text",
     "localize_drug_name",
     "localize_free_text",
     "localize_procedure_name",
@@ -241,6 +243,56 @@ def _target_lang(lang: str) -> str | None:
     return None if code == _SOURCE_LANG else code
 
 
+_RATE_ADJUSTMENT_WHOLE_RE = re.compile(r"^(increase|decrease)[_ ]rate[_ ]by[_ ](\d+)%$", re.IGNORECASE)
+_DOSE_SUFFIX_CACHE: dict[int, tuple[dict[str, str], re.Pattern[str] | None]] = {}
+
+
+def _dose_suffix_pattern(table: dict[str, str]) -> re.Pattern[str] | None:
+    """One regex over the dose phrase keys (longest first), anchored to the end
+    of an order string and to a word start; cached per table object."""
+    cached = _DOSE_SUFFIX_CACHE.get(id(table))
+    if cached is not None and cached[0] is table:
+        return cached[1]
+    keys = sorted(table, key=len, reverse=True)
+    pattern = re.compile(r"(?:^|(?<=\s))(" + "|".join(re.escape(k) for k in keys) + r")\s*$") if keys else None
+    _DOSE_SUFFIX_CACHE[id(table)] = (table, pattern)
+    return pattern
+
+
+def _split_dose_phrase(order: str, lang: str) -> tuple[str, str] | None:
+    """``(head, dose phrase in lang)`` when ``order`` ("drug dose") ends in a
+    dose string that has a whole phrase (Issue #3428), else ``None``."""
+    table = _load_dose_phrase_dict(lang)
+    pattern = _dose_suffix_pattern(table)
+    if pattern is None:
+        return None
+    normalized = order.replace("_", " ")
+    m = pattern.search(normalized.lower())
+    if m is None:
+        return None
+    return normalized[: m.start()].strip(), table[m.group(1)]
+
+
+def localize_dose_text(text: str, lang: str) -> str:
+    """A dose instruction in ``lang``. A dose string with a phrase of its own
+    (``dose_phrases`` table, Issue #3428) reads as that phrase, looked up whole
+    before any word substitution; a rate-change notation ("increase_rate_by_20%")
+    reads as the instruction; the rest is term-substituted. English keeps the
+    text but spells out a protocol slug."""
+    code = normalize_lang(lang)
+    key = text.replace("_", " ").strip().lower()
+    if code != _SOURCE_LANG:
+        hit = _load_dose_phrase_dict(code).get(key)
+        if hit:
+            return hit
+    m = _RATE_ADJUSTMENT_WHOLE_RE.match(text.strip())
+    if m:
+        note = t(f"module_text.rate_{m.group(1).lower()}", code, pct=m.group(2))
+        if note:
+            return note
+    return _localize_dosage_terms(text, code)
+
+
 def _localize_drug_name(drug_name: str, country: str) -> str:
     """A drug name / medication order string in the country's language, over
     the drug table only (Issue #2408); unchanged for English output."""
@@ -274,6 +326,13 @@ def localize_drug_name(drug_name: str, lang: str) -> str:
     phrase = _load_medication_order_phrase_dict(target).get(_phrase_key(drug_name))
     if phrase:
         return phrase
+    # Issue #3428: an order string "drug dose" whose dose has a whole phrase
+    # reads the drug by name and the dose as that phrase.
+    split = _split_dose_phrase(drug_name, target)
+    if split is not None:
+        head, dose = split
+        named = _translate(head, _load_drug_display_dict(target), target, keep_named=True) if head else ""
+        return f"{named} {dose}".strip()
     return _translate(drug_name, _load_drug_display_dict(target), target, keep_named=True)
 
 

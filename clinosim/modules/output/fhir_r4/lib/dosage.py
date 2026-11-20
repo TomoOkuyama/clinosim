@@ -21,6 +21,7 @@ from clinosim.modules.output.fhir_r4.lib.localization import (
     FREQUENCY_TEXT,
     ROUTE_TEXT,
     _localize_dosage_terms,
+    localize_dose_text,
 )
 from clinosim.modules.output.fhir_r4.lib.reference_data import (
     _ROUTE_ALIASES,
@@ -854,7 +855,7 @@ def build_dosage_instruction(
         # Issue #3033: an authored dose copied from an English protocol
         # string (chemotherapy regimens) reads in the output language;
         # Japanese authored text has no Latin term to replace.
-        dosage["text"] = _localize_dosage_terms(authored_text, lang_for(country))
+        dosage["text"] = localize_dose_text(authored_text, lang_for(country))
     elif parts:
         # Route / frequency tokens in the output language, then the dosage
         # term translator for any remaining English (Issue #2459); English

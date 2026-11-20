@@ -364,6 +364,12 @@ terms:
   q1-4h: {ja: 1-4時間毎}
   q2-4h: {ja: 2-4時間毎}
   q4-6h: {ja: 4-6時間毎}
+  q8-12h: {ja: 8-12時間毎}
+  q5min: {ja: 5分毎}
+  q20min: {ja: 20分毎}
+  q5-15min: {ja: 5-15分毎}
+  q10-20min: {ja: 10-20分毎}
+  x3: {ja: 3回}
   q6-8h: {ja: 6-8時間毎}
   loading, then: {ja: 負荷投与後}
   wide open: {ja: 全開}
