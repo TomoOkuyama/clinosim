@@ -130,6 +130,7 @@ def _baby(lang: str, birth: dict | None) -> NarrativeContext:
         "birth_length_cm": 50.0,
         "bilirubin_series": [{"timestamp": "2025-12-23T10:00:00", "day": 1, "value_mg_dl": 6.2}],
         "has_aabr": True,
+        "aabr_outcome_key": "pass",
         "event_times": {"aabr": "2025-12-23T10:36:00"},
     }
     return ctx
@@ -163,7 +164,7 @@ def test_newborn_screening_is_cited_by_the_notes_after_it_resulted() -> None:
     assert newborn_screening_to_date(ctx) == ""
     ctx.authored_datetime = datetime(2025, 12, 24, 12, 0)
     text = newborn_screening_to_date(ctx)
-    assert "AABR hearing screen completed" in text and "peak total bilirubin 6.2" in text and "Apgar" not in text, text
+    assert "AABR hearing screen: pass" in text and "peak total bilirubin 6.2" in text and "Apgar" not in text, text
     assert newborn_workup_known_at(ctx.newborn_workup, ctx.authored_datetime)["has_aabr"]
     assert newborn_screening_to_date(_ctx("acute_mi", "en")) == ""
 

@@ -140,7 +140,8 @@ def _render_newborn_workup_summary(
         parts.append(t("newborn.apgar_line", lang, a1=a1_str, a5=a5_str))
 
     if workup.get("has_aabr"):
-        parts.append(t("newborn.aabr_completed", lang))
+        aabr = workup.get("aabr_outcome_key")
+        parts.append(t(f"newborn.aabr_{aabr}" if aabr in ("pass", "refer") else "newborn.aabr_completed", lang))
 
     metabolic = workup.get("metabolic_status") or newborn_metabolic_status(workup, None)
     if metabolic == "pending":

@@ -83,7 +83,7 @@ def test_us_hpi_neonate_appends_apgar_and_workup_summary() -> None:
     ctx = _ctx("en", newborn_workup=_full_workup())
     text, facts = build_hpi(gen, ctx)
     assert "Apgar 8(1 min) / 9(5 min)" in text
-    assert "AABR hearing screen completed" in text
+    assert "AABR hearing screen performed" in text
     assert "peak total bilirubin 11.4 mg/dL" in text
     assert "CCHD SpO2 RU 98% / LE 97%" in text
     assert "Vitamin K administered" in text
@@ -98,7 +98,7 @@ def test_jp_hpi_neonate_appends_apgar_and_workup_summary() -> None:
     ctx = _ctx("ja", newborn_workup=_full_workup())
     text, facts = build_hpi(gen, ctx)
     assert "Apgar 8(1分)/9(5分)" in text
-    assert "AABR 聴覚スクリーン提出済" in text
+    assert "AABR 聴覚スクリーン実施" in text
     assert "総ビリルビン最高値 11.4 mg/dL" in text
     assert "CCHD SpO2 右上肢 98% / 下肢 97%" in text
     assert "ビタミン K 投与済" in text
