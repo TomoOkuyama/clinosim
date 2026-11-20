@@ -126,3 +126,110 @@ procedures:
   Graduated compression stocking on unaffected leg: {ja: "弾性ストッキング(患側外・段階的圧迫)"}
   Cervical collar until cleared: {ja: "頚椎固定(頚椎カラー・画像判定まで)"}
   Emergent dialysis stat: {ja: "緊急透析"}
+
+  # --- Admission supportive care / 入院時の支持療法 (Issue #3398) ---
+  # Keys are the CIF `type: detail` order strings of the disease protocols'
+  # `admission_orders.supportive` entries ("_" reads as a space); the whole string
+  # is looked up first, so the phrase carries the type's label and the detail's
+  # parameters. A new protocol entry needs a phrase here (guard test).
+  "BP_management: Permissive hypertension: allow SBP < 220 (or < 185 if tPA given)": {ja: "血圧管理: 許容性高血圧 (SBP < 220 まで許容、tPA 投与時は < 185)"}
+  "BP_management: Target SBP < 140 mmHg per AHA/ASA guidelines": {ja: "血圧管理: 目標 SBP < 140 mmHg (AHA/ASA ガイドライン)"}
+  "DVT_prophylaxis: Pneumatic compression devices (SCDs) — delay pharmacologic prophylaxis 24-48h": {ja: "DVT予防: 間欠的空気圧迫装置 (SCD)、薬物的予防は 24-48 時間遅らせる"}
+  "DVT_prophylaxis: Sequential compression devices (avoid anticoagulant DVT prophylaxis first 24h)": {ja: "DVT予防: 間欠的空気圧迫装置 (最初の24時間は抗凝固薬による DVT 予防を避ける)"}
+  "DVT_prophylaxis: Sequential compression devices initially": {ja: "DVT予防: 当初は間欠的空気圧迫装置"}
+  "DVT_prophylaxis: therapeutic_anticoagulation (replaces prophylactic)": {ja: "DVT予防: 治療的抗凝固療法 (予防投与に代えて)"}
+  "HOB_elevation: Head of bed elevated 30-45 degrees": {ja: "頭部挙上: ベッドアップ 30-45 度"}
+  "HOB_elevation: Head of bed flat 30 degrees per protocol": {ja: "頭部挙上: プロトコルに従いベッドアップ 30 度"}
+  "IV_access: Two large-bore peripheral IVs": {ja: "静脈路確保: 太径の末梢静脈路を 2 本"}
+  "IV_fluid: Parkland formula: LR 4mL × kg × %TBSA over 24h": {ja: "輸液: Parkland 式: 乳酸リンゲル液 4 mL × 体重 (kg) × 熱傷面積 (%TBSA) を 24 時間かけて投与"}
+  "IV_fluid_restriction: Restrict to 1000 mL/day": {ja: "水分制限 1,000 mL/日"}
+  "I_and_O: Strict intake and output monitoring": {ja: "水分出納の厳密管理"}
+  "NG_tube: Nasogastric tube to low intermittent suction": {ja: "経鼻胃管: 低圧間欠吸引"}
+  "NPO: NPO until catheterization assessment": {ja: "絶飲食: カテーテル検査の評価まで"}
+  "NPO: NPO until swallowing assessment": {ja: "絶飲食: 嚥下評価まで"}
+  "NPO: NPO until swallowing assessment completed": {ja: "絶飲食: 嚥下評価の完了まで"}
+  "O2: Controlled O2 target SpO2 88-92% (avoid hyperoxia in CO2 retainers)": {ja: "酸素投与: 調節酸素投与 目標 SpO2 88-92% (CO2 貯留患者では高酸素を避ける)"}
+  "O2: Nasal cannula SpO2 >= 94%": {ja: "酸素投与: 鼻カニューラ SpO2 >= 94%"}
+  "O2: Nasal cannula 2 >= 94%": {ja: "酸素投与: 鼻カニューラ SpO2 >= 94%"}
+  "O2: PRN SpO2 < 94%": {ja: "酸素投与: SpO2 < 94% で頓用"}
+  "O2: Target SpO2 >= 94%": {ja: "酸素投与: 目標 SpO2 >= 94%"}
+  "antibiotic_prophylaxis: Cefazolin 2g IV (preoperative)": {ja: "予防的抗菌薬: セファゾリン 2g 静注 (術前)"}
+  "anticoagulant_reversal: Vitamin K + FFP if on warfarin; idarucizumab if dabigatran": {ja: "抗凝固薬の拮抗: ワルファリン服用中ならビタミンK + FFP、ダビガトラン服用中ならイダルシズマブ"}
+  "aspiration_precautions: Suction at bedside, HOB elevation, lateral positioning": {ja: "誤嚥予防: ベッドサイドに吸引器を準備、頭部挙上、側臥位"}
+  "bed_rest: Bed rest for initial 12-24h": {ja: "安静: 当初 12-24 時間は床上安静"}
+  "bed_rest: Bed rest with gradual mobilization as pain allows": {ja: "安静: 床上安静、疼痛の許す範囲で段階的に離床"}
+  "bronchodilator: Ipratropium 0.5mg nebulizer q6h": {ja: "気管支拡張薬: イプラトロピウム 0.5mg ネブライザー 6時間毎"}
+  "bronchodilator: Salbutamol 2.5mg nebulizer q4h (q1h PRN acute)": {ja: "気管支拡張薬: サルブタモール 2.5mg ネブライザー 4時間毎 (急性期は1時間毎に頓用)"}
+  "cardiac_monitoring: Telemetry for 24-48h": {ja: "心電図モニター: テレメトリー 24-48 時間"}
+  "cervical_immobilization: Cervical collar until cleared": {ja: "頚椎固定(頚椎カラー・画像判定まで)"}
+  "compression_stocking: Graduated compression stocking on unaffected leg": {ja: "弾性ストッキング(患側外・段階的圧迫)"}
+  "continuous_monitoring: Continuous ECG telemetry, BP q15min x 4h then q1h": {ja: "持続モニタリング: 心電図テレメトリーを持続、血圧 15分毎 x 4 時間、その後 1時間毎"}
+  "continuous_telemetry: Cardiac monitoring for AF detection x48h minimum": {ja: "心電図モニター: 心房細動検出のため最低 48 時間モニタリング"}
+  "daily_weight: Daily weight monitoring": {ja: "毎日の体重測定"}
+  "diet: Low sodium (6g/day)": {ja: "減塩食 (6 g/日)"}
+  "elevation: Elevate hand above heart level": {ja: "患肢挙上: 手を心臓より高く"}
+  "fall_precautions: High risk due to encephalopathy and coagulopathy": {ja: "転倒予防: 肝性脳症と凝固異常のため高リスク"}
+  "fall_precautions: Seizure and fall precautions": {ja: "転倒予防: 痙攣・転倒予防策"}
+  "fluid_balance: Strict I/O monitoring": {ja: "水分出納の厳密管理 (I/O)"}
+  "fluid_management: Individualized — NS if prerenal, restrict if oliguric/overloaded": {ja: "輸液管理: 個別化 — 腎前性なら生理食塩液、乏尿・体液過剰なら制限"}
+  "fluid_restriction: 1-1.5L/day if Na < 125": {ja: "水分制限: Na < 125 の場合 1-1.5 L/日"}
+  "foley_catheter: Strict I/O monitoring, target UO >= 0.5 mL/kg/h": {ja: "膀胱留置カテーテル: 水分出納の厳密管理、目標尿量 >= 0.5 mL/kg/h"}
+  "glucose_check: Fingerstick glucose q1h": {ja: "血糖測定: 指尖血糖 1時間毎"}
+  "glucose_monitoring: BG q4-6h, target 140-180 mg/dL": {ja: "血糖モニタリング: 血糖 4-6時間毎、目標 140-180 mg/dL"}
+  "head_elevation: HOB 30 degrees": {ja: "頭部挙上: ベッドアップ 30 度"}
+  "head_of_bed: Elevate 30 degrees": {ja: "頭部挙上: 30 度"}
+  "hold_anticoagulants: Hold warfarin, DOACs, heparin": {ja: "抗凝固薬の休薬: ワルファリン、DOAC、ヘパリン"}
+  "hold_nephrotoxins: Hold NSAIDs, aminoglycosides, ACE-I/ARB, metformin": {ja: "腎毒性薬剤の休薬: NSAIDs（非ステロイド性抗炎症薬）、アミノグリコシド系抗菌薬、ACE 阻害薬/ARB、メトホルミン"}
+  "isolation: Droplet precautions": {ja: "隔離: 飛沫予防策"}
+  "large_bore_IV: Two large-bore (16-18G) peripheral IVs": {ja: "太径静脈路確保: 太径 (16-18G) の末梢静脈路を 2 本"}
+  "leg_elevation: Elevate affected limb above heart level": {ja: "下肢挙上: 患肢を心臓より高く"}
+  "limb_elevation: Elevate affected limb above heart level": {ja: "患肢挙上 (心臓より高く)"}
+  "massive_transfusion_protocol: Activate if hemorrhagic shock": {ja: "大量輸血プロトコル: 出血性ショックの場合に発動"}
+  "monitoring: 1:1 15min checks until suicide risk reassessed": {ja: "モニタリング: 自殺リスクを再評価するまで 1 対 1 で 15 分毎に確認"}
+  "monitoring: Agitation scale each shift; seclusion / restraint only per protocol": {ja: "モニタリング: 勤務帯ごとに興奮の評価尺度を記録、隔離・身体拘束はプロトコルに従う場合のみ"}
+  "monitoring: Continuous cardiac monitoring": {ja: "モニタリング: 持続心電図モニタリング"}
+  "nebulizer: Ipratropium 0.5mg NEB q20min x3": {ja: "ネブライザー: イプラトロピウム 0.5mg 吸入 20分毎 x3 回"}
+  "nebulizer: Salbutamol 2.5mg NEB q20min x3, then q1-4h PRN": {ja: "ネブライザー: サルブタモール 2.5mg 吸入 20分毎 x3 回、その後 1-4時間毎に頓用"}
+  "neuro_checks: NIHSS q2h for first 24h, then q4h": {ja: "神経学的評価: NIHSS 最初の 24 時間は 2時間毎、その後 4時間毎"}
+  "neuro_monitoring: GCS q1h, pupil checks q1h": {ja: "神経学的モニタリング: GCS 1時間毎、瞳孔所見 1時間毎"}
+  "nutritional_support: Early enteral feeding": {ja: "栄養サポート: 早期経腸栄養"}
+  "oral_care: Chlorhexidine oral care q6h": {ja: "口腔ケア: クロルヘキシジンによる口腔ケア 6時間毎"}
+  "safety_observation: Observation level per risk of harm to self": {ja: "安全確保のための観察: 自傷リスクに応じた観察レベル"}
+  "seizure_prophylaxis: Levetiracetam 500mg IV q12h x7 days": {ja: "痙攣予防: レベチラセタム 500mg 静注 12時間毎 x7 日間"}
+  "seizure_prophylaxis: Not routine; only if seizure occurs": {ja: "痙攣予防: 通常は行わず、痙攣が起きた場合のみ"}
+  "splint: Sugar-tong splint pending surgery": {ja: "術前シュガートングシーネ固定"}
+  "sodium_restriction: <2g Na/day": {ja: "塩分制限: Na 2 g/日未満"}
+  "stress_ulcer_prophylaxis: Famotidine 20mg IV BID": {ja: "ストレス潰瘍予防: ファモチジン 20mg 静注 1日2回"}
+  "suicide_precautions: Ligature-safe room, belongings search, observation level per risk": {ja: "自殺予防: 縊頸防止対策を施した病室、持ち物の確認、リスクに応じた観察レベル"}
+  "telemetry: Continuous cardiac monitoring": {ja: "テレメトリー心電図モニター: 持続モニタリング"}
+  "tetanus_prophylaxis: Td booster if > 5 years": {ja: "破傷風予防: 5 年超の場合は Td 追加接種 (最終接種から)"}
+  "transfusion: pRBC if Hb < 7g/dL (or < 8 if cardiac comorbidity)": {ja: "輸血: Hb < 7g/dL で赤血球液 (心疾患合併例は < 8)"}
+  "urinary_catheter: Foley catheter": {ja: "膀胱留置カテーテル: フォーリーカテーテル"}
+  "urinary_catheter: Foley catheter for perioperative period": {ja: "周術期の膀胱留置カテーテル"}
+  "urinary_catheter: Foley catheter, monitor UOP": {ja: "膀胱留置カテーテル: 尿量をモニタリング"}
+  "urine_output_monitoring: Foley catheter, hourly urine output measurement": {ja: "尿量モニタリング: フォーリーカテーテル、時間尿量測定"}
+  "withdrawal_monitoring: CIWA-Ar assessment q4h; symptom-triggered lorazepam": {ja: "離脱症状モニタリング: CIWA-Ar による評価 4時間毎、症状に応じてロラゼパム"}
+  "wound_care: Clean and dress entry/exit wounds": {ja: "創傷処置: 電流の入口・出口創の洗浄と被覆"}
+  "wound_care: Silver sulfadiazine cream, sterile dressings": {ja: "創傷処置: スルファジアジン銀クリーム、滅菌ドレッシング"}
+  "wound_marking: Mark borders of erythema with skin marker": {ja: "発赤範囲をマーキング"}
+
+
+# Admission supportive care that the order classifier files as a drug order
+# (Issue #3398). The drug resolver does not read the `procedures` table above
+# (Issue #2408), so a whole "type: detail" order string whose English would
+# otherwise be substituted word by word has its phrase here.
+medication_orders:
+  "DVT_prophylaxis: Enoxaparin SC 1": {ja: "DVT予防: エノキサパリン 皮下注 (術後 1 日目から)"}
+  "DVT_prophylaxis: Enoxaparin when bleeding risk resolved": {ja: "DVT予防: 出血リスクが解消したらエノキサパリン"}
+  "DVT_prophylaxis: Enoxaparin 2000IU SC daily (contralateral limb)": {ja: "DVT予防: エノキサパリン 2000IU 皮下注 1日1回 (反対側の下肢)"}
+  "DVT_prophylaxis: Enoxaparin 2000IU SC daily (hold 12h pre-op)": {ja: "DVT予防: エノキサパリン 2000IU 皮下注 1日1回 (術前 12 時間は休薬)"}
+  "IV_fluid: Lactated Ringer's 75-100 mL/h until oral intake": {ja: "輸液: 乳酸リンゲル液 75-100 mL/h (経口摂取が可能になるまで)"}
+  "IV_fluid: NS 5NS with thiamine given first": {ja: "輸液: 生理食塩液または 5% ブドウ糖加生理食塩液 (チアミンを先に投与)"}
+  "IV_fluid: NS 65": {ja: "輸液: 生理食塩液 全開投与 (MAP > 65 を目標に調整)"}
+  "IV_fluid: NS 150-200 mL/h, target UOP > 1-1.5 mL/kg/h": {ja: "輸液: 生理食塩液 150-200 mL/h、目標尿量 > 1-1.5 mL/kg/h"}
+  "IV_fluid: Lactated Ringer 250-500 mL/h for first 12-24h (aggressive hydration)": {ja: "輸液: 乳酸リンゲル液 250-500 mL/h (最初の 12-24 時間、積極的補液)"}
+  "IV_fluid: Lactated Ringer 30 mL/kg bolus within 3 hours": {ja: "輸液: 乳酸リンゲル液 30 mL/kg ボーラス (3 時間以内)"}
+  "IV_insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3)": {ja: "インスリン持続静注: レギュラーインスリン 0.1 U/kg/h (K >= 3.3 を確認後)"}
+  "pain_management: Acetaminophen 1000mg IV + NSAIDs": {ja: "疼痛管理: アセトアミノフェン 1000mg 静注 + 非ステロイド性抗炎症薬 (NSAIDs)"}
+  "lactulose: 30mL PO TID if encephalopathy": {ja: "ラクツロース: 30mL 経口 1日3回 (肝性脳症がある場合)"}
+  "PPI: Omeprazole 80mg IV bolus, then 8mg/h continuous infusion": {ja: "PPI: オメプラゾール 80mg 静注ボーラス、その後 8mg/h で持続静注"}

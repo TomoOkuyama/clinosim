@@ -490,9 +490,21 @@ def load_procedure_display_dict(lang: str = "ja") -> dict[str, str]:
         text = value.strip() if isinstance(value, str) else ""
         if en_lower and text and en_lower not in out:
             out[en_lower] = text
-    _add_table(
-        out, _load_yaml(_LOCALE_DIR / "shared" / "clinosim-procedure-phrase.yaml", fallback={}).get("procedures"), lang
-    )
+    rows = _load_yaml(_LOCALE_DIR / "shared" / "clinosim-procedure-phrase.yaml", fallback={}).get("procedures")
+    # Issue #3398: an order string's protocol slug ("IV_fluid_restriction: ...")
+    # is keyed as the lookup spells it, with a space for each "_".
+    _add_table(out, {str(en).replace("_", " "): entry for en, entry in (rows or {}).items()}, lang)
+    return out
+
+
+@cache
+def load_medication_order_phrase_dict(lang: str = "ja") -> dict[str, str]:
+    """EN → ``lang`` whole order strings of the supportive care filed as drug
+    orders (Issue #3398): the ``medication_orders`` section of
+    ``clinosim-procedure-phrase.yaml``, keyed like the procedure table."""
+    rows = _load_yaml(_LOCALE_DIR / "shared" / "clinosim-procedure-phrase.yaml", fallback={}).get("medication_orders")
+    out: dict[str, str] = {}
+    _add_table(out, {str(en).replace("_", " "): entry for en, entry in (rows or {}).items()}, lang)
     return out
 
 

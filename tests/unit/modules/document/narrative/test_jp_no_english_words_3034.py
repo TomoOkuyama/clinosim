@@ -115,6 +115,7 @@ _ALLOWED = {
     "qSOFA",
     "aPTT",
     "tPA",
+    "Td",
     "rt",
 }
 
