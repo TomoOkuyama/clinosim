@@ -49,6 +49,7 @@ from clinosim.locale.loader import chronic_followup_interval_months, load_chroni
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import drug_spec_in_age_band, strip_protocol_prefix
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules.document.narrative._interval_events import interval_event_line, interval_events
 from clinosim.modules.document.narrative._localization import _localize_complication, _localize_stage
 from clinosim.modules.document.narrative._narrative_interpretation_thresholds import (
     NARRATIVE_ADULT_TACHYCARDIA_HR,
@@ -273,12 +274,22 @@ def build_outpatient_subjective(generator: TemplateNarrativeGenerator, ctx: Narr
     if composed and reason_lines:
         composed = join_sentences([composed, *reason_lines], lang)
         facts.append("composed:visit_reason.subjective")
+    # Issue #3407: the admissions and emergency visits since the previous visit
+    # (a visit-reason kind states its own index admission).
+    interval_line = "" if kind else interval_event_line(ctx)
+    if interval_line:
+        composed = join_sentences([composed, interval_line], lang) if composed else interval_line
+        facts.append("ctx.interval_encounters")
     soap = _get_soap_template(ctx)
     template_prose = ""
     if soap is not None:
         template_prose = _pick_localized(soap, "subjective", lang, ctx)
         if template_prose == fallback:
             template_prose = ""
+        if template_prose and not interval_events(ctx) and _o(soap, "no_interval_event", None):
+            template_prose = join_sentences(
+                [template_prose, _pick_localized(soap, "no_interval_event", lang, ctx)], lang
+            )
     if composed and template_prose:
         facts.extend(
             [

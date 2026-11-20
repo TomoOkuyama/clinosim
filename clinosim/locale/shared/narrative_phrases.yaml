@@ -509,6 +509,20 @@ outpatient:
   today_workup_head:
     ja: "本日実施: "
     en: "Today's workup: "
+  # Admissions and emergency visits between the previous outpatient visit and
+  # this one (Issue #3407; narrative/_interval_events.py).
+  interval_for_dx:
+    ja: "{dx}のため"
+    en: " for {dx}"
+  interval_procedure_clause:
+    ja: "し、{procedures}を施行"
+    en: ", with {procedures}"
+  interval_admission:
+    ja: "前回受診以降、{date}に{for_dx}{days}日間入院{procedure_clause}。"
+    en: "Since the last visit, admitted on {date}{for_dx} for {days} days{procedure_clause}."
+  interval_ed:
+    ja: "前回受診以降、{date}に{for_dx}救急外来を受診。"
+    en: "Since the last visit, seen in the emergency department on {date}{for_dx}."
 
 # ED-note assessment composer phrases (Phase 1d-21).
 # From template_generator._compose_ed_assessment_from_state.

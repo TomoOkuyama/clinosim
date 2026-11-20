@@ -202,6 +202,7 @@ clinosim/modules/document/
     chronic-med-class-hints.yaml     chronic-assessment medication-class hints (narrative/renderers/section_builders/outpatient_soap.py)
     chronic_soap_templates.yaml      chronic-condition SOAP note templates (the visit diagnosis's entry; findings, not instructions)
     visit_reason_soap.yaml           outpatient SOAP by visit reason: visit kinds, per-kind S/O/A/P lines, vital-sign findings with plan lines, vaccine record, well-child development and guidance (narrative/_visit_reason.py)
+    interval_events.yaml             admissions / emergency visits an outpatient note states since the previous visit (narrative/_interval_events.py)
     outpatient_results.yaml          outpatient SOAP results: prior-lab analytes, CKD G categories, screening scores (narrative/_outpatient_results.py)
     hedging_phrases.yaml             narrative hedging phrase pool
     drug_plan_priority.yaml          progress-note plan drug ranking tiers, one-time frequencies, list cap (narrative/_medication_plan.py)
