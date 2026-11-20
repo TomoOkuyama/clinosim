@@ -2544,6 +2544,11 @@
 <td><code>tests/unit/simulator/test_vasoactive_weaning_3270.py</code></td>
 </tr>
 <tr>
+<td>直近の血清クレアチニンが KDIGO 2012 の AKI 定義(48 時間以内に 0.3 mg/dL 以上の上昇、または入院中のそれまでの最低値(基準値)の 1.5 倍以上)を満たす間は、NSAID(アスピリンを除く)・ACE 阻害薬・ARB・サイアザイド系またはカリウム保持性利尿薬・メトホルミンの予定投与をすべて「急性腎障害」を理由に保留し、クレアチニンが定義を満たさなくなれば再開する。退院処方も、最終クレアチニンが定義を満たす間は同じ薬剤を処方せず(保留として記録)、満たさなくなっていれば継続する。クレアチニンが定義を満たしピークから 10% 以上低下していない間、または直近 24 時間に 38.0 °C 以上の体温が記録された間は退院可としない。入院はサンプルした在院日数から最長 5 日延長し、上限に達しても未解決の場合は、本来の退院先をそのまま用い、最終クレアチニンが定義を満たしているときは退院時指導に、退院後 1 週間ほどでの外来クレアチニン再検査、約 3 か月後の腎機能再評価(KDIGO 2012 推奨 2.3.4)、保留した薬剤は再検査の結果を確認してから再開する旨を加える。</td>
+<td><code>aki_response.py</code>、<code>medication_pipeline.py::_generate_mar</code>、<code>discharge_gate.py</code>、<code>discharge_rx.py::build_discharge_rx</code>、値は <code>reference_data/aki_response.yaml</code></td>
+<td></td>
+</tr>
+<tr>
 <td>1 日より長い間隔の頻度 (週 1 回・月 1 回・隔日) のオーダーは、オーダーした日とその後の間隔ごとに 1 回投与する。間隔は頻度トークン表から読むので、週 1 回の用量文字列が 1 日 1 回に置き換わることはない。</td>
 <td><code>modules/order/engine.py::dosing_interval_days</code>, <code>medication_pipeline.py::_generate_mar</code></td>
 <td><code>tests/unit/simulator/test_non_daily_mar_2982.py</code></td>

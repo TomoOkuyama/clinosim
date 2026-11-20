@@ -2549,6 +2549,11 @@
 <td><code>tests/unit/simulator/test_vasoactive_weaning_3270.py</code></td>
 </tr>
 <tr>
+<td>While the latest serum creatinine meets the KDIGO 2012 AKI definition (a rise of at least 0.3 mg/dL within 48 hours or to at least 1.5 times the lowest result of the stay so far, which is the baseline), every scheduled dose of an NSAID (aspirin excepted), ACE inhibitor, ARB, thiazide or potassium-sparing diuretic, or metformin is held with the reason "acute kidney injury" and given again once the creatinine no longer meets the definition. The discharge prescription leaves the same drugs off (logged as a hold) while the final creatinine meets it, and continues them once it no longer does. The patient is not discharge-ready, and the stay is extended by at most 5 days beyond the sampled stay, while the creatinine meets the definition and has not fallen by 10% from its peak or a temperature of at least 38.0 °C was recorded in the last 24 hours; a stay that reaches the cap with either finding unresolved keeps the disposition it would otherwise have had, and when the final creatinine still meets the definition the discharge instructions add an outpatient creatinine recheck about 1 week after discharge, a kidney-function evaluation about 3 months after the illness (KDIGO 2012 Recommendation 2.3.4) and a note that the held drugs are restarted only after the recheck has been reviewed.</td>
+<td><code>aki_response.py</code>, <code>medication_pipeline.py::_generate_mar</code>, <code>discharge_gate.py</code>, <code>discharge_rx.py::build_discharge_rx</code>; values in <code>reference_data/aki_response.yaml</code></td>
+<td></td>
+</tr>
+<tr>
 <td>An order whose frequency is a cadence longer than a day (weekly, monthly, every other day) is given once on the day it is ordered and on every interval after; the cadence is read from the frequency-token catalog, so a weekly dose text is never defaulted to daily.</td>
 <td><code>modules/order/engine.py::dosing_interval_days</code>, <code>medication_pipeline.py::_generate_mar</code></td>
 <td><code>tests/unit/simulator/test_non_daily_mar_2982.py</code></td>
