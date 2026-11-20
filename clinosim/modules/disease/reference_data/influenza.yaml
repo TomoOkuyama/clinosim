@@ -460,16 +460,6 @@ course_archetypes:
     order_modifications: {}
     treatment_modifications: {}
 
-    daily_trajectory:
-      day_0:
-        subjective: "症状あり"
-        objective: "バイタル安定、検査所見あり"
-      day_1:
-        subjective: "症状緩和傾向"
-        objective: "バイタル安定、検査所見改善"
-        assessment: "治療反応良好"
-        plan: "治療継続"
-
   dip_then_recovery:
     probability: 0.15
     description: "Brief worsening Day 1-2, then improvement — high fever persists before responding"
