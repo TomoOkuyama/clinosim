@@ -105,6 +105,11 @@ def format_physical_exam(phys_exam: dict[str, Any], severity: str, lang: str) ->
             label = _label("body_system", sys_key, lang, fallback=sys_key)
             parts.append(f"{label}: {text}")
 
+    # A system text that already ends with a terminator must not get a second
+    # one from the join; the last item keeps its own ending as callers append
+    # further clauses (Issue #3410).
+    period = t("list_sep.period", lang)
+    parts = [p.removesuffix(period) for p in parts[:-1]] + parts[-1:]
     return t("list_sep.period_space", lang).join(parts)
 
 
