@@ -380,6 +380,9 @@ class ProgressVitalExtreme(BaseModel):
     side: Literal["max", "min"]
     limit: float
     inclusive: bool = False
+    # Low side of a child: the age band's normal-range ``low`` or its
+    # ``critical_low`` (hypotension); see progress_exam.yaml.
+    child_low: Literal["low", "critical_low"] = "low"
 
 
 class ComplaintPainSite(BaseModel):

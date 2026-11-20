@@ -544,7 +544,7 @@ def compose_today_vitals_line(ctx: NarrativeContext) -> str:
         value = _extreme(readings, rule.vital, max if rule.side == "max" else min)
         if value is None or value == latest.get(rule.vital):
             continue
-        limit = _vital_limit(ctx, rule.vital, rule.side, rule.limit)
+        limit = _vital_limit(ctx, rule.vital, rule.side, rule.limit, rule.child_low)
         beyond = value > limit if rule.side == "max" else value < limit
         if beyond or (rule.inclusive and value == limit):
             shown.append(t(f"progress.vital_extreme.{rule.vital}_{rule.side}", lang, v=value))
@@ -555,7 +555,7 @@ def compose_today_vitals_line(ctx: NarrativeContext) -> str:
     return line
 
 
-def _vital_limit(ctx: NarrativeContext, vital: str, side: str, adult: float) -> float:
+def _vital_limit(ctx: NarrativeContext, vital: str, side: str, adult: float, child_low: str = "low") -> float:
     """The limit of ``vital`` on ``side`` for the patient: the age-banded
     pediatric range where it lists the vital, else the adult ``limit``. The
     temperature limit (fever) is the same at any age."""
@@ -568,7 +568,11 @@ def _vital_limit(ctx: NarrativeContext, vital: str, side: str, adult: float) -> 
     child = pediatric_vital_range(vital, months)
     if child is None:
         return adult
-    return child.high if side == "max" else child.low
+    if side == "max":
+        return child.high
+    from clinosim.modules.document.narrative._progress_exam import child_low_bound
+
+    return child_low_bound(child, child_low)
 
 
 def pe_vitals_reading(ctx: NarrativeContext) -> Any | None:

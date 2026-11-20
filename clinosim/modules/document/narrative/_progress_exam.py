@@ -59,6 +59,9 @@ class _Limit(BaseModel):
     low: float | None = None
     high: float | None = None
     high_inclusive: bool = False
+    # Which edge of a child's age-banded range is the low limit: the band's
+    # normal-range ``low``, or its ``critical_low`` (hypotension).
+    child_low: Literal["low", "critical_low"] = "low"
 
 
 class _ExtraTerm(BaseModel):
@@ -143,6 +146,16 @@ def _terms(code: str) -> tuple[_Term, ...]:
     return tuple(sorted(out, key=lambda term: -len(term.text)))
 
 
+def child_low_bound(child: Any, edge: str) -> float:
+    """The value below which a child's reading is "low": the band's normal-range
+    ``low``, or for ``critical_low`` the first value above it (the YAML flags a
+    value at or below ``critical_low``, so a reading is low when strictly
+    below ``critical_low + 1``). A band without a ``critical_low`` uses ``low``."""
+    if edge == "critical_low" and child.critical_low is not None:
+        return float(child.critical_low) + 1
+    return float(child.low)
+
+
 def _limit(ctx: NarrativeContext, vital: str, limit: _Limit, when: Any) -> tuple[float | None, float | None, bool]:
     """``(low, high, high_inclusive)`` of ``vital`` for the patient: the
     age-banded pediatric range where it lists the vital, else the adult
@@ -150,7 +163,7 @@ def _limit(ctx: NarrativeContext, vital: str, limit: _Limit, when: Any) -> tuple
     months = age_in_completed_months(_o(getattr(ctx, "patient", None), "date_of_birth", None), when)
     child = pediatric_vital_range(vital, months)
     if child is not None:
-        return child.low, child.high, False
+        return child_low_bound(child, limit.child_low), child.high, False
     return limit.low, limit.high, limit.high_inclusive
 
 
