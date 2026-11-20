@@ -102,8 +102,8 @@ narrative:
       en: '{chief_complaint_en}'
       ja: '{chief_complaint_ja}'
     hpi:
-      en: 'Found minimally responsive after opioid use; slow, shallow breathing noted by bystanders or EMS.'
-      ja: 'オピオイド使用後に反応が乏しくなっているところを発見され救急搬送。呼吸数低下を認めた'
+      en: 'Found minimally responsive after opioid use; slow, shallow breathing noted by {opioid__witness_en}.'
+      ja: 'オピオイド使用後に反応が乏しくなっているところを発見され救急搬送。{opioid__witness_ja}が呼吸数低下を認めた。'
     physical_exam:
       en:
         general: Somnolent, slow to respond to voice
@@ -113,6 +113,10 @@ narrative:
         general: 傾眠、呼びかけに反応鈍い
         neurological: 縮瞳、意識レベル低下
         respiratory: 呼吸数低下、浅い呼吸
+    variants:
+      opioid__witness:
+        en: ["bystanders", "EMS"]
+        ja: ["周囲の人", "救急隊"]
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

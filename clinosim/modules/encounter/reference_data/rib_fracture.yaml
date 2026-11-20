@@ -79,8 +79,8 @@ narrative:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: "Injured the chest wall in a fall or blunt trauma {onset_en}; pain is worse with deep breathing and coughing. No hemoptysis."
-      ja: "{onset_ja}に転倒または打撲により胸壁を受傷。深呼吸・咳嗽で疼痛増悪。喀血なし。"
+      en: "Injured the chest wall in {rib__mechanism_en} {onset_en}; pain is worse with deep breathing and coughing. No hemoptysis."
+      ja: "{onset_ja}に{rib__mechanism_ja}で胸壁を受傷。深呼吸・咳嗽で疼痛増悪。喀血なし。"
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
@@ -88,6 +88,10 @@ narrative:
       ja:
         general: '意識清明、{appearance_ja}'
         respiratory: "側胸壁に再現性のある圧痛あり、深呼吸時に疼痛で呼吸が浅くなる、呼吸音は左右差なし、皮下気腫なし"
+    variants:
+      rib__mechanism:
+        en: ["a fall at home", "a blow to the chest"]
+        ja: ["自宅での転倒", "胸部の打撲"]
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

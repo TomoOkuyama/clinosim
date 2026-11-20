@@ -92,6 +92,10 @@ narrative:
       ja:
         general: '意識清明、{appearance_ja}'
         skin: "{burn__site_ja}に部分層熱傷（体表面積1%以下）。紅斑と水疱（破れたものを含む）、湿潤、圧迫で退色、接触痛あり。全周性ではない。毛細血管再充満は良好"
+    # Index i of each burn__ list is diagnosis_variants[i] (right hand, left
+    # hand, right forearm, left forearm): the site and mechanism follow the
+    # coded diagnosis (Issue #3251).
+    variants_by_diagnosis: [burn]
     variants:
       burn__site:
         en: ["dorsum of the right hand", "palm of the left hand", "right forearm", "left forearm"]
