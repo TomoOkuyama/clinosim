@@ -124,10 +124,17 @@ class EDSlotSampler:
 
 
 def dispatch_ed_slot(slot: EDSlot, sampler: EDSlotSampler) -> None:
-    """Simulate one ED visit on its date (skipped if the person left the population)."""
+    """Simulate one ED visit on its date (skipped if the person left the population
+    or is admitted at that time)."""
     ctx = sampler.ctx
     person = ctx.population.get_person(slot.person_id)
     if not person or not person.in_population_at(slot.when.date()):
+        return
+    # Issue #3393: an acute presentation while admitted belongs to the ward;
+    # the ED is not visited, and nothing is deferred (an ED visit is not a
+    # scheduled one). The stay is in ``patient_records`` already: its
+    # admission is dispatched at an earlier time.
+    if ctx.inpatient_stays.active_at(ctx.patient_records, slot.person_id, slot.when) is not None:
         return
     patient = _activate_cached_person(
         person,
