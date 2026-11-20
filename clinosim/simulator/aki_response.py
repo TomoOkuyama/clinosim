@@ -161,19 +161,49 @@ def discharge_findings_unresolved(course: AkiCourse, vitals: Iterable[VitalSignR
     return course.not_improving or fever_persists(vitals)
 
 
+def _field(rec: object, name: str) -> object:
+    return rec.get(name) if isinstance(rec, dict) else getattr(rec, name, None)
+
+
+def _when(value: object) -> datetime | None:
+    if isinstance(value, str):
+        value = datetime.fromisoformat(value)
+    return value if isinstance(value, datetime) else None
+
+
+def _course_from_records(records: Iterable[object]) -> AkiCourse:
+    results: list[OrderResult] = []
+    for rec in records:
+        when, value = _when(_field(rec, "result_datetime")), _field(rec, "value")
+        if when is not None and isinstance(value, (int, float)):
+            results.append(OrderResult(result_datetime=when, lab_name=str(_field(rec, "lab_name") or ""), value=value))
+    return aki_course(results)
+
+
 def aki_active_from_records(records: Iterable[object]) -> bool:
     """Whether the final creatinine of ``records`` (``OrderResult`` objects or
     their JSON dicts) meets the AKI definition — the discharge instructions'
     gate (``applies_when: {aki_at_discharge: true}``)."""
+    return _course_from_records(records).active
 
-    def field(rec: object, name: str) -> object:
-        return rec.get(name) if isinstance(rec, dict) else getattr(rec, name, None)
 
-    results: list[OrderResult] = []
+def _vitals_from_records(records: Iterable[object]) -> list[VitalSignRecord]:
+    vitals: list[VitalSignRecord] = []
     for rec in records:
-        when, value = field(rec, "result_datetime"), field(rec, "value")
-        if isinstance(when, str):
-            when = datetime.fromisoformat(when)
-        if isinstance(when, datetime) and isinstance(value, (int, float)):
-            results.append(OrderResult(result_datetime=when, lab_name=str(field(rec, "lab_name") or ""), value=value))
-    return aki_course(results).active
+        when, temp = _when(_field(rec, "timestamp")), _field(rec, "temperature_celsius")
+        if when is not None and isinstance(temp, (int, float)):
+            vitals.append(VitalSignRecord(timestamp=when, temperature_celsius=float(temp)))
+    return vitals
+
+
+def fever_persists_from_records(vital_records: Iterable[object]) -> bool:
+    """``fever_persists`` over recorded vital signs (objects or JSON dicts)."""
+    return fever_persists(_vitals_from_records(vital_records))
+
+
+def discharge_findings_unresolved_from_records(lab_records: Iterable[object], vital_records: Iterable[object]) -> bool:
+    """``discharge_findings_unresolved`` over a stay's recorded creatinine
+    results and vital signs (objects or their JSON dicts): True when the stay
+    ended with AKI not recovering or a fever in the last day, i.e. it was
+    discharged at the deferral cap rather than because the gate was met."""
+    return discharge_findings_unresolved(_course_from_records(lab_records), _vitals_from_records(vital_records))

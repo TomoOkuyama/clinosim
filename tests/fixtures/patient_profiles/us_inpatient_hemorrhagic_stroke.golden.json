@@ -1478,6 +1478,7 @@
       "facts_used": [
         "ctx.los_days",
         "encounter.discharge_disposition",
+        "ctx.vitals",
         "ctx.medications",
         "ctx.vitals",
         "ctx.procedures",
@@ -1493,7 +1494,7 @@
         "lang": "en"
       },
       "sections": {
-        "admission_status": "Hospital stay: 12 days. Admission reason: Sudden severe headache, vomiting, altered consciousness. Discharge criteria met.",
+        "admission_status": "Hospital stay: 12 days. Admission reason: Sudden severe headache, vomiting, altered consciousness. Fever had not resolved; discharged with outpatient follow-up arranged.",
         "discharge_readiness": "Discharge readiness: Discharge Barthel 95/100.",
         "nursing_interventions_provided": "Medication administration: 155 doses (4 drugs); Vital-sign monitoring: 180 sets; Oxygen therapy: observed on 43 sets of vital signs; Procedures: Urinary catheter insertion, Nasogastric tube insertion, Transthoracic echocardiography, Central venous catheter insertion, Craniotomy for intracranial hematoma evacuation; Cumulative IN 10773 mL / OUT 11445 mL (net -672 mL); Education: Ask the patient to report headache, nausea or weakness at once.",
         "patient_education": "Patient education: BP control, salt restriction and medication adherence; recurrence signs and when to call for help; continuing rehabilitation and home safety."

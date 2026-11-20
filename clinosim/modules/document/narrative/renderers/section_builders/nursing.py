@@ -357,6 +357,30 @@ def _structured_care_plan(ctx: NarrativeContext, detail: dict[str, Any]) -> tupl
 # ─────────────────────────────────────────────────────────────────────
 
 
+def _home_discharge_line(ctx: NarrativeContext, lang: str, facts: list[str]) -> str:
+    """The discharge-home sentence. "Criteria met" only when the discharge gate
+    (``discharge_findings_unresolved``, Issue #3281) was met; a stay that ended
+    at the deferral cap with AKI not recovering or a fever persisting says so,
+    and for AKI that the creatinine recheck is arranged."""
+    from clinosim.simulator.aki_response import (
+        aki_active_from_records,
+        discharge_findings_unresolved_from_records,
+        fever_persists_from_records,
+    )
+
+    labs, vitals = getattr(ctx, "lab_results", None) or [], getattr(ctx, "vitals", None) or []
+    if not discharge_findings_unresolved_from_records(labs, vitals):
+        return t("nursing_admission_status.discharge_met_line", lang)
+    lines = []
+    if fever_persists_from_records(vitals):
+        facts.append("ctx.vitals")
+        lines.append(t("nursing_admission_status.discharge_at_cap_fever_line", lang))
+    if aki_active_from_records(labs):
+        facts.append("ctx.lab_results")
+        lines.append(t("nursing_admission_status.discharge_at_cap_aki_line", lang))
+    return "".join(lines).rstrip()
+
+
 @section("admission_status")
 def build_nursing_admission_status(
     generator: TemplateNarrativeGenerator, ctx: NarrativeContext
@@ -400,7 +424,7 @@ def build_nursing_admission_status(
         disposition = str(_o(ctx.encounter, "discharge_disposition", "") or "")
         facts.append("encounter.discharge_disposition")
         if disposition in ("", DischargeDisposition.HOME):
-            parts.append(t("nursing_admission_status.discharge_met_line", lang))
+            parts.append(_home_discharge_line(ctx, lang, facts))
         else:
             label = _label("discharge_disposition", disposition, lang, fallback=disposition)
             parts.append(t("nursing_admission_status.continued_care_line", lang, disposition=label))

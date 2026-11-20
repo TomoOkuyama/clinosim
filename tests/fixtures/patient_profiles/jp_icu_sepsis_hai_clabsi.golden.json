@@ -1703,6 +1703,7 @@
         "ctx.los_days",
         "ctx.complications_occurred",
         "encounter.discharge_disposition",
+        "ctx.vitals",
         "ctx.medications",
         "ctx.vitals",
         "ctx.procedures",
@@ -1719,7 +1720,7 @@
         "lang": "ja"
       },
       "sections": {
-        "admission_status": "入院期間: 36日間。入院理由: 発熱・意識変容・低血圧。経過中の合併症: 急性腎障害、播種性血管内凝固症候群 (DIC)。退院基準を満たし退院となった。",
+        "admission_status": "入院期間: 36日間。入院理由: 発熱・意識変容・低血圧。経過中の合併症: 急性腎障害、播種性血管内凝固症候群 (DIC)。発熱が続いていたが、外来での経過観察を予定のうえ退院となった。",
         "discharge_readiness": "退院準備: 退院時 Barthel 95/100。",
         "nursing_interventions_provided": "与薬 296 回 (薬剤 6 種類)、バイタルサイン測定 768 回、酸素投与下の観察 451 回、実施処置: 尿道カテーテル挿入、中心静脈カテーテル挿入、動脈ライン挿入、入院期間合計 IN 35285 mL / OUT 34856 mL (差 +429 mL)、指導: 家族へ病状と面会時の手指衛生を説明する。",
         "patient_education": "患者教育: 抗菌薬の指示通りの継続と感染予防 (手指衛生)、発熱・悪寒・意識変化が出たときの早期受診、基礎疾患の管理、腎機能保護、蛋白制限。"

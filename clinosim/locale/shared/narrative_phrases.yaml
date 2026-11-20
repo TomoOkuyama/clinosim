@@ -1816,6 +1816,14 @@ nursing_admission_status:
   discharge_met_line:
     ja: "退院基準を満たし退院となった。"
     en: "Discharge criteria met."
+  # Issue #3281: a stay discharged home at the deferral cap (the discharge gate
+  # of simulator/aki_response.py not met): AKI not recovering, or a fever.
+  discharge_at_cap_aki_line:
+    ja: "腎機能の改善は十分でないが、退院後のクレアチニンの再検査を手配のうえ退院となった。"
+    en: "Kidney function not yet recovered; discharged with a creatinine recheck arranged. "
+  discharge_at_cap_fever_line:
+    ja: "発熱が続いていたが、外来での経過観察を予定のうえ退院となった。"
+    en: "Fever had not resolved; discharged with outpatient follow-up arranged. "
   # Issue #3270: a stay that ends in a facility (disposition snf), not home:
   # the patient was not safe for home at the end of the stay.
   continued_care_line:
