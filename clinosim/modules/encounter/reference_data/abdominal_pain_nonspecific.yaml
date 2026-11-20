@@ -98,8 +98,8 @@ narrative:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: "Abdominal pain with nausea began {onset_en}. Location: periumbilical to lower abdomen, character: constant to intermittent. No fever, diarrhea, or hematochezia. See intake questionnaire for past medical/surgical history."
-      ja: "{onset_ja}より腹痛・嘔気が出現。部位：臍周囲〜下腹部、性質：持続性・間欠性。発熱・下痢・血便はなし。既往歴・手術歴は問診票参照。"
+      en: "Abdominal pain with nausea began {onset_en}. The pain is periumbilical, spreading to the lower abdomen, and constant. No fever, diarrhea, or hematochezia. Past medical and surgical history are on the intake questionnaire."
+      ja: "{onset_ja}より腹痛・嘔気が出現。痛みは臍周囲から下腹部に及び、持続性。発熱・下痢・血便なし。既往歴・手術歴は問診票に記載。"
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'

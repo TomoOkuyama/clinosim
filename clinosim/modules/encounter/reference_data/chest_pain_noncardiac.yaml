@@ -103,7 +103,7 @@ narrative:
       ja: 胸痛（急性冠症候群除外目的）
     hpi:
       en: "Chest pain onset {onset_en}. Location: retrosternal to anterior chest."
-      ja: "{onset_ja}より胸痛出現。部位：胸骨後部〜前胸部。"
+      ja: "{onset_ja}より胸痛出現。部位：胸骨後部から前胸部に及ぶ。"
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'

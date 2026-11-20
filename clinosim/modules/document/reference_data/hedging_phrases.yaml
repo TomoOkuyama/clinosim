@@ -131,6 +131,6 @@ chronic_status:
       - "{value} control status: {control}."
   unconfirmed:
     ja:
-      - "{value}のコントロール状況は本日測定値のみでは断定困難、追加評価要。"
+      - "{value}のコントロール状況は本日測定値のみでは断定困難、追加の評価を予定。"
     en:
       - "{value} control cannot be assessed on today's measurements alone; further evaluation planned."

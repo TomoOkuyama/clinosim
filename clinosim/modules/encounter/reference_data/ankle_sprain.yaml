@@ -71,8 +71,8 @@ narrative:
       en: Ankle sprain (after fall)
       ja: 足関節捻挫（転倒後）
     hpi:
-      en: "Twisted the ankle in a fall {onset_en}. Pain and swelling began immediately, with variable ability to bear weight. No open wound or numbness."
-      ja: "{onset_ja}に転倒し足関節を捻挫。直後より疼痛・腫脹が出現し、荷重は困難〜可能。開放創・しびれなし。"
+      en: "Twisted the ankle in a fall {onset_en}. Pain and swelling began immediately. {ankle__weight_en} No open wound or numbness."
+      ja: "{onset_ja}に転倒し足関節を捻挫。直後より疼痛・腫脹が出現。{ankle__weight_ja}開放創・しびれなし。"
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
@@ -95,6 +95,9 @@ narrative:
       ankle__ecchymosis:
         en: ["+", "+", "-", "-"]
         ja: ["+", "+", "-", "-"]
+      ankle__weight:
+        en: ["Weight bearing is painful but possible.", "The patient cannot bear weight.", "Weight bearing is painful but possible.", "The patient cannot bear weight."]
+        ja: ["荷重時に疼痛があるが歩行は可能。", "疼痛のため荷重できない。", "荷重時に疼痛があるが歩行は可能。", "疼痛のため荷重できない。"]
       ankle__bone_pain:
         en: ["-", "+", "-", "+"]
         ja: ["-", "+", "-", "+"]

@@ -210,6 +210,7 @@ def _variant_placeholders(fields: set[str], ctx: NarrativeContext) -> dict[str, 
     if not variants:
         return {}
     enc_id = str(_o(ctx.encounter, "encounter_id", "") or "") if ctx.encounter is not None else ""
+    keyed = set(_o(tmpl, "variants_by_diagnosis", None) or [])
     resolved: dict[str, str] = {}
     for field in fields:
         name, _, lang = field.rpartition("_")
@@ -220,8 +221,31 @@ def _variant_placeholders(fields: set[str], ctx: NarrativeContext) -> dict[str, 
         # Names sharing a group (``burn__site``, ``burn__mechanism``) pick the
         # same index, so the site and the mechanism of a visit agree.
         group = name.split("__")[0]
-        resolved[field] = items[sha_index(f"{enc_id}|ed-variant|{group}", len(by_lang["en"]))]
+        index = sha_index(f"{enc_id}|ed-variant|{group}", len(by_lang["en"]))
+        if group in keyed:
+            matching = _diagnosis_variant_indices(ctx)
+            if matching:
+                index = matching[sha_index(f"{enc_id}|ed-variant|{group}", len(matching))]
+        resolved[field] = items[index]
     return resolved
+
+
+def _diagnosis_variant_indices(ctx: NarrativeContext) -> list[int]:
+    """Indices of the protocol's ``diagnosis_variants`` whose code (in any
+    country slot) is the visit's diagnosis code (Issue #3251); several when
+    the code does not tell them apart (a JP burn code has no side), none when
+    no diagnosis is recorded."""
+    from clinosim.modules.document.narrative._visit_reason import visit_dx
+
+    code = visit_dx(ctx).replace(".", "").upper()
+    if not code:
+        return []
+    variants = _o(ctx.encounter_protocol, "diagnosis_variants", None) or []
+    return [
+        i
+        for i, variant in enumerate(variants)
+        if code in {str(c).replace(".", "").upper() for c in (_o(variant, "codes", None) or {}).values()}
+    ]
 
 
 def _language_placeholders(fields: set[str], ctx: NarrativeContext) -> dict[str, str]:

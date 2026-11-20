@@ -67,6 +67,13 @@ class EdNoteTemplate(BaseModel):
     # the entry the encounter id picks, the same one in every section and in
     # every language.
     variants: dict[str, dict[str, list[str]]] = Field(default_factory=dict)
+    # Variant groups (the ``group`` of ``group__name``) keyed to the protocol's
+    # ``diagnosis_variants`` (Issue #3251): the entry at index i of each of their
+    # lists belongs to diagnosis variant i, and a visit states the entry of the
+    # variant its diagnosis code was drawn from (a burn's site agrees with the
+    # coded site). A visit with no recorded diagnosis variant falls back to the
+    # per-encounter draw.
+    variants_by_diagnosis: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def _variants_are_parallel(self) -> EdNoteTemplate:
@@ -632,6 +639,28 @@ class EncounterConditionProtocol(BaseModel):
     def _one_diagnosis_source(self) -> EncounterConditionProtocol:
         if bool(self.icd10_code) == bool(self.diagnosis_variants):
             raise ValueError(f"{self.condition_id}: give exactly one of icd10_code and diagnosis_variants")
+        return self
+
+    @model_validator(mode="after")
+    def _variants_keyed_to_diagnosis(self) -> EncounterConditionProtocol:
+        tmpl = self.narrative.ed_note_template if self.narrative else None
+        groups = tmpl.variants_by_diagnosis if tmpl else []
+        if not groups:
+            return self
+        if not self.diagnosis_variants:
+            raise ValueError(f"{self.condition_id}: variants_by_diagnosis needs diagnosis_variants")
+        assert tmpl is not None
+        for group in groups:
+            names = [n for n in tmpl.variants if n.split("__")[0] == group]
+            if not names:
+                raise ValueError(f"{self.condition_id}: variants_by_diagnosis group {group!r} has no variants")
+            for name in names:
+                size = len(tmpl.variants[name]["en"])
+                if size != len(self.diagnosis_variants):
+                    raise ValueError(
+                        f"{self.condition_id}: variants.{name} has {size} entries, "
+                        f"diagnosis_variants has {len(self.diagnosis_variants)}"
+                    )
         return self
 
     @model_validator(mode="after")
