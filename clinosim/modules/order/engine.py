@@ -676,6 +676,29 @@ def protocol_medication_orders(
     return out
 
 
+def supportive_detail_raw(sup: dict[str, Any], country: str) -> str:
+    """The English ``detail`` an admission ``supportive[]`` entry is ordered
+    with: the country's ``locale_detail`` variant (Issue #1323) else the shared
+    ``detail``, with an "X or Y" alternative reduced to its primary plus the
+    shared numeric rate/frequency tail. Shared with the localization guard."""
+    locale_detail = sup.get("locale_detail") or {}
+    detail_raw = str(locale_detail.get(country_slot(country)) or sup.get("detail", "") or "")
+    for splitter in (" or ", " OR ", " または "):
+        if splitter in detail_raw:
+            primary, tail = detail_raw.split(splitter, 1)
+            primary = primary.strip()
+            # Session-98 F6 (empty_dose): the tail of "NS or LR 500-1000mL
+            # bolus, then 125-250mL/h" carries the shared rate/frequency that
+            # applies to whichever alternative was chosen. Glue its numeric
+            # suffix (from the first digit onward) to the primary so the
+            # downstream dose parser sees the rate and populates
+            # ``dose_quantity``.
+            tail = tail.strip()
+            digit = re.search(r"\d", tail)
+            return f"{primary} {tail[digit.start() :]}" if digit else primary
+    return detail_raw
+
+
 def place_admission_orders(
     protocol: dict,
     patient_id: str,
@@ -840,30 +863,7 @@ def place_admission_orders(
         # pick the country-appropriate variant; fall back to the shared
         # ``detail`` when the map is absent. Old YAML entries keep
         # working unchanged.
-        _locale_detail = sup.get("locale_detail") or {}
-        _country_key = country_slot(country)
-        detail_raw = str(_locale_detail.get(_country_key) or sup.get("detail", "") or "")
-        for splitter in (" or ", " OR ", " または "):
-            if splitter in detail_raw:
-                _primary, _tail = detail_raw.split(splitter, 1)
-                _primary = _primary.strip()
-                # Session-98 F6 (empty_dose): the tail of "NS or LR 500-1000mL
-                # bolus, then 125-250mL/h" carries the shared rate/frequency
-                # that applies to whichever alternative was chosen. Extract
-                # any numeric suffix (from the first digit onward) and glue
-                # it to the primary so the downstream dose parser sees the
-                # rate and populates ``dose_quantity`` — otherwise "NS" alone
-                # is unparseable and the MAR ends up with an empty numeric
-                # dose (dosage.text = "IV_fluid: NS", no dose.value).
-                import re as _re_glue
-
-                _tail_stripped = _tail.strip()
-                _digit_match = _re_glue.search(r"\d", _tail_stripped)
-                if _digit_match:
-                    detail_raw = f"{_primary} {_tail_stripped[_digit_match.start() :]}"
-                else:
-                    detail_raw = _primary
-                break
+        detail_raw = supportive_detail_raw(sup, country)
         order_type = classify_inpatient_supportive(detail_raw, sup_type)
         order = Order(
             order_id=f"ORD-{encounter_id}-ADM-S{i:02d}",

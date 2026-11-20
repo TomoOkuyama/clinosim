@@ -30,6 +30,7 @@ from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_allergen_display_dict as _load_allergen_display_dict
 from clinosim.locale.loader import load_drug_display_dict as _load_drug_display_dict
 from clinosim.locale.loader import load_med_terms as _load_med_terms
+from clinosim.locale.loader import load_medication_order_phrase_dict as _load_medication_order_phrase_dict
 from clinosim.locale.loader import load_narrative_display_dict as _load_narrative_display_dict
 from clinosim.locale.loader import load_procedure_display_dict as _load_procedure_display_dict
 from clinosim.locale.loader import resolve_localized_display
@@ -51,6 +52,7 @@ __all__ = [
     "localize_drug_name",
     "localize_free_text",
     "localize_procedure_name",
+    "lookup_procedure_phrase",
 ]
 
 
@@ -266,17 +268,48 @@ def localize_drug_name(drug_name: str, lang: str) -> str:
         # Issue #2650: English keeps the name but spells out a protocol slug
         # ("IV_fluid: NS" -> "IV fluids: NS") from the med_terms ``en`` slots.
         return _localize_dosage_terms(drug_name, normalize_lang(lang))
+    # Issue #3398: a supportive order filed as a drug order ("type: detail")
+    # with a phrase of its own reads as that phrase, not as a word-by-word
+    # substitution.
+    phrase = _load_medication_order_phrase_dict(target).get(_phrase_key(drug_name))
+    if phrase:
+        return phrase
     return _translate(drug_name, _load_drug_display_dict(target), target, keep_named=True)
 
 
 _LEADING_SLUG = re.compile(r"^[A-Za-z][A-Za-z0-9]*(?:_[A-Za-z0-9]+)+")
 
 
+_ORDER_TYPE_PREFIX = re.compile(r"^([A-Za-z][A-Za-z0-9_]*):\s*\S")
+
+
+def _phrase_key(name: str) -> str:
+    """The procedure table's lookup form of ``name``: "_" as a space, trimmed,
+    lower-case."""
+    return name.replace("_", " ").strip().lower()
+
+
+def lookup_procedure_phrase(name: str, lang: str) -> str | None:
+    """The procedure phrase table's entry for ``name`` in ``lang``, or ``None``.
+    The whole "type: detail" order string is looked up first (Issue #3398: the
+    phrase then carries the type's label and the detail's parameters), then the
+    detail after the colon alone. No word-by-word translation."""
+    target = _target_lang(lang)
+    if not name or target is None:
+        return None
+    table = _load_procedure_display_dict(target)
+    key = _phrase_key(name)
+    return table.get(key) or (table.get(key.split(":", 1)[1].strip()) if ":" in key else None)
+
+
 def localize_procedure_name(name: str, lang: str) -> str:
     """``name`` of a procedure or examination in ``lang``: the procedure /
     imaging table's entry, else (a composite order string such as "O2: Nasal
     cannula SpO2 >= 94%") the free-text translator. English keeps the name but
-    spells out a protocol slug (Issue #2627)."""
+    spells out a protocol slug (Issue #2627). An order string "type: detail"
+    whose type is a named order category but whose detail has no phrase reads
+    as the category's name alone (Issue #3398), never as a word-by-word
+    substitution of the English detail."""
     target = _target_lang(lang)
     if not name:
         return name
@@ -284,6 +317,16 @@ def localize_procedure_name(name: str, lang: str) -> str:
         # Issue #2627: English spells out a protocol slug ("IV_access: ..." ->
         # "IV access: ...") like drug names do (Issue #2650).
         return _localize_dosage_terms(name, normalize_lang(lang))
+    # Issue #3398: the whole "type: detail" key is tried before the leading
+    # type is translated, or such a key could never match.
+    hit = lookup_procedure_phrase(name, target)
+    if hit:
+        return _localize_dosage_terms(hit, target)
+    typed = _ORDER_TYPE_PREFIX.match(name)
+    if typed:
+        category = _localize_dosage_terms(typed.group(1), target)
+        if category != typed.group(1):
+            return category
     # Issue #3025: a leading procedure slug ("compression_stocking: ...")
     # takes its med_terms name first, so the free-text pass below does not
     # translate it word by word.
@@ -292,10 +335,7 @@ def localize_procedure_name(name: str, lang: str) -> str:
         named = _localize_dosage_terms(lead.group(0), target)
         if named != lead.group(0):
             name = named + name[lead.end() :]
-    table = _load_procedure_display_dict(target)
-    normalized = name.replace("_", " ").strip().lower()
-    hit = table.get(normalized) or table.get(normalized.split(":", 1)[1].strip() if ":" in normalized else "")
-    return _localize_dosage_terms(hit, target) if hit else localize_free_text(name, target)
+    return localize_free_text(name, target)
 
 
 def localize_allergen_name(name: str, lang: str) -> str:
