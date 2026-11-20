@@ -255,6 +255,31 @@ def _report_group(body_site_key: str) -> str:
     return str((load_body_sites().get(body_site_key) or {}).get("report_template_site") or body_site_key)
 
 
+# The id of a legacy display-name admission imaging order (``ADM-I00``; with the
+# co-disease infix of Issue #3392, ``ADM-CI00``).
+_LEGACY_ADMISSION_IMAGING_ID = re.compile(r"-ADM-[A-Z]?I\d+$")
+
+
+def imaging_study_keys(orders: list[Order]) -> set[tuple[str, str]]:
+    """The ``(modality, report group)`` of every imaging order of ``orders``,
+    structured or legacy display-name (Issue #3392): two orders with one key
+    are the same study of the same body part."""
+    from clinosim.modules.imaging.engine import _body_site_key_from_snomed
+    from clinosim.modules.imaging.inference import infer_imaging_metadata
+
+    keys: set[tuple[str, str]] = set()
+    for o in orders:
+        if o.order_type != OrderType.IMAGING:
+            continue
+        if o.imaging_modality and o.imaging_body_site_code:
+            keys.add((o.imaging_modality, _report_group(_body_site_key_from_snomed(o.imaging_body_site_code))))
+        elif not o.imaging_modality:
+            meta = infer_imaging_metadata(o.display_name or "")
+            if meta:
+                keys.add((meta["modality"], _report_group(meta["body_site_key"])))
+    return keys
+
+
 def drop_legacy_duplicate_imaging(admission_orders: list[Order], structured_orders: list[Order]) -> list[Order]:
     """``admission_orders`` without the legacy display-name imaging orders
     (``order_protocols.admission_orders.imaging``) that a structured day-0 order
@@ -284,7 +309,11 @@ def drop_legacy_duplicate_imaging(admission_orders: list[Order], structured_orde
     sites = load_body_sites()
     kept: list[Order] = []
     for o in admission_orders:
-        if o.order_type == OrderType.IMAGING and not o.imaging_modality and "-ADM-I" in o.order_id:
+        if (
+            o.order_type == OrderType.IMAGING
+            and not o.imaging_modality
+            and _LEGACY_ADMISSION_IMAGING_ID.search(o.order_id)
+        ):
             meta = infer_imaging_metadata(o.display_name or "")
             if meta:
                 site = meta["body_site_key"]
@@ -580,12 +609,15 @@ def admission_care_supportive_types() -> frozenset[str]:
     return frozenset(data["care_supportive_types"])
 
 
-def _first_line_order_id(encounter_id: str, med_idx: int) -> str:
-    """Order id of the ``med_idx``-th ``drugs.first_line`` entry of an admission."""
-    return f"ORD-{encounter_id}-ADM-M{med_idx + 1:02d}"
+def _first_line_order_id(encounter_id: str, med_idx: int, id_infix: str = "") -> str:
+    """Order id of the ``med_idx``-th ``drugs.first_line`` entry of an admission
+    (``id_infix`` marks the orders of a co-disease, Issue #3392)."""
+    return f"ORD-{encounter_id}-ADM-{id_infix}M{med_idx + 1:02d}"
 
 
-def first_line_alternative_groups(protocol: Any, encounter_id: str, country: str) -> tuple[tuple[str, ...], ...]:
+def first_line_alternative_groups(
+    protocol: Any, encounter_id: str, country: str, id_infix: str = ""
+) -> tuple[tuple[str, ...], ...]:
     """Issue #3274: the order ids :func:`place_admission_orders` gives the
     ``drugs.first_line`` entries of ``country`` when the block declares
     ``select: one_of`` — alternatives in order of preference, of which the
@@ -600,7 +632,9 @@ def first_line_alternative_groups(protocol: Any, encounter_id: str, country: str
     entries = block.get(country.lower(), [])
     if isinstance(entries, dict):
         entries = [entries]
-    ids = tuple(_first_line_order_id(encounter_id, i) for i, spec in enumerate(entries) if isinstance(spec, dict))
+    ids = tuple(
+        _first_line_order_id(encounter_id, i, id_infix) for i, spec in enumerate(entries) if isinstance(spec, dict)
+    )
     return (ids,) if len(ids) > 1 else ()
 
 
@@ -712,8 +746,13 @@ def place_admission_orders(
     ordered_by: str = "",
     patient_age: int | None = None,
     patient_weight_kg: float | None = None,
+    id_infix: str = "",
 ) -> list[Order]:
     """Expand protocol admission orders into concrete Order instances.
+
+    ``id_infix`` (Issue #3392) is put after ``ADM-`` in every order id, so the
+    orders of a mixed admission's co-disease (placed with their own RNG) have
+    ids that never meet those of the primary disease.
 
     Reads order_protocols.admission_orders from disease YAML.
     Falls back to drugs/expected_lab_distributions if order_protocols not defined.
@@ -789,7 +828,7 @@ def place_admission_orders(
         for lab_spec in members:
             orders.append(
                 _build_lab_order(
-                    order_id=f"ORD-{encounter_id}-ADM-L{order_seq:02d}",
+                    order_id=f"ORD-{encounter_id}-ADM-{id_infix}L{order_seq:02d}",
                     encounter_id=encounter_id,
                     patient_id=patient_id,
                     lab_spec=lab_spec,
@@ -810,7 +849,7 @@ def place_admission_orders(
     for lab_spec in stand_alones:
         orders.append(
             _build_lab_order(
-                order_id=f"ORD-{encounter_id}-ADM-L{order_seq:02d}",
+                order_id=f"ORD-{encounter_id}-ADM-{id_infix}L{order_seq:02d}",
                 encounter_id=encounter_id,
                 patient_id=patient_id,
                 lab_spec=lab_spec,
@@ -839,7 +878,7 @@ def place_admission_orders(
         orders.extend(
             protocol_medication_orders(
                 med_spec,
-                order_id=_first_line_order_id(encounter_id, med_idx),
+                order_id=_first_line_order_id(encounter_id, med_idx, id_infix),
                 encounter_id=encounter_id,
                 patient_id=patient_id,
                 country=country,
@@ -869,7 +908,7 @@ def place_admission_orders(
         detail_raw = supportive_detail_raw(sup, country)
         order_type = classify_inpatient_supportive(detail_raw, sup_type)
         order = Order(
-            order_id=f"ORD-{encounter_id}-ADM-S{i:02d}",
+            order_id=f"ORD-{encounter_id}-ADM-{id_infix}S{i:02d}",
             encounter_id=encounter_id,
             patient_id=patient_id,
             order_type=order_type,
@@ -925,7 +964,7 @@ def place_admission_orders(
     # Imaging orders
     for i, img_spec in enumerate(admission.get("imaging", [])):
         order = Order(
-            order_id=f"ORD-{encounter_id}-ADM-I{i:02d}",
+            order_id=f"ORD-{encounter_id}-ADM-{id_infix}I{i:02d}",
             encounter_id=encounter_id,
             patient_id=patient_id,
             order_type=OrderType.IMAGING,

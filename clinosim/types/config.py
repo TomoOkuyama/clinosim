@@ -87,6 +87,8 @@ class ForcedScenario(BaseModel):
     archetype: str | None = None  # force specific archetype — None = random selection
     complications: list[str] = []  # force specific complications to occur
     patient_overrides: dict = {}  # override patient attributes: {"age": 82, "sex": "M", ...}
+    # Issue #3392: a co-disease makes the admission a mixed one (condition_type "mixed").
+    secondary_disease_id: str | None = None
 
     # PR3b-1 Task 7b: deterministically force one HAI event per matching device.
     # Shape: {"hai_type": "cauti", "onset_offset_days": 3,

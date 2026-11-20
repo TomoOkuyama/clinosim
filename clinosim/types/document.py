@@ -418,6 +418,10 @@ class NarrativeContext:
     # ``mixed`` (no single disease protocol): ``ground_truth_diseases[0]``, ""
     # when there is none. Selects the exam of the principal diagnosis.
     principal_disease_id: str = ""
+    # === Issue #3392 (co-disease of a mixed admission) ===
+    # ``ground_truth_diseases[1:]`` of a ``mixed`` condition event: the
+    # co-disease the stay also codes and treats; empty otherwise.
+    co_disease_ids: list[str] = field(default_factory=list)
 
 
 @dataclass

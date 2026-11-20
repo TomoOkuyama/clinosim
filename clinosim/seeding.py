@@ -438,6 +438,14 @@ def vasopressor_start_seed(encounter_id: str, day: int) -> int:
     return _digest_int(f"vasopressor-start:{encounter_id}:{day}", 8)
 
 
+def co_disease_orders_seed(encounter_id: str) -> int:
+    """Per-encounter seed of the admission orders of a mixed admission's
+    co-disease (Issue #3392, 64-bit): the placement times of its labs,
+    medications and studies. The stay's own RNG is not read, so the primary
+    disease's orders and the rest of the stay do not move."""
+    return _digest_int(f"co-disease-orders:{encounter_id}", 8)
+
+
 def avpu_day_seed(patient_id: str, day: int) -> int:
     """Per-(patient, hospital day) seed of the day-stable AVPU level (64-bit)."""
     return _digest_int(f"avpu:{patient_id}:{day}", 8)

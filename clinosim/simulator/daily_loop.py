@@ -132,6 +132,7 @@ from clinosim.simulator.medication_pipeline import (
     dose_orders_for_child,
     generate_prn_administrations,
 )
+from clinosim.simulator.mixed_condition import CoDiseaseCourse
 from clinosim.simulator.vasoactive_support import (
     hospital_day_start,
     stop_weaned_vasoactive_infusions,
@@ -318,6 +319,9 @@ class _Stay:
     # A minor's (age in months, weight at admission) for weight-based doses
     # (Issue #3004); None for an adult.
     child: ChildDosing | None = None
+    # Issue #3392: the course of the co-disease of a mixed admission (None for a
+    # stay with one disease).
+    co_disease: CoDiseaseCourse | None = None
 
     @property
     def country(self) -> str:
@@ -423,6 +427,10 @@ def _advance_state(stay: _Stay, run: _Run, day: int) -> PhysiologicalState | Non
     )
     for var, delta in nat_directive.changes.items():
         directive.changes[var] = directive.changes.get(var, 0.0) + delta
+    # Issue #3392: the treated co-disease of a mixed admission resolves.
+    if stay.co_disease is not None:
+        for var, delta in stay.co_disease.changes_on(day).items():
+            directive.changes[var] = directive.changes.get(var, 0.0) + delta
 
     # Issue #1988: for DKA, snapshot the pre-day-0 physiological state
     # so that the admission ABG / BMP orders resolve against the
@@ -1449,6 +1457,7 @@ def _run_daily_loop(
     max_los: int | None = None,
     surgery: tuple[int, float] | None = None,
     prior_procedures: list | None = None,
+    co_disease: CoDiseaseCourse | None = None,
 ) -> DailyLoopResult:
     """Run the day-by-day simulation loop. Returns all generated data.
 
@@ -1486,6 +1495,7 @@ def _run_daily_loop(
         surgery=surgery,
         prior_procedures=prior_procedures,
         child=child_dosing(patient, encounter_id, admission_time, country_key),
+        co_disease=co_disease,
     )
     run = _Run(
         state=state,
@@ -1511,6 +1521,9 @@ def _run_daily_loop(
     for day in range(max(target_los, max_los or 0) + vasoactive_weaning_rules().max_extension_days):
         actual_los = day + 1
         lab_state_pre_update = _advance_state(stay, run, day)
+        if co_disease is not None:
+            # Issue #3392: a late recognised co-disease is worked up and treated from today.
+            run.orders.extend(co_disease.orders_due(day))
         if day >= 1:
             _place_daily_lab_and_imaging_orders(stay, run, day)
         # Chronic condition monitoring labs (additional to disease protocol)

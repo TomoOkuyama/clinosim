@@ -60,8 +60,6 @@ __all__ = [
     # Bedside procedure state effects
     "TRANSFUSION_ANEMIA_LIFT",
     "TRANSFUSION_VOLUME_LIFT",
-    # Diagnostic pathway
-    "MIXED_CASE_MISSED_SECONDARY_DX_PROB",
 ]
 
 
@@ -155,21 +153,6 @@ Each RBC unit adds ~250 mL to circulating volume, so a 1-2 unit
 transfusion nudges volume status modestly positive. Empirical tuning;
 too large a value would trigger downstream heart-failure lifts
 (``HF_SEVERE_THRESHOLD = 0.3``) inappropriately."""
-
-
-# ---------------------------------------------------------------------------
-# Diagnostic pathway
-# ---------------------------------------------------------------------------
-
-MIXED_CASE_MISSED_SECONDARY_DX_PROB: float = 0.30
-"""Probability that the secondary diagnosis is missed at final-diagnosis
-time in a mixed-condition inpatient case.
-
-Reflects the real clinical reality that clinicians frequently anchor
-on the primary presentation and under-diagnose comorbid acute issues
-(the ~30 % missed-diagnosis rate is consistent with published
-inpatient diagnostic-accuracy audits for secondary conditions).
-Empirical tuning for the synthetic simulator."""
 
 
 # ---------------------------------------------------------------------------

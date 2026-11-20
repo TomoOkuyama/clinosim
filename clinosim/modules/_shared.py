@@ -41,6 +41,11 @@ MED_STOP_ORDER_ID_MARKER: str = "-STOP-"
 ORDER_SET_ADMISSION_INITIAL: str = "admission_initial"
 ORDER_SET_ADMISSION_CARE: str = "admission_care"
 
+# The severity category the co-disease of a mixed admission is simulated with
+# (Issue #3392): the simulator applies its ``moderate`` onset and the
+# admission assessment names it, so both read this one constant.
+CO_DISEASE_SEVERITY: str = "moderate"
+
 # ``VitalSignRecord.data_source`` of the arrival set the ED triage nurse
 # records for a patient admitted through the ED (Issue #3243), shared by the
 # writer (the triage enricher) and the readers (FHIR routes it to the ED

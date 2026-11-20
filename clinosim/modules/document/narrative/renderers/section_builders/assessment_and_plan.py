@@ -29,6 +29,7 @@ from typing import TYPE_CHECKING
 
 from clinosim.countries import country_code, has_authored_narrative
 from clinosim.locale.i18n import t
+from clinosim.modules._shared import CO_DISEASE_SEVERITY
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import _localize_complication
 from clinosim.modules.document.narrative.renderers._shared_helpers import (
@@ -129,21 +130,31 @@ def _compose_ap_assessment_from_state(ctx: NarrativeContext) -> str:
     # (mild / moderate / severe / critical) into 「病態: X (Y)」. v14
     # review found 8/1084 admission_hp narratives with EN severity.
     # Localize severity for JA locale via the shared JA severity map.
+    # An admission for several diseases has no single protocol (Issue #3245):
+    # its principal disease and its co-disease (Issue #3392) each get a line,
+    # the co-disease at the moderate severity it is simulated with.
+    diseases: list[tuple[str, str]] = []
     if ctx.disease_protocol is not None:
-        disease = _o(ctx.disease_protocol, "disease_id", None)
-        if disease:
-            _sev = str(ctx.severity or "")
-            from clinosim.modules.document.narrative._replacement_localization import localize_token
+        _own = _o(ctx.disease_protocol, "disease_id", None)
+        if _own:
+            diseases.append((str(_own), str(ctx.severity or "")))
+    elif getattr(ctx, "principal_disease_id", ""):
+        diseases.append((ctx.principal_disease_id, str(ctx.severity or "")))
+        diseases.extend(
+            (d, CO_DISEASE_SEVERITY) for d in getattr(ctx, "co_disease_ids", []) if d != ctx.principal_disease_id
+        )
+    for disease, severity in diseases:
+        from clinosim.modules.document.narrative._replacement_localization import localize_token
 
-            _sev = localize_token(_sev, "severity", lang)
-            # Phase 1c-2 (2026-09-22): the raw disease_id snake_case
-            # token ("bacterial_pneumonia", "acute_myocardial_infarction")
-            # leaked into JA narratives.
-            # ``_localize_complication`` covers the disease-id vocabulary
-            # too because ``disease_id`` and complication tokens draw
-            # from the same disease-YAML namespace.
-            disease_label = _localize_complication(str(disease), lang)
-            parts.append(t("ap_assessment.disease_severity_line", lang, disease=disease_label, severity=_sev))
+        _sev = localize_token(severity, "severity", lang)
+        # Phase 1c-2 (2026-09-22): the raw disease_id snake_case
+        # token ("bacterial_pneumonia", "acute_myocardial_infarction")
+        # leaked into JA narratives.
+        # ``_localize_complication`` covers the disease-id vocabulary
+        # too because ``disease_id`` and complication tokens draw
+        # from the same disease-YAML namespace.
+        disease_label = _localize_complication(disease, lang)
+        parts.append(t("ap_assessment.disease_severity_line", lang, disease=disease_label, severity=_sev))
     # Chronic backdrop — Issue #1333: route CIF base code through
     # map_diagnosis_code so display matches the FHIR emit-target.
     # Issue #3248: every condition, the admission's own problem first.

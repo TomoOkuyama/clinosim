@@ -1,0 +1,48 @@
+# How the co-disease of a mixed admission (condition_type "mixed") is managed
+# (Issue #3392).
+#
+# Read by clinosim/simulator/mixed_condition.py and applied in the inpatient
+# simulator (simulator/inpatient.py, simulator/daily_loop.py). A mixed
+# admission carries two diseases: the primary one and a co-disease (bacterial
+# pneumonia when its protocol exists). The co-disease drives physiology from
+# the admission, so it is always coded as a secondary diagnosis and always
+# worked up and treated by its own protocol's admission orders.
+#
+#   - Delayed recognition. `delayed_recognition_probability` of the co-diseases
+#     are recognised late (the finding of the primary stay hides them): their
+#     work-up and treatment start on a hospital day between
+#     `recognition_day_min` and `recognition_day_max` instead of the
+#     admission. The decision and the day follow a SHA of the encounter id, so
+#     no random stream of the stay is read. A late recognised co-disease is
+#     the missed diagnosis of the stay (`ClinicalDiagnosis.missed_diagnoses`),
+#     which raises the readmission rate as before.
+#   - Recovery. From the day the co-disease is treated, the axes of
+#     `recovered_axes` that its onset raised return to where they were, in
+#     equal daily steps over `recovery_days` days. Without it the co-disease
+#     has no course and the fever / CRP it caused would last the whole stay.
+#   - Orders. The co-disease protocol's admission orders are merged into the
+#     stay's: a lab or study the stay already has is not ordered twice, and a
+#     supportive entry whose type the stay already carries is left out
+#     (`always_skipped_supportive_types` are never ordered a second time: one
+#     maintenance fluid and one thromboprophylaxis per stay).
+#
+# Source: none read for these values. They are model choices (the 30 % is the
+# value the missed-secondary-diagnosis rate of the simulator has always had;
+# the days are the first days of an acute stay), not guideline figures.
+metadata:
+  kind: reference
+  name: mixed_condition
+  source: clinosim
+
+delayed_recognition_probability: 0.30
+recognition_day_min: 1
+recognition_day_max: 3
+recovery_days: 7
+recovered_axes:
+  - inflammation_level
+  - oxygenation_impairment
+  - sympathetic_activation
+  - perfusion_status
+always_skipped_supportive_types:
+  - IV_fluid
+  - DVT_prophylaxis

@@ -640,6 +640,7 @@ class NarrativePass(ABC):
             home_medications_at_admission=patient_dict.get("home_medications_at_admission"),
             # Issue #3256: code status and ICU transfer (death summary).
             principal_disease_id=self._principal_disease_id(condition_event),
+            co_disease_ids=self._co_disease_ids(condition_event),
             code_status=str(patient_dict.get("code_status", "") or ""),
             icu_transferred=bool(patient_dict.get("icu_transferred", False)),
             icu_transferred_day=icu_transfer_day(patient_dict.get("icu_transferred_day")),
@@ -759,6 +760,14 @@ class NarrativePass(ABC):
             return ""
         gt = _o(condition_event, "ground_truth_diseases", []) or []
         return str(gt[0]) if gt else ""
+
+    @staticmethod
+    def _co_disease_ids(condition_event: Any) -> list[str]:
+        """``ground_truth_diseases[1:]`` of a ``mixed`` condition event (Issue
+        #3392), else ``[]``."""
+        if str(_o(condition_event, "condition_type", "") or "") != "mixed":
+            return []
+        return [str(d) for d in (_o(condition_event, "ground_truth_diseases", []) or [])[1:] if d]
 
     @staticmethod
     def _resolve_encounter_protocol(condition_event: Any) -> Any | None:

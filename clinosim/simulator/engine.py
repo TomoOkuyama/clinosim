@@ -402,7 +402,7 @@ def run_forced(scenario: ForcedScenario, config: SimulatorConfig | None = None) 
             severity=FORCED_SCENARIO_SEVERITY_FRACTIONS.get(severity, FORCED_SCENARIO_SEVERITY_FRACTION_FALLBACK),
             disease_id=scenario.disease_id,
             requires_hospital=True,
-            condition_type="known_disease",
+            condition_type="mixed" if scenario.secondary_disease_id else "known_disease",
         )
 
         record = _simulate_patient(
@@ -416,6 +416,9 @@ def run_forced(scenario: ForcedScenario, config: SimulatorConfig | None = None) 
             rng,
             forced_severity=scenario.severity,
             forced_archetype=scenario.archetype,
+            secondary_protocol=load_disease_protocol(scenario.secondary_disease_id)
+            if scenario.secondary_disease_id
+            else None,
         )
 
         # Force specific complications if requested
