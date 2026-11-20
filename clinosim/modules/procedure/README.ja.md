@@ -107,6 +107,15 @@ catalog (`codes/data/clinosim-procedure-catalog.yaml` を引く
 `clinosim.codes.procedures.bedside_procedures()`、Issue #2263) 由来で、
 `engine.py` の `_BEDSIDE_PROCEDURES` tuple list に射影される。
 
+インプラント (Issue #3406): 器材を残す手技は `implants_used` に
+`locale/shared/narrative_op_implants.yaml` のキー (en + ja) で記録する。出所は
+疾患 protocol の `procedure.implants`、無ければ catalog の `implants` 表
+(`clinosim.codes.procedures.procedure_implants`: PCI は薬剤溶出性ステント、
+ペースメーカー本体とリード、人工膝関節、掌側ロッキングプレート)。大腿骨近位部
+骨折手術は従来どおり釘・スクリュー・人工骨頭を選ぶ。乱数の消費なし。サイズ・機種は
+モデル化していないため記載しない。手術記録の使用機器・材料欄はこれを記し、
+リストが空のときだけ「なし」と書く。
+
 検体 (Issue #3284): 切除術は病理へ提出する組織を `specimens_sent` に
 `codes/data/snomed-maps.yaml` の `specimen_type` キー (`appendix`、
 `gallbladder`、`colon_segment`) で記録する。`simulate_surgery` と bedside

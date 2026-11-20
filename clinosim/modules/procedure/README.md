@@ -124,6 +124,16 @@ histopathology in `specimens_sent`, as `specimen_type` keys of
 and the bedside path. Catalog data, no draw. The operative / procedure
 note lists them by label and the FHIR output emits one Specimen each.
 
+Implants (Issue #3406): a procedure that leaves a device records it in
+`implants_used`, as keys of `locale/shared/narrative_op_implants.yaml`
+(en + ja). The device comes from the disease protocol's
+`procedure.implants`, else from the catalog's `implants` table
+(`clinosim.codes.procedures.procedure_implants`: drug-eluting stent for
+PCI, pacemaker generator and leads, knee prosthesis, volar locking plate);
+hip-fracture surgery keeps its own nail / screw / prosthesis choice. No
+draw, and no size or model (not modelled). The operative note's equipment
+line states them and says "none" only when the list is empty.
+
 Blood loss, ASA class and anesthesia (Issue #3257): `ProcedureRecord`
 defaults are empty (`estimated_blood_loss_ml` / `asa_class` None,
 `anesthesia_type` ""), meaning not recorded. Only `simulate_surgery`

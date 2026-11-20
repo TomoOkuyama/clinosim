@@ -10,10 +10,16 @@ metadata:
   source: clinosim
 
 op_implants:
-  bipolar femoral prosthesis: {ja: バイポーラ人工骨頭}
-  cannulated screw: {ja: カニュレイテッドスクリュー}
-  cephalomedullary nail: {ja: 頭髄内釘}
-  compression hip screw: {ja: 圧迫式ヒップスクリュー}
-  dynamic hip screw: {ja: ダイナミックヒップスクリュー}
-  intramedullary nail: {ja: 髄内釘}
-  sliding hip screw: {ja: スライディングヒップスクリュー}
+  bipolar femoral prosthesis: {en: Bipolar femoral prosthesis, ja: バイポーラ人工骨頭}
+  cannulated screw: {en: Cannulated screw, ja: カニュレイテッドスクリュー}
+  cephalomedullary nail: {en: Cephalomedullary nail, ja: 頭髄内釘}
+  compression hip screw: {en: Compression hip screw, ja: 圧迫式ヒップスクリュー}
+  dynamic hip screw: {en: Dynamic hip screw, ja: ダイナミックヒップスクリュー}
+  intramedullary nail: {en: Intramedullary nail, ja: 髄内釘}
+  sliding hip screw: {en: Sliding hip screw, ja: スライディングヒップスクリュー}
+  drug-eluting stent: {en: Drug-eluting stent, ja: 薬剤溶出性ステント}
+  pacemaker generator: {en: Pacemaker generator, ja: ペースメーカー本体}
+  pacing leads: {en: Pacing leads, ja: ペーシングリード}
+  pedicle screw and rod construct: {en: Pedicle screw and rod construct, ja: 椎弓根スクリューとロッド}
+  total knee prosthesis: {en: Total knee prosthesis, ja: 人工膝関節（全置換型）}
+  volar locking plate: {en: Volar locking plate, ja: 掌側ロッキングプレート}

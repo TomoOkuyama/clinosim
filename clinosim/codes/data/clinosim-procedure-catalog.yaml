@@ -40,6 +40,19 @@ specimens:
   laparoscopic appendectomy: [appendix]
   laparoscopic cholecystectomy: [gallbladder]
 
+# Device a procedure type leaves in the patient, per procedure type (Issue
+# #3406), as keys of locale/shared/narrative_op_implants.yaml. The procedure
+# engine copies them into the record's `implants_used`, which the operative
+# note's equipment line states. A disease protocol's own `procedure.implants`
+# (or the hip-fracture choice of nail / screw / prosthesis) takes precedence.
+# Only procedures that by definition leave a device are listed; the size or
+# model of a device is not modelled and so is not stated.
+implants:
+  coronary_pci: [drug-eluting stent]
+  pacemaker_implant: [pacemaker generator, pacing leads]
+  Total knee arthroplasty: [total knee prosthesis]
+  ORIF with volar locking plate: [volar locking plate]
+
 bedside:
   - {type: urinary_catheter, cpt: "51702", k_code: "J063", name: {en: "Urinary catheter insertion", ja: "尿道カテーテル挿入"}, anesthesia: none, aftercare: urinary_catheter}
   - {type: central_line, cpt: "36556", k_code: "G005-2", name: {en: "Central venous catheter insertion", ja: "中心静脈カテーテル挿入"}, anesthesia: local, aftercare: central_line}

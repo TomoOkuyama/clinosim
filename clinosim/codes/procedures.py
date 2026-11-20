@@ -107,6 +107,13 @@ def procedure_specimens(proc_type: str) -> tuple[str, ...]:
     return tuple(str(s) for s in (_catalog().get("specimens") or {}).get(proc_type) or ())
 
 
+def procedure_implants(proc_type: str) -> tuple[str, ...]:
+    """Devices a procedure type leaves in the patient, as keys of
+    ``narrative_op_implants.yaml`` (the catalog's ``implants`` table, Issue
+    #3406); empty for a procedure that leaves none."""
+    return tuple(str(i) for i in (_catalog().get("implants") or {}).get(proc_type) or ())
+
+
 def specimen_code(slug: str) -> str:
     """SNOMED CT specimen concept of a ``specimens_sent`` entry; ``""`` when
     the key is not mapped (Issue #3284)."""
