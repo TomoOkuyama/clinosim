@@ -12,7 +12,13 @@
 # values of the period that are abnormal and differ from the latest value.
 # Trend words in the Subjective (new / persistent / worsening / resolving
 # fever, SpO2 trend) compare the period's extremes with the previous
-# period's extremes, never single readings.
+# period's extremes, never single readings. A trend word describes the
+# patient's present state, so it is written only when the latest reading of
+# the period is itself beyond the threshold, and then with the latest value
+# and the period's peak; a peak the latest reading no longer shows is stated
+# as "the past 24 h's peak, now back at X" (Issue #3401). A patient with a
+# lower SpO2 target (progress_exam.yaml limit_overrides, COPD 88 %) uses that
+# floor for the desaturation and recovery thresholds.
 metadata:
   kind: reference
   name: progress_vitals

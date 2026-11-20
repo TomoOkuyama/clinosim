@@ -30,6 +30,8 @@ if TYPE_CHECKING:
 
 __all__ = [
     "ProgressExamRules",
+    "current_states",
+    "spo2_low_override",
     "agreeing_clauses",
     "any_abnormal",
     "course_line",
@@ -64,6 +66,25 @@ class _Limit(BaseModel):
     child_low: Literal["low", "critical_low"] = "low"
 
 
+class _LimitOverride(BaseModel):
+    """A patient-specific replacement of a vital's ``low`` limit (the target
+    range of a COPD patient), for the patients of ``disease_ids`` or with a
+    chronic or encounter diagnosis starting with a ``chronic_code_prefixes``
+    entry."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    vital: str
+    low: float
+    disease_ids: list[str] = Field(default_factory=list)
+    chronic_code_prefixes: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _has_condition(self) -> _LimitOverride:
+        if not (self.disease_ids or self.chronic_code_prefixes):
+            raise ValueError("progress_exam.yaml: a limit override needs disease_ids or chronic_code_prefixes")
+        return self
+
+
 class _ExtraTerm(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     vitals: list[str] = Field(min_length=1)
@@ -92,6 +113,7 @@ class ProgressExamRules(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
     limits: dict[str, _Limit] = Field(min_length=1)
+    limit_overrides: list[_LimitOverride] = Field(default_factory=list)
     clause_separators: Annotated[dict[str, list[str]], AfterValidator(_has_english)]
     extra_terms: list[_ExtraTerm]
     state_findings: list[_StateFinding]
@@ -102,7 +124,8 @@ class ProgressExamRules(BaseModel):
         from clinosim.modules.document.narrative.renderers._shared_helpers import PHYSICAL_EXAM_SYSTEMS
 
         known = set(self.limits) | set(_PSEUDO_VITALS)
-        named = {v for term in self.extra_terms for v in term.vitals}
+        named = {o.vital for o in self.limit_overrides}
+        named |= {v for term in self.extra_terms for v in term.vitals}
         named |= {f.vital for f in self.state_findings} | {c.vital for c in self.course_items}
         if named - known:
             raise ValueError(f"progress_exam.yaml: vitals without a limit {sorted(named - known)}")
@@ -156,15 +179,38 @@ def child_low_bound(child: Any, edge: str) -> float:
     return float(child.low)
 
 
+def _override_low(ctx: NarrativeContext, vital: str) -> float | None:
+    """The patient-specific ``low`` limit of ``vital`` (``limit_overrides``),
+    ``None`` when no override applies."""
+    overrides = [o for o in progress_exam_rules().limit_overrides if o.vital == vital]
+    if not overrides:
+        return None
+    from clinosim.modules.document.narrative.renderers._resolvers import _patient_condition_codes
+
+    disease_id = str(getattr(getattr(ctx, "disease_protocol", None), "disease_id", "") or "")
+    codes = _patient_condition_codes(ctx)
+    for o in overrides:
+        if disease_id in o.disease_ids or any(c.startswith(tuple(o.chronic_code_prefixes)) for c in codes):
+            return o.low
+    return None
+
+
+def spo2_low_override(ctx: NarrativeContext) -> float | None:
+    """The SpO2 floor of the patient's own target range (a COPD patient's 88 %)
+    in place of the adult limit, ``None`` for a patient without one."""
+    return _override_low(ctx, "spo2")
+
+
 def _limit(ctx: NarrativeContext, vital: str, limit: _Limit, when: Any) -> tuple[float | None, float | None, bool]:
     """``(low, high, high_inclusive)`` of ``vital`` for the patient: the
     age-banded pediatric range where it lists the vital, else the adult
-    limit."""
+    limit (a patient's own target range replacing the adult ``low``)."""
     months = age_in_completed_months(_o(getattr(ctx, "patient", None), "date_of_birth", None), when)
     child = pediatric_vital_range(vital, months)
     if child is not None:
         return child_low_bound(child, limit.child_low), child.high, False
-    return limit.low, limit.high, limit.high_inclusive
+    override = _override_low(ctx, vital)
+    return (limit.low if override is None else override), limit.high, limit.high_inclusive
 
 
 def period_states(ctx: NarrativeContext, readings: list) -> dict[str, set[str]]:
@@ -193,6 +239,17 @@ def period_states(ctx: NarrativeContext, readings: list) -> dict[str, set[str]]:
     if levels & {"V", "P", "U"}:
         states["consciousness"] = {"high"}
     return states
+
+
+def current_states(ctx: NarrativeContext, readings: list) -> dict[str, set[str]]:
+    """The state of each vital at the note's time: that of the latest recorded
+    value of each vital among ``readings`` (the values the Objective prints),
+    not of the period's extreme. A statement about how the patient is now
+    ("tachypnea", "SpO2 low", "worsening") is judged on these; the extreme is
+    stated only as a time-qualified peak (Issue #3401)."""
+    from clinosim.modules.document.narrative._vitals_line import latest_vitals_set
+
+    return period_states(ctx, [latest_vitals_set(readings)]) if readings else {}
 
 
 def any_abnormal(states: dict[str, set[str]]) -> bool:
@@ -263,6 +320,7 @@ def progress_exam_findings(
     )
 
     states = period_states(ctx, readings)
+    now = current_states(ctx, readings)
     code = normalize_lang(lang)
     findings: dict[str, str] = {}
     for system in PHYSICAL_EXAM_SYSTEMS:
@@ -273,7 +331,7 @@ def progress_exam_findings(
             f.text.get(code) or f.text["en"]
             for f in progress_exam_rules().state_findings
             if f.system == system
-            and f.state in states.get(f.vital, set())
+            and f.state in now.get(f.vital, set())
             and (f.vital, f.state) not in stated
             and (f.text.get(code) or f.text["en"]) not in text
         ]
@@ -285,10 +343,11 @@ def progress_exam_findings(
 
 
 def course_line(ctx: NarrativeContext, readings: list, previous: list, lang: str) -> str:
-    """How the course changed from the previous period (the Assessment's
-    "improving / worsening / persisting"): the abnormal states of the period
+    """How the vital signs changed from the previous period (the Assessment's
+    "improving / worsening / persisting"): the abnormal states at the end of the period
     (fever, tachycardia, tachypnea, low SpO2, hypotension, reduced
-    consciousness, oxygen therapy) against those of the previous period.
+    consciousness, oxygen therapy), judged on the latest reading of each
+    period, against those at the end of the previous period (Issue #3401).
     ``""`` without readings in both periods or without any abnormal state in
     either."""
     if not readings or not previous:
@@ -297,7 +356,7 @@ def course_line(ctx: NarrativeContext, readings: list, previous: list, lang: str
     items = progress_exam_rules().course_items
 
     def named(rows: list) -> list[str]:
-        states = period_states(ctx, rows)
+        states = current_states(ctx, rows)
         return [i.name.get(code) or i.name["en"] for i in items if i.state in states.get(i.vital, set())]
 
     now, before = named(readings), named(previous)

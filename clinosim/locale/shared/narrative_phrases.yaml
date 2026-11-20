@@ -73,15 +73,23 @@ progress:
   hospital_day:
     ja: "入院{day}日目。"
     en: "Hospital day {day}."
+  # Issue #3401: the trend phrases state the latest reading of the period;
+  # ``{peak}`` is the time-qualified extreme of the period when it differs.
   fever_new_onset:
-    ja: "発熱 {t:.1f}°C 出現。"
-    en: "New-onset fever {t:.1f}°C."
+    ja: "発熱 {t:.1f}°C{peak} 出現。"
+    en: "New-onset fever {t:.1f}°C{peak}."
   fever_worsening:
-    ja: "発熱 {t:.1f}°C 上昇傾向。"
-    en: "Fever {t:.1f}°C, worsening trend."
+    ja: "発熱 {t:.1f}°C{peak} 上昇傾向。"
+    en: "Fever {t:.1f}°C{peak}, worsening trend."
   fever_persistent:
-    ja: "発熱 {t:.1f}°C 持続。"
-    en: "Persistent fever {t:.1f}°C."
+    ja: "発熱 {t:.1f}°C{peak} 持続。"
+    en: "Persistent fever {t:.1f}°C{peak}."
+  fever_peak:
+    ja: " ({when}の最高 {tmax:.1f}°C)"
+    en: " (peak {tmax:.1f}°C {when})"
+  fever_peak_resolved:
+    ja: "{when}に最高 {tmax:.1f}°C の発熱、現在 {t:.1f}°C と発熱基準未満。"
+    en: "Fever up to {tmax:.1f}°C {when}; now {t:.1f}°C, below the fever threshold."
   hypothermia:
     ja: "低体温 {t:.1f}°C を認める。"
     en: "Hypothermia {t:.1f}°C noted."
@@ -89,14 +97,28 @@ progress:
     ja: "熱型下降 (前日 {pt:.1f}°C → 本日 {t:.1f}°C)。"
     en: "Fever trending down (prev {pt:.1f}°C → today {t:.1f}°C)."
   spo2_worsening:
-    ja: "SpO2 {s:.0f}% と悪化傾向。"
-    en: "SpO2 {s:.0f}% (worsening)."
+    ja: "SpO2 {s:.0f}%{peak} と悪化傾向。"
+    en: "SpO2 {s:.0f}%{peak} (worsening)."
   spo2_desaturating:
-    ja: "SpO2 {s:.0f}% と低下傾向。"
-    en: "SpO2 {s:.0f}% (desaturation trend)."
+    ja: "SpO2 {s:.0f}%{peak} と低下傾向。"
+    en: "SpO2 {s:.0f}%{peak} (desaturation trend)."
+  spo2_peak:
+    ja: " ({when}の最低 {smin:.0f}%)"
+    en: " (low {smin:.0f}% {when})"
+  spo2_transient_low:
+    ja: "{when}に SpO2 最低 {smin:.0f}% まで低下、現在 {s:.0f}%。"
+    en: "SpO2 fell to {smin:.0f}% {when}; now {s:.0f}%."
   spo2_recovering:
     ja: "SpO2 改善 (前日 {ps:.0f}% → 本日 {s:.0f}%)。"
     en: "SpO2 recovering (prev {ps:.0f}% → today {s:.0f}%)."
+  # The period the peak belongs to: the hours since the previous note, or the
+  # note's own day when the note has no authored time.
+  period_recent:
+    ja: "直近{hours}時間"
+    en: "in the past {hours} h"
+  period_today:
+    ja: "本日"
+    en: "today"
   # Issue #2095: pain / consciousness / withdrawal trends from recorded vitals.
   # {pain} is the disease's pain (progress_vitals.yaml pain_sites), else
   # pain_generic (Issue #3235).
@@ -218,13 +240,13 @@ progress:
   # How the abnormal vital states of the period changed against the previous
   # period (progress_exam.yaml course_items; Issue #3247).
   course_improving:
-    ja: "前日より経過改善傾向 ({list}は消失)。"
-    en: "Improving compared with the previous day ({list} resolved)."
+    ja: "バイタルサインは前日より改善傾向 ({list}は消失)。"
+    en: "Vital signs improving compared with the previous day ({list} resolved)."
   course_worsening:
-    ja: "前日より増悪傾向 (新たに {list})。"
-    en: "Worsening compared with the previous day (new {list})."
+    ja: "バイタルサインは前日より増悪傾向 (新たに {list})。"
+    en: "Vital signs worsening compared with the previous day (new {list})."
   course_persisting:
-    ja: "{list}が持続、改善に乏しい。"
+    ja: "バイタルサインは{list}が持続、改善に乏しい。"
     en: "Abnormal vital signs persisting ({list}); no improvement yet."
   # The Assessment's course of the key labs of the admission problem (Issue
   # #3247) and the day after a non-operative procedure.

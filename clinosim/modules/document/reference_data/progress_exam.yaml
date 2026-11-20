@@ -38,6 +38,13 @@ metadata:
 # A child is judged against the age-banded range of
 # observation/reference_data/pediatric_reference_ranges.yaml where it lists
 # the vital (not temperature, pain).
+#
+# Statements about how the patient is NOW (an added exam finding, the
+# Assessment's course line) are judged on the latest reading of each vital,
+# the value the Objective prints (``current_states``); a clause of the
+# authored exam is left out when any reading of the period contradicts it
+# (``period_states``). A peak earlier in the period is stated only
+# time-qualified (Issue #3401).
 limits:
   temperature_celsius: {high: 38.0, high_inclusive: true}
   heart_rate: {low: 60, high: 100}
@@ -45,6 +52,21 @@ limits:
   spo2: {low: 94}
   systolic_bp: {low: 90, child_low: critical_low}
   pain_score: {high: 3}
+
+# A patient's own target range replaces the adult ``low`` of the vital
+# (Issue #3401): a patient with COPD is titrated to an SpO2 of 88-92 % to
+# avoid hypercapnia (GOLD / BTS, as cited by the oxygen-start target of
+# simulator/_oxygen_therapy_thresholds.py SPO2_TARGET_COPD and the
+# ``spo2_target_low`` of locale/shared/chronic_medications.yaml J44), so an
+# SpO2 of 90 % is not low for them. Applies to the patients of ``disease_ids``
+# and to those with a chronic or encounter diagnosis starting with one of
+# ``chronic_code_prefixes`` (J44: COPD). The Subjective's SpO2 trend
+# (narrative/renderers/_composers.py) reads the same floor.
+limit_overrides:
+  - vital: spo2
+    low: 88
+    disease_ids: [copd_exacerbation]
+    chronic_code_prefixes: [J44]
 
 # Exam clauses are split at these separators (outermost first); a clause is
 # kept or left out as a whole.
