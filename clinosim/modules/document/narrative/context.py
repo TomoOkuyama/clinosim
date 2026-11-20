@@ -179,6 +179,7 @@ def _build_newborn_workup(record: Any, patient: Any) -> dict[str, Any]:
         "cchd_ru_spo2":    int | None,     # right-upper SpO2
         "cchd_le_spo2":    int | None,     # lower-extremity SpO2
         "has_aabr":        bool,           # AABR hearing screen Procedure present
+        "aabr_outcome_key": str | None,    # "pass" / "refer" from outcome_code (#3404)
         "has_metabolic":   bool,           # tandem-MS metabolic screen Procedure present
         "metabolic_result_datetime": datetime | str | None,  # when the screen is reported (Issue #3358)
         "metabolic_outcome_key": "pass" | "refer" | None,
@@ -261,6 +262,7 @@ def _build_newborn_workup(record: Any, patient: Any) -> dict[str, Any]:
     # display / name / id for hand-authored fixtures.
     procedures = _o(record, "procedures", None) or []
     has_aabr = False
+    aabr_outcome_key: str | None = None
     has_metabolic = False
     # Issue #3241: when each item was done, so a note carries only what
     # existed at its authored time (:func:`newborn_workup_known_at`).
@@ -283,7 +285,10 @@ def _build_newborn_workup(record: Any, patient: Any) -> dict[str, Any]:
             or "HEARING-SCREEN" in pid
         ):
             has_aabr = True
-            _note_time("aabr", _o(proc, "start_datetime", None))
+            # Issue #3404: the screen is stated once it has finished (its
+            # end time), with the result the CIF recorded.
+            _note_time("aabr", _o(proc, "end_datetime", None) or _o(proc, "start_datetime", None))
+            aabr_outcome_key = _aabr_outcome_key(_o(proc, "outcome_code", None))
         if (
             "tandem" in haystack
             or "metabolic_screen" in haystack
@@ -330,6 +335,7 @@ def _build_newborn_workup(record: Any, patient: Any) -> dict[str, Any]:
         "cchd_ru_spo2": cchd_ru,
         "cchd_le_spo2": cchd_le,
         "has_aabr": has_aabr,
+        "aabr_outcome_key": aabr_outcome_key,
         "has_metabolic": has_metabolic,
         "has_vitamin_k": has_vitamin_k,
         "has_ophthalmic": has_ophthalmic,
@@ -367,6 +373,20 @@ def newborn_metabolic_status(workup: dict[str, Any], as_of: Any) -> str:
         return "not_collected"
     result = parse_iso_datetime(workup.get("metabolic_result_datetime"), lenient=True)
     return "resulted" if result is not None and result <= as_of else "pending"
+
+
+def _aabr_outcome_key(outcome_code: Any) -> str | None:
+    """``"pass"`` / ``"refer"`` for the SNOMED outcome code of the hearing
+    screen Procedure (codes from ``newborn_screening.yaml``
+    ``hearing_screen``); None when the CIF carries no known code."""
+    from clinosim.modules.newborn.engine import load_newborn_config
+
+    code = str(outcome_code or "")
+    cfg = load_newborn_config().get("hearing_screen") or {}
+    for key in ("pass", "refer"):
+        if code and code == str(cfg.get(f"outcome_{key}") or ""):
+            return key
+    return None
 
 
 def newborn_workup_known_at(workup: dict[str, Any], as_of: Any) -> dict[str, Any]:

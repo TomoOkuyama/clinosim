@@ -15,6 +15,8 @@ from __future__ import annotations
 from datetime import datetime
 from types import SimpleNamespace
 
+import pytest
+
 from clinosim.modules.document.narrative.context import _build_newborn_workup
 from clinosim.modules.document.narrative.replacement_strategy import (
     _build_extra_context,
@@ -151,6 +153,9 @@ def _real_shape_neonate_record() -> SimpleNamespace:
                 procedure_id="PROC-POP-007117-BABY-HEARING-SCREEN",
                 procedure_type="hearing_screen_aabr",
                 procedure_code="413083006",
+                start_datetime=datetime(2025, 12, 23, 10, 6),
+                end_datetime=datetime(2025, 12, 23, 10, 21),
+                outcome_code="385671000",
             ),
             SimpleNamespace(
                 procedure_id="PROC-POP-007117-BABY-METABOLIC-SCREEN",
@@ -181,6 +186,8 @@ def test_build_newborn_workup_real_shape_all_signals_present() -> None:
     assert wu["cchd_ru_spo2"] == 97  # pre-ductal, site="right_hand"
     assert wu["cchd_le_spo2"] == 98  # post-ductal, site="foot"
     assert wu["has_aabr"] is True  # procedure_type="hearing_screen_aabr"
+    assert wu["aabr_outcome_key"] == "refer"  # outcome_code 385671000 (#3404)
+    assert wu["event_times"]["aabr"] == "2025-12-23 10:21:00"  # the end of the test, not its start
     assert wu["has_metabolic"] is True  # procedure_type="metabolic_screen_tandem_ms"
     assert wu["has_vitamin_k"] is True  # drug_name contains "Vitamin K1"
     assert wu["has_ophthalmic"] is True  # drug_name contains "erythromycin" + route "OPH"
@@ -223,7 +230,7 @@ _FULL_WORKUP = {
 def test_render_summary_en_full() -> None:
     out = _render_newborn_workup_summary(_FULL_WORKUP, lang="en")
     assert "Apgar 8(1 min) / 9(5 min)" in out
-    assert "AABR hearing screen completed" in out
+    assert "AABR hearing screen performed" in out
     assert "tandem-MS metabolic screen submitted" in out
     assert "peak total bilirubin 11.4 mg/dL" in out
     assert "CCHD SpO2 RU 98% / LE 97%" in out
@@ -234,7 +241,8 @@ def test_render_summary_en_full() -> None:
 def test_render_summary_ja_full() -> None:
     out = _render_newborn_workup_summary(_FULL_WORKUP, lang="ja")
     assert "Apgar 8(1分)/9(5分)" in out
-    assert "AABR 聴覚スクリーン提出済" in out
+    assert "AABR 聴覚スクリーン実施" in out
+    assert "提出" not in out.split("タンデム")[0]
     assert "タンデム MS 代謝異常症スクリーン提出済" in out
     assert "総ビリルビン最高値 11.4 mg/dL" in out
     assert "CCHD SpO2 右上肢 98% / 下肢 97%" in out
@@ -330,3 +338,32 @@ def test_extra_context_skips_on_non_admission_hp_doc_type() -> None:
     ctx.document_type = DocumentType.PROGRESS_NOTE
     extra = _build_extra_context(ctx, _Spec("progress_note"))
     assert "newborn_workup_summary" not in extra
+
+
+@pytest.mark.parametrize(
+    ("key", "en", "ja"),
+    [
+        ("pass", "AABR hearing screen: pass", "AABR 聴覚スクリーン: パス"),
+        ("refer", "AABR hearing screen: refer (repeat testing)", "AABR 聴覚スクリーン: 要再検"),
+    ],
+)
+def test_render_summary_aabr_result_3404(key: str, en: str, ja: str) -> None:
+    wu = {**_FULL_WORKUP, "aabr_outcome_key": key}
+    assert en in _render_newborn_workup_summary(wu, lang="en")
+    assert ja in _render_newborn_workup_summary(wu, lang="ja")
+
+
+def test_aabr_outcome_and_end_time_from_procedure_3404() -> None:
+    from clinosim.modules.document.narrative.context import _aabr_outcome_key, newborn_workup_known_at
+
+    assert _aabr_outcome_key("385669000") == "pass"
+    assert _aabr_outcome_key("385671000") == "refer"
+    assert _aabr_outcome_key(None) is None
+    wu = {
+        "has_aabr": True,
+        "aabr_outcome_key": "pass",
+        "event_times": {"aabr": "2025-12-23T10:21:00"},
+    }
+    # A note inside the 10:06-10:21 test window does not state the result.
+    assert newborn_workup_known_at(wu, datetime(2025, 12, 23, 10, 10))["has_aabr"] is False
+    assert newborn_workup_known_at(wu, datetime(2025, 12, 23, 10, 30))["has_aabr"] is True
