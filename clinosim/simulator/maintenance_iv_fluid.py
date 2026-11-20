@@ -43,15 +43,20 @@ def maintenance_iv_fluid_rules() -> MaintenanceIVFluidRules:
     )
 
 
-def is_maintenance_iv_fluid(order: Order) -> bool:
-    """Whether ``order`` is a maintenance IV-fluid order (not a bolus or a
-    titrated / resuscitation regimen)."""
+def is_maintenance_iv_fluid_name(name: str) -> bool:
+    """Whether the order display name ``name`` ("IV_fluid: NS 125 mL/h") is a
+    maintenance IV fluid (not a bolus or a titrated / resuscitation regimen)."""
     rules = maintenance_iv_fluid_rules()
-    name = order.display_name or ""
-    if order.order_type != OrderType.MEDICATION or not name.startswith(rules.order_display_prefix):
+    if not name.startswith(rules.order_display_prefix):
         return False
     detail = name[len(rules.order_display_prefix) :].lower()
     return not any(marker.lower() in detail for marker in rules.excluded_detail_markers)
+
+
+def is_maintenance_iv_fluid(order: Order) -> bool:
+    """Whether ``order`` is a maintenance IV-fluid order (not a bolus or a
+    titrated / resuscitation regimen)."""
+    return order.order_type == OrderType.MEDICATION and is_maintenance_iv_fluid_name(order.display_name or "")
 
 
 def stop_maintenance_iv_fluid(

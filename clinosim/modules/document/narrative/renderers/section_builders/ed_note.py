@@ -459,9 +459,10 @@ def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
     seen_meds: set[str] = set()
     seen_proc_orders: set[str] = set()
     # The ED workup of a via-ED admission is the stay's initial order set
-    # (Issue #3242; it is placed at the admission time, so it is selected by
-    # order set, not by time); result values are limited to those available
-    # at the ED departure (Issue #2856).
+    # placed in the ED (Issue #3242, #3434): selected by order set and by
+    # time (the work-up is ordered in the ED period; an initial order placed
+    # on the ward after the ED note was authored is not stated); result
+    # values are limited to those available at the ED departure (Issue #2856).
     cutoff = _ed_cutoff(ctx)
     admitted = _admitted_from_ed(ctx)
     for order in ctx.orders or []:
@@ -475,10 +476,8 @@ def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
         if not _is_ed_order(order, admitted):
             continue
         # A visit's own orders are placed in the visit; one dated after the
-        # note was authored is not stated (Issue #3397). An admitted patient's
-        # ED set is the stay's initial order set, timed after the ED period
-        # (selected by order set above), so it is not cut by time.
-        if not admitted and cutoff:
+        # note was authored is not stated (Issue #3397, #3434).
+        if cutoff:
             placed = _iso(_o(order, "ordered_datetime", ""))
             if placed and placed > cutoff:
                 continue

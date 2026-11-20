@@ -132,12 +132,12 @@
         }
       },
       "sections": {
-        "assessment": "Abnormal vital signs persisting (tachycardia); no improvement yet. Notable labs (past 24 h): glucose 551 mg/dL [critical] (prior 578), pH 7.04 [critical], Cl 107 mmol/L [H], lactate 3.0 mmol/L [H], +5 other abnormal.",
+        "assessment": "Abnormal vital signs persisting (tachycardia); no improvement yet. Notable labs (past 24 h): HbA1c 11.8 % [H].",
         "objective": "BP 117/72 mmHg, HR 107 bpm, RR 19 /min, SpO2 93% (RA), T 35.7°C (past 24 h: HR max 121 bpm, RR max 24 /min)",
         "plan": "Continue current medications: Enoxaparin, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0. Diet changed to NPO (nothing by mouth). Discharge planning in progress (home).",
         "subjective": "Hospital day 2. Hypothermia 35.7°C noted."
       },
-      "text": "S: Hospital day 2. Hypothermia 35.7°C noted.\nO: BP 117/72 mmHg, HR 107 bpm, RR 19 /min, SpO2 93% (RA), T 35.7°C (past 24 h: HR max 121 bpm, RR max 24 /min)\nA: Abnormal vital signs persisting (tachycardia); no improvement yet. Notable labs (past 24 h): glucose 551 mg/dL [critical] (prior 578), pH 7.04 [critical], Cl 107 mmol/L [H], lactate 3.0 mmol/L [H], +5 other abnormal.\nP: Continue current medications: Enoxaparin, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0. Diet changed to NPO (nothing by mouth). Discharge planning in progress (home)."
+      "text": "S: Hospital day 2. Hypothermia 35.7°C noted.\nO: BP 117/72 mmHg, HR 107 bpm, RR 19 /min, SpO2 93% (RA), T 35.7°C (past 24 h: HR max 121 bpm, RR max 24 /min)\nA: Abnormal vital signs persisting (tachycardia); no improvement yet. Notable labs (past 24 h): HbA1c 11.8 % [H].\nP: Continue current medications: Enoxaparin, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0. Diet changed to NPO (nothing by mouth). Discharge planning in progress (home)."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-04": {
@@ -456,7 +456,7 @@
       "sections": {
         "admission_status": "Hospital stay: 3 days. Admission reason: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Complications: aspiration pneumonia, DVT. Discharge criteria met.",
         "discharge_readiness": "Discharge readiness: Discharge Barthel 80/100.",
-        "nursing_interventions_provided": "Medication administration: 43 doses (4 drugs); Vital-sign monitoring: 24 sets; Procedures: Central venous catheter insertion; Cumulative IN 6605 mL / OUT 5785 mL (net +820 mL); Education: Explain hypo- and hyperglycemia symptoms and ask the patient to report feeling unwell early.",
+        "nursing_interventions_provided": "Medication administration: 45 doses (4 drugs); Vital-sign monitoring: 24 sets; Procedures: Central venous catheter insertion; Cumulative IN 6605 mL / OUT 5785 mL (net +820 mL); Education: Explain hypo- and hyperglycemia symptoms and ask the patient to report feeling unwell early.",
         "patient_education": "Patient education: sick-day rules (insulin dose + when to seek care during illness); self blood-glucose monitoring + urine-ketone strips; hypoglycemia recognition + rescue (glucose tabs / glucagon); importance of routine follow-up + insulin adherence."
       },
       "text": ""
@@ -491,7 +491,7 @@
         "assessment": "ED diagnosis: Diabetic ketoacidosis (DKA). Chief complaint: Nausea, vomiting, abdominal pain, polyuria, altered consciousness.",
         "chief_complaint": "Nausea, vomiting, abdominal pain, polyuria, altered consciousness",
         "disposition": "Admitted (Nausea, vomiting, abdominal pain, polyuria, altered consciousness)",
-        "ed_workup": "Labs: glucose, β-hydroxybutyrate, Na, K, Cl, HCO3, BUN, creatinine. Imaging: ECG, chest X-ray AP. Medications: Insulin, Regular, Human, Normal Saline, Potassium Chloride, IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0",
+        "ed_workup": "Labs: glucose 551.0 mg/dL [critical], β-hydroxybutyrate, Na 145.0 mmol/L, K 5.3 mmol/L [H], Cl 105.0 mmol/L, HCO3 5.8 mmol/L [L], BUN 31.2 mg/dL [H], creatinine 0.8 mg/dL. Imaging: ECG (Sinus tachycardia without ischemic changes), chest X-ray AP (Left lower lobe consolidation). Medications: Insulin, Regular, Human, Normal Saline, Potassium Chloride, IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0",
         "hpi": "34 y/o female patient. Chief complaint: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Symptoms that began over the preceding days worsened rapidly, prompting today's presentation. History: Type 2 diabetes (DM), Dyslipidemia. ROS: no fever, no diarrhea.",
         "physical_exam": "On arrival: BP 105/69 mmHg, HR 125 bpm, RR 21 /min, SpO2 100%, T 36.1°C. General: alert, dehydrated, in distress. Skin: dry mucous membranes, decreased skin turgor. Respiratory: deep, rapid (Kussmaul) respirations, fruity breath odor. Abdomen: diffuse mild tenderness without guarding.",
         "triage_details": "Triage level: ESI Level 1. Arrival mode: Helicopter/air transport. Allergies: No known drug allergies (NKDA)."

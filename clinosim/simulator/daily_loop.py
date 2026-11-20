@@ -322,6 +322,10 @@ class _Stay:
     # Issue #3392: the course of the co-disease of a mixed admission (None for a
     # stay with one disease).
     co_disease: CoDiseaseCourse | None = None
+    # ED arrival of a via-ED admission (Issue #3434): the work-up is ordered in
+    # the ED, so its first doses are given from the order, not from the
+    # admission; None for a stay not admitted through the ED.
+    ed_start: datetime | None = None
 
     @property
     def country(self) -> str:
@@ -1453,6 +1457,7 @@ def _run_daily_loop(
     severity: str = "moderate",
     encounter_id: str = "",
     imaging_seq_counter: dict[str, int] | None = None,
+    ed_start: datetime | None = None,
     symptom_floor: dict[str, float] | None = None,
     max_los: int | None = None,
     surgery: tuple[int, float] | None = None,
@@ -1496,6 +1501,7 @@ def _run_daily_loop(
         prior_procedures=prior_procedures,
         child=child_dosing(patient, encounter_id, admission_time, country_key),
         co_disease=co_disease,
+        ed_start=ed_start,
     )
     run = _Run(
         state=state,
@@ -1564,6 +1570,7 @@ def _run_daily_loop(
             potassium_hold=run.potassium_hold,
             child=stay.child,
             aki=run.aki,
+            dose_floor=stay.ed_start,
         )
         run.mars.extend(mars_today)
         _order_diet(stay, run, day)

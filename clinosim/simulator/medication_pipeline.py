@@ -876,8 +876,14 @@ def _generate_mar(
     potassium_hold: PotassiumHold | None = None,
     child: ChildDosing | None = None,
     aki: AkiCourse | None = None,
+    dose_floor: datetime | None = None,
 ) -> list[MedicationAdministration]:
     """Generate MAR entries for medication orders on this day.
+
+    ``dose_floor`` (Issue #3434): the earliest time a dose can be given, the
+    ED arrival of a patient admitted through the ED, whose work-up drugs are
+    ordered in the ED and first given from the order; the admission time when
+    ``None``.
 
     ``child`` (Issue #3004): a minor's ``(age in months, weight at admission)``
     (``child_dosing``); the orders are re-dosed by weight before they are
@@ -967,8 +973,9 @@ def _generate_mar(
         # "day N + 10 h" after an evening admission falls on the next calendar
         # day, and a continued home medication is ordered an hour after
         # admission; slots before the order time are not given.
-        not_before = max(getattr(order, "ordered_datetime", None) or admission_time, admission_time)
-        order_day = (not_before.date() - admission_time.date()).days
+        not_before = max(getattr(order, "ordered_datetime", None) or admission_time, dose_floor or admission_time)
+        # An order written in the ED the evening before is a day-0 order.
+        order_day = max(0, (not_before.date() - admission_time.date()).days)
         _drug = get_drug(order.drug_id or drug_ref(drug_name))
         _scheduled_h = _drug.scheduled_interval_hours if _drug is not None else None
         _freq_per_day = getattr(order, "frequency_per_day", None)
@@ -1008,9 +1015,9 @@ def _generate_mar(
         # ordered (or after admission), on the day it is ordered only.
         if getattr(order, "single_dose", False):
             ordered = getattr(order, "ordered_datetime", None) or admission_time
-            if (ordered.date() - admission_time.date()).days != day:
+            if max(0, (ordered.date() - admission_time.date()).days) != day:
                 continue
-            given = max(ordered, admission_time) + timedelta(
+            given = max(ordered, dose_floor or admission_time) + timedelta(
                 minutes=_first_dose_delay_min(patient.patient_id, order.order_id, "single")
             )
             mars.append(

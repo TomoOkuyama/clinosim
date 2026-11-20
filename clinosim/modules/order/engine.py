@@ -148,8 +148,13 @@ def place_imaging_orders(
     severity: str,
     rng: np.random.Generator,
     sequence_counter: dict[str, int],
+    ed_period: tuple[datetime, datetime] | None = None,
 ) -> list[Order]:
     """Emit one Order(OrderType.IMAGING) per matching imaging_orders[] entry.
+
+    ``ed_period`` (Issue #3434): for the admission day (``day_index`` 0) of a
+    via-ED admission, the study is ordered in the ED, from the ED arrival
+    (``workup_order_time``); the draw is unchanged.
 
     Filter rules:
       - spec.day must equal day_index (admission day = 0, next day = 1, …)
@@ -212,10 +217,11 @@ def place_imaging_orders(
             raise ValueError(f"body_sites.yaml[{body_site_key}].procedure_codes['{code_key}'] not found")
 
         sequence_counter["I"] = sequence_counter.get("I", 0) + 1
-        ordered_dt = admission_dt + timedelta(
-            days=day_index,
-            minutes=int(rng.normal(DAILY_IMAGING_PLACEMENT_MEAN_MIN, DAILY_IMAGING_PLACEMENT_STD_MIN)),
-        )
+        _offset_min = int(rng.normal(DAILY_IMAGING_PLACEMENT_MEAN_MIN, DAILY_IMAGING_PLACEMENT_STD_MIN))
+        if ed_period is not None and day_index == 0:
+            ordered_dt = workup_order_time(ed_period, _offset_min)
+        else:
+            ordered_dt = admission_dt + timedelta(days=day_index, minutes=_offset_min)
         # META #1805 Phase B.2 Part 2: body_sites procedure_codes[*].
         # display_en / display_ja fields were retired. The imaging Order's
         # display_name resolves via the LOINC authority
@@ -736,6 +742,13 @@ def supportive_detail_raw(sup: dict[str, Any], country: str) -> str:
     return detail_raw
 
 
+def workup_order_time(ed_period: tuple[datetime, datetime], minutes: int) -> datetime:
+    """Order time of a work-up order of a via-ED admission (Issue #3434): the
+    ED arrival plus the placement offset, kept within the ED period."""
+    start, end = ed_period
+    return min(max(start + timedelta(minutes=minutes), start), end)
+
+
 def place_admission_orders(
     protocol: dict,
     patient_id: str,
@@ -747,6 +760,7 @@ def place_admission_orders(
     patient_age: int | None = None,
     patient_weight_kg: float | None = None,
     id_infix: str = "",
+    ed_period: tuple[datetime, datetime] | None = None,
 ) -> list[Order]:
     """Expand protocol admission orders into concrete Order instances.
 
@@ -766,8 +780,28 @@ def place_admission_orders(
     .should_skip_dvt_prophylaxis`` (Issue #1276) — that gate covers the
     enricher-driven emit path; this call site covers the disease-YAML
     supportive-orders fallback path.
+
+    ``ed_period`` (Issue #3434) — ``(ED arrival, ED end)`` of a patient
+    admitted through the ED. The work-up (labs, imaging, first-line drugs) is
+    ordered in the ED: its order time is the ED arrival plus the same
+    placement offset, bounded by the ED period. Ward orders (the supportive
+    block) stay at ``admission_time``. Only the anchor changes; the draws are
+    the ones of a stay without an ED period.
     """
     orders: list[Order] = []
+
+    def _workup_time(minutes: int) -> datetime:
+        if ed_period is None:
+            return admission_time + timedelta(minutes=minutes)
+        return workup_order_time(ed_period, minutes)
+
+    def _supportive_time(minutes: int, ward_order: bool) -> datetime:
+        # The initial treatment (oxygen, nebulised bronchodilator, antipyretic,
+        # a fluid bolus) is written in the ED; ward care and the maintenance
+        # IV fluid at admission.
+        if ed_period is None or ward_order:
+            return admission_time + timedelta(minutes=minutes)
+        return workup_order_time(ed_period, minutes)
 
     # Prefer YAML order_protocols, fall back to legacy structure
     order_protocols = protocol.get("order_protocols", {})
@@ -822,9 +856,7 @@ def place_admission_orders(
     order_seq = 0
     for panel_name in sorted(panel_groups.keys()):
         members = panel_groups[panel_name]
-        panel_time = admission_time + timedelta(
-            minutes=int(rng.normal(ADMISSION_LAB_PLACEMENT_MEAN_MIN, ADMISSION_LAB_PLACEMENT_STD_MIN))
-        )
+        panel_time = _workup_time(int(rng.normal(ADMISSION_LAB_PLACEMENT_MEAN_MIN, ADMISSION_LAB_PLACEMENT_STD_MIN)))
         for lab_spec in members:
             orders.append(
                 _build_lab_order(
@@ -853,8 +885,9 @@ def place_admission_orders(
                 encounter_id=encounter_id,
                 patient_id=patient_id,
                 lab_spec=lab_spec,
-                ordered_datetime=admission_time
-                + timedelta(minutes=int(rng.normal(ADMISSION_LAB_PLACEMENT_MEAN_MIN, ADMISSION_LAB_PLACEMENT_STD_MIN))),
+                ordered_datetime=_workup_time(
+                    int(rng.normal(ADMISSION_LAB_PLACEMENT_MEAN_MIN, ADMISSION_LAB_PLACEMENT_STD_MIN))
+                ),
                 ordered_by=ordered_by,
                 panel_key="",
                 clinical_intent=t("encounter_intent.admission_workup", "en", test=lab_spec["test"]),
@@ -882,11 +915,14 @@ def place_admission_orders(
                 encounter_id=encounter_id,
                 patient_id=patient_id,
                 country=country,
-                ordered_datetime=admission_time
-                + timedelta(minutes=int(rng.normal(ADMISSION_MED_PLACEMENT_MEAN_MIN, ADMISSION_MED_PLACEMENT_STD_MIN))),
+                ordered_datetime=_workup_time(
+                    int(rng.normal(ADMISSION_MED_PLACEMENT_MEAN_MIN, ADMISSION_MED_PLACEMENT_STD_MIN))
+                ),
                 ordered_by=ordered_by,
             )
         )
+
+    from clinosim.simulator.maintenance_iv_fluid import is_maintenance_iv_fluid_name
 
     # Supportive orders — classify into medication vs. care plan/therapy via
     # the canonical treatment_classifier (single source of truth shared with
@@ -919,9 +955,10 @@ def place_admission_orders(
             # Issue #871: JA display for JP SR reasonCode.text.
             # Issue #3107: the order category's Japanese name (med_terms).
             clinical_intent_ja=t("encounter_intent.supportive", "ja", type=_category_name(sup["type"], "ja")),
-            ordered_datetime=admission_time
-            + timedelta(
-                minutes=int(rng.normal(ADMISSION_SUPPORTIVE_PLACEMENT_MEAN_MIN, ADMISSION_SUPPORTIVE_PLACEMENT_STD_MIN))
+            ordered_datetime=_supportive_time(
+                int(rng.normal(ADMISSION_SUPPORTIVE_PLACEMENT_MEAN_MIN, ADMISSION_SUPPORTIVE_PLACEMENT_STD_MIN)),
+                ward_order=sup_type in admission_care_supportive_types()
+                or is_maintenance_iv_fluid_name(f"{sup['type']}: {detail_raw}"),
             ),
             ordered_by=ordered_by,
             status=OrderStatus.PLACED,
@@ -977,9 +1014,8 @@ def place_admission_orders(
             clinical_intent_ja=t(
                 "encounter_intent.admission_imaging", "ja", test=order_test_display(img_spec.get("test", ""), "ja")
             ),
-            ordered_datetime=admission_time
-            + timedelta(
-                minutes=int(rng.normal(ADMISSION_IMAGING_PLACEMENT_MEAN_MIN, ADMISSION_IMAGING_PLACEMENT_STD_MIN))
+            ordered_datetime=_workup_time(
+                int(rng.normal(ADMISSION_IMAGING_PLACEMENT_MEAN_MIN, ADMISSION_IMAGING_PLACEMENT_STD_MIN))
             ),
             ordered_by=ordered_by,
             status=OrderStatus.PLACED,

@@ -52,10 +52,12 @@ def _order(name: str, when: datetime, order_set: str = "", otype: str = "medicat
     }
 
 
+# The initial order set is placed in the ED period, before the admission
+# (Issue #3434).
 _ORDERS = [
-    _order("Troponin_I", datetime(2025, 11, 20, 18, 40), ORDER_SET_ADMISSION_INITIAL, "lab"),
-    _order("Aspirin", datetime(2025, 11, 20, 18, 50), ORDER_SET_ADMISSION_INITIAL),
-    _order("Heparin", datetime(2025, 11, 20, 19, 0), ORDER_SET_ADMISSION_INITIAL),
+    _order("Troponin_I", datetime(2025, 11, 20, 15, 40), ORDER_SET_ADMISSION_INITIAL, "lab"),
+    _order("Aspirin", datetime(2025, 11, 20, 15, 50), ORDER_SET_ADMISSION_INITIAL),
+    _order("Heparin", datetime(2025, 11, 20, 16, 0), ORDER_SET_ADMISSION_INITIAL),
     # Continued home medications.
     _order("Amlodipine", datetime(2025, 11, 20, 19, 35)),
     _order("Atorvastatin", datetime(2025, 11, 20, 19, 35)),
