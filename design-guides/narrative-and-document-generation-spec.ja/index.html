@@ -2433,6 +2433,11 @@
 <td><code>tests/unit/modules/document/test_document_planners_2532.py</code></td>
 </tr>
 <tr>
+<td>看護 shift 記録の記録者はその shift の勤務看護師 (<code>shift_note_author</code>) で、入院時の担当看護師ではない。担当看護師は日勤を YAML の <code>day_shift_primary_share</code> の割合で担当し、それ以外の shift は同日に勤務していない同一病棟の別の看護師が、encounter id・日付・shift の SHA-256 で決まる (RNG 不使用)。入院時看護評価・看護計画・退院時看護サマリは担当看護師のまま。</td>
+<td><code>clinosim/modules/nursing/engine.py::shift_note_author</code>、<code>clinosim/modules/nursing/reference_data/nursing_shift_rotation.yaml</code></td>
+<td><code>tests/unit/modules/document/test_shift_note_author_rotation_3408.py</code></td>
+</tr>
+<tr>
 <td>Composition の各セクションは <code>@section(name)</code> で登録した関数がちょうど一つ作る。同じ名前の二重登録は import 時に失敗する。ある文書種別だけ書き方が異なるセクションは、その種別の関数を <code>@section(name, document_type=...)</code> で登録し(文書種別とセクションの組ごとに一つ。例: 救急外来記録の評価)、描画は共通の関数よりそちらを優先する。Composition の描画はこの登録表からセクションを引く。</td>
 <td><code>clinosim/modules/document/narrative/renderers/section_builders/_registry.py</code>(<code>section</code>, <code>section_builder</code>, <code>section_builders</code>, <code>document_section_builders</code>)</td>
 <td><code>tests/unit/modules/document/narrative/test_section_registry_2531.py</code>、<code>test_ed_note_protocol_2871.py::test_document_type_builders_name_a_section_of_that_document</code></td>
