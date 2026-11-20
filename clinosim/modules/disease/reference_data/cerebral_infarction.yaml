@@ -25,6 +25,8 @@ causes_vte: true
 # admission (conservative: applies to non-dysphagic patients too, but
 # clinical impact is minimal — bisphosphonates are lifelong
 # osteoporosis meds and one-encounter skip does not change outcome).
+# Admission only (Issue #3441): the dysphagia / NG-tube risk is an in-stay
+# feeding concern; the home bisphosphonate is not a discharge-protocol drug.
 medication_holds:
   - drugs: ["Alendronate", "Risedronate", "Ibandronate", "Minodronate"]
     reason: "Acute stroke — dysphagia / NG-tube risk contraindicates PO bisphosphonates (aspiration esophagitis)"

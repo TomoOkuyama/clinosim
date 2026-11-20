@@ -15,7 +15,9 @@ encounter_type: medical
 requires_surgery: false
 readmission_eligible: true
 
-# Hold oral diuretics during acute phase — IV furosemide replaces PO
+# Hold oral diuretics during acute phase — IV furosemide replaces PO.
+# Admission only (Issue #3441): the route change ends with decompensation, and
+# the discharge protocol prescribes oral furosemide.
 medication_holds:
   - drugs: ["Furosemide"]
     reason: "Acute HF exacerbation — oral diuretic replaced by IV furosemide"
@@ -300,13 +302,15 @@ drugs:
   discharge_oral:
     # META #1804 Phase 2.d cardiac cluster: discharge_oral entries carry
     # drug_id into clinosim/codes/data/drugs.yaml. Display resolved via
-    # the catalog.
+    # the catalog. Furosemide is maintenance therapy (28-day renewal, as the
+    # chronic home-medication entry), so it is carried into later admissions, and
+    # its dose / route / frequency stay separate fields like that entry's.
     japan:
-      - {drug_id: furosemide, dose: "20mg PO daily"}
+      - {drug_id: furosemide, dose: "20mg", route: "PO", frequency: "daily", duration_days: 28}
       - {drug_id: enalapril, dose: "5mg PO daily"}
       - {drug_id: carvedilol, dose: "2.5mg PO BID"}
     us:
-      - {drug_id: furosemide, dose: "40mg PO daily"}
+      - {drug_id: furosemide, dose: "40mg", route: "PO", frequency: "daily", duration_days: 28}
       - {drug_id: lisinopril, dose: "10mg PO daily"}
       - {drug_id: carvedilol, dose: "6.25mg PO BID"}
 

@@ -18,6 +18,8 @@ readmission_eligible: true
 minimum_severity: null
 
 # NPO status — hold all oral medications; Metformin contraindicated in acute illness
+# Admission only (Issue #3441): NPO ends before discharge; a persisting renal
+# contraindication is held by the discharge renal / AKI checks.
 medication_holds:
   - drugs: ["Metformin"]
     reason: "Acute illness with lactic acidosis risk + NPO status"

@@ -21,6 +21,8 @@ minimum_severity: moderate
 # new-onset diabetes. Overrides the patient's sampled glycemic_control for this admission.
 chronic_glycemic_control: 0.1
 
+# Admission only (Issue #3441): "resume after metabolic stabilization"; a
+# persisting renal contraindication is held by the discharge renal / AKI checks.
 medication_holds:
   - drugs: ["Metformin"]
     reason: "DKA — lactic acidosis risk; resume after metabolic stabilization"

@@ -17,6 +17,8 @@ requires_surgery: false
 minimum_severity: moderate    # sepsis always requires hospitalization
 readmission_eligible: true
 
+# Admission only (Issue #3441): the acute-illness hold ends with the acute phase;
+# a persisting renal contraindication is held by the discharge renal / AKI checks.
 medication_holds:
   - drugs: ["Metformin"]
     reason: "Sepsis — lactic acidosis risk, potential renal impairment"
