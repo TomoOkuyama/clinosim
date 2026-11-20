@@ -25,8 +25,11 @@ Supported generation_frequency values (α-min-2, extended in α-min-3):
                     date, only if the encounter has ≥1 RehabSession record
                     (chain 2: rehabilitation_plan, MHLW 別紙様式21)
   daily           → 1 document per LOS day (progress note)
-  daily_3shift    → 3 documents per LOS day at night 00:00 / day 08:00 /
-                    evening 16:00 (nursing shift note, α-min-3); mirrors
+  daily_3shift    → 3 documents per LOS day for the night 00:00-08:00 / day
+                    08:00-16:00 / evening 16:00-24:00 shifts, each authored at
+                    the END of its shift (period = the shift; a shift running
+                    past discharge ends there; Issue #3395) (nursing shift
+                    note, α-min-3); mirrors
                     `daily` skip rules (LOS=1 skip, AD-32 in-progress proxy)
   discharge_once  → 1 document at final day, skipped if in-progress (AD-32)
   encounter_once  → 1 document at day 0 for outpatient/ED encounters
@@ -167,7 +170,8 @@ def _effective_outpatient_loinc(spec_loinc: str, encounter: Any) -> str:
 # structural CIF (`ClinicalDocument.shift`); localized labels (JP 深夜/日勤/
 # 準夜) are resolved at Stage 2 render time by language (AD-30 spirit).
 # Order is chronological within the calendar day so authored_datetime is
-# monotonic with document sequence: night 00:00-08:00 / day 08:00-16:00 /
+# monotonic with document sequence (a note is authored at its shift's end,
+# Issue #3395): night 00:00-08:00 / day 08:00-16:00 /
 # evening 16:00-24:00.
 SHIFT_SCHEDULE: tuple[tuple[str, int], ...] = (
     ("night", 0),
@@ -380,7 +384,13 @@ def _plan_daily(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
 def _plan_daily_3shift(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
     # α-min-3: 3 nursing notes per LOS day (night 00:00 / day 08:00 / evening
     # 16:00); skipped for LOS=1 same-day encounters (spec §7). In-progress
-    # encounters (AD-32) use the same los_days proxy.
+    # encounters (AD-32) use the same los_days proxy as `daily`.
+    # Issue #3395: a shift note is written at the END of its shift, so its
+    # period (the whole shift) and its authored time agree and it never
+    # quotes a reading or a dose recorded after it was written. A shift that
+    # runs past the discharge / death ends at that time. ``f.end_dt`` equals
+    # the admission for an in-progress encounter, so only a discharged stay
+    # caps the shift end.
     if f.los_days <= 1:
         return []
     plans = []
@@ -391,7 +401,20 @@ def _plan_daily_3shift(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
             # Issue #820 (N-6): no shift record before the patient arrived.
             if shift_dt < f.admission_dt:
                 continue
-            plans.append(_point(shift_dt, id_suffix=f"-{shift_key}", shift=shift_key))
+            authored = shift_dt + timedelta(hours=SHIFT_HOURS)
+            if f.discharge_dt is not None:
+                if shift_dt >= f.discharge_dt:
+                    continue
+                authored = min(authored, f.discharge_dt)
+            plans.append(
+                _DocPlan(
+                    authored.isoformat(),
+                    shift_dt.isoformat(),
+                    authored.isoformat(),
+                    id_suffix=f"-{shift_key}",
+                    shift=shift_key,
+                )
+            )
     return plans
 
 

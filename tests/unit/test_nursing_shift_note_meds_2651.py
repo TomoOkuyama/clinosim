@@ -58,3 +58,38 @@ def test_a_note_without_a_shift_covers_the_calendar_day() -> None:
 
 def test_the_admission_day_note_lists_the_bolus() -> None:
     assert "Crystalloid" in _note(0, "day")
+
+
+# Issue #3395: a note quotes nothing recorded after it was written, and does
+# not word a single dose as continued.
+
+
+def _note_at(authored: str | None, lang: str = "en") -> str:
+    ctx = SimpleNamespace(
+        target_lang=lang,
+        day_index=22,
+        los_days=24,
+        shift="day",
+        encounter={"admission_datetime": "2025-03-01T10:00:00"},
+        roster_map={},
+        vitals=[
+            {"timestamp": "2025-03-23T09:00:00", "heart_rate": 80},
+            {"timestamp": "2025-03-23T15:00:00", "heart_rate": 133},
+        ],
+        medications=_MARS,
+        nursing_risk_assessments=[],
+        authored_datetime=authored,
+    )
+    return render_nursing_shift_note(ctx, None).raw_text
+
+
+def test_a_note_authored_before_the_end_of_the_window_quotes_nothing_later() -> None:
+    text = _note_at("2025-03-23T12:00:00")
+    assert "HR 80" in text and "133" not in text
+    full = _note_at("2025-03-23T16:00:00")
+    assert "133" in full
+
+
+def test_the_drug_line_head_does_not_say_continued() -> None:
+    ja = _note_at("2025-03-23T16:00:00", lang="ja")
+    assert "投薬継続" not in ja and "与薬" in ja

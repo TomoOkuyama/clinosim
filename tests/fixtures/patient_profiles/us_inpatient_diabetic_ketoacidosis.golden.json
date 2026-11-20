@@ -265,7 +265,7 @@
         "ctx.medications.today",
         "ctx.day_index"
       ],
-      "generated_at": "2024-06-15T08:00:00Z",
+      "generated_at": "2024-06-15T16:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 0,
@@ -287,7 +287,7 @@
         "ctx.medications.today",
         "ctx.day_index"
       ],
-      "generated_at": "2024-06-15T16:00:00Z",
+      "generated_at": "2024-06-16T00:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 0,
@@ -309,7 +309,7 @@
         "ctx.medications.today",
         "ctx.day_index"
       ],
-      "generated_at": "2024-06-16T00:00:00Z",
+      "generated_at": "2024-06-16T08:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 1,
@@ -331,7 +331,7 @@
         "ctx.medications.today",
         "ctx.day_index"
       ],
-      "generated_at": "2024-06-16T08:00:00Z",
+      "generated_at": "2024-06-16T16:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 1,
@@ -353,7 +353,7 @@
         "ctx.medications.today",
         "ctx.day_index"
       ],
-      "generated_at": "2024-06-16T16:00:00Z",
+      "generated_at": "2024-06-17T00:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 1,
@@ -375,7 +375,7 @@
         "ctx.medications.today",
         "ctx.day_index"
       ],
-      "generated_at": "2024-06-17T00:00:00Z",
+      "generated_at": "2024-06-17T08:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 2,
@@ -397,7 +397,7 @@
         "ctx.medications.today",
         "ctx.day_index"
       ],
-      "generated_at": "2024-06-17T08:00:00Z",
+      "generated_at": "2024-06-17T16:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 2,
@@ -419,7 +419,7 @@
         "ctx.medications.today",
         "ctx.day_index"
       ],
-      "generated_at": "2024-06-17T16:00:00Z",
+      "generated_at": "2024-06-18T00:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 2,

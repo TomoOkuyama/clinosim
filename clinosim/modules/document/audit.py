@@ -51,7 +51,7 @@ Registered checks:
     daily_3shift dispatch actually fires — a silently-unknown frequency
     value would emit 0), `nursing_shift_note_shift_keys_complete`
     (neutral keys night/day/evening on every stub) and
-    `nursing_shift_note_shift_hour_offsets` (authored at 00:00/08:00/16:00).
+    `nursing_shift_note_shift_hour_offsets` (authored at the end of each shift: 08:00/16:00/00:00).
     See `_proof_nursing_shift_3_per_day`.
   chain 2 admission_care_plan gate (+4, total = 41):
     `admission_care_plan_jp_inpatient_count` / `admission_care_plan_jp_icu_count` /

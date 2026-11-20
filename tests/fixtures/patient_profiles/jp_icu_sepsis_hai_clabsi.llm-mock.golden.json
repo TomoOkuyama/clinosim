@@ -480,7 +480,7 @@
         "ctx.medications.today",
         "ctx.day_index"
       ],
-      "generated_at": "2024-07-05T08:00:00+09:00",
+      "generated_at": "2024-07-05T16:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
         "day_index": 20,
@@ -489,7 +489,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 21 日目\n患者状態: BP 121/72, HR 104, SpO2 96%, T 38.2°C、酸素投与: 酸素マスク 4.4 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 21 日目\n患者状態: BP 121/72, HR 104, SpO2 96%, T 38.2°C、酸素投与: 酸素マスク 4.4 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-101-evening": {
@@ -502,7 +502,7 @@
         "ctx.medications.today",
         "ctx.day_index"
       ],
-      "generated_at": "2024-07-05T16:00:00+09:00",
+      "generated_at": "2024-07-06T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
         "day_index": 20,
@@ -511,7 +511,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 21 日目\n患者状態: BP 120/70, HR 104, SpO2 91%, T 38.0°C、酸素投与: 鼻カニューラ 2.2 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 21 日目\n患者状態: BP 120/70, HR 104, SpO2 91%, T 38.0°C、酸素投与: 鼻カニューラ 2.2 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-102-night": {
@@ -524,7 +524,7 @@
         "ctx.medications.today",
         "ctx.day_index"
       ],
-      "generated_at": "2024-07-06T00:00:00+09:00",
+      "generated_at": "2024-07-06T08:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
         "day_index": 21,
@@ -533,7 +533,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 22 日目\n患者状態: BP 119/74, HR 97, SpO2 96%, T 37.2°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 22 日目\n患者状態: BP 119/74, HR 97, SpO2 96%, T 37.2°C。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-103-day": {
@@ -545,7 +545,7 @@
         "ctx.vitals.shift",
         "ctx.day_index"
       ],
-      "generated_at": "2024-07-06T08:00:00+09:00",
+      "generated_at": "2024-07-06T16:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
         "day_index": 21,
@@ -567,7 +567,7 @@
         "ctx.medications.today",
         "ctx.day_index"
       ],
-      "generated_at": "2024-07-06T16:00:00+09:00",
+      "generated_at": "2024-07-07T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
         "day_index": 21,
@@ -576,33 +576,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 22 日目\n患者状態: BP 123/76, HR 99, SpO2 97%, T 37.7°C、酸素投与: 酸素マスク 4.4 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 22 日目\n患者状態: BP 123/76, HR 99, SpO2 97%, T 37.7°C、酸素投与: 酸素マスク 4.4 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-105-night": {
     "document_id": "doc-ENC-FORCED-0001-013699914137-105-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.shift",
-        "ctx.medications.today",
-        "ctx.day_index"
-      ],
-      "generated_at": "2024-07-07T00:00:00+09:00",
-      "generator": "llm-mock",
-      "generator_metadata": {
-        "day_index": 22,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 23 日目\n患者状態: BP 121/71, HR 99, SpO2 92%, T 38.8°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-106-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-106-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -617,14 +595,14 @@
         "day_index": 22,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 23 日目\n患者状態: BP 123/76, HR 104, SpO2 97%, T 38.5°C、酸素投与: 酸素マスク 4.6 L/min。\n投薬継続: ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 23 日目\n患者状態: BP 121/71, HR 99, SpO2 92%, T 38.8°C。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-107-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-107-evening",
+  "doc-ENC-FORCED-0001-013699914137-106-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-106-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -639,14 +617,14 @@
         "day_index": 22,
         "generator": "template",
         "lang": "ja",
-        "shift": "evening"
+        "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 23 日目\n患者状態: BP 123/72, HR 98, SpO2 96%, T 38.2°C、酸素投与: 鼻カニューラ 3.1 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 23 日目\n患者状態: BP 123/76, HR 104, SpO2 97%, T 38.5°C、酸素投与: 酸素マスク 4.6 L/min。\n与薬: ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-108-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-108-night",
+  "doc-ENC-FORCED-0001-013699914137-107-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-107-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -658,17 +636,17 @@
       "generated_at": "2024-07-08T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 23,
+        "day_index": 22,
         "generator": "template",
         "lang": "ja",
-        "shift": "night"
+        "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 24 日目\n患者状態: BP 121/72, HR 96, SpO2 93%, T 38.1°C。\n投薬継続: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 23 日目\n患者状態: BP 123/72, HR 98, SpO2 96%, T 38.2°C、酸素投与: 鼻カニューラ 3.1 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-109-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-109-day",
+  "doc-ENC-FORCED-0001-013699914137-108-night": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-108-night",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -683,10 +661,32 @@
         "day_index": 23,
         "generator": "template",
         "lang": "ja",
+        "shift": "night"
+      },
+      "sections": {},
+      "text": "【看護記録(深夜)】 入院 24 日目\n患者状態: BP 121/72, HR 96, SpO2 93%, T 38.1°C。\n与薬: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-013699914137-109-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-109-day",
+    "encounter_id": "ENC-FORCED-0001-013699914137",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.shift",
+        "ctx.medications.today",
+        "ctx.day_index"
+      ],
+      "generated_at": "2024-07-08T16:00:00+09:00",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 23,
+        "generator": "template",
+        "lang": "ja",
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 24 日目\n患者状態: BP 125/72, HR 102, SpO2 98%, T 37.4°C、酸素投与: 鼻カニューラ 3.8 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 24 日目\n患者状態: BP 125/72, HR 102, SpO2 98%, T 37.4°C、酸素投与: 鼻カニューラ 3.8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-11": {
@@ -747,7 +747,7 @@
         "ctx.medications.today",
         "ctx.day_index"
       ],
-      "generated_at": "2024-07-08T16:00:00+09:00",
+      "generated_at": "2024-07-09T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
         "day_index": 23,
@@ -756,33 +756,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 24 日目\n患者状態: BP 121/73, HR 97, SpO2 95%, T 38.4°C、酸素投与: 鼻カニューラ 3.8 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 24 日目\n患者状態: BP 121/73, HR 97, SpO2 95%, T 38.4°C、酸素投与: 鼻カニューラ 3.8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-111-night": {
     "document_id": "doc-ENC-FORCED-0001-013699914137-111-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.shift",
-        "ctx.medications.today",
-        "ctx.day_index"
-      ],
-      "generated_at": "2024-07-09T00:00:00+09:00",
-      "generator": "llm-mock",
-      "generator_metadata": {
-        "day_index": 24,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 25 日目\n患者状態: BP 126/75, HR 93, SpO2 92%, T 38.5°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-112-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-112-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -797,14 +775,14 @@
         "day_index": 24,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 25 日目\n患者状態: BP 124/71, HR 105, SpO2 96%, T 38.2°C、酸素投与: 鼻カニューラ 3.7 L/min。\n投薬継続: ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 25 日目\n患者状態: BP 126/75, HR 93, SpO2 92%, T 38.5°C。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-113-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-113-evening",
+  "doc-ENC-FORCED-0001-013699914137-112-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-112-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -819,14 +797,14 @@
         "day_index": 24,
         "generator": "template",
         "lang": "ja",
-        "shift": "evening"
+        "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 25 日目\n患者状態: BP 120/69, HR 102, SpO2 95%, T 38.2°C、酸素投与: 鼻カニューラ 4 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 25 日目\n患者状態: BP 124/71, HR 105, SpO2 96%, T 38.2°C、酸素投与: 鼻カニューラ 3.7 L/min。\n与薬: ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-114-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-114-night",
+  "doc-ENC-FORCED-0001-013699914137-113-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-113-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -838,17 +816,17 @@
       "generated_at": "2024-07-10T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 25,
+        "day_index": 24,
         "generator": "template",
         "lang": "ja",
-        "shift": "night"
+        "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 26 日目\n患者状態: BP 117/74, HR 97, SpO2 96%, T 38.0°C、酸素投与: 酸素マスク 4.1 L/min。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 25 日目\n患者状態: BP 120/69, HR 102, SpO2 95%, T 38.2°C、酸素投与: 鼻カニューラ 4 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-115-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-115-day",
+  "doc-ENC-FORCED-0001-013699914137-114-night": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-114-night",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -863,14 +841,14 @@
         "day_index": 25,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 26 日目\n患者状態: BP 120/71, HR 100, SpO2 93%, T 38.0°C。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 26 日目\n患者状態: BP 117/74, HR 97, SpO2 96%, T 38.0°C、酸素投与: 酸素マスク 4.1 L/min。\n与薬: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-116-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-116-evening",
+  "doc-ENC-FORCED-0001-013699914137-115-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-115-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -885,14 +863,14 @@
         "day_index": 25,
         "generator": "template",
         "lang": "ja",
-        "shift": "evening"
+        "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 26 日目\n患者状態: BP 122/75, HR 97, SpO2 93%, T 38.3°C、酸素投与: 鼻カニューラ 2 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 26 日目\n患者状態: BP 120/71, HR 100, SpO2 93%, T 38.0°C。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-117-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-117-night",
+  "doc-ENC-FORCED-0001-013699914137-116-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-116-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -904,17 +882,17 @@
       "generated_at": "2024-07-11T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 26,
+        "day_index": 25,
         "generator": "template",
         "lang": "ja",
-        "shift": "night"
+        "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 27 日目\n患者状態: BP 125/73, HR 99, SpO2 94%, T 38.0°C。\n投薬継続: バンコマイシン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 26 日目\n患者状態: BP 122/75, HR 97, SpO2 93%, T 38.3°C、酸素投与: 鼻カニューラ 2 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-118-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-118-day",
+  "doc-ENC-FORCED-0001-013699914137-117-night": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-117-night",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -929,14 +907,14 @@
         "day_index": 26,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 27 日目\n患者状態: BP 123/72, HR 103, SpO2 96%, T 38.0°C、酸素投与: 鼻カニューラ 3.4 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 27 日目\n患者状態: BP 125/73, HR 99, SpO2 94%, T 38.0°C。\n与薬: バンコマイシン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-119-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-119-evening",
+  "doc-ENC-FORCED-0001-013699914137-118-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-118-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -951,10 +929,32 @@
         "day_index": 26,
         "generator": "template",
         "lang": "ja",
+        "shift": "day"
+      },
+      "sections": {},
+      "text": "【看護記録(日勤)】 入院 27 日目\n患者状態: BP 123/72, HR 103, SpO2 96%, T 38.0°C、酸素投与: 鼻カニューラ 3.4 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-013699914137-119-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-119-evening",
+    "encounter_id": "ENC-FORCED-0001-013699914137",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.shift",
+        "ctx.medications.today",
+        "ctx.day_index"
+      ],
+      "generated_at": "2024-07-12T00:00:00+09:00",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 26,
+        "generator": "template",
+        "lang": "ja",
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 27 日目\n患者状態: BP 120/76, HR 98, SpO2 93%, T 38.8°C。\n投薬継続: バンコマイシン、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 27 日目\n患者状態: BP 120/76, HR 98, SpO2 93%, T 38.8°C。\n与薬: バンコマイシン、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-12": {
@@ -1015,7 +1015,7 @@
         "ctx.medications.today",
         "ctx.day_index"
       ],
-      "generated_at": "2024-07-12T00:00:00+09:00",
+      "generated_at": "2024-07-12T08:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
         "day_index": 27,
@@ -1024,33 +1024,11 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 28 日目\n患者状態: BP 121/71, HR 98, SpO2 94%, T 37.5°C。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 28 日目\n患者状態: BP 121/71, HR 98, SpO2 94%, T 37.5°C。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-121-day": {
     "document_id": "doc-ENC-FORCED-0001-013699914137-121-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.shift",
-        "ctx.medications.today",
-        "ctx.day_index"
-      ],
-      "generated_at": "2024-07-12T08:00:00+09:00",
-      "generator": "llm-mock",
-      "generator_metadata": {
-        "day_index": 27,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 28 日目\n患者状態: BP 120/76, HR 102, SpO2 97%, T 38.6°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-122-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-122-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -1065,14 +1043,14 @@
         "day_index": 27,
         "generator": "template",
         "lang": "ja",
-        "shift": "evening"
+        "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 28 日目\n患者状態: BP 123/75, HR 102, SpO2 94%, T 38.9°C、酸素投与: 鼻カニューラ 2.5 L/min。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 28 日目\n患者状態: BP 120/76, HR 102, SpO2 97%, T 38.6°C。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-123-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-123-night",
+  "doc-ENC-FORCED-0001-013699914137-122-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-122-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -1084,17 +1062,17 @@
       "generated_at": "2024-07-13T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 28,
+        "day_index": 27,
         "generator": "template",
         "lang": "ja",
-        "shift": "night"
+        "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 29 日目\n患者状態: BP 121/75, HR 94, SpO2 98%, T 37.8°C、酸素投与: 鼻カニューラ 3.8 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 28 日目\n患者状態: BP 123/75, HR 102, SpO2 94%, T 38.9°C、酸素投与: 鼻カニューラ 2.5 L/min。\n与薬: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-124-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-124-day",
+  "doc-ENC-FORCED-0001-013699914137-123-night": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-123-night",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -1109,14 +1087,14 @@
         "day_index": 28,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 29 日目\n患者状態: BP 124/76, HR 100, SpO2 98%, T 38.8°C、酸素投与: 酸素マスク 4.9 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 29 日目\n患者状態: BP 121/75, HR 94, SpO2 98%, T 37.8°C、酸素投与: 鼻カニューラ 3.8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-125-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-125-evening",
+  "doc-ENC-FORCED-0001-013699914137-124-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-124-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -1131,14 +1109,14 @@
         "day_index": 28,
         "generator": "template",
         "lang": "ja",
-        "shift": "evening"
+        "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 29 日目\n患者状態: BP 121/72, HR 99, SpO2 96%, T 38.5°C、酸素投与: 酸素マスク 4.8 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 29 日目\n患者状態: BP 124/76, HR 100, SpO2 98%, T 38.8°C、酸素投与: 酸素マスク 4.9 L/min。\n与薬: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-126-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-126-night",
+  "doc-ENC-FORCED-0001-013699914137-125-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-125-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -1150,17 +1128,17 @@
       "generated_at": "2024-07-14T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 29,
+        "day_index": 28,
         "generator": "template",
         "lang": "ja",
-        "shift": "night"
+        "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 30 日目\n患者状態: BP 121/75, HR 100, SpO2 94%, T 38.0°C。\n投薬継続: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 29 日目\n患者状態: BP 121/72, HR 99, SpO2 96%, T 38.5°C、酸素投与: 酸素マスク 4.8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-127-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-127-day",
+  "doc-ENC-FORCED-0001-013699914137-126-night": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-126-night",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -1175,14 +1153,14 @@
         "day_index": 29,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 30 日目\n患者状態: BP 121/73, HR 100, SpO2 93%, T 38.9°C。\n投薬継続: バンコマイシン、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 30 日目\n患者状態: BP 121/75, HR 100, SpO2 94%, T 38.0°C。\n与薬: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-128-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-128-evening",
+  "doc-ENC-FORCED-0001-013699914137-127-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-127-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -1197,10 +1175,32 @@
         "day_index": 29,
         "generator": "template",
         "lang": "ja",
+        "shift": "day"
+      },
+      "sections": {},
+      "text": "【看護記録(日勤)】 入院 30 日目\n患者状態: BP 121/73, HR 100, SpO2 93%, T 38.9°C。\n与薬: バンコマイシン、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-013699914137-128-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-128-evening",
+    "encounter_id": "ENC-FORCED-0001-013699914137",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.shift",
+        "ctx.medications.today",
+        "ctx.day_index"
+      ],
+      "generated_at": "2024-07-15T00:00:00+09:00",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 29,
+        "generator": "template",
+        "lang": "ja",
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 30 日目\n患者状態: BP 121/74, HR 98, SpO2 93%, T 39.0°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 30 日目\n患者状態: BP 121/74, HR 98, SpO2 93%, T 39.0°C。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-129-night": {
@@ -1213,7 +1213,7 @@
         "ctx.medications.today",
         "ctx.day_index"
       ],
-      "generated_at": "2024-07-15T00:00:00+09:00",
+      "generated_at": "2024-07-15T08:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
         "day_index": 30,
@@ -1222,7 +1222,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 31 日目\n患者状態: BP 120/75, HR 97, SpO2 96%, T 38.3°C、酸素投与: 鼻カニューラ 4 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 31 日目\n患者状態: BP 120/75, HR 97, SpO2 96%, T 38.3°C、酸素投与: 鼻カニューラ 4 L/min。\n与薬: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-13": {
@@ -1283,7 +1283,7 @@
         "ctx.medications.today",
         "ctx.day_index"
       ],
-      "generated_at": "2024-07-15T08:00:00+09:00",
+      "generated_at": "2024-07-15T16:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
         "day_index": 30,
@@ -1292,7 +1292,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 31 日目\n患者状態: BP 119/77, HR 100, SpO2 93%, T 38.8°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 31 日目\n患者状態: BP 119/77, HR 100, SpO2 93%, T 38.8°C。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-131-evening": {
@@ -1305,7 +1305,7 @@
         "ctx.medications.today",
         "ctx.day_index"
       ],
-      "generated_at": "2024-07-15T16:00:00+09:00",
+      "generated_at": "2024-07-16T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
         "day_index": 30,
@@ -1314,33 +1314,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 31 日目\n患者状態: BP 119/73, HR 96, SpO2 94%, T 38.0°C、酸素投与: 鼻カニューラ 2.7 L/min。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 31 日目\n患者状態: BP 119/73, HR 96, SpO2 94%, T 38.0°C、酸素投与: 鼻カニューラ 2.7 L/min。\n与薬: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-132-night": {
     "document_id": "doc-ENC-FORCED-0001-013699914137-132-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.shift",
-        "ctx.medications.today",
-        "ctx.day_index"
-      ],
-      "generated_at": "2024-07-16T00:00:00+09:00",
-      "generator": "llm-mock",
-      "generator_metadata": {
-        "day_index": 31,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 32 日目\n患者状態: BP 121/73, HR 96, SpO2 94%, T 38.1°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-133-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-133-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -1355,14 +1333,14 @@
         "day_index": 31,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 32 日目\n患者状態: BP 120/72, HR 97, SpO2 93%, T 38.2°C。\n投薬継続: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 32 日目\n患者状態: BP 121/73, HR 96, SpO2 94%, T 38.1°C。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-134-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-134-evening",
+  "doc-ENC-FORCED-0001-013699914137-133-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-133-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -1377,14 +1355,14 @@
         "day_index": 31,
         "generator": "template",
         "lang": "ja",
-        "shift": "evening"
+        "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 32 日目\n患者状態: BP 127/72, HR 92, SpO2 98%, T 37.2°C、酸素投与: 酸素マスク 4.7 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 32 日目\n患者状態: BP 120/72, HR 97, SpO2 93%, T 38.2°C。\n与薬: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-135-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-135-night",
+  "doc-ENC-FORCED-0001-013699914137-134-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-134-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -1396,17 +1374,17 @@
       "generated_at": "2024-07-17T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 32,
+        "day_index": 31,
         "generator": "template",
         "lang": "ja",
-        "shift": "night"
+        "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 33 日目\n患者状態: BP 118/73, HR 92, SpO2 98%, T 37.9°C、酸素投与: 酸素マスク 7.7 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 32 日目\n患者状態: BP 127/72, HR 92, SpO2 98%, T 37.2°C、酸素投与: 酸素マスク 4.7 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-136-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-136-day",
+  "doc-ENC-FORCED-0001-013699914137-135-night": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-135-night",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -1421,14 +1399,14 @@
         "day_index": 32,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 33 日目\n患者状態: BP 124/74, HR 99, SpO2 93%, T 38.0°C。\n投薬継続: ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 33 日目\n患者状態: BP 118/73, HR 92, SpO2 98%, T 37.9°C、酸素投与: 酸素マスク 7.7 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-137-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-137-evening",
+  "doc-ENC-FORCED-0001-013699914137-136-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-136-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -1443,14 +1421,14 @@
         "day_index": 32,
         "generator": "template",
         "lang": "ja",
-        "shift": "evening"
+        "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 33 日目\n患者状態: BP 123/77, HR 92, SpO2 94%, T 38.0°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 33 日目\n患者状態: BP 124/74, HR 99, SpO2 93%, T 38.0°C。\n与薬: ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-138-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-138-night",
+  "doc-ENC-FORCED-0001-013699914137-137-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-137-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -1462,17 +1440,17 @@
       "generated_at": "2024-07-18T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 33,
+        "day_index": 32,
         "generator": "template",
         "lang": "ja",
-        "shift": "night"
+        "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 34 日目\n患者状態: BP 123/72, HR 90, SpO2 92%, T 37.3°C。\n投薬継続: ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 33 日目\n患者状態: BP 123/77, HR 92, SpO2 94%, T 38.0°C。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-139-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-139-day",
+  "doc-ENC-FORCED-0001-013699914137-138-night": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-138-night",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -1487,10 +1465,32 @@
         "day_index": 33,
         "generator": "template",
         "lang": "ja",
+        "shift": "night"
+      },
+      "sections": {},
+      "text": "【看護記録(深夜)】 入院 34 日目\n患者状態: BP 123/72, HR 90, SpO2 92%, T 37.3°C。\n与薬: ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-013699914137-139-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-139-day",
+    "encounter_id": "ENC-FORCED-0001-013699914137",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.shift",
+        "ctx.medications.today",
+        "ctx.day_index"
+      ],
+      "generated_at": "2024-07-18T16:00:00+09:00",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 33,
+        "generator": "template",
+        "lang": "ja",
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 34 日目\n患者状態: BP 124/71, HR 99, SpO2 98%, T 37.9°C、酸素投与: 酸素マスク 4.6 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 34 日目\n患者状態: BP 124/71, HR 99, SpO2 98%, T 37.9°C、酸素投与: 酸素マスク 4.6 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-14": {
@@ -1551,7 +1551,7 @@
         "ctx.medications.today",
         "ctx.day_index"
       ],
-      "generated_at": "2024-07-18T16:00:00+09:00",
+      "generated_at": "2024-07-19T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
         "day_index": 33,
@@ -1560,33 +1560,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 34 日目\n患者状態: BP 119/76, HR 94, SpO2 94%, T 38.1°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 34 日目\n患者状態: BP 119/76, HR 94, SpO2 94%, T 38.1°C。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-141-night": {
     "document_id": "doc-ENC-FORCED-0001-013699914137-141-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.shift",
-        "ctx.medications.today",
-        "ctx.day_index"
-      ],
-      "generated_at": "2024-07-19T00:00:00+09:00",
-      "generator": "llm-mock",
-      "generator_metadata": {
-        "day_index": 34,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 35 日目\n患者状態: BP 123/71, HR 95, SpO2 97%, T 37.9°C、酸素投与: 鼻カニューラ 3.3 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-142-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-142-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -1601,14 +1579,14 @@
         "day_index": 34,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 35 日目\n患者状態: BP 120/70, HR 98, SpO2 94%, T 38.3°C、酸素投与: 鼻カニューラ 2.6 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 35 日目\n患者状態: BP 123/71, HR 95, SpO2 97%, T 37.9°C、酸素投与: 鼻カニューラ 3.3 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-143-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-143-evening",
+  "doc-ENC-FORCED-0001-013699914137-142-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-142-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -1623,14 +1601,14 @@
         "day_index": 34,
         "generator": "template",
         "lang": "ja",
-        "shift": "evening"
+        "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 35 日目\n患者状態: BP 119/73, HR 97, SpO2 94%, T 38.0°C。\n投薬継続: バンコマイシン、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 35 日目\n患者状態: BP 120/70, HR 98, SpO2 94%, T 38.3°C、酸素投与: 鼻カニューラ 2.6 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-144-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-144-night",
+  "doc-ENC-FORCED-0001-013699914137-143-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-143-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -1642,17 +1620,17 @@
       "generated_at": "2024-07-20T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 35,
+        "day_index": 34,
         "generator": "template",
         "lang": "ja",
-        "shift": "night"
+        "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 36 日目\n患者状態: BP 121/71, HR 93, SpO2 95%, T 37.8°C、酸素投与: 鼻カニューラ 2.1 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 35 日目\n患者状態: BP 119/73, HR 97, SpO2 94%, T 38.0°C。\n与薬: バンコマイシン、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-145-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-145-day",
+  "doc-ENC-FORCED-0001-013699914137-144-night": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-144-night",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -1667,14 +1645,14 @@
         "day_index": 35,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 36 日目\n患者状態: BP 123/74, HR 99, SpO2 97%, T 38.7°C、酸素投与: 酸素マスク 4.7 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 36 日目\n患者状態: BP 121/71, HR 93, SpO2 95%, T 37.8°C、酸素投与: 鼻カニューラ 2.1 L/min。\n与薬: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-146-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-146-evening",
+  "doc-ENC-FORCED-0001-013699914137-145-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-145-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -1689,10 +1667,32 @@
         "day_index": 35,
         "generator": "template",
         "lang": "ja",
+        "shift": "day"
+      },
+      "sections": {},
+      "text": "【看護記録(日勤)】 入院 36 日目\n患者状態: BP 123/74, HR 99, SpO2 97%, T 38.7°C、酸素投与: 酸素マスク 4.7 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-013699914137-146-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-146-evening",
+    "encounter_id": "ENC-FORCED-0001-013699914137",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.shift",
+        "ctx.medications.today",
+        "ctx.day_index"
+      ],
+      "generated_at": "2024-07-21T00:00:00+09:00",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 35,
+        "generator": "template",
+        "lang": "ja",
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 36 日目\n患者状態: BP 124/77, HR 94, SpO2 94%, T 38.1°C。\n投薬継続: バンコマイシン、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 36 日目\n患者状態: BP 124/77, HR 94, SpO2 94%, T 38.1°C。\n与薬: バンコマイシン、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-147": {
@@ -3115,7 +3115,7 @@
         "ctx.medications.today",
         "ctx.day_index"
       ],
-      "generated_at": "2024-06-15T08:00:00+09:00",
+      "generated_at": "2024-06-15T16:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
         "day_index": 0,
@@ -3124,7 +3124,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 1 日目\n患者状態: BP 106/68, HR 120, SpO2 93%, T 40.3°C、酸素投与: 鼻カニューラ 2.7 L/min。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 1 日目\n患者状態: BP 106/68, HR 120, SpO2 93%, T 40.3°C、酸素投与: 鼻カニューラ 2.7 L/min。\n与薬: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-41-evening": {
@@ -3137,7 +3137,7 @@
         "ctx.medications.today",
         "ctx.day_index"
       ],
-      "generated_at": "2024-06-15T16:00:00+09:00",
+      "generated_at": "2024-06-16T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
         "day_index": 0,
@@ -3146,33 +3146,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 1 日目\n患者状態: BP 108/61, HR 123, SpO2 96%, T 38.9°C、酸素投与: 酸素マスク 4.4 L/min。\n投薬継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 1 日目\n患者状態: BP 108/61, HR 123, SpO2 96%, T 38.9°C、酸素投与: 酸素マスク 4.4 L/min。\n与薬: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-42-night": {
     "document_id": "doc-ENC-FORCED-0001-013699914137-42-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.shift",
-        "ctx.medications.today",
-        "ctx.day_index"
-      ],
-      "generated_at": "2024-06-16T00:00:00+09:00",
-      "generator": "llm-mock",
-      "generator_metadata": {
-        "day_index": 1,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 2 日目\n患者状態: BP 102/64, HR 121, SpO2 95%, T 38.9°C、酸素投与: 鼻カニューラ 3.2 L/min。\n投薬継続: メロペネム、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-43-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-43-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3187,14 +3165,14 @@
         "day_index": 1,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 2 日目\n患者状態: BP 106/61, HR 122, SpO2 96%, T 40.3°C、酸素投与: 鼻カニューラ 2.9 L/min。\n投薬継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 2 日目\n患者状態: BP 102/64, HR 121, SpO2 95%, T 38.9°C、酸素投与: 鼻カニューラ 3.2 L/min。\n与薬: メロペネム、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-44-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-44-evening",
+  "doc-ENC-FORCED-0001-013699914137-43-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-43-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3209,14 +3187,14 @@
         "day_index": 1,
         "generator": "template",
         "lang": "ja",
-        "shift": "evening"
+        "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 2 日目\n患者状態: BP 105/61, HR 113, SpO2 96%, T 40.1°C、酸素投与: 鼻カニューラ 3.1 L/min。\n投薬継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 2 日目\n患者状態: BP 106/61, HR 122, SpO2 96%, T 40.3°C、酸素投与: 鼻カニューラ 2.9 L/min。\n与薬: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-45-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-45-night",
+  "doc-ENC-FORCED-0001-013699914137-44-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-44-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3228,17 +3206,17 @@
       "generated_at": "2024-06-17T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 2,
+        "day_index": 1,
         "generator": "template",
         "lang": "ja",
-        "shift": "night"
+        "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 3 日目\n患者状態: BP 106/63, HR 113, SpO2 93%, T 38.8°C、酸素投与: 酸素マスク 6.7 L/min。\n投薬継続: メロペネム、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 2 日目\n患者状態: BP 105/61, HR 113, SpO2 96%, T 40.1°C、酸素投与: 鼻カニューラ 3.1 L/min。\n与薬: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-46-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-46-day",
+  "doc-ENC-FORCED-0001-013699914137-45-night": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-45-night",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3253,14 +3231,14 @@
         "day_index": 2,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 3 日目\n患者状態: BP 106/65, HR 119, SpO2 96%, T 39.9°C、酸素投与: 酸素マスク 4 L/min。\n投薬継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 3 日目\n患者状態: BP 106/63, HR 113, SpO2 93%, T 38.8°C、酸素投与: 酸素マスク 6.7 L/min。\n与薬: メロペネム、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-47-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-47-evening",
+  "doc-ENC-FORCED-0001-013699914137-46-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-46-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3275,14 +3253,14 @@
         "day_index": 2,
         "generator": "template",
         "lang": "ja",
-        "shift": "evening"
+        "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 3 日目\n患者状態: BP 104/65, HR 118, SpO2 96%, T 39.3°C、酸素投与: 酸素マスク 4.7 L/min。\n投薬継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 3 日目\n患者状態: BP 106/65, HR 119, SpO2 96%, T 39.9°C、酸素投与: 酸素マスク 4 L/min。\n与薬: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-48-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-48-night",
+  "doc-ENC-FORCED-0001-013699914137-47-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-47-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3294,17 +3272,17 @@
       "generated_at": "2024-06-18T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 3,
+        "day_index": 2,
         "generator": "template",
         "lang": "ja",
-        "shift": "night"
+        "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 4 日目\n患者状態: BP 103/60, HR 115, SpO2 98%, T 39.1°C、酸素投与: リザーバー付き酸素マスク 9.8 L/min。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 3 日目\n患者状態: BP 104/65, HR 118, SpO2 96%, T 39.3°C、酸素投与: 酸素マスク 4.7 L/min。\n与薬: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-49-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-49-day",
+  "doc-ENC-FORCED-0001-013699914137-48-night": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-48-night",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3319,14 +3297,14 @@
         "day_index": 3,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 4 日目\n患者状態: BP 106/66, HR 118, SpO2 94%, T 39.9°C、酸素投与: 鼻カニューラ 3.5 L/min。\n投薬継続: メロペネム、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 4 日目\n患者状態: BP 103/60, HR 115, SpO2 98%, T 39.1°C、酸素投与: リザーバー付き酸素マスク 9.8 L/min。\n与薬: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-50-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-50-evening",
+  "doc-ENC-FORCED-0001-013699914137-49-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-49-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3341,14 +3319,14 @@
         "day_index": 3,
         "generator": "template",
         "lang": "ja",
-        "shift": "evening"
+        "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 4 日目\n患者状態: BP 107/63, HR 111, SpO2 96%, T 39.4°C、酸素投与: 鼻カニューラ 2.8 L/min。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 4 日目\n患者状態: BP 106/66, HR 118, SpO2 94%, T 39.9°C、酸素投与: 鼻カニューラ 3.5 L/min。\n与薬: メロペネム、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-51-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-51-night",
+  "doc-ENC-FORCED-0001-013699914137-50-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-50-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3360,17 +3338,17 @@
       "generated_at": "2024-06-19T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 4,
+        "day_index": 3,
         "generator": "template",
         "lang": "ja",
-        "shift": "night"
+        "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 5 日目\n患者状態: BP 107/65, HR 115, SpO2 94%, T 39.3°C、酸素投与: 鼻カニューラ 3.3 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 4 日目\n患者状態: BP 107/63, HR 111, SpO2 96%, T 39.4°C、酸素投与: 鼻カニューラ 2.8 L/min。\n与薬: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-52-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-52-day",
+  "doc-ENC-FORCED-0001-013699914137-51-night": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-51-night",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3385,14 +3363,14 @@
         "day_index": 4,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 5 日目\n患者状態: BP 104/62, HR 117, SpO2 97%, T 40.4°C、酸素投与: 鼻カニューラ 3.8 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 5 日目\n患者状態: BP 107/65, HR 115, SpO2 94%, T 39.3°C、酸素投与: 鼻カニューラ 3.3 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-53-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-53-evening",
+  "doc-ENC-FORCED-0001-013699914137-52-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-52-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3407,14 +3385,14 @@
         "day_index": 4,
         "generator": "template",
         "lang": "ja",
-        "shift": "evening"
+        "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 5 日目\n患者状態: BP 105/64, HR 111, SpO2 95%, T 39.8°C、酸素投与: 鼻カニューラ 3.9 L/min。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 5 日目\n患者状態: BP 104/62, HR 117, SpO2 97%, T 40.4°C、酸素投与: 鼻カニューラ 3.8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-54-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-54-night",
+  "doc-ENC-FORCED-0001-013699914137-53-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-53-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3426,17 +3404,17 @@
       "generated_at": "2024-06-20T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 5,
+        "day_index": 4,
         "generator": "template",
         "lang": "ja",
-        "shift": "night"
+        "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 6 日目\n患者状態: BP 107/63, HR 109, SpO2 95%, T 38.2°C、酸素投与: リザーバー付き酸素マスク 8 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 5 日目\n患者状態: BP 105/64, HR 111, SpO2 95%, T 39.8°C、酸素投与: 鼻カニューラ 3.9 L/min。\n与薬: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-55-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-55-day",
+  "doc-ENC-FORCED-0001-013699914137-54-night": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-54-night",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3451,14 +3429,14 @@
         "day_index": 5,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 6 日目\n患者状態: BP 108/67, HR 114, SpO2 95%, T 40.0°C、酸素投与: 鼻カニューラ 2.4 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 6 日目\n患者状態: BP 107/63, HR 109, SpO2 95%, T 38.2°C、酸素投与: リザーバー付き酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-56-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-56-evening",
+  "doc-ENC-FORCED-0001-013699914137-55-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-55-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3473,14 +3451,14 @@
         "day_index": 5,
         "generator": "template",
         "lang": "ja",
-        "shift": "evening"
+        "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 6 日目\n患者状態: BP 107/63, HR 107, SpO2 98%, T 39.0°C、酸素投与: 酸素マスク 4.4 L/min。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 6 日目\n患者状態: BP 108/67, HR 114, SpO2 95%, T 40.0°C、酸素投与: 鼻カニューラ 2.4 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-57-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-57-night",
+  "doc-ENC-FORCED-0001-013699914137-56-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-56-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3492,17 +3470,17 @@
       "generated_at": "2024-06-21T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 6,
+        "day_index": 5,
         "generator": "template",
         "lang": "ja",
-        "shift": "night"
+        "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 7 日目\n患者状態: BP 109/63, HR 104, SpO2 97%, T 38.6°C、酸素投与: 酸素マスク 4.6 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 6 日目\n患者状態: BP 107/63, HR 107, SpO2 98%, T 39.0°C、酸素投与: 酸素マスク 4.4 L/min。\n与薬: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-58-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-58-day",
+  "doc-ENC-FORCED-0001-013699914137-57-night": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-57-night",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3517,14 +3495,14 @@
         "day_index": 6,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 7 日目\n患者状態: BP 106/66, HR 110, SpO2 94%, T 39.6°C、酸素投与: 酸素マスク 7.4 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 7 日目\n患者状態: BP 109/63, HR 104, SpO2 97%, T 38.6°C、酸素投与: 酸素マスク 4.6 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-59-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-59-evening",
+  "doc-ENC-FORCED-0001-013699914137-58-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-58-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3539,14 +3517,14 @@
         "day_index": 6,
         "generator": "template",
         "lang": "ja",
-        "shift": "evening"
+        "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 7 日目\n患者状態: BP 111/65, HR 106, SpO2 95%, T 38.9°C、酸素投与: 酸素マスク 4.4 L/min。\n投薬継続: バンコマイシン、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 7 日目\n患者状態: BP 106/66, HR 110, SpO2 94%, T 39.6°C、酸素投与: 酸素マスク 7.4 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-60-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-60-night",
+  "doc-ENC-FORCED-0001-013699914137-59-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-59-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3558,17 +3536,17 @@
       "generated_at": "2024-06-22T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 7,
+        "day_index": 6,
         "generator": "template",
         "lang": "ja",
-        "shift": "night"
+        "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 8 日目\n患者状態: BP 112/65, HR 102, SpO2 98%, T 38.4°C、酸素投与: リザーバー付き酸素マスク 9 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 7 日目\n患者状態: BP 111/65, HR 106, SpO2 95%, T 38.9°C、酸素投与: 酸素マスク 4.4 L/min。\n与薬: バンコマイシン、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-61-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-61-day",
+  "doc-ENC-FORCED-0001-013699914137-60-night": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-60-night",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3583,14 +3561,14 @@
         "day_index": 7,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 8 日目\n患者状態: BP 110/66, HR 107, SpO2 98%, T 39.6°C、酸素投与: リザーバー付き酸素マスク 8 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 8 日目\n患者状態: BP 112/65, HR 102, SpO2 98%, T 38.4°C、酸素投与: リザーバー付き酸素マスク 9 L/min。\n与薬: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-62-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-62-evening",
+  "doc-ENC-FORCED-0001-013699914137-61-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-61-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3605,14 +3583,14 @@
         "day_index": 7,
         "generator": "template",
         "lang": "ja",
-        "shift": "evening"
+        "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 8 日目\n患者状態: BP 110/67, HR 102, SpO2 96%, T 39.1°C、酸素投与: 酸素マスク 4.7 L/min。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 8 日目\n患者状態: BP 110/66, HR 107, SpO2 98%, T 39.6°C、酸素投与: リザーバー付き酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-63-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-63-night",
+  "doc-ENC-FORCED-0001-013699914137-62-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-62-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3624,17 +3602,17 @@
       "generated_at": "2024-06-23T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 8,
+        "day_index": 7,
         "generator": "template",
         "lang": "ja",
-        "shift": "night"
+        "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 9 日目\n患者状態: BP 112/70, HR 100, SpO2 97%, T 39.1°C、酸素投与: 酸素マスク 7 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 8 日目\n患者状態: BP 110/67, HR 102, SpO2 96%, T 39.1°C、酸素投与: 酸素マスク 4.7 L/min。\n与薬: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-64-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-64-day",
+  "doc-ENC-FORCED-0001-013699914137-63-night": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-63-night",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3649,14 +3627,14 @@
         "day_index": 8,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 9 日目\n患者状態: BP 109/66, HR 105, SpO2 98%, T 39.4°C、酸素投与: リザーバー付き酸素マスク 9.3 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 9 日目\n患者状態: BP 112/70, HR 100, SpO2 97%, T 39.1°C、酸素投与: 酸素マスク 7 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-65-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-65-evening",
+  "doc-ENC-FORCED-0001-013699914137-64-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-64-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3671,14 +3649,14 @@
         "day_index": 8,
         "generator": "template",
         "lang": "ja",
-        "shift": "evening"
+        "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 9 日目\n患者状態: BP 112/64, HR 99, SpO2 95%, T 39.3°C、酸素投与: 鼻カニューラ 3.4 L/min。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 9 日目\n患者状態: BP 109/66, HR 105, SpO2 98%, T 39.4°C、酸素投与: リザーバー付き酸素マスク 9.3 L/min。\n与薬: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-66-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-66-night",
+  "doc-ENC-FORCED-0001-013699914137-65-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-65-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3690,17 +3668,17 @@
       "generated_at": "2024-06-24T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 9,
+        "day_index": 8,
         "generator": "template",
         "lang": "ja",
-        "shift": "night"
+        "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 10 日目\n患者状態: BP 113/66, HR 102, SpO2 96%, T 39.8°C、酸素投与: 酸素マスク 4 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 9 日目\n患者状態: BP 112/64, HR 99, SpO2 95%, T 39.3°C、酸素投与: 鼻カニューラ 3.4 L/min。\n与薬: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-67-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-67-day",
+  "doc-ENC-FORCED-0001-013699914137-66-night": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-66-night",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3715,14 +3693,14 @@
         "day_index": 9,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 10 日目\n患者状態: BP 110/66, HR 102, SpO2 93%, T 39.6°C、酸素投与: 鼻カニューラ 2.1 L/min。\n投薬継続: ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 10 日目\n患者状態: BP 113/66, HR 102, SpO2 96%, T 39.8°C、酸素投与: 酸素マスク 4 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-68-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-68-evening",
+  "doc-ENC-FORCED-0001-013699914137-67-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-67-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3737,14 +3715,14 @@
         "day_index": 9,
         "generator": "template",
         "lang": "ja",
-        "shift": "evening"
+        "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 10 日目\n患者状態: BP 113/65, HR 99, SpO2 98%, T 38.4°C、酸素投与: リザーバー付き酸素マスク 9.4 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 10 日目\n患者状態: BP 110/66, HR 102, SpO2 93%, T 39.6°C、酸素投与: 鼻カニューラ 2.1 L/min。\n与薬: ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-69-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-69-night",
+  "doc-ENC-FORCED-0001-013699914137-68-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-68-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3756,17 +3734,17 @@
       "generated_at": "2024-06-25T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 10,
+        "day_index": 9,
         "generator": "template",
         "lang": "ja",
-        "shift": "night"
+        "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 11 日目\n患者状態: BP 115/67, HR 99, SpO2 97%, T 38.3°C、酸素投与: 酸素マスク 4.9 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 10 日目\n患者状態: BP 113/65, HR 99, SpO2 98%, T 38.4°C、酸素投与: リザーバー付き酸素マスク 9.4 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-70-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-70-day",
+  "doc-ENC-FORCED-0001-013699914137-69-night": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-69-night",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3781,14 +3759,14 @@
         "day_index": 10,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 11 日目\n患者状態: BP 113/71, HR 105, SpO2 96%, T 38.7°C、酸素投与: 酸素マスク 4.6 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 11 日目\n患者状態: BP 115/67, HR 99, SpO2 97%, T 38.3°C、酸素投与: 酸素マスク 4.9 L/min。\n与薬: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-71-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-71-evening",
+  "doc-ENC-FORCED-0001-013699914137-70-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-70-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3803,14 +3781,14 @@
         "day_index": 10,
         "generator": "template",
         "lang": "ja",
-        "shift": "evening"
+        "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 11 日目\n患者状態: BP 109/66, HR 101, SpO2 98%, T 39.8°C、酸素投与: リザーバー付き酸素マスク 9.2 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 11 日目\n患者状態: BP 113/71, HR 105, SpO2 96%, T 38.7°C、酸素投与: 酸素マスク 4.6 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-72-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-72-night",
+  "doc-ENC-FORCED-0001-013699914137-71-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-71-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3822,17 +3800,17 @@
       "generated_at": "2024-06-26T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 11,
+        "day_index": 10,
         "generator": "template",
         "lang": "ja",
-        "shift": "night"
+        "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 12 日目\n患者状態: BP 115/71, HR 97, SpO2 96%, T 39.1°C、酸素投与: 鼻カニューラ 3.8 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 11 日目\n患者状態: BP 109/66, HR 101, SpO2 98%, T 39.8°C、酸素投与: リザーバー付き酸素マスク 9.2 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-73-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-73-day",
+  "doc-ENC-FORCED-0001-013699914137-72-night": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-72-night",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3847,14 +3825,14 @@
         "day_index": 11,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 12 日目\n患者状態: BP 116/70, HR 102, SpO2 98%, T 38.8°C、酸素投与: リザーバー付き酸素マスク 9.1 L/min。\n投薬継続: バンコマイシン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 12 日目\n患者状態: BP 115/71, HR 97, SpO2 96%, T 39.1°C、酸素投与: 鼻カニューラ 3.8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-74-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-74-evening",
+  "doc-ENC-FORCED-0001-013699914137-73-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-73-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3869,14 +3847,14 @@
         "day_index": 11,
         "generator": "template",
         "lang": "ja",
-        "shift": "evening"
+        "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 12 日目\n患者状態: BP 113/68, HR 96, SpO2 96%, T 38.7°C、酸素投与: 鼻カニューラ 2.5 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 12 日目\n患者状態: BP 116/70, HR 102, SpO2 98%, T 38.8°C、酸素投与: リザーバー付き酸素マスク 9.1 L/min。\n与薬: バンコマイシン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-75-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-75-night",
+  "doc-ENC-FORCED-0001-013699914137-74-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-74-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3888,17 +3866,17 @@
       "generated_at": "2024-06-27T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 12,
+        "day_index": 11,
         "generator": "template",
         "lang": "ja",
-        "shift": "night"
+        "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 13 日目\n患者状態: BP 116/71, HR 94, SpO2 95%, T 37.5°C、酸素投与: 鼻カニューラ 2.4 L/min。\n投薬継続: バンコマイシン、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 12 日目\n患者状態: BP 113/68, HR 96, SpO2 96%, T 38.7°C、酸素投与: 鼻カニューラ 2.5 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-76-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-76-day",
+  "doc-ENC-FORCED-0001-013699914137-75-night": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-75-night",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3913,14 +3891,14 @@
         "day_index": 12,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 13 日目\n患者状態: BP 120/68, HR 101, SpO2 95%, T 39.5°C、酸素投与: 鼻カニューラ 2.7 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 13 日目\n患者状態: BP 116/71, HR 94, SpO2 95%, T 37.5°C、酸素投与: 鼻カニューラ 2.4 L/min。\n与薬: バンコマイシン、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-77-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-77-evening",
+  "doc-ENC-FORCED-0001-013699914137-76-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-76-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3935,14 +3913,14 @@
         "day_index": 12,
         "generator": "template",
         "lang": "ja",
-        "shift": "evening"
+        "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 13 日目\n患者状態: BP 114/69, HR 100, SpO2 97%, T 38.9°C、酸素投与: 酸素マスク 4.9 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 13 日目\n患者状態: BP 120/68, HR 101, SpO2 95%, T 39.5°C、酸素投与: 鼻カニューラ 2.7 L/min。\n与薬: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-78-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-78-night",
+  "doc-ENC-FORCED-0001-013699914137-77-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-77-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3954,17 +3932,17 @@
       "generated_at": "2024-06-28T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 13,
+        "day_index": 12,
         "generator": "template",
         "lang": "ja",
-        "shift": "night"
+        "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 14 日目\n患者状態: BP 114/69, HR 93, SpO2 96%, T 38.6°C、酸素投与: 酸素マスク 4.6 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 13 日目\n患者状態: BP 114/69, HR 100, SpO2 97%, T 38.9°C、酸素投与: 酸素マスク 4.9 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-79-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-79-day",
+  "doc-ENC-FORCED-0001-013699914137-78-night": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-78-night",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3979,14 +3957,14 @@
         "day_index": 13,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 14 日目\n患者状態: BP 114/68, HR 105, SpO2 94%, T 38.9°C、酸素投与: 鼻カニューラ 2.8 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 14 日目\n患者状態: BP 114/69, HR 93, SpO2 96%, T 38.6°C、酸素投与: 酸素マスク 4.6 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-80-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-80-evening",
+  "doc-ENC-FORCED-0001-013699914137-79-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-79-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -4001,14 +3979,14 @@
         "day_index": 13,
         "generator": "template",
         "lang": "ja",
-        "shift": "evening"
+        "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 14 日目\n患者状態: BP 115/74, HR 105, SpO2 96%, T 39.3°C、酸素投与: 鼻カニューラ 3.4 L/min。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 14 日目\n患者状態: BP 114/68, HR 105, SpO2 94%, T 38.9°C、酸素投与: 鼻カニューラ 2.8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-81-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-81-night",
+  "doc-ENC-FORCED-0001-013699914137-80-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-80-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -4020,17 +3998,17 @@
       "generated_at": "2024-06-29T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 14,
+        "day_index": 13,
         "generator": "template",
         "lang": "ja",
-        "shift": "night"
+        "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 15 日目\n患者状態: BP 117/68, HR 97, SpO2 96%, T 39.1°C、酸素投与: 鼻カニューラ 2.7 L/min。\n投薬継続: ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 14 日目\n患者状態: BP 115/74, HR 105, SpO2 96%, T 39.3°C、酸素投与: 鼻カニューラ 3.4 L/min。\n与薬: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-82-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-82-day",
+  "doc-ENC-FORCED-0001-013699914137-81-night": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-81-night",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -4045,14 +4023,14 @@
         "day_index": 14,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 15 日目\n患者状態: BP 116/71, HR 101, SpO2 98%, T 39.0°C、酸素投与: 酸素マスク 4.9 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 15 日目\n患者状態: BP 117/68, HR 97, SpO2 96%, T 39.1°C、酸素投与: 鼻カニューラ 2.7 L/min。\n与薬: ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-83-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-83-evening",
+  "doc-ENC-FORCED-0001-013699914137-82-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-82-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -4067,14 +4045,14 @@
         "day_index": 14,
         "generator": "template",
         "lang": "ja",
-        "shift": "evening"
+        "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 15 日目\n患者状態: BP 117/70, HR 97, SpO2 97%, T 38.6°C、酸素投与: 酸素マスク 4.9 L/min。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 15 日目\n患者状態: BP 116/71, HR 101, SpO2 98%, T 39.0°C、酸素投与: 酸素マスク 4.9 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-84-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-84-night",
+  "doc-ENC-FORCED-0001-013699914137-83-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-83-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -4086,17 +4064,17 @@
       "generated_at": "2024-06-30T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 15,
+        "day_index": 14,
         "generator": "template",
         "lang": "ja",
-        "shift": "night"
+        "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 16 日目\n患者状態: BP 118/69, HR 100, SpO2 95%, T 39.4°C、酸素投与: 鼻カニューラ 3 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 15 日目\n患者状態: BP 117/70, HR 97, SpO2 97%, T 38.6°C、酸素投与: 酸素マスク 4.9 L/min。\n与薬: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-85-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-85-day",
+  "doc-ENC-FORCED-0001-013699914137-84-night": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-84-night",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -4111,14 +4089,14 @@
         "day_index": 15,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 16 日目\n患者状態: BP 121/72, HR 103, SpO2 95%, T 38.8°C、酸素投与: 酸素マスク 4.3 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 16 日目\n患者状態: BP 118/69, HR 100, SpO2 95%, T 39.4°C、酸素投与: 鼻カニューラ 3 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-86-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-86-evening",
+  "doc-ENC-FORCED-0001-013699914137-85-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-85-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -4133,14 +4111,14 @@
         "day_index": 15,
         "generator": "template",
         "lang": "ja",
-        "shift": "evening"
+        "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 16 日目\n患者状態: BP 116/73, HR 101, SpO2 95%, T 39.0°C、酸素投与: 酸素マスク 4.2 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 16 日目\n患者状態: BP 121/72, HR 103, SpO2 95%, T 38.8°C、酸素投与: 酸素マスク 4.3 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-87-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-87-night",
+  "doc-ENC-FORCED-0001-013699914137-86-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-86-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -4152,17 +4130,17 @@
       "generated_at": "2024-07-01T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 16,
+        "day_index": 15,
         "generator": "template",
         "lang": "ja",
-        "shift": "night"
+        "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 17 日目\n患者状態: BP 118/73, HR 96, SpO2 94%, T 38.5°C、酸素投与: 鼻カニューラ 3 L/min。\n投薬継続: ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 16 日目\n患者状態: BP 116/73, HR 101, SpO2 95%, T 39.0°C、酸素投与: 酸素マスク 4.2 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-88-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-88-day",
+  "doc-ENC-FORCED-0001-013699914137-87-night": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-87-night",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -4177,14 +4155,14 @@
         "day_index": 16,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 17 日目\n患者状態: BP 120/75, HR 109, SpO2 95%, T 38.6°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 17 日目\n患者状態: BP 118/73, HR 96, SpO2 94%, T 38.5°C、酸素投与: 鼻カニューラ 3 L/min。\n与薬: ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-89-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-89-evening",
+  "doc-ENC-FORCED-0001-013699914137-88-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-88-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -4199,14 +4177,14 @@
         "day_index": 16,
         "generator": "template",
         "lang": "ja",
-        "shift": "evening"
+        "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 17 日目\n患者状態: BP 118/70, HR 99, SpO2 96%, T 38.6°C、酸素投与: 鼻カニューラ 3.3 L/min。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 17 日目\n患者状態: BP 120/75, HR 109, SpO2 95%, T 38.6°C。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-90-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-90-night",
+  "doc-ENC-FORCED-0001-013699914137-89-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-89-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -4218,17 +4196,17 @@
       "generated_at": "2024-07-02T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 17,
+        "day_index": 16,
         "generator": "template",
         "lang": "ja",
-        "shift": "night"
+        "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 18 日目\n患者状態: BP 120/71, HR 99, SpO2 94%, T 38.2°C、酸素投与: 鼻カニューラ 3.2 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 17 日目\n患者状態: BP 118/70, HR 99, SpO2 96%, T 38.6°C、酸素投与: 鼻カニューラ 3.3 L/min。\n与薬: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-91-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-91-day",
+  "doc-ENC-FORCED-0001-013699914137-90-night": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-90-night",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -4243,14 +4221,14 @@
         "day_index": 17,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 18 日目\n患者状態: BP 123/79, HR 99, SpO2 96%, T 39.0°C、酸素投与: 鼻カニューラ 3 L/min。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 18 日目\n患者状態: BP 120/71, HR 99, SpO2 94%, T 38.2°C、酸素投与: 鼻カニューラ 3.2 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-92-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-92-evening",
+  "doc-ENC-FORCED-0001-013699914137-91-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-91-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -4265,14 +4243,14 @@
         "day_index": 17,
         "generator": "template",
         "lang": "ja",
-        "shift": "evening"
+        "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 18 日目\n患者状態: BP 118/73, HR 106, SpO2 94%, T 39.4°C、酸素投与: 鼻カニューラ 3.4 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 18 日目\n患者状態: BP 123/79, HR 99, SpO2 96%, T 39.0°C、酸素投与: 鼻カニューラ 3 L/min。\n与薬: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-93-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-93-night",
+  "doc-ENC-FORCED-0001-013699914137-92-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-92-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -4284,17 +4262,17 @@
       "generated_at": "2024-07-03T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 18,
+        "day_index": 17,
         "generator": "template",
         "lang": "ja",
-        "shift": "night"
+        "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 19 日目\n患者状態: BP 124/74, HR 95, SpO2 92%, T 39.5°C。\n投薬継続: ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 18 日目\n患者状態: BP 118/73, HR 106, SpO2 94%, T 39.4°C、酸素投与: 鼻カニューラ 3.4 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-94-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-94-day",
+  "doc-ENC-FORCED-0001-013699914137-93-night": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-93-night",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -4309,14 +4287,14 @@
         "day_index": 18,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 19 日目\n患者状態: BP 121/71, HR 102, SpO2 92%, T 39.1°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 19 日目\n患者状態: BP 124/74, HR 95, SpO2 92%, T 39.5°C。\n与薬: ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-95-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-95-evening",
+  "doc-ENC-FORCED-0001-013699914137-94-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-94-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -4331,14 +4309,14 @@
         "day_index": 18,
         "generator": "template",
         "lang": "ja",
-        "shift": "evening"
+        "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 19 日目\n患者状態: BP 122/70, HR 105, SpO2 92%, T 38.2°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 19 日目\n患者状態: BP 121/71, HR 102, SpO2 92%, T 39.1°C。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-96-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-96-night",
+  "doc-ENC-FORCED-0001-013699914137-95-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-95-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -4350,17 +4328,17 @@
       "generated_at": "2024-07-04T00:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 19,
+        "day_index": 18,
         "generator": "template",
         "lang": "ja",
-        "shift": "night"
+        "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 20 日目\n患者状態: BP 115/72, HR 98, SpO2 98%, T 38.3°C、酸素投与: 酸素マスク 4.1 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 19 日目\n患者状態: BP 122/70, HR 105, SpO2 92%, T 38.2°C。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-97-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-97-day",
+  "doc-ENC-FORCED-0001-013699914137-96-night": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-96-night",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -4375,14 +4353,14 @@
         "day_index": 19,
         "generator": "template",
         "lang": "ja",
-        "shift": "day"
+        "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 20 日目\n患者状態: BP 125/72, HR 102, SpO2 96%, T 38.8°C、酸素投与: 鼻カニューラ 3.6 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 20 日目\n患者状態: BP 115/72, HR 98, SpO2 98%, T 38.3°C、酸素投与: 酸素マスク 4.1 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-98-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-98-evening",
+  "doc-ENC-FORCED-0001-013699914137-97-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-97-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -4397,10 +4375,32 @@
         "day_index": 19,
         "generator": "template",
         "lang": "ja",
+        "shift": "day"
+      },
+      "sections": {},
+      "text": "【看護記録(日勤)】 入院 20 日目\n患者状態: BP 125/72, HR 102, SpO2 96%, T 38.8°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-013699914137-98-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-98-evening",
+    "encounter_id": "ENC-FORCED-0001-013699914137",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.shift",
+        "ctx.medications.today",
+        "ctx.day_index"
+      ],
+      "generated_at": "2024-07-05T00:00:00+09:00",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 19,
+        "generator": "template",
+        "lang": "ja",
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 20 日目\n患者状態: BP 123/74, HR 97, SpO2 97%, T 37.3°C、酸素投与: 酸素マスク 5 L/min。\n投薬継続: バンコマイシン、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 20 日目\n患者状態: BP 123/74, HR 97, SpO2 97%, T 37.3°C、酸素投与: 酸素マスク 5 L/min。\n与薬: バンコマイシン、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-99-night": {
@@ -4413,7 +4413,7 @@
         "ctx.medications.today",
         "ctx.day_index"
       ],
-      "generated_at": "2024-07-05T00:00:00+09:00",
+      "generated_at": "2024-07-05T08:00:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
         "day_index": 20,
@@ -4422,7 +4422,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 21 日目\n患者状態: BP 122/72, HR 98, SpO2 95%, T 38.3°C、酸素投与: 鼻カニューラ 3.3 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 21 日目\n患者状態: BP 122/72, HR 98, SpO2 95%, T 38.3°C、酸素投与: 鼻カニューラ 3.3 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-ED-153": {

@@ -23,7 +23,7 @@ from types import SimpleNamespace
 import pytest
 
 from clinosim.modules.document import DOC_REFERENCE_ID_PREFIX
-from clinosim.modules.document.engine import SHIFT_SCHEDULE, document_enricher
+from clinosim.modules.document.engine import SHIFT_HOURS, SHIFT_SCHEDULE, document_enricher
 
 pytestmark = pytest.mark.unit
 
@@ -110,15 +110,15 @@ def test_los3_emits_7_nursing_shift_notes_after_arrival_gate() -> None:
 
 
 def test_no_shift_note_precedes_admission_time() -> None:
-    """Issue #820 (N-6): no nursing shift note may be authored before the
-    encounter's admission_datetime. Real practice: if arrival is 10:12, the
-    00:00 and 08:00 shift on the admission day did not happen."""
+    """Issue #820 (N-6): no nursing shift note may cover a shift that began
+    before the encounter's admission_datetime. Real practice: if arrival is
+    10:12, the 00:00 and 08:00 shift on the admission day did not happen."""
     record = _make_record(_make_encounter(discharge_dt=LOS_3_DT))
     document_enricher(_make_ctx(record))
     for doc in _shift_notes(record):
-        authored = datetime.fromisoformat(doc.authored_datetime)
-        assert authored >= ADMISSION_DT, (
-            f"Shift note authored at {authored} predates admission {ADMISSION_DT} — "
+        start = datetime.fromisoformat(doc.period_start)
+        assert start >= ADMISSION_DT, (
+            f"Shift note period starts at {start} before admission {ADMISSION_DT} — "
             f"Issue #820 (N-6) arrival-gate regressed."
         )
 
@@ -135,13 +135,14 @@ def test_shift_note_count_is_3x_progress_note_count_minus_arrival_gate() -> None
 
 def test_shift_keys_complete_after_arrival_day() -> None:
     """After Issue #820 gate: Day 0 (arrival day) may carry a partial set;
-    every subsequent LOS day carries the full chronological triplet."""
+    every subsequent LOS day carries the full chronological triplet (by the
+    shift's calendar day, i.e. the period start)."""
     record = _make_record(_make_encounter(discharge_dt=LOS_3_DT))
     document_enricher(_make_ctx(record))
     by_date: dict[str, list[str]] = {}
     for doc in _shift_notes(record):
-        authored = datetime.fromisoformat(doc.authored_datetime)
-        by_date.setdefault(authored.date().isoformat(), []).append(doc.shift)
+        start = datetime.fromisoformat(doc.period_start)
+        by_date.setdefault(start.date().isoformat(), []).append(doc.shift)
     assert len(by_date) == 3, f"Expected notes on 3 distinct dates, got {sorted(by_date)}"
     dates_sorted = sorted(by_date.keys())
     # Day 0 (arrival at 10:00): 00:00 + 08:00 skipped, only "evening" remains.
@@ -153,25 +154,29 @@ def test_shift_keys_complete_after_arrival_day() -> None:
         )
 
 
-def test_authored_datetime_uses_shift_hour_offsets_post_arrival() -> None:
-    """authored_datetime = calendar day date + 00:00 / 08:00 / 16:00 (not admission time).
-    Issue #820 gate skips Day-0 shifts before admission, so only 16:00 fires on Day 0."""
+def test_note_is_authored_at_the_end_of_its_shift() -> None:
+    """Issue #3395: the note is written at the END of its 8-hour shift, so the
+    window it reports and its authored time agree (authored hours 08 / 16 / 00)."""
     record = _make_record(_make_encounter(discharge_dt=LOS_3_DT))
     document_enricher(_make_ctx(record))
-    hours = {datetime.fromisoformat(d.authored_datetime).hour for d in _shift_notes(record)}
-    # Day 1 + Day 2 give all 3 hours; Day 0 contributes only 16.
-    assert hours == {0, 8, 16}, f"Expected shift hours {{0, 8, 16}}, got {hours}"
-    minutes = {datetime.fromisoformat(d.authored_datetime).minute for d in _shift_notes(record)}
-    assert minutes == {0}, f"Shift note minutes must be 00, got {minutes}"
+    notes = _shift_notes(record)
+    assert {datetime.fromisoformat(d.authored_datetime).hour for d in notes} == {0, 8, 16}
+    for doc in notes:
+        start = datetime.fromisoformat(doc.period_start)
+        assert start.hour == dict(SHIFT_SCHEDULE)[doc.shift]
+        assert datetime.fromisoformat(doc.authored_datetime) == start + timedelta(hours=SHIFT_HOURS)
+        assert doc.period_end == doc.authored_datetime
 
 
-def test_period_matches_authored_datetime() -> None:
-    """period_start == period_end == authored_datetime (mirrors the daily branch)."""
-    record = _make_record(_make_encounter(discharge_dt=LOS_3_DT))
+def test_shift_running_past_discharge_ends_at_discharge() -> None:
+    """A shift that is still running at the discharge ends at that time; a shift
+    that would start after it gets no note."""
+    discharge = datetime(2026, 7, 3, 3, 0)  # 3 h into the night shift of Jul 3
+    record = _make_record(_make_encounter(discharge_dt=discharge))
     document_enricher(_make_ctx(record))
     for doc in _shift_notes(record):
-        assert doc.period_start == doc.authored_datetime
-        assert doc.period_end == doc.authored_datetime
+        assert datetime.fromisoformat(doc.authored_datetime) <= discharge
+        assert datetime.fromisoformat(doc.period_start) < discharge
 
 
 def test_document_ids_unique_with_shift_token() -> None:
