@@ -30,6 +30,7 @@ __all__ = [
     "_localize_drug_name",
     "_localize_rate_adjustment",
     "_split_rate_adjustment_suffix",
+    "localize_dose_text",
     "localize_drug_name",
     "_load_department_display",
     "_load_narrative_display_dict",
@@ -55,6 +56,7 @@ from clinosim.locale.free_text import (  # noqa: E402
     _localize_drug_name,
     _localize_rate_adjustment,
     _split_rate_adjustment_suffix,
+    localize_dose_text,
     localize_drug_name,
 )
 

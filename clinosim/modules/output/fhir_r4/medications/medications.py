@@ -51,10 +51,10 @@ from clinosim.modules.output.fhir_r4.lib.jp_profiles import (
     JP_MEDICATION_RP_GROUP_NUMBER_SYSTEM,
 )
 from clinosim.modules.output.fhir_r4.lib.localization import (
-    _localize_dosage_terms,
     _localize_drug_name,
     _localize_rate_adjustment,
     _split_rate_adjustment_suffix,
+    localize_dose_text,
 )
 from clinosim.modules.output.fhir_r4.lib.profile_meta import declared_profiles, profile_meta
 from clinosim.simulator._stay_thresholds import ACUTE_COURSE_MAX_DAYS
@@ -1209,7 +1209,7 @@ def _build_discharge_rx_dosage(
       1. route via `build_route_concept`
       2. text — authored `dose_ja` / `dose_en` wins (Issue #476),
          else auto-derived from `dose` + `rate_adjustment_note` with
-         `_localize_dosage_terms` applied
+         `localize_dose_text` applied
       3. doseAndRate.doseQuantity + timing from `parse_dose_string` +
          `resolve_timing_repeat` (Issue #920 / #1348), only when the
          author did NOT supply authored_text (preserves "既存の
@@ -1257,7 +1257,7 @@ def _build_discharge_rx_dosage(
         dose_parts = [p for p in (_dose_txt, rate_adjustment_note) if p]
         if dose_parts:
             dose_text = " ".join(dose_parts)
-            dosage["text"] = _localize_dosage_terms(dose_text, lang_for(country))
+            dosage["text"] = localize_dose_text(dose_text, lang_for(country))
 
     # Issue #920 / #1348: emit structured doseAndRate + timing from the
     # same dose/frequency fields. Skipped when authored_text is set so
@@ -1509,7 +1509,7 @@ def _build_ma_dosage_block(
         dose_text = f"{dose_text} ({rate_note_localized})".strip() if dose_text.strip() else rate_note_localized
     # Issue #472: localize at the assignment only — `dose_text` itself stays English
     # because the continuous-infusion detection below (is_continuous_infusion) matches English markers.
-    dosage: dict[str, Any] = {"text": _localize_dosage_terms(dose_text, lang_for(country))}
+    dosage: dict[str, Any] = {"text": localize_dose_text(dose_text, lang_for(country))}
     from clinosim.modules.output.fhir_r4.lib.dosage import is_rate_unit
 
     if parsed.get("dose_quantity") is not None and is_rate_unit(str(parsed.get("dose_unit") or "")):

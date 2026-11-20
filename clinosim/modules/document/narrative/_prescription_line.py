@@ -55,11 +55,11 @@ def prescription_bits(
     is left out. A dose instruction authored for ``lang`` (Issue #3107) is the
     whole instruction and carries the schedule itself.
     """
-    from clinosim.locale.free_text import _localize_dosage_terms
+    from clinosim.locale.free_text import localize_dose_text
 
     def term(value: str) -> str:
         try:
-            return _localize_dosage_terms(value, lang)
+            return localize_dose_text(value, lang)
         except Exception:  # noqa: BLE001 - a display helper never fails a note
             return value
 

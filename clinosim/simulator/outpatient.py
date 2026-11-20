@@ -13,7 +13,7 @@ from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisp
 from clinosim.codes.procedures import country_procedure_code
 from clinosim.codes.valuesets import concept_group
 from clinosim.countries import lang_for
-from clinosim.locale.free_text import _localize_dosage_terms
+from clinosim.locale.free_text import localize_dose_text
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import (
     chronic_followup_vitals,
@@ -1015,14 +1015,14 @@ def _chemo_cycle(
                     "encounter_intent.chemo_cycle",
                     "ja",
                     drug=_drug_ja or _drug_name,
-                    dose=_localize_dosage_terms(_dose, "ja"),
+                    dose=localize_dose_text(_dose, "ja"),
                 ).strip(),
                 ordered_datetime=visit_date + timedelta(minutes=OUTPATIENT_LAB_ORDER_OFFSET_MIN),
                 ordered_by=encounter.attending_physician_id,
                 status=OrderStatus.RESULTED,
                 dose_text_en=_dose,
                 # Issue #3107: the dose text in Japanese wording.
-                dose_text_ja=_localize_dosage_terms(_dose, "ja"),
+                dose_text_ja=localize_dose_text(_dose, "ja"),
                 route=_route,
                 frequency="once",
                 frequency_per_day=1,
@@ -1173,13 +1173,13 @@ def _procedural_sedation(
             urgency="routine",
             clinical_intent=t("encounter_intent.procedural_sedation", "en", drug=name, dose=dose).strip(),
             clinical_intent_ja=t(
-                "encounter_intent.procedural_sedation", "ja", drug=name_ja, dose=_localize_dosage_terms(dose, "ja")
+                "encounter_intent.procedural_sedation", "ja", drug=name_ja, dose=localize_dose_text(dose, "ja")
             ).strip(),
             ordered_datetime=given_at,
             ordered_by=encounter.attending_physician_id,
             status=OrderStatus.RESULTED,
             dose_text_en=dose,
-            dose_text_ja=_localize_dosage_terms(dose, "ja"),
+            dose_text_ja=localize_dose_text(dose, "ja"),
             route=route,
             frequency="once",
             frequency_per_day=1,

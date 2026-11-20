@@ -535,3 +535,14 @@ def load_narrative_display_dict(lang: str = "ja") -> dict[str, str]:
         for k, v in table.items():
             merged.setdefault(k, v)
     return merged
+
+
+@cache
+def load_dose_phrase_dict(lang: str = "ja") -> dict[str, str]:
+    """EN → ``lang`` whole dose strings of the disease protocols (Issue #3428):
+    the ``dose_phrases`` section of ``clinosim-procedure-phrase.yaml``, keyed
+    in lower case."""
+    rows = _load_yaml(_LOCALE_DIR / "shared" / "clinosim-procedure-phrase.yaml", fallback={}).get("dose_phrases")
+    out: dict[str, str] = {}
+    _add_table(out, rows or {}, lang)
+    return out

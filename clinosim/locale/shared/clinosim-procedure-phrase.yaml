@@ -233,3 +233,61 @@ medication_orders:
   "pain_management: Acetaminophen 1000mg IV + NSAIDs": {ja: "疼痛管理: アセトアミノフェン 1000mg 静注 + 非ステロイド性抗炎症薬 (NSAIDs)"}
   "lactulose: 30mL PO TID if encephalopathy": {ja: "ラクツロース: 30mL 経口 1日3回 (肝性脳症がある場合)"}
   "PPI: Omeprazole 80mg IV bolus, then 8mg/h continuous infusion": {ja: "PPI: オメプラゾール 80mg 静注ボーラス、その後 8mg/h で持続静注"}
+
+# Issue #3428: the `dose` strings of the disease protocols that carry a free-text
+# annotation, condition or schedule. Each is looked up whole (as the tail of a
+# "drug dose" order string, or alone as a dosage text) before any word-level
+# substitution, so a Japanese record reads as a prescription, not as a mixture.
+# Keyed as the CIF carries the string; matching is case-insensitive.
+dose_phrases:
+  "2g IV (single preoperative dose)": {ja: "2g 静注 (術前単回投与)"}
+  "50mg suppository PRN": {ja: "50mg 坐剤 頓用"}
+  "200-500 mL/h IV (if prerenal, fluid-responsive)": {ja: "200-500 mL/h 静注 (腎前性で輸液反応性がある場合)"}
+  "20-40mg IV (if fluid overloaded)": {ja: "20-40mg 静注 (体液過剰の場合)"}
+  "40-80mg IV (if fluid overloaded)": {ja: "40-80mg 静注 (体液過剰の場合)"}
+  "10mL 8.5% IV stat": {ja: "8.5% 10mL 静注 即時"}
+  "1g IV stat": {ja: "1g 静注 即時"}
+  "30mL IV stat": {ja: "30mL 静注 即時"}
+  "5ug/min IV, titrate for chest pain and BP": {ja: "5μg/分 静注 (胸痛と血圧に応じて調節)"}
+  "0.5mg IV load, then 0.125-0.25mg PO daily": {ja: "0.5mg 静注 (負荷投与)、その後 0.125-0.25mg 経口 1日1回"}
+  "Initial bolus 5000IU IV, then 1000IU/h drip (adjust by APTT)": {ja: "初回 5000IU 静注ボーラス、その後 1000IU/h 点滴静注 (APTT に応じて調整)"}
+  "80IU/kg bolus, then 18IU/kg/h (adjust by APTT)": {ja: "80IU/kg ボーラス、その後 18IU/kg/h (APTT に応じて調整)"}
+  "5mg PO BID (2.5mg BID if age>=80, weight<=60kg, or Cr>=1.5)": {ja: "5mg 経口 1日2回 (80 歳以上、体重 60kg 以下、Cr 1.5 以上のいずれかで 2.5mg 1日2回)"}
+  "5mg PO BID (2.5mg if age >= 80, weight <= 60kg, or Cr >= 1.5)": {ja: "5mg 経口 1日2回 (80 歳以上、体重 60kg 以下、Cr 1.5 以上のいずれかで 2.5mg)"}
+  "15-20mg/kg IV q12h (trough 15-20)": {ja: "15-20mg/kg 静注 12時間毎 (トラフ値 15-20 を目標)"}
+  "1g IV q12h (adjust by trough)": {ja: "1g 静注 12時間毎 (トラフ値に応じて調整)"}
+  "15-20mg/kg IV q8-12h (AUC/MIC guided)": {ja: "15-20mg/kg 静注 8-12時間毎 (AUC/MIC を指標に投与)"}
+  "DS 1 tab PO BID": {ja: "DS 錠 1 錠 経口 1日2回"}
+  "60mg PO daily (after 5+ days heparin)": {ja: "60mg 経口 1日1回 (ヘパリン 5 日間以上投与後)"}
+  "Initial 2-5mg PO daily, target INR 1.5-2.5 (JP) or 2.0-3.0": {ja: "初回 2-5mg 経口 1日1回、目標 INR 1.5-2.5 (日本) または 2.0-3.0"}
+  "Initial 5mg PO daily, target INR 2.0-3.0": {ja: "初回 5mg 経口 1日1回、目標 INR 2.0-3.0"}
+  "Start 3-5mg PO daily, target INR 2.0-3.0 (JP: 1.5-2.5 for age>70)": {ja: "3-5mg 経口 1日1回で開始、目標 INR 2.0-3.0 (70 歳超は 1.5-2.5)"}
+  "Urokinase 60,000-240,000 IU via catheter": {ja: "ウロキナーゼ 60,000-240,000 IU カテーテル経由"}
+  "20mg PO daily with food": {ja: "20mg 経口 1日1回 食後"}
+  "0.5mg PO PRN anxiety": {ja: "0.5mg 経口 不安時 頓用"}
+  "0.1 U/kg/h continuous infusion (or 0.14 U/kg/h without bolus)": {ja: "0.1 U/kg/h 持続静注 (ボーラスなしの場合は 0.14 U/kg/h)"}
+  "1g IV within 60 min before incision": {ja: "1g 静注 (執刀前 60 分以内)"}
+  "2g IV within 60 min before incision": {ja: "2g 静注 (執刀前 60 分以内)"}
+  "as needed for urine alkalinization": {ja: "尿アルカリ化が必要な場合に投与"}
+  "20mg PO daily (after IV course)": {ja: "20mg 経口 1日1回 (静注治療後)"}
+  "40mg PO daily (after IV course)": {ja: "40mg 経口 1日1回 (静注治療後)"}
+  "10mg IV slow infusion": {ja: "10mg 緩徐に静注"}
+  "300mL 20% IV rapid": {ja: "20% 300mL 急速静注"}
+  "300mg IV single dose": {ja: "300mg 静注 単回投与"}
+  "600mg IV single dose": {ja: "600mg 静注 単回投与"}
+  "30mL PO TID (titrate to 2-3 soft stools/day)": {ja: "30mL 経口 1日3回 (軟便 2-3 回/日を目安に調節)"}
+  "1.5g/kg Day 1, 1g/kg Day 3": {ja: "1日目 1.5g/kg、3日目 1g/kg"}
+  "500mg PO day1, then 250mg PO days 2-5": {ja: "1日目 500mg 経口、2-5日目 250mg 経口"}
+  "1mg IV q4-6h (increase to 2mg if no response)": {ja: "1mg 静注 4-6時間毎 (反応不良なら 2mg に増量)"}
+  "6-8g per liter removed": {ja: "排液 1 L あたり 6-8g"}
+  "5mg IM PRN agitation": {ja: "5mg 筋注 不穏時 頓用"}
+  "1-2mg PRN agitation": {ja: "1-2mg 不穏時 頓用"}
+  "5mg PO BID (after 7 days of 10mg BID)": {ja: "5mg 経口 1日2回 (10mg 1日2回を 7 日間投与後)"}
+  "500mg PO q6h (max 4g/day)": {ja: "500mg 経口 6時間毎 (最大 4g/日)"}
+  "650mg PO q6h (max 3g/day)": {ja: "650mg 経口 6時間毎 (最大 3g/日)"}
+  "20 units IM weekly": {ja: "20 単位 筋注 週1回"}
+  "200IU intranasal daily": {ja: "200IU 点鼻 1日1回"}
+  "70mg PO weekly": {ja: "70mg 経口 週1回"}
+  "Percutaneous vertebroplasty under fluoroscopy": {ja: "経皮的椎体形成術 (透視下)"}
+  "Balloon kyphoplasty under fluoroscopy": {ja: "バルーン椎体形成術 (透視下)"}
+  "1 cm ribbon each eye": {ja: "両眼に 1 cm ずつ"}
