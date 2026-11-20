@@ -2580,6 +2580,11 @@
 <td><code>tests/unit/modules/document/narrative/test_admission_hp_exam_3245.py</code></td>
 </tr>
 <tr>
+<td>An outpatient SOAP quotes only the lab results reported by its authored time (Issue #3396): a test drawn at the visit is reported some hours after the note is authored at arrival, so its value is not quoted in the Objective, the Assessment citation or the Plan; the Objective words it as "Drawn today, results pending: <tests>" (at most <code>pending_lab_limit</code> of <code>outpatient_results.yaml</code>, then a count), and a chronic problem's Assessment cites the latest earlier result with its date instead. A note with no authored time quotes every result.</td>
+<td><code>narrative/_as_of.py::results_known_at</code>, <code>narrative/_outpatient_results.py::known_labs</code> / <code>pending_lab_names</code>, <code>renderers/section_builders/outpatient_soap.py::_result_objective</code>, <code>narrative/_visit_reason.py::_labs</code></td>
+<td><code>tests/unit/modules/document/narrative/test_outpatient_soap_results_as_of_3396.py</code></td>
+</tr>
+<tr>
 <td>An acute stroke exam states the focal deficit that brought the patient in and never "no paralysis" (Issue #3227): the weakness side is drawn per encounter from the encounter id (right weakness with aphasia and leftward gaze, left weakness with hemispatial neglect and rightward gaze), the NIHSS score lies in the band of the record's severity and is written on the admission day, and the deficit replaces the neurological finding in the H&amp;P, the ED note and the progress notes. A patient in atrial fibrillation (an AF admission, or chronic AF outside the paroxysmal stage) has an irregularly irregular rhythm in place of the regular one.</td>
 <td><code>renderers/_disease_exam.py::stroke_deficit</code> / <code>apply_exam_rules</code>, <code>reference_data/disease_exam.yaml</code></td>
 <td><code>tests/unit/modules/document/narrative/test_admission_hp_exam_3245.py</code></td>

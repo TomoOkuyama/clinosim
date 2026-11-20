@@ -2580,6 +2580,11 @@
 <td><code>tests/unit/modules/document/narrative/test_admission_hp_exam_3245.py</code></td>
 </tr>
 <tr>
+<td>外来 SOAP は記載時点までに報告された検査結果だけを引用する (Issue #3396): 来院時に採血した検査は受付時刻に記載される記録より数時間後に報告されるため、値は Objective・Assessment の引用・Plan に書かず、Objective に「本日採血: &lt;検査名&gt; (結果待ち)」と書き (<code>outpatient_results.yaml</code> の <code>pending_lab_limit</code> 件まで、超過は件数)、慢性疾患の Assessment は直近の過去結果を測定日付きで引用する。記載時刻のない記録は全結果を引用する。</td>
+<td><code>narrative/_as_of.py::results_known_at</code>, <code>narrative/_outpatient_results.py::known_labs</code> / <code>pending_lab_names</code>, <code>renderers/section_builders/outpatient_soap.py::_result_objective</code>, <code>narrative/_visit_reason.py::_labs</code></td>
+<td><code>tests/unit/modules/document/narrative/test_outpatient_soap_results_as_of_3396.py</code></td>
+</tr>
+<tr>
 <td>急性期脳卒中の身体所見は、来院の理由となった局所神経症状を書き、「麻痺なし」とは書かない (Issue #3227): 麻痺の側は入院 ID から入院ごとに決め (右の麻痺は失語と左への共同偏視、左の麻痺は半側空間無視と右への共同偏視を伴う)、NIHSS は記録の重症度の範囲内の値を入院日に記載し、その所見を H&amp;P・ED 記録・経過記録の神経所見とする。心房細動の患者 (心房細動での入院、または発作性以外の慢性心房細動) は整の脈の代わりに絶対性不整脈の脈を書く。</td>
 <td><code>renderers/_disease_exam.py::stroke_deficit</code> / <code>apply_exam_rules</code>, <code>reference_data/disease_exam.yaml</code></td>
 <td><code>tests/unit/modules/document/narrative/test_admission_hp_exam_3245.py</code></td>
