@@ -27,6 +27,7 @@ from clinosim.locale.i18n import t
 from clinosim.locale.localized import localized_field
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._narrative_utils import _age_at, _cc_keyword_positively_present
+from clinosim.modules.document.narrative._ros_contradictions import contradicted
 from clinosim.modules.document.narrative._template_helpers import (
     _hpi_onset,
     _pick_localized,
@@ -378,8 +379,9 @@ def _hpi_parts(ctx: NarrativeContext) -> _HpiParts:
 def _ros_line(ctx: NarrativeContext, presented_text: str) -> str:
     """The ROS pertinent negatives of the disease (Issue #984): the first two
     that do not deny a symptom positively present in ``presented_text`` (the
-    chief complaint and onset text, Issue #3228) and are not already written
-    there. ``""`` without a disease or negatives — never fabricated."""
+    chief complaint and onset text, Issue #3228), are not already written
+    there and are not contradicted by the encounter's imaging or arrival
+    consciousness (Issue #3391). ``""`` without a disease or negatives — never fabricated."""
     lang = ctx.target_lang
     if ctx.disease_protocol is None:
         return ""
@@ -394,6 +396,7 @@ def _ros_line(ctx: NarrativeContext, presented_text: str) -> str:
         neg.text
         for neg in hpi_pertinent_negatives(disease_id, lang)
         if neg.text.lower() not in haystack
+        and not contradicted(neg.contradicted_by, ctx)
         and not _cc_keyword_positively_present(haystack, tuple(s.lower() for s in neg.symptoms))
     ]
     if not kept:

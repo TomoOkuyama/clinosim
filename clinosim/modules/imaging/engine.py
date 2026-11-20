@@ -797,6 +797,31 @@ def _select_report_template(
     return variant, bucket[variant]
 
 
+def imaging_report_is_abnormal(
+    disease_id: str, modality: str, body_site_snomed: str, impressions: tuple[str, ...]
+) -> bool | None:
+    """Whether a report whose impression is one of ``impressions`` (its
+    English and Japanese slots) reads abnormal, from the disease's template for
+    the modality x body site: the template's normal impression is a normal read,
+    any other impression an abnormal one, ``None`` (unknown) when there is no
+    template or no impression. The CIF carries no abnormal flag, only the text
+    (Issue #3391)."""
+    texts = {x.strip() for x in impressions if x and x.strip()}
+    if not texts:
+        return None
+    try:
+        site = _body_site_key_from_snomed(body_site_snomed)
+    except ValueError:
+        return None
+    template_site = (load_body_sites().get(site) or {}).get("report_template_site") or site
+    disease_templates = load_impression_templates().get(disease_id, {})
+    bucket = disease_templates.get(f"{modality}_{site}") or disease_templates.get(f"{modality}_{template_site}")
+    if not bucket or "normal" not in bucket:
+        return None
+    normal = bucket["normal"]["impression"]
+    return not (texts & {normal["en"].strip(), normal["ja"].strip()})
+
+
 def _with_side(text: str, laterality: str, lang: str) -> str:
     """``text`` with its ``{side}`` the study's side in ``lang`` (English when
     the language has no term); a text without ``{side}`` is unchanged."""
