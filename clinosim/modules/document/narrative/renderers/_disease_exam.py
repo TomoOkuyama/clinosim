@@ -237,6 +237,30 @@ def _gestational_age_days(ctx: NarrativeContext) -> int | None:
     return None
 
 
+def _after_delivery(ctx: NarrativeContext) -> bool:
+    """Whether the note was written after the birth (Issue #3403): the
+    stay's delivery procedure has ended by the note's authored time. A note
+    with no authored time is the day's record of a stay whose admission is the
+    birth, so it is after the birth; a stay with no delivery procedure keeps
+    the antepartum exam."""
+    from clinosim.timeutil import parse_iso_datetime
+
+    enc_id = _o(ctx.encounter, "encounter_id", "") if ctx.encounter is not None else ""
+    ends = []
+    for proc in ctx.procedures or []:
+        if _o(proc, "procedure_type", "") != "delivery":
+            continue
+        if enc_id and _o(proc, "encounter_id", "") not in ("", enc_id):
+            continue
+        end = parse_iso_datetime(_o(proc, "end_datetime", None) or _o(proc, "start_datetime", None), lenient=True)
+        if end is not None:
+            ends.append(end)
+    if not ends:
+        return False
+    authored = ctx.authored_datetime
+    return authored is None or authored >= min(ends)
+
+
 def _delivery_exam(ctx: NarrativeContext, reading: Any | None) -> dict[str, str]:
     """The exam of a delivery admission (admission diagnosis O80 / O82):
     general appearance and the obstetric finding with the gestational age,
@@ -255,6 +279,13 @@ def _delivery_exam(ctx: NarrativeContext, reading: Any | None) -> dict[str, str]
     exam = rule.modes[mode]
     level = str(_o(reading, "consciousness_level", "") or "") if reading is not None else ""
     alertness = localized(data.consciousness.get(level, {}), lang)
+    if _after_delivery(ctx):
+        return {
+            "general": t("list_sep.serial", lang).join(
+                x for x in (alertness, localized(exam.general_postpartum, lang)) if x
+            ),
+            "obstetric": localized(exam.obstetric_postpartum, lang),
+        }
     days = _gestational_age_days(ctx)
     if days is not None and days > 0:
         obstetric = localized(exam.obstetric, lang).format(weeks=days // 7, days=days % 7)

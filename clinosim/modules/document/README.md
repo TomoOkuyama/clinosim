@@ -184,7 +184,7 @@ clinosim/modules/document/
     document_type_specs.yaml         per-document-type registry
     section_catalog.yaml             Composition section slug catalog (narrative/registry.py, composition.py)
     physical_exam_findings.yaml      per-disease PE findings (baseline + newborn set + override)
-    disease_exam.yaml                admission exam per disease in English and Japanese (the findings of the systems the disease affects), the consciousness clause by AVPU, the atrial-fibrillation rhythm rule the acute-stroke deficit / NIHSS bands and the obstetric exam of a delivery admission by mode of delivery (load_disease_exam)
+    disease_exam.yaml                admission exam per disease in English and Japanese (the findings of the systems the disease affects), the consciousness clause by AVPU, the atrial-fibrillation rhythm rule the acute-stroke deficit / NIHSS bands and the obstetric exam of a delivery admission by mode of delivery, antepartum before the delivery procedure ends and postpartum after (Issue #3403) (load_disease_exam)
     ed_note_admitted.yaml            ED note of a via-ED admission: adult arrival-vital limits and the exam terms that state a vital (day-0 exam clauses the arrival reading contradicts are left out), ambulance-arrival HPI phrases checked against the triage arrival mode (load_ed_note_admitted)
     hpi_pertinent_negatives.yaml     HPI pertinent negatives per disease: text and denied symptom terms per language (hpi_pertinent_negatives(disease_id, lang), English fallback); a negative that denies a chief-complaint symptom is skipped
     bedside_procedure_codes.yaml     bedside procedure codes (load_bedside_procedure_codes)
