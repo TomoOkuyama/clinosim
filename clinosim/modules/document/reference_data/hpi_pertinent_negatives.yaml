@@ -11,6 +11,12 @@
 #             When one of them is present (not itself negated) in the chief
 #             complaint or the onset text of the encounter, the negative would
 #             deny the patient's own complaint and is skipped (Issue #3228).
+#   contradicted_by: (optional) closed list of record rules (evaluated by
+#             ``narrative/_ros_contradictions.py``): the negative is dropped
+#             when one holds for the encounter -- ``head_imaging_abnormal``
+#             (a head CT/MRI whose impression is an abnormal read) and
+#             ``consciousness_impaired`` (arrival AVPU below Alert or GCS
+#             below 15) (Issue #3391).
 #             Entries without ``symptoms`` (e.g. "外傷の既往確認",
 #             "他部位外傷精査中") deny nothing the patient presents with and are
 #             never filtered. Matching ignores letter case.
@@ -217,8 +223,10 @@ ileus:
 hip_fracture:
   - text: {ja: "頭部打撲なし", en: "no head strike"}
     symptoms: {ja: ["頭部打撲", "頭部外傷", "頭を打"], en: ["head strike", "head injury"]}
+    contradicted_by: [head_imaging_abnormal, consciousness_impaired]
   - text: {ja: "意識消失なし", en: "no loss of consciousness"}
     symptoms: {ja: ["意識消失", "失神", "意識障害"], en: ["loss of consciousness", "syncope", "unresponsive"]}
+    contradicted_by: [head_imaging_abnormal, consciousness_impaired]
   - text: {ja: "胸痛なし", en: "no chest pain"}
     symptoms: {ja: ["胸痛", "胸部痛", "胸部圧迫", "前胸部"], en: ["chest pain", "chest pressure", "chest tightness"]}
 
@@ -233,28 +241,35 @@ vertebral_compression_fracture:
 wrist_fracture_surgical:
   - text: {ja: "頭部打撲なし", en: "no head strike"}
     symptoms: {ja: ["頭部打撲", "頭部外傷", "頭を打"], en: ["head strike", "head injury"]}
+    contradicted_by: [head_imaging_abnormal, consciousness_impaired]
   - text: {ja: "意識消失なし", en: "no loss of consciousness"}
     symptoms: {ja: ["意識消失", "失神", "意識障害"], en: ["loss of consciousness", "syncope", "unresponsive"]}
+    contradicted_by: [head_imaging_abnormal, consciousness_impaired]
   - text: {ja: "他部位骨折なし", en: "no other fractures"}
 
 crush_injury_hand:
   - text: {ja: "頭部外傷なし", en: "no head injury"}
     symptoms: {ja: ["頭部外傷", "頭部打撲", "頭を打"], en: ["head injury", "head strike"]}
+    contradicted_by: [head_imaging_abnormal, consciousness_impaired]
   - text: {ja: "他部位外傷なし", en: "no other injuries"}
   - text: {ja: "意識消失なし", en: "no loss of consciousness"}
     symptoms: {ja: ["意識消失", "失神", "意識障害"], en: ["loss of consciousness", "syncope", "unresponsive"]}
+    contradicted_by: [head_imaging_abnormal, consciousness_impaired]
 
 industrial_burn_severe:
   - text: {ja: "気道熱傷疑いなし", en: "no suspected inhalation injury"}
     symptoms: {ja: ["気道熱傷", "嗄声"], en: ["inhalation injury", "hoarse"]}
   - text: {ja: "頭部外傷なし", en: "no head injury"}
     symptoms: {ja: ["頭部外傷", "頭部打撲", "頭を打"], en: ["head injury", "head strike"]}
+    contradicted_by: [head_imaging_abnormal, consciousness_impaired]
   - text: {ja: "意識消失なし", en: "no loss of consciousness"}
     symptoms: {ja: ["意識消失", "失神", "意識障害"], en: ["loss of consciousness", "syncope", "unresponsive"]}
+    contradicted_by: [head_imaging_abnormal, consciousness_impaired]
 
 electrical_injury:
   - text: {ja: "意識消失なし", en: "no loss of consciousness"}
     symptoms: {ja: ["意識消失", "失神", "意識障害"], en: ["loss of consciousness", "syncope", "unresponsive"]}
+    contradicted_by: [head_imaging_abnormal, consciousness_impaired]
   - text: {ja: "痙攣なし", en: "no seizures"}
     symptoms: {ja: ["痙攣", "けいれん"], en: ["seizure", "convulsion"]}
   - text: {ja: "動悸なし", en: "no palpitations"}
@@ -264,14 +279,17 @@ traffic_accident_severe:
   - text: {ja: "他部位外傷精査中", en: "other injuries under evaluation"}
   - text: {ja: "意識消失なし", en: "no loss of consciousness"}
     symptoms: {ja: ["意識消失", "失神", "意識障害"], en: ["loss of consciousness", "syncope", "unresponsive"]}
+    contradicted_by: [head_imaging_abnormal, consciousness_impaired]
   - text: {ja: "胸腹部痛なし", en: "no chest or abdominal pain"}
     symptoms: {ja: ["胸痛", "胸部痛", "腹痛", "腹部痛", "胸腹部痛"], en: ["chest pain", "abdominal pain"]}
 
 fall_from_height:
   - text: {ja: "意識消失なし", en: "no loss of consciousness"}
     symptoms: {ja: ["意識消失", "失神", "意識障害"], en: ["loss of consciousness", "syncope", "unresponsive"]}
+    contradicted_by: [head_imaging_abnormal, consciousness_impaired]
   - text: {ja: "頭部打撲なし", en: "no head strike"}
     symptoms: {ja: ["頭部打撲", "頭部外傷", "頭を打"], en: ["head strike", "head injury"]}
+    contradicted_by: [head_imaging_abnormal, consciousness_impaired]
   - text: {ja: "胸背部痛精査中", en: "chest and back pain under evaluation"}
 
 influenza:

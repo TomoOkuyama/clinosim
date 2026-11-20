@@ -337,14 +337,29 @@ def _has_english(entry: dict[str, str]) -> dict[str, str]:
     return entry
 
 
+#: The record rules a negative can be ``contradicted_by`` (Issue #3391); the
+#: evaluators are ``narrative/_ros_contradictions.RULES`` (a unit test keeps
+#: the two in step).
+ROS_CONTRADICTION_RULES: frozenset[str] = frozenset({"head_imaging_abnormal", "consciousness_impaired"})
+
+
+def _known_rules(rules: list[str]) -> list[str]:
+    unknown = sorted(set(rules) - ROS_CONTRADICTION_RULES)
+    if unknown:
+        raise ValueError(f"unknown contradicted_by rule(s) {unknown}; known: {sorted(ROS_CONTRADICTION_RULES)}")
+    return rules
+
+
 class HpiPertinentNegative(BaseModel):
-    """One pertinent negative: its text per language and, per language, the
-    symptom terms it denies (Issue #3228)."""
+    """One pertinent negative: its text per language, per language the
+    symptom terms it denies (Issue #3228) and the record rules that
+    contradict it (Issue #3391)."""
 
     model_config = ConfigDict(extra="forbid")
 
     text: Annotated[dict[str, _Text], AfterValidator(_has_english)]
     symptoms: dict[str, list[_Text]] = Field(default_factory=dict)
+    contradicted_by: Annotated[list[str], AfterValidator(_known_rules)] = Field(default_factory=list)
 
 
 class HpiPertinentNegatives(RootModel[dict[str, list[HpiPertinentNegative]]]):
@@ -358,6 +373,7 @@ class PertinentNegative(NamedTuple):
 
     text: str
     symptoms: tuple[str, ...]
+    contradicted_by: tuple[str, ...] = ()
 
 
 @lru_cache(maxsize=1)
@@ -385,7 +401,7 @@ def hpi_pertinent_negatives(disease_id: str, lang: str) -> list[PertinentNegativ
     for entry in load_hpi_pertinent_negatives().get(disease_id) or []:
         text = (entry.text.get(code) or entry.text["en"]).strip()
         terms = entry.symptoms.get(code) or entry.symptoms.get("en") or []
-        out.append(PertinentNegative(text, tuple(t.strip() for t in terms)))
+        out.append(PertinentNegative(text, tuple(t.strip() for t in terms), tuple(entry.contradicted_by)))
     return out
 
 
