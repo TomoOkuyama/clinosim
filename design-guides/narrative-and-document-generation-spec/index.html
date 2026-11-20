@@ -2595,6 +2595,11 @@
 <td><code>tests/unit/modules/document/narrative/test_chief_complaint_variant_compat_3275.py</code></td>
 </tr>
 <tr>
+<td>An encounter has one chief complaint in every document (Issue #3390): the chief-complaint section, the HPI, the assessment, the discharge-summary header, the ED triage / assessment / disposition lines, the nursing admission lines and the outpatient reason all read it through <code>encounter_chief_complaint</code> (the encounter's recorded complaint, shown as its variant when it is a disease default), never from the <code>chief_complaint</code> slots directly. The ROS pertinent-negative filter treats a symptom of either the displayed or the recorded complaint as present, so no negative denies it.</td>
+<td><code>clinosim/modules/document/narrative/renderers/section_builders/chief_complaint.py::encounter_chief_complaint</code>, <code>chief_complaint_texts</code>; <code>section_builders/hpi.py::_ros_line</code></td>
+<td><code>tests/unit/modules/document/narrative/test_one_chief_complaint_per_encounter_3390.py</code></td>
+</tr>
+<tr>
 <td>The day-0 progress note is authored after the H&amp;P of the same day (<code>authored_after_admission_hours</code> of the <code>progress_note</code> spec; later days keep the admission time of day), and a delivery stay, a mixed-diagnosis admission and an admission without a diagnosis have an exam too (Issue #3245): the obstetric exam of the mode of delivery the admission diagnosis gives (O80 / O82) with the gestational age from the pregnancy period's LMP; the exam of the principal disease of a mixed condition event (<code>principal_disease_id</code>); the general appearance alone, with no system declared normal, when there is no diagnosis.</td>
 <td><code>engine.py::_plan_daily</code>, <code>renderers/_disease_exam.py::_delivery_exam</code> / <code>admission_general_exam</code>, <code>narrative/passes.py::_principal_disease_id</code>, <code>reference_data/disease_exam.yaml</code></td>
 <td><code>tests/unit/modules/document/narrative/test_admission_hp_complete_3245.py</code></td>

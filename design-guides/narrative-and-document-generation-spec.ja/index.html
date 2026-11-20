@@ -2595,6 +2595,11 @@
 <td><code>tests/unit/modules/document/narrative/test_chief_complaint_variant_compat_3275.py</code></td>
 </tr>
 <tr>
+<td>1 受診の主訴は全文書で 1 つ (Issue #3390): 主訴欄・HPI・評価・退院時要約の見出し・ED のトリアージ/評価/転帰の行・看護の入院時記載・外来の受診理由は、すべて <code>encounter_chief_complaint</code> (受診に記録された主訴。疾患の既定の主訴なら表示用の言い換え) で読み、<code>chief_complaint</code> の各スロットを直接読まない。ROS の陰性所見の除外は、表示した主訴と記録された主訴のどちらの症状も「ある」とみなし、その症状を否定しない。</td>
+<td><code>clinosim/modules/document/narrative/renderers/section_builders/chief_complaint.py::encounter_chief_complaint</code>, <code>chief_complaint_texts</code>; <code>section_builders/hpi.py::_ros_line</code></td>
+<td><code>tests/unit/modules/document/narrative/test_one_chief_complaint_per_encounter_3390.py</code></td>
+</tr>
+<tr>
 <td>入院日 0 日目の経過記録は同日の H&amp;P より後に記載する (<code>progress_note</code> の <code>authored_after_admission_hours</code>。2 日目以降は従来どおり入院時刻)。分娩入院・複数診断の入院・診断のない入院にも身体所見を書く (Issue #3245): 入院診断 (O80 / O82) の分娩様式の産科所見に、妊娠期間の LMP から求めた在胎週数を添える。複数診断 (<code>mixed</code>) の入院は主診断 (<code>principal_disease_id</code>) の所見。診断のない入院は一般状態のみで、所見のない系統を正常と書かない。</td>
 <td><code>engine.py::_plan_daily</code>, <code>renderers/_disease_exam.py::_delivery_exam</code> / <code>admission_general_exam</code>, <code>narrative/passes.py::_principal_disease_id</code>, <code>reference_data/disease_exam.yaml</code></td>
 <td><code>tests/unit/modules/document/narrative/test_admission_hp_complete_3245.py</code></td>
