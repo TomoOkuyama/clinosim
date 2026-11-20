@@ -33,6 +33,14 @@ comments. This module scopes to the former.
     department=...)`: the nurses of the encounter's ward, else of its
     department, else every nurse (Issue #2700); caller owns the RNG
     seeding.
+  - `shift_note_author` — the nurse on duty for one nursing shift note
+    (Issue #3408): the primary nurse takes the day shift on
+    `day_shift_primary_share` of the days, every other shift goes to
+    another nurse of the ward who has not worked that calendar day,
+    chosen by a SHA-256 of encounter id, date and shift (no RNG draw).
+    Parameters live in `reference_data/nursing_shift_rotation.yaml`
+    (`load_nursing_shift_rotation`). The admission assessment, care plan
+    and discharge summary stay with the primary nurse.
   - `load_nursing_assessment` — reference-data loader for
     `nursing_assessment.yaml`, validated against the
     `NursingAssessment` Pydantic model.

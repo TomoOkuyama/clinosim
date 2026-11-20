@@ -91,6 +91,75 @@ def load_nursing_assessment() -> dict[str, Any]:
     return load_validated_yaml(_REF_DIR / "nursing_assessment.yaml", NursingAssessment)
 
 
+class NursingShiftRotation(BaseModel):
+    """Shape of nursing_shift_rotation.yaml (Issue #3408)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    day_shift_primary_share: float
+    primary_nurse_shift: str
+
+    @field_validator("day_shift_primary_share")
+    @classmethod
+    def _share_is_a_fraction(cls, value: float) -> float:
+        if not 0.0 <= value <= 1.0:
+            raise ValueError("day_shift_primary_share must be within [0, 1]")
+        return value
+
+
+@lru_cache(maxsize=1)
+def load_nursing_shift_rotation() -> NursingShiftRotation:
+    """Load nursing_shift_rotation.yaml + validate (cached)."""
+    return NursingShiftRotation(**load_validated_yaml(_REF_DIR / "nursing_shift_rotation.yaml", NursingShiftRotation))
+
+
+def shift_note_author(
+    roster: StaffRoster | None,
+    encounter: Any,
+    shift_date: str,
+    shift_key: str,
+    nurses_on_duty_today: set[str],
+) -> str:
+    """Nurse who writes the ``shift_key`` shift note of ``shift_date`` (Issue #3408).
+
+    The primary nurse takes the rotation's ``primary_nurse_shift`` on a
+    ``day_shift_primary_share`` fraction of days; every other shift goes to
+    another nurse of the encounter's ward who has not already worked that
+    calendar day (``nurses_on_duty_today``, updated here). Deterministic from
+    a SHA-256 of encounter id, date and shift; draws nothing from any RNG
+    stream.
+
+    Returns:
+        staff_id, or "" when there is no roster / ward nurse (the caller then
+        keeps the primary nurse as author).
+    """
+    if roster is None:
+        return ""
+    from clinosim.modules.staff.engine import scoped_nurses
+
+    rotation = load_nursing_shift_rotation()
+    primary = str(_o(encounter, "primary_nurse_id", "") or "")
+    enc_id = str(_o(encounter, "encounter_id", "") or "")
+    pool = sorted(
+        n.staff_id
+        for n in scoped_nurses(
+            roster,
+            ward=str(_o(encounter, "ward_id", "") or ""),
+            department=str(_o(encounter, "department_id", "") or ""),
+        )
+    )
+    if primary and shift_key == rotation.primary_nurse_shift:
+        if determinism.sha_bernoulli(f"{enc_id}:{shift_date}:{shift_key}:primary", rotation.day_shift_primary_share):
+            nurses_on_duty_today.add(primary)
+            return primary
+    candidates = [n for n in pool if n != primary and n not in nurses_on_duty_today]
+    if not candidates:
+        return primary
+    chosen = candidates[determinism.sha_index(f"{enc_id}:{shift_date}:{shift_key}", len(candidates))]
+    nurses_on_duty_today.add(chosen)
+    return chosen
+
+
 def assign_primary_nurse(encounter: Any, roster: StaffRoster | None, rng: np.random.Generator) -> str:
     """Pick a primary nurse uniformly from the encounter's ward (Issue #2700).
 

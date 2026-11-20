@@ -297,6 +297,7 @@ class _EncounterFacts:
     discharge_dt: datetime | None
     los_days: int
     config: Any
+    roster: Any = None  # StaffRoster | None; the shift-note author rotation (Issue #3408)
 
     @property
     def is_in_progress(self) -> bool:
@@ -393,9 +394,12 @@ def _plan_daily_3shift(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
     # caps the shift end.
     if f.los_days <= 1:
         return []
+    from clinosim.modules.nursing.engine import shift_note_author
+
     plans = []
     for day in range(f.los_days):
         day_date = (f.admission_dt + timedelta(days=day)).date()
+        on_duty_today: set[str] = set()  # a nurse works one shift a calendar day
         for shift_key, shift_hour in SHIFT_SCHEDULE:
             shift_dt = datetime.combine(day_date, time(hour=shift_hour))
             # Issue #820 (N-6): no shift record before the patient arrived.
@@ -412,6 +416,10 @@ def _plan_daily_3shift(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
                     shift_dt.isoformat(),
                     authored.isoformat(),
                     id_suffix=f"-{shift_key}",
+                    # Issue #3408: the nurse on duty, not the primary nurse for
+                    # every shift; "" (no roster) keeps the default author.
+                    author=shift_note_author(f.roster, f.encounter, day_date.isoformat(), shift_key, on_duty_today)
+                    or None,
                     shift=shift_key,
                 )
             )
@@ -806,6 +814,7 @@ def document_enricher(ctx: Any) -> None:
                 discharge_dt=discharge_dt,
                 los_days=los_days,
                 config=ctx.config,
+                roster=_o(ctx, "roster", None),
             )
             for spec in applicable_specs:
                 planner = _PLANNERS.get(spec.generation_frequency)
