@@ -2574,6 +2574,16 @@
 <td><code>clinosim/modules/document/narrative/renderers/section_builders/chief_complaint.py::_compatible_pool</code></td>
 <td><code>tests/unit/modules/document/narrative/test_chief_complaint_variant_compat_3275.py</code></td>
 </tr>
+<tr>
+<td>入院日 0 日目の経過記録は同日の H&amp;P より後に記載する (<code>progress_note</code> の <code>authored_after_admission_hours</code>。2 日目以降は従来どおり入院時刻)。分娩入院・複数診断の入院・診断のない入院にも身体所見を書く (Issue #3245): 入院診断 (O80 / O82) の分娩様式の産科所見に、妊娠期間の LMP から求めた在胎週数を添える。複数診断 (<code>mixed</code>) の入院は主診断 (<code>principal_disease_id</code>) の所見。診断のない入院は一般状態のみで、所見のない系統を正常と書かない。</td>
+<td><code>engine.py::_plan_daily</code>, <code>renderers/_disease_exam.py::_delivery_exam</code> / <code>admission_general_exam</code>, <code>narrative/passes.py::_principal_disease_id</code>, <code>reference_data/disease_exam.yaml</code></td>
+<td><code>tests/unit/modules/document/narrative/test_admission_hp_complete_3245.py</code></td>
+</tr>
+<tr>
+<td>新生児の H&amp;P の出生歴は、記録にある出生データ — 在胎週数と分娩様式 (<code>extensions["newborn"]["birth"]</code>。母親の分娩から <code>simulator/perinatal.py::_birth_data</code> が書く)、新生児プロフィールの出生体重・身長、母親の年齢と慢性疾患 — を書き、なければ「出生時データの記録なし」とする。新生児スクリーニングの結果・測定・予防投与は、記録された後に書かれる経過記録と退院時サマリーが引用し、H&amp;P は引用しない。入院時の方針には、入院時オーダーセット (初期・ケア) の検査・画像と支持療法・モニタリング (治療・処置) を記録の言語で書く。</td>
+<td><code>renderers/section_builders/patient_history.py::_neonatal_social_history</code>, <code>renderers/_composers.py::newborn_screening_to_date</code>, <code>renderers/section_builders/assessment_and_plan.py::admission_order_items</code></td>
+<td><code>tests/unit/modules/document/narrative/test_admission_hp_complete_3245.py</code></td>
+</tr>
 </tbody>
 </table>
 <h2 id="4-本書の対象外">4. 本書の対象外<a class="headerlink" href="#4-本書の対象外" title="Permanent link">&para;</a></h2>

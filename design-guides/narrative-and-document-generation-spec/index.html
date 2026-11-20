@@ -2574,6 +2574,16 @@
 <td><code>clinosim/modules/document/narrative/renderers/section_builders/chief_complaint.py::_compatible_pool</code></td>
 <td><code>tests/unit/modules/document/narrative/test_chief_complaint_variant_compat_3275.py</code></td>
 </tr>
+<tr>
+<td>The day-0 progress note is authored after the H&amp;P of the same day (<code>authored_after_admission_hours</code> of the <code>progress_note</code> spec; later days keep the admission time of day), and a delivery stay, a mixed-diagnosis admission and an admission without a diagnosis have an exam too (Issue #3245): the obstetric exam of the mode of delivery the admission diagnosis gives (O80 / O82) with the gestational age from the pregnancy period's LMP; the exam of the principal disease of a mixed condition event (<code>principal_disease_id</code>); the general appearance alone, with no system declared normal, when there is no diagnosis.</td>
+<td><code>engine.py::_plan_daily</code>, <code>renderers/_disease_exam.py::_delivery_exam</code> / <code>admission_general_exam</code>, <code>narrative/passes.py::_principal_disease_id</code>, <code>reference_data/disease_exam.yaml</code></td>
+<td><code>tests/unit/modules/document/narrative/test_admission_hp_complete_3245.py</code></td>
+</tr>
+<tr>
+<td>The newborn H&amp;P's birth history holds the birth data the record has — gestational age and mode of delivery (<code>extensions["newborn"]["birth"]</code>, written from the mother's delivery by <code>simulator/perinatal.py::_birth_data</code>), the newborn profile's birth weight and length, the mother's age and chronic conditions — and says "birth data not recorded" when there is none; the newborn screening results, measurements and prophylaxis are cited by the progress notes and the discharge summary written after they were recorded, never by the H&amp;P. The admission plan lists the work-up and the supportive care / monitoring of the admission's initial and care order sets (labs, imaging, therapies, procedures), in the note language.</td>
+<td><code>renderers/section_builders/patient_history.py::_neonatal_social_history</code>, <code>renderers/_composers.py::newborn_screening_to_date</code>, <code>renderers/section_builders/assessment_and_plan.py::admission_order_items</code></td>
+<td><code>tests/unit/modules/document/narrative/test_admission_hp_complete_3245.py</code></td>
+</tr>
 </tbody>
 </table>
 <h2 id="4-not-in-scope-here">4. Not in scope here<a class="headerlink" href="#4-not-in-scope-here" title="Permanent link">&para;</a></h2>
