@@ -14,7 +14,7 @@ from typing import Any
 from clinosim.modules._shared import get_attr_or_key
 from clinosim.timeutil import parse_iso_datetime
 
-__all__ = ["in_force_at", "recorded_by"]
+__all__ = ["in_force_at", "recorded_by", "results_after", "results_known_at"]
 
 
 def in_force_at(records: list[Any], as_of: datetime | None, key: str = "date") -> Any | None:
@@ -53,3 +53,32 @@ def recorded_by(records: list[Any], as_of: datetime | None, key: str = "timestam
         if at is None or at <= as_of:
             kept.append(row)
     return kept
+
+
+def _naive(when: datetime | None) -> datetime | None:
+    return when.replace(tzinfo=None) if when is not None else None
+
+
+def _result_at(row: Any) -> datetime | None:
+    return _naive(parse_iso_datetime(get_attr_or_key(row, "result_datetime", None), lenient=True))
+
+
+def results_known_at(labs: list[Any], as_of: datetime | None) -> list[Any]:
+    """The lab results reported at or before ``as_of`` (Issue #3396): a test
+    drawn at the visit is resulted some hours later, so a note authored at the
+    visit cannot quote it. A result without a parseable time is kept; ``as_of``
+    None (no authored time): every result."""
+    rows = list(labs or [])
+    cutoff = _naive(as_of)
+    if cutoff is None:
+        return rows
+    return [r for r in rows if (at := _result_at(r)) is None or at <= cutoff]
+
+
+def results_after(labs: list[Any], as_of: datetime | None) -> list[Any]:
+    """The lab results reported after ``as_of``: the complement of
+    :func:`results_known_at` (what the note can only word as pending)."""
+    cutoff = _naive(as_of)
+    if cutoff is None:
+        return []
+    return [r for r in list(labs or []) if (at := _result_at(r)) is not None and at > cutoff]

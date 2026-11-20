@@ -8,7 +8,10 @@ screening scores. The helpers here read them:
   analyte, from the labs of the patient's earlier encounters
   (``NarrativeContext.prior_lab_results``) and the note's own;
 - :func:`ckd_g_stage`: the CKD G category of an eGFR;
-- :func:`screening_scores`: the screening scores of the visit's labs.
+- :func:`screening_scores`: the screening scores of the visit's labs;
+- :func:`known_labs` / :func:`pending_lab_names`: the visit's results reported
+  by the note's authored time, and the tests drawn that day and not yet
+  resulted (Issue #3396).
 """
 
 from __future__ import annotations
@@ -42,6 +45,7 @@ class OutpatientResults(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
     prior_lab_analytes: list[str] = Field(min_length=1)
     hold_followup_days: int = Field(gt=0)
+    pending_lab_limit: int = Field(gt=0)
     screening_scores: dict[str, _Score]
 
     @model_validator(mode="after")
@@ -56,6 +60,65 @@ class OutpatientResults(BaseModel):
 def outpatient_results() -> OutpatientResults:
     """The validated ``outpatient_results.yaml`` (shared, read-only)."""
     return OutpatientResults.model_validate(load_data_yaml(_REF_FILE))
+
+
+def _authored(ctx: Any) -> datetime | None:
+    when = getattr(ctx, "authored_datetime", None)
+    return when.replace(tzinfo=None) if isinstance(when, datetime) else None
+
+
+def known_labs(ctx: Any) -> list[Any]:
+    """The visit's lab results reported at or before the note's authored time
+    (Issue #3396); every result when the note has no authored time."""
+    from clinosim.modules.document.narrative._as_of import results_known_at
+
+    return results_known_at(list(getattr(ctx, "lab_results", None) or []), _authored(ctx))
+
+
+def pending_lab_names(ctx: Any) -> list[str]:
+    """Display names (note language) of the tests of this visit that were drawn
+    but are reported after the note's authored time and have no result known by
+    then, in order of first appearance and without repeats. A result of another
+    encounter is not this visit's."""
+    from clinosim.locale.loaders.narrative import lab_display
+    from clinosim.modules.document.narrative._as_of import results_after
+
+    enc = getattr(ctx, "encounter", None)
+    enc_id = str(_o(enc, "encounter_id", "") or "") if enc is not None else ""
+    lang = ctx.target_lang
+    known = {lab_display(str(_o(r, "lab_name", "") or ""), lang) for r in known_labs(ctx)}
+    names: list[str] = []
+    for lab in results_after(list(getattr(ctx, "lab_results", None) or []), _authored(ctx)):
+        lab_enc = str(_o(lab, "encounter_id", "") or "")
+        raw = str(_o(lab, "lab_name", "") or "")
+        if not raw or (lab_enc and enc_id and lab_enc != enc_id):
+            continue
+        name = lab_display(raw, lang)
+        if name not in known and name not in names:
+            names.append(name)
+    return names
+
+
+def stage_from_pending_lab(ctx: Any, code: str, stored: str) -> bool:
+    """Whether the stage stored on a problem (``stored``) was restated from a
+    result the note cannot know yet (Issue #3396): the CKD G category of an
+    N18 problem or the HbA1c of a diabetes problem, restated by
+    ``longitudinal.stage_refresh`` from the latest result of the record, which
+    includes the labs of this visit reported after the note was authored."""
+    from clinosim.modules.document.narrative._as_of import results_after
+    from clinosim.modules.longitudinal.stage_refresh import stage_from_labs_rules
+    from clinosim.modules.observation.engine import canonical_lab_name
+
+    rules = stage_from_labs_rules()
+    code_u = str(code).upper()
+    if code_u.startswith(rules.ckd.icd_base):
+        lab = rules.ckd.lab
+    elif stored.startswith(rules.hba1c.prefix):
+        lab = rules.hba1c.lab
+    else:
+        return False
+    late = results_after(list(getattr(ctx, "lab_results", None) or []), _authored(ctx))
+    return any(canonical_lab_name(str(_o(r, "lab_name", "") or "")).lower() == lab.lower() for r in late)
 
 
 def ckd_g_stage(egfr: float) -> str:

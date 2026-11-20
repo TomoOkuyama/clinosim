@@ -60,8 +60,12 @@ from clinosim.modules.document.narrative._narrative_interpretation_thresholds im
 from clinosim.modules.document.narrative._narrative_utils import _age_at
 from clinosim.modules.document.narrative._outpatient_results import (
     ckd_g_stage,
+    known_labs,
+    outpatient_results,
+    pending_lab_names,
     prior_lab_values,
     screening_scores,
+    stage_from_pending_lab,
 )
 from clinosim.modules.document.narrative._prescription_line import prescription_bits
 from clinosim.modules.document.narrative._template_helpers import (
@@ -397,8 +401,10 @@ def build_outpatient_objective(generator: TemplateNarrativeGenerator, ctx: Narra
     reason_lines = kind_lines(ctx, kind, "objective", values)
     # Issue #3231: the flagged lab results and screening scores of the visit.
     results = _result_objective(ctx)
-    if results:
+    if _result_objective(ctx, with_pending=False):
         facts.append("ctx.lab_results.today")
+    if _pending_labs_text(ctx):
+        facts.append("ctx.lab_results.pending")
     if reason_lines:
         # Issue #3249 / #3252: the visit reason's findings (growth, wound,
         # pre-treatment labs, screening results).
@@ -715,7 +721,7 @@ def _chronic_assessment(ctx: NarrativeContext, skip_code: str = "") -> _ChronicA
     # Continue into the loop with an empty condition list; the
     # vital-abnormal pass at the end still fires.
     vitals = list(ctx.vitals or [])
-    labs = list(ctx.lab_results or [])
+    labs = known_labs(ctx)
     v0 = vitals[0] if vitals else None
     sbp = _o(v0, "systolic_bp", None) if v0 else None
     dbp = _o(v0, "diastolic_bp", None) if v0 else None
@@ -1044,6 +1050,10 @@ def _chronic_assessment(ctx: NarrativeContext, skip_code: str = "") -> _ChronicA
             # entry with no acute change. Neither phrase re-quotes
             # the vitals and neither defers the judgement.
             condition_stage = str(_o(c, "stage", "") or "").strip()
+            # Issue #3396: a stage restated from a result reported after the
+            # note was authored is not known to it.
+            if condition_stage and stage_from_pending_lab(ctx, str(code), condition_stage):
+                condition_stage = ""
             # Issue #3259 / #3273: a diabetic complication's stored stage is an
             # HbA1c, the diabetes' own staging, not the complication's: omitted.
             if (
@@ -1100,7 +1110,7 @@ def _result_lab_entries(ctx: NarrativeContext, *, uncited_only: bool) -> list[st
     from clinosim.modules.document.narrative._narrative_interpretation_thresholds import notable_lab_rules
     from clinosim.modules.document.narrative._notable_labs import notable_lab_entries
 
-    labs = list(ctx.lab_results or [])
+    labs = known_labs(ctx)
     if uncited_only:
         cited = _chronic_assessment(ctx).cited
         labs = [lab for lab in labs if str(_o(lab, "lab_name", "") or "").lower() not in cited]
@@ -1127,7 +1137,7 @@ def _visit_result_findings(ctx: NarrativeContext) -> list[tuple[str, str]]:
                 t("outpatient_results.plan_abnormal_labs", lang),
             )
         )
-    scores = screening_scores(list(ctx.lab_results or []))
+    scores = screening_scores(known_labs(ctx))
     if scores:
         text = t("list_sep.serial", lang).join(_score_text(n, v, f is not None, lang) for n, v, f in scores)
         follow_ups = [t(f"outpatient_results.follow_up_{f}", lang) for _n, _v, f in scores if f]
@@ -1135,7 +1145,7 @@ def _visit_result_findings(ctx: NarrativeContext) -> list[tuple[str, str]]:
     return out
 
 
-def _result_objective(ctx: NarrativeContext) -> str:
+def _result_objective(ctx: NarrativeContext, *, with_pending: bool = True) -> str:
     """The Objective sentence(s) of the visit's flagged lab results and
     screening scores (Issue #3231); empty when it has none."""
     lang = ctx.target_lang
@@ -1143,11 +1153,26 @@ def _result_objective(ctx: NarrativeContext) -> str:
     entries = _result_lab_entries(ctx, uncited_only=False)
     if entries:
         parts.append(t("outpatient_results.objective_labs", lang, list=t("list_sep.semicolon", lang).join(entries)))
-    scores = screening_scores(list(ctx.lab_results or []))
+    scores = screening_scores(known_labs(ctx))
     if scores:
         text = t("list_sep.serial", lang).join(_score_text(n, v, f is not None, lang) for n, v, f in scores)
         parts.append(t("outpatient_results.objective_scores", lang, list=text))
+    pending = _pending_labs_text(ctx) if with_pending else ""
+    if pending:
+        parts.append(t("outpatient_results.objective_pending", lang, list=pending))
     return join_sentences(parts, lang) if parts else ""
+
+
+def _pending_labs_text(ctx: NarrativeContext) -> str:
+    """The tests drawn at the visit whose results are reported after the note
+    was authored, worded as pending (Issue #3396); empty when none."""
+    lang = ctx.target_lang
+    names = pending_lab_names(ctx)
+    limit = outpatient_results().pending_lab_limit
+    shown = [*names[:limit]]
+    if len(names) > limit:
+        shown.append(t("outpatient_results.pending_more", lang, count=len(names) - limit))
+    return t("list_sep.serial", lang).join(shown)
 
 
 def _visit_vital_findings(ctx: NarrativeContext) -> list[tuple[str, str]]:

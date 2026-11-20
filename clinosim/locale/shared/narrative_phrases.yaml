@@ -1363,6 +1363,12 @@ outpatient_results:
   screening_scores:
     ja: "スクリーニングスコア: {list}。"
     en: "Screening scores: {list}."
+  objective_pending:
+    ja: "本日採血: {list} (結果待ち)。"
+    en: "Drawn today, results pending: {list}."
+  pending_more:
+    ja: "ほか {count} 項目"
+    en: "+{count} more"
   objective_scores:
     ja: "スクリーニングスコア: {list}。"
     en: "Screening scores: {list}."
