@@ -115,6 +115,10 @@ order_protocols:
     labs:       [{test: CRP, urgency: stat}, …]
     imaging:    [{test: Chest_Xray_PA_Lateral, urgency: stat}]
     supportive: [{type: IV_fluid, detail: "NS 80-125 mL/h"}, …]
+                # one supportive `detail` is one concrete instruction. Write no
+                # "A or B" alternative: the order engine keeps only A, and only
+                # for "<drug A> or <drug B> <dose>" (B one name + the dose) does
+                # the dose carry over to A (Issue #3427); pick one measure instead.
   daily_monitoring:
     labs:   [{test: CRP, frequency: daily}, …]
     vitals: {stable: q4h, unstable: q1h}

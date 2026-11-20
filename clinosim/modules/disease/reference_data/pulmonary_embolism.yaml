@@ -162,7 +162,7 @@ order_protocols:
          note: "Assess RV function, especially if submassive/massive"}
       - {test: "Lower_extremity_venous_ultrasound", urgency: "within_24h", probability: 0.50}
     supportive:
-      - {type: "O2", detail: "Nasal cannula or mask, SpO2 >= 94%"}
+      - {type: "O2", detail: "Nasal cannula, SpO2 >= 94%"}
       - {type: "IV_fluid", detail: "NS 80 mL/h (cautious — RV may not tolerate volume)"}
       - {type: "telemetry", detail: "Continuous cardiac monitoring"}
       - {type: "DVT_prophylaxis", detail: "therapeutic_anticoagulation (replaces prophylactic)"}

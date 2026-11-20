@@ -139,7 +139,7 @@ procedures:
   "DVT_prophylaxis: Sequential compression devices initially": {ja: "DVT予防: 当初は間欠的空気圧迫装置"}
   "DVT_prophylaxis: therapeutic_anticoagulation (replaces prophylactic)": {ja: "DVT予防: 治療的抗凝固療法 (予防投与に代えて)"}
   "HOB_elevation: Head of bed elevated 30-45 degrees": {ja: "頭部挙上: ベッドアップ 30-45 度"}
-  "HOB_elevation: Head of bed flat 30 degrees per protocol": {ja: "頭部挙上: プロトコルに従いベッドアップ 30 度"}
+  "HOB_elevation: Head of bed 30 degrees per protocol": {ja: "頭部挙上: プロトコルに従いベッドアップ 30 度"}
   "IV_access: Two large-bore peripheral IVs": {ja: "静脈路確保: 太径の末梢静脈路を 2 本"}
   "IV_fluid: Parkland formula: LR 4mL × kg × %TBSA over 24h": {ja: "輸液: Parkland 式: 乳酸リンゲル液 4 mL × 体重 (kg) × 熱傷面積 (%TBSA) を 24 時間かけて投与"}
   "IV_fluid_restriction: Restrict to 1000 mL/day": {ja: "水分制限 1,000 mL/日"}
@@ -150,7 +150,7 @@ procedures:
   "NPO: NPO until swallowing assessment completed": {ja: "絶飲食: 嚥下評価の完了まで"}
   "O2: Controlled O2 target SpO2 88-92% (avoid hyperoxia in CO2 retainers)": {ja: "酸素投与: 調節酸素投与 目標 SpO2 88-92% (CO2 貯留患者では高酸素を避ける)"}
   "O2: Nasal cannula SpO2 >= 94%": {ja: "酸素投与: 鼻カニューラ SpO2 >= 94%"}
-  "O2: Nasal cannula 2 >= 94%": {ja: "酸素投与: 鼻カニューラ SpO2 >= 94%"}
+  "O2: Nasal cannula, SpO2 >= 94%": {ja: "酸素投与: 鼻カニューラ SpO2 >= 94%"}
   "O2: PRN SpO2 < 94%": {ja: "酸素投与: SpO2 < 94% で頓用"}
   "O2: Target SpO2 >= 94%": {ja: "酸素投与: 目標 SpO2 >= 94%"}
   "antibiotic_prophylaxis: Cefazolin 2g IV (preoperative)": {ja: "予防的抗菌薬: セファゾリン 2g 静注 (術前)"}
@@ -185,7 +185,7 @@ procedures:
   "leg_elevation: Elevate affected limb above heart level": {ja: "下肢挙上: 患肢を心臓より高く"}
   "limb_elevation: Elevate affected limb above heart level": {ja: "患肢挙上 (心臓より高く)"}
   "massive_transfusion_protocol: Activate if hemorrhagic shock": {ja: "大量輸血プロトコル: 出血性ショックの場合に発動"}
-  "monitoring: 1:1 15min checks until suicide risk reassessed": {ja: "モニタリング: 自殺リスクを再評価するまで 1 対 1 で 15 分毎に確認"}
+  "monitoring: q15min checks until suicide risk reassessed": {ja: "モニタリング: 自殺リスクを再評価するまで 15 分毎に確認"}
   "monitoring: Agitation scale each shift; seclusion / restraint only per protocol": {ja: "モニタリング: 勤務帯ごとに興奮の評価尺度を記録、隔離・身体拘束はプロトコルに従う場合のみ"}
   "monitoring: Continuous cardiac monitoring": {ja: "モニタリング: 持続心電図モニタリング"}
   "nebulizer: Ipratropium 0.5mg NEB q20min x3": {ja: "ネブライザー: イプラトロピウム 0.5mg 吸入 20分毎 x3 回"}
@@ -194,7 +194,7 @@ procedures:
   "neuro_monitoring: GCS q1h, pupil checks q1h": {ja: "神経学的モニタリング: GCS 1時間毎、瞳孔所見 1時間毎"}
   "nutritional_support: Early enteral feeding": {ja: "栄養サポート: 早期経腸栄養"}
   "oral_care: Chlorhexidine oral care q6h": {ja: "口腔ケア: クロルヘキシジンによる口腔ケア 6時間毎"}
-  "safety_observation: Observation level per risk of harm to self": {ja: "安全確保のための観察: 自傷リスクに応じた観察レベル"}
+  "safety_observation: Observation level per risk of harm to self/others": {ja: "安全確保のための観察: 自傷・他害のリスクに応じた観察レベル"}
   "seizure_prophylaxis: Levetiracetam 500mg IV q12h x7 days": {ja: "痙攣予防: レベチラセタム 500mg 静注 12時間毎 x7 日間"}
   "seizure_prophylaxis: Not routine; only if seizure occurs": {ja: "痙攣予防: 通常は行わず、痙攣が起きた場合のみ"}
   "splint: Sugar-tong splint pending surgery": {ja: "術前シュガートングシーネ固定"}
@@ -219,13 +219,13 @@ procedures:
 # (Issue #2408), so a whole "type: detail" order string whose English would
 # otherwise be substituted word by word has its phrase here.
 medication_orders:
-  "DVT_prophylaxis: Enoxaparin SC 1": {ja: "DVT予防: エノキサパリン 皮下注 (術後 1 日目から)"}
+  "DVT_prophylaxis: Enoxaparin SC starting post-op day 1": {ja: "DVT予防: エノキサパリン 皮下注 (術後 1 日目から)"}
   "DVT_prophylaxis: Enoxaparin when bleeding risk resolved": {ja: "DVT予防: 出血リスクが解消したらエノキサパリン"}
   "DVT_prophylaxis: Enoxaparin 2000IU SC daily (contralateral limb)": {ja: "DVT予防: エノキサパリン 2000IU 皮下注 1日1回 (反対側の下肢)"}
   "DVT_prophylaxis: Enoxaparin 2000IU SC daily (hold 12h pre-op)": {ja: "DVT予防: エノキサパリン 2000IU 皮下注 1日1回 (術前 12 時間は休薬)"}
   "IV_fluid: Lactated Ringer's 75-100 mL/h until oral intake": {ja: "輸液: 乳酸リンゲル液 75-100 mL/h (経口摂取が可能になるまで)"}
-  "IV_fluid: NS 5NS with thiamine given first": {ja: "輸液: 生理食塩液または 5% ブドウ糖加生理食塩液 (チアミンを先に投与)"}
-  "IV_fluid: NS 65": {ja: "輸液: 生理食塩液 全開投与 (MAP > 65 を目標に調整)"}
+  "IV_fluid: NS with thiamine given first": {ja: "輸液: 生理食塩液 (チアミンを先に投与)"}
+  "IV_fluid: NS wide open, titrate to MAP > 65": {ja: "輸液: 生理食塩液 全開投与 (MAP > 65 を目標に調整)"}
   "IV_fluid: NS 150-200 mL/h, target UOP > 1-1.5 mL/kg/h": {ja: "輸液: 生理食塩液 150-200 mL/h、目標尿量 > 1-1.5 mL/kg/h"}
   "IV_fluid: Lactated Ringer 250-500 mL/h for first 12-24h (aggressive hydration)": {ja: "輸液: 乳酸リンゲル液 250-500 mL/h (最初の 12-24 時間、積極的補液)"}
   "IV_fluid: Lactated Ringer 30 mL/kg bolus within 3 hours": {ja: "輸液: 乳酸リンゲル液 30 mL/kg ボーラス (3 時間以内)"}

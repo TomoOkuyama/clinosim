@@ -171,7 +171,7 @@ order_protocols:
       - {type: "pain_management", detail: "Acetaminophen 1000mg PO q6h"}
       - {type: "pain_management", detail: "Celecoxib 200mg PO BID"}
       - {type: "pain_management", detail: "Oxycodone 5mg PO q4h PRN"}
-      - {type: "DVT_prophylaxis", detail: "Enoxaparin SC or aspirin starting post-op day 1"}
+      - {type: "DVT_prophylaxis", detail: "Enoxaparin SC starting post-op day 1"}
   daily_monitoring:
     labs:
       - {test: "Hb", frequency: "daily", note: "post-operative anaemia"}

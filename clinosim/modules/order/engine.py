@@ -676,6 +676,9 @@ def protocol_medication_orders(
     return out
 
 
+_SHARED_DOSE_TAIL = re.compile(r"^[A-Za-z][\w'-]*\s+(\d.*)$", re.DOTALL)
+
+
 def supportive_detail_raw(sup: dict[str, Any], country: str) -> str:
     """The English ``detail`` an admission ``supportive[]`` entry is ordered
     with: the country's ``locale_detail`` variant (Issue #1323) else the shared
@@ -687,15 +690,15 @@ def supportive_detail_raw(sup: dict[str, Any], country: str) -> str:
         if splitter in detail_raw:
             primary, tail = detail_raw.split(splitter, 1)
             primary = primary.strip()
-            # Session-98 F6 (empty_dose): the tail of "NS or LR 500-1000mL
-            # bolus, then 125-250mL/h" carries the shared rate/frequency that
-            # applies to whichever alternative was chosen. Glue its numeric
-            # suffix (from the first digit onward) to the primary so the
-            # downstream dose parser sees the rate and populates
-            # ``dose_quantity``.
-            tail = tail.strip()
-            digit = re.search(r"\d", tail)
-            return f"{primary} {tail[digit.start() :]}" if digit else primary
+            # Session-98 F6 (empty_dose): in "<A> or <B> <dose>" (B a single
+            # name followed by the dose, e.g. "NS or LR 500-1000mL bolus, then
+            # 125-250mL/h") the dose is shared by both alternatives, so it is
+            # glued to the primary and the dose parser populates
+            # ``dose_quantity``. Any other tail is not a shared dose (Issue
+            # #3427): the primary alone is kept, never a number picked out of
+            # the second alternative.
+            shared = _SHARED_DOSE_TAIL.match(tail.strip())
+            return f"{primary} {shared.group(1)}" if shared else primary
     return detail_raw
 
 

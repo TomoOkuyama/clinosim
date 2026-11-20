@@ -150,7 +150,7 @@ order_protocols:
       - {test: "PT_INR", urgency: "routine"}
     imaging: []
     supportive:
-      - {type: "IV_fluid", detail: "NS or D5NS with thiamine given first"}
+      - {type: "IV_fluid", detail: "NS with thiamine given first"}
       - {type: "withdrawal_monitoring", detail: "CIWA-Ar assessment q4h; symptom-triggered lorazepam"}
       - {type: "fall_precautions", detail: "Seizure and fall precautions"}
   daily_monitoring:
