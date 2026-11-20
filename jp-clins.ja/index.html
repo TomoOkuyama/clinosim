@@ -2780,8 +2780,10 @@ extension leak を浮上させた。</p>
 <li><code>Composition.section</code> は 2 レベル tree:</li>
 <li>Top-level: <strong>920</strong> 紹介元 / <strong>910</strong> 紹介先 / <strong>300</strong> 構造情報</li>
 <li>300 の下: <strong>950</strong> 紹介目的 / <strong>340</strong> 傷病名・主訴 /
-    <strong>360</strong> 現病歴。続けて、文書に内容があれば任意の <strong>330</strong> 臨床経過 /
-    <strong>620</strong> 検査結果 / <strong>430</strong> 投薬指示 (JP-CLINS document-section
+    <strong>360</strong> 現病歴。続けて、文書に内容があれば任意の <strong>370</strong> 既往歴 / <strong>550</strong> 家族歴 /
+    <strong>330</strong> 臨床経過 / <strong>620</strong> 検査結果 (異常検査・画像所見・培養) /
+    <strong>430</strong> 投薬指示。300 の後に最上位の <strong>220</strong> 備考・連絡情報
+    (アレルギー・コードステータス) (JP-CLINS document-section
     CodeSystem の REF 系コード; profile の <code>clinicalCourseSection</code> /
     <code>examsStudySection</code> / <code>medicationSection</code>)</li>
 </ul>

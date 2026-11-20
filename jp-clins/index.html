@@ -2721,7 +2721,7 @@ this document continue to hold.</p>
 <li><code>Composition.type.coding[0]</code> = <code>{system: doc-typecodes, code: 57133-1, display: 診療情報提供書}</code> (single coding; no separate LOINC coding).</li>
 <li><code>Composition.section</code> is a two-level tree:</li>
 <li>Top-level: <strong>920</strong> 紹介元 / <strong>910</strong> 紹介先 / <strong>300</strong> 構造情報</li>
-<li>Under 300: <strong>950</strong> 紹介目的 / <strong>340</strong> 傷病名・主訴 / <strong>360</strong> 現病歴, then the optional <strong>330</strong> 臨床経過 (hospital course), <strong>620</strong> 検査結果 (significant results) and <strong>430</strong> 投薬指示 (discharge prescription) when the document carries them (the REF-branch codes of the JP-CLINS document-section CodeSystem; slices <code>clinicalCourseSection</code> / <code>examsStudySection</code> / <code>medicationSection</code> of the profile)</li>
+<li>Under 300: <strong>950</strong> 紹介目的 / <strong>340</strong> 傷病名・主訴 / <strong>360</strong> 現病歴, then the optional <strong>370</strong> 既往歴, <strong>550</strong> 家族歴, <strong>330</strong> 臨床経過 (hospital course), <strong>620</strong> 検査結果 (significant abnormal labs, imaging impressions and cultures) and <strong>430</strong> 投薬指示 (discharge prescription) when the document carries them; a top-level <strong>220</strong> 備考・連絡情報 (allergies, code status) follows 300 (the REF-branch codes of the JP-CLINS document-section CodeSystem; slices <code>clinicalCourseSection</code> / <code>examsStudySection</code> / <code>medicationSection</code> of the profile)</li>
 </ul>
 <p>Simulation approximations:
 - <strong>紹介元</strong> = this hospital (clinosim simulates a single facility).
