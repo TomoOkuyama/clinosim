@@ -115,10 +115,13 @@ def _compose_ap_assessment_from_state(ctx: NarrativeContext) -> str:
     # behaviour: JA reads chief_complaint_ja first, EN reads
     # chief_complaint first (there is no chief_complaint_en slot on
     # PatientProfile) — but the branch is now data-driven.
-    if enc is None:
-        cc = None
-    else:
-        cc = _o(enc, f"chief_complaint_{lang}", None) or _o(enc, "chief_complaint", None)
+    # Issue #3390: the encounter's one canonical complaint (the variant the
+    # chief_complaint section and the HPI show), not the raw slot.
+    from clinosim.modules.document.narrative.renderers.section_builders.chief_complaint import (
+        encounter_chief_complaint,
+    )
+
+    cc = encounter_chief_complaint(ctx) if enc is not None else None
     if cc:
         parts.append(t("ap_assessment.chief_complaint_line", lang, cc=cc))
     # Severity + disease

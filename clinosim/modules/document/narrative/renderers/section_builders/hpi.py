@@ -34,6 +34,10 @@ from clinosim.modules.document.narrative._template_helpers import (
 )
 from clinosim.modules.document.narrative.context import newborn_workup_known_at
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
+from clinosim.modules.document.narrative.renderers.section_builders.chief_complaint import (
+    chief_complaint_texts,
+    displayed_chief_complaint,
+)
 from clinosim.modules.document.narrative.renderers.section_builders.patient_history import (
     home_medications_at_admission,
 )
@@ -311,7 +315,7 @@ def _hpi_parts(ctx: NarrativeContext) -> _HpiParts:
     if enc is not None:
         cc = localized_field(enc, "chief_complaint", lang)
     if cc:
-        cc = _displayed_chief_complaint(cc, ctx)
+        cc = displayed_chief_complaint(cc, ctx)
     cc_sentence = t("narrative_text.hpi.chief_complaint", lang, cc=cc) if cc else ""
     parts: list[str] = []
     # Chronic history — Issue #1333: route CIF base code through
@@ -371,30 +375,6 @@ def _hpi_parts(ctx: NarrativeContext) -> _HpiParts:
     return _HpiParts(demographics, cc_sentence, _join(*parts))
 
 
-def _displayed_chief_complaint(cc: str, ctx: NarrativeContext) -> str:
-    """The chief complaint as the chief_complaint section writes it: a
-    disease-default complaint is shown as the encounter's variant (Issue
-    #983), so the HPI must name the same one (Issue #3228) — else the H&P
-    carries two complaints and the ROS filter checks the wrong one."""
-    from clinosim.modules.document.narrative.renderers.section_builders.chief_complaint import (
-        _disease_canonical_cc,
-        _maybe_swap_cc_variant,
-    )
-
-    disease_id = _o(ctx.disease_protocol, "disease_id", None) if ctx.disease_protocol is not None else None
-    condition_id = _o(ctx.encounter_protocol, "condition_id", None) if ctx.encounter_protocol is not None else None
-    swapped, _ = _maybe_swap_cc_variant(
-        cc,
-        disease_id,
-        _disease_canonical_cc(ctx.disease_protocol, ctx.target_lang),
-        ctx.target_lang,
-        ctx,
-        encounter_condition_id=condition_id,
-        canonical_encounter_cc=_disease_canonical_cc(ctx.encounter_protocol, ctx.target_lang),
-    )
-    return swapped
-
-
 def _ros_line(ctx: NarrativeContext, presented_text: str) -> str:
     """The ROS pertinent negatives of the disease (Issue #984): the first two
     that do not deny a symptom positively present in ``presented_text`` (the
@@ -406,7 +386,10 @@ def _ros_line(ctx: NarrativeContext, presented_text: str) -> str:
     disease_id = str(_o(ctx.disease_protocol, "disease_id", "") or "")
     if not disease_id:
         return ""
-    haystack = presented_text.lower()
+    # The haystack covers the displayed complaint (in ``presented_text``) and
+    # the encounter's recorded one, so no negative denies a symptom of either
+    # (Issue #3390).
+    haystack = " ".join((presented_text, *chief_complaint_texts(ctx))).lower()
     kept = [
         neg.text
         for neg in hpi_pertinent_negatives(disease_id, lang)

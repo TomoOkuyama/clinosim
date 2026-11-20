@@ -16,7 +16,9 @@ import pytest
 
 from clinosim.modules.disease.protocol import load_disease_protocol
 from clinosim.modules.document.narrative.renderers.section_builders.chief_complaint import build_chief_complaint
-from clinosim.modules.document.narrative.renderers.section_builders.hpi import _displayed_chief_complaint
+from clinosim.modules.document.narrative.renderers.section_builders.chief_complaint import (
+    displayed_chief_complaint as _displayed_chief_complaint,
+)
 from clinosim.modules.document.narrative.template_generator import TemplateNarrativeGenerator
 from clinosim.modules.document.reference_data_loaders import (
     load_chief_complaint_variant_rules,
