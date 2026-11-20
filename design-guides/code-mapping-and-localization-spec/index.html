@@ -3387,6 +3387,11 @@
 <td>same</td>
 </tr>
 <tr>
+<td><code>localize_dose_text(text, lang)</code></td>
+<td>the <code>dose_phrases</code> section of <code>clinosim-procedure-phrase.yaml</code> (<code>load_dose_phrase_dict</code>), the whole dose string first (also as the tail of a "drug dose" order string in <code>localize_drug_name</code>); a rate-change slug (<code>increase_rate_by_20%</code>) as its instruction; else the dose / route / frequency terms (<code>med_terms.yaml</code>). Every disease-protocol <code>dose</code> string must render without English words (guard <code>tests/unit/locale/test_dose_phrases_3428.py</code>; Issue #3428)</td>
+<td>the dose text in <code>lang</code>; English keeps the text</td>
+</tr>
+<tr>
 <td><code>localize_allergen_name(name, lang)</code></td>
 <td>allergen and substance names (<code>load_allergen_display_dict</code>)</td>
 <td>same</td>
