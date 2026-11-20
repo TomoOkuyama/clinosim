@@ -2585,6 +2585,11 @@
 <td><code>tests/unit/modules/document/narrative/test_outpatient_soap_results_as_of_3396.py</code></td>
 </tr>
 <tr>
+<td>外来 SOAP は前回外来受診以降の入院・救急受診を記載する (Issue #3407): 患者の他の受診 (<code>NarrativeContext.interval_encounters</code>、他の structural 記録から読む) のうち前回受診の終了後 (前回受診がなければ <code>interval_events.yaml</code> の <code>lookback_days_without_prior_visit</code> 日以内) から今回受診までのものを、日付・診断・在院日数・手術 (<code>max_events</code> 件、手術は <code>max_procedures</code> 件まで) として Subjective に書く。入院中の救急受診と入院に至った救急受診は入院に含める。慢性疾患 SOAP テンプレートの「前回受診以降の増悪エピソードなし」(<code>no_interval_event</code>) は、こうした事象がないときだけ書く。</td>
+<td><code>narrative/_interval_events.py</code>, <code>renderers/section_builders/outpatient_soap.py::build_outpatient_subjective</code></td>
+<td><code>tests/unit/modules/document/narrative/test_interval_events_3407.py</code></td>
+</tr>
+<tr>
 <td>急性期脳卒中の身体所見は、来院の理由となった局所神経症状を書き、「麻痺なし」とは書かない (Issue #3227): 麻痺の側は入院 ID から入院ごとに決め (右の麻痺は失語と左への共同偏視、左の麻痺は半側空間無視と右への共同偏視を伴う)、NIHSS は記録の重症度の範囲内の値を入院日に記載し、その所見を H&amp;P・ED 記録・経過記録の神経所見とする。心房細動の患者 (心房細動での入院、または発作性以外の慢性心房細動) は整の脈の代わりに絶対性不整脈の脈を書く。</td>
 <td><code>renderers/_disease_exam.py::stroke_deficit</code> / <code>apply_exam_rules</code>, <code>reference_data/disease_exam.yaml</code></td>
 <td><code>tests/unit/modules/document/narrative/test_admission_hp_exam_3245.py</code></td>
