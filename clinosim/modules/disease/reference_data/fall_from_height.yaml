@@ -317,6 +317,7 @@ procedure:
           estimated_blood_loss_ml: {mean: 200, sd: 150, min: 50, max: 600}
   postoperative_pain_level: 0.65   # operative-day pain floor (Issue #2080)
   type: "orthopedic fracture fixation"
+  implants: ["pedicle screw and rod construct"]   # Issue #3406: the default fixation (CPT 22325) is posterior spinal instrumentation
   procedure_code_jp: "K142"
   procedure_code_us: "22325"
   typical_duration_minutes: {mean: 180, sd: 90, min: 60, max: 480}

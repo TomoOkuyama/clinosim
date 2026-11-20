@@ -1760,7 +1760,7 @@
         "op_anesthesia": "Anesthesia: Local anesthesia",
         "op_blood_loss": "Estimated blood loss: not recorded; no intraoperative transfusion",
         "op_course": "Operative course: planned procedure performed, operative time 24 min. Outcome: successful",
-        "op_equipment": "Implants / devices: none",
+        "op_equipment": "Implants / devices used: Drug-eluting stent",
         "op_findings": "Body site: Coronary artery structure / No intraoperative complications",
         "op_postop_plan": "Postoperative plan: ward-level monitoring. Access-site hemostasis and distal pulses will be checked, and the ECG and chest symptoms monitored for recurrent ischemia.",
         "op_procedure_name": "Procedure: Percutaneous transluminal coronary angioplasty (PCI); single major coronary artery (code 92920); operative time 24 min",

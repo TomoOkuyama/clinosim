@@ -17,7 +17,12 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from clinosim import determinism
 from clinosim.codes import data_table
-from clinosim.codes.procedures import bedside_procedures, country_procedure_code, procedure_specimens
+from clinosim.codes.procedures import (
+    bedside_procedures,
+    country_procedure_code,
+    procedure_implants,
+    procedure_specimens,
+)
 from clinosim.countries import country_slot
 from clinosim.datafiles import load_data_yaml
 from clinosim.locale.loader import load_care_practice, load_code_mapping
@@ -201,7 +206,8 @@ def simulate_surgery(
         proc_type = proc_data.get("type", "surgery").split("/")[0].strip().split(" or ")[0].strip()
         proc_code_jp = proc_data.get("procedure_code_jp", "")
         proc_code_us = proc_data.get("procedure_code_us", "")
-        implants = []
+        # Issue #3406: the protocol's own list, else what the procedure type leaves by definition.
+        implants = [str(i) for i in proc_data.get("implants") or procedure_implants(str(proc_type))]
 
     # Primary code for this country
     proc_code = country_procedure_code(country, {"k-codes": proc_code_jp, "cpt": proc_code_us})
@@ -508,6 +514,7 @@ def _bedside_record(
         primary_surgeon_id=performer_id,
         anesthesia_type=anesthesia,
         specimens_sent=list(procedure_specimens(proc_type)),
+        implants_used=list(procedure_implants(proc_type)),
         category_code=meta.category_code if meta else fallback_category,
         body_site_code=meta.body_site_code if meta else "",
         outcome_code=_SCT_OUTCOME_SUCCESS,
