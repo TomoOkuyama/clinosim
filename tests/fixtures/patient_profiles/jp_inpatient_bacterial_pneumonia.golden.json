@@ -2282,7 +2282,7 @@
         "ctx.encounter.chief_complaint",
         "ctx.encounter.disposition"
       ],
-      "generated_at": "2024-06-15T10:01:00+09:00",
+      "generated_at": "2024-06-15T12:01:00+09:00",
       "generator": "template",
       "generator_metadata": {
         "generator": "template",

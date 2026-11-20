@@ -200,6 +200,10 @@ specs:
     # data (JTAS category, vitals, order list) — kept templated.
     stage2_strategy: template_seed_bundle
     llm_enabled_sections: [hpi, assessment, disposition]
+    # The ED physician note records the disposition, so it is authored at the
+    # end of the ED visit (Issue #3397) and quotes only what was known then;
+    # the triage note stays at the arrival.
+    authored_at: period_end
 
   ed_triage_note:
     loinc_code: "54094-8"

@@ -526,9 +526,12 @@ def _plan_encounter_once(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
     # Single-visit encounters (outpatient SOAP, ED note, ED triage note),
     # authored at arrival and covering the visit; emitted even when open.
     # Issue #957: oncology encounters get LOINC 34133-9.
+    # Issue #3397: a spec with ``authored_at: period_end`` (the ED physician
+    # note, which records the disposition) is authored at the end of the visit.
+    authored = f.end_dt if getattr(spec, "authored_at", "admission") == "period_end" else f.admission_dt
     return [
         _DocPlan(
-            f.admission_dt.isoformat(),
+            authored.isoformat(),
             f.admission_dt.isoformat(),
             f.end_dt.isoformat(),
             loinc_code=_effective_outpatient_loinc(spec.loinc_code, f.encounter),
@@ -614,12 +617,12 @@ def _ed_companion_documents(
         return [], doc_seq
     ed_enc_id = f"{encounter_id}-ED"
     # Mid-ED-window authored time (synth Encounter.period is
-    # [admission - admitted_ed_stay(), admission]).
-    plan = _DocPlan(
-        (admission_dt - timedelta(hours=2)).isoformat(),
-        (admission_dt - admitted_ed_stay()).isoformat(),
-        admission_dt.isoformat(),
-    )
+    # [admission - admitted_ed_stay(), admission]); a spec authored at the end
+    # of the visit (the ED physician note, Issue #3397) is authored at the ED
+    # departure, when the disposition (the admission) is known.
+    ed_start = (admission_dt - admitted_ed_stay()).isoformat()
+    mid_plan = _DocPlan((admission_dt - timedelta(hours=2)).isoformat(), ed_start, admission_dt.isoformat())
+    end_plan = _DocPlan(admission_dt.isoformat(), ed_start, admission_dt.isoformat())
     # Issue #2998: the triage note is written from the ED phase's triage data;
     # without it the note would only read "Triage information: not recorded".
     has_triage = _o(encounter, "triage_data", None) is not None
@@ -628,6 +631,7 @@ def _ed_companion_documents(
         if spec.type_key == DocumentType.ED_TRIAGE_NOTE.value and not has_triage:
             continue
         if spec.type_key in country_spec_keys and spec.generation_frequency == "encounter_once":
+            plan = end_plan if getattr(spec, "authored_at", "admission") == "period_end" else mid_plan
             built, doc_seq = _build_documents(spec, [plan], encounter, ed_enc_id, pid, lang, doc_seq)
             docs += built
     return docs, doc_seq

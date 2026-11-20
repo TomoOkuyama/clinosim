@@ -76,12 +76,23 @@ def _admitted_from_ed(ctx: NarrativeContext) -> bool:
     return enc_type in _STAY_TYPES
 
 
-def _ed_cutoff(ctx: NarrativeContext) -> str:
+def _ed_departure(ctx: NarrativeContext) -> str:
     """ISO time at which the ED part ended (the admission time) for an
     admitted patient, else ``""`` (no cutoff)."""
     if not _admitted_from_ed(ctx):
         return ""
     return _iso(_o(ctx.encounter, "admission_datetime", ""))
+
+
+def _ed_cutoff(ctx: NarrativeContext) -> str:
+    """ISO time the ED note was authored, the end of the ED visit (Issue
+    #3397): nothing resulted, ordered or done after it is stated. Without an
+    authored time, the admission time for an admitted patient, else ``""`` (no
+    cutoff)."""
+    authored = _iso(getattr(ctx, "authored_datetime", None))
+    if authored:
+        return authored
+    return _ed_departure(ctx)
 
 
 def _ed_time_context(ctx: NarrativeContext) -> NarrativeContext:
@@ -91,7 +102,7 @@ def _ed_time_context(ctx: NarrativeContext) -> NarrativeContext:
     The stay's vitals start on the ward, after the patient left the ED; a
     ward reading is not the arrival vitals.
     """
-    cutoff = _ed_cutoff(ctx)
+    cutoff = _ed_departure(ctx)
     if not cutoff:
         return ctx
     stamped = [(_iso(_o(v, "timestamp", "")), v) for v in ctx.vitals or []]
@@ -386,6 +397,14 @@ def _imaging_impression(order: Any, ctx: NarrativeContext, lang: str, cutoff: st
     return ""
 
 
+def _procedures_by(ctx: NarrativeContext, cutoff: str) -> list[Any]:
+    """The procedures started by ``cutoff`` (Issue #3397); all without one."""
+    rows = list(ctx.procedures or [])
+    if not cutoff:
+        return rows
+    return [p for p in rows if not (when := _iso(_o(p, "start_datetime", ""))) or when <= cutoff]
+
+
 @section("ed_workup")
 def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build ed_workup from ed_note_template.ed_workup_summary_<lang>.
@@ -455,6 +474,14 @@ def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
                 continue
         if not _is_ed_order(order, admitted):
             continue
+        # A visit's own orders are placed in the visit; one dated after the
+        # note was authored is not stated (Issue #3397). An admitted patient's
+        # ED set is the stay's initial order set, timed after the ED period
+        # (selected by order set above), so it is not cut by time.
+        if not admitted and cutoff:
+            placed = _iso(_o(order, "ordered_datetime", ""))
+            if placed and placed > cutoff:
+                continue
         otype = _o(order, "order_type", "") or ""
         otype_str = str(otype.value if hasattr(otype, "value") else otype).lower()
         display_raw = _o(order, "display_name", "") or _o(order, "order_code", "")
@@ -586,7 +613,7 @@ def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
 
     # Bedside procedures / imaging descriptions.
     procs = []
-    for pr in (ctx.procedures or [])[:4]:
+    for pr in _procedures_by(ctx, cutoff)[:4]:
         nm = _o(pr, "procedure_name", None) or _o(pr, "name", None)
         if nm:
             procs.append(str(nm))

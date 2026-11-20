@@ -124,6 +124,12 @@ class DocumentTypeSpec:
     written once the admission work-up has results, so it can cite them; the
     document still belongs to hospital day 0."""
 
+    authored_at: str = "admission"
+    """When an ``encounter_once`` document is authored (Issue #3397):
+    ``admission`` = at the arrival (the default), ``period_end`` = at the end
+    of the visit (the ED physician note, written once the disposition is
+    known)."""
+
     composition_sections_jp: tuple[str, ...] = field(default_factory=tuple)
     """JP-CLINS-compliant section list.
 

@@ -479,3 +479,33 @@ def test_via_ed_imp_still_emits_normal_inpatient_docs() -> None:
     # Plus the ED companion stub (no triage note without triage data, Issue #2998).
     assert task_counts.get("ed_note", 0) == 1
     assert task_counts.get("ed_triage_note", 0) == 0
+
+
+# ─── Issue #3397: the ED physician note is authored at the ED departure ──────
+
+
+def test_ed_note_of_a_visit_is_authored_at_its_end_and_triage_at_arrival() -> None:
+    from tests.unit.modules.document.test_engine_alpha2 import _make_encounter
+
+    end = ADMISSION_DT + timedelta(hours=4)
+    encounter = _make_encounter(enc_type="emergency", admission_dt=ADMISSION_DT, discharge_dt=end)
+    record = _make_record(encounter)
+    document_enricher(_make_ctx(record))
+
+    ed = next(d for d in record.documents if d.task_type == "ed_note")
+    triage = next(d for d in record.documents if d.task_type == "ed_triage_note")
+    assert ed.authored_datetime == end.isoformat() and ed.period_end == end.isoformat()
+    assert ed.period_start == ADMISSION_DT.isoformat()
+    assert triage.authored_datetime == ADMISSION_DT.isoformat()
+
+
+def test_via_ed_ed_note_is_authored_at_the_admission_and_triage_mid_ed() -> None:
+    imp = _make_via_ed_imp()
+    imp.triage_data = SimpleNamespace(level="2", level_system="ESI", arrival_mode="ambulance")
+    record = _make_record(imp)
+    document_enricher(_make_ctx(record))
+
+    ed = next(d for d in record.documents if d.task_type == "ed_note")
+    triage = next(d for d in record.documents if d.task_type == "ed_triage_note")
+    assert ed.authored_datetime == ADMISSION_DT.isoformat()
+    assert triage.authored_datetime == (ADMISSION_DT - timedelta(hours=2)).isoformat()
