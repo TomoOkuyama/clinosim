@@ -186,7 +186,8 @@ def _secondary_diagnoses(ctx: NarrativeContext, diagnoses: list) -> list[str]:
     (``working_diagnosis_code``, the code and display the output emits), then
     the in-hospital complications that no listed code already names, by name
     and without a code (they have no Condition). The final diagnosis's
-    ICD-10 category (discharge code, else admission code) is not repeated."""
+    ICD-10 category (discharge code, else admission code) is not repeated. The
+    stay's secondary diagnosis codes come first (Issue #3392)."""
     from clinosim.modules.disease.protocol import working_diagnosis_code
     from clinosim.modules.document.reference_data_loaders import load_death_cause_chain
 
@@ -199,6 +200,20 @@ def _secondary_diagnoses(ctx: NarrativeContext, diagnoses: list) -> list[str]:
         if code:
             seen.add(code.split(".")[0])
     items: list[str] = []
+    # Issue #3392: the secondary diagnosis codes of the stay (the co-disease of
+    # a mixed admission), which the FHIR output codes as secondary Conditions.
+    for dx in diagnoses:
+        for code in _o(dx, "secondary_diagnosis_codes", []) or []:
+            code = str(code or "")
+            if not code or code.split(".")[0] in seen:
+                continue
+            seen.add(code.split(".")[0])
+            emitted, display = diagnosis_coded(code, country, lang, sex)
+            items.append(
+                t("list_item.inline_dx_with_code", lang, display=display, code=emitted)
+                if display != emitted
+                else emitted
+            )
     for wd in ctx.working_diagnoses or []:
         code = working_diagnosis_code(str(_o(wd, "disease_id", "") or ""))
         if not code or code.split(".")[0] in seen:

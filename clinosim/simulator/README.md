@@ -154,6 +154,12 @@ clinosim/simulator/
   maintenance_iv_fluid.py  stops the admission maintenance IV-fluid order once the
                          diet is oral (after a grace day) or after a maximum
                          number of days (Issue #3409)
+  mixed_condition.py     the co-disease of a mixed admission (condition_type "mixed"):
+                         coded as a secondary diagnosis, its protocol's admission
+                         orders merged into the stay's (from the admission, or from
+                         hospital day 1-3 when recognised late), and its onset axes
+                         returned to baseline over the days after treatment starts
+                         (Issue #3392)
   vasopressor_initiation.py  starts a vasopressor from the recorded mean arterial
                          pressure (low despite fluids) instead of a fixed day
                          (Issue #3332)
@@ -273,6 +279,7 @@ Reference data (`reference_data/`, 8 YAMLs):
   reference_data/vasopressor_initiation.yaml  starting a vasopressor from low pressure after fluids (vasopressor_initiation.py)
   reference_data/vasoactive_weaning.yaml      vasopressor / inotrope weaning and the discharge gate after it (vasoactive_support.py)
   reference_data/maintenance_iv_fluid.yaml    when the maintenance IV-fluid order is stopped (maintenance_iv_fluid.py)
+  reference_data/mixed_condition.yaml         late recognition, recovery and order merge of a mixed admission's co-disease (mixed_condition.py)
   reference_data/aki_response.yaml            AKI detection, drugs held during AKI, discharge gate (aki_response.py)
 ```
 

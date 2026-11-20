@@ -125,6 +125,15 @@ def _is_one_time(order: Any) -> bool:
     )
 
 
+def orders_replace_each_other(a: Any, b: Any) -> bool:
+    """True when one of the medication orders ``a``, ``b`` would stop the other
+    as a switch or a re-order (:func:`_supersedes`): the same drug, or two
+    agents of one switch rule (two beta-lactams). Used to leave out an order
+    the stay's active regimen already covers (Issue #3392)."""
+    a_id, b_id = _drug_id(a), _drug_id(b)
+    return bool(a_id and b_id and (_supersedes(a_id, b_id) or _supersedes(b_id, a_id)))
+
+
 def supersede_orders(orders: list[Any], administrations: list[Any]) -> list[Any]:
     """Stop superseded orders in place; return the administrations kept."""
     meds = sorted(

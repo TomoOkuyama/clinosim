@@ -9,6 +9,7 @@ import numpy as np
 
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource
 from clinosim.codes.valuesets import code_by_chronic_prefix
+from clinosim.modules._shared import CO_DISEASE_SEVERITY
 from clinosim.modules.clinical_course.engine import (
     select_archetype,
 )
@@ -60,7 +61,6 @@ from clinosim.simulator._stay_thresholds import (
     EMERGENCY_ADMISSION_HOUR_MAX_EXCLUSIVE,
     EMERGENCY_ADMISSION_SEVERITY_THRESHOLD,
     INPATIENT_WARD_CAPACITY_DEFAULT,
-    MIXED_CASE_MISSED_SECONDARY_DX_PROB,
     PLANNED_DISCHARGE_HOUR_MAX,
     PLANNED_DISCHARGE_HOUR_MEAN,
     PLANNED_DISCHARGE_HOUR_MIN,
@@ -86,6 +86,13 @@ from clinosim.simulator.injury_coding import (
     surgery_for_diagnosis,
 )
 from clinosim.simulator.medication_pipeline import _generate_home_medication_orders
+from clinosim.simulator.mixed_condition import (
+    CO_DISEASE_ID_INFIX,
+    co_disease_course,
+    co_disease_orders,
+    co_disease_recognised_late,
+    co_disease_recognition_day,
+)
 from clinosim.simulator.sepsis_severity import sepsis_severity_code
 from clinosim.types.clinical import (
     ClinicalDiagnosis,
@@ -149,6 +156,7 @@ def _derive_final_diagnosis(
     mars: list[MedicationAdministration],
     lab_results: list[OrderResult],
     encounter_id: str = "",
+    secondary_recognised_late: bool = False,
 ) -> tuple[ClinicalDiagnosis, str]:
     """Walk the differential to a final discharge diagnosis + sample
     the mixed-case missed-secondary-dx coin flip.
@@ -162,9 +170,16 @@ def _derive_final_diagnosis(
     discharge-prescription paths); ``clinical_diagnosis`` is the
     structured :class:`ClinicalDiagnosis` for ``CIFPatientRecord``.
 
-    RNG consumption: one ``rng.random()`` for the AD-29 missed-
-    secondary-dx Bernoulli, only when a secondary protocol is
-    attached. Preserves the pre-refactor order.
+    The co-disease of a mixed admission is coded as a secondary diagnosis of
+    the encounter (Issue #3392). It is the missed diagnosis of the stay
+    (AD-29, ``missed_diagnoses``) when it was recognised late
+    (``secondary_recognised_late``: worked up and treated from hospital day
+    1-3, ``mixed_condition.co_disease_recognition_day``).
+
+    RNG consumption: one ``rng.random()`` when a secondary protocol is
+    attached (the AD-29 draw of the stay's stream, kept so the stream after
+    it does not move; the missed outcome follows ``secondary_recognised_late``,
+    a SHA of the encounter id, which the loop needed before it ran).
     """
     protocol_diagnostic = protocol.diagnostic if hasattr(protocol, "diagnostic") else {}
     yaml_progression = protocol_diagnostic.get("diagnosis_progression") if protocol_diagnostic else None
@@ -196,10 +211,21 @@ def _derive_final_diagnosis(
     # Diagnosis correctness and missed diagnoses (AD-29)
     missed: list[str] = []
     overcalled: list[str] = []
+    secondary_codes = secondary_diagnosis_codes(protocol, encounter_id)
     if secondary_protocol and secondary_disease_id:
-        # Simulated missed-secondary-diagnosis rate in mixed cases
-        if rng.random() < MIXED_CASE_MISSED_SECONDARY_DX_PROB:
+        rng.random()  # the AD-29 draw's place in the stay's stream (see above)
+        if secondary_recognised_late:
             missed.append(secondary_disease_id)
+        # Issue #3392: the co-disease is a secondary diagnosis of the stay.
+        co_code = diagnosis_code_for_patient(
+            secondary_protocol, patient, stay_primary_code(secondary_protocol, encounter_id)
+        )
+        if (
+            co_code
+            and co_code not in secondary_codes
+            and co_code not in (dx_code, (getattr(protocol, "icd_codes", None) or {}).get("primary"))
+        ):
+            secondary_codes.append(co_code)
 
     # Issue #547: use the canonical registry (`icd-10-mhlw` on JP per JP Core
     # `jp-condition-diagnosis` required binding). The previous inline `"icd-10"`
@@ -211,7 +237,7 @@ def _derive_final_diagnosis(
         config.country,
         discharge_code=dx_code,
         external_cause_code=external_cause_code(protocol, encounter_id, config.country),
-        secondary_diagnosis_codes=secondary_diagnosis_codes(protocol, encounter_id),
+        secondary_diagnosis_codes=secondary_codes,
         # Issue #551: the engine returns ``UNRESOLVED_DIAGNOSIS_ICD`` (R69) when
         # the differential did not converge. Previous code compared against
         # ``"R05"`` (Cough) — a real ICD-10 code, which made legitimate cough
@@ -641,7 +667,10 @@ def _simulate_patient(
         secondary_disease_id = secondary_protocol.disease_id
         # Secondary disease typically presents at moderate severity
         state = apply_disease_onset(
-            state, "moderate", secondary_protocol.initial_state_impact, acid_base_type=secondary_protocol.acid_base_type
+            state,
+            CO_DISEASE_SEVERITY,
+            secondary_protocol.initial_state_impact,
+            acid_base_type=secondary_protocol.acid_base_type,
         )
 
     # Create encounter — realistic admission time pattern
@@ -758,6 +787,34 @@ def _simulate_patient(
     admission_orders = drop_legacy_duplicate_imaging(admission_orders, adm_imaging)
     admission_orders.extend(adm_imaging)
 
+    # Issue #3392: the co-disease of a mixed admission is worked up and
+    # treated by its own protocol's admission orders, from the admission or,
+    # when it is recognised late, from hospital day 1-3. Placed with their own
+    # RNG, so the primary disease's orders and the stay's stream do not move.
+    co_course = None
+    co_alternative_groups: tuple[tuple[str, ...], ...] = ()
+    if secondary_protocol is not None:
+        co_day = co_disease_recognition_day(encounter.encounter_id)
+        co_orders = co_disease_orders(
+            secondary_protocol,
+            admission_orders,
+            patient_id=patient.patient_id,
+            encounter_id=encounter.encounter_id,
+            admission_time=admission_time,
+            treat_day=co_day,
+            country_key=country_key,
+            ordered_by=attending_id,
+            patient_age=int(getattr(patient, "age", 0) or 0),
+            patient_weight_kg=_child.weight_kg if _child else float(getattr(patient, "weight_kg", 0) or 0) or None,
+            imaging_seq=imaging_seq_counter,
+        )
+        co_course = co_disease_course(secondary_protocol, co_day, co_orders if co_day > 0 else [])
+        if co_day == 0:
+            admission_orders.extend(co_orders)
+            co_alternative_groups = first_line_alternative_groups(
+                secondary_protocol, encounter.encounter_id, country_key, id_infix=CO_DISEASE_ID_INFIX
+            )
+
     # Home medication orders (chronic condition continuation)
     # Issue #2995: the home medications at admission, kept on the record for
     # the admission H&P (later encounters replace patient.current_medications).
@@ -794,7 +851,10 @@ def _simulate_patient(
         protocol=protocol,
         country=country_key,
         # Issue #3274: first-line alternatives give one agent.
-        alternative_groups=first_line_alternative_groups(protocol, encounter.encounter_id, country_key),
+        alternative_groups=(
+            *first_line_alternative_groups(protocol, encounter.encounter_id, country_key),
+            *co_alternative_groups,
+        ),
     )
 
     # Tracking
@@ -907,6 +967,7 @@ def _simulate_patient(
         max_los=int(los_cfg.get("max", target_los)),
         surgery=surgery_pain,
         prior_procedures=procedures,
+        co_disease=co_course,
     )
 
     # Unpack results
@@ -938,6 +999,7 @@ def _simulate_patient(
         mars=loop_result.mars,
         lab_results=loop_result.lab_results,
         encounter_id=encounter.encounter_id,
+        secondary_recognised_late=co_disease_recognised_late(encounter.encounter_id),
     )
 
     # Build ground truth diseases list

@@ -148,6 +148,10 @@ clinosim/simulator/
                          離脱後に退院まで 1 病日観察する判定 (Issue #3270)
   maintenance_iv_fluid.py  入院時の維持輸液オーダーを、食事が経口になった後 (猶予 1 日)
                          または最大日数で終了する (Issue #3409)
+  mixed_condition.py     混合入院 (condition_type "mixed") の併存疾患: 副診断として
+                         コード化し、その疾患プロトコルの入院時オーダーを入院の
+                         オーダーに統合し (入院時から、遅れて認識した場合は病日 1-3 から)、
+                         治療開始後の数日で発症時の生理軸を元に戻す (Issue #3392)
   vasopressor_initiation.py  記録された平均血圧が輸液後も低い場合に昇圧薬を開始する
                          (固定病日ではなく生理状態駆動, Issue #3332)
   aki_response.py        急性腎障害 (KDIGO のクレアチニン基準): 活動期間中の薬剤保留と
@@ -261,6 +265,7 @@ CLI サブコマンドハンドラ (11 ファイル):
   reference_data/vasopressor_initiation.yaml  低血圧と輸液後の昇圧薬開始条件 (vasopressor_initiation.py)
   reference_data/vasoactive_weaning.yaml      昇圧薬・強心薬の離脱条件と離脱後の退院判定 (vasoactive_support.py)
   reference_data/maintenance_iv_fluid.yaml    維持輸液オーダーの終了条件 (maintenance_iv_fluid.py)
+  reference_data/mixed_condition.yaml         混合入院の併存疾患の遅れた認識・回復・オーダー統合 (mixed_condition.py)
   reference_data/aki_response.yaml            AKI の判定・AKI 中に保留する薬剤・退院判定 (aki_response.py)
 ```
 
