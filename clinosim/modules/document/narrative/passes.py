@@ -281,6 +281,15 @@ class NarrativePass(ABC):
                     prior_labs.append(self._patient_prior_labs(structural_dir, pf))
                 return prior_labs[0]
 
+            interval_encounters: list[list[dict[str, Any]]] = []
+
+            def _interval_encounters() -> list[dict[str, Any]]:
+                # Issue #3407: the patient's other encounters, read once per
+                # patient and only for the outpatient SOAP note.
+                if not interval_encounters:
+                    interval_encounters.append(self._patient_other_encounters(structural_dir, pf))
+                return interval_encounters[0]
+
             for spec, language in iter_specs_x_lang:
                 if not self._spec_applies(spec, patient_dict):
                     continue
@@ -298,6 +307,8 @@ class NarrativePass(ABC):
                         _cached = self._build_context(patient_dict, enc, _spec, _lang)
                         if _spec.type_key in _PRIOR_LAB_DOCUMENTS:
                             _cached.prior_lab_results = _prior_labs()
+                        if _spec.type_key == "outpatient_soap":
+                            _cached.interval_encounters = _interval_encounters()
                         ctx_cache[cache_key] = _cached
                     return _cached, enc, enc_id
 
@@ -667,6 +678,24 @@ class NarrativePass(ABC):
                 continue
             labs.extend(other.get("lab_results") or [])
         return list(reported_lab_results(labs, self.country))
+
+    @staticmethod
+    def _patient_other_encounters(structural_dir: str, own_file: str) -> list[dict[str, Any]]:
+        """The encounters of the patient's other structural records (the files
+        sharing ``own_file``'s ``ENC-<patient>`` prefix). Issue #3407."""
+        from clinosim.modules.document.narrative._interval_events import other_encounters
+
+        prefix = own_file.rsplit("-", 1)[0] + "-"
+        records: list[Any] = []
+        for name in sorted(os.listdir(structural_dir)):
+            if name == own_file or not name.startswith(prefix) or not name.endswith(".json"):
+                continue
+            try:
+                with open(os.path.join(structural_dir, name), encoding="utf-8") as f:
+                    records.append(json.load(f))
+            except (OSError, ValueError):
+                continue
+        return other_encounters(records)
 
     @staticmethod
     def _parse_rehab_sessions(raw: list[Any]) -> list[Any]:

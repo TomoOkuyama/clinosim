@@ -112,7 +112,11 @@ I25:
 # ── J44: COPD (stable) ────────────────────────────────────────────
 J44:
   subjective:
-    ja: "咳嗽・喀痰の増加なし、労作時息切れは従来と同程度。前回受診以降の増悪エピソードなし。"
+    ja: "咳嗽・喀痰の増加なし、労作時息切れは従来と同程度。"
+  # Stated only when no admission or emergency visit lies between the previous
+  # visit and this one (Issue #3407).
+  no_interval_event:
+    ja: "前回受診以降の増悪エピソードなし。"
   objective:
     ja: "呼吸音に喘鳴なし。"
   assessment:

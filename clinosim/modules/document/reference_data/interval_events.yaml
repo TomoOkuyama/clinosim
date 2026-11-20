@@ -1,0 +1,20 @@
+# Which events between two outpatient visits the later note states
+# (Issue #3407). Read by narrative/_interval_events.py.
+#
+# lookback_days_without_prior_visit: a note whose patient has no earlier
+#   outpatient visit looks back this many days for an admission or an
+#   emergency visit.
+# max_events: at most this many events (the latest) are stated.
+# max_procedures: at most this many procedures of an admission are named.
+# non_operative_anesthesia: an `anesthesia_type` of a procedure that marks it
+#   as a bedside procedure; only a procedure with another anesthesia type (an
+#   operation) is named in the admission sentence.
+metadata:
+  kind: reference
+  name: interval_events
+  source: clinosim
+
+lookback_days_without_prior_visit: 365
+max_events: 3
+max_procedures: 2
+non_operative_anesthesia: ["", "none"]

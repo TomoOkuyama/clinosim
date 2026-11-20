@@ -1009,3 +1009,4 @@ _.hour_range  # newborn _Turnaround field (validated yaml key, read by key, Issu
 _.result_turnaround  # newborn _Screen field (validated yaml key, read by key, Issue #3358)
 _.covers_other_sites  # _BodySite field (validated yaml key, read by key in order.engine.drop_legacy_duplicate_imaging, Issue #3394)
 _.abnormal_by_code  # _ReportVariants field (validated yaml key, read by key in imaging.engine._select_report_template, Issue #3394)
+_.no_interval_event  # _ChronicSoapTemplate field (validated yaml key, read by key in outpatient_soap, Issue #3407)

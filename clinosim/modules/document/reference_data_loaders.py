@@ -64,6 +64,9 @@ class _ChronicSoapTemplate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     subjective: _LangText
+    # Stated after the subjective when no admission or emergency visit lies
+    # between the previous visit and this one (Issue #3407).
+    no_interval_event: _LangText | None = None
     objective: _LangText
     assessment: _LangText
     plan: _LangText
