@@ -99,6 +99,7 @@ _REVIEWED = {
     "contributing_conditions": "69453-9",
     "duration_of_immediate_cause": "69440-6",
     "manner_of_death": "69449-7",
+    "time_of_death": "",
     "circumstances_of_death": "",
     "cause_of_death": "69453-9",
     "autopsy_status": "85699-7",

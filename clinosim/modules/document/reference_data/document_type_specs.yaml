@@ -394,6 +394,7 @@ specs:
       - underlying_cause_of_death
       - contributing_conditions
       - manner_of_death
+      - time_of_death
       - autopsy_status
     # Templates produce the clinically-authoritative narrative for every
     # section (feedback_verify_before_asserting — a template-only run must
