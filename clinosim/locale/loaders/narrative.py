@@ -223,6 +223,34 @@ def load_narrative_imaging() -> dict[str, dict[str, str]]:
     return raw.get("imaging", {}) or {}
 
 
+def _norm_exam_name(name: str) -> str:
+    return " ".join(str(name or "").lower().split())
+
+
+@lru_cache(maxsize=1)
+def _imaging_loinc_by_english_name() -> dict[str, str]:
+    """Normalised English LOINC long name -> LOINC code for every imaging
+    procedure code of ``body_sites.yaml`` (Issue #3399). A structured imaging
+    order stores the English long name as its display name."""
+    from clinosim.codes import display
+
+    path = _LOCALE_DIR.parent / "modules" / "imaging" / "reference_data" / "body_sites.yaml"
+    raw = _load_yaml(path, fallback={}) or {}
+    sites = raw.get("body_sites") or {}
+    index: dict[str, str] = {}
+    for site in sites.values():
+        for proc in ((site or {}).get("procedure_codes") or {}).values():
+            code = str((proc or {}).get("loinc") or "")
+            name = _norm_exam_name(display("loinc", code, "en") or "")
+            if code and name:
+                index.setdefault(name, code)
+    return index
+
+
+def _imaging_loinc_codes() -> frozenset[str]:
+    return frozenset(_imaging_loinc_by_english_name().values())
+
+
 def imaging_exam_display(exam_id: str, lang: str) -> str:
     """Display name of an imaging exam in ``lang`` from the one imaging-exam
     table (``narrative_imaging.yaml``; Issue #2268), used by FHIR and narrative.
@@ -236,6 +264,17 @@ def imaging_exam_display(exam_id: str, lang: str) -> str:
         return ""
     from clinosim.locale.table import ImagingExamTable
 
+    # An English LOINC long name or an imaging LOINC code resolves to the
+    # registry display in ``lang`` when that is a real translation (Issue #3399).
+    code = _imaging_loinc_by_english_name().get(_norm_exam_name(exam_id))
+    if code is None and str(exam_id).strip() in _imaging_loinc_codes():
+        code = str(exam_id).strip()
+    if code:
+        from clinosim.codes import display
+
+        localized = display("loinc", code, lang)
+        if localized and localized != display("loinc", code, "en"):
+            return localized
     return ImagingExamTable("narrative_imaging.imaging", load_narrative_imaging, humanize_unknown=True).get(
         str(exam_id), lang
     )
