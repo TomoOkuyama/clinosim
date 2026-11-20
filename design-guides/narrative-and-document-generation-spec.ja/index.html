@@ -2495,6 +2495,11 @@
 <td><code>tests/unit/modules/document/narrative/test_progress_exam_course_3235_3247.py</code></td>
 </tr>
 <tr>
+<td>日々の経過記録は、バイタルと薬剤以外の入院経過にも従う (<code>reference_data/progress_course.yaml</code>、<code>progress_vitals.yaml</code>)。S の疼痛は、疾患の疼痛部位、無ければ入院時主訴が示す部位 (<code>complaint_pain_sites</code>)、無ければ「疼痛」と書く。AVPU が P / U の患者には NRS を書かず、自己申告は困難と書く (行動観察による疼痛スケールは記録されないので、点数は書かない)。前日と一字一句同じ身体所見の系統は「前日と著変なし」と 1 度だけ書く (その日の最悪の AVPU が変わった日は一般状態は変化ありとする)。A は、<code>post_procedure_types</code> の処置 (PCI・カルジオバージョン・徒手整復・ロングチューブ・胸腔ドレーン) には「処置後 N 日目」、それ以外の手術には「術後 N 日目」と書き、入院の主病態の主要検査 (疾患の <code>expected_lab_distributions.admission</code> の項目) が前回値からどう動いたかを、記録時点で既知の結果から書く。P には、食事 (とその変更)、期間のリハビリテーション、退院する入院の最後の <code>days_before_discharge</code> + 1 日には退院調整を加える。</td>
+<td><code>clinosim/modules/document/narrative/_progress_course.py</code>, <code>_progress_exam.py::unchanged_systems</code>, <code>renderers/_composers.py::_pain_label</code></td>
+<td><code>tests/unit/modules/document/narrative/test_progress_course_followup_3235_3247.py</code></td>
+</tr>
+<tr>
 <td>退院時サマリーの入院経過は、入院期間の後に記録にあることだけを書く: 再入院 (<code>is_readmission</code> と回数。記録には前回入院の ID しか無いため前回入院の内容は書かない。入院時記録の現病歴も同じ)、投与薬を <code>reference_data/drug_plan_priority.yaml</code> の順位の群ごとに (群に属さない内服薬と維持輸液を除く)、処置・手技と初回実施日、合併症と発症した入院日 (入院日 = 入院第 1 日)、パニック値と異常名を伴う結果 (<code>select_notable_labs</code> を日ごとに適用し、項目と異常ごとに最も極端な値) と、その後 <code>reference_data/hospital_course.yaml</code> の時間内に投与された対応薬、入院時の常用薬と退院時処方の差 (両方ある場合のみ)、退院先と退院時点の Barthel 指数。退院時診断は主病名の後に、FHIR の副次 Condition と同じコード (<code>working_diagnosis_code</code>) の作業診断を、続いて既出のコードが表さない院内合併症を病名のみ (コードなし) で挙げる。</td>
 <td><code>clinosim/modules/document/narrative/_hospital_course.py</code>, <code>renderers/section_builders/discharge_summary.py::build_hospital_course</code>, <code>build_discharge_diagnoses</code></td>
 <td><code>tests/unit/modules/document/narrative/test_hospital_course_3246.py</code></td>
