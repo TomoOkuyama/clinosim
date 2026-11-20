@@ -203,7 +203,9 @@ same clock time on the day after discharge (re-queued; dropped when that
 leaves the calendar year or the patient is still admitted at the snapshot),
 and `dispatch_post_discharge` drops a follow-up that falls inside a later
 stay, which queues its own. `_dispatch.InpatientStayIndex` answers the
-"admitted at this time?" check.
+"admitted at this time?" check. An ED visit slot that falls inside a stay is
+likewise skipped, not deferred (Issue #3393): `dispatch_ed_slot` checks it
+before the person is activated.
 
 Scheduled outpatient care is held on clinic days (Issue #3018): a calendar
 clinic visit (chronic follow-up, pediatric / vaccination, chemotherapy,
