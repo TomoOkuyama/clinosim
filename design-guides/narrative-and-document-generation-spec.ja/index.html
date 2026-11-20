@@ -2549,6 +2549,21 @@
 <td><code>renderers/section_builders/hpi.py::_build_hpi_core</code>, <code>renderers/section_builders/ed_note.py::build_ed_physical_exam</code> / <code>agree_with_arrival_mode</code></td>
 <td><code>tests/unit/modules/document/narrative/test_ed_note_admitted_hpi_exam_3243.py</code></td>
 </tr>
+<tr>
+<td>入院時記録 (H&amp;P) は入院の原因疾患から書く (Issue #3245): 身体所見は疾患が及ぶ系統の所見を記録の言語で書く (<code>reference_data/disease_exam.yaml</code>: 英語・日本語。引用するバイタルと矛盾する句は書かず、意識の句はそのバイタルの AVPU に合わせ、疾患が関与しない系統に「正常」を作らない)。HPI は両言語で同じ構成 (年齢・性別、主訴、疾患の <code>onset_type</code> の発症文、既往、常用薬、ROS の陰性所見)。<code>admission_results</code> セクションは記録時点で得られている異常検査値と画像・心電図の所見を載せ、なければ結果待ちと書く。方針には、手術を要する疾患の予定手術と、記録された蘇生方針を加える。疾患 YAML に仮の評価 (「初期診断確定」) は置かず、評価と方針は記録から組み立てる。</td>
+<td><code>renderers/_disease_exam.py</code>, <code>renderers/section_builders/patient_history.py::build_physical_examination</code> / <code>build_admission_results</code>, <code>renderers/section_builders/hpi.py</code>, <code>renderers/section_builders/assessment_and_plan.py::admission_plan_items</code>, <code>reference_data/disease_exam.yaml</code></td>
+<td><code>tests/unit/modules/document/narrative/test_admission_hp_exam_3245.py</code></td>
+</tr>
+<tr>
+<td>文書は記載時点で存在したデータだけを含む (Issue #3241): H&amp;P は入院後 <code>authored_after_admission_hours</code> (<code>document_type_specs.yaml</code>) 時間、入院時検査の結果が出てから記載され (入院日 0 日目の文書のまま)、バイタルは記載時点までの最初の測定値を引用し (なければバイタルの行を書かない)、新生児の H&amp;P は Apgar を残し、記載より後のスクリーニング・測定・投与を書かない。</td>
+<td><code>narrative/_as_of.py::recorded_by</code>, <code>renderers/_composers.py::pe_vitals_reading</code>, <code>narrative/context.py::newborn_workup_known_at</code>, <code>engine.py::_plan_admission_once</code></td>
+<td><code>tests/unit/modules/document/narrative/test_admission_hp_exam_3245.py</code></td>
+</tr>
+<tr>
+<td>急性期脳卒中の身体所見は、来院の理由となった局所神経症状を書き、「麻痺なし」とは書かない (Issue #3227): 麻痺の側は入院 ID から入院ごとに決め (右の麻痺は失語と左への共同偏視、左の麻痺は半側空間無視と右への共同偏視を伴う)、NIHSS は記録の重症度の範囲内の値を入院日に記載し、その所見を H&amp;P・ED 記録・経過記録の神経所見とする。心房細動の患者 (心房細動での入院、または発作性以外の慢性心房細動) は整の脈の代わりに絶対性不整脈の脈を書く。</td>
+<td><code>renderers/_disease_exam.py::stroke_deficit</code> / <code>apply_exam_rules</code>, <code>reference_data/disease_exam.yaml</code></td>
+<td><code>tests/unit/modules/document/narrative/test_admission_hp_exam_3245.py</code></td>
+</tr>
 </tbody>
 </table>
 <h2 id="4-本書の対象外">4. 本書の対象外<a class="headerlink" href="#4-本書の対象外" title="Permanent link">&para;</a></h2>
