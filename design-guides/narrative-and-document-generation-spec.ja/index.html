@@ -2525,6 +2525,11 @@
 <td><code>tests/unit/modules/document/narrative/test_visit_reason_soap_3249.py</code></td>
 </tr>
 <tr>
+<td>外来 SOAP は受診時の検査結果を記載し、慢性疾患の病期を最新の検査から述べる。慢性疾患の項目が引用しない異常フラグの検査結果とスクリーニングスコア (PHQ-9、GAD-7、C-SSRS。C-SSRS 陽性は自殺リスク評価と安全計画の Plan 行を加える) は、Objective と Assessment の項目と Plan 行になる。DOAC の腎機能確認は creatinine / eGFR があるときだけ述べ、無ければ Plan で測定を計画する。Plan の内服は 1 つのリストにする。本日の処方と、来院時の内服 (<code>home_medications_at_admission</code>) との差 (開始・用量変更・本日の処方なし)、処方が無ければ来院時の内服。患者の降圧薬はすべて挙げ、目標を上回る血圧には Plan 行を付ける。US の LDL は患者のリスクに基づく閾値 (2018 AHA/ACC: 臨床的 ASCVD は 70 mg/dL、その他は 190 mg/dL。<code>statin_monitoring.yaml</code> の <code>basis</code>) で判定し、帯に対して「目標達成」とは書かない。JP は JAS 2022 のリスク区分の目標のままとする。検査が示す病期 (HbA1c、eGFR による CKD G 分類) は、記載時点で分かっている最新の検査から取り、受診時に無ければ患者の過去の受診 (<code>NarrativeContext.prior_lab_results</code>) から日付付きで取る。保存された HbA1c の病期が目標以上なら「増悪所見なし」とは書かない。入院時 H&amp;P の既往歴は最新の eGFR の CKD G 分類を述べる。</td>
+<td><code>clinosim/modules/document/narrative/_outpatient_results.py</code>、<code>reference_data/outpatient_results.yaml</code>、<code>section_builders/outpatient_soap.py</code> (<code>_visit_result_findings</code>、<code>_compose_medication_changes_line</code>)、<code>patient_history.py</code> (<code>build_past_medical_history</code>)</td>
+<td><code>tests/unit/modules/document/narrative/test_outpatient_soap_results_3231.py</code></td>
+</tr>
+<tr>
 <td>死亡診断書は記録を一度たどって得た一つの因果の連鎖を記し、死亡退院サマリーの死因も同じ連鎖を使う (NCHS Physicians' Handbook 2003 Part I / Part II、厚生労働省「死亡診断書（死体検案書）記入マニュアル」Ⅰ欄・Ⅱ欄)。直接死因は死亡の原因となりうる入院中の合併症のうち最も遅く発症したもの (停止などの機序ではなく疾患・合併症)。原死因は入院の最終診断を完全なコードで記す。ただし続発の状態を表すコード (重症敗血症・敗血症性ショック) は原死因にせず、入院時診断 (感染症) の上の行に置く。直接死因までの期間は、記録に発症時刻があればそこから数える。影響を及ぼした傷病名は、死因の行にない関連区分の慢性疾患と、その他の入院中の合併症で、締めの文は一度だけ書く。</td>
 <td><code>clinosim/modules/document/narrative/renderers/section_builders/mortality.py::_dc_cause_chain</code>、<code>reference_data/death_cause_chain.yaml</code></td>
 <td><code>tests/unit/modules/document/narrative/test_death_cause_chain_3255.py</code></td>
