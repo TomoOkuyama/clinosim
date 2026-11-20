@@ -3372,7 +3372,7 @@
 </tr>
 <tr>
 <td><code>localize_procedure_name(name, lang)</code></td>
-<td>処置の語句と画像検査 (<code>load_procedure_display_dict</code>)。完全一致を先に試し、複合したオーダ文字列には自由文字列の翻訳を使う</td>
+<td>処置の語句と画像検査 (<code>load_procedure_display_dict</code>)。オーダ文字列全体を先に試し (支持療法オーダの <code>type: detail</code> キー。語句が種別の名称と詳細のパラメータを持つ。Issue #3398)、次にコロン以降の詳細、種別が名称を持つオーダ分類の複合文字列では分類名のみ、それ以外は自由文字列の翻訳を使う。疾患プロトコルの <code>admission_orders.supportive</code> は全項目に <code>clinosim-procedure-phrase.yaml</code> の語句が必要 (ガード <code>tests/unit/locale/test_supportive_order_phrases_3398.py</code>)</td>
 <td>同上</td>
 </tr>
 <tr>

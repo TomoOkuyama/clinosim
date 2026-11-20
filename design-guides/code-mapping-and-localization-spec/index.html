@@ -3383,7 +3383,7 @@
 </tr>
 <tr>
 <td><code>localize_procedure_name(name, lang)</code></td>
-<td>procedure phrases and imaging exams (<code>load_procedure_display_dict</code>), exact match first, then the free-text translator for a composite order string</td>
+<td>procedure phrases and imaging exams (<code>load_procedure_display_dict</code>), the whole order string first (a supportive order's <code>type: detail</code> key, so the phrase carries the type's label and the detail's parameters; Issue #3398), then the detail after the colon, then for a composite order string whose type is a named order category the category's name alone, else the free-text translator. Every protocol <code>admission_orders.supportive</code> entry needs a phrase in <code>clinosim-procedure-phrase.yaml</code> (guard <code>tests/unit/locale/test_supportive_order_phrases_3398.py</code>)</td>
 <td>same</td>
 </tr>
 <tr>
