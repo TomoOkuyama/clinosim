@@ -38,6 +38,7 @@ from clinosim.modules.document.narrative._localization import (
     _localize_lab_flag,
 )
 from clinosim.modules.document.narrative._narrative_utils import _age_months_at
+from clinosim.modules.document.narrative._prescription_line import prescription_bits
 from clinosim.modules.document.narrative._template_helpers import (
     _fill_template_placeholders,
     _pick_localized,
@@ -674,7 +675,7 @@ def build_ed_disposition(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
 def _discharge_prescription_text(ctx: NarrativeContext, lang: str) -> str:
     """The take-home prescription of the ED visit, one entry per drug with its
     dose, in the note language (Issue #3244); ``""`` when none was written."""
-    from clinosim.locale.free_text import _localize_dosage_terms, localize_drug_name
+    from clinosim.locale.free_text import localize_drug_name
 
     names: list[str] = []
     seen: set[str] = set()
@@ -684,17 +685,7 @@ def _discharge_prescription_text(ctx: NarrativeContext, lang: str) -> str:
             continue
         seen.add(drug.casefold())
         shown = localize_drug_name(drug, lang) or drug
-        dose = str(localized_field(med, "dose", lang) or _o(med, "dose", "") or "").strip()
-        bits = [shown]
-        # The strength is often part of the drug name already ("Ibuprofen 600mg").
-        if dose and dose not in drug:
-            bits.append(dose)
-        frequency = str(_o(med, "rx_frequency", "") or "")
-        if frequency:
-            bits.append(_localize_dosage_terms(frequency, lang))
-        days = _o(med, "rx_duration_days", None)
-        if days:
-            bits.append(t("prescription.days_supply_suffix", lang, days=days))
+        bits = [shown, *prescription_bits(med, lang, drug_name=drug, show_route=False)]
         names.append(" ".join(bits))
     return t("list_sep.serial", lang).join(names)
 

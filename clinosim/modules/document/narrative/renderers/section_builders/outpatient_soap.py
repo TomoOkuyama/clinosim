@@ -63,6 +63,7 @@ from clinosim.modules.document.narrative._outpatient_results import (
     prior_lab_values,
     screening_scores,
 )
+from clinosim.modules.document.narrative._prescription_line import prescription_bits
 from clinosim.modules.document.narrative._template_helpers import (
     _pick_localized,
     _render_home_med_name,
@@ -1373,19 +1374,7 @@ def _compose_today_prescription_line(ctx: NarrativeContext) -> str:
         from clinosim.locale.free_text import localize_drug_name
 
         drug = localize_drug_name(drug, lang)
-        dose = _o(m, "dose", "") or ""
-        route = _o(m, "route", "") or ""
-        freq = _o(m, "frequency", "") or ""
-        days = _o(m, "days_supply", None)
-        bits: list[str] = [str(drug)]
-        if dose:
-            bits.append(str(dose))
-        if route:
-            bits.append(str(route))
-        if freq:
-            bits.append(str(freq))
-        if days:
-            bits.append(t("prescription.days_supply_suffix", lang, days=days))
+        bits: list[str] = [str(drug), *prescription_bits(m, lang, drug_name=str(drug))]
         parts.append(" ".join(bits))
     if not parts:
         return ""

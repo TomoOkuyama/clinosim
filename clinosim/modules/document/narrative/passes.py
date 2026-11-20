@@ -792,6 +792,10 @@ class NarrativePass(ABC):
             drug = str(_o(item, "drug_name", "") or _o(item, "drug", "") or "")
             if drug:
                 entry: dict[str, Any] = {"drug_name": drug, "dose": str(_o(item, "dose", "") or "")}
+                # Issue #3389: the route, read with the schedule by
+                # ``_prescription_line.prescription_bits``.
+                if _o(item, "route", None):
+                    entry["route"] = str(_o(item, "route", ""))
                 # Issue #3244: the schedule of the line (frequency and number of
                 # days), read by the ED disposition's take-home prescription.
                 schedule_days = _o(item, "duration_days", None) or _o(item, "days_supply", None)

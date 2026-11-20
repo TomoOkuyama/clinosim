@@ -23,10 +23,10 @@ from typing import TYPE_CHECKING
 
 from clinosim.countries import country_code
 from clinosim.locale.i18n import t
-from clinosim.locale.localized import localized_field
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import strip_protocol_prefix
 from clinosim.modules.document.narrative._localization import _localize_complication
+from clinosim.modules.document.narrative._prescription_line import prescription_bits
 from clinosim.modules.document.narrative.renderers._shared_helpers import diagnosis_coded
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section, section_builder
 from clinosim.types.document import NarrativeContext
@@ -284,38 +284,12 @@ def build_discharge_medications(generator: TemplateNarrativeGenerator, ctx: Narr
         # non-`"ja"`); `_localize_dosage_terms` is already
         # lang-aware. Single code path across locales.
         from clinosim.locale.free_text import (
-            _localize_dosage_terms,
             localize_drug_name,
         )
 
         display = localize_drug_name(display, lang)
 
-        def _term(v: str) -> str:
-            try:
-                return _localize_dosage_terms(v, lang)
-            except Exception:  # noqa: BLE001
-                return v
-
-        dose = _o(med, "dose", "") or ""
-        route = _o(med, "route", "") or ""
-        freq = _o(med, "frequency", "") or ""
-        days = _o(med, "days_supply", None)
-        bits: list[str] = [display]
-        # Issue #3107: a dose instruction authored per language (disease
-        # YAML ``dose_text``, e.g. a DOAC's reduced-dose condition) is the
-        # whole instruction in that language.
-        authored = localized_field(med, "dose", lang)
-        if authored and authored != dose:
-            bits.append(authored)
-            dose = route = freq = ""
-        if dose:
-            bits.append(_term(str(dose)))
-        if route:
-            bits.append(_term(str(route)))
-        if freq:
-            bits.append(_term(str(freq)))
-        if days:
-            bits.append(t("prescription.days_supply_suffix", lang, days=days))
+        bits: list[str] = [display, *prescription_bits(med, lang, drug_name=display)]
         lines.append(" ".join(bits))
 
     if lines:
