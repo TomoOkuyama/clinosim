@@ -65,7 +65,7 @@ clinosim/modules/longitudinal/
   engine.py        advance_one_year / state_at / initial_snapshot + event side effects (base meds, depression mutex)
   loader.py        yaml → AttributeSpec + depends_on topological sort
   med_lookup.py    resolve_med_name — event emits_meds drug name → HomeMedication
-  stage_refresh.py post-records enricher `stage_refresh`: restates each record's CKD G category (latest eGFR) and HbA1c stage from the latest labs (Issue #3273)
+  stage_refresh.py post-records enricher `stage_refresh`: restates each record's CKD G category (latest eGFR, or the eGFR calculated from the latest creatinine when it is later or no eGFR exists; `creatinine_egfr`, shared with the narrative) and HbA1c stage from the latest labs (Issues #3273, #3466)
   snapshot.py      re-export of YearSnapshot / yearsnapshot_from_dict (clinosim.types.longitudinal)
   patterns/
     __init__.py    PATTERN_REGISTRY
@@ -74,7 +74,7 @@ clinosim/modules/longitudinal/
     event.py       event firing
 ```
 
-The module has no `audit.py`; its attribute yaml lives under `clinosim/locale/shared/longitudinal/`, and `reference_data/stage_from_labs.yaml` holds the lab-to-stage rules of `stage_refresh.py` (KDIGO 2024 CKD G categories from the eGFR, the HbA1c stage format). The `stage_refresh` enricher (POST_RECORDS, order 900, no random draw) rewrites `chronic_conditions[].stage` of each record from the latest result of the stage's lab known by the end of the record, so a stored stage and the labs agree; a record with no such lab keeps the engine's stage.
+The module has no `audit.py`; its attribute yaml lives under `clinosim/locale/shared/longitudinal/`, and `reference_data/stage_from_labs.yaml` holds the lab-to-stage rules of `stage_refresh.py` (KDIGO 2024 CKD G categories from the eGFR, the creatinine lab and unit an eGFR is calculated from, the HbA1c stage format). The `stage_refresh` enricher (POST_RECORDS, order 900, no random draw) rewrites `chronic_conditions[].stage` of each record from the latest result of the stage's lab known by the end of the record, so a stored stage and the labs agree; a record with no such lab keeps the engine's stage.
 
 ## Enricher wiring
 

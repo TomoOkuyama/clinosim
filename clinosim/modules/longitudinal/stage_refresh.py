@@ -38,6 +38,8 @@ class _Ckd(BaseModel):
 
     icd_base: str
     lab: str
+    creatinine_lab: str
+    creatinine_unit: str
     format: str
     stages: list[_Stage] = Field(min_length=1)
 
@@ -87,6 +89,40 @@ def ckd_stage_label(egfr: float) -> str:
     return stage_from_labs_rules().ckd.format.format(stage=ckd_g_category(egfr))
 
 
+def _age_at(patient: Any, at: datetime) -> int | None:
+    """The patient's age in years at ``at`` (from the date of birth, else the
+    stored age)."""
+    dob = _get(patient, "date_of_birth", None)
+    if dob is not None and hasattr(dob, "year"):
+        return int(at.year - dob.year - ((at.month, at.day) < (dob.month, dob.day)))
+    age = _get(patient, "age", None)
+    return int(age) if isinstance(age, (int, float)) else None
+
+
+def creatinine_egfr(patient: Any, creatinine: Any, at: datetime, unit: Any = None) -> float | None:
+    """The eGFR (mL/min/1.73 m2) of a serum creatinine result at ``at`` with
+    the patient's country equation (Issue #3466): the single derivation the
+    stage refresh and the narrative share. ``None`` when the value or unit is
+    not a creatinine in the unit the rule names, or the patient's age / height
+    is outside what the equation covers."""
+    from clinosim.modules.physiology.egfr import estimated_gfr
+
+    rules = stage_from_labs_rules().ckd
+    if isinstance(creatinine, bool) or not isinstance(creatinine, (int, float)):
+        return None
+    if unit and str(unit).strip().lower() != rules.creatinine_unit.lower():
+        return None
+    age = _age_at(patient, at)
+    if age is None:
+        return None
+    address = _get(patient, "address", None)
+    country = str(_get(address, "country", "") or "US")
+    egfr = estimated_gfr(
+        float(creatinine), age, str(_get(patient, "sex", "") or ""), _get(patient, "height_cm", None), country
+    )
+    return None if egfr is None else round(egfr, 1)
+
+
 def _get(obj: Any, name: str, default: Any = None) -> Any:
     return obj.get(name, default) if isinstance(obj, dict) else getattr(obj, name, default)
 
@@ -120,6 +156,8 @@ def refresh_stages_from_labs(ctx: Any) -> None:
     latest lab results of the patient known by the end of the record. A record
     whose patient has no such lab keeps its stage; a record's patient object
     is replaced by a copy, never mutated in place (profiles may be shared)."""
+    from clinosim.modules.observation.engine import canonical_lab_name
+
     rules = stage_from_labs_rules()
     labs_wanted = {rules.ckd.lab, rules.hba1c.lab}
     by_patient: dict[str, list[Any]] = {}
@@ -130,6 +168,7 @@ def refresh_stages_from_labs(ctx: Any) -> None:
     for records in by_patient.values():
         records.sort(key=_record_start)
         results: dict[str, list[tuple[datetime, float]]] = {}
+        derived: list[tuple[datetime, float]] = []
         for record in records:
             for lab in _get(record, "lab_results", []) or []:
                 name = str(_get(lab, "lab_name", "") or "")
@@ -137,6 +176,16 @@ def refresh_stages_from_labs(ctx: Any) -> None:
                 at = _naive(_get(lab, "result_datetime", None))
                 if name in labs_wanted and at is not None and isinstance(value, (int, float)):
                     results.setdefault(name, []).append((at, float(value)))
+                elif canonical_lab_name(name) == rules.ckd.creatinine_lab and at is not None:
+                    egfr = creatinine_egfr(_get(record, "patient", None), value, at, _get(lab, "unit", None))
+                    if egfr is not None:
+                        derived.append((at, egfr))
+        # A creatinine-derived eGFR joins the eGFR series; a measured eGFR at
+        # the same time wins (Issue #3466).
+        measured = {r[0] for r in results.get(rules.ckd.lab, [])}
+        results.setdefault(rules.ckd.lab, []).extend(r for r in derived if r[0] not in measured)
+        if not results[rules.ckd.lab]:
+            del results[rules.ckd.lab]
         for record in records:
             end = _record_end(record)
             latest = {

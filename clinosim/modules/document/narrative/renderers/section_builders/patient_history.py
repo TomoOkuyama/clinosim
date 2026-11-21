@@ -97,7 +97,7 @@ def build_past_medical_history(generator: TemplateNarrativeGenerator, ctx: Narra
         # list.
         # Issue #3396: a stored stage restated from a result reported after
         # the note was authored is not known to it.
-        known_stage = latest_lab_stage(str(code), str(stage or ""), known_labs)
+        known_stage = latest_lab_stage(str(code), str(stage or ""), known_labs, patient)
         if known_stage:
             stage = known_stage
         elif stage and stage_from_pending_lab(ctx, str(code), str(stage)):
