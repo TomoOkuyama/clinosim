@@ -663,40 +663,52 @@ class NarrativePass(ABC):
             ctx.section_facts = extract_for_composition(ctx, spec)
         return ctx
 
-    def _patient_prior_labs(self, structural_dir: str, own_file: str) -> list[Any]:
-        """The lab results (country reporting unit) of the patient's other
-        structural records: the files sharing ``own_file``'s ``ENC-<patient>``
-        prefix. Issue #3273."""
-        prefix = own_file.rsplit("-", 1)[0] + "-"
-        labs: list[Any] = []
+    @staticmethod
+    def _patient_record_files(structural_dir: str, own_file: str) -> list[dict[str, Any]]:
+        """The patient's other structural records (own file excluded).
+
+        Files are named ``ENC-<patient_id>-<first encounter>.json``. The
+        patient id is read off ``own_file`` and only names of exactly that
+        shape match, so ``ENC-POP-000053-BABY-...`` (the newborn, whose id
+        is ``POP-000053-BABY``) is not the mother's record. A record whose
+        own ``patient.patient_id`` differs is skipped as well. Issue #3446.
+        """
+        stem = own_file[: -len(".json")] if own_file.endswith(".json") else own_file
+        head = stem.rsplit("-", 1)[0]
+        pattern = re.compile(rf"^{re.escape(head)}-[^-]+\.json$")
+        patient_id = head[len("ENC-") :] if head.startswith("ENC-") else head
+        records: list[dict[str, Any]] = []
         for name in sorted(os.listdir(structural_dir)):
-            if name == own_file or not name.startswith(prefix) or not name.endswith(".json"):
+            if name == own_file or not pattern.match(name):
                 continue
             try:
                 with open(os.path.join(structural_dir, name), encoding="utf-8") as f:
                     other = json.load(f)
             except (OSError, ValueError):
                 continue
+            if not isinstance(other, dict):
+                continue
+            recorded = (other.get("patient") or {}).get("patient_id")
+            if recorded and recorded != patient_id:
+                continue
+            records.append(other)
+        return records
+
+    def _patient_prior_labs(self, structural_dir: str, own_file: str) -> list[Any]:
+        """The lab results (country reporting unit) of the patient's other
+        structural records. Issues #3273, #3446."""
+        labs: list[Any] = []
+        for other in self._patient_record_files(structural_dir, own_file):
             labs.extend(other.get("lab_results") or [])
         return list(reported_lab_results(labs, self.country))
 
     @staticmethod
     def _patient_other_encounters(structural_dir: str, own_file: str) -> list[dict[str, Any]]:
-        """The encounters of the patient's other structural records (the files
-        sharing ``own_file``'s ``ENC-<patient>`` prefix). Issue #3407."""
+        """The encounters of the patient's other structural records.
+        Issues #3407, #3446."""
         from clinosim.modules.document.narrative._interval_events import other_encounters
 
-        prefix = own_file.rsplit("-", 1)[0] + "-"
-        records: list[Any] = []
-        for name in sorted(os.listdir(structural_dir)):
-            if name == own_file or not name.startswith(prefix) or not name.endswith(".json"):
-                continue
-            try:
-                with open(os.path.join(structural_dir, name), encoding="utf-8") as f:
-                    records.append(json.load(f))
-            except (OSError, ValueError):
-                continue
-        return other_encounters(records)
+        return other_encounters(NarrativePass._patient_record_files(structural_dir, own_file))
 
     @staticmethod
     def _parse_rehab_sessions(raw: list[Any]) -> list[Any]:
