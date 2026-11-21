@@ -10,6 +10,7 @@ import dataclasses
 import hashlib
 from datetime import date, timedelta
 from functools import lru_cache
+from typing import Any
 
 import numpy as np
 
@@ -735,19 +736,21 @@ def activate_patient(
     # the real `conditions` list (without this virtual entry) so no
     # Z34 problem-list-item leaks back in.
     #
-    # ARCHITECTURAL NOTE: this activator hook attaches supplements
-    # to the patient's persistent current_medications, which slightly
-    # over-emits (supplements persist past the pregnancy). Proper
-    # per-encounter MedicationRequest emission scoped to prenatal
-    # visits is Incr 1.5. Under-emit vs the pre-Incr-1 flow (which
-    # attached from Day 0 to any Z34-carrying woman, regardless of
-    # actual pregnancy timing) is a net data-quality gain.
+    # Issue #3503: the virtual Z34 input is added only while a pregnancy is
+    # open or inside the postpartum window of perinatal.yaml
+    # (`lifecycle.prenatal_supplement_postpartum_days`); outside it the
+    # supplements are dropped from the carried list.
     _meds_input = conditions
-    _has_pregnancy_history = bool(
-        [p for p in getattr(person, "state_periods", []) or [] if getattr(p, "state_type", "") == "pregnancy"]
-    )
-    if _has_pregnancy_history:
+    _prenatal_active = _prenatal_supplement_window_active(person, as_of_year)
+    if _prenatal_active:
         _meds_input = list(conditions) + [ChronicCondition(code="Z34", system="icd-10-cm")]
+    elif _pregnancy_periods(person):
+        # Issue #3503: a supplement carried from an earlier activation (or a
+        # discharge Rx) stops once the pregnancy + postpartum window is over.
+        # Only for a person with a pregnancy on record: for anyone else iron
+        # is a treatment of its own (e.g. for anaemia), not a prenatal drug.
+        _prenatal_ids = _prenatal_supplement_drug_ids()
+        current_meds = [m for m in current_meds if not (m.drug_id and m.drug_id in _prenatal_ids)]
     _derived_meds = _derive_home_medications(
         _meds_input,
         patient_id=person.person_id,
@@ -1059,6 +1062,41 @@ def _required_coverage_fills(
         weights = tuple(float(m.get("probability", 1.0)) for m in pool)
         fills.append(pool[int(determinism.sha_weighted_choice(f"{salt}|{fill_class}", keys, weights))])
     return fills
+
+
+def _prenatal_supplement_drug_ids() -> frozenset[str]:
+    """Catalog drug ids of the prenatal supplements (Z34 entry of chronic_medications.yaml)."""
+    from clinosim.locale.loader import load_chronic_medications
+
+    spec = load_chronic_medications().get("Z34") or {}
+    return frozenset(str(m.get("drug_id")) for m in spec.get("medications", []) if m.get("drug_id"))
+
+
+def _pregnancy_periods(person: Any) -> list[Any]:
+    return [p for p in getattr(person, "state_periods", []) or [] if getattr(p, "state_type", "") == "pregnancy"]
+
+
+def _prenatal_supplement_window_active(person: Any, as_of_year: int | None) -> bool:
+    """True iff a pregnancy is open, or ended within the YAML postpartum
+    window, at any time in ``as_of_year`` (Issue #3503).
+
+    ``as_of_year=None`` (no activation date) keeps "any pregnancy on record".
+    """
+    from clinosim.locale.loader import load_perinatal_config
+
+    periods = _pregnancy_periods(person)
+    if not periods:
+        return False
+    if as_of_year is None:
+        return True
+    days = int(((load_perinatal_config().get("lifecycle") or {}).get("prenatal_supplement_postpartum_days")) or 0)
+    year_start, year_end = date(as_of_year, 1, 1), date(as_of_year, 12, 31)
+    for p in periods:
+        if p.start_date > year_end:
+            continue
+        if p.end_date is None or p.end_date + timedelta(days=days) >= year_start:
+            return True
+    return False
 
 
 def _derive_home_medications(
