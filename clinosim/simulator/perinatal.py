@@ -1031,6 +1031,17 @@ def simulate_delivery_encounter(
             f"{item['drug_name']} {item['dose']}", str(item["frequency"]), country
         )
         item["dose"] = _labelled[len(str(item["drug_name"])) :].strip()
+    # Issue #3463: the mother's maintenance home medications go on after the
+    # delivery (28 days, structured dose/route/frequency), so the discharge
+    # summary does not report them stopped and later visits agree with it.
+    from clinosim.simulator.outpatient import home_medication_continuation_items
+
+    _mother_rx_items += home_medication_continuation_items(
+        patient,
+        encounter,
+        encounter.discharge_datetime or visit_date,
+        exclude_drugs=frozenset(str(i["drug_name"]) for i in _mother_rx_items),
+    )
     from clinosim.types.encounter import PrescriptionRecord as _PrescriptionRecord
 
     _mother_discharge_rx = _PrescriptionRecord(

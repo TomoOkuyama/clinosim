@@ -165,7 +165,7 @@ clinosim/simulator/
                          (プロトコルの `antithrombotic_plan`, Issue #3277)
   enrichers.py           enricher レジストリ (post-population / post-records)
   outpatient_dept.py     外来フォローアップ診療科リゾルバ
-  perinatal.py           分娩エンカウンター + 新生児 emit
+  perinatal.py           分娩エンカウンター + 新生児 emit (母の退院処方 = 鎮痛薬 + 母の維持的な常用薬の継続)
   complications.py       合併症イベントスキーマヘルパー
   sex_gating.py          ICD-10 診断 dispatch の性別ゲート
   unknown_condition.py   疾患プロトコルを持たない慢性疾患のハンドリング

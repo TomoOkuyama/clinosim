@@ -48,6 +48,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 - Progress notes state hypothermia only for a latest temperature below 35.0 °C (time-qualified earlier minimum), state consciousness on the latest AVPU with the worse earlier level time-qualified, and word a persisting abnormal vital as improving or worsening only past a per-vital meaningful change (#3453, #3455).
 - ED note physical exam no longer doubles the sentence terminator between body systems ("。。" in Japanese, ".." in English); the exam is joined with the shared terminator-safe helper (#3474).
 - An operative note states its indication: a procedure recorded without a pre-operative diagnosis (an isolated-rule or bedside procedure) falls back to the encounter admission and discharge diagnosis, and reads "Indication: not documented" when the stay records none, instead of leaving the diagnosis out.
+- The delivery discharge prescription continues the mother's maintenance home medications (28 days, dose/route/frequency kept; allergy-blocked drugs left out) alongside the two analgesics, so the discharge summary no longer reports them stopped while the postpartum visits keep listing them (#3463). CIF drift, a MINOR-class change.
 
 ## [0.7.0] - 2026-11-11
 
