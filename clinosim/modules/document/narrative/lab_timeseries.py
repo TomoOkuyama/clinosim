@@ -33,6 +33,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from clinosim.modules._shared import get_attr_or_key as _get
+from clinosim.modules.observation.hemolysis_redraw import HEMOLYZED_FLAGS
 from clinosim.timeutil import parse_iso_datetime
 
 # ---------------------------------------------------------------------------
@@ -293,7 +294,7 @@ class NotableLab:
 # Draw severity within one analyte's day: a panic result outranks a flagged
 # (hemolysed) specimen, which outranks an ordinary H / L.
 _DRAW_SEVERITY = {"critical": 3, "!": 3, "H*": 2, "L*": 2}
-_HEMOLYZED_FLAGS = frozenset({"H*", "L*"})
+_HEMOLYZED_FLAGS = HEMOLYZED_FLAGS
 _PANIC_FLAGS = frozenset({"critical", "!"})
 
 

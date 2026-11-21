@@ -29,6 +29,7 @@ from clinosim.locale.i18n import t
 from clinosim.modules._shared import sanitize_id_token
 from clinosim.modules.drug_safety._hyperkalemia_thresholds import TREATMENT_ORDER_DELAY_MIN
 from clinosim.modules.drug_safety._models import HyperkalemiaResponseFile
+from clinosim.modules.observation.hemolysis_redraw import is_hemolyzed
 from clinosim.types.encounter import Order, OrderResult, OrderStatus, OrderType
 
 _RULES_YAML = Path(__file__).resolve().parent / "reference_data" / "hyperkalemia_response.yaml"
@@ -99,23 +100,25 @@ class PotassiumHold:
 
 
 def potassium_history(results: Iterable[OrderResult]) -> tuple[tuple[datetime, float], ...]:
-    """Every numeric potassium result ``(resulted at, value)`` in time order."""
+    """Every numeric, non-hemolyzed potassium result ``(resulted at, value)``
+    in time order (a hemolyzed specimen reads falsely high, Issue #3452)."""
     return tuple(
         sorted(
             (r.result_datetime, float(r.value))
             for r in results
-            if r.lab_name == _POTASSIUM_LAB and isinstance(r.value, (int, float))
+            if r.lab_name == _POTASSIUM_LAB and isinstance(r.value, (int, float)) and not is_hemolyzed(r.flag)
         )
     )
 
 
 def potassium_hold_from_results(results: Iterable[OrderResult]) -> PotassiumHold | None:
     """The hold the earliest potassium result at or above the threshold
-    starts, or ``None`` when no result reaches it."""
+    starts, or ``None`` when no result reaches it. A hemolyzed result is
+    skipped: it reads falsely high and is repeated instead (Issue #3452)."""
     threshold = hyperkalemia_rules().treat_threshold_mmol_l
     hits: list[tuple[datetime, float]] = []
     for r in results:
-        if r.lab_name != _POTASSIUM_LAB or not isinstance(r.value, (int, float)):
+        if r.lab_name != _POTASSIUM_LAB or not isinstance(r.value, (int, float)) or is_hemolyzed(r.flag):
             continue
         if float(r.value) >= threshold:
             hits.append((r.result_datetime, float(r.value)))

@@ -1,0 +1,32 @@
+# clinosim/modules/observation/reference_data/hemolysis_redraw.yaml
+# Repeat draw after a hemolyzed specimen (Issue #3452). Consumed by
+# clinosim.modules.observation.hemolysis_redraw and applied in the inpatient
+# daily loop (clinosim/simulator/daily_loop.py) right after the day's labs
+# are resulted.
+#
+# A hemolyzed specimen reads falsely high (flag H*, see pre_analytical.py), so
+# its value is never acted on: the hyperkalemia hold and treatment ignore it.
+# The lab asks for a new specimen instead; the repeat is a new lab order
+# ordered `delay_minutes` after the hemolyzed result and resulted from the
+# patient's true value, and treatment follows that result.
+#
+# Source: none verified. Repeating a hemolyzed specimen before acting on it is
+# routine laboratory practice (hyperkalemia_response.yaml names the UK Kidney
+# Association acute hyperkalaemia guideline, whose text was not re-read for
+# this file). The delay and the retry cap are clinosim modelling choices.
+
+# Analytes that are redrawn when hemolyzed (canonical lab names).
+metadata:
+  kind: reference
+  name: hemolysis_redraw
+  source: "none verified; repeat-before-acting on a hemolyzed specimen is a modelling choice (see header)"
+
+labs:
+  - K
+
+# Minutes from the hemolyzed result to the repeat order. Unit: minutes.
+delay_minutes: 30
+
+# Repeat draws placed for one hemolyzed specimen at most; a repeat that is
+# itself hemolyzed or rejected is repeated again until this cap.
+max_redraws: 3

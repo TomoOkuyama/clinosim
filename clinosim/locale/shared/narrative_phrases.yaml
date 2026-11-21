@@ -3193,6 +3193,10 @@ encounter_intent:
   day_monitoring:
     ja: "第{day}病日モニタリング: {test}"
     en: "Day {day} monitoring: {test}"
+  # Issue #3452: the repeat draw ordered after a hemolyzed specimen.
+  hemolysis_redraw:
+    ja: "溶血検体のため再採血: {test}"
+    en: "Repeat draw after a hemolyzed specimen: {test}"
   unknown_initial_workup:
     ja: "{complaint}の初期精査"
     en: "Unknown {complaint}: initial workup"
