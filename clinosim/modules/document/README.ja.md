@@ -30,7 +30,7 @@ FHIR resource ID prefix も所有する。
   6-layer validator、他に `load_hpi_pertinent_negatives`,
   `load_chief_complaint_variant_rules`, `load_bedside_procedure_codes`,
   `load_nursing_content`)、per-encounter document-type dispatch
-  (`_pick_document_author`, `_referral_note_fires`,
+  (`_pick_document_author`, `_plan_discharge_referral`,
   `_enc_type_value`, `_enc_status_value`, `_compute_los_days`,
   `_PLANNERS` per generation frequency + `_build_documents`)。
 - **In scope (audit)**: [`audit.py`](audit.py) — 5 番目の
@@ -90,10 +90,13 @@ from clinosim.modules.document.engine import document_enricher
 
 ## 決定論
 
-- `document_enricher` は乱数を引かない。唯一の確率的に見える選択
-  (適格な退院で referral note を出すか、`REFERRAL_NOTE_FIRE_RATE =
-  0.20`) は `sha256(f"{encounter_id}::{patient_id}")` の安定 threshold
-  (`_referral_note_fires`) で決まり、RNG stream を消費しない (AD-16)。
+- `document_enricher` は乱数を引かない。referral note
+  を出すかは規則で決まる (Issue #3460):患者のケアが他の提供者へ移る
+  生存退院のみ (`reference_data/referral_recipients.yaml` の
+  `transfer_dispositions`)。自宅退院は当院外来で経過観察するため出さない。
+  紹介先医療機関は国の外部医療機関カタログから sha256 で安定に選び
+  (`referral_recipient.pick_external_hospital`)、narrative と FHIR
+  Composition で同一になる。RNG stream は消費しない (AD-16)。
 - サブ seed オフセット `0x444F` (`"DO"`) が
   [`clinosim/seeding.py`](../../seeding.py) の
   `ENRICHER_SEED_OFFSETS["document"]` に登録されているが、読む code は

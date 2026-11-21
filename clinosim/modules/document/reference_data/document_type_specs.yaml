@@ -315,10 +315,11 @@ specs:
   #     └ 950 紹介目的 / 340 傷病名・主訴 / 360 現病歴
   # US path は非対応(診療情報提供書は医療機関間情報連携用の JP 特有
   # 文書種別。US では通常の紹介状で運用される)。
-  # generation_frequency=discharge_fraction_20pct:急性期病院の実務比率
-  # に合わせ inpatient 退院の約 20% を発行対象とする。発行判定は
-  # (encounter_id, patient_id) の SHA-256 hash による決定的サブセット
-  # 選択(新規 RNG allocation 不要)。
+  # generation_frequency=discharge_referral(Issue #3460):患者のケアが
+  # 他の提供者へ移る退院(転院・施設転送。referral_recipients.yaml の
+  # transfer_dispositions)にのみ発行する。自宅退院は当院外来で経過観察
+  # されるため発行しない。紹介先は narrative と FHIR で同一の機関
+  # (referral_recipient.pick_external_hospital)。
   # Issue #990 (2026-08-30):stage2_strategy を template_only →
   # template_seed_bundle に昇格。診療情報提供書は 3 つの自由記述セクション
   # (紹介目的 / 現病歴 / 治療方針への希望に相当)が「継続加療のため」等の
@@ -333,7 +334,7 @@ specs:
     format_type: composition
     countries_supported: [jp]
     encounter_types_supported: [inpatient, icu, rehab_inpatient]
-    generation_frequency: discharge_fraction_20pct
+    generation_frequency: discharge_referral
     composition_sections:
       - referring_institution
       - referral_destination

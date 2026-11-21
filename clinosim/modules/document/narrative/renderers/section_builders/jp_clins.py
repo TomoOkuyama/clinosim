@@ -37,8 +37,10 @@ from clinosim.modules.document.narrative._narrative_interpretation_thresholds im
 from clinosim.modules.document.narrative._template_helpers import (
     _render_home_med_name,
 )
+from clinosim.modules.document.narrative._visit_reason import join_sentences
 from clinosim.modules.document.narrative.renderers._shared_helpers import chronic_condition_label, diagnosis_coded
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section, section_builder
+from clinosim.modules.document.referral_recipient import format_referral_destination_text, pick_external_hospital
 from clinosim.types.document import NarrativeContext
 
 if TYPE_CHECKING:
@@ -250,13 +252,17 @@ def build_referring_institution(generator: TemplateNarrativeGenerator, ctx: Narr
 def build_referral_destination(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """910 紹介先情報セクション:紹介先医療機関の記載。
 
-    clinosim は機関間連携 workflow を simulate しないため、紹介先は
-    汎用 "他院" placeholder。将来:受け入れ想定医療機関の小さな pool
-    から sample する余地あり。
+    FHIR Composition の 910 と同じ関数 (``pick_external_hospital``) で選んだ
+    医療機関名を書く (Issue #3460)。宛名の医師名は CIF にないため作らず、
+    「御担当医 先生 御侍史」とする。外部医療機関カタログのない国では汎用文。
     """
-    facts: list[str] = []
     lang = ctx.target_lang
-    return t("referral.referral_destination_line", lang), facts
+    patient_id = str(_o(ctx.patient, "patient_id", "") or "")
+    encounter_id = str(_o(ctx.encounter, "encounter_id", "") or "")
+    entry = pick_external_hospital(patient_id, encounter_id, country_code(ctx.locale))
+    if entry is None:
+        return t("referral.referral_destination_line", lang), []
+    return format_referral_destination_text(entry, lang), ["ctx.encounter"]
 
 
 @section("referral_purpose")
@@ -413,7 +419,7 @@ def build_referral_remarks(generator: TemplateNarrativeGenerator, ctx: Narrative
         facts = [*facts, "ctx.code_status"]
     if not parts:
         return t("referral.no_remarks", lang), []
-    return t("list_sep.sentence_gap", lang).join(parts), facts
+    return join_sentences(parts, lang), facts
 
 
 @section("diagnoses_and_complaint")

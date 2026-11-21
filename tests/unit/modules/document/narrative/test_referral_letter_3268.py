@@ -103,7 +103,8 @@ def test_purpose_is_never_a_specialty_referral_within_the_hospital(gen) -> None:
 
 
 def test_destination_line_does_not_state_a_purpose(gen) -> None:
-    assert jp_clins.build_referral_destination(gen, _ctx())[0] == "紹介先:他院。"
+    text = jp_clins.build_referral_destination(gen, _ctx())[0]
+    assert "継続" not in text and "リハビリ" not in text
 
 
 def _facts(disposition: str, enc_id: str) -> engine._EncounterFacts:
@@ -120,8 +121,5 @@ def _facts(disposition: str, enc_id: str) -> engine._EncounterFacts:
 
 
 def test_no_referral_letter_is_planned_for_a_death() -> None:
-    firing = next(
-        f"ENC-{i}" for i in range(500) if engine._plan_discharge_fraction_20pct(None, _facts("home", f"ENC-{i}"))
-    )
-    assert engine._plan_discharge_fraction_20pct(None, _facts("home", firing))
-    assert engine._plan_discharge_fraction_20pct(None, _facts("exp", firing)) == []
+    assert engine._plan_discharge_referral(None, _facts("snf", "ENC-1"))
+    assert engine._plan_discharge_referral(None, _facts("exp", "ENC-1")) == []

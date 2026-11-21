@@ -208,19 +208,6 @@ def test_jp_clins_referral_composition_from_to_section_entries():
 
 
 @pytest.mark.unit
-def test_referral_note_fires_deterministic():
-    """20% fire rate は (encounter_id, patient_id) ごとに決定的であること。"""
-    from clinosim.modules.document.engine import _referral_note_fires
-
-    # Same inputs → same output
-    assert _referral_note_fires("ENC-1", "P1") == _referral_note_fires("ENC-1", "P1")
-    # Different encounter_id → possibly different (but deterministic)
-    # This just documents that _fires is deterministic (not a probability test)
-    outcomes = {_referral_note_fires(f"ENC-{i}", "P1") for i in range(1000)}
-    assert outcomes == {True, False}, "fires should hit both branches over 1000 samples"
-
-
-@pytest.mark.unit
 def test_referral_external_org_sampling_is_deterministic_and_stable():
     """Issue #924: pick_external_hospital must be deterministic across
     calls and yield distinct catalog rows for distinct
@@ -287,13 +274,3 @@ def test_bb_compositions_emits_referenced_external_organizations():
     assert from_entry != to_entry
     # And the referenced external org appears in the emit output.
     assert to_entry.split("/", 1)[1] in ext_ids
-
-
-@pytest.mark.unit
-def test_referral_note_fire_rate_approximately_20pct():
-    """N=2000 で実測発火率が 20% ±5% 以内であること。"""
-    from clinosim.modules.document.engine import _referral_note_fires
-
-    fires = sum(1 for i in range(2000) if _referral_note_fires(f"ENC-{i:04d}", f"P-{i:04d}"))
-    rate = fires / 2000
-    assert 0.15 <= rate <= 0.25, f"referral fire rate {rate} outside [0.15, 0.25]"

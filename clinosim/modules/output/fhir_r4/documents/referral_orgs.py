@@ -10,38 +10,38 @@ hospital.
 This module owns the read-side of the new
 ``clinosim/locale/jp/external_organizations.yaml`` catalog:
 
-* ``pick_external_hospital`` returns a deterministic entry for a given
-  ``(patient_id, encounter_id)`` pair (RNG-neutral per
-  feedback_rng_neutral_additive_field.md — pure sha256 → index modulo,
-  no consumption from any master RNG). Same inputs always resolve to the
-  same catalog row across runs / platforms.
+* ``pick_external_hospital`` (re-exported from
+  ``modules/document/referral_recipient.py``, which the narrative also reads,
+  Issue #3460) returns a deterministic entry for a given
+  ``(patient_id, encounter_id)`` pair — pure sha256 → index modulo, no
+  consumption from any master RNG.
 * ``build_external_org_resource`` renders one catalog entry into a
   fully-formed JP_Organization + JP_Organization_eCS FHIR resource,
   matching the field set the eReferral 920 / 910 slice discriminator
   (`type: profile, path: resolve()`) requires — the same 6-field shape
   that ``hospital-main`` carries in ``encounters/facility.py``.
 
-Sampling constraints:
-  * outcomes must be stable across sessions and platforms
-  * no numpy / Python ``random`` usage — sha256 only
-  * catalog order matters: appending is safe, mid-list insertion rotates
-    which encounter maps to which hospital (documented in the YAML)
+The catalog order matters: appending is safe, mid-list insertion rotates
+which encounter maps to which hospital (documented in the YAML).
 """
 
 from __future__ import annotations
 
-from functools import lru_cache
 from typing import Any
 
-from clinosim.determinism import sha_index
 from clinosim.locale.i18n import t
-from clinosim.locale.loader import load_external_organizations
+from clinosim.modules.document.referral_recipient import (
+    format_referral_destination_text,
+    pick_external_hospital,
+)
 from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept
 from clinosim.modules.output.fhir_r4.lib.jp_profiles import (
     JP_INSURANCE_MEDICAL_INSTITUTION_NO_SYSTEM,
     JP_ORGANIZATION_ECS_PROFILE,
     JP_ORGANIZATION_PROFILE,
 )
+
+__all__ = ["build_external_org_resource", "format_referral_destination_text", "pick_external_hospital"]
 
 # eCS `identifier:medicalInstitutionCode` slice fixedUri — identical to the
 # system that ``facility.py`` pins on ``hospital-main``. Extracted here so
@@ -54,38 +54,6 @@ _JP_ORGANIZATION_ECS_PROFILE = JP_ORGANIZATION_ECS_PROFILE
 # Static lastUpdated — external catalog is versioned with the release, not
 # per-run; matches the ``hospital-main`` static value pattern (facility.py).
 _JP_ORG_STATIC_LAST_UPDATED = "2026-01-01T00:00:00+09:00"
-
-# Sampling salt — distinct from any other per-encounter derived value so the
-# referral picker does not collide with an unrelated deterministic salt.
-_REFERRAL_SAMPLING_SALT = "referral-external-hospital"
-
-
-@lru_cache(maxsize=8)
-def _catalog(country: str) -> list[dict[str, Any]]:
-    """Return the country's external hospital catalog (cached)."""
-    return load_external_organizations(country)
-
-
-def pick_external_hospital(
-    patient_id: str,
-    encounter_id: str,
-    country: str,
-) -> dict[str, Any] | None:
-    """Deterministically sample one external hospital for a referral encounter.
-
-    Selection is a sha256 modulo the catalog length — RNG-neutral (no
-    consumption from any master RNG, so adding this path does not shift
-    any downstream stochastic sequence). Same ``(patient_id, encounter_id)``
-    always resolves to the same catalog row, across processes and platforms.
-
-    Returns ``None`` when the catalog is empty (e.g. US, which does not
-    ship an ``external_organizations.yaml`` today) — callers must handle
-    the no-catalog case and fall back to their prior emit behavior.
-    """
-    catalog = _catalog(country)
-    if not catalog:
-        return None
-    return catalog[sha_index(f"{patient_id}::{encounter_id}::{_REFERRAL_SAMPLING_SALT}", len(catalog))]
 
 
 def build_external_org_resource(entry: dict[str, Any]) -> dict[str, Any]:
@@ -130,15 +98,3 @@ def build_external_org_resource(entry: dict[str, Any]) -> dict[str, Any]:
         "address": [{"use": "work", "text": address_text}],
     }
     return org
-
-
-def format_referral_destination_text(entry: dict[str, Any], lang: str = "ja") -> str:
-    """Return the narrative sentence for the 910 (紹介先) section.
-
-    Fills in the sampled facility name in place of the pre-fix `他院`
-    placeholder. English lang emitted for symmetry with the
-    template-generator English branch (currently unreachable — JP-CLINS
-    eReferral is JP-only — but keeps the helper honest).
-    """
-    name = entry.get("name") or entry["id"]
-    return t("referral_fhir.destination_sentence", lang, name=name)
