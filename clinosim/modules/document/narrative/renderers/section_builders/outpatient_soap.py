@@ -1397,7 +1397,7 @@ def _compose_today_prescription_line(ctx: NarrativeContext) -> str:
         return ""
     lang = ctx.target_lang
     parts: list[str] = []
-    for m in rx[:8]:
+    for m in rx:
         drug = _o(m, "drug_name", "") or ""
         if not drug:
             continue
@@ -1423,7 +1423,7 @@ def _compose_today_procedures_line(ctx: NarrativeContext) -> str:
     lang = ctx.target_lang
     names: list[str] = []
     seen: set[str] = set()
-    for pr in procs[:6]:
+    for pr in procs:
         nm = _o(pr, "procedure_name", None) or _o(pr, "name", None) or _o(pr, "display_name", None)
         if not nm or nm in seen:
             continue
