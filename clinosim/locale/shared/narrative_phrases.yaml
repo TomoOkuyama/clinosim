@@ -1998,9 +1998,12 @@ referral:
   referring_institution_line:
     ja: "紹介元:当院(急性期一般病棟)。担当医師の署名により発行。"
     en: "Referring institution: this hospital (acute-care general ward)."
+  # The recipient is no longer "another institution": the letter names the
+  # catalog institution (referral_fhir.destination_sentence). This line is the
+  # fallback for a country with no external-organization catalog.
   referral_destination_line:
-    ja: "紹介先:他院。"
-    en: "Referral destination: another institution."
+    ja: "紹介先:転院先の医療機関。"
+    en: "Referral destination: the receiving institution."
   referral_purpose_line:
     ja: "紹介目的:{purpose}のため。"
     en: "Referral purpose: {purpose}."
@@ -3003,8 +3006,8 @@ family_history_fhir:
   onset_unknown: {ja: "詳細不明", en: "unknown onset"}
 referral_fhir:
   destination_sentence:
-    ja: "紹介先:{name}。当該患者の継続加療を目的として本情報提供書を作成する。"
-    en: "Referral destination: {name} (continued care)."
+    ja: "紹介先:{name} 御担当医 先生 御侍史。"
+    en: "Referral destination: {name}, Dear Doctor."
 
 # FHIR emit-side imaging-report Composition text (Phase 1d-56).
 # From `documents/imaging_report._build_imaging_report_composition` —

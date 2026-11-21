@@ -1,0 +1,18 @@
+# Who a 診療情報提供書 (referral letter) is written for, and to whom
+# (Issue #3460). Read by modules/document/referral_recipient.py.
+#
+# transfer_dispositions: a living discharge whose `discharge_disposition` is
+#   one of these moves the patient's care to another provider, so a referral
+#   letter is written. A discharge home gets none: the simulator books every
+#   surviving stay's post-discharge visit in this hospital's own clinic
+#   (simulator/phases/_post_discharge.py), so no care moves; a death gets none.
+# recipient_types: the `type` of the catalog entries
+#   (locale/<cc>/external_organizations.yaml) a letter may be addressed to;
+#   the transfer is to a hospital, not to a clinic.
+metadata:
+  kind: reference
+  name: referral_recipients
+  source: clinosim
+
+transfer_dispositions: [snf, hosp, other-hcf, psy]
+recipient_types: [general_hospital]

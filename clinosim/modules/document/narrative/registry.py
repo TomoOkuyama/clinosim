@@ -51,7 +51,7 @@ GENERATION_FREQUENCIES: frozenset[str] = frozenset(
         "daily_3shift",  # α-min-3: 3 nursing notes per LOS day (night/day/evening)
         "discharge_once",
         "discharge_once_if_alive",  # Issue #961 ext: generic 退院時サマリー — skips deceased encounters (DDS replaces)
-        "discharge_fraction_20pct",  # P2-13 PR2b: JP-CLINS referral_note (20% of discharges)
+        "discharge_referral",  # Issue #3460: JP-CLINS referral_note (a discharge that transfers care)
         "discharge_once_if_deceased",  # Issue #961: 死亡診断書 (deceased-inpatient-only)
         "discharge_once_if_deceased_replaces",  # Issue #961 ext: 死亡退院サマリー (replaces generic DS)
         "encounter_once",

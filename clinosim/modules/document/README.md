@@ -30,7 +30,7 @@ FHIR resource ID prefixes every consumer imports.
   with 6-layer validators, plus `load_hpi_pertinent_negatives`,
   `load_chief_complaint_variant_rules`, `load_bedside_procedure_codes`,
   `load_nursing_content`); per-encounter document-type dispatch
-  (`_pick_document_author`, `_referral_note_fires`,
+  (`_pick_document_author`, `_plan_discharge_referral`,
   `_enc_type_value`, `_enc_status_value`, `_compute_los_days`,
   `_PLANNERS` per generation frequency + `_build_documents`).
 - **In scope (audit)**: [`audit.py`](audit.py) — fifth per-module
@@ -91,11 +91,14 @@ from clinosim.modules.document.engine import document_enricher
 
 ## Determinism
 
-- `document_enricher` draws no random numbers. The only
-  stochastic-looking choice — whether an eligible discharge emits a
-  referral note (`REFERRAL_NOTE_FIRE_RATE = 0.20`) — is a stable
-  `sha256(f"{encounter_id}::{patient_id}")` threshold
-  (`_referral_note_fires`), so no RNG stream is consumed (AD-16).
+- `document_enricher` draws no random numbers. Whether a
+  discharge emits a referral note is rule-based (Issue #3460): only a living
+  discharge whose disposition moves care to another provider
+  (`reference_data/referral_recipients.yaml`, `transfer_dispositions`); a
+  discharge home is followed up in the hospital's own clinic. The recipient
+  institution is a stable sha256 pick of the country's external-organization
+  catalog (`referral_recipient.pick_external_hospital`), shared by the
+  narrative and the FHIR Composition, so no RNG stream is consumed (AD-16).
 - A sub-seed offset `0x444F` (`"DO"`) is registered as
   `ENRICHER_SEED_OFFSETS["document"]` in
   [`clinosim/seeding.py`](../../seeding.py), but no code reads it.

@@ -142,7 +142,7 @@ def test_load_raises_on_missing_required_field() -> None:
                 "loinc_code": "57133-1",
                 "format_type": "composition",
                 "countries_supported": ["jp"],
-                "generation_frequency": "discharge_fraction_20pct",
+                "generation_frequency": "discharge_referral",
             },
             "health_checkup_report": {
                 "loinc_code": "53576-5",
@@ -270,7 +270,7 @@ def test_load_raises_on_null_entry() -> None:
                 "loinc_code": "57133-1",
                 "format_type": "composition",
                 "countries_supported": ["jp"],
-                "generation_frequency": "discharge_fraction_20pct",
+                "generation_frequency": "discharge_referral",
             },
             "health_checkup_report": {
                 "loinc_code": "53576-5",
@@ -403,7 +403,7 @@ def test_load_raises_on_empty_countries_supported() -> None:
                 "loinc_code": "57133-1",
                 "format_type": "composition",
                 "countries_supported": ["jp"],
-                "generation_frequency": "discharge_fraction_20pct",
+                "generation_frequency": "discharge_referral",
             },
             "health_checkup_report": {
                 "loinc_code": "53576-5",

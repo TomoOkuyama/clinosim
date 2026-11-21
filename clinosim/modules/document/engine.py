@@ -78,6 +78,7 @@ from clinosim.modules.document import (
 )
 from clinosim.modules.document.narrative._narrative_utils import encounter_died
 from clinosim.modules.document.narrative.registry import document_loinc
+from clinosim.modules.document.referral_recipient import is_transfer_disposition
 from clinosim.modules.triage.engine import admitted_ed_stay
 from clinosim.types.clinical import ClinicalDocument, ClinicalImpressionRecord
 from clinosim.types.document import DocumentType
@@ -179,28 +180,6 @@ SHIFT_SCHEDULE: tuple[tuple[str, int], ...] = (
     ("evening", 16),
 )
 SHIFT_HOURS = 8  # length of each shift in SHIFT_SCHEDULE (Issue #2651: MAR window)
-
-
-# P2-13 PR2b: JP-CLINS 診療情報提供書 emission rate.
-# 0.20 = 20% of eligible inpatient discharges emit a referral note.
-# Empirical acute-care hospital benchmark from spec §3.2.2. Deterministic
-# per (encounter_id, patient_id) so the same cohort seed produces the same
-# subset of referral-note emitters — no new RNG allocation needed.
-REFERRAL_NOTE_FIRE_RATE = 0.20
-
-
-def _referral_note_fires(encounter_id: str, patient_id: str) -> bool:
-    """Return True if this encounter should emit a JP-CLINS referral note.
-
-    Deterministic:
-      hash((encounter_id, patient_id)) as an int → normalized to [0, 1).
-      Fires when the value is below REFERRAL_NOTE_FIRE_RATE. The hash is
-      hashlib.sha256-based (like P1-7 lot_number fix) so the
-      result is stable across Python invocations and locales.
-    """
-    from clinosim.determinism import sha_bernoulli
-
-    return sha_bernoulli(f"{encounter_id}::{patient_id}", REFERRAL_NOTE_FIRE_RATE)
 
 
 def _pick_document_author(spec: Any, encounter: Any) -> str:
@@ -455,11 +434,14 @@ def _plan_discharge_once_if_deceased(spec: Any, f: _EncounterFacts) -> list[_Doc
     return [_whole_stay(f)] if not f.is_in_progress and _died(f) else []
 
 
-def _plan_discharge_fraction_20pct(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
-    # P2-13 PR2b: JP-CLINS 診療情報提供書 on a deterministic 20% of discharges
-    # (AD-16: stable string hashing, no sub-seed).
-    # Issue #3268: a patient who died in hospital is not referred on.
-    if f.is_in_progress or _died(f) or not _referral_note_fires(f.encounter_id, f.pid):
+def _plan_discharge_referral(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
+    # Issue #3460: a 診療情報提供書 is written when the patient's care moves to
+    # another provider (a transfer disposition, referral_recipients.yaml).
+    # A discharge home is followed up in this hospital's own clinic, and a
+    # patient who died in hospital (Issue #3268) is not referred on.
+    if f.is_in_progress or _died(f):
+        return []
+    if not is_transfer_disposition(_o(f.encounter, "discharge_disposition", "")):
         return []
     return [_whole_stay(f)]
 
@@ -551,7 +533,7 @@ _PLANNERS: dict[str, _Planner] = {
     "discharge_once_if_alive": _plan_discharge_once_if_alive,
     "discharge_once_if_deceased": _plan_discharge_once_if_deceased,
     "discharge_once_if_deceased_replaces": _plan_discharge_once_if_deceased,
-    "discharge_fraction_20pct": _plan_discharge_fraction_20pct,
+    "discharge_referral": _plan_discharge_referral,
     "checkup_once": _plan_checkup_once,
     "per_surgical_encounter": _plan_per_surgical_encounter,
     "per_bedside_procedure": _plan_per_bedside_procedure,
