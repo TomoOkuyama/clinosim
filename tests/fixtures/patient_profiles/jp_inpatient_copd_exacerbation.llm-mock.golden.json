@@ -512,11 +512,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #11 — assessment]",
-        "objective": "BP 125/72 mmHg, HR 85 回/分, RR 20 回/分, SpO2 89% (RA), T 36.7°C。特記事項なし。一般状態: JCS I-1、ややぼんやりしている。循環器、呼吸器、腹部、神経: 前日と著変なし",
+        "objective": "BP 125/72 mmHg, HR 85 回/分, RR 20 回/分, SpO2 89% (RA), T 36.7°C。一般状態: JCS I-1、ややぼんやりしている。循環器、呼吸器、腹部、神経: 前日と著変なし",
         "plan": "[Mock LLM response #11 — plan]",
         "subjective": "[Mock LLM response #11 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #11 — subjective]\nO（客観） BP 125/72 mmHg, HR 85 回/分, RR 20 回/分, SpO2 89% (RA), T 36.7°C。特記事項なし。一般状態: JCS I-1、ややぼんやりしている。循環器、呼吸器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #11 — assessment]\nP（計画） [Mock LLM response #11 — plan]"
+      "text": "S（主観） [Mock LLM response #11 — subjective]\nO（客観） BP 125/72 mmHg, HR 85 回/分, RR 20 回/分, SpO2 89% (RA), T 36.7°C。一般状態: JCS I-1、ややぼんやりしている。循環器、呼吸器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #11 — assessment]\nP（計画） [Mock LLM response #11 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-12": {
@@ -608,11 +608,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #13 — assessment]",
-        "objective": "BP 121/75 mmHg, HR 81 回/分, RR 17 回/分, SpO2 95% (RA), T 37.0°C (直近24時間: SpO2 最低 93%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器、呼吸器、腹部、神経: 前日と著変なし",
+        "objective": "BP 121/75 mmHg, HR 81 回/分, RR 17 回/分, SpO2 95% (RA), T 37.0°C (直近24時間: SpO2 最低 93%)。一般状態: 意識清明、全身状態良好。循環器、呼吸器、腹部、神経: 前日と著変なし",
         "plan": "[Mock LLM response #13 — plan]",
         "subjective": "[Mock LLM response #13 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #13 — subjective]\nO（客観） BP 121/75 mmHg, HR 81 回/分, RR 17 回/分, SpO2 95% (RA), T 37.0°C (直近24時間: SpO2 最低 93%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器、呼吸器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #13 — assessment]\nP（計画） [Mock LLM response #13 — plan]"
+      "text": "S（主観） [Mock LLM response #13 — subjective]\nO（客観） BP 121/75 mmHg, HR 81 回/分, RR 17 回/分, SpO2 95% (RA), T 37.0°C (直近24時間: SpO2 最低 93%)。一般状態: 意識清明、全身状態良好。循環器、呼吸器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #13 — assessment]\nP（計画） [Mock LLM response #13 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-14": {
@@ -704,11 +704,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #15 — assessment]",
-        "objective": "BP 123/77 mmHg, HR 85 回/分, RR 17 回/分, SpO2 97% (RA), T 37.5°C (直近24時間: SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器、呼吸器、腹部、神経: 前日と著変なし",
+        "objective": "BP 123/77 mmHg, HR 85 回/分, RR 17 回/分, SpO2 97% (RA), T 37.5°C (直近24時間: SpO2 最低 92%)。一般状態: 意識清明、全身状態良好。循環器、呼吸器、腹部、神経: 前日と著変なし",
         "plan": "[Mock LLM response #15 — plan]",
         "subjective": "[Mock LLM response #15 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #15 — subjective]\nO（客観） BP 123/77 mmHg, HR 85 回/分, RR 17 回/分, SpO2 97% (RA), T 37.5°C (直近24時間: SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器、呼吸器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #15 — assessment]\nP（計画） [Mock LLM response #15 — plan]"
+      "text": "S（主観） [Mock LLM response #15 — subjective]\nO（客観） BP 123/77 mmHg, HR 85 回/分, RR 17 回/分, SpO2 97% (RA), T 37.5°C (直近24時間: SpO2 最低 92%)。一般状態: 意識清明、全身状態良好。循環器、呼吸器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #15 — assessment]\nP（計画） [Mock LLM response #15 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-16": {
@@ -752,11 +752,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #16 — assessment]",
-        "objective": "BP 124/74 mmHg, HR 84 回/分, RR 14 回/分, SpO2 99% (RA), T 37.1°C (直近24時間: SpO2 最低 93%)。特記事項なし。身体所見: 前日と著変なし",
+        "objective": "BP 124/74 mmHg, HR 84 回/分, RR 14 回/分, SpO2 99% (RA), T 37.1°C (直近24時間: SpO2 最低 93%)。身体所見: 前日と著変なし",
         "plan": "[Mock LLM response #16 — plan]",
         "subjective": "[Mock LLM response #16 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #16 — subjective]\nO（客観） BP 124/74 mmHg, HR 84 回/分, RR 14 回/分, SpO2 99% (RA), T 37.1°C (直近24時間: SpO2 最低 93%)。特記事項なし。身体所見: 前日と著変なし\nA（評価） [Mock LLM response #16 — assessment]\nP（計画） [Mock LLM response #16 — plan]"
+      "text": "S（主観） [Mock LLM response #16 — subjective]\nO（客観） BP 124/74 mmHg, HR 84 回/分, RR 14 回/分, SpO2 99% (RA), T 37.1°C (直近24時間: SpO2 最低 93%)。身体所見: 前日と著変なし\nA（評価） [Mock LLM response #16 — assessment]\nP（計画） [Mock LLM response #16 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-17": {

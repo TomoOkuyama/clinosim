@@ -34,7 +34,6 @@ __all__ = [
     "current_states",
     "spo2_low_override",
     "agreeing_clauses",
-    "any_abnormal",
     "course_line",
     "period_states",
     "progress_exam_findings",
@@ -119,6 +118,7 @@ class ProgressExamRules(BaseModel):
     limits: dict[str, _Limit] = Field(min_length=1)
     limit_overrides: list[_LimitOverride] = Field(default_factory=list)
     clause_separators: Annotated[dict[str, list[str]], AfterValidator(_has_english)]
+    terminal_forms: dict[str, dict[str, str]] = Field(default_factory=dict)
     extra_terms: list[_ExtraTerm]
     state_findings: list[_StateFinding]
     course_items: list[_CourseItem]
@@ -259,14 +259,6 @@ def current_states(ctx: NarrativeContext, readings: list) -> dict[str, set[str]]
     return period_states(ctx, [latest_vitals_set(readings)]) if readings else {}
 
 
-def any_abnormal(states: dict[str, set[str]]) -> bool:
-    """Whether a measured vital of the period (not the oxygen / pain
-    pseudo-states) was low or high."""
-    return any(
-        s & {"low", "high"} for vital, s in states.items() if vital not in _PSEUDO_VITALS and vital != "pain_score"
-    )
-
-
 def _matches(text: str, code: str) -> list[_Term]:
     """The terms ``text`` states, the longest read first and consumed."""
     found: list[_Term] = []
@@ -295,11 +287,21 @@ def agreeing_clauses(text: str, states: dict[str, set[str]], lang: str) -> str:
     rules = progress_exam_rules()
     separators = rules.clause_separators.get(code) or rules.clause_separators["en"]
 
+    terminals = rules.terminal_forms.get(code, {})
+
     def keep(piece: str, level: int) -> str:
         if level == len(separators):
             return piece if all(_consistent(term, states) for term in _matches(piece, code)) else ""
         sep = separators[level]
-        return sep.join(kept for kept in (keep(part, level + 1) for part in piece.split(sep)) if kept)
+        kept_parts = [kept for kept in (keep(part, level + 1) for part in piece.split(sep)) if kept]
+        result = sep.join(kept_parts)
+        # Issue #3456: a sentence that lost its trailing clause ends in the
+        # connective form of its last verb ("脱水を認め"); finish it.
+        if level == 1 and result and result != piece:
+            for connective, final in terminals.items():
+                if result.endswith(connective):
+                    return result[: -len(connective)] + final
+        return result
 
     return keep(text, 0)
 

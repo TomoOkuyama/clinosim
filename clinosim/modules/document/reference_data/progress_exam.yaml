@@ -74,6 +74,16 @@ clause_separators:
   ja: ["。", "、", "・"]
   en: [". ", ", ", "; "]
 
+# A sentence that lost its trailing clause ends in the connective form of its
+# last verb ("脱水を認め、苦痛様" without the distress clause is "脱水を認め");
+# the connective ending is replaced by the sentence-final form (Issue #3456).
+terminal_forms:
+  ja:
+    認め: 認める
+    伴い: 伴う
+    示し: 示す
+    呈し: 呈する
+
 # Terms that state more than one vital or a patient state, in addition to the
 # single-vital terms of ed_note_admitted.yaml.
 #   vitals: the vitals the term speaks for; ``agree: all`` keeps the clause

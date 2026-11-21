@@ -24,7 +24,6 @@ from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules.document.narrative._progress_exam import (
     agreeing_clauses,
-    any_abnormal,
     period_states,
     progress_exam_findings,
     unchanged_systems,
@@ -142,17 +141,13 @@ def render_progress_note(
         # to a static disease_YAML string across all days of a stay.
         today_vitals_line = generator._compose_today_vitals_line(ctx)
         # Issue #3235: the objective text, the general state and the exam follow
-        # the readings of the note's period; the "no special findings" filler
-        # is not written beside an abnormal reading.
+        # the readings of the note's period.
         readings = _note_period_vitals(ctx)
         states = period_states(ctx, readings)
         objective = agreeing_clauses(objective, states, lang)
-        if not objective and not any_abnormal(states):
-            objective = _generic_s
         if today_vitals_line:
             facts.append("ctx.vitals.today")
             objective = f"{today_vitals_line}。{objective}" if objective else today_vitals_line
-        objective = objective or _generic_s
 
         # Add physical exam findings to the objective section (JP only,
         # EN skips to prevent CJK leak — sibling of build_physical_examination fix)
@@ -205,7 +200,10 @@ def render_progress_note(
             phys_summary = f"{phys_summary}{t('list_sep.period_space', lang)}{same}" if phys_summary else same
             facts.append("ctx.exam.unchanged_from_previous_day")
         if phys_summary:
-            objective = f"{objective}。{phys_summary}"
+            objective = f"{objective}。{phys_summary}" if objective else phys_summary
+        # Issue #3456: the "no special findings" filler states an empty
+        # section; it is not written before or beside a finding.
+        objective = objective or _generic_s
 
     # Issue #1066 (drug_safety): append avoidance-and-substitution
     # reasoning to plan when this encounter carries safety_skip_log
