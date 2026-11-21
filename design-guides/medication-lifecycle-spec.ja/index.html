@@ -2554,6 +2554,11 @@
 <td><code>tests/unit/simulator/test_maintenance_iv_fluid_stop_3409.py</code></td>
 </tr>
 <tr>
+<td>糖尿病ケトアシドーシスの経静脈治療は、ケトアシドーシスの改善で終了する。病日の開始時点で、結果の出た直近の pH が <code>ph_min</code> 以上、または直近の重炭酸が <code>bicarbonate_min</code> 以上 (ケトンの結果があれば <code>ketone_max_mmol_l</code> 未満。アニオンギャップと血糖は基準にしない)、あるいはインスリン持続静注の開始から <code>max_infusion_days</code> 日で、皮下基礎インスリンのオーダー (プロトコルの <code>transition_to_subcutaneous</code> の項目。自宅の用量があればそれ、なければ <code>insulin_initiation.yaml</code> の体重換算の開始量) を出し、投与中のインスリン・生理食塩水・カリウムの点滴オーダー (<code>stop_drug_ids</code>) を <code>overlap_hours</code> 後に終了する (status stopped、終了時刻を設定、以後は投与しない)。翌日に退院する入院は、退院日の開始時点で同様に切り替える。出典は 2024 年の ADA / EASD / JBDS / AACE / DTS 高血糖緊急症コンセンサスレポート。上限日数と薬剤の一覧はモデル上の選択。乱数は引かない。</td>
+<td><code>simulator/ketoacidosis_resolution.py</code> (<code>ketoacidosis_transition_due</code>, <code>stop_ketoacidosis_infusions</code>)。データ <code>simulator/reference_data/ketoacidosis_resolution.yaml</code>。<code>daily_loop.py::_transition_ketoacidosis_to_subcutaneous</code> で適用</td>
+<td><code>tests/unit/simulator/test_ketoacidosis_resolution_3450.py</code></td>
+</tr>
+<tr>
 <td>混合入院 (<code>condition_type</code> が "mixed"。プロトコルがあれば細菌性肺炎) の併存疾患は、その疾患プロトコルの入院時オーダーで検査・治療する。オーダーは入院のオーダーに統合し、固有の ID (<code>ADM-C...</code>) と固有のシード付き乱数で置く (入院の乱数列は読まない)。入院が既に検査を出している項目、既に撮像した部位・モダリティの検査、既にある型の支持療法 (<code>IV_fluid</code> と <code>DVT_prophylaxis</code> は重ねない)、入院中の有効な処方が既に含む、または置き換える (supersede 規則: β ラクタム 2 剤) 第一選択薬は出さない。オーダーは入院日に置く。遅れて認識した併存疾患 (入院の <code>delayed_recognition_probability</code> の割合。エンカウンター ID の SHA で決める。入院の見逃し診断) は病日 <code>recognition_day_min</code> から <code>recognition_day_max</code> に置く。治療開始日から <code>recovery_days</code> 日かけて、発症で上がった軸を元に戻す。ICD コードはエンカウンターの副診断になる。値はモデル上の選択であり、ガイドラインの数値ではない。</td>
 <td><code>simulator/mixed_condition.py</code>。データ <code>simulator/reference_data/mixed_condition.yaml</code>。<code>inpatient.py</code> と <code>daily_loop.py</code> で適用。<code>modules/order/engine.py::place_admission_orders</code> (<code>id_infix</code>)</td>
 <td><code>tests/unit/simulator/test_mixed_co_disease_3392.py</code></td>
