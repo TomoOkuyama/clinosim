@@ -149,3 +149,22 @@ course_items:
   - {vital: systolic_bp, state: low, min_change: 10, name: {ja: 血圧低下, en: hypotension}}
   - {vital: consciousness, state: high, name: {ja: 意識レベル低下, en: reduced consciousness}}
   - {vital: on_oxygen, state: high, name: {ja: 酸素投与, en: oxygen therapy}}
+
+# The Assessment of a note names the problem when the level of consciousness
+# stays below Alert (Issue #3471). AVPU comes from the physiology, not from a
+# diagnosis, so a persistent decrease is stated as a problem with its cause
+# work-up and delirium as one differential, not as a delirium diagnosis;
+# delirium is named as such only for a stay whose complications record it
+# (``delirium_complications``, complication tokens).
+#   min_days: the consecutive hospital days up to the note (a day counts when
+#     the latest AVPU of its readings is below Alert) from which the
+#     persistence is stated; a clinosim convention (not a guideline cut-off;
+#     none was verified against a source).
+#   work_up: the causes the work-up looks for, the usual reversible causes of
+#     delirium and acute confusion.
+consciousness_course:
+  min_days: 2
+  delirium_complications: [delirium, postoperative_delirium, icu_delirium, delirium_tremens]
+  work_up:
+    ja: [薬剤, 感染, 電解質, 低酸素]
+    en: [medication, infection, electrolyte disturbance, hypoxia]

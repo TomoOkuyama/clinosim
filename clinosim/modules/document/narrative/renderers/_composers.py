@@ -486,6 +486,18 @@ def compose_progress_assessment_from_state(ctx: NarrativeContext) -> str:
     course = course_line(ctx, _note_period_vitals(ctx), _note_period_vitals(ctx, previous=True), lang)
     if course:
         parts.append(course)
+    # Issue #3471: a level of consciousness that stays below Alert is named
+    # as a problem with its cause work-up (delirium as a differential).
+    from clinosim.modules.document.narrative._progress_exam import consciousness_assessment_line
+
+    encounter = getattr(ctx, "encounter", None)
+    all_vitals = getattr(ctx, "vitals", None) or []
+    daily = [_note_period_vitals(ctx)] + [
+        _filter_vitals_for_day(all_vitals, d, encounter) for d in range(ctx.day_index - 1, -1, -1)
+    ]
+    consciousness = consciousness_assessment_line(daily, [n for n, _ in new_comps + ongoing_comps], lang)
+    if consciousness:
+        parts.append(consciousness)
     parts.extend(lab_course_lines(ctx, as_of))
     # Issues #3230 / #3241: the day's flagged results known at the note's
     # authored time, ranked and one per analyte (lab_timeseries.select_notable_labs).

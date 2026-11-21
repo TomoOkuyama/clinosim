@@ -34,6 +34,7 @@ __all__ = [
     "current_states",
     "spo2_low_override",
     "agreeing_clauses",
+    "consciousness_assessment_line",
     "course_line",
     "period_states",
     "progress_exam_findings",
@@ -45,6 +46,7 @@ __all__ = [
 _YAML = Path(__file__).resolve().parents[1] / "reference_data" / "progress_exam.yaml"
 _State = Literal["low", "normal", "high"]
 _PSEUDO_VITALS = ("on_oxygen", "consciousness")
+_AVPU_ORDER = {"A": 0, "V": 1, "P": 2, "U": 3}
 
 
 def _has_english(value: dict[str, Any]) -> dict[str, Any]:
@@ -111,6 +113,13 @@ class _CourseItem(BaseModel):
     min_change: float | None = Field(default=None, gt=0)
 
 
+class _ConsciousnessCourse(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    min_days: int = Field(ge=1)
+    delirium_complications: list[str] = Field(min_length=1)
+    work_up: Annotated[dict[str, list[str]], AfterValidator(_has_english)]
+
+
 class ProgressExamRules(BaseModel):
     """``progress_exam.yaml`` (Issue #3235)."""
 
@@ -122,6 +131,7 @@ class ProgressExamRules(BaseModel):
     extra_terms: list[_ExtraTerm]
     state_findings: list[_StateFinding]
     course_items: list[_CourseItem]
+    consciousness_course: _ConsciousnessCourse
 
     @model_validator(mode="after")
     def _known_vitals_and_systems(self) -> ProgressExamRules:
@@ -402,6 +412,46 @@ def course_line(ctx: NarrativeContext, readings: list, previous: list, lang: str
         if group:
             lines.append(t(key, lang, list=sep.join(group)))
     return t("list_sep.sentence_gap", lang).join(lines)
+
+
+def consciousness_assessment_line(daily: list[list], complications: list[str], lang: str) -> str:
+    """The Assessment's statement of a level of consciousness that stays below
+    Alert (Issue #3471): ``daily`` is the readings of each hospital day up to
+    the note, the note's own day first. A day counts when the latest AVPU of
+    its readings is below Alert; the line is written from
+    ``consciousness_course.min_days`` consecutive such days. It names the
+    problem and its cause work-up with delirium as one differential, and
+    names delirium itself only when ``complications`` (the stay's complication
+    tokens known at the note) record one. ``""`` otherwise."""
+    rules = progress_exam_rules().consciousness_course
+    levels: list[str] = []
+    for readings in daily:
+        latest = ""
+        for r in reversed(readings):
+            level = str(_o(r, "consciousness_level", "") or "")
+            if level in _AVPU_ORDER:
+                latest = level
+                break
+        if latest in ("", "A"):
+            break
+        levels.append(latest)
+    if len(levels) < rules.min_days:
+        return ""
+    code = normalize_lang(lang)
+    causes = t("list_sep.serial", lang).join(rules.work_up.get(code) or rules.work_up["en"])
+    recorded = [c for c in complications if "_".join(c.strip().lower().split()) in rules.delirium_complications]
+    if recorded:
+        from clinosim.modules.document.narrative._localization import _localize_complication
+
+        return t(
+            "progress.consciousness_delirium_workup",
+            lang,
+            a=levels[0],
+            n=len(levels),
+            name=_localize_complication(recorded[0], lang),
+            causes=causes,
+        )
+    return t("progress.consciousness_differential_workup", lang, a=levels[0], n=len(levels), causes=causes)
 
 
 def _fmt(value: float, step: float) -> str:
