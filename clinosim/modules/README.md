@@ -59,7 +59,7 @@ Cross-module invariants:
   per country. Code systems come from
   [`clinosim.codes`](../codes/data/).
 
-## Module index (38 modules)
+## Module index (39 modules)
 
 <!-- Re-run `find clinosim/modules -mindepth 1 -maxdepth 1 -type d -exec test -e {}/__init__.py \; -print | wc -l` on new-module PRs to keep this count current. -->
 

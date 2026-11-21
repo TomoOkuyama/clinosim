@@ -63,7 +63,7 @@ from clinosim.modules.output.fhir_r4.procedures.procedures import (
     _resolve_procedure_id,
     procedure_reason_codes,
 )
-from clinosim.modules.resuscitation.engine import is_resuscitation_order
+from clinosim.modules.resuscitation import is_resuscitation_order
 from clinosim.modules.triage.engine import admitted_ed_stay
 from clinosim.simulator._ed_thresholds import ED_DEPARTMENT_ID, ED_WARD_ID
 

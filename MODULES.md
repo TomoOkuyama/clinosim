@@ -1,6 +1,6 @@
 # clinosim Module Map
 
-A single-page overview of clinosim's **38 modules** (counting rule:
+A single-page overview of clinosim's **39 modules** (counting rule:
 top-level packages under `clinosim/modules/`; non-package files like
 `_shared.py` excluded, and `nursing_assignment` shares
 `clinosim/modules/nursing/` with the observation-layer nursing
@@ -112,6 +112,7 @@ load-bearing verification gate that protects this goal.
 │  care_level(60)   JP 要介護度 (JP only)                  │
 │  medication_monitoring(65) chronic-med → labs (Issue #757)│
 │  health_checkup(70) JP 事業者健診 (JP only, opt-in)      │
+│  stage_refresh(900) chronic stages from the latest labs  │
 └──────────────────────────────────────────────────────────┘
             ↓                ↓               ↓
 ┌─ Output ─────────────────────────────────────────────────┐
@@ -123,7 +124,7 @@ load-bearing verification gate that protects this goal.
 
 ## Module inventory
 
-38 modules total (top-level packages under `clinosim/modules/`; the
+39 modules total (top-level packages under `clinosim/modules/`; the
 table below additionally lists the `codes` / `locale` foundation
 packages). Every entry links to the per-module README (which follows
 the canonical 11-section structure).
@@ -140,7 +141,7 @@ the canonical 11-section structure).
 | [procedure](clinosim/modules/procedure/README.md) | surgery + bedside + rehab generation | simulation | — (uses caller RNG) | — |
 | [encounter](clinosim/modules/encounter/README.md) | encounter registry (51 YAML) + inpatient daily-cycle timeline | simulation | — | — |
 | [disease](clinosim/modules/disease/README.md) | disease registry (36 YAML) + severity + acuity + drug-vocabulary | simulation | — | — |
-| [longitudinal](clinosim/modules/longitudinal/README.md) | year-indexed trajectory engine (AR(1) HbA1c / Markov stage ladders / event firing — Phase 4a-4d chronic evolution) | simulation | — (uses caller RNG per `advance_one_year`) | — (library, consumed by aging pass) |
+| [longitudinal](clinosim/modules/longitudinal/README.md) | year-indexed trajectory engine (AR(1) HbA1c / Markov stage ladders / event firing — Phase 4a-4d chronic evolution) | simulation | — (uses caller RNG per `advance_one_year`) | POST_RECORDS 900 (`stage_refresh`: chronic stages restated from the latest labs, no random draw) |
 | [population](clinosim/modules/population/README.md) | demographics + life events (Layer 1) + annual aging / community mortality (`aging.advance_population` + `mortality.py`; the former `natural_death` module was folded in here by #2167) | population | — (pipeline head) | — |
 | [patient](clinosim/modules/patient/README.md) | Layer 1 → Layer 2 activation + chronic meds | population | — (caller-owned cache) | — |
 | [identity](clinosim/modules/identity/README.md) | JP insurance + national ID (opt-in) | population | `540054` (decimal, grandfathered) | POST_POPULATION 10 (JP-gated) |

@@ -78,7 +78,7 @@ Prior-art comparison (Synthea): [docs/synthea-comparison.md](docs/synthea-compar
 | --- | --- |
 | Full documentation site | <https://tomookuyama.github.io/clinosim/> |
 | Architecture reference | [`docs/architecture/`](docs/architecture/README.md) |
-| Module index (38 modules) | [`clinosim/modules/`](clinosim/modules/README.md) |
+| Module index (39 modules) | [`clinosim/modules/`](clinosim/modules/README.md) |
 | Data quality & evaluation | [`docs/eval.md`](docs/eval.md) |
 | JP-CLINS profile support | [`docs/jp-clins.md`](docs/jp-clins.md) |
 | Contributing | [`CONTRIBUTING.md`](CONTRIBUTING.md) |
