@@ -37,6 +37,24 @@
 #   disease (severe sepsis / septic shock). They are not the underlying cause;
 #   the admission diagnosis (the infection) is, and the sequel code sits
 #   between it and the immediate cause.
+# terminal_mechanisms: the terminal-course phrase of the death summary
+#   (Issue #3470) is taken from the immediate cause of the same chain, not
+#   from the last vitals: the first entry whose `prefixes` start the immediate
+#   cause's internal ICD code names the mechanism (`phrase` is the suffix of
+#   `dds_terminal_course.phrase_<phrase>` in locale/shared/narrative_phrases.yaml).
+#   Order matters (R57.0 cardiogenic shock before the other R57 / R65 codes).
+#   An immediate cause with no entry (a cancer, a stroke, a complication
+#   without a code) names no mechanism: the phrase follows the disease
+#   pattern. The mapping groups codes by the organ system the code names, as
+#   the ICD-10-CM chapters do; it asserts nothing the code does not.
+# onset_from_lab_complications: complications defined by a lab criterion
+#   (here KDIGO AKI, notable_labs.yaml `aki`: creatinine up >= 0.3 mg/dL within
+#   48 h or to >= 1.5 x baseline). Their onset for the time-to-death phrase is
+#   the first creatinine of the stay that meets the criterion against the
+#   baseline (the patient's latest earlier result, else the stay's own earlier
+#   values) when that is earlier than the complication event; KDIGO 2012
+#   Recommendation 2.1.1 defines AKI by that rise, not by the date the event
+#   was logged.
 # contributing_categories: ICD-10 3-character categories (or ranges of them)
 #   of chronic conditions that can contribute to death (Part II / Ⅱ欄).
 #   Other chronic conditions (cataract, osteoarthritis, GERD, ...) are not
@@ -68,6 +86,18 @@ immediate_cause_complications:
   respiratory_failure: J96.00
   respiratory_failure_requiring_niv: J96.00
   sepsis: A41.9
+
+terminal_mechanisms:
+  - {prefixes: [R57.0, I50, I21, I22], phrase: cardiac}
+  - {prefixes: [A40, A41, R65, R57], phrase: septic}
+  - {prefixes: [N17, K76.7], phrase: renal}
+  - {prefixes: [J96, J80], phrase: respiratory}
+  - {prefixes: [J69, J18, J12, J13, J14, J15], phrase: pneumonia}
+  - {prefixes: [I26], phrase: pulmonary_embolism}
+  - {prefixes: [G93], phrase: neurological}
+  - {prefixes: [D65], phrase: coagulopathy}
+
+onset_from_lab_complications: [aki, acute_kidney_injury]
 
 sequel_codes:
   - R65.20
