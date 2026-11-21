@@ -676,7 +676,7 @@ risk:
 # Prescription / medication line formatters.
 prescription:
   days_supply_suffix:
-    ja: "x{days}日分"
+    ja: "{days}日分"
     en: "x{days}d"
   next_visit:
     ja: "次回外来: {days}日後を予定。"

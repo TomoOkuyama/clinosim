@@ -68,7 +68,7 @@ def test_the_collector_keeps_the_route() -> None:
 
 @pytest.mark.parametrize(
     ("lang", "expected"),
-    [("en", "Amlodipine 5mg PO daily x28d"), ("ja", "5mg 経口 1日1回 x28日分")],
+    [("en", "Amlodipine 5mg PO daily x28d"), ("ja", "5mg 経口 1日1回 28日分")],
 )
 def test_discharge_summary_and_soap_state_the_schedule(lang: str, expected: str) -> None:
     meds = NarrativePass._collect_discharge_medications({"discharge_prescription": _RX})
