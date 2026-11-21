@@ -482,6 +482,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -494,7 +496,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 21 日目\n記録者: 石山 ミツ\n患者状態: BP 121/72, HR 104, SpO2 98%, T 38.2°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n38.9°Cの発熱あり、アセトアミノフェン投与後 37.9°Cに解熱傾向。\n前日 (7/4) の水分出納: 摂取 592 mL、排出 960 mL (うち尿 180 mL)、バランス -368 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 21 日目\n記録者: 石山 ミツ\n患者状態: BP 121/72, HR 104, SpO2 98%, T 38.2°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n38.9°Cの発熱あり、アセトアミノフェン投与後 37.9°Cに解熱傾向。\n前日 (7/4) の水分出納: 摂取 592 mL、排出 960 mL (うち尿 180 mL)、バランス -368 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 462 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-101-evening": {
@@ -509,6 +511,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -521,7 +525,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 21 日目\n記録者: 石山 ミツ\n患者状態: BP 120/70, HR 104, SpO2 98%, T 38.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 2。\n39.2°Cの発熱あり、経過観察。\n前日 (7/4) の水分出納: 摂取 592 mL、排出 960 mL (うち尿 180 mL)、バランス -368 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 21 日目\n記録者: 石山 ミツ\n患者状態: BP 120/70, HR 104, SpO2 98%, T 38.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 2。\n39.2°Cの発熱あり、経過観察。\n前日 (7/4) の水分出納: 摂取 592 mL、排出 960 mL (うち尿 180 mL)、バランス -368 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 462 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-102-night": {
@@ -535,6 +539,8 @@
         "ctx.vitals.shift.pain",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -547,7 +553,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 22 日目\n記録者: 石山 ミツ\n患者状態: BP 119/74, HR 97, SpO2 98%, T 37.2°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n疼痛あり、NRS 最大 2、最終 1。\n前日 (7/5) の水分出納: 摂取 1546 mL、排出 1134 mL (うち尿 501 mL)、バランス +412 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 22 日目\n記録者: 石山 ミツ\n患者状態: BP 119/74, HR 97, SpO2 98%, T 37.2°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n疼痛あり、NRS 最大 2、最終 1。\n前日 (7/5) の水分出納: 摂取 1546 mL、排出 1134 mL (うち尿 501 mL)、バランス +412 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 458 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-103-day": {
@@ -562,6 +568,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -574,7 +582,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 22 日目\n記録者: 石山 ミツ\n患者状態: BP 123/70, HR 102, SpO2 98%, T 38.9°C、酸素投与: 酸素マスク 8 L/min。\n与薬: ヘパリン。\n疼痛あり、NRS 3。\n39.1°Cの発熱あり、経過観察。\n前日 (7/5) の水分出納: 摂取 1546 mL、排出 1134 mL (うち尿 501 mL)、バランス +412 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 22 日目\n記録者: 石山 ミツ\n患者状態: BP 123/70, HR 102, SpO2 98%, T 38.9°C、酸素投与: 酸素マスク 8 L/min。\n与薬: ヘパリン。\n疼痛あり、NRS 3。\n39.1°Cの発熱あり、経過観察。\n前日 (7/5) の水分出納: 摂取 1546 mL、排出 1134 mL (うち尿 501 mL)、バランス +412 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 458 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-104-evening": {
@@ -589,6 +597,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -601,7 +611,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 22 日目\n記録者: 石山 ミツ\n患者状態: BP 123/76, HR 99, SpO2 98%, T 37.7°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 最大 1、最終 0。\n38.3°Cの発熱あり、経過観察。\n前日 (7/5) の水分出納: 摂取 1546 mL、排出 1134 mL (うち尿 501 mL)、バランス +412 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 22 日目\n記録者: 石山 ミツ\n患者状態: BP 123/76, HR 99, SpO2 98%, T 37.7°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 最大 1、最終 0。\n38.3°Cの発熱あり、経過観察。\n前日 (7/5) の水分出納: 摂取 1546 mL、排出 1134 mL (うち尿 501 mL)、バランス +412 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 458 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-105-night": {
@@ -616,6 +626,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -628,7 +640,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 23 日目\n記録者: 石山 ミツ\n患者状態: BP 121/71, HR 99, SpO2 98%, T 38.8°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎。\n疼痛あり、NRS 最大 3、最終 0。\n38.8°Cの発熱あり、経過観察。\n前日 (7/6) の水分出納: 摂取 848 mL、排出 966 mL (うち尿 125 mL)、バランス -118 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 23 日目\n記録者: 石山 ミツ\n患者状態: BP 121/71, HR 99, SpO2 98%, T 38.8°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎。\n疼痛あり、NRS 最大 3、最終 0。\n38.8°Cの発熱あり、経過観察。\n前日 (7/6) の水分出納: 摂取 848 mL、排出 966 mL (うち尿 125 mL)、バランス -118 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 310 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-106-day": {
@@ -644,6 +656,8 @@
         "ctx.medications.shift.not_given",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -656,7 +670,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 23 日目\n記録者: 石山 ミツ\n患者状態: BP 123/76, HR 104, SpO2 98%, T 38.5°C、酸素投与: 酸素マスク 8 L/min。\n与薬: ミカファンギン 100mg 静注 1日1回、ヘパリン。\n疼痛あり、NRS 3。\n39.1°Cの発熱あり、経過観察。\nメロペネム投与を拒否。\n前日 (7/6) の水分出納: 摂取 848 mL、排出 966 mL (うち尿 125 mL)、バランス -118 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 23 日目\n記録者: 石山 ミツ\n患者状態: BP 123/76, HR 104, SpO2 98%, T 38.5°C、酸素投与: 酸素マスク 8 L/min。\n与薬: ミカファンギン 100mg 静注 1日1回、ヘパリン。\n疼痛あり、NRS 3。\n39.1°Cの発熱あり、経過観察。\nメロペネム投与を拒否。\n前日 (7/6) の水分出納: 摂取 848 mL、排出 966 mL (うち尿 125 mL)、バランス -118 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 310 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-107-evening": {
@@ -671,6 +685,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -683,7 +699,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 23 日目\n記録者: 石山 ミツ\n患者状態: BP 123/72, HR 98, SpO2 98%, T 38.2°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 3。\n38.9°Cの発熱あり、経過観察。\n前日 (7/6) の水分出納: 摂取 848 mL、排出 966 mL (うち尿 125 mL)、バランス -118 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 23 日目\n記録者: 石山 ミツ\n患者状態: BP 123/72, HR 98, SpO2 98%, T 38.2°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 3。\n38.9°Cの発熱あり、経過観察。\n前日 (7/6) の水分出納: 摂取 848 mL、排出 966 mL (うち尿 125 mL)、バランス -118 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 310 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-108-night": {
@@ -698,6 +714,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -710,7 +728,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 24 日目\n記録者: 石山 ミツ\n患者状態: BP 121/72, HR 96, SpO2 98%, T 38.1°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 最大 5、最終 4。\n38.1°Cの発熱あり、アセトアミノフェン投与後も 38.1°Cで経過観察。\n前日 (7/7) の水分出納: 摂取 1064 mL、排出 1105 mL (うち尿 328 mL)、バランス -41 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 24 日目\n記録者: 石山 ミツ\n患者状態: BP 121/72, HR 96, SpO2 98%, T 38.1°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 最大 5、最終 4。\n38.1°Cの発熱あり、アセトアミノフェン投与後も 38.1°Cで経過観察。\n前日 (7/7) の水分出納: 摂取 1064 mL、排出 1105 mL (うち尿 328 mL)、バランス -41 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 699 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-109-day": {
@@ -724,6 +742,8 @@
         "ctx.vitals.shift.pain",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -736,7 +756,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 24 日目\n記録者: 石山 ミツ\n患者状態: BP 125/72, HR 102, SpO2 98%, T 37.4°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、ヘパリン。\n疼痛あり、NRS 1。\n前日 (7/7) の水分出納: 摂取 1064 mL、排出 1105 mL (うち尿 328 mL)、バランス -41 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 24 日目\n記録者: 石山 ミツ\n患者状態: BP 125/72, HR 102, SpO2 98%, T 37.4°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、ヘパリン。\n疼痛あり、NRS 1。\n前日 (7/7) の水分出納: 摂取 1064 mL、排出 1105 mL (うち尿 328 mL)、バランス -41 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 699 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-11": {
@@ -799,6 +819,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -811,7 +833,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 24 日目\n記録者: 石山 ミツ\n患者状態: BP 121/73, HR 97, SpO2 98%, T 38.4°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 1。\n38.8°Cの発熱あり、経過観察。\n前日 (7/7) の水分出納: 摂取 1064 mL、排出 1105 mL (うち尿 328 mL)、バランス -41 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 24 日目\n記録者: 石山 ミツ\n患者状態: BP 121/73, HR 97, SpO2 98%, T 38.4°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 1。\n38.8°Cの発熱あり、経過観察。\n前日 (7/7) の水分出納: 摂取 1064 mL、排出 1105 mL (うち尿 328 mL)、バランス -41 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 699 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-111-night": {
@@ -826,6 +848,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -838,7 +862,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 25 日目\n記録者: 石山 ミツ\n患者状態: BP 126/75, HR 93, SpO2 98%, T 38.5°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎。\n疼痛あり、NRS 2。\n38.9°Cの発熱あり、経過観察。\n前日 (7/8) の水分出納: 摂取 735 mL、排出 740 mL (うち尿 107 mL)、バランス -5 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 25 日目\n記録者: 石山 ミツ\n患者状態: BP 126/75, HR 93, SpO2 98%, T 38.5°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎。\n疼痛あり、NRS 2。\n38.9°Cの発熱あり、経過観察。\n前日 (7/8) の水分出納: 摂取 735 mL、排出 740 mL (うち尿 107 mL)、バランス -5 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 468 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-112-day": {
@@ -853,6 +877,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -865,7 +891,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 25 日目\n記録者: 石山 ミツ\n患者状態: BP 124/71, HR 105, SpO2 98%, T 38.2°C、酸素投与: 酸素マスク 8 L/min。\n与薬: ミカファンギン 100mg 静注 1日1回、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n39.1°Cの発熱あり、アセトアミノフェン投与後 38.2°Cに低下、発熱は持続。\n前日 (7/8) の水分出納: 摂取 735 mL、排出 740 mL (うち尿 107 mL)、バランス -5 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 25 日目\n記録者: 石山 ミツ\n患者状態: BP 124/71, HR 105, SpO2 98%, T 38.2°C、酸素投与: 酸素マスク 8 L/min。\n与薬: ミカファンギン 100mg 静注 1日1回、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n39.1°Cの発熱あり、アセトアミノフェン投与後 38.2°Cに低下、発熱は持続。\n前日 (7/8) の水分出納: 摂取 735 mL、排出 740 mL (うち尿 107 mL)、バランス -5 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 468 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-113-evening": {
@@ -880,6 +906,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -892,7 +920,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 25 日目\n記録者: 石山 ミツ\n患者状態: BP 120/69, HR 102, SpO2 98%, T 38.2°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n38.2°Cの発熱あり、アセトアミノフェン投与、経過観察。\n前日 (7/8) の水分出納: 摂取 735 mL、排出 740 mL (うち尿 107 mL)、バランス -5 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 25 日目\n記録者: 石山 ミツ\n患者状態: BP 120/69, HR 102, SpO2 98%, T 38.2°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n38.2°Cの発熱あり、アセトアミノフェン投与、経過観察。\n前日 (7/8) の水分出納: 摂取 735 mL、排出 740 mL (うち尿 107 mL)、バランス -5 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 468 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-114-night": {
@@ -906,6 +934,8 @@
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -918,7 +948,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 26 日目\n記録者: 石山 ミツ\n患者状態: BP 117/74, HR 97, SpO2 98%, T 38.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 4。\n38.8°Cの発熱あり、アセトアミノフェン投与後 38.0°Cに低下、発熱は持続。\n前日 (7/9) の水分出納: 摂取 886 mL、排出 944 mL (うち尿 311 mL)、バランス -58 mL。"
+      "text": "【看護記録(深夜)】 入院 26 日目\n記録者: 石山 ミツ\n患者状態: BP 117/74, HR 97, SpO2 98%, T 38.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 4。\n38.8°Cの発熱あり、アセトアミノフェン投与後 38.0°Cに低下、発熱は持続。\n前日 (7/9) の水分出納: 摂取 886 mL、排出 944 mL (うち尿 311 mL)、バランス -58 mL。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 486 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-115-day": {
@@ -933,6 +963,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -945,7 +977,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 26 日目\n記録者: 石山 ミツ\n患者状態: BP 120/71, HR 100, SpO2 98%, T 38.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、ヘパリン。\n疼痛あり、NRS 最大 5、最終 3。\n39.0°Cの発熱あり、経過観察。\n前日 (7/9) の水分出納: 摂取 886 mL、排出 944 mL (うち尿 311 mL)、バランス -58 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 26 日目\n記録者: 石山 ミツ\n患者状態: BP 120/71, HR 100, SpO2 98%, T 38.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、ヘパリン。\n疼痛あり、NRS 最大 5、最終 3。\n39.0°Cの発熱あり、経過観察。\n前日 (7/9) の水分出納: 摂取 886 mL、排出 944 mL (うち尿 311 mL)、バランス -58 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 486 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-116-evening": {
@@ -960,6 +992,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -972,7 +1006,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 26 日目\n記録者: 石山 ミツ\n患者状態: BP 122/75, HR 97, SpO2 98%, T 38.3°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 1。\n38.3°Cの発熱あり、経過観察。\n前日 (7/9) の水分出納: 摂取 886 mL、排出 944 mL (うち尿 311 mL)、バランス -58 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 26 日目\n記録者: 石山 ミツ\n患者状態: BP 122/75, HR 97, SpO2 98%, T 38.3°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 1。\n38.3°Cの発熱あり、経過観察。\n前日 (7/9) の水分出納: 摂取 886 mL、排出 944 mL (うち尿 311 mL)、バランス -58 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 486 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-117-night": {
@@ -987,6 +1021,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -999,7 +1035,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 27 日目\n記録者: 石山 ミツ\n患者状態: BP 125/73, HR 99, SpO2 98%, T 38.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン。\n疼痛あり、NRS 最大 2、最終 1。\n39.0°Cの発熱あり、経過観察。\n前日 (7/10) の水分出納: 摂取 1218 mL、排出 1092 mL (うち尿 376 mL)、バランス +126 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 27 日目\n記録者: 石山 ミツ\n患者状態: BP 125/73, HR 99, SpO2 98%, T 38.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン。\n疼痛あり、NRS 最大 2、最終 1。\n39.0°Cの発熱あり、経過観察。\n前日 (7/10) の水分出納: 摂取 1218 mL、排出 1092 mL (うち尿 376 mL)、バランス +126 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 340 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-118-day": {
@@ -1014,6 +1050,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1026,7 +1064,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 27 日目\n記録者: 石山 ミツ\n患者状態: BP 123/72, HR 103, SpO2 98%, T 38.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 最大 5、最終 1。\n38.5°Cの発熱あり、アセトアミノフェン投与後 38.0°Cに低下、発熱は持続。\n前日 (7/10) の水分出納: 摂取 1218 mL、排出 1092 mL (うち尿 376 mL)、バランス +126 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 27 日目\n記録者: 石山 ミツ\n患者状態: BP 123/72, HR 103, SpO2 98%, T 38.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 最大 5、最終 1。\n38.5°Cの発熱あり、アセトアミノフェン投与後 38.0°Cに低下、発熱は持続。\n前日 (7/10) の水分出納: 摂取 1218 mL、排出 1092 mL (うち尿 376 mL)、バランス +126 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 340 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-119-evening": {
@@ -1041,6 +1079,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1053,7 +1093,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 27 日目\n記録者: 石山 ミツ\n患者状態: BP 120/76, HR 98, SpO2 98%, T 38.8°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、ヘパリン。\n疼痛あり、NRS 最大 3、最終 1。\n38.9°Cの発熱あり、経過観察。\n前日 (7/10) の水分出納: 摂取 1218 mL、排出 1092 mL (うち尿 376 mL)、バランス +126 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 27 日目\n記録者: 石山 ミツ\n患者状態: BP 120/76, HR 98, SpO2 98%, T 38.8°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、ヘパリン。\n疼痛あり、NRS 最大 3、最終 1。\n38.9°Cの発熱あり、経過観察。\n前日 (7/10) の水分出納: 摂取 1218 mL、排出 1092 mL (うち尿 376 mL)、バランス +126 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 340 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-12": {
@@ -1116,6 +1156,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1128,7 +1170,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 28 日目\n記録者: 石山 ミツ\n患者状態: BP 121/71, HR 98, SpO2 98%, T 37.5°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n疼痛あり、NRS 1。\n38.8°Cの発熱あり、経過観察。\n前日 (7/11) の水分出納: 摂取 231 mL、排出 683 mL (うち尿 50 mL)、バランス -452 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 28 日目\n記録者: 石山 ミツ\n患者状態: BP 121/71, HR 98, SpO2 98%, T 37.5°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n疼痛あり、NRS 1。\n38.8°Cの発熱あり、経過観察。\n前日 (7/11) の水分出納: 摂取 231 mL、排出 683 mL (うち尿 50 mL)、バランス -452 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-121-day": {
@@ -1143,6 +1185,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1155,7 +1199,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 28 日目\n記録者: 石山 ミツ\n患者状態: BP 120/76, HR 102, SpO2 98%, T 38.6°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n38.9°Cの発熱あり、アセトアミノフェン投与後 38.6°Cに低下、発熱は持続。\n前日 (7/11) の水分出納: 摂取 231 mL、排出 683 mL (うち尿 50 mL)、バランス -452 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 28 日目\n記録者: 石山 ミツ\n患者状態: BP 120/76, HR 102, SpO2 98%, T 38.6°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n38.9°Cの発熱あり、アセトアミノフェン投与後 38.6°Cに低下、発熱は持続。\n前日 (7/11) の水分出納: 摂取 231 mL、排出 683 mL (うち尿 50 mL)、バランス -452 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-122-evening": {
@@ -1170,6 +1214,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1182,7 +1228,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 28 日目\n記録者: 石山 ミツ\n患者状態: BP 123/75, HR 102, SpO2 98%, T 38.9°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n39.1°Cの発熱あり、アセトアミノフェン投与後 38.9°Cに低下、発熱は持続。\n前日 (7/11) の水分出納: 摂取 231 mL、排出 683 mL (うち尿 50 mL)、バランス -452 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 28 日目\n記録者: 石山 ミツ\n患者状態: BP 123/75, HR 102, SpO2 98%, T 38.9°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n39.1°Cの発熱あり、アセトアミノフェン投与後 38.9°Cに低下、発熱は持続。\n前日 (7/11) の水分出納: 摂取 231 mL、排出 683 mL (うち尿 50 mL)、バランス -452 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-123-night": {
@@ -1197,6 +1243,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1209,7 +1257,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 29 日目\n記録者: 石山 ミツ\n患者状態: BP 121/75, HR 94, SpO2 98%, T 37.8°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎。\n疼痛あり、NRS 2。\n38.9°Cの発熱あり、経過観察。\n前日 (7/12) の水分出納: 摂取 1248 mL、排出 1011 mL (うち尿 354 mL)、バランス +237 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 29 日目\n記録者: 石山 ミツ\n患者状態: BP 121/75, HR 94, SpO2 98%, T 37.8°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎。\n疼痛あり、NRS 2。\n38.9°Cの発熱あり、経過観察。\n前日 (7/12) の水分出納: 摂取 1248 mL、排出 1011 mL (うち尿 354 mL)、バランス +237 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 342 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-124-day": {
@@ -1225,6 +1273,8 @@
         "ctx.medications.shift.not_given",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1237,7 +1287,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 29 日目\n記録者: 石山 ミツ\n患者状態: BP 124/76, HR 100, SpO2 98%, T 38.8°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 2。\n38.8°Cの発熱あり、経過観察。\nミカファンギン投与を拒否。\n前日 (7/12) の水分出納: 摂取 1248 mL、排出 1011 mL (うち尿 354 mL)、バランス +237 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 29 日目\n記録者: 石山 ミツ\n患者状態: BP 124/76, HR 100, SpO2 98%, T 38.8°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 2。\n38.8°Cの発熱あり、経過観察。\nミカファンギン投与を拒否。\n前日 (7/12) の水分出納: 摂取 1248 mL、排出 1011 mL (うち尿 354 mL)、バランス +237 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 342 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-125-evening": {
@@ -1252,6 +1302,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1264,7 +1316,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 29 日目\n記録者: 石山 ミツ\n患者状態: BP 121/72, HR 99, SpO2 98%, T 38.5°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 1。\n39.1°Cの発熱あり、経過観察。\n前日 (7/12) の水分出納: 摂取 1248 mL、排出 1011 mL (うち尿 354 mL)、バランス +237 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 29 日目\n記録者: 石山 ミツ\n患者状態: BP 121/72, HR 99, SpO2 98%, T 38.5°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 1。\n39.1°Cの発熱あり、経過観察。\n前日 (7/12) の水分出納: 摂取 1248 mL、排出 1011 mL (うち尿 354 mL)、バランス +237 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 342 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-126-night": {
@@ -1279,6 +1331,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1291,7 +1345,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 30 日目\n記録者: 石山 ミツ\n患者状態: BP 121/75, HR 100, SpO2 98%, T 38.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎。\n疼痛あり、NRS 1。\n38.2°Cの発熱あり、経過観察。\n前日 (7/13) の水分出納: 摂取 1360 mL、排出 1177 mL (うち尿 353 mL)、バランス +183 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 30 日目\n記録者: 石山 ミツ\n患者状態: BP 121/75, HR 100, SpO2 98%, T 38.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎。\n疼痛あり、NRS 1。\n38.2°Cの発熱あり、経過観察。\n前日 (7/13) の水分出納: 摂取 1360 mL、排出 1177 mL (うち尿 353 mL)、バランス +183 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 458 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-127-day": {
@@ -1306,6 +1360,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1318,7 +1374,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 30 日目\n記録者: 石山 ミツ\n患者状態: BP 121/73, HR 100, SpO2 98%, T 38.9°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、ミカファンギン 100mg 静注 1日1回、ヘパリン。\n疼痛あり、NRS 2。\n38.9°Cの発熱あり、経過観察。\n前日 (7/13) の水分出納: 摂取 1360 mL、排出 1177 mL (うち尿 353 mL)、バランス +183 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 30 日目\n記録者: 石山 ミツ\n患者状態: BP 121/73, HR 100, SpO2 98%, T 38.9°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、ミカファンギン 100mg 静注 1日1回、ヘパリン。\n疼痛あり、NRS 2。\n38.9°Cの発熱あり、経過観察。\n前日 (7/13) の水分出納: 摂取 1360 mL、排出 1177 mL (うち尿 353 mL)、バランス +183 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 458 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-128-evening": {
@@ -1333,6 +1389,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1345,7 +1403,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 30 日目\n記録者: 石山 ミツ\n患者状態: BP 121/74, HR 98, SpO2 98%, T 39.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 最大 2、最終 1。\n39.0°Cの発熱あり、経過観察。\n前日 (7/13) の水分出納: 摂取 1360 mL、排出 1177 mL (うち尿 353 mL)、バランス +183 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 30 日目\n記録者: 石山 ミツ\n患者状態: BP 121/74, HR 98, SpO2 98%, T 39.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 最大 2、最終 1。\n39.0°Cの発熱あり、経過観察。\n前日 (7/13) の水分出納: 摂取 1360 mL、排出 1177 mL (うち尿 353 mL)、バランス +183 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 458 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-129-night": {
@@ -1360,6 +1418,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1372,7 +1432,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 31 日目\n記録者: 石山 ミツ\n患者状態: BP 120/75, HR 97, SpO2 98%, T 38.3°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎。\n疼痛の訴えなし (NRS 0)。\n38.3°Cの発熱あり、経過観察。\n前日 (7/14) の水分出納: 摂取 1170 mL、排出 1115 mL (うち尿 343 mL)、バランス +55 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 31 日目\n記録者: 石山 ミツ\n患者状態: BP 120/75, HR 97, SpO2 98%, T 38.3°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎。\n疼痛の訴えなし (NRS 0)。\n38.3°Cの発熱あり、経過観察。\n前日 (7/14) の水分出納: 摂取 1170 mL、排出 1115 mL (うち尿 343 mL)、バランス +55 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 221 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-13": {
@@ -1435,6 +1495,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1447,7 +1509,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 31 日目\n記録者: 石山 ミツ\n患者状態: BP 119/77, HR 100, SpO2 98%, T 38.8°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、ヘパリン。\n疼痛あり、NRS 最大 3、最終 2。\n38.8°Cの発熱あり、経過観察。\n前日 (7/14) の水分出納: 摂取 1170 mL、排出 1115 mL (うち尿 343 mL)、バランス +55 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 31 日目\n記録者: 石山 ミツ\n患者状態: BP 119/77, HR 100, SpO2 98%, T 38.8°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、ヘパリン。\n疼痛あり、NRS 最大 3、最終 2。\n38.8°Cの発熱あり、経過観察。\n前日 (7/14) の水分出納: 摂取 1170 mL、排出 1115 mL (うち尿 343 mL)、バランス +55 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 221 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-131-evening": {
@@ -1462,6 +1524,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1474,7 +1538,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 31 日目\n記録者: 石山 ミツ\n患者状態: BP 119/73, HR 96, SpO2 98%, T 38.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 最大 5、最終 3。\n39.1°Cの発熱あり、アセトアミノフェン投与後 38.3°Cに低下、発熱は持続。\n前日 (7/14) の水分出納: 摂取 1170 mL、排出 1115 mL (うち尿 343 mL)、バランス +55 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 31 日目\n記録者: 石山 ミツ\n患者状態: BP 119/73, HR 96, SpO2 98%, T 38.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 最大 5、最終 3。\n39.1°Cの発熱あり、アセトアミノフェン投与後 38.3°Cに低下、発熱は持続。\n前日 (7/14) の水分出納: 摂取 1170 mL、排出 1115 mL (うち尿 343 mL)、バランス +55 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 221 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-132-night": {
@@ -1489,6 +1553,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1501,7 +1567,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 32 日目\n記録者: 石山 ミツ\n患者状態: BP 121/73, HR 96, SpO2 98%, T 38.1°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n疼痛あり、NRS 2。\n39.0°Cの発熱あり、経過観察。\n前日 (7/15) の水分出納: 摂取 1226 mL、排出 1067 mL (うち尿 280 mL)、バランス +159 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 32 日目\n記録者: 石山 ミツ\n患者状態: BP 121/73, HR 96, SpO2 98%, T 38.1°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n疼痛あり、NRS 2。\n39.0°Cの発熱あり、経過観察。\n前日 (7/15) の水分出納: 摂取 1226 mL、排出 1067 mL (うち尿 280 mL)、バランス +159 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 411 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-133-day": {
@@ -1516,6 +1582,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1528,7 +1596,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 32 日目\n記録者: 石山 ミツ\n患者状態: BP 120/72, HR 97, SpO2 98%, T 38.2°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 3。\n39.4°Cの発熱あり、経過観察。\n前日 (7/15) の水分出納: 摂取 1226 mL、排出 1067 mL (うち尿 280 mL)、バランス +159 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 32 日目\n記録者: 石山 ミツ\n患者状態: BP 120/72, HR 97, SpO2 98%, T 38.2°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 3。\n39.4°Cの発熱あり、経過観察。\n前日 (7/15) の水分出納: 摂取 1226 mL、排出 1067 mL (うち尿 280 mL)、バランス +159 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 411 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-134-evening": {
@@ -1543,6 +1611,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1555,7 +1625,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 32 日目\n記録者: 石山 ミツ\n患者状態: BP 127/72, HR 92, SpO2 98%, T 37.2°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 2。\n38.5°Cの発熱あり、経過観察。\n前日 (7/15) の水分出納: 摂取 1226 mL、排出 1067 mL (うち尿 280 mL)、バランス +159 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 32 日目\n記録者: 石山 ミツ\n患者状態: BP 127/72, HR 92, SpO2 98%, T 37.2°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 2。\n38.5°Cの発熱あり、経過観察。\n前日 (7/15) の水分出納: 摂取 1226 mL、排出 1067 mL (うち尿 280 mL)、バランス +159 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 411 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-135-night": {
@@ -1569,6 +1639,8 @@
         "ctx.vitals.shift.pain",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1581,7 +1653,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 33 日目\n記録者: 石山 ミツ\n患者状態: BP 118/73, HR 92, SpO2 98%, T 37.9°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎。\n疼痛あり、NRS 2。\n前日 (7/16) の水分出納: 摂取 1125 mL、排出 1111 mL (うち尿 307 mL)、バランス +14 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 33 日目\n記録者: 石山 ミツ\n患者状態: BP 118/73, HR 92, SpO2 98%, T 37.9°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎。\n疼痛あり、NRS 2。\n前日 (7/16) の水分出納: 摂取 1125 mL、排出 1111 mL (うち尿 307 mL)、バランス +14 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 651 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-136-day": {
@@ -1595,6 +1667,8 @@
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1607,7 +1681,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 33 日目\n記録者: 石山 ミツ\n患者状態: BP 124/74, HR 99, SpO2 98%, T 38.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: ミカファンギン 100mg 静注 1日1回、ヘパリン。\n疼痛あり、NRS 最大 3、最終 2。\n38.9°Cの発熱あり、経過観察。\n前日 (7/16) の水分出納: 摂取 1125 mL、排出 1111 mL (うち尿 307 mL)、バランス +14 mL。"
+      "text": "【看護記録(日勤)】 入院 33 日目\n記録者: 石山 ミツ\n患者状態: BP 124/74, HR 99, SpO2 98%, T 38.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: ミカファンギン 100mg 静注 1日1回、ヘパリン。\n疼痛あり、NRS 最大 3、最終 2。\n38.9°Cの発熱あり、経過観察。\n前日 (7/16) の水分出納: 摂取 1125 mL、排出 1111 mL (うち尿 307 mL)、バランス +14 mL。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 651 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-137-evening": {
@@ -1622,6 +1696,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1634,7 +1710,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 33 日目\n記録者: 石山 ミツ\n患者状態: BP 123/77, HR 92, SpO2 98%, T 38.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 最大 1、最終 0。\n38.0°Cの発熱あり、経過観察。\n前日 (7/16) の水分出納: 摂取 1125 mL、排出 1111 mL (うち尿 307 mL)、バランス +14 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 33 日目\n記録者: 石山 ミツ\n患者状態: BP 123/77, HR 92, SpO2 98%, T 38.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 最大 1、最終 0。\n38.0°Cの発熱あり、経過観察。\n前日 (7/16) の水分出納: 摂取 1125 mL、排出 1111 mL (うち尿 307 mL)、バランス +14 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 651 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-138-night": {
@@ -1649,6 +1725,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1661,7 +1739,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 34 日目\n記録者: 石山 ミツ\n患者状態: BP 123/72, HR 90, SpO2 98%, T 37.3°C、酸素投与: 酸素マスク 8 L/min。\n与薬: ミカファンギン 100mg 静注 1日1回、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 最大 4、最終 3。\n39.2°Cの発熱あり、アセトアミノフェン投与後 37.7°Cに解熱傾向。\n前日 (7/17) の水分出納: 摂取 1195 mL、排出 997 mL (うち尿 364 mL)、バランス +198 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 34 日目\n記録者: 石山 ミツ\n患者状態: BP 123/72, HR 90, SpO2 98%, T 37.3°C、酸素投与: 酸素マスク 8 L/min。\n与薬: ミカファンギン 100mg 静注 1日1回、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 最大 4、最終 3。\n39.2°Cの発熱あり、アセトアミノフェン投与後 37.7°Cに解熱傾向。\n前日 (7/17) の水分出納: 摂取 1195 mL、排出 997 mL (うち尿 364 mL)、バランス +198 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 526 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-139-day": {
@@ -1675,6 +1753,8 @@
         "ctx.vitals.shift.pain",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1687,7 +1767,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 34 日目\n記録者: 石山 ミツ\n患者状態: BP 124/71, HR 99, SpO2 98%, T 37.9°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 最大 3、最終 1。\n前日 (7/17) の水分出納: 摂取 1195 mL、排出 997 mL (うち尿 364 mL)、バランス +198 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 34 日目\n記録者: 石山 ミツ\n患者状態: BP 124/71, HR 99, SpO2 98%, T 37.9°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 最大 3、最終 1。\n前日 (7/17) の水分出納: 摂取 1195 mL、排出 997 mL (うち尿 364 mL)、バランス +198 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 526 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-14": {
@@ -1749,6 +1829,8 @@
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1761,7 +1843,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 34 日目\n記録者: 石山 ミツ\n患者状態: BP 119/76, HR 94, SpO2 98%, T 38.1°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 最大 4、最終 2。\n39.1°Cの発熱あり、アセトアミノフェン投与後 37.7°Cに解熱傾向。\n前日 (7/17) の水分出納: 摂取 1195 mL、排出 997 mL (うち尿 364 mL)、バランス +198 mL。"
+      "text": "【看護記録(準夜)】 入院 34 日目\n記録者: 石山 ミツ\n患者状態: BP 119/76, HR 94, SpO2 98%, T 38.1°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 最大 4、最終 2。\n39.1°Cの発熱あり、アセトアミノフェン投与後 37.7°Cに解熱傾向。\n前日 (7/17) の水分出納: 摂取 1195 mL、排出 997 mL (うち尿 364 mL)、バランス +198 mL。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 526 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-141-night": {
@@ -1775,6 +1857,8 @@
         "ctx.vitals.shift.pain",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1787,7 +1871,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 35 日目\n記録者: 石山 ミツ\n患者状態: BP 123/71, HR 95, SpO2 98%, T 37.9°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎。\n疼痛あり、NRS 最大 3、最終 1。\n前日 (7/18) の水分出納: 摂取 644 mL、排出 876 mL (うち尿 139 mL)、バランス -232 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 35 日目\n記録者: 石山 ミツ\n患者状態: BP 123/71, HR 95, SpO2 98%, T 37.9°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎。\n疼痛あり、NRS 最大 3、最終 1。\n前日 (7/18) の水分出納: 摂取 644 mL、排出 876 mL (うち尿 139 mL)、バランス -232 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 373 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-142-day": {
@@ -1802,6 +1886,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1814,7 +1900,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 35 日目\n記録者: 石山 ミツ\n患者状態: BP 120/70, HR 98, SpO2 98%, T 38.3°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、ヘパリン。\n疼痛あり、NRS 3。\n38.3°Cの発熱あり、経過観察。\n前日 (7/18) の水分出納: 摂取 644 mL、排出 876 mL (うち尿 139 mL)、バランス -232 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 35 日目\n記録者: 石山 ミツ\n患者状態: BP 120/70, HR 98, SpO2 98%, T 38.3°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、ヘパリン。\n疼痛あり、NRS 3。\n38.3°Cの発熱あり、経過観察。\n前日 (7/18) の水分出納: 摂取 644 mL、排出 876 mL (うち尿 139 mL)、バランス -232 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 373 mL。\nADL: Barthel 指数 100/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-143-evening": {
@@ -1829,6 +1915,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1841,7 +1929,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 35 日目\n記録者: 石山 ミツ\n患者状態: BP 119/73, HR 97, SpO2 98%, T 38.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、ヘパリン。\n疼痛あり、NRS 3。\n39.2°Cの発熱あり、経過観察。\n前日 (7/18) の水分出納: 摂取 644 mL、排出 876 mL (うち尿 139 mL)、バランス -232 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 35 日目\n記録者: 石山 ミツ\n患者状態: BP 119/73, HR 97, SpO2 98%, T 38.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、ヘパリン。\n疼痛あり、NRS 3。\n39.2°Cの発熱あり、経過観察。\n前日 (7/18) の水分出納: 摂取 644 mL、排出 876 mL (うち尿 139 mL)、バランス -232 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 373 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-144-night": {
@@ -1856,6 +1944,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1868,7 +1958,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 36 日目\n記録者: 石山 ミツ\n患者状態: BP 121/71, HR 93, SpO2 98%, T 37.8°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎。\n疼痛あり、NRS 1。\n38.6°Cの発熱あり、経過観察。\n前日 (7/19) の水分出納: 摂取 809 mL、排出 828 mL (うち尿 107 mL)、バランス -19 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 36 日目\n記録者: 石山 ミツ\n患者状態: BP 121/71, HR 93, SpO2 98%, T 37.8°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎。\n疼痛あり、NRS 1。\n38.6°Cの発熱あり、経過観察。\n前日 (7/19) の水分出納: 摂取 809 mL、排出 828 mL (うち尿 107 mL)、バランス -19 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 586 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-145-day": {
@@ -1883,6 +1973,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1895,7 +1987,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 36 日目\n記録者: 石山 ミツ\n患者状態: BP 123/74, HR 99, SpO2 98%, T 38.7°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、ヘパリン。\n疼痛あり、NRS 2。\n39.1°Cの発熱あり、経過観察。\n前日 (7/19) の水分出納: 摂取 809 mL、排出 828 mL (うち尿 107 mL)、バランス -19 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 36 日目\n記録者: 石山 ミツ\n患者状態: BP 123/74, HR 99, SpO2 98%, T 38.7°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、ヘパリン。\n疼痛あり、NRS 2。\n39.1°Cの発熱あり、経過観察。\n前日 (7/19) の水分出納: 摂取 809 mL、排出 828 mL (うち尿 107 mL)、バランス -19 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 586 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-146-evening": {
@@ -1910,6 +2002,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1922,7 +2016,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 36 日目\n記録者: 石山 ミツ\n患者状態: BP 124/77, HR 94, SpO2 98%, T 38.1°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、ヘパリン。\n疼痛あり、NRS 3。\n38.7°Cの発熱あり、経過観察。\n前日 (7/19) の水分出納: 摂取 809 mL、排出 828 mL (うち尿 107 mL)、バランス -19 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 36 日目\n記録者: 石山 ミツ\n患者状態: BP 124/77, HR 94, SpO2 98%, T 38.1°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、ヘパリン。\n疼痛あり、NRS 3。\n38.7°Cの発熱あり、経過観察。\n前日 (7/19) の水分出納: 摂取 809 mL、排出 828 mL (うち尿 107 mL)、バランス -19 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 586 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-147": {
@@ -3348,6 +3442,8 @@
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -3360,7 +3456,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 1 日目\n記録者: 石山 ミツ\n患者状態: BP 106/68, HR 120, SpO2 95%, T 40.3°C、酸素投与: 鼻カニューラ 3.9 L/min。\n与薬: バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 最大 7、最終 5。\n40.3°Cの発熱あり、アセトアミノフェン投与後 38.8°Cに低下、発熱は持続。\n尿道留置カテーテル留置中。固定状況、尿の流出と性状の観察を継続。\n中心静脈カテーテル留置中。刺入部の状態と固定の観察を継続。\n酸素: 鼻カニューラ 3.9 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 1 日目\n記録者: 石山 ミツ\n患者状態: BP 106/68, HR 120, SpO2 95%, T 40.3°C、酸素投与: 鼻カニューラ 3.9 L/min。\n与薬: バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 最大 7、最終 5。\n40.3°Cの発熱あり、アセトアミノフェン投与後 38.8°Cに低下、発熱は持続。\n尿道留置カテーテル留置中。固定状況、尿の流出と性状の観察を継続。\n中心静脈カテーテル留置中。刺入部の状態と固定の観察を継続。\n酸素: 鼻カニューラ 3.9 L/分。装着状態の観察を継続。\n絶食中。\nADL: Barthel 指数 50/100 (中等度介助)、移動は車椅子、排泄は一部介助。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-41-evening": {
@@ -3374,6 +3470,8 @@
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -3386,7 +3484,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 1 日目\n記録者: 石山 ミツ\n患者状態: BP 108/61, HR 123, SpO2 95%, T 38.9°C、酸素投与: 鼻カニューラ 3.9 L/min。\n与薬: メロペネム、バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 7。\n39.7°Cの発熱あり、アセトアミノフェン投与、経過観察。\n尿道留置カテーテル留置中。固定状況、尿の流出と性状の観察を継続。\n中心静脈カテーテル留置中。刺入部の状態と固定の観察を継続。\n酸素: 鼻カニューラ 3.9 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 1 日目\n記録者: 石山 ミツ\n患者状態: BP 108/61, HR 123, SpO2 95%, T 38.9°C、酸素投与: 鼻カニューラ 3.9 L/min。\n与薬: メロペネム、バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 7。\n39.7°Cの発熱あり、アセトアミノフェン投与、経過観察。\n尿道留置カテーテル留置中。固定状況、尿の流出と性状の観察を継続。\n中心静脈カテーテル留置中。刺入部の状態と固定の観察を継続。\n酸素: 鼻カニューラ 3.9 L/分。装着状態の観察を継続。\n絶食中。\nADL: Barthel 指数 50/100 (中等度介助)、移動は車椅子、排泄は一部介助。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-42-night": {
@@ -3402,6 +3500,8 @@
         "ctx.vitals.shift.desaturation",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -3414,7 +3514,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 2 日目\n記録者: 石山 ミツ\n患者状態: BP 102/64, HR 121, SpO2 98%, T 38.9°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 最大 8、最終 5。\n39.6°Cの発熱あり、アセトアミノフェン投与、経過観察。\n00:03 SpO2 93%に低下、鼻カニューラ 3.9 L/分投与下で管理。\n前日 (6/15) の水分出納: 摂取 1235 mL、排出 1017 mL (うち尿 239 mL)、バランス +218 mL。\n尿道留置カテーテル留置中。固定状況、尿の流出と性状の観察を継続。\n中心静脈カテーテル留置中。刺入部の状態と固定の観察を継続。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 2 日目\n記録者: 石山 ミツ\n患者状態: BP 102/64, HR 121, SpO2 98%, T 38.9°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 最大 8、最終 5。\n39.6°Cの発熱あり、アセトアミノフェン投与、経過観察。\n00:03 SpO2 93%に低下、鼻カニューラ 3.9 L/分投与下で管理。\n前日 (6/15) の水分出納: 摂取 1235 mL、排出 1017 mL (うち尿 239 mL)、バランス +218 mL。\n尿道留置カテーテル留置中。固定状況、尿の流出と性状の観察を継続。\n中心静脈カテーテル留置中。刺入部の状態と固定の観察を継続。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n絶食継続。\nADL: Barthel 指数 50/100 (中等度介助)、移動は車椅子、排泄は一部介助。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-43-day": {
@@ -3429,6 +3529,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -3441,7 +3543,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 2 日目\n記録者: 石山 ミツ\n患者状態: BP 106/61, HR 122, SpO2 98%, T 40.3°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム、バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 5。\n40.3°Cの発熱あり、アセトアミノフェン投与後 39.7°Cに低下、発熱は持続。\n前日 (6/15) の水分出納: 摂取 1235 mL、排出 1017 mL (うち尿 239 mL)、バランス +218 mL。\n尿道留置カテーテル留置中。固定状況、尿の流出と性状の観察を継続。\n中心静脈カテーテル留置中。刺入部の状態と固定の観察を継続。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 2 日目\n記録者: 石山 ミツ\n患者状態: BP 106/61, HR 122, SpO2 98%, T 40.3°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム、バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 5。\n40.3°Cの発熱あり、アセトアミノフェン投与後 39.7°Cに低下、発熱は持続。\n前日 (6/15) の水分出納: 摂取 1235 mL、排出 1017 mL (うち尿 239 mL)、バランス +218 mL。\n尿道留置カテーテル留置中。固定状況、尿の流出と性状の観察を継続。\n中心静脈カテーテル留置中。刺入部の状態と固定の観察を継続。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 流動食、摂食は一部介助、前日の経口摂取量 23 mL。\nADL: Barthel 指数 50/100 (中等度介助)、移動は車椅子、排泄は一部介助。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-44-evening": {
@@ -3456,6 +3558,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -3468,7 +3572,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 2 日目\n記録者: 石山 ミツ\n患者状態: BP 105/61, HR 113, SpO2 98%, T 40.1°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム、バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 7。\n40.4°Cの発熱あり、アセトアミノフェン投与後 40.3°Cに低下、発熱は持続。\n前日 (6/15) の水分出納: 摂取 1235 mL、排出 1017 mL (うち尿 239 mL)、バランス +218 mL。\n尿道留置カテーテル留置中。固定状況、尿の流出と性状の観察を継続。\n中心静脈カテーテル留置中。刺入部の状態と固定の観察を継続。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 2 日目\n記録者: 石山 ミツ\n患者状態: BP 105/61, HR 113, SpO2 98%, T 40.1°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム、バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 7。\n40.4°Cの発熱あり、アセトアミノフェン投与後 40.3°Cに低下、発熱は持続。\n前日 (6/15) の水分出納: 摂取 1235 mL、排出 1017 mL (うち尿 239 mL)、バランス +218 mL。\n尿道留置カテーテル留置中。固定状況、尿の流出と性状の観察を継続。\n中心静脈カテーテル留置中。刺入部の状態と固定の観察を継続。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 流動食、摂食は一部介助、前日の経口摂取量 23 mL。\nADL: Barthel 指数 50/100 (中等度介助)、移動は車椅子、排泄は一部介助。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-45-night": {
@@ -3483,6 +3587,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -3495,7 +3601,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 3 日目\n記録者: 石山 ミツ\n患者状態: BP 106/63, HR 113, SpO2 95%, T 38.8°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 7。\n38.8°Cの発熱あり、アセトアミノフェン投与後も 38.8°Cで経過観察。\n前日 (6/16) の水分出納: 摂取 1424 mL、排出 1050 mL (うち尿 417 mL)、バランス +374 mL。\n尿道留置カテーテル留置中。固定状況、尿の流出と性状の観察を継続。\n中心静脈カテーテル留置中。刺入部の状態と固定の観察を継続。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 3 日目\n記録者: 石山 ミツ\n患者状態: BP 106/63, HR 113, SpO2 95%, T 38.8°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 7。\n38.8°Cの発熱あり、アセトアミノフェン投与後も 38.8°Cで経過観察。\n前日 (6/16) の水分出納: 摂取 1424 mL、排出 1050 mL (うち尿 417 mL)、バランス +374 mL。\n尿道留置カテーテル留置中。固定状況、尿の流出と性状の観察を継続。\n中心静脈カテーテル留置中。刺入部の状態と固定の観察を継続。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 流動食、摂食は一部介助、前日の経口摂取量 157 mL。\nADL: Barthel 指数 50/100 (中等度介助)、移動は車椅子、排泄は一部介助。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-46-day": {
@@ -3510,6 +3616,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -3522,7 +3630,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 3 日目\n記録者: 石山 ミツ\n患者状態: BP 106/65, HR 119, SpO2 98%, T 39.9°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム、バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 6。\n40.1°Cの発熱あり、アセトアミノフェン投与後 39.9°Cに低下、発熱は持続。\n前日 (6/16) の水分出納: 摂取 1424 mL、排出 1050 mL (うち尿 417 mL)、バランス +374 mL。\n尿道留置カテーテル留置中。固定状況、尿の流出と性状の観察を継続。\n中心静脈カテーテル留置中。刺入部の状態と固定の観察を継続。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 3 日目\n記録者: 石山 ミツ\n患者状態: BP 106/65, HR 119, SpO2 98%, T 39.9°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム、バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 6。\n40.1°Cの発熱あり、アセトアミノフェン投与後 39.9°Cに低下、発熱は持続。\n前日 (6/16) の水分出納: 摂取 1424 mL、排出 1050 mL (うち尿 417 mL)、バランス +374 mL。\n尿道留置カテーテル留置中。固定状況、尿の流出と性状の観察を継続。\n中心静脈カテーテル留置中。刺入部の状態と固定の観察を継続。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 157 mL。\nADL: Barthel 指数 50/100 (中等度介助)、移動は車椅子、排泄は一部介助。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-47-evening": {
@@ -3537,6 +3645,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -3549,7 +3659,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 3 日目\n記録者: 石山 ミツ\n患者状態: BP 104/65, HR 118, SpO2 98%, T 39.3°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム、バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 最大 6、最終 4。\n40.3°Cの発熱あり、アセトアミノフェン投与後 39.5°Cに低下、発熱は持続。\n前日 (6/16) の水分出納: 摂取 1424 mL、排出 1050 mL (うち尿 417 mL)、バランス +374 mL。\n尿道留置カテーテル留置中。固定状況、尿の流出と性状の観察を継続。\n中心静脈カテーテル留置中。刺入部の状態と固定の観察を継続。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 3 日目\n記録者: 石山 ミツ\n患者状態: BP 104/65, HR 118, SpO2 98%, T 39.3°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム、バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 最大 6、最終 4。\n40.3°Cの発熱あり、アセトアミノフェン投与後 39.5°Cに低下、発熱は持続。\n前日 (6/16) の水分出納: 摂取 1424 mL、排出 1050 mL (うち尿 417 mL)、バランス +374 mL。\n尿道留置カテーテル留置中。固定状況、尿の流出と性状の観察を継続。\n中心静脈カテーテル留置中。刺入部の状態と固定の観察を継続。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 157 mL。\nADL: Barthel 指数 50/100 (中等度介助)、移動は車椅子、排泄は一部介助。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-48-night": {
@@ -3564,6 +3674,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -3576,7 +3688,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 4 日目\n記録者: 石山 ミツ\n患者状態: BP 103/60, HR 115, SpO2 98%, T 39.1°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 5。\n39.3°Cの発熱あり、アセトアミノフェン投与後 39.1°Cに低下、発熱は持続。\n前日 (6/17) の水分出納: 摂取 1177 mL、排出 927 mL (うち尿 294 mL)、バランス +250 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 4 日目\n記録者: 石山 ミツ\n患者状態: BP 103/60, HR 115, SpO2 98%, T 39.1°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 5。\n39.3°Cの発熱あり、アセトアミノフェン投与後 39.1°Cに低下、発熱は持続。\n前日 (6/17) の水分出納: 摂取 1177 mL、排出 927 mL (うち尿 294 mL)、バランス +250 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 398 mL。\nADL: Barthel 指数 50/100 (中等度介助)、移動は車椅子、排泄は一部介助。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-49-day": {
@@ -3591,6 +3703,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -3603,7 +3717,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 4 日目\n記録者: 石山 ミツ\n患者状態: BP 106/66, HR 118, SpO2 98%, T 39.9°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム、ミカファンギン 100mg 静注 1日1回、ヘパリン。\n疼痛あり、NRS 最大 4、最終 3。\n39.9°Cの発熱あり、経過観察。\n前日 (6/17) の水分出納: 摂取 1177 mL、排出 927 mL (うち尿 294 mL)、バランス +250 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 4 日目\n記録者: 石山 ミツ\n患者状態: BP 106/66, HR 118, SpO2 98%, T 39.9°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム、ミカファンギン 100mg 静注 1日1回、ヘパリン。\n疼痛あり、NRS 最大 4、最終 3。\n39.9°Cの発熱あり、経過観察。\n前日 (6/17) の水分出納: 摂取 1177 mL、排出 927 mL (うち尿 294 mL)、バランス +250 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 398 mL。\nADL: Barthel 指数 50/100 (中等度介助)、移動は車椅子、排泄は一部介助。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-50-evening": {
@@ -3618,6 +3732,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -3630,7 +3746,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 4 日目\n記録者: 石山 ミツ\n患者状態: BP 107/63, HR 111, SpO2 98%, T 39.4°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n40.7°Cの発熱あり、アセトアミノフェン投与後も 40.7°Cで経過観察。\n前日 (6/17) の水分出納: 摂取 1177 mL、排出 927 mL (うち尿 294 mL)、バランス +250 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 4 日目\n記録者: 石山 ミツ\n患者状態: BP 107/63, HR 111, SpO2 98%, T 39.4°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n40.7°Cの発熱あり、アセトアミノフェン投与後も 40.7°Cで経過観察。\n前日 (6/17) の水分出納: 摂取 1177 mL、排出 927 mL (うち尿 294 mL)、バランス +250 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 398 mL。\nADL: Barthel 指数 50/100 (中等度介助)、移動は車椅子、排泄は一部介助。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-51-night": {
@@ -3645,6 +3761,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -3657,7 +3775,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 5 日目\n記録者: 石山 ミツ\n患者状態: BP 107/65, HR 115, SpO2 98%, T 39.3°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n疼痛あり、NRS 最大 1、最終 0。\n39.3°Cの発熱あり、経過観察。\n前日 (6/18) の水分出納: 摂取 1021 mL、排出 1129 mL (うち尿 251 mL)、バランス -108 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 5 日目\n記録者: 石山 ミツ\n患者状態: BP 107/65, HR 115, SpO2 98%, T 39.3°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n疼痛あり、NRS 最大 1、最終 0。\n39.3°Cの発熱あり、経過観察。\n前日 (6/18) の水分出納: 摂取 1021 mL、排出 1129 mL (うち尿 251 mL)、バランス -108 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 279 mL。\nADL: Barthel 指数 50/100 (中等度介助)、移動は車椅子、排泄は一部介助。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-52-day": {
@@ -3673,6 +3791,8 @@
         "ctx.medications.shift.not_given",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -3685,7 +3805,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 5 日目\n記録者: 石山 ミツ\n患者状態: BP 104/62, HR 117, SpO2 98%, T 40.4°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 6。\n40.4°Cの発熱あり、アセトアミノフェン投与後も 40.4°Cで経過観察。\nメロペネム投与を拒否。\n前日 (6/18) の水分出納: 摂取 1021 mL、排出 1129 mL (うち尿 251 mL)、バランス -108 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 5 日目\n記録者: 石山 ミツ\n患者状態: BP 104/62, HR 117, SpO2 98%, T 40.4°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 6。\n40.4°Cの発熱あり、アセトアミノフェン投与後も 40.4°Cで経過観察。\nメロペネム投与を拒否。\n前日 (6/18) の水分出納: 摂取 1021 mL、排出 1129 mL (うち尿 251 mL)、バランス -108 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 279 mL。\nADL: Barthel 指数 50/100 (中等度介助)、移動は車椅子、排泄は一部介助。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-53-evening": {
@@ -3700,6 +3820,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -3712,7 +3834,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 5 日目\n記録者: 石山 ミツ\n患者状態: BP 105/64, HR 111, SpO2 98%, T 39.8°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 4。\n39.8°Cの発熱あり、アセトアミノフェン投与、経過観察。\n前日 (6/18) の水分出納: 摂取 1021 mL、排出 1129 mL (うち尿 251 mL)、バランス -108 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 5 日目\n記録者: 石山 ミツ\n患者状態: BP 105/64, HR 111, SpO2 98%, T 39.8°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 4。\n39.8°Cの発熱あり、アセトアミノフェン投与、経過観察。\n前日 (6/18) の水分出納: 摂取 1021 mL、排出 1129 mL (うち尿 251 mL)、バランス -108 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 279 mL。\nADL: Barthel 指数 50/100 (中等度介助)、移動は車椅子、排泄は一部介助。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-54-night": {
@@ -3727,6 +3849,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -3739,7 +3863,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 6 日目\n記録者: 石山 ミツ\n患者状態: BP 107/63, HR 109, SpO2 95%, T 38.2°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎。\n疼痛あり、NRS 最大 3、最終 1。\n39.5°Cの発熱あり、経過観察。\n前日 (6/19) の水分出納: 摂取 1157 mL、排出 909 mL (うち尿 166 mL)、バランス +248 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 6 日目\n記録者: 石山 ミツ\n患者状態: BP 107/63, HR 109, SpO2 95%, T 38.2°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎。\n疼痛あり、NRS 最大 3、最終 1。\n39.5°Cの発熱あり、経過観察。\n前日 (6/19) の水分出納: 摂取 1157 mL、排出 909 mL (うち尿 166 mL)、バランス +248 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 346 mL。\nADL: Barthel 指数 50/100 (中等度介助)、移動は車椅子、排泄は一部介助。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-55-day": {
@@ -3754,6 +3878,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -3766,7 +3892,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 6 日目\n記録者: 石山 ミツ\n患者状態: BP 108/67, HR 114, SpO2 98%, T 40.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 最大 4、最終 1。\n40.0°Cの発熱あり、アセトアミノフェン投与後 39.6°Cに低下、発熱は持続。\n前日 (6/19) の水分出納: 摂取 1157 mL、排出 909 mL (うち尿 166 mL)、バランス +248 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 6 日目\n記録者: 石山 ミツ\n患者状態: BP 108/67, HR 114, SpO2 98%, T 40.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 最大 4、最終 1。\n40.0°Cの発熱あり、アセトアミノフェン投与後 39.6°Cに低下、発熱は持続。\n前日 (6/19) の水分出納: 摂取 1157 mL、排出 909 mL (うち尿 166 mL)、バランス +248 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 346 mL。\nADL: Barthel 指数 50/100 (中等度介助)、移動は車椅子、排泄は一部介助。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-56-evening": {
@@ -3781,6 +3907,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -3793,7 +3921,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 6 日目\n記録者: 石山 ミツ\n患者状態: BP 107/63, HR 107, SpO2 98%, T 39.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n39.5°Cの発熱あり、アセトアミノフェン投与後 39.0°Cに低下、発熱は持続。\n前日 (6/19) の水分出納: 摂取 1157 mL、排出 909 mL (うち尿 166 mL)、バランス +248 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 6 日目\n記録者: 石山 ミツ\n患者状態: BP 107/63, HR 107, SpO2 98%, T 39.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n39.5°Cの発熱あり、アセトアミノフェン投与後 39.0°Cに低下、発熱は持続。\n前日 (6/19) の水分出納: 摂取 1157 mL、排出 909 mL (うち尿 166 mL)、バランス +248 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 346 mL。\nADL: Barthel 指数 50/100 (中等度介助)、移動は車椅子、排泄は一部介助。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-57-night": {
@@ -3808,6 +3936,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -3820,7 +3950,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 7 日目\n記録者: 石山 ミツ\n患者状態: BP 109/63, HR 104, SpO2 98%, T 38.6°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 最大 5、最終 4。\n38.9°Cの発熱あり、アセトアミノフェン投与後 38.6°Cに低下、発熱は持続。\n前日 (6/20) の水分出納: 摂取 1222 mL、排出 913 mL (うち尿 126 mL)、バランス +309 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 7 日目\n記録者: 石山 ミツ\n患者状態: BP 109/63, HR 104, SpO2 98%, T 38.6°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 最大 5、最終 4。\n38.9°Cの発熱あり、アセトアミノフェン投与後 38.6°Cに低下、発熱は持続。\n前日 (6/20) の水分出納: 摂取 1222 mL、排出 913 mL (うち尿 126 mL)、バランス +309 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 462 mL。\nADL: Barthel 指数 50/100 (中等度介助)、移動は車椅子、排泄は一部介助。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-58-day": {
@@ -3835,6 +3965,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -3847,7 +3979,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 7 日目\n記録者: 石山 ミツ\n患者状態: BP 106/66, HR 110, SpO2 95%, T 39.6°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n39.6°Cの発熱あり、アセトアミノフェン投与後も 39.6°Cで経過観察。\n前日 (6/20) の水分出納: 摂取 1222 mL、排出 913 mL (うち尿 126 mL)、バランス +309 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 7 日目\n記録者: 石山 ミツ\n患者状態: BP 106/66, HR 110, SpO2 95%, T 39.6°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n39.6°Cの発熱あり、アセトアミノフェン投与後も 39.6°Cで経過観察。\n前日 (6/20) の水分出納: 摂取 1222 mL、排出 913 mL (うち尿 126 mL)、バランス +309 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 462 mL。\nADL: Barthel 指数 50/100 (中等度介助)、移動は車椅子、排泄は一部介助。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-59-evening": {
@@ -3862,6 +3994,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -3874,7 +4008,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 7 日目\n記録者: 石山 ミツ\n患者状態: BP 111/65, HR 106, SpO2 98%, T 38.9°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、ヘパリン。\n疼痛あり、NRS 2。\n39.8°Cの発熱あり、経過観察。\n前日 (6/20) の水分出納: 摂取 1222 mL、排出 913 mL (うち尿 126 mL)、バランス +309 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 7 日目\n記録者: 石山 ミツ\n患者状態: BP 111/65, HR 106, SpO2 98%, T 38.9°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、ヘパリン。\n疼痛あり、NRS 2。\n39.8°Cの発熱あり、経過観察。\n前日 (6/20) の水分出納: 摂取 1222 mL、排出 913 mL (うち尿 126 mL)、バランス +309 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 462 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-60-night": {
@@ -3889,6 +4023,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -3901,7 +4037,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 8 日目\n記録者: 石山 ミツ\n患者状態: BP 112/65, HR 102, SpO2 98%, T 38.4°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 5。\n39.3°Cの発熱あり、アセトアミノフェン投与、経過観察。\n前日 (6/21) の水分出納: 摂取 815 mL、排出 716 mL (うち尿 83 mL)、バランス +99 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 8 日目\n記録者: 石山 ミツ\n患者状態: BP 112/65, HR 102, SpO2 98%, T 38.4°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 5。\n39.3°Cの発熱あり、アセトアミノフェン投与、経過観察。\n前日 (6/21) の水分出納: 摂取 815 mL、排出 716 mL (うち尿 83 mL)、バランス +99 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 321 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-61-day": {
@@ -3916,6 +4052,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -3928,7 +4066,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 8 日目\n記録者: 石山 ミツ\n患者状態: BP 110/66, HR 107, SpO2 98%, T 39.6°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n39.9°Cの発熱あり、アセトアミノフェン投与後 39.6°Cに低下、発熱は持続。\n前日 (6/21) の水分出納: 摂取 815 mL、排出 716 mL (うち尿 83 mL)、バランス +99 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 8 日目\n記録者: 石山 ミツ\n患者状態: BP 110/66, HR 107, SpO2 98%, T 39.6°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n39.9°Cの発熱あり、アセトアミノフェン投与後 39.6°Cに低下、発熱は持続。\n前日 (6/21) の水分出納: 摂取 815 mL、排出 716 mL (うち尿 83 mL)、バランス +99 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 321 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-62-evening": {
@@ -3943,6 +4081,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -3955,7 +4095,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 8 日目\n記録者: 石山 ミツ\n患者状態: BP 110/67, HR 102, SpO2 98%, T 39.1°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n40.8°Cの発熱あり、アセトアミノフェン投与、経過観察。\n前日 (6/21) の水分出納: 摂取 815 mL、排出 716 mL (うち尿 83 mL)、バランス +99 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 8 日目\n記録者: 石山 ミツ\n患者状態: BP 110/67, HR 102, SpO2 98%, T 39.1°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n40.8°Cの発熱あり、アセトアミノフェン投与、経過観察。\n前日 (6/21) の水分出納: 摂取 815 mL、排出 716 mL (うち尿 83 mL)、バランス +99 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 321 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-63-night": {
@@ -3970,6 +4110,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -3982,7 +4124,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 9 日目\n記録者: 石山 ミツ\n患者状態: BP 112/70, HR 100, SpO2 98%, T 39.1°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n疼痛あり、NRS 2。\n39.6°Cの発熱あり、経過観察。\n前日 (6/22) の水分出納: 摂取 744 mL、排出 822 mL (うち尿 189 mL)、バランス -78 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 9 日目\n記録者: 石山 ミツ\n患者状態: BP 112/70, HR 100, SpO2 98%, T 39.1°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n疼痛あり、NRS 2。\n39.6°Cの発熱あり、経過観察。\n前日 (6/22) の水分出納: 摂取 744 mL、排出 822 mL (うち尿 189 mL)、バランス -78 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 430 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-64-day": {
@@ -3997,6 +4139,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4009,7 +4153,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 9 日目\n記録者: 石山 ミツ\n患者状態: BP 109/66, HR 105, SpO2 98%, T 39.4°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 最大 3、最終 2。\n39.9°Cの発熱あり、経過観察。\n前日 (6/22) の水分出納: 摂取 744 mL、排出 822 mL (うち尿 189 mL)、バランス -78 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 9 日目\n記録者: 石山 ミツ\n患者状態: BP 109/66, HR 105, SpO2 98%, T 39.4°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 最大 3、最終 2。\n39.9°Cの発熱あり、経過観察。\n前日 (6/22) の水分出納: 摂取 744 mL、排出 822 mL (うち尿 189 mL)、バランス -78 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 430 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-65-evening": {
@@ -4024,6 +4168,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4036,7 +4182,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 9 日目\n記録者: 石山 ミツ\n患者状態: BP 112/64, HR 99, SpO2 98%, T 39.3°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 5。\n39.3°Cの発熱あり、アセトアミノフェン投与後 39.1°Cに低下、発熱は持続。\n前日 (6/22) の水分出納: 摂取 744 mL、排出 822 mL (うち尿 189 mL)、バランス -78 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 9 日目\n記録者: 石山 ミツ\n患者状態: BP 112/64, HR 99, SpO2 98%, T 39.3°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 5。\n39.3°Cの発熱あり、アセトアミノフェン投与後 39.1°Cに低下、発熱は持続。\n前日 (6/22) の水分出納: 摂取 744 mL、排出 822 mL (うち尿 189 mL)、バランス -78 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 430 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-66-night": {
@@ -4051,6 +4197,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4063,7 +4211,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 10 日目\n記録者: 石山 ミツ\n患者状態: BP 113/66, HR 102, SpO2 98%, T 39.8°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎。\n疼痛あり、NRS 3。\n39.8°Cの発熱あり、経過観察。\n前日 (6/23) の水分出納: 摂取 784 mL、排出 725 mL (うち尿 92 mL)、バランス +59 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 10 日目\n記録者: 石山 ミツ\n患者状態: BP 113/66, HR 102, SpO2 98%, T 39.8°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎。\n疼痛あり、NRS 3。\n39.8°Cの発熱あり、経過観察。\n前日 (6/23) の水分出納: 摂取 784 mL、排出 725 mL (うち尿 92 mL)、バランス +59 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 367 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-67-day": {
@@ -4078,6 +4226,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4090,7 +4240,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 10 日目\n記録者: 石山 ミツ\n患者状態: BP 110/66, HR 102, SpO2 98%, T 39.6°C、酸素投与: 酸素マスク 8 L/min。\n与薬: ミカファンギン 100mg 静注 1日1回、ヘパリン。\n疼痛あり、NRS 3。\n39.6°Cの発熱あり、経過観察。\n前日 (6/23) の水分出納: 摂取 784 mL、排出 725 mL (うち尿 92 mL)、バランス +59 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 10 日目\n記録者: 石山 ミツ\n患者状態: BP 110/66, HR 102, SpO2 98%, T 39.6°C、酸素投与: 酸素マスク 8 L/min。\n与薬: ミカファンギン 100mg 静注 1日1回、ヘパリン。\n疼痛あり、NRS 3。\n39.6°Cの発熱あり、経過観察。\n前日 (6/23) の水分出納: 摂取 784 mL、排出 725 mL (うち尿 92 mL)、バランス +59 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 367 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-68-evening": {
@@ -4105,6 +4255,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4117,7 +4269,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 10 日目\n記録者: 石山 ミツ\n患者状態: BP 113/65, HR 99, SpO2 97%, T 38.4°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 7。\n39.7°Cの発熱あり、アセトアミノフェン投与、経過観察。\n前日 (6/23) の水分出納: 摂取 784 mL、排出 725 mL (うち尿 92 mL)、バランス +59 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 10 日目\n記録者: 石山 ミツ\n患者状態: BP 113/65, HR 99, SpO2 97%, T 38.4°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 7。\n39.7°Cの発熱あり、アセトアミノフェン投与、経過観察。\n前日 (6/23) の水分出納: 摂取 784 mL、排出 725 mL (うち尿 92 mL)、バランス +59 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 367 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-69-night": {
@@ -4132,6 +4284,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4144,7 +4298,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 11 日目\n記録者: 石山 ミツ\n患者状態: BP 115/67, HR 99, SpO2 98%, T 38.3°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎。\n疼痛あり、NRS 最大 4、最終 3。\n38.7°Cの発熱あり、経過観察。\n前日 (6/24) の水分出納: 摂取 758 mL、排出 851 mL (うち尿 218 mL)、バランス -93 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 11 日目\n記録者: 石山 ミツ\n患者状態: BP 115/67, HR 99, SpO2 98%, T 38.3°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎。\n疼痛あり、NRS 最大 4、最終 3。\n38.7°Cの発熱あり、経過観察。\n前日 (6/24) の水分出納: 摂取 758 mL、排出 851 mL (うち尿 218 mL)、バランス -93 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-70-day": {
@@ -4159,6 +4313,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4171,7 +4327,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 11 日目\n記録者: 石山 ミツ\n患者状態: BP 113/71, HR 105, SpO2 98%, T 38.7°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 5。\n39.7°Cの発熱あり、アセトアミノフェン投与後 38.7°Cに低下、発熱は持続。\n前日 (6/24) の水分出納: 摂取 758 mL、排出 851 mL (うち尿 218 mL)、バランス -93 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 11 日目\n記録者: 石山 ミツ\n患者状態: BP 113/71, HR 105, SpO2 98%, T 38.7°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 5。\n39.7°Cの発熱あり、アセトアミノフェン投与後 38.7°Cに低下、発熱は持続。\n前日 (6/24) の水分出納: 摂取 758 mL、排出 851 mL (うち尿 218 mL)、バランス -93 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-71-evening": {
@@ -4186,6 +4342,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4198,7 +4356,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 11 日目\n記録者: 石山 ミツ\n患者状態: BP 109/66, HR 101, SpO2 98%, T 39.8°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 3。\n39.8°Cの発熱あり、経過観察。\n前日 (6/24) の水分出納: 摂取 758 mL、排出 851 mL (うち尿 218 mL)、バランス -93 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 11 日目\n記録者: 石山 ミツ\n患者状態: BP 109/66, HR 101, SpO2 98%, T 39.8°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 3。\n39.8°Cの発熱あり、経過観察。\n前日 (6/24) の水分出納: 摂取 758 mL、排出 851 mL (うち尿 218 mL)、バランス -93 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-72-night": {
@@ -4213,6 +4371,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4225,7 +4385,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 12 日目\n記録者: 石山 ミツ\n患者状態: BP 115/71, HR 97, SpO2 98%, T 39.1°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n疼痛あり、NRS 最大 3、最終 0。\n39.5°Cの発熱あり、経過観察。\n前日 (6/25) の水分出納: 摂取 1094 mL、排出 1092 mL (うち尿 339 mL)、バランス +2 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 12 日目\n記録者: 石山 ミツ\n患者状態: BP 115/71, HR 97, SpO2 98%, T 39.1°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n疼痛あり、NRS 最大 3、最終 0。\n39.5°Cの発熱あり、経過観察。\n前日 (6/25) の水分出納: 摂取 1094 mL、排出 1092 mL (うち尿 339 mL)、バランス +2 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 535 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-73-day": {
@@ -4240,6 +4400,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4252,7 +4414,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 12 日目\n記録者: 石山 ミツ\n患者状態: BP 116/70, HR 102, SpO2 98%, T 38.8°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、ヘパリン。\n疼痛あり、NRS 2。\n39.5°Cの発熱あり、経過観察。\n前日 (6/25) の水分出納: 摂取 1094 mL、排出 1092 mL (うち尿 339 mL)、バランス +2 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 12 日目\n記録者: 石山 ミツ\n患者状態: BP 116/70, HR 102, SpO2 98%, T 38.8°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、ヘパリン。\n疼痛あり、NRS 2。\n39.5°Cの発熱あり、経過観察。\n前日 (6/25) の水分出納: 摂取 1094 mL、排出 1092 mL (うち尿 339 mL)、バランス +2 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 535 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-74-evening": {
@@ -4267,6 +4429,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4279,7 +4443,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 12 日目\n記録者: 石山 ミツ\n患者状態: BP 113/68, HR 96, SpO2 98%, T 38.7°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 最大 6、最終 0。\n39.2°Cの発熱あり、アセトアミノフェン投与後 39.1°Cに低下、発熱は持続。\n前日 (6/25) の水分出納: 摂取 1094 mL、排出 1092 mL (うち尿 339 mL)、バランス +2 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 12 日目\n記録者: 石山 ミツ\n患者状態: BP 113/68, HR 96, SpO2 98%, T 38.7°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 最大 6、最終 0。\n39.2°Cの発熱あり、アセトアミノフェン投与後 39.1°Cに低下、発熱は持続。\n前日 (6/25) の水分出納: 摂取 1094 mL、排出 1092 mL (うち尿 339 mL)、バランス +2 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 535 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-75-night": {
@@ -4294,6 +4458,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4306,7 +4472,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 13 日目\n記録者: 石山 ミツ\n患者状態: BP 116/71, HR 94, SpO2 98%, T 37.5°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、ミカファンギン 100mg 静注 1日1回。\n疼痛あり、NRS 最大 3、最終 2。\n38.8°Cの発熱あり、経過観察。\n前日 (6/26) の水分出納: 摂取 968 mL、排出 974 mL (うち尿 152 mL)、バランス -6 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 13 日目\n記録者: 石山 ミツ\n患者状態: BP 116/71, HR 94, SpO2 98%, T 37.5°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、ミカファンギン 100mg 静注 1日1回。\n疼痛あり、NRS 最大 3、最終 2。\n38.8°Cの発熱あり、経過観察。\n前日 (6/26) の水分出納: 摂取 968 mL、排出 974 mL (うち尿 152 mL)、バランス -6 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 670 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-76-day": {
@@ -4321,6 +4487,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4333,7 +4501,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 13 日目\n記録者: 石山 ミツ\n患者状態: BP 120/68, HR 101, SpO2 98%, T 39.5°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n39.5°Cの発熱あり、アセトアミノフェン投与後も 39.5°Cで経過観察。\n前日 (6/26) の水分出納: 摂取 968 mL、排出 974 mL (うち尿 152 mL)、バランス -6 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 13 日目\n記録者: 石山 ミツ\n患者状態: BP 120/68, HR 101, SpO2 98%, T 39.5°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n39.5°Cの発熱あり、アセトアミノフェン投与後も 39.5°Cで経過観察。\n前日 (6/26) の水分出納: 摂取 968 mL、排出 974 mL (うち尿 152 mL)、バランス -6 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 670 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-77-evening": {
@@ -4348,6 +4516,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4360,7 +4530,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 13 日目\n記録者: 石山 ミツ\n患者状態: BP 114/69, HR 100, SpO2 98%, T 38.9°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 最大 4、最終 2。\n40.1°Cの発熱あり、経過観察。\n前日 (6/26) の水分出納: 摂取 968 mL、排出 974 mL (うち尿 152 mL)、バランス -6 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 13 日目\n記録者: 石山 ミツ\n患者状態: BP 114/69, HR 100, SpO2 98%, T 38.9°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 最大 4、最終 2。\n40.1°Cの発熱あり、経過観察。\n前日 (6/26) の水分出納: 摂取 968 mL、排出 974 mL (うち尿 152 mL)、バランス -6 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 670 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-78-night": {
@@ -4375,6 +4545,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4387,7 +4559,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 14 日目\n記録者: 石山 ミツ\n患者状態: BP 114/69, HR 93, SpO2 98%, T 38.6°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 4。\n38.6°Cの発熱あり、アセトアミノフェン投与、経過観察。\n前日 (6/27) の水分出納: 摂取 687 mL、排出 1143 mL (うち尿 300 mL)、バランス -456 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 14 日目\n記録者: 石山 ミツ\n患者状態: BP 114/69, HR 93, SpO2 98%, T 38.6°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 4。\n38.6°Cの発熱あり、アセトアミノフェン投与、経過観察。\n前日 (6/27) の水分出納: 摂取 687 mL、排出 1143 mL (うち尿 300 mL)、バランス -456 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 173 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-79-day": {
@@ -4402,6 +4574,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4414,7 +4588,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 14 日目\n記録者: 石山 ミツ\n患者状態: BP 114/68, HR 105, SpO2 98%, T 38.9°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n39.2°Cの発熱あり、アセトアミノフェン投与、経過観察。\n前日 (6/27) の水分出納: 摂取 687 mL、排出 1143 mL (うち尿 300 mL)、バランス -456 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 14 日目\n記録者: 石山 ミツ\n患者状態: BP 114/68, HR 105, SpO2 98%, T 38.9°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n39.2°Cの発熱あり、アセトアミノフェン投与、経過観察。\n前日 (6/27) の水分出納: 摂取 687 mL、排出 1143 mL (うち尿 300 mL)、バランス -456 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 173 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-80-evening": {
@@ -4429,6 +4603,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4441,7 +4617,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 14 日目\n記録者: 石山 ミツ\n患者状態: BP 115/74, HR 105, SpO2 98%, T 39.3°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 4。\n39.3°Cの発熱あり、アセトアミノフェン投与、経過観察。\n前日 (6/27) の水分出納: 摂取 687 mL、排出 1143 mL (うち尿 300 mL)、バランス -456 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 14 日目\n記録者: 石山 ミツ\n患者状態: BP 115/74, HR 105, SpO2 98%, T 39.3°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 4。\n39.3°Cの発熱あり、アセトアミノフェン投与、経過観察。\n前日 (6/27) の水分出納: 摂取 687 mL、排出 1143 mL (うち尿 300 mL)、バランス -456 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 173 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-81-night": {
@@ -4456,6 +4632,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4468,7 +4646,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 15 日目\n記録者: 石山 ミツ\n患者状態: BP 117/68, HR 97, SpO2 98%, T 39.1°C、酸素投与: 酸素マスク 8 L/min。\n与薬: ミカファンギン 100mg 静注 1日1回、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 4。\n39.3°Cの発熱あり、アセトアミノフェン投与後 39.1°Cに低下、発熱は持続。\n前日 (6/28) の水分出納: 摂取 994 mL、排出 877 mL (うち尿 244 mL)、バランス +117 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 15 日目\n記録者: 石山 ミツ\n患者状態: BP 117/68, HR 97, SpO2 98%, T 39.1°C、酸素投与: 酸素マスク 8 L/min。\n与薬: ミカファンギン 100mg 静注 1日1回、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 4。\n39.3°Cの発熱あり、アセトアミノフェン投与後 39.1°Cに低下、発熱は持続。\n前日 (6/28) の水分出納: 摂取 994 mL、排出 877 mL (うち尿 244 mL)、バランス +117 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 635 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-82-day": {
@@ -4483,6 +4661,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4495,7 +4675,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 15 日目\n記録者: 石山 ミツ\n患者状態: BP 116/71, HR 101, SpO2 98%, T 39.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 6。\n39.4°Cの発熱あり、アセトアミノフェン投与後 39.0°Cに低下、発熱は持続。\n前日 (6/28) の水分出納: 摂取 994 mL、排出 877 mL (うち尿 244 mL)、バランス +117 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 15 日目\n記録者: 石山 ミツ\n患者状態: BP 116/71, HR 101, SpO2 98%, T 39.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 6。\n39.4°Cの発熱あり、アセトアミノフェン投与後 39.0°Cに低下、発熱は持続。\n前日 (6/28) の水分出納: 摂取 994 mL、排出 877 mL (うち尿 244 mL)、バランス +117 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 635 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-83-evening": {
@@ -4510,6 +4690,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4522,7 +4704,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 15 日目\n記録者: 石山 ミツ\n患者状態: BP 117/70, HR 97, SpO2 98%, T 38.6°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 最大 5、最終 4。\n39.9°Cの発熱あり、アセトアミノフェン投与、経過観察。\n前日 (6/28) の水分出納: 摂取 994 mL、排出 877 mL (うち尿 244 mL)、バランス +117 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 15 日目\n記録者: 石山 ミツ\n患者状態: BP 117/70, HR 97, SpO2 98%, T 38.6°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 最大 5、最終 4。\n39.9°Cの発熱あり、アセトアミノフェン投与、経過観察。\n前日 (6/28) の水分出納: 摂取 994 mL、排出 877 mL (うち尿 244 mL)、バランス +117 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 635 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-84-night": {
@@ -4536,6 +4718,8 @@
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4548,7 +4732,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 16 日目\n記録者: 石山 ミツ\n患者状態: BP 118/69, HR 100, SpO2 98%, T 39.4°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎。\n疼痛あり、NRS 3。\n39.4°Cの発熱あり、経過観察。\n前日 (6/29) の水分出納: 摂取 445 mL、排出 963 mL (うち尿 195 mL)、バランス -518 mL。"
+      "text": "【看護記録(深夜)】 入院 16 日目\n記録者: 石山 ミツ\n患者状態: BP 118/69, HR 100, SpO2 98%, T 39.4°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎。\n疼痛あり、NRS 3。\n39.4°Cの発熱あり、経過観察。\n前日 (6/29) の水分出納: 摂取 445 mL、排出 963 mL (うち尿 195 mL)、バランス -518 mL。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 211 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-85-day": {
@@ -4563,6 +4747,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4575,7 +4761,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 16 日目\n記録者: 石山 ミツ\n患者状態: BP 121/72, HR 103, SpO2 98%, T 38.8°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 最大 6、最終 3。\n39.3°Cの発熱あり、アセトアミノフェン投与後 39.2°Cに低下、発熱は持続。\n前日 (6/29) の水分出納: 摂取 445 mL、排出 963 mL (うち尿 195 mL)、バランス -518 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 16 日目\n記録者: 石山 ミツ\n患者状態: BP 121/72, HR 103, SpO2 98%, T 38.8°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 最大 6、最終 3。\n39.3°Cの発熱あり、アセトアミノフェン投与後 39.2°Cに低下、発熱は持続。\n前日 (6/29) の水分出納: 摂取 445 mL、排出 963 mL (うち尿 195 mL)、バランス -518 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 211 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-86-evening": {
@@ -4590,6 +4776,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4602,7 +4790,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 16 日目\n記録者: 石山 ミツ\n患者状態: BP 116/73, HR 101, SpO2 98%, T 39.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 2。\n39.0°Cの発熱あり、経過観察。\n前日 (6/29) の水分出納: 摂取 445 mL、排出 963 mL (うち尿 195 mL)、バランス -518 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 16 日目\n記録者: 石山 ミツ\n患者状態: BP 116/73, HR 101, SpO2 98%, T 39.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 2。\n39.0°Cの発熱あり、経過観察。\n前日 (6/29) の水分出納: 摂取 445 mL、排出 963 mL (うち尿 195 mL)、バランス -518 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 211 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-87-night": {
@@ -4617,6 +4805,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4629,7 +4819,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 17 日目\n記録者: 石山 ミツ\n患者状態: BP 118/73, HR 96, SpO2 98%, T 38.5°C、酸素投与: 酸素マスク 8 L/min。\n与薬: ミカファンギン 100mg 静注 1日1回、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 最大 5、最終 2。\n38.5°Cの発熱あり、アセトアミノフェン投与後も 38.5°Cで経過観察。\n前日 (6/30) の水分出納: 摂取 729 mL、排出 927 mL (うち尿 294 mL)、バランス -198 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 17 日目\n記録者: 石山 ミツ\n患者状態: BP 118/73, HR 96, SpO2 98%, T 38.5°C、酸素投与: 酸素マスク 8 L/min。\n与薬: ミカファンギン 100mg 静注 1日1回、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 最大 5、最終 2。\n38.5°Cの発熱あり、アセトアミノフェン投与後も 38.5°Cで経過観察。\n前日 (6/30) の水分出納: 摂取 729 mL、排出 927 mL (うち尿 294 mL)、バランス -198 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 332 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-88-day": {
@@ -4643,6 +4833,8 @@
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4655,7 +4847,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 17 日目\n記録者: 石山 ミツ\n患者状態: BP 120/75, HR 109, SpO2 98%, T 38.6°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 2。\n39.5°Cの発熱あり、経過観察。\n前日 (6/30) の水分出納: 摂取 729 mL、排出 927 mL (うち尿 294 mL)、バランス -198 mL。"
+      "text": "【看護記録(日勤)】 入院 17 日目\n記録者: 石山 ミツ\n患者状態: BP 120/75, HR 109, SpO2 98%, T 38.6°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 2。\n39.5°Cの発熱あり、経過観察。\n前日 (6/30) の水分出納: 摂取 729 mL、排出 927 mL (うち尿 294 mL)、バランス -198 mL。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 332 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-89-evening": {
@@ -4670,6 +4862,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4682,7 +4876,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 17 日目\n記録者: 石山 ミツ\n患者状態: BP 118/70, HR 99, SpO2 98%, T 38.6°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n39.1°Cの発熱あり、アセトアミノフェン投与、経過観察。\n前日 (6/30) の水分出納: 摂取 729 mL、排出 927 mL (うち尿 294 mL)、バランス -198 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 17 日目\n記録者: 石山 ミツ\n患者状態: BP 118/70, HR 99, SpO2 98%, T 38.6°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n39.1°Cの発熱あり、アセトアミノフェン投与、経過観察。\n前日 (6/30) の水分出納: 摂取 729 mL、排出 927 mL (うち尿 294 mL)、バランス -198 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 332 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-90-night": {
@@ -4697,6 +4891,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4709,7 +4905,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 18 日目\n記録者: 石山 ミツ\n患者状態: BP 120/71, HR 99, SpO2 98%, T 38.2°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n疼痛あり、NRS 2。\n38.2°Cの発熱あり、経過観察。\n前日 (7/1) の水分出納: 摂取 1035 mL、排出 1167 mL (うち尿 378 mL)、バランス -132 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 18 日目\n記録者: 石山 ミツ\n患者状態: BP 120/71, HR 99, SpO2 98%, T 38.2°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n疼痛あり、NRS 2。\n38.2°Cの発熱あり、経過観察。\n前日 (7/1) の水分出納: 摂取 1035 mL、排出 1167 mL (うち尿 378 mL)、バランス -132 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 286 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-91-day": {
@@ -4724,6 +4920,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4736,7 +4934,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 18 日目\n記録者: 石山 ミツ\n患者状態: BP 123/79, HR 99, SpO2 98%, T 39.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n39.0°Cの発熱あり、アセトアミノフェン投与、経過観察。\n前日 (7/1) の水分出納: 摂取 1035 mL、排出 1167 mL (うち尿 378 mL)、バランス -132 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 18 日目\n記録者: 石山 ミツ\n患者状態: BP 123/79, HR 99, SpO2 98%, T 39.0°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n39.0°Cの発熱あり、アセトアミノフェン投与、経過観察。\n前日 (7/1) の水分出納: 摂取 1035 mL、排出 1167 mL (うち尿 378 mL)、バランス -132 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 286 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-92-evening": {
@@ -4751,6 +4949,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4763,7 +4963,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 18 日目\n記録者: 石山 ミツ\n患者状態: BP 118/73, HR 106, SpO2 98%, T 39.4°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 最大 5、最終 2。\n39.4°Cの発熱あり、経過観察。\n前日 (7/1) の水分出納: 摂取 1035 mL、排出 1167 mL (うち尿 378 mL)、バランス -132 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 18 日目\n記録者: 石山 ミツ\n患者状態: BP 118/73, HR 106, SpO2 98%, T 39.4°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 最大 5、最終 2。\n39.4°Cの発熱あり、経過観察。\n前日 (7/1) の水分出納: 摂取 1035 mL、排出 1167 mL (うち尿 378 mL)、バランス -132 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 286 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-93-night": {
@@ -4778,6 +4978,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4790,7 +4992,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 19 日目\n記録者: 石山 ミツ\n患者状態: BP 124/74, HR 95, SpO2 98%, T 39.5°C、酸素投与: 酸素マスク 8 L/min。\n与薬: ミカファンギン 100mg 静注 1日1回。\n疼痛あり、NRS 3。\n39.5°Cの発熱あり、経過観察。\n前日 (7/2) の水分出納: 摂取 1190 mL、排出 962 mL (うち尿 329 mL)、バランス +228 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 19 日目\n記録者: 石山 ミツ\n患者状態: BP 124/74, HR 95, SpO2 98%, T 39.5°C、酸素投与: 酸素マスク 8 L/min。\n与薬: ミカファンギン 100mg 静注 1日1回。\n疼痛あり、NRS 3。\n39.5°Cの発熱あり、経過観察。\n前日 (7/2) の水分出納: 摂取 1190 mL、排出 962 mL (うち尿 329 mL)、バランス +228 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 324 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-94-day": {
@@ -4805,6 +5007,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4817,7 +5021,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 19 日目\n記録者: 石山 ミツ\n患者状態: BP 121/71, HR 102, SpO2 98%, T 39.1°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 3。\n39.4°Cの発熱あり、経過観察。\n前日 (7/2) の水分出納: 摂取 1190 mL、排出 962 mL (うち尿 329 mL)、バランス +228 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 19 日目\n記録者: 石山 ミツ\n患者状態: BP 121/71, HR 102, SpO2 98%, T 39.1°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 3。\n39.4°Cの発熱あり、経過観察。\n前日 (7/2) の水分出納: 摂取 1190 mL、排出 962 mL (うち尿 329 mL)、バランス +228 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 324 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-95-evening": {
@@ -4832,6 +5036,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4844,7 +5050,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 19 日目\n記録者: 石山 ミツ\n患者状態: BP 122/70, HR 105, SpO2 98%, T 38.2°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 3。\n38.4°Cの発熱あり、経過観察。\n前日 (7/2) の水分出納: 摂取 1190 mL、排出 962 mL (うち尿 329 mL)、バランス +228 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 19 日目\n記録者: 石山 ミツ\n患者状態: BP 122/70, HR 105, SpO2 98%, T 38.2°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 3。\n38.4°Cの発熱あり、経過観察。\n前日 (7/2) の水分出納: 摂取 1190 mL、排出 962 mL (うち尿 329 mL)、バランス +228 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 324 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-96-night": {
@@ -4859,6 +5065,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4871,7 +5079,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 20 日目\n記録者: 石山 ミツ\n患者状態: BP 115/72, HR 98, SpO2 98%, T 38.3°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n疼痛あり、NRS 最大 1、最終 0。\n38.5°Cの発熱あり、経過観察。\n前日 (7/3) の水分出納: 摂取 978 mL、排出 1004 mL (うち尿 152 mL)、バランス -26 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 20 日目\n記録者: 石山 ミツ\n患者状態: BP 115/72, HR 98, SpO2 98%, T 38.3°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n疼痛あり、NRS 最大 1、最終 0。\n38.5°Cの発熱あり、経過観察。\n前日 (7/3) の水分出納: 摂取 978 mL、排出 1004 mL (うち尿 152 mL)、バランス -26 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 706 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-97-day": {
@@ -4886,6 +5094,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4898,7 +5108,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 20 日目\n記録者: 石山 ミツ\n患者状態: BP 125/72, HR 102, SpO2 98%, T 38.8°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 最大 3、最終 2。\n38.9°Cの発熱あり、経過観察。\n前日 (7/3) の水分出納: 摂取 978 mL、排出 1004 mL (うち尿 152 mL)、バランス -26 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(日勤)】 入院 20 日目\n記録者: 石山 ミツ\n患者状態: BP 125/72, HR 102, SpO2 98%, T 38.8°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 最大 3、最終 2。\n38.9°Cの発熱あり、経過観察。\n前日 (7/3) の水分出納: 摂取 978 mL、排出 1004 mL (うち尿 152 mL)、バランス -26 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 706 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-98-evening": {
@@ -4913,6 +5123,8 @@
         "ctx.medications.shift.not_given",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4925,7 +5137,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 20 日目\n記録者: 石山 ミツ\n患者状態: BP 123/74, HR 97, SpO2 98%, T 37.3°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、ヘパリン。\n疼痛あり、NRS 最大 2、最終 1。\nメロペネム投与を拒否。\n前日 (7/3) の水分出納: 摂取 978 mL、排出 1004 mL (うち尿 152 mL)、バランス -26 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(準夜)】 入院 20 日目\n記録者: 石山 ミツ\n患者状態: BP 123/74, HR 97, SpO2 98%, T 37.3°C、酸素投与: 酸素マスク 8 L/min。\n与薬: バンコマイシン、ヘパリン。\n疼痛あり、NRS 最大 2、最終 1。\nメロペネム投与を拒否。\n前日 (7/3) の水分出納: 摂取 978 mL、排出 1004 mL (うち尿 152 mL)、バランス -26 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 706 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-99-night": {
@@ -4940,6 +5152,8 @@
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -4952,7 +5166,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 21 日目\n記録者: 石山 ミツ\n患者状態: BP 122/72, HR 98, SpO2 98%, T 38.3°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 最大 4、最終 3。\n38.3°Cの発熱あり、アセトアミノフェン投与後も 38.3°Cで経過観察。\n前日 (7/4) の水分出納: 摂取 592 mL、排出 960 mL (うち尿 180 mL)、バランス -368 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。"
+      "text": "【看護記録(深夜)】 入院 21 日目\n記録者: 石山 ミツ\n患者状態: BP 122/72, HR 98, SpO2 98%, T 38.3°C、酸素投与: 酸素マスク 8 L/min。\n与薬: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、アセトアミノフェン 1000mg 静注 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 最大 4、最終 3。\n38.3°Cの発熱あり、アセトアミノフェン投与後も 38.3°Cで経過観察。\n前日 (7/4) の水分出納: 摂取 592 mL、排出 960 mL (うち尿 180 mL)、バランス -368 mL。\n酸素: 酸素マスク 8 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 462 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-ED-153": {

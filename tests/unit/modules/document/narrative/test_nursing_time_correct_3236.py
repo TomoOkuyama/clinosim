@@ -125,7 +125,7 @@ def _shift_note(day: int, shift: str, authored: datetime, lang: str = "ja", **kw
 def test_shift_note_before_reassessment_prints_the_earlier_risk() -> None:
     early = _shift_note(1, "night", datetime(2026, 9, 1, 0, 0))
     late = _shift_note(14, "night", datetime(2026, 9, 14, 0, 0))
-    assert "転倒リスク 高リスク" in early
+    assert "転倒リスク: 高リスク" in early
     assert "転倒リスク" not in late
 
 

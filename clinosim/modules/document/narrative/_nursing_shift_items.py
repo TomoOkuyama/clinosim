@@ -21,12 +21,15 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from clinosim.codes.drugs import drug_display, drug_key
+from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
 from clinosim.datafiles import load_validated_yaml
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import strip_protocol_prefix
+from clinosim.modules.document.narrative._as_of import in_force_at
 from clinosim.modules.document.narrative._narrative_interpretation_thresholds import progress_vitals_rules
 from clinosim.modules.document.narrative._narrative_utils import is_neonate
+from clinosim.modules.document.narrative._progress_course import diet_display, diet_order_at
 from clinosim.modules.document.narrative._progress_exam import _limit, progress_exam_rules
 from clinosim.modules.document.narrative._vitals_line import oxygen_text
 from clinosim.modules.observation.nursing import news2_urgent_response_threshold
@@ -46,6 +49,7 @@ class NursingShiftItem(BaseModel):
     rule: str
     fact: str
     skip_neonate: bool
+    only_neonate: bool = False
 
 
 class HoldReasonPattern(BaseModel):
@@ -80,6 +84,12 @@ class NursingShiftItems(BaseModel):
     oral_routes: list[str] = Field(min_length=1)
     hold_reason_patterns: list[HoldReasonPattern]
     antipyretic_drug_keys: list[str] = Field(min_length=1)
+    barthel_bands: list[tuple[int, str]] = Field(min_length=1)
+    braden_bands: list[tuple[int, str]] = Field(min_length=1)
+    braden_report_at_or_below: int
+    braden_prevention_at_or_below: int
+    adl_levels: dict[str, dict[int, str]]
+    wound_observation_max_post_op_days: int = Field(ge=0)
 
     @model_validator(mode="after")
     def _unique_ids(self) -> NursingShiftItems:
@@ -325,6 +335,169 @@ def _device_in_place(device: Any, start: datetime, end: datetime) -> bool:
     return removed is None or start.date() <= removed
 
 
+def _band(total: int, bands: list[tuple[int, str]]) -> str:
+    """The band of ``total``: the first (highest) whose lowest total it reaches."""
+    return next((name for low, name in bands if total >= low), bands[-1][1])
+
+
+def _level(item: str, score: Any, lang: str) -> str | None:
+    """The help level of a Barthel item score in ``lang`` (``None`` when the
+    score is not one of the item's levels)."""
+    if score is None:
+        return None
+    key = nursing_shift_items_config().adl_levels.get(item, {}).get(int(score))
+    return t(f"nursing_shift_items.adl_level.{key}", lang) if key else None
+
+
+def _as_of(d: ShiftData) -> datetime | None:
+    return d.window[1] if d.window else None
+
+
+def _item_meal(d: ShiftData) -> str | None:
+    """The diet in force at the shift's end: nil by mouth, or the diet taken
+    orally with the feeding help level and the previous day's oral intake
+    when recorded. No intake percentage is stated (the record holds none)."""
+    from clinosim.locale.loaders.medical_display import load_diet_supply_route
+
+    if d.window is None:
+        return None
+    active = diet_order_at(d.ctx, d.window[1])
+    if active is None:
+        return None
+    placed, slug = active
+    lang = d.lang
+    if load_diet_supply_route().get(slug) == "none":
+        return t(
+            "nursing_shift_items.meal.npo_continued"
+            if placed.date() < d.window[0].date()
+            else "nursing_shift_items.meal.npo",
+            lang,
+        )
+    pieces = [t("nursing_shift_items.meal.diet", lang, diet=diet_display(slug, lang))]
+    adl = in_force_at(list(getattr(d.ctx, "adl_assessments", None) or []), d.window[1])
+    level = _level("feeding", _o(adl, "feeding", None), lang) if adl is not None else None
+    if level:
+        pieces.append(t("nursing_shift_items.meal.feeding", lang, level=level))
+    prev = d.window[0].date() - timedelta(days=1)
+    rec = next(
+        (r for r in getattr(d.ctx, "intake_output_records", None) or [] if _record_date(_o(r, "date", None)) == prev),
+        None,
+    )
+    oral = int(_o(rec, "intake_oral_ml", 0) or 0) if rec is not None else 0
+    if oral > 0:
+        pieces.append(t("nursing_shift_items.meal.oral_intake", lang, ml=oral))
+    return t("list_sep.serial", lang).join(pieces) + t("list_sep.period", lang)
+
+
+def _item_skin(d: ShiftData) -> str | None:
+    cfg = nursing_shift_items_config()
+    rec = in_force_at(list(getattr(d.ctx, "nursing_risk_assessments", None) or []), _as_of(d))
+    braden = _o(rec, "braden_total", None) if rec is not None else None
+    if braden is None or int(braden) > cfg.braden_report_at_or_below:
+        return None
+    band = t(f"morse_band.{_band(int(braden), cfg.braden_bands)}", d.lang)
+    key = "prevent" if int(braden) <= cfg.braden_prevention_at_or_below else "observe"
+    return t(f"nursing_shift_items.skin.{key}", d.lang, band=band, braden=int(braden))
+
+
+def _item_mobility(d: ShiftData) -> str | None:
+    cfg = nursing_shift_items_config()
+    adl = in_force_at(list(getattr(d.ctx, "adl_assessments", None) or []), _as_of(d))
+    barthel = _o(adl, "barthel_score", None) if adl is not None else None
+    if barthel is None:
+        return None
+    lang = d.lang
+    band = t(f"barthel_band.{_band(int(barthel), cfg.barthel_bands)}", lang)
+    details = []
+    for item, label in (("mobility", "mobility"), ("toilet_use", "toilet")):
+        level = _level(item, _o(adl, item, None), lang)
+        if level:
+            details.append(t(f"nursing_shift_items.mobility.{label}", lang, level=level))
+    detail = t("list_sep.serial", lang).join(details)
+    return t(
+        "nursing_shift_items.mobility.line" if detail else "nursing_shift_items.mobility.line_plain",
+        lang,
+        score=int(barthel),
+        band=band,
+        detail=detail,
+    )
+
+
+def _item_wound(d: ShiftData) -> str | None:
+    """The post-operative day after the encounter's latest surgical procedure
+    started by the shift's end, with the routine surgical-site observation."""
+    if d.window is None:
+        return None
+    enc_id = _o(d.ctx.encounter, "encounter_id", "") or ""
+    started: list[tuple[datetime, Any]] = []
+    for p in getattr(d.ctx, "procedures", None) or []:
+        if str(_o(p, "category_code", "") or "") != SURGICAL_PROCEDURE or (_o(p, "encounter_id", "") or "") != enc_id:
+            continue
+        when = parse_iso_datetime(_o(p, "start_datetime", None), lenient=True)
+        if when is not None and when < d.window[1]:
+            started.append((when, p))
+    if not started:
+        return None
+    when, proc = max(started, key=lambda x: x[0])
+    pod = (d.window[0].date() - when.date()).days
+    pod = max(pod, 0)
+    if pod > nursing_shift_items_config().wound_observation_max_post_op_days:
+        return None
+    from clinosim.modules.document.narrative.renderers._shared_helpers import resolve_procedure_display
+
+    name = resolve_procedure_display(proc, d.lang)
+    return t(
+        "nursing_shift_items.wound.day0" if pod == 0 else "nursing_shift_items.wound.pod", d.lang, name=name, n=pod
+    )
+
+
+def _item_fall_risk(d: ShiftData) -> str | None:
+    rec = in_force_at(list(getattr(d.ctx, "nursing_risk_assessments", None) or []), _as_of(d))
+    fall = str(_o(rec, "fall_risk_level", "") or "").lower() if rec is not None else ""
+    if fall not in ("high", "moderate"):
+        return None
+    morse = _o(rec, "morse_total", None)
+    key = "nursing_shift_items.fall_risk.with_score" if morse is not None else "nursing_shift_items.fall_risk.plain"
+    return t(key, d.lang, level=t(f"morse_band.{fall}", d.lang), morse=morse)
+
+
+def _day_of_life(d: ShiftData) -> int | None:
+    dob = _record_date(_o(getattr(d.ctx, "patient", None), "date_of_birth", None))
+    if dob is None or d.window is None:
+        return None
+    return max((d.window[0].date() - dob).days, 0)
+
+
+def _item_newborn_care(d: ShiftData) -> str | None:
+    dol = _day_of_life(d)
+    if dol is None:
+        return None
+    return t("nursing_shift_items.newborn.care", d.lang, day=dol)
+
+
+def _item_newborn_weight(d: ShiftData) -> str | None:
+    kg = _o(getattr(d.ctx, "patient", None), "weight_kg", None)
+    if kg is None:
+        return None
+    return t("nursing_shift_items.newborn.birth_weight", d.lang, kg=f"{float(kg):g}")
+
+
+def _item_newborn_jaundice(d: ShiftData) -> str | None:
+    from clinosim.modules.document.narrative.context import newborn_workup_known_at
+
+    workup = getattr(d.ctx, "newborn_workup", None) or {}
+    series = (newborn_workup_known_at(workup, d.window[1] if d.window else None) or {}).get("bilirubin_series") or []
+    if not series:
+        return None
+    last = max(series, key=lambda e: str(e.get("timestamp") or ""))
+    return t(
+        "nursing_shift_items.newborn.jaundice",
+        d.lang,
+        v=f"{float(last['value_mg_dl']):.1f}",
+        day=last.get("day") if last.get("day") is not None else "",
+    )
+
+
 ITEM_FUNCTIONS: dict[str, Callable[[ShiftData], str | None]] = {
     "pain": _item_pain,
     "fever": _item_fever,
@@ -334,6 +507,14 @@ ITEM_FUNCTIONS: dict[str, Callable[[ShiftData], str | None]] = {
     "doses_not_given": _item_doses_not_given,
     "intake_output": _item_intake_output,
     "devices": _item_devices,
+    "meal": _item_meal,
+    "skin": _item_skin,
+    "mobility": _item_mobility,
+    "wound": _item_wound,
+    "fall_risk": _item_fall_risk,
+    "newborn_care": _item_newborn_care,
+    "newborn_weight": _item_newborn_weight,
+    "newborn_jaundice": _item_newborn_jaundice,
 }
 
 
@@ -396,7 +577,7 @@ def nursing_shift_item_lines(
     neonate = is_neonate(ctx)
     out: list[tuple[str, str]] = []
     for item in nursing_shift_items_config().items:
-        if neonate and item.skip_neonate:
+        if (neonate and item.skip_neonate) or (item.only_neonate and not neonate):
             continue
         text = ITEM_FUNCTIONS[item.id](data)
         if text:

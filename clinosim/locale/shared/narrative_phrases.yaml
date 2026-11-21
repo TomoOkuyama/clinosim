@@ -1019,9 +1019,6 @@ nursing_shift:
   o2_device_with_flow:
     ja: "酸素投与: {device} {flow} L/min"
     en: "{device} {flow} L/min"
-  fall_risk_line:
-    ja: "転倒リスク {level}、ベッド柵設置。"
-    en: "Fall risk {level}; bed rails in place. "
   title_with_shift:
     ja: "【看護記録({shift})】"
     en: "[Nursing Shift Note - {shift} shift]"
@@ -1142,6 +1139,85 @@ nursing_shift_items:
     oxygen:
       ja: "酸素: {o2}。装着状態の観察を継続。"
       en: "Oxygen: {o2}; device fit and observation continued."
+  meal:
+    npo:
+      ja: "絶食中。"
+      en: "NPO, nothing by mouth."
+    npo_continued:
+      ja: "絶食継続。"
+      en: "NPO continued."
+    diet:
+      ja: "食事: {diet}"
+      en: "Diet: {diet}"
+    feeding:
+      ja: "摂食は{level}"
+      en: "feeding {level}"
+    oral_intake:
+      ja: "前日の経口摂取量 {ml} mL"
+      en: "oral intake the previous day {ml} mL"
+  adl_level:
+    independent:
+      ja: "自立"
+      en: "independent"
+    partial:
+      ja: "一部介助"
+      en: "needs partial help"
+    dependent:
+      ja: "全介助"
+      en: "dependent on help"
+    assisted:
+      ja: "介助歩行"
+      en: "walks with help"
+    wheelchair:
+      ja: "車椅子"
+      en: "uses a wheelchair"
+    bedbound:
+      ja: "臥床"
+      en: "bedbound"
+  skin:
+    observe:
+      ja: "褥瘡リスク: {band} (Braden {braden})。皮膚の観察を継続。"
+      en: "Pressure-injury risk: {band} (Braden {braden}); skin inspection continued."
+    prevent:
+      ja: "褥瘡リスク: {band} (Braden {braden})。体位変換・除圧を実施し、皮膚の観察を継続。"
+      en: "Pressure-injury risk: {band} (Braden {braden}); repositioning and pressure relief provided, skin inspection continued."
+  mobility:
+    mobility:
+      ja: "移動は{level}"
+      en: "mobility {level}"
+    toilet:
+      ja: "排泄は{level}"
+      en: "toileting {level}"
+    line:
+      ja: "ADL: Barthel 指数 {score}/100 ({band})、{detail}。必要な介助を実施。"
+      en: "ADL: Barthel Index {score}/100 ({band}); {detail}. Assistance provided as needed."
+    line_plain:
+      ja: "ADL: Barthel 指数 {score}/100 ({band})。必要な介助を実施。"
+      en: "ADL: Barthel Index {score}/100 ({band}). Assistance provided as needed."
+  wound:
+    day0:
+      ja: "手術当日 ({name})。創部 (出血・滲出液・発赤・腫脹) の観察を継続。"
+      en: "Day of surgery ({name}). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+    pod:
+      ja: "術後{n}日目 ({name})。創部 (出血・滲出液・発赤・腫脹) の観察を継続。"
+      en: "Post-operative day {n} ({name}). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+  fall_risk:
+    with_score:
+      ja: "転倒リスク: {level} (Morse {morse})、転倒予防策を継続。"
+      en: "Fall risk: {level} (Morse {morse}); fall precautions continued."
+    plain:
+      ja: "転倒リスク: {level}、転倒予防策を継続。"
+      en: "Fall risk: {level}; fall precautions continued."
+  newborn:
+    care:
+      ja: "日齢{day}。哺乳状況、排尿・排便の回数と性状、臍帯の状態 (乾燥・出血・発赤・悪臭) を観察。"
+      en: "Day of life {day}. Observation of feeding, voiding and stooling (frequency and character) and the umbilical cord (dryness, bleeding, redness, odor)."
+    birth_weight:
+      ja: "出生体重 {kg} kg。"
+      en: "Birth weight {kg} kg."
+    jaundice:
+      ja: "黄疸の観察を継続 (日齢{day}の経皮ビリルビン {v} mg/dL)。"
+      en: "Jaundice observation continued (transcutaneous bilirubin {v} mg/dL on day of life {day})."
   hold_reason:
     sbp:
       ja: "血圧低値 (SBP {n}未満)"
