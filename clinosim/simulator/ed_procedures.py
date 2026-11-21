@@ -20,7 +20,7 @@ from clinosim.simulator._ed_thresholds import (
     ED_TREATMENT_ORDER_OFFSET_MEAN_MIN,
     ED_VITALS_OFFSET_MIN,
 )
-from clinosim.simulator.encounter_setup import fit_procedures_in_stay
+from clinosim.simulator.encounter_setup import align_echo_procedures_to_imaging, fit_procedures_in_stay
 from clinosim.types.encounter import Encounter, Order, OrderType
 from clinosim.types.procedure import ProcedureRecord
 
@@ -53,4 +53,5 @@ def time_ed_procedures(procedures: list[ProcedureRecord], orders: list[Order], e
                 start = max(start, previous_end)
             previous_end = start + length
         p.start_datetime, p.end_datetime = start, start + length
+    align_echo_procedures_to_imaging(procedures, orders)
     fit_procedures_in_stay(procedures, arrival, encounter.discharge_datetime)
