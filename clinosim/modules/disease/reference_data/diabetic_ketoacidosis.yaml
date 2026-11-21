@@ -32,12 +32,10 @@ diagnostic:
 icd_codes:
   primary: "E11.10"  # Type 2 DM with ketoacidosis without coma
   variants:
-    - {code: "E10.10", name: "Type 1 DM with ketoacidosis without coma", probability: 0.40}
-    - {code: "E11.10", name: "Type 2 DM with ketoacidosis without coma", probability: 0.30}
-    - {code: "E10.11", name: "Type 1 DM with ketoacidosis with coma", probability: 0.05}
-    - {code: "E11.11", name: "Type 2 DM with ketoacidosis with coma", probability: 0.03}
-    - {code: "E11.65", name: "Type 2 DM with hyperglycemia", probability: 0.15}
-    - {code: "E10.65", name: "Type 1 DM with hyperglycemia", probability: 0.07}
+    - {code: "E10.10", name: "Type 1 DM with ketoacidosis without coma", probability: 0.52}
+    - {code: "E11.10", name: "Type 2 DM with ketoacidosis without coma", probability: 0.38}
+    - {code: "E10.11", name: "Type 1 DM with ketoacidosis with coma", probability: 0.06}
+    - {code: "E11.11", name: "Type 2 DM with ketoacidosis with coma", probability: 0.04}
 
 # ============================================================
 # INCIDENCE (per 100,000 per year, by age band and sex)

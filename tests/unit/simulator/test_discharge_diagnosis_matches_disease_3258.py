@@ -59,7 +59,7 @@ def test_influenza_is_not_discharged_as_pneumococcal_pneumonia() -> None:
 def test_pyelonephritis_is_not_discharged_as_kidney_stone() -> None:
     diff = _diff(("nephrolithiasis", "N20.0", 0.6), ("urinary_tract_infection", "N39.0", 0.4))
     dx, _ = _derive("urinary_tract_infection", diff)
-    assert dx.discharge_diagnosis_code in {"N39.0", "N10"}
+    assert dx.discharge_diagnosis_code == "N10"
 
 
 @pytest.mark.parametrize(

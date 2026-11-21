@@ -43,6 +43,8 @@ medication_holds:
 
 icd_codes:
   primary: "N17.9"  # Acute kidney failure, unspecified
+  # Codes the discharge diagnosis may refine the primary to (organism, etiology, severity); see diagnosis_progression.
+  discharge_refinements: ["N17.0"]
   variants:
     - {code: "N17.0", name: "Acute kidney failure with tubular necrosis", probability: 0.30}
     - {code: "N17.1", name: "Acute kidney failure with acute cortical necrosis", probability: 0.03}

@@ -3069,7 +3069,7 @@
         "admission_reason": "敗血症のため入院となった。",
         "chief_complaint": "3日前より倦怠感・本日ぐったり",
         "discharge_details": "2024-07-21自宅退院となった。",
-        "discharge_diagnoses": "重症敗血症（R65.1）。副病名: 急性腎障害（N17.9）、播種性血管内凝固症候群 (DIC)。",
+        "discharge_diagnoses": "敗血症（A41.9）。副病名: 重症敗血症（R65.1）、急性腎障害（N17.9）、播種性血管内凝固症候群 (DIC)。",
         "discharge_instructions": "[Mock LLM response #38 — discharge_instructions]",
         "discharge_medications": "レボフロキサシン 500mg 経口 1日1回 x7日分",
         "hospital_course": "[Mock LLM response #38 — hospital_course]",

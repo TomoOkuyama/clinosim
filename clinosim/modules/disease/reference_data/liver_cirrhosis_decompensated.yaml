@@ -18,6 +18,8 @@ readmission_eligible: true
 
 icd_codes:
   primary: "K74.60"  # Unspecified cirrhosis of liver
+  # Codes the discharge diagnosis may refine the primary to (organism, etiology, severity); see diagnosis_progression.
+  discharge_refinements: ["K70.31"]
   variants:
     - {code: "K70.31", name: "Alcoholic liver cirrhosis with ascites", probability: 0.35}
     - {code: "K74.60", name: "Unspecified cirrhosis of liver", probability: 0.20}

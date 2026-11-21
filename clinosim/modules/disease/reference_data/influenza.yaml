@@ -19,6 +19,8 @@ minimum_severity: null
 
 icd_codes:
   primary: "J10.1"  # Influenza due to other identified influenza virus with other respiratory manifestations
+  # Codes the discharge diagnosis may refine the primary to (organism, etiology, severity); see diagnosis_progression.
+  discharge_refinements: ["J10.0"]
   variants:
     - {code: "J10.1", name: "Influenza with other respiratory manifestations, identified virus", probability: 0.40}
     - {code: "J11.1", name: "Influenza with other respiratory manifestations, unidentified virus", probability: 0.30}

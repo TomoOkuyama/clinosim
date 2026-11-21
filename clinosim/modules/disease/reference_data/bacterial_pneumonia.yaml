@@ -18,6 +18,8 @@ readmission_eligible: true
 
 icd_codes:
   primary: "J18.9"  # Pneumonia, unspecified organism
+  # Codes the discharge diagnosis may refine the primary to (organism, etiology, severity); see diagnosis_progression.
+  discharge_refinements: ["J18.1", "J13"]
   variants:
     - {code: "J13", name: "Pneumonia due to Streptococcus pneumoniae", probability: 0.25}
     - {code: "J15.7", name: "Pneumonia due to Mycoplasma pneumoniae", probability: 0.15}

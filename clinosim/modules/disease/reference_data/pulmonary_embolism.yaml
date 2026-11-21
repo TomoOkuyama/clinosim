@@ -22,6 +22,8 @@ diagnostic:
 
 icd_codes:
   primary: "I26.9"  # Pulmonary embolism without acute cor pulmonale
+  # Codes the discharge diagnosis may refine the primary to (organism, etiology, severity); see diagnosis_progression.
+  discharge_refinements: ["I26.0"]
   variants:
     - {code: "I26.9", name: "Pulmonary embolism without acute cor pulmonale", probability: 0.60}
     - {code: "I26.0", name: "Pulmonary embolism with acute cor pulmonale", probability: 0.20}

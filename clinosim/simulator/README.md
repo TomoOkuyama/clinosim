@@ -189,7 +189,9 @@ clinosim/simulator/
                          simulators (loads reference_data/diagnosis_rules.yaml)
   sepsis_severity.py     severity code of a sepsis discharge diagnosis
                          (septic shock / severe sepsis / sepsis) from the
-                         stay's vitals, MAR and labs (Issue #3269)
+                         stay's vitals, MAR and labs (Issue #3269); the
+                         R65.2x severity is a secondary diagnosis code after
+                         the A41.x infection (Issue #3448)
   event_refs.py          declared namespaces of LifeEvent.disease_id /
                          ConditionEvent.ground_truth_diseases values
 ```

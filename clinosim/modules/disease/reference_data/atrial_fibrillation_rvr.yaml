@@ -18,6 +18,8 @@ readmission_eligible: true
 
 icd_codes:
   primary: "I48.91"  # Unspecified atrial fibrillation
+  # Codes the discharge diagnosis may refine the primary to (organism, etiology, severity); see diagnosis_progression.
+  discharge_refinements: ["I48.0", "I48.1"]
   variants:
     - {code: "I48.0", name: "Paroxysmal atrial fibrillation", probability: 0.40}
     - {code: "I48.1", name: "Persistent atrial fibrillation", probability: 0.30}

@@ -26,6 +26,8 @@ diagnostic:
 
 icd_codes:
   primary: "I21.9"  # Acute myocardial infarction, unspecified
+  # Codes the discharge diagnosis may refine the primary to (organism, etiology, severity); see diagnosis_progression.
+  discharge_refinements: ["I21.0"]
   variants:
     - {code: "I21.0", name: "Acute transmural MI of anterior wall (anterior STEMI)", probability: 0.25}
     - {code: "I21.1", name: "Acute transmural MI of inferior wall (inferior STEMI)", probability: 0.20}

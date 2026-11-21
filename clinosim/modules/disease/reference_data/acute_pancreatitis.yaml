@@ -28,6 +28,8 @@ diagnostic:
 
 icd_codes:
   primary: "K85.9"  # Acute pancreatitis, unspecified
+  # Codes the discharge diagnosis may refine the primary to (organism, etiology, severity); see diagnosis_progression.
+  discharge_refinements: ["K85.1"]
   variants:
     - {code: "K85.1", name: "Biliary acute pancreatitis", probability: 0.40}
     - {code: "K85.2", name: "Alcohol-induced acute pancreatitis", probability: 0.25}
