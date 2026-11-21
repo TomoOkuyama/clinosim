@@ -151,17 +151,29 @@ def test_cross_cursor_shared_window_byte_identical():
         # from the document list for comparison alongside the encounter
         # strip above.
         _strip_vax_docs = lambda docs: [d for d in docs if not d.encounter_id.startswith("ENC-VAX-")]  # noqa: E731
+
+        # Issue #3464: each companion vax encounter also carries its
+        # pre-vaccination vital sign (stamped at the visit's start), appended
+        # to `rec.vital_signs`. The vital is a function of the visit alone
+        # (sha256-seeded by the encounter id) but exists only with the visit,
+        # so it is stripped with it.
+        def _strip_vax_vitals(rec):
+            starts = {e.admission_datetime for e in rec.encounters if e.encounter_id.startswith("ENC-VAX-")}
+            return [v for v in rec.vital_signs if v.timestamp not in starts]
+
         a_cmp = replace(
             a_rec,
             immunizations=[],
             encounters=_strip_vax(a_rec.encounters),
             documents=_strip_vax_docs(a_rec.documents),
+            vital_signs=_strip_vax_vitals(a_rec),
         )
         b_cmp = replace(
             b_rec,
             immunizations=[],
             encounters=_strip_vax(b_rec.encounters),
             documents=_strip_vax_docs(b_rec.documents),
+            vital_signs=_strip_vax_vitals(b_rec),
         )
         assert a_cmp == b_cmp, f"cross-cursor drift for encounter {enc_id}"
         checked += 1

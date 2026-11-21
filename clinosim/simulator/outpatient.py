@@ -20,6 +20,7 @@ from clinosim.locale.loader import (
     load_ambulatory_visit_length,
     load_chronic_followup,
     order_test_display,
+    visit_vitals,
 )
 from clinosim.locale.localized import localized
 from clinosim.modules.encounter.engine import create_inpatient_encounter
@@ -417,6 +418,9 @@ def _record_visit_vitals(
         fields = {"temp", "hr", "bp", "rr", "spo2"}
     elif followup_vitals is not None:
         fields = set(followup_vitals)
+    elif (condition_vitals := visit_vitals(chronic_code) if chronic_code else None) is not None:
+        # Issue #3464: a vaccination visit records the pre-vaccination check.
+        fields = set(condition_vitals)
     elif visit_type == "health_screening":
         fields = {"temp", "hr", "bp", "rr", "spo2"}
     elif presentation is not None:

@@ -426,7 +426,6 @@ def _vaccine_values(ctx: Any, values: dict[str, Any]) -> None:
 
 def _well_child_values(ctx: Any, values: dict[str, Any]) -> None:
     from clinosim.modules.observation.pediatric_ranges import age_in_completed_months
-    from clinosim.modules.population.encounter_anthropometry import encounter_anthropometrics, growth_percentiles
 
     lang = ctx.target_lang
     data = load_visit_reason_soap().well_child
@@ -444,6 +443,21 @@ def _well_child_values(ctx: Any, values: dict[str, Any]) -> None:
     band = find_age_band(data.guidance, months)
     if band is not None:
         values["guidance"] = localized(data.guidance[band], lang)
+    _growth_values(ctx, values)
+
+
+def _growth_values(ctx: Any, values: dict[str, Any]) -> None:
+    """``values["growth"]``: the visit's measured weight, height and head
+    circumference with their percentiles, from the same derivation the FHIR
+    anthropometric Observations use."""
+    from clinosim.modules.population.encounter_anthropometry import encounter_anthropometrics, growth_percentiles
+
+    lang = ctx.target_lang
+    patient = ctx.patient
+    enc = ctx.encounter
+    if patient is None or enc is None:
+        return
+    when = _o(enc, "admission_datetime", None)
     enc_id = str(_o(enc, "encounter_id", "") or "")
     country = country_code(ctx.locale)
     measured = encounter_anthropometrics(patient, enc_id, when, country)
@@ -462,6 +476,17 @@ def _well_child_values(ctx: Any, values: dict[str, Any]) -> None:
         parts.append(text)
     if parts:
         values["growth"] = t("list_sep.serial", lang).join(parts)
+
+
+def _is_child_visit(ctx: Any) -> bool:
+    from clinosim.modules.observation.pediatric_ranges import PEDIATRIC_UPPER_AGE_MONTHS, age_in_completed_months
+
+    if ctx.patient is None or ctx.encounter is None:
+        return False
+    months = age_in_completed_months(
+        _o(ctx.patient, "date_of_birth", None), _o(ctx.encounter, "admission_datetime", None)
+    )
+    return months is not None and months < PEDIATRIC_UPPER_AGE_MONTHS
 
 
 def kind_values(ctx: Any, kind: str) -> dict[str, Any]:
@@ -496,6 +521,10 @@ def kind_values(ctx: Any, kind: str) -> dict[str, Any]:
     elif kind == "well_child":
         _well_child_values(ctx, values)
     _vaccine_values(ctx, values)
+    if kind != "well_child" and "vaccine_names" in values and _is_child_visit(ctx):
+        # Issue #3464: a child's vaccination visit records growth (the visit
+        # may be an appended encounter with no visit kind).
+        _growth_values(ctx, values)
     _retinopathy_values(ctx, values)
     return values
 

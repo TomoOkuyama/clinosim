@@ -474,6 +474,17 @@ _radiation_therapy:
   duration_minutes: 20
   anesthesia: none
 
+# Vital signs measured at a visit that is not a chronic follow-up (Issue #3464),
+# by visit key. Same tokens as `vitals` above. `flu_vaccination` is the adult
+# influenza-vaccination visit; `vaccination_child` / `vaccination_adult` are the
+# vitals taken at a vaccination visit the record holds only as a companion
+# encounter (a pre-vaccination check: temperature and pulse, and for an adult
+# the blood pressure).
+_visit_vitals:
+  flu_vaccination: [temperature, heart_rate, systolic_bp, diastolic_bp]
+  vaccination_child: [temperature, heart_rate]
+  vaccination_adult: [temperature, heart_rate, systolic_bp, diastolic_bp]
+
 # Disease-specific post-discharge follow-up
 _post_discharge:
   first_visit_days: 14

@@ -258,7 +258,7 @@ lab リストの各要素 (`labs`、`add_labs`、`additional_labs`、薬剤モ�
 | `order_test_display(test, lang)` | オーダー理由 (`clinical_intent_ja`、`ServiceRequest.reasonCode.text`) に書く検査名 (検体検査・パネル・画像検査): `lab_display`、なければ `imaging_exam_display` (Issue #3024) |
 | `department_display(dept, lang)` / `department_specialty_snomed(dept)` | 診療科名 / 専門科コード |
 | `role_display(role, lang, *, facet)` | 職種の名称・接尾辞・資格 |
-| `chronic_followup_vitals(code)` / `chronic_followup_interval_months(codes)` | フォローアップ予定のデータ |
+| `chronic_followup_vitals(code)` / `visit_vitals(key)` / `chronic_followup_interval_months(codes)` | フォローアップ予定のデータ、予防接種受診で測るバイタル |
 | `t(key, lang, **kwargs)` (`clinosim.locale.i18n`) | フレーズ。未知のキーは `""` (キーそのものは返さない) |
 | `locale.localized`: `localized(entry, lang, *, fallback)`, `localized_field(record, base, lang, *, fallback)`, `label(catalog, section, key, lang, *, fallback)` | 言語マップ、`<base>_<lang>` フィールド、語彙カタログから値を選ぶ唯一の処理 (§6)。`t`、`resolve_localized_display`、`resolve_text` はこれに委譲する |
 | `locale.table`: `LocalizedTable.get(key, lang, *, fallback)`, `localized_tables()` | すべての表示表・翻訳表を読む基底クラス (§2.3)。`vocab_display`、`imaging_exam_display`、`prompt_label`、`narrative_label` はこれに委譲する。`localized_tables()` はテスト用に全表を列挙する |

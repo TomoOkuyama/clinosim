@@ -232,6 +232,19 @@ def chronic_followup_vitals(code: str) -> frozenset[str] | None:
     return frozenset(_FOLLOWUP_VITAL_FIELDS[v] for v in vitals)
 
 
+def visit_vitals(key: str) -> frozenset[str] | None:
+    """Vital-sign groups measured at the non-follow-up visit ``key`` (the
+    ``_visit_vitals`` table of chronic_followup.yaml, Issue #3464); ``None``
+    when the table has no entry."""
+    vitals = (load_chronic_followup().get("_visit_vitals") or {}).get(key)
+    if not vitals:
+        return None
+    unknown = [v for v in vitals if v not in _FOLLOWUP_VITAL_FIELDS]
+    if unknown:
+        raise ValueError(f"chronic_followup.yaml: _visit_vitals.{key} has unknown vitals {unknown}")
+    return frozenset(_FOLLOWUP_VITAL_FIELDS[v] for v in vitals)
+
+
 def chronic_followup_interval_months(codes: Iterable[str]) -> int | None:
     """Months between a patient's chronic follow-up visits: the shortest
     ``follow_up_interval_months`` (default 3) among their followed-up codes, as

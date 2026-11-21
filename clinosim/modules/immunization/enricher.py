@@ -36,7 +36,7 @@ from clinosim.modules.immunization.visits import (
     vaccination_visits_by_patient,
 )
 from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
-from clinosim.types.encounter import Encounter, EncounterStatus, EncounterType
+from clinosim.types.encounter import Encounter, EncounterStatus, EncounterType, VitalSignRecord
 
 
 def _as_of(ctx, rec) -> date:
@@ -313,6 +313,53 @@ def _synthesize_vaccination_encounter(
     )
 
 
+def _synthesize_vaccination_vitals(
+    patient: object, encounter: Encounter, master_seed: int, nurse_id: str = ""
+) -> VitalSignRecord | None:
+    """The pre-vaccination vital signs of a companion vaccination visit (Issue #3464).
+
+    The visit is the act of vaccinating, with the check that precedes it:
+    temperature and pulse (and for an adult the blood pressure; the set is
+    ``_visit_vitals`` in chronic_followup.yaml). Derived from the patient's
+    physiological state by the same path as every outpatient visit, with a
+    sub-RNG seeded by the encounter id, so no existing stream gains a draw.
+    ``None`` when ``patient`` carries no physiology (a stub)."""
+    profile = _get(patient, "physiological_profile", None)
+    baseline = _get(patient, "baseline_vitals", None)
+    if profile is None or baseline is None:
+        return None
+    from clinosim.locale.loader import visit_vitals
+    from clinosim.modules.observation.pediatric_ranges import PEDIATRIC_UPPER_AGE_MONTHS, age_in_completed_months
+    from clinosim.modules.physiology.engine import derive_observed_vitals, initialize_state
+
+    when = encounter.admission_datetime
+    dob = _get(patient, "date_of_birth", None)
+    months = age_in_completed_months(dob if isinstance(dob, date) else None, when)
+    child = months is not None and months < PEDIATRIC_UPPER_AGE_MONTHS
+    fields = visit_vitals("vaccination_child" if child else "vaccination_adult")
+    if not fields:
+        return None
+    pid = str(_get(patient, "patient_id", "") or encounter.patient_id)
+    state = initialize_state(profile, _get(patient, "chronic_conditions", []) or [], pid)
+    state.timestamp = when
+    rng = determinism.default_rng(
+        derive_sub_seed(master_seed, ENRICHER_SEED_OFFSETS["immunization"], f"{encounter.encounter_id}|vitals")
+    )
+    raw = derive_observed_vitals(state, baseline, when, rng, age_months=months)
+    return VitalSignRecord(
+        timestamp=when,
+        temperature_celsius=round(raw["temperature"], 1) if "temp" in fields else None,
+        heart_rate=int(round(raw["heart_rate"])) if "hr" in fields else None,
+        systolic_bp=int(round(raw["systolic_bp"])) if "bp" in fields else None,
+        diastolic_bp=int(round(raw["diastolic_bp"])) if "bp" in fields else None,
+        respiratory_rate=int(round(raw["respiratory_rate"])) if "rr" in fields else None,
+        spo2=round(raw["spo2"], 1) if "spo2" in fields else None,
+        consciousness_level="",
+        measured_by=nurse_id,
+        data_source="manual",
+    )
+
+
 def _pick_primary_care_physician(pid: str, physician_ids: list[str]) -> str:
     """Deterministically pick a physician id for a given patient.
 
@@ -517,6 +564,10 @@ def enrich_immunizations(ctx) -> None:
             if synth.encounter_id not in hosted:
                 rec_encounters.append(synth)
                 hosted.add(synth.encounter_id)
+                # Issue #3464: the visit's pre-vaccination check.
+                _vit = _synthesize_vaccination_vitals(patient, synth, ctx.master_seed, _default_nurse)
+                if _vit is not None:
+                    _set(rec, "vital_signs", [*(_get(rec, "vital_signs", []) or []), _vit])
             _set(imm, "encounter_id", synth.encounter_id)
         _set(rec, "encounters", rec_encounters)
         _set(rec, "immunizations", recs)

@@ -154,6 +154,9 @@ kinds:
         ja: "結果は報告後に説明{labs_pending}。"
 
   vaccination:
+    objective:
+      - en: "Growth: {growth}."
+        ja: "身体計測: {growth}。"
     assessment:
       - en: "Immunization: {vaccine_names} given today."
         ja: "予防接種: 本日 {vaccine_names} を接種。"
