@@ -2462,16 +2462,17 @@ framework (現在 registry 登録済み 6 per-module plug-in: <code>antibiotic</
 </span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a>│  immunization(30) CVX ワクチン接種歴                     │
 </span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a>│  family_history(40) 第 1 度近親歴                        │
 </span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a>│  code_status(50)  DNR / Full Code 蘇生方針               │
-</span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a>│  care_level(60)   JP 要介護度 (JP 限定)                  │
-</span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a>│  medication_monitoring(65) 慢性薬 → labs (Issue #757)    │
-</span><span id="__span-0-59"><a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a>│  health_checkup(70) JP 事業者健診 (JP 限定、opt-in)      │
-</span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a>└──────────────────────────────────────────────────────────┘
-</span><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a>            ↓                ↓               ↓
-</span><span id="__span-0-62"><a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a>┌─ Output ─────────────────────────────────────────────────┐
-</span><span id="__span-0-63"><a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a>│  output       CIF → FHIR R4 NDJSON / CSV アダプタ        │
-</span><span id="__span-0-64"><a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a>│  llm_service  optional narrative 生成 (Stage 2)          │
-</span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a>│  validator    realism benchmark + consistency check      │
-</span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a>└──────────────────────────────────────────────────────────┘
+</span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a>│  resuscitation(55) 蘇生処置を行う院内死亡の CPR・投与    │
+</span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a>│  care_level(60)   JP 要介護度 (JP 限定)                  │
+</span><span id="__span-0-59"><a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a>│  medication_monitoring(65) 慢性薬 → labs (Issue #757)    │
+</span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a>│  health_checkup(70) JP 事業者健診 (JP 限定、opt-in)      │
+</span><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a>└──────────────────────────────────────────────────────────┘
+</span><span id="__span-0-62"><a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a>            ↓                ↓               ↓
+</span><span id="__span-0-63"><a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a>┌─ Output ─────────────────────────────────────────────────┐
+</span><span id="__span-0-64"><a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a>│  output       CIF → FHIR R4 NDJSON / CSV アダプタ        │
+</span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a>│  llm_service  optional narrative 生成 (Stage 2)          │
+</span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a>│  validator    realism benchmark + consistency check      │
+</span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a>└──────────────────────────────────────────────────────────┘
 </span></code></pre></div>
 <h2 id="モジュール索引">モジュール索引<a class="headerlink" href="#モジュール索引" title="Permanent link">&para;</a></h2>
 <p>計 38 モジュール (<code>clinosim/modules/</code> 配下 top-level package;
@@ -2711,6 +2712,13 @@ canonical 11-section 構造に従う per-module README にリンクする。</p>
 <td>enrichment</td>
 <td><code>0x4353</code> ("CS")</td>
 <td>POST_RECORDS 50</td>
+</tr>
+<tr>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/resuscitation/README.ja.md">resuscitation</a></td>
+<td>蘇生処置を行う方針の院内死亡に付く CPR 処置とエピネフリン投与 (Issue #3483)</td>
+<td>enrichment</td>
+<td>— (患者 ID と入院 ID の sha256)</td>
+<td>POST_RECORDS 55</td>
 </tr>
 <tr>
 <td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/care_level/README.ja.md">care_level</a></td>

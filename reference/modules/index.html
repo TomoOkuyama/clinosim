@@ -2483,16 +2483,17 @@ load-bearing verification gate that protects this goal.</p>
 </span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a>│  immunization(30) CVX vaccine history                    │
 </span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a>│  family_history(40) first-degree relative history        │
 </span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a>│  code_status(50)  DNR / Full Code resuscitation status   │
-</span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a>│  care_level(60)   JP 要介護度 (JP only)                  │
-</span><span id="__span-0-59"><a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a>│  medication_monitoring(65) chronic-med → labs (Issue #757)│
-</span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a>│  health_checkup(70) JP 事業者健診 (JP only, opt-in)      │
-</span><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a>└──────────────────────────────────────────────────────────┘
-</span><span id="__span-0-62"><a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a>            ↓                ↓               ↓
-</span><span id="__span-0-63"><a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a>┌─ Output ─────────────────────────────────────────────────┐
-</span><span id="__span-0-64"><a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a>│  output       CIF → FHIR R4 NDJSON / CSV adapters        │
-</span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a>│  llm_service  optional narrative generation (Stage 2)    │
-</span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a>│  validator    realism benchmarks + consistency checks    │
-</span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a>└──────────────────────────────────────────────────────────┘
+</span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a>│  resuscitation(55) CPR + epinephrine of a full-code death│
+</span><span id="__span-0-59"><a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a>│  care_level(60)   JP 要介護度 (JP only)                  │
+</span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a>│  medication_monitoring(65) chronic-med → labs (Issue #757)│
+</span><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a>│  health_checkup(70) JP 事業者健診 (JP only, opt-in)      │
+</span><span id="__span-0-62"><a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a>└──────────────────────────────────────────────────────────┘
+</span><span id="__span-0-63"><a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a>            ↓                ↓               ↓
+</span><span id="__span-0-64"><a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a>┌─ Output ─────────────────────────────────────────────────┐
+</span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a>│  output       CIF → FHIR R4 NDJSON / CSV adapters        │
+</span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a>│  llm_service  optional narrative generation (Stage 2)    │
+</span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a>│  validator    realism benchmarks + consistency checks    │
+</span><span id="__span-0-68"><a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a>└──────────────────────────────────────────────────────────┘
 </span></code></pre></div>
 <h2 id="module-inventory">Module inventory<a class="headerlink" href="#module-inventory" title="Permanent link">&para;</a></h2>
 <p>38 modules total (top-level packages under <code>clinosim/modules/</code>; the
@@ -2733,6 +2734,13 @@ the canonical 11-section structure).</p>
 <td>enrichment</td>
 <td><code>0x4353</code> ("CS")</td>
 <td>POST_RECORDS 50</td>
+</tr>
+<tr>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/resuscitation/README.md">resuscitation</a></td>
+<td>CPR procedure + epinephrine doses ending a full-code in-hospital death (Issue #3483)</td>
+<td>enrichment</td>
+<td>— (sha256 of patient + encounter ids)</td>
+<td>POST_RECORDS 55</td>
 </tr>
 <tr>
 <td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/care_level/README.md">care_level</a></td>
