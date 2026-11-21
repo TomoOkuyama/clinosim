@@ -2177,6 +2177,14 @@ safety_skips:
   avoid_no_sub:
     ja: "・{considered} は {conflict} との併用禁忌のため処方せず。"
     en: "- {considered} avoided due to concurrent {conflict}; no alternative selected."
+  # Issue #3458: a drug-drug avoidance below the contraindicated severity
+  # (major / moderate interaction) is an interaction risk, not a contraindication.
+  avoid_interaction_with_sub:
+    ja: "・{considered} は {conflict} との相互作用リスクのため回避し、{substituted} を処方。"
+    en: "- {considered} avoided because of the interaction risk with concurrent {conflict}; {substituted} prescribed instead."
+  avoid_interaction_no_sub:
+    ja: "・{considered} は {conflict} との相互作用リスクのため処方せず。"
+    en: "- {considered} avoided because of the interaction risk with concurrent {conflict}; no alternative selected."
   # Issue #2930: drug skipped for the patient's recorded allergy ({conflict}
   # is the allergy, e.g. "Penicillin allergy" / 「ペニシリンアレルギー」).
   avoid_allergy_with_sub:
@@ -2236,6 +2244,12 @@ safety_skips_prompt:
   avoid_no_sub:
     ja: "- 回避: {considered} ({conflict} との併用のため回避、代替薬は選択せず)"
     en: "- avoid: {considered} (avoided due to concurrent {conflict}); no alternative selected"
+  avoid_interaction_with_sub:
+    ja: "- 回避: {considered} ({conflict} との相互作用リスクのため回避); 代替として {substituted} を処方"
+    en: "- avoid: {considered} (avoided because of the interaction risk with concurrent {conflict}); substituted with {substituted}"
+  avoid_interaction_no_sub:
+    ja: "- 回避: {considered} ({conflict} との相互作用リスクのため回避、代替薬は選択せず)"
+    en: "- avoid: {considered} (avoided because of the interaction risk with concurrent {conflict}); no alternative selected"
   avoid_allergy_with_sub:
     ja: "- 回避: {considered} ({conflict}のため投与せず); 代替として {substituted} を処方"
     en: "- avoid: {considered} (not given: {conflict}); substituted with {substituted}"

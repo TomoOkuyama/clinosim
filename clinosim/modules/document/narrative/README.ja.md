@@ -240,7 +240,7 @@ clinosim/modules/document/narrative/
   _extra_context_builder.py                _build_extra_context + _writing_day_of — composes every renderer into the LLM-prompt context dict (META #1633 P6 replacement slice 4)
   _safety_skips.py                         safety_skip_line — 薬剤安全 skip event の文言を template / LLM path で共通化 (Issue #2519)
   _prescription_line.py                    prescription_bits — 処方行の用量・経路・頻度・日数を ED 持ち帰り処方・退院サマリ・外来 SOAP で共有 (Issue #3389)
-  _safety_skips.py                         safety_skip_line — 薬剤安全 skip event の文言を template / LLM path で共通化 (Issue #2519)。progress_note_safety_skips — 日々の経過記録が書く入院中の事象 (保留は薬剤ごとに 1 回、Issue #3411)
+  _safety_skips.py                         safety_skip_line — 薬剤安全 skip event の文言を template / LLM path で共通化 (Issue #2519)。progress_note_safety_skips — 日々の経過記録が書く入院中の事象 (保留は薬剤ごとに 1 回、回避は薬剤の同一性ごとに 1 回、禁忌未満の相互作用は「相互作用リスク」と表現、Issues #3411 / #3458)
   _vitals_line.py                          format_vitals_line — narrative 各 style のバイタル 1 行要約を 1 つの formatter に集約 (Issue #2523)
   _as_of.py                                in_force_at — 文書作成時刻に有効な日付つき記録を選ぶ (Issue #3236)
   cache.py                                 NarrativeCache (layer-1 in-memory, seed_hash keyed)

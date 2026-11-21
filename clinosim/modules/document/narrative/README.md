@@ -256,7 +256,7 @@ clinosim/modules/document/narrative/
   _extra_context_builder.py                _build_extra_context + _writing_day_of — composes every renderer into the LLM-prompt context dict (META #1633 P6 replacement slice 4)
   _safety_skips.py                         safety_skip_line — one phrasing of drug-safety skip events for template + LLM paths (Issue #2519)
   _prescription_line.py                    prescription_bits — the dose / route / frequency / days of a prescription line, shared by the ED take-home Rx, discharge summary and outpatient SOAP (Issue #3389)
-  _safety_skips.py                         safety_skip_line — one phrasing of drug-safety skip events for template + LLM paths (Issue #2519); progress_note_safety_skips — the in-stay events a daily note states, one hold per drug (Issue #3411)
+  _safety_skips.py                         safety_skip_line — one phrasing of drug-safety skip events for template + LLM paths (Issue #2519); progress_note_safety_skips — the in-stay events a daily note states, one hold per drug and each avoidance once per drug identity; an interaction below contraindicated severity is worded as an interaction risk (Issues #3411, #3458)
   _vitals_line.py                          format_vitals_line — one formatter for vital-signs one-liners across narrative styles (Issue #2523)
   _as_of.py                                in_force_at — the dated record in force at a document's authored time (Issue #3236)
   cache.py                                 NarrativeCache (layer-1 in-memory, seed_hash keyed)
