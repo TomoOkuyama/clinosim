@@ -14,12 +14,6 @@ metadata:
   source: clinosim
 
 dvt_prophylaxis:
-  drug: "Enoxaparin"
-  dose_quantity: 40.0
-  dose_unit: "mg"
-  route: "SC"
-  frequency: "daily"
-  administration_hour: 21          # Issue #2607: evening dose (given daily from the order until discharge)
   min_los_hours: 48
   # Rationale citation
   guideline: "CHEST 2018 antithrombotic therapy for VTE + ACCP 2022"
@@ -27,6 +21,62 @@ dvt_prophylaxis:
   clinical_intent:
     en: "DVT prophylaxis: standard-of-care VTE chemoprophylaxis for inpatient stay ≥48h"
     ja: "DVT予防: 入院期間 48 時間以上の患者に対する標準 VTE 化学的予防"
+
+  # Issue #3449: the regimen follows the country's product labelling (and
+  # guideline where the labelling does not reach a medical inpatient). A
+  # country without an entry uses `default_country`.
+  default_country: US
+  regimens:
+    # US: Lovenox (enoxaparin) US prescribing information (openFDA / DailyMed
+    # label, effective 2026-04-27): 1.1 prophylaxis of DVT in "medical
+    # patients who are at risk for thromboembolic complications due to
+    # severely restricted mobility during acute illness"; 2.2 "40 mg once a
+    # day administered by subcutaneous injection" for them; 2.3 / Table 1 and
+    # 8.7: in severe renal impairment (creatinine clearance < 30 mL/min)
+    # prophylaxis in medical patients is "30 mg administered subcutaneously
+    # once daily"; no adjustment at 30 to < 50 or 50 to 80 mL/min.
+    US:
+      drug: "Enoxaparin"
+      dose_quantity: 40.0
+      dose_unit: "mg"
+      route: "SC"
+      frequency: "daily"
+      frequency_per_day: 1
+      administration_hours: [21]     # Issue #2607: evening dose (given daily from the order until discharge)
+      renal_adjustment:
+        crcl_below_ml_min: 30
+        dose_quantity: 30.0
+    # JP: enoxaparin (クレキサン皮下注キット2000IU, PMDA package insert, rev.
+    # 2020-01) is approved only for VTE prevention after lower-limb orthopedic
+    # surgery and in high-risk abdominal surgery (4. 効能又は効果) and is
+    # contraindicated at creatinine clearance < 30 mL/min (2.4), so it is not
+    # a regimen for a medical inpatient. Unfractionated heparin (ヘパリンナトリウム
+    # 注, PMDA package insert, rev. 2024-07) is indicated for 血栓塞栓症 ... の
+    # 治療及び予防 (4. 効能・効果), is not renally dose-adjusted in its insert,
+    # and the JCS/JSPHL 2017 guideline on pulmonary thromboembolism / deep
+    # vein thrombosis (3.4 低用量未分画ヘパリン) gives 5,000 units (IU) SC every 8
+    # or 12 hours, "時期と基礎疾患を問わず予防目的で使用する". The insert's own
+    # SC regimen (5,000 units every 4 hours) is a treatment regimen.
+    JP:
+      drug: "Heparin"
+      dose_quantity: 5000.0
+      dose_unit: "IU"
+      route: "SC"
+      frequency: "q12h"
+      frequency_per_day: 2
+      administration_hours: [9, 21]
+
+# Creatinine clearance for the renal adjustment: Cockcroft DW, Gault MH,
+# Nephron 1976;16:31-41 (15% less in females); the equation as printed in FDA
+# prescribing information (e.g. imipenem and cilastatin for injection, 2.x:
+# "(weight in kg) x (140-age in years) / (72 x serum creatinine (mg/100 mL))",
+# females 0.85 x the male value). Weight is the encounter's charted weight.
+creatinine_clearance:
+  equation: cockcroft_gault
+  age_offset: 140
+  denominator: 72
+  female_factor: 0.85
+  creatinine_unit: "mg/dL"
 
 # Skip conditions — the enricher walks these tags against the encounter /
 # patient state and skips prophylaxis when ANY tag matches. Adding a tag

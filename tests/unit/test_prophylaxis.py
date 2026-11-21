@@ -148,7 +148,7 @@ def test_positive_path_emits_enoxaparin_order() -> None:
         _encounter(los_hours=72),
         dx="J18.1",
     )
-    orders = build_dvt_prophylaxis_orders(record=record)
+    orders = build_dvt_prophylaxis_orders(record=record, country="US")
     assert len(orders) == 1
     o = orders[0]
     assert o.display_name == "Enoxaparin"
@@ -165,7 +165,7 @@ def test_positive_path_emits_enoxaparin_order() -> None:
 def test_short_los_no_order() -> None:
     """LOS < 48 h: no order."""
     record = _record(_patient([]), _encounter(los_hours=24), dx="J18.1")
-    assert build_dvt_prophylaxis_orders(record=record) == []
+    assert build_dvt_prophylaxis_orders(record=record, country="US") == []
 
 
 def test_outpatient_encounter_no_order() -> None:
@@ -174,7 +174,7 @@ def test_outpatient_encounter_no_order() -> None:
         _encounter(los_hours=72, encounter_type="outpatient"),
         dx="J18.1",
     )
-    assert build_dvt_prophylaxis_orders(record=record) == []
+    assert build_dvt_prophylaxis_orders(record=record, country="US") == []
 
 
 def test_therapeutic_ac_patient_no_order() -> None:
@@ -183,23 +183,23 @@ def test_therapeutic_ac_patient_no_order() -> None:
         _encounter(los_hours=72),
         dx="J18.1",
     )
-    assert build_dvt_prophylaxis_orders(record=record) == []
+    assert build_dvt_prophylaxis_orders(record=record, country="US") == []
 
 
 def test_hemorrhagic_stroke_no_order() -> None:
     record = _record(_patient([]), _encounter(los_hours=120), dx="I61.9")
-    assert build_dvt_prophylaxis_orders(record=record) == []
+    assert build_dvt_prophylaxis_orders(record=record, country="US") == []
 
 
 def test_delivery_no_order() -> None:
     record = _record(_patient([]), _encounter(los_hours=48), dx="Z37.0")
-    assert build_dvt_prophylaxis_orders(record=record) == []
+    assert build_dvt_prophylaxis_orders(record=record, country="US") == []
 
 
 def test_active_dvt_no_order() -> None:
     """DVT admission — therapeutic anticoag replaces prophylaxis by definition."""
     record = _record(_patient([]), _encounter(los_hours=72), dx="I80.201")
-    assert build_dvt_prophylaxis_orders(record=record) == []
+    assert build_dvt_prophylaxis_orders(record=record, country="US") == []
 
 
 def _peds_patient(age: int, meds: list[str] | None = None) -> SimpleNamespace:
@@ -224,7 +224,7 @@ def test_pediatric_no_order_end_to_end_1276() -> None:
     """End-to-end: build_dvt_prophylaxis_orders returns [] for a peds
     inpatient with a non-indicated admission dx."""
     record = _record(_peds_patient(age=9), _encounter(los_hours=216), dx="J45.901")
-    assert build_dvt_prophylaxis_orders(record=record) == []
+    assert build_dvt_prophylaxis_orders(record=record, country="US") == []
 
 
 def test_pediatric_ceiling_boundary_1276() -> None:
@@ -257,7 +257,7 @@ def test_adult_untouched_by_1276() -> None:
         _encounter(los_hours=72),
         dx="J18.1",
     )
-    orders = build_dvt_prophylaxis_orders(record=record)
+    orders = build_dvt_prophylaxis_orders(record=record, country="US")
     assert len(orders) == 1
     assert orders[0].display_name == "Enoxaparin"
 
@@ -266,15 +266,15 @@ def test_deterministic_output() -> None:
     """Same input twice → byte-identical output (no RNG consumption)."""
     record1 = _record(_patient(["Amlodipine 5mg"]), _encounter(los_hours=72), dx="J18.1")
     record2 = _record(_patient(["Amlodipine 5mg"]), _encounter(los_hours=72), dx="J18.1")
-    o1 = build_dvt_prophylaxis_orders(record=record1)
-    o2 = build_dvt_prophylaxis_orders(record=record2)
+    o1 = build_dvt_prophylaxis_orders(record=record1, country="US")
+    o2 = build_dvt_prophylaxis_orders(record=record2, country="US")
     assert o1 == o2
 
 
 def test_dx_case_insensitive() -> None:
     """ICD prefix match handles lower-case input."""
     record = _record(_patient([]), _encounter(los_hours=72), dx="i61.9")
-    assert build_dvt_prophylaxis_orders(record=record) == []
+    assert build_dvt_prophylaxis_orders(record=record, country="US") == []
 
 
 # ---------------------------------------------------------------------------
@@ -313,7 +313,7 @@ def test_skip_on_in_encounter_nsaid_via_drug_safety() -> None:
     """In-encounter NSAID (record.orders) — Enoxaparin still blocked."""
     record = _record(_patient([]), _encounter(los_hours=72), dx="J18.1")
     record.orders = [_med_order("Ibuprofen 400mg", "ORD-INE-1")]
-    assert build_dvt_prophylaxis_orders(record=record) == []
+    assert build_dvt_prophylaxis_orders(record=record, country="US") == []
 
 
 def test_skip_on_in_encounter_ketorolac_via_drug_safety() -> None:
@@ -321,7 +321,7 @@ def test_skip_on_in_encounter_ketorolac_via_drug_safety() -> None:
     so the drug_safety gate catches it."""
     record = _record(_patient([]), _encounter(los_hours=72), dx="J18.1")
     record.orders = [_med_order("Ketorolac", "ORD-INE-2")]
-    assert build_dvt_prophylaxis_orders(record=record) == []
+    assert build_dvt_prophylaxis_orders(record=record, country="US") == []
 
 
 def test_no_skip_on_allowed_chronic_med() -> None:
@@ -331,7 +331,7 @@ def test_no_skip_on_allowed_chronic_med() -> None:
         _encounter(los_hours=72),
         dx="J18.1",
     )
-    orders = build_dvt_prophylaxis_orders(record=record)
+    orders = build_dvt_prophylaxis_orders(record=record, country="US")
     assert len(orders) == 1
     assert orders[0].display_name == "Enoxaparin"
 
