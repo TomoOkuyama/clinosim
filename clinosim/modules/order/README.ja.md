@@ -252,6 +252,12 @@ from clinosim.modules.order.label_dose import within_label  # (name, frequency, 
   書かれた範囲は `titration_range` として項目に残る。`discharge_oral` の維持薬は `duration_days` に 28 日 (継続処方の供給日数) を書く (0 や "ongoing" は不可)。急性コース上限 (14 日) を超える退院処方は FHIR で継続的な治療コースになる。用量単位を持たない範囲
   ("target INR 1.5-2.5"、"q6-8h")、"target" や比較記号の後の範囲は用量でない
   ので触れない。乱数は引かない。
+- **インスリン開始量** ([`reference_data/insulin_initiation.yaml`](reference_data/insulin_initiation.yaml)、
+  `insulin_initiation.py` が読む; Issue #3462, #3450): インスリン未使用の患者の基礎インスリン開始量は、
+  `units_per_kg` (0.2、ADA Standards of Care 2025 section 16 の低用量基礎インスリン 0.15-0.3 単位/kg
+  の範囲内のモデル選択) に受診時の体重を掛けて整数単位に丸めた値で、投与経路と頻度は別フィールド。
+  `discharge_oral` の項目が `start_dose: {rule: basal_insulin}` として参照し、患者に当該薬の自宅レジメンが
+  なければ退院処方 (`simulator/discharge_rx.py`) がこの値を使う (`home_dose: resume`)。乱数は引かない。
 - **小児投与量** ([`reference_data/pediatric_dosing.yaml`](reference_data/pediatric_dosing.yaml)、
   `pediatric_dose.py` が読み、`PediatricDosingFile` (`extra="forbid"`) で
   検証): `adult_age_years` と薬剤ごとの `mg_per_kg` / `max_mg` /
@@ -321,6 +327,7 @@ clinosim/modules/order/
   prescription_supersede.py          prescription_closures — FHIR export 時に持ち帰り処方の更新 / 供給終了で終了を決定 (Issue #2610)
   placed_order_mar.py                daily_times + stable_nurse + administrations_for — 日次 loop 外で発注された order の RNG-free MAR (Issue #2607)
   absolute_dose.py                   absolute_dose + body_surface_area + is_continuous_infusion + is_one_time_infusion — per-kg / per-m2 投与量の絶対量 (Issue #2750)、投与形態の判定 (Issue #3043)
+  insulin_initiation.py              basal_insulin_start_dose — 体重換算の基礎インスリン開始量 (Issue #3462, #3450)
   dose_range.py                      resolve_dose_ranges / resolve_protocol_dose_ranges — プロトコルの用量範囲を 1 つの用量にする (Issue #3265)
   pediatric_dose.py                  pediatric_order_name / redose_order_for_child / pediatric_dose_text — 小児投与量の体重換算 (Issue #2857, #3004)
   label_dose.py                      within_label — 国別の添付文書用量上限 (Issue #3012)
@@ -331,6 +338,7 @@ clinosim/modules/order/
   _state_delay_thresholds.py         hospital-state delay 定数 (Issue #637)
   reference_data/
     medication_supersede.yaml        supersede.py が読む class 切替 + PRN marker (Issue #2615, #2983)
+    insulin_initiation.yaml          基礎インスリン開始量 単位/kg (Issue #3462, #3450)
     dose_range_resolution.yaml       プロトコルの用量範囲のどちらの端を示すか (単位別、Issue #3265)
     pediatric_dosing.yaml            pediatric_dose.py が読む薬剤ごとの mg/kg・上限・最低年齢、輸液ごとの mL/kg、国別上書き、Holliday-Segar 帯、新生児の生後日数帯 (Issue #2857, #2977, #3012, #3004, #3082, #3063)
     label_dose_limits.yaml           label_dose.py が読む国別の 1 回量・1 日回数・1 日最大量 (Issue #3012)

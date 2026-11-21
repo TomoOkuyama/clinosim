@@ -267,6 +267,14 @@ from clinosim.modules.order.label_dose import within_label  # (name, frequency, 
   The written range stays on the entry as `titration_range`. A `discharge_oral` maintenance drug states the 28-day renewal supply as `duration_days` (never 0 / "ongoing"), and a discharge supply longer than the acute-course ceiling (14 days) is a continuous course of therapy in FHIR. A range with no
   dose unit ("target INR 1.5-2.5", "q6-8h") or after "target" / a comparison
   sign is not a dose and is left. No random draw.
+- **Insulin initiation** ([`reference_data/insulin_initiation.yaml`](reference_data/insulin_initiation.yaml),
+  read by `insulin_initiation.py`; Issues #3462, #3450): the starting basal-insulin dose of an
+  insulin-naive patient is `units_per_kg` (0.2, a model choice inside the 0.15-0.3 units/kg
+  low-dose basal range of ADA Standards of Care 2025 section 16) times the weight charted at
+  the encounter, rounded to whole units, with its route and frequency as separate fields. A
+  `discharge_oral` entry names it as `start_dose: {rule: basal_insulin}` and the discharge
+  prescription (`simulator/discharge_rx.py`) uses it unless the patient has a home regimen of
+  the drug (`home_dose: resume`). No random draw.
 - **Pediatric dosing** ([`reference_data/pediatric_dosing.yaml`](reference_data/pediatric_dosing.yaml),
   read by `pediatric_dose.py`, validated by `PediatricDosingFile`,
   `extra="forbid"`): `adult_age_years` plus per-drug `mg_per_kg`,
@@ -344,6 +352,7 @@ clinosim/modules/order/
   prescription_supersede.py          prescription_closures — renewal / supply-end closure of take-home prescriptions at FHIR export (Issue #2610)
   placed_order_mar.py                daily_times + stable_nurse + administrations_for — RNG-free MAR for orders placed outside the daily loop (Issue #2607)
   absolute_dose.py                   absolute_dose + body_surface_area + is_continuous_infusion + is_one_time_infusion — per-kg / per-m2 dose amounts (Issue #2750), infusion kinds (Issue #3043)
+  insulin_initiation.py              basal_insulin_start_dose — weight-based starting basal insulin (Issues #3462, #3450)
   dose_range.py                      resolve_dose_ranges / resolve_protocol_dose_ranges — a protocol dose range becomes one dose (Issue #3265)
   pediatric_dose.py                  pediatric_order_name / redose_order_for_child / pediatric_dose_text — weight-based doses for children (Issue #2857, #3004)
   label_dose.py                      within_label — per-country label dose limits (Issue #3012)
@@ -354,6 +363,7 @@ clinosim/modules/order/
   _state_delay_thresholds.py         hospital-state delay constants (Issue #637)
   reference_data/
     medication_supersede.yaml        class switches + PRN markers read by supersede.py (Issues #2615, #2983)
+    insulin_initiation.yaml          starting basal-insulin units/kg (Issues #3462, #3450)
     dose_range_resolution.yaml       which end of a protocol dose range is stated, by unit (Issue #3265)
     pediatric_dosing.yaml            per-drug mg/kg, max mg, minimum age; per-fluid mL/kg, per-country overrides, Holliday-Segar bands, neonatal postnatal-age bands (Issue #2857, #2977, #3012, #3004, #3082, #3063)
     label_dose_limits.yaml           per-country label dose, doses a day, daily max read by label_dose.py (Issue #3012)

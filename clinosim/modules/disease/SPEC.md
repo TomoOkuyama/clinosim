@@ -422,7 +422,7 @@ The disease protocol's `order_protocols` define what the encounter module orders
 ### → treatment
 - `drugs.first_line` / `drugs.alternative_*` → first-line and alternative drugs. Every first-line entry is ordered unless the block sets `select: one_of`: the entries are then alternatives in order of preference, and the admission drug-safety gate gives the first one that passes (`order.engine.first_line_alternative_groups`; Issue #3274)
 - `drugs.escalation` → escalation / de-escalation drugs
-- `drugs.discharge_oral` → oral switch for discharge
+- `drugs.discharge_oral` → oral switch for discharge. An entry's dose is stated, never a placeholder: `home_dose: resume` continues the patient's home regimen of the drug (dose / route / frequency), and `start_dose` (`{dose, route, frequency}` or `{rule: basal_insulin}`) is started for a patient without one; an entry with an empty `dose` must carry `start_dose` or `dose_text` (load-time validation; Issues #3461, #3462)
 
 ### → observation
 - The state trajectory defines how state variables change → observation module converts these to lab values
