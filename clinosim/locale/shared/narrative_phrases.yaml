@@ -1103,6 +1103,35 @@ nursing_shift_items:
     urgent:
       ja: "{time} NEWS2 {score}、緊急対応基準 ({threshold}点以上) に該当。"
       en: "NEWS2 {score} at {time}, at or above the urgent-response level ({threshold})."
+  not_given:
+    act_oral:
+      ja: "内服"
+      en: "oral dose"
+    act_other:
+      ja: "投与"
+      en: "dose"
+    held:
+      ja: "{drug}{act}は{reason}のため保留。"
+      en: "{drug} {act} held: {reason}."
+    held_plain:
+      ja: "{drug}{act}を保留。"
+      en: "{drug} {act} held."
+    refused:
+      ja: "{drug}{act}を拒否。"
+      en: "Patient refused {drug} {act}."
+    refused_reason:
+      ja: "{drug}{act}を拒否 ({reason})。"
+      en: "Patient refused {drug} {act} ({reason})."
+    unavailable:
+      ja: "{drug}{act}は薬剤の準備ができず未実施。"
+      en: "{drug} {act} not given: drug not available."
+  hold_reason:
+    sbp:
+      ja: "血圧低値 (SBP {n}未満)"
+      en: "low blood pressure (SBP below {n})"
+    hr:
+      ja: "心拍数低値 (HR {n}未満)"
+      en: "low heart rate (HR below {n})"
 
 # Newborn / infant screening phrases (Phase 1d-9, from
 # replacement_strategy._build_neonatal_addendum).

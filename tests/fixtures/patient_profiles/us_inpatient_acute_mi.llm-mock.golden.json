@@ -891,6 +891,7 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
+        "ctx.medications.shift.not_given",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -903,7 +904,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 118/72, HR 113, SpO2 99%, T 36.6°C; nasal cannula 3.2 L/min.\nMeds administered: Ticagrelor, Heparin, Nitroglycerin.\nchest pain reported, NRS 5.\nFever 39.1°C; observation continued."
+      "text": "[Nursing Shift Note - day shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 118/72, HR 113, SpO2 99%, T 36.6°C; nasal cannula 3.2 L/min.\nMeds administered: Ticagrelor, Heparin, Nitroglycerin.\nchest pain reported, NRS 5.\nFever 39.1°C; observation continued.\nPatient refused Nitroglycerin dose."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-22-evening": {
@@ -1065,6 +1066,7 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.desaturation",
+        "ctx.medications.shift.not_given",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1077,7 +1079,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 112/70, HR 108, SpO2 94%, T 36.3°C.\nMeds administered: Ticagrelor, Dobutamine 2ug/kg/min IV drip.\nchest pain reported, NRS 3.\nSpO2 fell to 93% at 22:00; no oxygen given, observation continued."
+      "text": "[Nursing Shift Note - evening shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 112/70, HR 108, SpO2 94%, T 36.3°C.\nMeds administered: Ticagrelor, Dobutamine 2ug/kg/min IV drip.\nchest pain reported, NRS 3.\nSpO2 fell to 93% at 22:00; no oxygen given, observation continued.\nNitroglycerin dose held: on vasopressor or inotrope infusion."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-29-night": {
@@ -1091,6 +1093,7 @@
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
         "ctx.vitals.shift.desaturation",
+        "ctx.medications.shift.not_given",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1103,7 +1106,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 114/69, HR 106, SpO2 93%, T 38.1°C.\nMeds administered: Dobutamine 2ug/kg/min IV drip.\nchest pain reported, NRS peak 3, latest 2.\nFever 38.1°C; observation continued.\nSpO2 fell to 93% at 07:05; no oxygen given, observation continued."
+      "text": "[Nursing Shift Note - night shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 114/69, HR 106, SpO2 93%, T 38.1°C.\nMeds administered: Dobutamine 2ug/kg/min IV drip.\nchest pain reported, NRS peak 3, latest 2.\nFever 38.1°C; observation continued.\nSpO2 fell to 93% at 07:05; no oxygen given, observation continued.\nNitroglycerin dose held: on vasopressor or inotrope infusion."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-30-day": {
@@ -1116,6 +1119,7 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.desaturation",
+        "ctx.medications.shift.not_given",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1128,7 +1132,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 111/68, HR 112, SpO2 94%, T 37.3°C.\nMeds administered: Aspirin, Ticagrelor, Heparin, Dobutamine 2ug/kg/min IV drip.\nchest pain reported, NRS 2.\nSpO2 fell to 94% at 15:12; no oxygen given, observation continued."
+      "text": "[Nursing Shift Note - day shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 111/68, HR 112, SpO2 94%, T 37.3°C.\nMeds administered: Aspirin, Ticagrelor, Heparin, Dobutamine 2ug/kg/min IV drip.\nchest pain reported, NRS 2.\nSpO2 fell to 94% at 15:12; no oxygen given, observation continued.\nNitroglycerin dose held: on vasopressor or inotrope infusion."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-31-evening": {
@@ -1140,6 +1144,7 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
+        "ctx.medications.shift.not_given",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1152,7 +1157,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 112/71, HR 106, SpO2 98%, T 37.6°C; nasal cannula 3.5 L/min.\nMeds administered: Ticagrelor, Dobutamine 2ug/kg/min IV drip.\nchest pain reported, NRS 2."
+      "text": "[Nursing Shift Note - evening shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 112/71, HR 106, SpO2 98%, T 37.6°C; nasal cannula 3.5 L/min.\nMeds administered: Ticagrelor, Dobutamine 2ug/kg/min IV drip.\nchest pain reported, NRS 2.\nNitroglycerin dose held: on vasopressor or inotrope infusion."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-32-night": {
