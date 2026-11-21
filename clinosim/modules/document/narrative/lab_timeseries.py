@@ -111,6 +111,32 @@ def latest_by_lab_name(
 
 
 # ---------------------------------------------------------------------------
+# One draw = the rows of one analyte reported close together
+# ---------------------------------------------------------------------------
+
+
+def group_draws(rows: list[tuple[datetime, Any]], window: timedelta) -> list[list[tuple[datetime, Any]]]:
+    """Group the ``(time, lab)`` rows of ONE analyte, in time order, into
+    draws: a row within ``window`` of the first row of the current draw
+    belongs to it (``notable_labs.yaml`` ``draw_window_minutes``). The record
+    carries separate rows for one blood draw, minutes apart, with slightly
+    different values; they are one measurement for a note."""
+    draws: list[list[tuple[datetime, Any]]] = []
+    for at, lab in sorted(rows, key=lambda row: row[0]):
+        if draws and at - draws[-1][0][0] <= window:
+            draws[-1].append((at, lab))
+        else:
+            draws.append([(at, lab)])
+    return draws
+
+
+def _draw_window() -> timedelta:
+    from clinosim.modules.document.narrative._narrative_interpretation_thresholds import notable_lab_rules
+
+    return timedelta(minutes=notable_lab_rules().draw_window_minutes)
+
+
+# ---------------------------------------------------------------------------
 # Trend classification
 # ---------------------------------------------------------------------------
 
@@ -171,9 +197,9 @@ def lab_trend(
     admission_datetime: Any,
     day_index: int,
 ) -> list[dict[str, Any]]:
-    """For each lab measured on ``day_index``, return a trend entry
-    comparing it against the closest earlier measurement of the same
-    ``lab_name``.
+    """For each analyte measured on ``day_index`` (one value per draw, see
+    :func:`group_draws`), return a trend entry comparing it against the
+    closest earlier day's measurement of the same analyte.
 
     Returns list of dicts with keys::
 
@@ -185,38 +211,36 @@ def lab_trend(
         prior_flag     str (None if no prior measurement)
         direction      "improving" | "worsening" | "stable" | "initial"
     """
-    by_name: dict[str, list[tuple[int, Any]]] = {}
-    for lab in lab_results or []:
-        day = day_of_lab(lab, admission_datetime)
-        if day is None:
-            continue
+    from clinosim.modules.observation.engine import canonical_lab_name
+
+    # One draw per analyte (rows minutes apart are one measurement): the last
+    # row of the draw stands for it, on the day it was reported.
+    rows_by_analyte: dict[str, list[tuple[datetime, Any]]] = {}
+    first_seen: dict[str, int] = {}
+    for idx, lab in enumerate(lab_results or []):
+        at = parse_iso_datetime(_get(lab, "result_datetime"))
         name = _get(lab, "lab_name") or _get(lab, "name")
-        if not name:
+        if at is None or not name or day_of_lab(lab, admission_datetime) is None:
             continue
-        by_name.setdefault(name, []).append((day, lab))
+        canon = canonical_lab_name(str(name))
+        rows_by_analyte.setdefault(canon, []).append((at, lab))
+        first_seen.setdefault(canon, idx)
 
-    for name in by_name:
-        by_name[name].sort(
-            key=lambda pair: (pair[0], parse_iso_datetime(_get(pair[1], "result_datetime")) or datetime.min)
-        )
-
+    window = _draw_window()
     out: list[dict[str, Any]] = []
-    today_labs = labs_measured_on_day(lab_results, admission_datetime, day_index)
-    for today_lab in today_labs:
-        name = _get(today_lab, "lab_name") or _get(today_lab, "name")
-        if not name:
+    for canon in sorted(rows_by_analyte, key=lambda c: first_seen[c]):
+        draws = [
+            (day_of_lab(d[-1][1], admission_datetime), d[-1][1]) for d in group_draws(rows_by_analyte[canon], window)
+        ]
+        today = [lab for day, lab in draws if day == day_index]
+        if not today:
             continue
+        today_lab = today[-1]
+        name = _get(today_lab, "lab_name") or _get(today_lab, "name")
         current_value = _get(today_lab, "value")
         current_flag = _get(today_lab, "flag") or ""
-        prior_day: int | None = None
-        prior_lab: Any = None
-        for day, cand in by_name.get(name, []):
-            if day < day_index:
-                prior_day = day
-                prior_lab = cand
-            else:
-                break
-        if prior_lab is None:
+        earlier = [(day, lab) for day, lab in draws if day is not None and day < day_index]
+        if not earlier:
             out.append(
                 {
                     "name": name,
@@ -229,6 +253,7 @@ def lab_trend(
                 }
             )
             continue
+        prior_day, prior_lab = earlier[-1]
         prior_value = _get(prior_lab, "value")
         prior_flag = _get(prior_lab, "flag") or ""
         try:
@@ -370,10 +395,12 @@ def select_notable_labs(
         available.append((idx, at, lab))
     available.sort(key=lambda row: (row[1] or datetime.min, row[0]))
 
-    history: dict[str, list[tuple[datetime, Any]]] = {}
+    rows: dict[str, list[tuple[datetime, Any]]] = {}
     for _, at, lab in available:
         if at is not None:
-            history.setdefault(canonical_lab_name(_lab_name(lab)), []).append((at, lab))
+            rows.setdefault(canonical_lab_name(_lab_name(lab)), []).append((at, lab))
+    window = timedelta(minutes=rules.draw_window_minutes)
+    history = {canon: group_draws(analyte_rows, window) for canon, analyte_rows in rows.items()}
 
     shown: dict[str, tuple[int, datetime | None, Any]] = {}
     first_seen: dict[str, int] = {}
@@ -399,8 +426,12 @@ def select_notable_labs(
     ranked: list[tuple[int, int, NotableLab]] = []
     for canon, (_, at, lab) in shown.items():
         flag = str(_get(lab, "flag") or "")
-        earlier = [h for t, h in history.get(canon, []) if at is not None and t < at]
-        prior = earlier[-1] if earlier else None
+        # The previous value is the last result of an EARLIER draw, never a
+        # sibling row of the shown draw.
+        draws = history.get(canon, [])
+        position = next((i for i, d in enumerate(draws) if any(h is lab for _, h in d)), None)
+        earlier_rows = [row for d in draws[:position] for row in d] if position is not None else []
+        prior = draws[position - 1][-1][1] if position else None
         finding: str | None = None
         if flag in _HEMOLYZED_FLAGS:
             finding = "hemolyzed"
@@ -410,7 +441,7 @@ def select_notable_labs(
             rule = getattr(entry, side) if entry is not None and side is not None else None
             if rule is not None and _names_finding(rule, side, flag, _numeric(_get(lab, "value"))):
                 finding = rule.finding
-            if finding is None and canon == rules.aki.analyte and _meets_kdigo_aki(lab, at, history.get(canon, [])):
+            if finding is None and canon == rules.aki.analyte and _meets_kdigo_aki(lab, at, earlier_rows):
                 finding = "aki"
         if flag in _PANIC_FLAGS:
             tier = 0

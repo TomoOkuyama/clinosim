@@ -263,6 +263,7 @@ class NotableLabRules(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
     window_hours: int = Field(gt=0)
+    draw_window_minutes: int = Field(gt=0)
     max_items: _NotableLabMaxItems
     findings: dict[str, _NotableLabFinding]
     aki: _AkiCriteria

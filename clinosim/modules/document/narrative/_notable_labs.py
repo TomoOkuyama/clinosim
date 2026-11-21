@@ -19,7 +19,17 @@ from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules.document.narrative._localization import _localize_lab_flag
 from clinosim.modules.document.narrative.lab_timeseries import NotableLab, select_notable_labs
 
-__all__ = ["notable_lab_entries", "notable_lab_entry"]
+__all__ = ["lab_unit_text", "notable_lab_entries", "notable_lab_entry"]
+
+
+def lab_unit_text(raw_name: str, unit: str, lang: str) -> str:
+    """The unit to print after a result (``" mg/dL"``, with its leading
+    space), ``""`` for a dimensionless result (PT-INR) or a scale that is its
+    own name (pH: unit "[pH]")."""
+    unit_disp = ucum_prose(unit) if unit else ""
+    if unit_disp and unit_disp.lower() == str(lab_display(raw_name, lang)).lower():
+        return ""
+    return f" {unit_disp}" if unit_disp else ""
 
 
 def notable_lab_entry(item: NotableLab, lang: str) -> str:
@@ -29,11 +39,7 @@ def notable_lab_entry(item: NotableLab, lang: str) -> str:
     raw_name = str(_get(lab, "lab_name") or _get(lab, "name") or "")
     unit = str(_get(lab, "unit") or "")
     name = lab_display(raw_name, lang)
-    unit_disp = ucum_prose(unit) if unit else ""
-    # A dimensionless scale (pH: unit "[pH]") does not repeat its name.
-    if unit_disp and unit_disp.lower() == str(name).lower():
-        unit_disp = ""
-    unit_part = f" {unit_disp}" if unit_disp else ""
+    unit_part = lab_unit_text(raw_name, unit, lang)
     flag = _localize_lab_flag(str(_get(lab, "flag") or ""), lang)
     text = f"{name} {format_lab_value(raw_name, _get(lab, 'value'), unit)}{unit_part} [{flag}]"
     details: list[str] = []

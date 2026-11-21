@@ -22,11 +22,27 @@ post_procedure_types:
 
 # The key labs of the admission problem are the analytes of the disease's
 # ``expected_lab_distributions.admission``. A key lab measured on the note's
-# day is compared with its previous result (lab_timeseries.lab_trend: flag
-# severity first, then a change of more than 10 % in the direction of the
-# flag); at most ``max_listed`` analytes are named per direction.
+# day (one value per draw, notable_labs.yaml draw_window_minutes) is compared
+# with its previous result (lab_timeseries.lab_trend: flag severity first,
+# then a change of more than 10 % in the direction of the flag) and is named
+# only when the change is also clinically meaningful: at least
+# ``min_absolute_change`` of its analyte (when listed and the result is in that
+# unit) or at least ``min_relative_change`` of the previous value. A flag
+# crossing by a small change (glucose 106 -> 114) is not a course claim. At
+# most ``max_listed`` analytes are named per direction.
+#   Creatinine 0.3 mg/dL: the KDIGO 2012 AKI Guideline (Recommendation 2.1.1,
+#     Kidney Int Suppl 2012;2:19-36) names a rise of >= 0.3 mg/dL as AKI (cited
+#     in notable_labs.yaml); here it is used as the size of a change worth
+#     naming in either direction.
+#   All other values (relative 0.2, K 0.3 mmol/L, Na 3 mmol/L) are model
+#   choices: no source was read for them.
 lab_course:
   max_listed: 3
+  min_relative_change: 0.2
+  min_absolute_change:
+    Creatinine: {value: 0.3, unit: mg/dL}
+    K: {value: 0.3, unit: mmol/L}
+    Na: {value: 3, unit: mmol/L}
 
 # The Plan names the discharge arrangement when the note's hospital day is
 # within ``days_before_discharge`` days of the last day of the stay (the stay's
