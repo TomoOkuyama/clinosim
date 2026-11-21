@@ -26,7 +26,7 @@ Governing spec: [`determinism-and-rng-spec.md`](determinism-and-rng-spec.md).
 | `clinosim/determinism.py` `sha_index(salt, n, byte_count)` | A stream-free index in `[0, n)` — pick one entry of a fixed list (a phrase variant, a catalog row). |
 | `clinosim/seeding.py` `derive_sub_seed(master_seed, module_offset, key)` + `ENRICHER_SEED_OFFSETS` | Per-module, per-key sub-seeds for enrichers. Register a new offset; never hash a seed inline. |
 | `clinosim/seeding.py` `derive_phase_rng(master_seed, phase_salt, key)` | Independent generator per simulation phase and key. |
-| `clinosim/seeding.py` `text_seed`, `panel_specimen_seed`, `individual_lab_seed`, `chronic_medication_seed`, `discharge_prescription_seed`, `ambulatory_visit_length_seed`, `issue939_procedure_seed`, `chronic_augment_sex_seed`, `chronic_isolated_seed`, `longitudinal_event_seed`, `perinatal_delivery_seed`, `chemotherapy_regimen_seed`, `daily_output_seed`, `radiation_therapy_seed`, `avpu_day_seed`, `newborn_seed`, `pregnancy_outcome_seed`, `newborn_conditions_seed`, `enumeration_case_seed`, `identity_person_seed` | Named per-entity seeds. Add a new named function here rather than deriving a seed at the call site. |
+| `clinosim/seeding.py` `text_seed`, `panel_specimen_seed`, `individual_lab_seed`, `chronic_medication_seed`, `discharge_prescription_seed`, `ambulatory_visit_length_seed`, `issue939_procedure_seed`, `chronic_augment_sex_seed`, `chronic_isolated_seed`, `longitudinal_event_seed`, `perinatal_delivery_seed`, `chemotherapy_regimen_seed`, `daily_output_seed`, `radiation_therapy_seed`, `avpu_day_seed`, `newborn_seed`, `pregnancy_outcome_seed`, `newborn_conditions_seed`, `enumeration_case_seed`, `identity_person_seed`, `terminal_course_seed`, `emergency_contact_seed`, `marital_status_seed`, `vasopressor_start_seed`, `co_disease_orders_seed`, `resuscitation_seed` | Named per-entity seeds. Add a new named function here rather than deriving a seed at the call site. |
 | `clinosim/seeding.py` `rendezvous_pick(key, ids, hashes)` / `id_hashes(ids)` | Stable, uniform pick of one member of a pool (staff, rooms) that does not move when the pool grows. |
 | `clinosim/seeding.py` `morse_fall_history_unit(patient_id, encounter_id)` | The stable per-stay unit used by the Morse fall-history item. |
 | `clinosim/modules/_shared.py` `normalize_probabilities(p, fallback="raise")` | Every YAML-sourced probability vector before `rng.choice(p=...)`. |
@@ -152,6 +152,11 @@ Governing specs: [`medication-lifecycle-spec.md`](medication-lifecycle-spec.md),
 | `clinosim/modules/staff/engine.py` `scoped_nurses(roster, ward=, department=)` | The nurses of a ward, else of the department, else every nurse. |
 | `clinosim/modules/diagnosis/nonspecific_codes.py` `is_visit_reason_zcode(code)` | Whether a Z code is a visit reason rather than a diagnosis. |
 | `clinosim/modules/document/engine.py` `_compute_los_days` *(module-internal, also used by the narrative pass)* | Length of stay, including the in-progress proxy. |
+| `clinosim/modules/observation/hemolysis_redraw.py` `is_hemolyzed(flag)` / `HEMOLYZED_FLAGS` | The one definition of a hemolysed specimen flag; never compare `H*` / `L*` inline. |
+| `clinosim/modules/longitudinal/stage_refresh.py` `creatinine_egfr(patient, creatinine, at, unit=None)` | The eGFR of a creatinine result by the country's equation; shared by the stage refresh enricher and the H&P past history. |
+| `clinosim/modules/order/dose_range.py` `resolve_dose_ranges(text)` | A protocol dose range as one dose. |
+| `clinosim/modules/order/insulin_initiation.py` `basal_insulin_start_dose(weight_kg)` | The weight-based basal insulin start dose. |
+| `clinosim/simulator/terminal_course.py` `drop_results_after_death(orders, lab_results, death_time)` | Removing lab orders and results dated after death. |
 
 ## 8. FHIR building (Layer 4)
 
@@ -179,7 +184,15 @@ Governing spec: [`narrative-and-document-generation-spec.md`](narrative-and-docu
 |---|---|
 | `clinosim/modules/document/narrative/_vitals_line.py` `format_vitals_line` | The one vital-signs line used by every document. |
 | `clinosim/modules/document/narrative/_vitals_line.py` `vitals_in_window` / `latest_vitals_set` | The readings of a time window (a nursing shift) and the latest value of each vital over them. |
-| `clinosim/modules/document/narrative/_as_of.py` `in_force_at(records, as_of)` | The dated record (ADL, nursing risk assessment) in force at a document's authored time; never the last of the stay by position. |
+| `clinosim/modules/document/narrative/_as_of.py` `in_force_at(records, as_of, key=)` | The dated record (ADL, nursing risk assessment) in force at a document's authored time; never the last of the stay by position. |
+| `clinosim/modules/document/narrative/_as_of.py` `recorded_by` / `results_known_at` / `results_after` / `procedures_started_by` / `procedures_after` | Filtering dated records, lab results and procedures to a document's authored time; a note never compares times inline. |
+| `clinosim/modules/document/narrative/_prescription_line.py` `prescription_bits(med, lang, drug_name=, show_route=)` | The dose, route, frequency and days of a prescription line (ED take-home prescription, discharge summary, outpatient SOAP); never read raw `frequency` / `days_supply`. |
+| `clinosim/modules/document/narrative/_visit_reason.py` `join_sentences(sentences, lang)` | Sentences as one paragraph without doubling a terminator they already end with (the terminator-safe join). |
+| `clinosim/modules/document/narrative/renderers/section_builders/chief_complaint.py` `encounter_chief_complaint(ctx)` / `chief_complaint_texts(ctx)` | The encounter's one chief complaint, and the displayed and recorded complaint texts to test a presented symptom against. |
+| `clinosim/modules/document/narrative/_outpatient_results.py` `known_labs(ctx)` / `note_time(ctx)` / `latest_lab_stage(code, stored, labs)` | The lab results known at an outpatient note's time and the chronic stage they state. |
+| `clinosim/modules/document/narrative/_progress_exam.py` `agreeing_clauses(text, states, lang)` | Dropping an exam clause that a reading of the note's period contradicts (the daily progress note). |
+| `clinosim/modules/document/narrative/renderers/_exam_agreement.py` `agreeing_clauses(text, states, lang)` | The same for a disease exam against the arrival reading (the ED note and the H&P). |
+| `clinosim/modules/document/referral_recipient.py` `is_transfer_disposition` / `pick_external_hospital` | The recipient of a referral letter: only on a transfer-of-care disposition, a deterministic pick of the country's external hospitals. |
 | `clinosim/modules/document/narrative/_narrative_interpretation_thresholds.py` `bmi_band` / `bp_band` | BMI and blood-pressure wording bands. |
 | `clinosim/modules/document/narrative/_safety_skips.py` `safety_skip_line` | The sentence for a held or skipped dose (safety event). |
 | `clinosim/modules/document/narrative/_template_helpers.py` `allergen_display` | Allergen names in documents. |
