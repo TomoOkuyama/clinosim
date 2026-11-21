@@ -90,9 +90,17 @@ progress:
   fever_peak_resolved:
     ja: "{when}に最高 {tmax:.1f}°C の発熱、現在 {t:.1f}°C と発熱基準未満。"
     en: "Fever up to {tmax:.1f}°C {when}; now {t:.1f}°C, below the fever threshold."
+  # Issue #3453: hypothermia (core temperature below 35.0 °C) is judged on the
+  # latest reading; ``{peak}`` is the time-qualified minimum when it differs.
   hypothermia:
-    ja: "低体温 {t:.1f}°C を認める。"
-    en: "Hypothermia {t:.1f}°C noted."
+    ja: "低体温 {t:.1f}°C{peak} を認める。"
+    en: "Hypothermia {t:.1f}°C{peak} noted."
+  hypothermia_peak:
+    ja: " ({when}の最低 {tmin:.1f}°C)"
+    en: " (low {tmin:.1f}°C {when})"
+  hypothermia_transient_low:
+    ja: "{when}に最低 {tmin:.1f}°C の低体温、現在 {t:.1f}°C と低体温基準以上。"
+    en: "Hypothermia down to {tmin:.1f}°C {when}; now {t:.1f}°C, above the hypothermia threshold."
   fever_resolving:
     ja: "熱型下降 (前日 {pt:.1f}°C → 本日 {t:.1f}°C)。"
     en: "Fever trending down (prev {pt:.1f}°C → today {t:.1f}°C)."
@@ -180,12 +188,20 @@ progress:
     spo2_min:
       ja: "SpO2 最低 {v:.0f}%"
       en: "SpO2 min {v:.0f}%"
+  # Issue #3455: the consciousness lines state the latest AVPU of the period;
+  # ``{peak}`` is the time-qualified worst level when it differs.
   confusion_new:
-    ja: "意識レベル低下あり (AVPU {a})、見当識の確認を継続。"
-    en: "New decrease in level of consciousness (AVPU {a}); orientation being monitored."
+    ja: "意識レベル低下あり (AVPU {a}){peak}、見当識の確認を継続。"
+    en: "New decrease in level of consciousness (AVPU {a}){peak}; orientation being monitored."
   confusion_persistent:
-    ja: "意識レベル低下持続 (AVPU {a})。"
-    en: "Level of consciousness remains decreased (AVPU {a})."
+    ja: "意識レベル低下持続 (AVPU {a}){peak}。"
+    en: "Level of consciousness remains decreased (AVPU {a}){peak}."
+  consciousness_peak:
+    ja: "、{when}の最悪 AVPU {w}"
+    en: ", worst AVPU {w} {when}"
+  consciousness_transient_low:
+    ja: "{when}に意識レベル低下 (AVPU {w}) あり、現在は清明 (AVPU A)。"
+    en: "Level of consciousness decreased (AVPU {w}) {when}; now alert (AVPU A)."
   consciousness_improved:
     ja: "意識レベル改善、清明 (前日 AVPU {a})。"
     en: "Level of consciousness improved, now alert (prev AVPU {a})."
@@ -254,6 +270,12 @@ progress:
     en: "Abnormal vital signs persisting ({list}); no improvement yet."
   # The Assessment's course of the key labs of the admission problem (Issue
   # #3247) and the day after a non-operative procedure.
+  course_persisting_improving:
+    ja: "バイタルサインは異常が残存するが改善傾向 ({list})。"
+    en: "Abnormal vital signs still present but improving ({list})."
+  course_persisting_worsening:
+    ja: "バイタルサインは異常が残存し増悪傾向 ({list})。"
+    en: "Abnormal vital signs persisting and worsening ({list})."
   labs_course_improving:
     ja: "主要検査は改善傾向 ({list})。"
     en: "Key labs improving ({list})."

@@ -42,6 +42,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 ### Fixed
 
 - Progress-note drug-safety lines state a drug avoidance once even when its two raw names are one drug (the dedup keys on the drug identity), and word a major/moderate drug interaction as an interaction risk instead of a contraindication; only a contraindicated rule keeps the contraindication wording (#3458).
+- Progress notes state hypothermia only for a latest temperature below 35.0 °C (time-qualified earlier minimum), state consciousness on the latest AVPU with the worse earlier level time-qualified, and word a persisting abnormal vital as improving or worsening only past a per-vital meaningful change (#3453, #3455).
 
 ## [0.7.0] - 2026-11-11
 

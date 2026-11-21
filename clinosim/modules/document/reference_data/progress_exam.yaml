@@ -124,12 +124,18 @@ state_findings:
 # the course changed (fewer / more abnormal states than the previous period).
 # "consciousness" high is an AVPU level other than Alert; "on_oxygen" high is
 # supplemental oxygen.
+# ``min_change`` (Issue #3455): a state present in both periods is "improving"
+# or "worsening" only when the vital's latest value moved at least this far
+# (in the vital's unit) between the two periods' latest readings; a smaller
+# move stays "persisting". The values are clinosim conventions for a change
+# worth a course statement (not guideline cut-offs; none was verified against
+# a source); the pseudo-vitals have no value and need none.
 course_items:
-  - {vital: temperature_celsius, state: high, name: {ja: 発熱, en: fever}}
-  - {vital: heart_rate, state: high, name: {ja: 頻脈, en: tachycardia}}
-  - {vital: heart_rate, state: low, name: {ja: 徐脈, en: bradycardia}}
-  - {vital: respiratory_rate, state: high, name: {ja: 頻呼吸, en: tachypnea}}
-  - {vital: spo2, state: low, name: {ja: SpO2 低下, en: low SpO2}}
-  - {vital: systolic_bp, state: low, name: {ja: 血圧低下, en: hypotension}}
+  - {vital: temperature_celsius, state: high, min_change: 0.5, name: {ja: 発熱, en: fever}}
+  - {vital: heart_rate, state: high, min_change: 10, name: {ja: 頻脈, en: tachycardia}}
+  - {vital: heart_rate, state: low, min_change: 10, name: {ja: 徐脈, en: bradycardia}}
+  - {vital: respiratory_rate, state: high, min_change: 3, name: {ja: 頻呼吸, en: tachypnea}}
+  - {vital: spo2, state: low, min_change: 2, name: {ja: SpO2 低下, en: low SpO2}}
+  - {vital: systolic_bp, state: low, min_change: 10, name: {ja: 血圧低下, en: hypotension}}
   - {vital: consciousness, state: high, name: {ja: 意識レベル低下, en: reduced consciousness}}
   - {vital: on_oxygen, state: high, name: {ja: 酸素投与, en: oxygen therapy}}
