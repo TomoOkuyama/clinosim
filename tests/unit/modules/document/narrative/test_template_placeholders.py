@@ -227,7 +227,7 @@ def test_ed_physical_exam_mixed_parts_keeps_resolved_drops_unresolved():
     out = gen.generate(_ctx(DocumentType.ED_NOTE, proto), _spec("ed_note"))
     pe = out.sections["physical_exam"]
     assert "{" not in pe and "}" not in pe
-    assert pe == "Alert and oriented"
+    assert pe == "Alert and oriented."
 
 
 # --- β-JP-1 chain 1b T4: vitals placeholders from ctx.vitals ---

@@ -64,3 +64,31 @@ def test_ankle_sprain_states_neurovascular_status_once() -> None:
     text = (_EXAM_DIR / "ankle_sprain.yaml").read_text(encoding="utf-8")
     assert len(re.findall(r"[Nn]eurovascular", text)) == 1
     assert text.count("神経血管正常") == 0
+
+
+# --- rendered ED exams (Issue #3474) ---------------------------------------
+
+
+@pytest.mark.parametrize("lang", ["en", "ja"])
+def test_every_rendered_ed_exam_has_no_doubled_terminator(lang: str) -> None:
+    from clinosim.modules.document.narrative.renderers.section_builders.ed_note import build_ed_physical_exam
+    from clinosim.modules.encounter.protocol import load_encounter_condition
+    from tests.unit.modules.document.narrative.test_ed_note_content_3244 import _GEN, _ctx
+
+    checked = 0
+    for f in sorted(glob.glob(str(_EXAM_DIR / "*.yaml"))):
+        cond = Path(f).stem
+        proto = load_encounter_condition(cond)
+        if not ((proto.get("narrative") or {}).get("ed_note_template") or {}).get("physical_exam"):
+            continue
+        out, _ = build_ed_physical_exam(_GEN, _ctx(cond, lang))
+        assert not _DOUBLED.search(out), (cond, out)
+        checked += 1
+    assert checked
+
+
+def test_join_sentences_tolerates_terminated_parts() -> None:
+    from clinosim.modules.document.narrative._visit_reason import join_sentences
+
+    assert join_sentences(["A.", "B"], "en") == "A. B."
+    assert join_sentences(["A。", "B。"], "ja") == "A。B。"
