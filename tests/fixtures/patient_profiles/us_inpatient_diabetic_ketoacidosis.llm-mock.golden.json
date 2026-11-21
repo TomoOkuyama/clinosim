@@ -26,7 +26,7 @@
         "lang": "en"
       },
       "sections": {
-        "admission_results": "Laboratory (abnormal): glucose 551 mg/dL [critical] (prior 578); pH 7.04 [critical]; Cl 107 mmol/L [H]; lactate 3.0 mmol/L [H]; +4 other abnormal. Imaging and studies: ECG (Sinus tachycardia without ischemic changes); chest X-ray AP (Left lower lobe consolidation)",
+        "admission_results": "Laboratory (abnormal): glucose 551 mg/dL [critical]; pH 7.04 [critical]; Cl 107 mmol/L [H]; BUN 35.0 mg/dL [H]; +4 other abnormal. Imaging and studies: ECG (Sinus tachycardia without ischemic changes); chest X-ray AP (Left lower lobe consolidation)",
         "allergies": "No known drug allergies (NKDA)",
         "assessment_and_plan": "[Mock LLM response #1 — assessment_and_plan]",
         "chief_complaint": "Nausea, vomiting, abdominal pain, polyuria, altered consciousness",

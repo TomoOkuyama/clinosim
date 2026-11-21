@@ -9,6 +9,13 @@
 #   authored time, the results of the note's hospital day. A complication
 #   that began within the same window is worded as new
 #   (renderers/_composers.py::_complications_known_on_day).
+# draw_window_minutes: results of one analyte whose reported times lie within
+#   this many minutes of the first of them are ONE draw (the record carries
+#   separate rows for one blood draw, up to about an hour apart): a note and
+#   the lab trend show one value per draw, and the "previous value" is the
+#   last result of an earlier draw, never a sibling row of the same draw.
+#   A model choice (the spread seen in generated records is up to ~61 min); no
+#   clinical source was read for it.
 # max_items: how many analytes each surface lists; the rest are counted
 #   ("+k other abnormal results").
 # findings: the abnormality a flagged result of an analyte names, by the side
@@ -51,6 +58,8 @@ metadata:
   source: clinosim
 
 window_hours: 24
+
+draw_window_minutes: 120
 
 max_items:
   note: 4

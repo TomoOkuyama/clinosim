@@ -226,7 +226,7 @@ clinosim/modules/document/narrative/
   section_extractor.py                     extract_for_composition (per-COMPOSITION section, AD-65 E3)
   template_generator.py                    TemplateNarrativeGenerator + placeholder engine (per-document rendering split into renderers/)
   renderers/                               per-document renderers (progress_note / nursing_shift_note / ed_triage_note / composition_sections + shared helpers) and section_builders/ (one module per Composition section family)
-  lab_timeseries.py                        lab time-series helpers for narrative rendering; select_notable_labs (the abnormal labs a note cites, Issue #3230)
+  lab_timeseries.py                        lab time-series helpers for narrative rendering; group_draws (rows of one analyte close in time are one draw, Issue #3457); select_notable_labs (the abnormal labs a note cites, Issue #3230)
   _notable_labs.py                         notable_lab_entries: wording of those labs for the template Assessment and the LLM context
   _hospital_course.py                      退院時サマリーの入院経過の各文 (治療・処置・合併症・主な異常検査値・薬剤変更・退院時の状態・再入院; Issue #3246)
   _localization.py                         JA/EN narrative-token localization helpers (META #1633 P6 slice 1)

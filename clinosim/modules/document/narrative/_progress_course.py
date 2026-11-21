@@ -11,7 +11,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
 from clinosim.datafiles import load_validated_yaml
@@ -37,9 +37,26 @@ __all__ = [
 _YAML = Path(__file__).resolve().parents[1] / "reference_data" / "progress_course.yaml"
 
 
+class _AbsoluteChange(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    value: float = Field(gt=0)
+    unit: str
+
+
 class _LabCourse(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     max_listed: int = Field(gt=0)
+    min_relative_change: float = Field(gt=0)
+    min_absolute_change: dict[str, _AbsoluteChange]
+
+    @model_validator(mode="after")
+    def _known_analytes(self) -> _LabCourse:
+        from clinosim.modules.observation.engine import PRECISION
+
+        unknown = sorted(a for a in self.min_absolute_change if a not in PRECISION)
+        if unknown:
+            raise ValueError(f"progress_course.yaml: unknown lab analytes {unknown}")
+        return self
 
 
 class _DischargePlanning(BaseModel):
@@ -107,13 +124,34 @@ def post_procedure_line(ctx: NarrativeContext, as_of: Any) -> str:
     return t(f"progress.post_{kind}_day", lang, n=days, proc=names[0])
 
 
+def _meaningful_lab_change(name: str, unit: str, prior: Any, current: Any) -> bool:
+    """Whether a key lab moved enough to be named in the course
+    (``progress_course.yaml`` ``lab_course``): by at least the analyte's
+    absolute change (in its unit), or by the relative change of the previous
+    value."""
+    from clinosim.modules.observation.engine import canonical_lab_name
+
+    try:
+        before, now = float(prior), float(current)
+    except (TypeError, ValueError):
+        return False
+    rules = progress_course_rules().lab_course
+    delta = abs(now - before)
+    absolute = rules.min_absolute_change.get(canonical_lab_name(name))
+    if absolute is not None and unit == absolute.unit and round(delta, 6) >= absolute.value:
+        return True
+    return before != 0 and round(delta / abs(before), 6) >= rules.min_relative_change
+
+
 def lab_course_lines(ctx: NarrativeContext, as_of: Any) -> list[str]:
     """Statements on how the key labs of the admission problem moved against
     their previous result: "improving (CRP 2.77 → 0.38 mg/dL)" and
     "worsening (...)". Only labs known at ``as_of`` and measured on the note's
-    day count; none when the disease lists no admission labs."""
-    from clinosim.codes.ucum import ucum_prose
+    day count, one value per draw and only when the change is a meaningful one
+    (``_meaningful_lab_change``); none when the disease lists no admission
+    labs."""
     from clinosim.locale.loader import lab_display
+    from clinosim.modules.document.narrative._notable_labs import lab_unit_text
     from clinosim.modules.document.narrative.lab_timeseries import lab_trend
     from clinosim.modules.observation.engine import format_lab_value
 
@@ -140,7 +178,9 @@ def lab_course_lines(ctx: NarrativeContext, as_of: Any) -> list[str]:
         if direction not in named or name not in key_labs or entry["prior_value"] is None:
             continue
         unit = units.get(name, "")
-        unit_part = f" {ucum_prose(unit)}" if unit else ""
+        if not _meaningful_lab_change(name, unit, entry["prior_value"], entry["current_value"]):
+            continue
+        unit_part = lab_unit_text(name, unit, lang)
         before = format_lab_value(name, entry["prior_value"], unit)
         now = format_lab_value(name, entry["current_value"], unit)
         named[direction].append(f"{lab_display(name, lang)} {before} → {now}{unit_part}")
