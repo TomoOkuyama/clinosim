@@ -37,6 +37,7 @@ from clinosim.modules.document.narrative._localization import (
     _localize_imaging,
     _localize_lab_flag,
 )
+from clinosim.modules.document.narrative._medication_plan import cap_names
 from clinosim.modules.document.narrative._narrative_utils import _age_months_at
 from clinosim.modules.document.narrative._prescription_line import prescription_bits
 from clinosim.modules.document.narrative._template_helpers import (
@@ -54,6 +55,7 @@ from clinosim.modules.document.narrative.renderers._shared_helpers import (
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section, section_builder
 from clinosim.modules.document.reference_data_loaders import load_ed_note_admitted
 from clinosim.modules.encounter.protocol import discharge_instructions_for_age
+from clinosim.modules.triage.engine import admitted_ed_stay
 from clinosim.timeutil import parse_iso_datetime
 from clinosim.types.document import DocumentType, NarrativeContext
 
@@ -93,6 +95,42 @@ def _ed_cutoff(ctx: NarrativeContext) -> str:
     if authored:
         return authored
     return _ed_departure(ctx)
+
+
+def _ed_window(ctx: NarrativeContext) -> tuple[str, str]:
+    """The ED period of a via-ED admission as ISO ``(start, cutoff)`` (Issue
+    #3467): it starts ``admitted_ed_stay()`` before the admission and ends when
+    the note was authored (``_ed_cutoff``). ``("", "")`` unless admitted."""
+    departure = _ed_departure(ctx)
+    if not departure:
+        return "", ""
+    start = parse_iso_datetime(departure, lenient=True)
+    if start is None:
+        return "", ""
+    return (start - admitted_ed_stay()).isoformat(timespec="seconds"), _ed_cutoff(ctx)
+
+
+def _ed_window_drugs(ctx: NarrativeContext) -> list[tuple[str, str]]:
+    """``(drug_id, name)`` of the drugs given in the ED window of a via-ED
+    admission, in time order (Issue #3467). Orders of a safety rule carry no
+    order set, so the MAR is the record of what was given in the ED; a dose
+    timed at the admission instant or later belongs to the ward."""
+    start, cutoff = _ed_window(ctx)
+    if not start:
+        return []
+    given: list[tuple[str, str, str]] = []
+    for m in ctx.medications or []:
+        if str(_o(m, "status", "") or "given") != "given":
+            continue
+        raw = _o(m, "actual_datetime", None) or _o(m, "scheduled_datetime", None)
+        when = _iso(raw)
+        if not when or not (start <= when < cutoff):
+            continue
+        name = str(_o(m, "drug_name", "") or "")
+        if name:
+            given.append((when, str(_o(m, "drug_id", "") or ""), name))
+    given.sort(key=lambda g: g[0])
+    return [(drug_id, name) for _, drug_id, name in given]
 
 
 def _ed_time_context(ctx: NarrativeContext) -> NarrativeContext:
@@ -513,6 +551,15 @@ def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
             if display_raw and str(display_raw) not in seen_proc_orders:
                 seen_proc_orders.add(str(display_raw))
                 proc_order_names.append(str(display_raw))
+    if admitted:
+        from clinosim.codes.drugs import drug_ref
+
+        listed = {drug_ref(m) for m in med_names} | {m.casefold() for m in med_names}
+        for drug_id, name in _ed_window_drugs(ctx):
+            if (drug_id or drug_ref(name)) in listed or name.casefold() in listed:
+                continue
+            listed.update({drug_id, name.casefold()})
+            med_names.append(name)
     parts: list[str] = []
     if lab_names:
         # Phase 1c-4 (2026-09-23): localise lab / panel tokens
@@ -533,7 +580,7 @@ def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
         # katakana JA via the shared `load_narrative_display_dict` catalog used by
         # the FHIR emit path. Pre-fix 183 JP ed_workup lines carried
         # 「投薬: Ibuprofen 400mg、Acetaminophen 500mg」 verbatim.
-        med_display = med_names[:6]
+        med_display = med_names
         # Drug-name katakana lookup via lang-aware wrapper (no-op
         # for lang without a lookup table). Broad except keeps a
         # narrative render from failing on an i18n edge case.
@@ -543,7 +590,7 @@ def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
             med_display = [localize_drug_name(m, lang) or m for m in med_display]
         except Exception:  # noqa: BLE001 — never fail narrative on i18n
             pass
-        parts.append(t("ed_workup.medications_head", lang) + t("list_sep.serial", lang).join(med_display))
+        parts.append(t("ed_workup.medications_head", lang) + cap_names(med_display, lang))
     if proc_order_names:
         # Phase 1c-6 (Category L, 2026-09-23): route each procedure
         # order display name through ``_localize_drug_name`` (which
