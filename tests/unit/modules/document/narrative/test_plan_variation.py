@@ -7,10 +7,9 @@ outpatient visit for 92.1% of patients. The fallback path composed
 from `current_medications + today_rx + today_procs + follow_up` but
 `follow_up` also emitted a constant sentinel.
 
-The fix appends a per-encounter deterministic follow-up line to the
-YAML plan, so consecutive visits show different follow-up cadence.
 Issue #2287: a patient with a chronic follow-up schedule gets the
-scheduled interval instead.
+scheduled interval. Issue #3465 removed the 28 / 60 / 90 day rotation
+(an interval nothing scheduled); a visit with no schedule states none.
 """
 
 from __future__ import annotations
@@ -67,13 +66,6 @@ def test_follow_up_line_deterministic_for_same_encounter() -> None:
     assert a == b
 
 
-def test_follow_up_line_varies_across_encounters_without_a_chronic_schedule() -> None:
-    # A condition with no follow-up schedule (F32.9 is not a chronic_followup
-    # key): 6 encounter_ids should produce at least 2 distinct intervals.
-    variants = {_run_follow_up(_mk_ctx("F32.9", f"enc-{k}")) for k in range(6)}
-    assert len(variants) >= 2, f"expected variation across 6 encounters, saw {variants}"
-
-
 def test_scheduled_condition_states_its_follow_up_interval() -> None:
     # Issue #2287: the note states the interval the calendar schedules
     # (chronic_followup.yaml follow_up_interval_months): I10 every 4 months,
@@ -84,9 +76,8 @@ def test_scheduled_condition_states_its_follow_up_interval() -> None:
         assert "1か月後" in _run_follow_up(_mk_ctx("N18", f"enc-ckd-{k}"))
 
 
-def test_unknown_condition_uses_generic_band() -> None:
-    # A condition with no follow-up schedule falls back to the generic
-    # (28, 60, 90) day band.
+def test_unknown_condition_states_no_invented_interval() -> None:
+    # Issue #3465: a condition with no follow-up schedule and no scheduled
+    # next visit states none (the former 28 / 60 / 90 day rotation is gone).
     for k in range(20):
-        line = _run_follow_up(_mk_ctx("F32.9", f"enc-x-{k}"))
-        assert any(f"{d}日後" in line for d in (28, 60, 90))
+        assert _run_follow_up(_mk_ctx("F32.9", f"enc-x-{k}")) == ""

@@ -43,7 +43,6 @@ from clinosim.codes import display as registry_display
 from clinosim.codes.drugs import drug_key, medication_matches
 from clinosim.codes.valuesets import concept_group, iter_chronic_codes
 from clinosim.countries import country_code, has_authored_narrative
-from clinosim.determinism import sha_index
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import chronic_followup_interval_months, load_chronic_followup
 from clinosim.locale.loader import narrative_label as _label
@@ -59,6 +58,7 @@ from clinosim.modules.document.narrative._narrative_interpretation_thresholds im
     chronic_control_targets,
 )
 from clinosim.modules.document.narrative._narrative_utils import _age_at
+from clinosim.modules.document.narrative._next_visit import next_visit_days
 from clinosim.modules.document.narrative._outpatient_results import (
     ckd_g_stage,
     known_labs,
@@ -1348,7 +1348,10 @@ def build_outpatient_plan(generator: TemplateNarrativeGenerator, ctx: NarrativeC
         lines.extend(vital_plans)
         facts.append("ctx.vitals.today")
 
-    follow_up = _compose_follow_up_line(ctx) if reason_next is None else reason_next
+    # Issue #3465: the actual next visit wins over the visit reason's cadence;
+    # "" (no scheduled return) stays empty.
+    actual_next = "" if reason_next == "" else _actual_next_visit_line(ctx)
+    follow_up = actual_next or (_compose_follow_up_line(ctx) if reason_next is None else reason_next)
     if follow_up:
         lines.append(follow_up)
         facts.append("encounter_protocol.next_visit_interval")
@@ -1435,50 +1438,41 @@ def _compose_today_procedures_line(ctx: NarrativeContext) -> str:
     return head
 
 
+def _actual_next_visit_line(ctx: NarrativeContext) -> str:
+    days = next_visit_days(ctx)
+    return t("prescription.next_visit", ctx.target_lang, days=days) if days else ""
+
+
 def _compose_follow_up_line(ctx: NarrativeContext) -> str:
-    """Follow-up guidance from encounter_protocol (未確定 — treat as
-    planning, not fact). v9 density fix.
+    """The next-visit line of the plan ("" when the record gives none).
 
-    Issue #1180: in 92.1% of patients the Plan section was byte-identical
-    across every outpatient visit because the sentinel `1 か月後` and
-    the per-condition YAML `plan_ja` never varied by visit. Add a
-    per-encounter deterministic rotation over a small band of
-    clinically-plausible intervals so consecutive visits show
-    different follow-up cadence.
-
-    Issue #2287: a patient with followed-up chronic conditions gets the
-    interval their visits are scheduled at instead.
+    Issue #3465: the visit the patient is actually scheduled for comes first —
+    the next outpatient visit of the same series (:func:`next_visit_days`) —
+    then the encounter protocol's interval, then the chronic follow-up
+    schedule's interval (Issue #2287, ``chronic_followup.yaml``). A visit with
+    none of them states no next visit: the former per-encounter rotation over
+    28 / 60 / 90 days (Issue #1180) invented an interval the schedule did not
+    hold.
     """
+    lang = ctx.target_lang
+    actual = next_visit_days(ctx)
+    if actual:
+        return t("prescription.next_visit", lang, days=actual)
     ep = ctx.encounter_protocol
     interval = _o(ep, "next_visit_interval_days", None) if ep is not None else None
-    lang = ctx.target_lang
     if interval:
         try:
             d = int(interval)
             return t("prescription.next_visit", lang, days=d)
         except (TypeError, ValueError):
             pass
-    # Issue #2287: a patient with followed-up chronic conditions is seen at the
-    # interval the population calendar schedules (chronic_followup.yaml), so
-    # the note states that interval.
     patient = getattr(ctx, "patient", None)
     conditions = _o(patient, "chronic_conditions", []) if patient else []
     months = chronic_followup_interval_months(iter_chronic_codes(conditions))
     if months:
         phrase = "prescription.next_visit_month" if months == 1 else "prescription.next_visit_months"
         return t(phrase, lang, months=months)
-    # #1180: no chronic schedule — a per-encounter deterministic rotation over
-    # a small band of plausible intervals (days) so consecutive visits read
-    # with clinical variation rather than as identical template text.
-    band = (28, 60, 90)
-    # Deterministic per-encounter rotation — same encounter always emits
-    # the same interval, but consecutive encounters of the same patient
-    # cycle through the band.
-    enc = getattr(ctx, "encounter", None)
-    enc_id = _o(enc, "encounter_id", "") or ""
-    pat_id = getattr(patient, "patient_id", "") if patient else ""
-    d = band[sha_index(f"{pat_id}|{enc_id}|follow_up_interval", len(band), byte_count=4)]
-    return t("prescription.next_visit", lang, days=d)
+    return ""
 
 
 def _med_key(med: Any) -> str:
