@@ -205,6 +205,15 @@ progress:
   consciousness_improved:
     ja: "意識レベル改善、清明 (前日 AVPU {a})。"
     en: "Level of consciousness improved, now alert (prev AVPU {a})."
+  # Issue #3471: a level of consciousness below Alert for several days, named
+  # as a problem with its cause work-up; delirium is named only when the stay
+  # records it as a complication.
+  consciousness_differential_workup:
+    ja: "意識レベル低下が持続 (AVPU {a}、{n}日間)。せん妄を含む鑑別のため原因検索 ({causes}) を継続。"
+    en: "Level of consciousness remains decreased (AVPU {a}, {n} days); work-up for the cause, including delirium, continues ({causes})."
+  consciousness_delirium_workup:
+    ja: "意識レベル低下が持続 (AVPU {a}、{n}日間)。{name}の原因検索 ({causes}) を継続。"
+    en: "Level of consciousness remains decreased (AVPU {a}, {n} days); search for the cause of {name} continues ({causes})."
   withdrawal_active:
     ja: "振戦・発汗あり、離脱症状持続 (HR {hr})。"
     en: "Tremor and diaphoresis, withdrawal symptoms ongoing (HR {hr})."
