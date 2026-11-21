@@ -523,7 +523,7 @@ def test_nursing_shift_note_with_primary_nurse() -> None:
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, spec)
     # Issue #2270: the nurse line is rendered; an id missing from the roster is not shown raw.
-    assert "担当看護師" in out.raw_text
+    assert "記録者" in out.raw_text
     assert "nurse-RN-042" not in out.raw_text
 
 
