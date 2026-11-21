@@ -49,6 +49,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 - ED note physical exam no longer doubles the sentence terminator between body systems ("。。" in Japanese, ".." in English); the exam is joined with the shared terminator-safe helper (#3474).
 - An operative note states its indication: a procedure recorded without a pre-operative diagnosis (an isolated-rule or bedside procedure) falls back to the encounter admission and discharge diagnosis, and reads "Indication: not documented" when the stay records none, instead of leaving the diagnosis out.
 - The delivery discharge prescription continues the mother's maintenance home medications (28 days, dose/route/frequency kept; allergy-blocked drugs left out) alongside the two analgesics, so the discharge summary no longer reports them stopped while the postpartum visits keep listing them (#3463). CIF drift, a MINOR-class change.
+- Progress-note Objective writes the "no special findings" filler only when the section has no other content, and a Japanese exam sentence that loses its trailing clause to the vital-sign agreement ends in the sentence-final verb (`脱水を認める`, not `脱水を認め。`) (#3456).
 
 ## [0.7.0] - 2026-11-11
 

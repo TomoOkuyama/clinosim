@@ -217,3 +217,25 @@ def test_lactated_ringer_is_a_catalog_fluid() -> None:
 
     for drug in ("lactated_ringer_solution", "lactated_ringers_injectable_solution"):
         assert "electrolyte_solution" in drug_classes(drug)
+
+
+def test_dropped_trailing_clause_leaves_a_sentence_final_verb() -> None:
+    # Issue #3456: "脱水を認め、苦痛様" without the distress clause.
+    ctx = _ctx([_v(1, 8, temperature_celsius=36.5, heart_rate=70, respiratory_rate=15, spo2=98.0)])
+    out = agreeing_clauses("脱水を認め、苦痛様", period_states(ctx, ctx.vitals), "ja")
+    assert out == "脱水を認める"
+    sick = _ctx([_v(1, 8, heart_rate=70, pain_score=7)])
+    assert agreeing_clauses("脱水を認め、苦痛様", period_states(sick, sick.vitals), "ja") == "脱水を認め、苦痛様"
+
+
+def test_no_findings_filler_is_not_written_before_exam_findings() -> None:
+    vitals = [_v(1, 8, temperature_celsius=36.8, heart_rate=78, respiratory_rate=16, spo2=98.0)]
+    assert "特記事項なし" not in _note(vitals)
+    exam = {"respiratory": {"all": "深く速い呼吸（Kussmaul 呼吸）"}}
+    out = _note(vitals, exam=exam)
+    assert "特記事項なし" not in out and "Kussmaul" in out
+
+
+def test_no_findings_filler_states_an_empty_section() -> None:
+    with patch.object(TemplateNarrativeGenerator, "_compose_today_vitals_line", return_value=""):
+        assert _note([], exam={}) == "特記事項なし"
