@@ -148,6 +148,8 @@ clinosim/simulator/
                          離脱後に退院まで 1 病日観察する判定 (Issue #3270)
   maintenance_iv_fluid.py  入院時の維持輸液オーダーを、食事が経口になった後 (猶予 1 日)
                          または最大日数で終了する (Issue #3409)
+  ketoacidosis_resolution.py  ケトアシドーシスが改善した時点で DKA のインスリン・生理食塩水・
+                         カリウムの点滴オーダーを終了し、皮下基礎インスリンへ移行する (Issue #3450)
   mixed_condition.py     混合入院 (condition_type "mixed") の併存疾患: 副診断として
                          コード化し、その疾患プロトコルの入院時オーダーを入院の
                          オーダーに統合し (入院時から、遅れて認識した場合は病日 1-3 から)、
@@ -267,6 +269,7 @@ CLI サブコマンドハンドラ (11 ファイル):
   reference_data/vasopressor_initiation.yaml  低血圧と輸液後の昇圧薬開始条件 (vasopressor_initiation.py)
   reference_data/vasoactive_weaning.yaml      昇圧薬・強心薬の離脱条件と離脱後の退院判定 (vasoactive_support.py)
   reference_data/maintenance_iv_fluid.yaml    維持輸液オーダーの終了条件 (maintenance_iv_fluid.py)
+  reference_data/ketoacidosis_resolution.yaml DKA の改善基準と静注から皮下インスリンへの移行 (ketoacidosis_resolution.py)
   reference_data/mixed_condition.yaml         混合入院の併存疾患の遅れた認識・回復・オーダー統合 (mixed_condition.py)
   reference_data/aki_response.yaml            AKI の判定・AKI 中に保留する薬剤・退院判定 (aki_response.py)
 ```
