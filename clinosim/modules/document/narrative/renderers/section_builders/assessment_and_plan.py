@@ -210,10 +210,17 @@ def _compose_ap_plan_from_state(generator: TemplateNarrativeGenerator, ctx: Narr
     # Ordered procedures (workup)
     # Admission-day procedures, named from their codes (Issue #3246); a
     # later operation is not yet done when the H&P is written.
-    procs = procedure_names(ctx.procedures, lang, admission=_adm_raw, day=0)[:4]
+    # Only those started by the note's authored time are done; a later one the
+    # same day is a planned procedure (Issue #3468).
+    _as_of = getattr(ctx, "authored_datetime", None)
+    procs = procedure_names(ctx.procedures, lang, admission=_adm_raw, day=0, as_of=_as_of)[:4]
     if procs:
         sep = t("list_sep.serial", lang)
         parts.append(t("ap_plan.workup_procedures", lang, list=sep.join(procs)))
+    planned = procedure_names(ctx.procedures, lang, admission=_adm_raw, day=0, as_of=_as_of, later=True)[:4]
+    if planned:
+        sep = t("list_sep.serial", lang)
+        parts.append(t("ap_plan.planned_procedures", lang, list=sep.join(planned)))
     parts.extend(admission_order_items(ctx))
     parts.extend(admission_plan_items(ctx))
     if not parts:

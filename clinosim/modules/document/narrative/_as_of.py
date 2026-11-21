@@ -14,7 +14,14 @@ from typing import Any
 from clinosim.modules._shared import get_attr_or_key
 from clinosim.timeutil import parse_iso_datetime
 
-__all__ = ["in_force_at", "recorded_by", "results_after", "results_known_at"]
+__all__ = [
+    "in_force_at",
+    "procedures_after",
+    "procedures_started_by",
+    "recorded_by",
+    "results_after",
+    "results_known_at",
+]
 
 
 def in_force_at(records: list[Any], as_of: datetime | None, key: str = "date") -> Any | None:
@@ -82,3 +89,27 @@ def results_after(labs: list[Any], as_of: datetime | None) -> list[Any]:
     if cutoff is None:
         return []
     return [r for r in list(labs or []) if (at := _result_at(r)) is not None and at > cutoff]
+
+
+def _started_at(proc: Any) -> datetime | None:
+    return _naive(parse_iso_datetime(get_attr_or_key(proc, "start_datetime", None), lenient=True))
+
+
+def procedures_started_by(procs: list[Any], as_of: datetime | None) -> list[Any]:
+    """The procedures that started at or before ``as_of`` (Issue #3468): what
+    a note can list as done. A procedure without a parseable start is kept;
+    ``as_of`` None (no authored time): every procedure."""
+    rows = list(procs or [])
+    cutoff = _naive(as_of)
+    if cutoff is None:
+        return rows
+    return [r for r in rows if (at := _started_at(r)) is None or at <= cutoff]
+
+
+def procedures_after(procs: list[Any], as_of: datetime | None) -> list[Any]:
+    """The procedures that start after ``as_of``: the complement of
+    :func:`procedures_started_by` (what the note can only word as planned)."""
+    cutoff = _naive(as_of)
+    if cutoff is None:
+        return []
+    return [r for r in list(procs or []) if (at := _started_at(r)) is not None and at > cutoff]
