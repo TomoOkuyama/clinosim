@@ -7,11 +7,12 @@ content follows the patient's state: the stay's disease and ICD-10 code (the
 acute-MI territory), a chronic atrial fibrillation diagnosis and the heart
 rate recorded nearest the study. Data: ``reference_data/cardiac_reports.yaml``;
 wording: ``cardiac_report.*`` in ``locale/shared/narrative_phrases.yaml``.
-No RNG.
+No RNG (the echo phenotype and LVEF come from SHA-seeded quantiles).
 """
 
 from __future__ import annotations
 
+import re
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
@@ -19,6 +20,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from clinosim import determinism
 from clinosim.datafiles import load_validated_yaml
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
@@ -44,6 +46,19 @@ class _CoronaryAngiography(BaseModel):
     culprit_by_code: dict[str, str] = Field(min_length=1)
 
 
+class _Phenotype(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    weight: float = Field(gt=0)
+    lvef: tuple[int, int]
+
+
+class _Echocardiography(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    diseases: dict[str, dict[str, _Phenotype]]
+
+
 class CardiacReports(BaseModel):
     """Shape of ``cardiac_reports.yaml``."""
 
@@ -51,6 +66,7 @@ class CardiacReports(BaseModel):
 
     ecg: _Ecg
     coronary_angiography: _CoronaryAngiography
+    echocardiography: _Echocardiography
 
 
 @lru_cache(maxsize=1)
@@ -186,9 +202,37 @@ def _coronary_angiography_report(record: Any, order: Any, report_id: str) -> Rad
     )
 
 
-def cardiac_report(modality: str, record: Any, order: Any, report_id: str) -> RadiologyReport | None:
-    """The report of an ECG (modality ``ECG``) or a coronary angiogram (``XA``);
-    ``None`` for any other modality, which keeps the radiology report."""
+def _echo_report(record: Any, order: Any, report_id: str) -> RadiologyReport | None:
+    """A transthoracic echo of a heart-failure stay (Issue #3451): the LVEF and
+    the findings of the stay's phenotype, picked by SHA-seeded quantiles of the
+    encounter id. ``None`` for a disease without an echo profile."""
+    phenotypes = _config().echocardiography.diseases.get(_disease_id(record))
+    name = str(_o(order, "display_name", "") or "").lower()
+    if not phenotypes or "transesophageal" in name or re.search(r"\btee\b", name):
+        return None
+    enc = str(_o(order, "encounter_id", "") or "")
+    kinds = tuple(phenotypes)
+    kind = determinism.sha_weighted_choice(f"{enc}|echo_phenotype", kinds, tuple(phenotypes[k].weight for k in kinds))
+    lo, hi = phenotypes[kind].lvef
+    ef = lo + int(determinism.sha_quantile(f"{enc}|echo_lvef") * (hi - lo + 1))
+    return RadiologyReport(
+        report_id=report_id,
+        status="final",
+        findings_text=t(f"cardiac_report.echo_findings_{kind}", "en", ef=ef),
+        findings_text_ja=t(f"cardiac_report.echo_findings_{kind}", "ja", ef=ef),
+        impression_text=t(f"cardiac_report.echo_impression_{kind}", "en", ef=ef),
+        impression_text_ja=t(f"cardiac_report.echo_impression_{kind}", "ja", ef=ef),
+    )
+
+
+def cardiac_report(
+    modality: str, record: Any, order: Any, report_id: str, body_site_key: str = ""
+) -> RadiologyReport | None:
+    """The report of an ECG (modality ``ECG``), a coronary angiogram (``XA``) or
+    the echocardiogram of a heart-failure stay (``US`` of the heart); ``None``
+    for any other study, which keeps the radiology report."""
+    if (modality, body_site_key) == ("US", "heart"):
+        return _echo_report(record, order, report_id)
     if modality == "ECG":
         return _ecg_report(record, order, report_id)
     if modality == "XA":

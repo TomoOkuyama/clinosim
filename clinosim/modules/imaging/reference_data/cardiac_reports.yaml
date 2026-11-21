@@ -43,3 +43,27 @@ coronary_angiography:
     I21.2: lcx
     I21.4: lcx
     I21: lad
+
+# Echocardiography (Issue #3451). A transthoracic echo of a stay whose disease
+# is listed here is read for the left-ventricular ejection fraction (LVEF) and
+# the findings of the heart-failure phenotype; any other echo keeps the
+# radiology report. The phenotype of a stay is picked from `weight` by a
+# SHA-seeded quantile of the encounter id (no random stream; a repeat echo of
+# the stay reads the same), and the LVEF is a whole percent in `lvef`
+# (inclusive) from a second quantile of the same id.
+#
+# Sources (read in the session that wrote this): LVEF classes — 2022
+# AHA/ACC/HFSA Heart Failure Guideline, key perspectives (acc.org): HFrEF
+# LVEF <= 40%, HFmrEF 41-49%, HFpEF >= 50%; HFmrEF and HFpEF additionally
+# need evidence of raised LV filling pressure (the HFpEF findings below state
+# it). Phenotype weights — Get With The Guidelines-Heart Failure, Steinberg et
+# al., Circulation 2012;126:65-75, 110,621 hospitalizations: reduced EF 50%,
+# borderline EF (40-49%) 14%, preserved EF (>= 50%) 36%. The LVEF bands inside
+# a class (HFrEF 15-40, HFmrEF 41-49, HFpEF 50-65) and the finding wording per
+# phenotype are model choices, not taken from a source.
+echocardiography:
+  diseases:
+    heart_failure_exacerbation:
+      hfref: {weight: 50, lvef: [15, 40]}
+      hfmref: {weight: 14, lvef: [41, 49]}
+      hfpef: {weight: 36, lvef: [50, 65]}

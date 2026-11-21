@@ -139,7 +139,13 @@ from clinosim.modules.imaging.inference import (
     recording; a coronary angiogram (`XA`) names the culprit lesion.
     `cardiac_report.py` builds them in place of the radiology template;
     the FHIR report is signed by a cardiologist (else the attending), not a
-    radiologist. The `ja` text uses Japanese
+    radiologist. The transthoracic echo of a heart-failure stay (`US` of the
+    heart; Issue #3451) states the LVEF and the findings of an HFrEF /
+    HFmrEF / HFpEF phenotype (weights and LVEF classes cited in the YAML;
+    SHA-seeded by encounter id, no random stream) instead of the generic
+    normal report; the echo procedure takes the imaging study's time
+    (`align_echo_procedures_to_imaging`). Echoes of other diseases keep the
+    radiology report. The `ja` text uses Japanese
     finding terms (浸潤影, すりガラス影, Kerley B線; Issue #3030).
   - `view_labels.yaml` — en / ja display of each view key; the FHIR
     `ImagingStudy.series.description` shows the CIF description ("PA view",

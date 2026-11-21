@@ -1099,7 +1099,7 @@ def imaging_enricher(ctx: Any) -> None:
             # patient's state (rhythm, rate, ischaemia, culprit lesion), not
             # with a radiology template or the generic imaging report. The
             # template draw above still runs, so no stream moves.
-            _cardiac = cardiac_report(modality, record, order, report.report_id)
+            _cardiac = cardiac_report(modality, record, order, report.report_id, body_site_key)
             if _cardiac is not None:
                 report = _cardiac
 

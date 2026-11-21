@@ -130,7 +130,10 @@ from clinosim.modules.imaging.inference import (
     慢性心房細動の診断、記録時刻に最も近い心拍数から、調律・心拍数・
     軸・間隔・ST-T 所見を記す。冠動脈造影 (`XA`) は責任病変を記す。
     `cardiac_report.py` が放射線科テンプレートの代わりに作成し、FHIR の
-    報告は放射線科医ではなく循環器内科医 (いなければ主治医) が署名する。`ja` は日本語の所見用語 (浸潤影、すりガラス影、
+    報告は放射線科医ではなく循環器内科医 (いなければ主治医) が署名する。心不全入院の経胸壁心エコー (心臓の `US`; Issue #3451) は、汎用の正常所見の代わりに LVEF と
+    HFrEF / HFmrEF / HFpEF 表現型の所見を記す (重みと LVEF 区分の出典は YAML に記載。
+    encounter id の SHA で決まり乱数ストリームは使わない)。心エコーの処置は
+    画像検査と同じ時刻にする (`align_echo_procedures_to_imaging`)。他疾患の心エコーは従来の放射線科所見のまま。`ja` は日本語の所見用語 (浸潤影、すりガラス影、
     Kerley B線) で書く (Issue #3030)。
   - `view_labels.yaml` — view key ごとの en / ja 表示名。FHIR
     `ImagingStudy.series.description` は CIF の description ("PA view"、

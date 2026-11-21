@@ -78,3 +78,42 @@ def fit_procedures_in_stay(procedures: Iterable[ProcedureRecord], start: datetim
         if end is not None and p.end_datetime > end:
             p.start_datetime, p.end_datetime = max(start, end - length), end
             p.duration_minutes = int((p.end_datetime - p.start_datetime).total_seconds() // 60)
+
+
+_ECHO_PROCEDURE = "echocardiography"
+_HEART_SNOMED = "80891009"  # body_sites.yaml: heart structure
+
+
+def _is_echo_order(order: Order) -> bool:
+    """A transthoracic echocardiogram imaging order (modality and site of the
+    order, or inferred from its name)."""
+    from clinosim.modules.imaging.inference import infer_imaging_metadata
+    from clinosim.types.encounter import OrderType
+
+    if order.order_type != OrderType.IMAGING:
+        return False
+    meta = infer_imaging_metadata(order.display_name or "")
+    modality = order.imaging_modality or (meta or {}).get("modality", "")
+    site = order.imaging_body_site_code or (meta or {}).get("body_site_snomed", "")
+    name = (order.display_name or "").lower()
+    return (modality, site) == ("US", _HEART_SNOMED) and "transesophageal" not in name
+
+
+def align_echo_procedures_to_imaging(procedures: Iterable[ProcedureRecord], orders: Iterable[Order]) -> None:
+    """Give an echocardiography procedure the time of the echo imaging study
+    it is the act of (Issue #3451): the i-th echo procedure of an encounter
+    starts when that encounter's i-th echo imaging order does, keeping its
+    duration. A procedure without an imaging order keeps its own time."""
+    by_enc: dict[str, list[datetime]] = {}
+    for o in sorted(orders, key=lambda x: x.ordered_datetime):
+        if _is_echo_order(o):
+            by_enc.setdefault(o.encounter_id, []).append(o.ordered_datetime)
+    taken: dict[str, int] = {}
+    for p in sorted((p for p in procedures if p.procedure_type == _ECHO_PROCEDURE), key=lambda x: x.start_datetime):
+        times = by_enc.get(p.encounter_id, [])
+        i = taken.get(p.encounter_id, 0)
+        if i >= len(times):
+            continue
+        taken[p.encounter_id] = i + 1
+        length = p.end_datetime - p.start_datetime
+        p.start_datetime, p.end_datetime = times[i], times[i] + length

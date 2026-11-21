@@ -3417,6 +3417,24 @@ cardiac_report:
   cag_impression_no_significant_stenosis:
     ja: "有意な冠動脈狭窄なし。"
     en: "No significant coronary artery disease."
+  echo_findings_hfref:
+    ja: "LVEF {ef}%。左室は拡大し、びまん性に壁運動が低下している。機能性僧帽弁逆流を認める。下大静脈は拡張し、呼吸性変動が減弱している。"
+    en: "LVEF {ef}%. The left ventricle is dilated with global hypokinesis. Functional mitral regurgitation. The inferior vena cava is dilated with reduced respiratory variation."
+  echo_impression_hfref:
+    ja: "左室収縮能の低下 (LVEF {ef}%)。HFrEF に矛盾しない所見。"
+    en: "Reduced left ventricular systolic function (LVEF {ef}%), consistent with heart failure with reduced ejection fraction."
+  echo_findings_hfmref:
+    ja: "LVEF {ef}%。左室収縮能は軽度低下し、左房が拡大している。拡張能障害を伴い、左室充満圧の上昇を示唆する。下大静脈は拡張している。"
+    en: "LVEF {ef}%. Mildly reduced left ventricular systolic function with left atrial enlargement. Diastolic dysfunction suggesting raised left ventricular filling pressure. The inferior vena cava is dilated."
+  echo_impression_hfmref:
+    ja: "左室収縮能の軽度低下 (LVEF {ef}%)、充満圧上昇。HFmrEF に矛盾しない所見。"
+    en: "Mildly reduced left ventricular systolic function (LVEF {ef}%) with raised filling pressure, consistent with heart failure with mildly reduced ejection fraction."
+  echo_findings_hfpef:
+    ja: "LVEF {ef}%。左室は拡大せず、求心性の左室肥大を認める。左房は拡大し、E/e' の上昇から左室充満圧の上昇を示唆する。下大静脈は拡張している。"
+    en: "LVEF {ef}%. The left ventricle is not dilated, with concentric hypertrophy. Left atrial enlargement; raised E/e' suggesting raised left ventricular filling pressure. The inferior vena cava is dilated."
+  echo_impression_hfpef:
+    ja: "左室収縮能は保たれる (LVEF {ef}%) が、拡張能障害と充満圧上昇を認める。HFpEF に矛盾しない所見。"
+    en: "Preserved left ventricular systolic function (LVEF {ef}%) with diastolic dysfunction and raised filling pressure, consistent with heart failure with preserved ejection fraction."
 
 # Short visit reasons, notes and names written by simulator modules (Issue #2406).
 module_text:

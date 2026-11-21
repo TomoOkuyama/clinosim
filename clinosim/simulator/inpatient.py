@@ -78,7 +78,12 @@ from clinosim.simulator._stay_thresholds import (
 from clinosim.simulator.daily_loop import SYMPTOM_AXES, _run_daily_loop
 from clinosim.simulator.discharge_gate import discharge_disposition_for
 from clinosim.simulator.discharge_rx import build_discharge_rx
-from clinosim.simulator.encounter_setup import attach_orders, encounter_diagnosis, fit_procedures_in_stay
+from clinosim.simulator.encounter_setup import (
+    align_echo_procedures_to_imaging,
+    attach_orders,
+    encounter_diagnosis,
+    fit_procedures_in_stay,
+)
 from clinosim.simulator.implied_chronic import implied_chronic_codes_to_add
 from clinosim.simulator.injury_coding import (
     external_cause_code,
@@ -1106,6 +1111,9 @@ def _simulate_patient(
 
     # Issue #2863: procedures lie between admission and discharge (or death).
     fit_procedures_in_stay(procedures, encounter.admission_datetime, encounter.discharge_datetime)
+    # Issue #3451: an echo is one study — its procedure takes the imaging study's
+    # time, which for a via-ED admission is the ED work-up time (Issue #3434).
+    align_echo_procedures_to_imaging(procedures, all_orders)
 
     microbiology = _derive_microbiology(
         disease_id=disease_id,
