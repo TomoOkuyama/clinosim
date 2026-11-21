@@ -39,6 +39,22 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-11-22
+
+### Highlights
+
+About 160 commits since v0.7.0 (about 150 fixes), almost all from two rounds of reviewing the template narratives of the v0.7.0 sample cohorts patient by patient. The entries below this summary were written as the changes landed; this summary lists the main areas.
+
+- **Narrative documents.** Every note states only what was known at its authored time (results, procedures, complications, home medications), and documents are stamped with the encounter's time. Progress notes follow the period's vitals, labs, exam and medication plan; nursing shift notes carry data-driven items (pain, fever, oxygen, consciousness, held and refused doses, intake / output, devices, meals, skin, mobility, fall risk, newborn care); ED notes, the admission H&P, outpatient SOAP, discharge and death summaries, the death certificate, the referral letter and newborn documents were completed and made consistent with the record.
+- **Clinical course.** Vasopressors start from hypotension and are weaned by MAP, antihypertensives are held while they run, AKI defers discharge and holds renal-risk drugs, DKA insulin stops when ketoacidosis resolves, AF with RVR is rate-controlled, supplemental oxygen is a state of the stay, persistent reduced consciousness has a recorded cause (delirium), and a full-code in-hospital death records its resuscitation attempt (new `resuscitation` module).
+- **Orders, labs and coding.** Protocol dose ranges resolve to one dose, VTE prophylaxis is dosed by renal function and country, a hemolysed potassium is redrawn instead of treated, lab turnaround follows laboratory benchmarks, catheters carry a removal date, and the discharge diagnosis, sepsis severity, injuries and burns are coded from the record.
+- **Japanese output.** Order, dose and supportive-care text, diagnosis names, complication names and imaging exam names read as Japanese phrases instead of word-by-word substitution or English slugs.
+- **Documentation.** CHANGELOG, module READMEs and the design guides were brought back in line with the code.
+
+### CIF drift (why this release is numbered as a PATCH)
+
+Many of the fixes below change structured CIF for the same `(seed, hospital_config, country, start, end, population)` and are marked "CIF drift, a MINOR-class change". Under the versioning policy above this release would be a MINOR bump; it is numbered 0.7.1 by maintainer decision, as a corrective release of the v0.7.0 narrative review. CIF ↔ narrative-CIF consistency is broken all the same: narrative CIF generated with v0.7.0 must be regenerated with `clinosim narrate`, and v0.7.0 and v0.7.1 cohorts with the same parameters are not byte-identical.
+
 ### Fixed
 
 - The death summary describes one terminal course: the terminal-course mechanism and the causes it names come from the certificate's cause chain instead of the last vitals, a full-code death without a CPR record no longer reads "cardiopulmonary arrest", the family-communication section no longer states who was at the bedside, the ICU place needs an ICU record, and an AKI's time to death runs from the first creatinine that meets the KDIGO criterion (#3470).
