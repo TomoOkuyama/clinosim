@@ -401,6 +401,66 @@ def _validate_no_name_only_drug(disease_id: str, node: Any, path: str = "") -> N
             _validate_no_name_only_drug(disease_id, item, f"{path}[{i}]")
 
 
+def _validate_discharge_dose_schema(disease_id: str, drugs: dict[str, Any]) -> None:
+    """Fail loudly on a malformed `home_dose` / `start_dose` of a `discharge_oral`
+    entry (Issues #3461, #3462).
+
+    ``home_dose: resume`` continues the patient's home regimen of the drug and
+    needs a ``start_dose`` for a patient without one. ``start_dose`` is either a
+    structured ``{dose, route?, frequency?}`` whose dose is a number with a unit,
+    or ``{rule: <name>}`` of ``insulin_initiation.yaml``. An entry whose dose is
+    empty must say how the dose is resolved (``start_dose``) or carry an
+    authored ``dose_text``.
+    """
+    from clinosim.modules.order.insulin_initiation import START_DOSE_RULES
+
+    if not isinstance(drugs, dict):
+        return
+    block = drugs.get("discharge_oral")
+    if not isinstance(block, dict):
+        return
+    problems: list[str] = []
+    for country_key in ("japan", "us"):
+        entries = block.get(country_key) or []
+        if isinstance(entries, dict):
+            entries = [entries]
+        for entry in entries if isinstance(entries, list) else []:
+            if not isinstance(entry, dict):
+                continue
+            where = f"drugs.discharge_oral.{country_key}: drug={entry.get('drug_id') or entry.get('drug')!r}"
+            start = entry.get("start_dose")
+            home = entry.get("home_dose")
+            if home is not None and home != "resume":
+                problems.append(f"  {where} home_dose must be 'resume', got {home!r}")
+            if home == "resume" and start is None:
+                problems.append(f"  {where} home_dose: resume needs a start_dose for a patient without a home supply")
+            if start is None:
+                if entry.get("dose") == "" and not entry.get("dose_text"):
+                    problems.append(f"  {where} has an empty dose and neither start_dose nor dose_text")
+                continue
+            if not isinstance(start, dict):
+                problems.append(f"  {where} start_dose must be a mapping")
+                continue
+            extra = set(start) - {"dose", "route", "frequency", "rule"}
+            if extra:
+                problems.append(f"  {where} start_dose has unknown key(s) {sorted(extra)}")
+            if "rule" in start:
+                if start["rule"] not in START_DOSE_RULES:
+                    problems.append(
+                        f"  {where} start_dose rule {start['rule']!r} is not one of {sorted(START_DOSE_RULES)}"
+                    )
+                if set(start) - {"rule"}:
+                    problems.append(f"  {where} start_dose with a rule carries nothing else")
+            elif not re.match(
+                r"^\d+(?:\.\d+)?\s*(?:mcg|mg|g|U|units?|IU|mL)\b", str(start.get("dose", "") or ""), re.I
+            ):
+                problems.append(f"  {where} start_dose.dose {start.get('dose')!r} is not a numeric dose with a unit")
+    if problems:
+        raise ValueError(
+            f"disease {disease_id!r}: invalid discharge dose resolution (Issues #3461, #3462):\n" + "\n".join(problems)
+        )
+
+
 def _validate_drug_entry_localized_dose_keys(disease_id: str, drugs: dict[str, Any]) -> None:
     """Fail loudly on the former `dose_ja` / `dose_en` keys and their likely
     typos — the authored instruction is `dose_text: {en, ja}` (Issues #476, #2508).
@@ -921,6 +981,7 @@ def load_disease_protocol(disease_id: str) -> DiseaseProtocol:
     # Catches likely typos of `dose_ja` / `dose_en` (`dose_jp`, `dose_us`, etc.)
     # that would otherwise silently swallow the authored instruction.
     _validate_drug_entry_localized_dose_keys(disease_id, data.get("drugs", {}) or {})
+    _validate_discharge_dose_schema(disease_id, data.get("drugs", {}) or {})
 
     # Issue #460: drugs.escalation type-signal validation (Layer 1).
     # Layer 2/3 (legacy marker reject + type/route co-occurrence) are wired in a

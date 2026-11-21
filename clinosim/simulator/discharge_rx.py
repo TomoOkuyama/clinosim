@@ -18,7 +18,7 @@ Related design references (kept in one place for the discharge chain):
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from datetime import datetime
 from typing import Any
 
@@ -188,6 +188,45 @@ def limit_triple_antithrombotic(items: list[dict], home_medications: list[str]) 
             item["dose"] = str(plan.get("p2y12_dose", item.get("dose", "")))
     for item in aspirin:
         item["duration_days"] = int(plan.get("aspirin_days", 7))
+
+
+def _resolve_item_dose(
+    spec: dict[str, Any],
+    home_meds: Iterable[Any],
+    weight_kg: Callable[[], float],
+) -> dict[str, str]:
+    """The ``dose`` / ``route`` / ``frequency`` of a ``discharge_oral`` entry
+    (Issues #3461, #3462).
+
+    An entry with ``home_dose: resume`` continues the regimen of the patient's
+    home medication of the same drug when it has a recorded dose. Otherwise an
+    entry's ``start_dose`` (a structured dose, or the weight-based basal-insulin
+    rule of ``insulin_initiation.yaml`` applied to the weight charted at
+    admission) is started. An entry with neither keeps its own fields. Draws
+    nothing.
+    """
+    own = {
+        "dose": str(spec.get("dose", "") or ""),
+        "route": str(spec.get("route", "PO")),
+        "frequency": str(spec.get("frequency", "") or ""),
+    }
+    start = spec.get("start_dose")
+    if not start:
+        return own
+    if spec.get("home_dose") == "resume":
+        wanted = drug_key(str(spec.get("drug_id") or spec.get("drug") or ""))
+        for med in home_meds:
+            if med.dose and _dedup_key(med.drug_name) == wanted:
+                return {"dose": med.dose, "route": med.route or own["route"], "frequency": med.frequency}
+    if "rule" in start:
+        from clinosim.modules.order.insulin_initiation import basal_insulin_start_dose
+
+        return basal_insulin_start_dose(weight_kg())
+    return {
+        "dose": str(start["dose"]),
+        "route": str(start.get("route") or own["route"]),
+        "frequency": str(start.get("frequency") or own["frequency"]),
+    }
 
 
 def build_discharge_rx(
@@ -379,6 +418,16 @@ def build_discharge_rx(
             )
         return True
 
+    # Home medications (the immutable baseline plus the current list) a
+    # `home_dose: resume` entry continues; the admission weight is looked up
+    # only when a weight-based start dose is needed.
+    home_meds = list(patient.baseline_chronic_medications or []) + list(patient.current_medications or [])
+
+    def _admission_weight_kg() -> float:
+        from clinosim.modules.population.encounter_anthropometry import encounter_weight_kg
+
+        return float(encounter_weight_kg(patient, encounter_id, admission_time, country_key))
+
     def _append_item(drug_spec: dict, chronic_continuation: bool = False) -> None:
         """Renal-check + dedup + narrow drug_safety triple-antithrombotic
         gate + append. Shared by exclusive & independent paths.
@@ -483,16 +532,17 @@ def build_discharge_rx(
         # builder can emit them as country-scoped `dosageInstruction.text`.
         # Empty for the ~all entries that carry a real numeric dose; only the
         # 5 disease-YAML entries flagged by #476 populate these.
+        resolved = _resolve_item_dose(drug_spec, home_meds, _admission_weight_kg)
         items.append(
             {
                 "drug_name": drug_name,
                 "drug_name_ja": drug_name_ja,
-                "dose": drug_spec.get("dose", ""),
+                "dose": resolved["dose"],
                 # Issue #2613: an entry whose dose text carries no cadence
                 # (warfarin "Titrate to INR ...") states it in `frequency`.
-                "frequency": drug_spec.get("frequency", ""),
+                "frequency": resolved["frequency"],
                 "duration_days": drug_spec.get("duration_days", default_duration),
-                "route": drug_spec.get("route", "PO"),
+                "route": resolved["route"],
                 "dose_ja": language_slot(drug_spec.get("dose_text"), "ja"),
                 "dose_en": language_slot(drug_spec.get("dose_text"), "en"),
             }

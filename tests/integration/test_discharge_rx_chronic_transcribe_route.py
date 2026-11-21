@@ -83,16 +83,12 @@ def test_dc_rows_chronic_transcribed_non_oral_drugs_have_no_po_route(tmp_path: P
                 continue
             dc_rows += 1
             drug = (row.get("drug_name") or "").lower()
-            dose = (row.get("dose") or "").strip()
-            # Chronic-transcribed items originate from
-            # `patient.current_medications: list[str]`, which drops dose;
-            # the transcribe loop appends `dose=""`. Protocol-authored
-            # items (discharge_oral / continue_at_discharge) copy dose from
-            # the disease YAML and are almost always non-empty. Using
-            # `dose == ""` as the chronic-transcription proxy is not
-            # airtight (a YAML entry with dose omitted would also match)
-            # but it isolates the exact code path this PR modifies.
-            if any(tok in drug for tok in NON_ORAL_TOKENS) and not dose:
+            # Issue #3461/#3462: inhaled and insulin discharge items now
+            # carry a dose (the home regimen or a start dose), so an empty
+            # dose no longer identifies the chronic-transcription path.
+            # The invariant is checked on every inhaled/insulin DC row:
+            # none may claim the oral route.
+            if any(tok in drug for tok in NON_ORAL_TOKENS):
                 chronic_non_oral_rows.append(row)
                 if (row.get("route") or "").strip().upper() == "PO":
                     chronic_non_oral_with_po += 1

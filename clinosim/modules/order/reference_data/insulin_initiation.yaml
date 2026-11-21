@@ -1,0 +1,34 @@
+---
+# insulin_initiation.yaml — the starting basal-insulin dose of an insulin-naive
+# patient (Issues #3462, #3450).
+#
+# Read by `clinosim.modules.order.insulin_initiation`; a disease protocol names
+# the rule as `start_dose: {rule: basal_insulin}` on a `discharge_oral` entry,
+# and the inpatient IV-to-subcutaneous conversion reads the same value, so a
+# stay's insulin and its discharge prescription agree.
+#
+# basal.units_per_kg is a MODEL CHOICE inside the range the sources below give.
+#   - ADA Standards of Care in Diabetes 2025, section 16 (Diabetes Care in the
+#     Hospital; Diabetes Care 2025;48 Suppl 1:S321-S334): "a low dose
+#     (0.15-0.3 units/kg) of basal insulin analog in addition to intravenous
+#     insulin infusion" in DKA / hyperglycemia; subcutaneous basal insulin is
+#     given before the infusion is stopped.
+#   - The 2024 consensus report on hyperglycemic crises (as summarised in Cleve
+#     Clin J Med 2025;92:152): a total daily dose of 0.3-0.6 units/kg/day
+#     estimated by weight for the transition, as basal-bolus insulin.
+# The prescription is the basal component only (0.2 units/kg/day, inside the
+# 0.15-0.3 range); a meal-time insulin dose is not generated.
+metadata:
+  kind: reference
+  name: insulin_initiation
+  source: clinosim
+basal:
+  units_per_kg: 0.2
+  route: SC
+  frequency: daily
+  unit_label: U   # dose string "<N>U", the notation of chronic_medications.yaml
+source: >-
+  ADA Standards of Care in Diabetes 2025 section 16 (low-dose basal analog
+  0.15-0.3 units/kg); 2024 hyperglycemic crises consensus (total daily dose
+  0.3-0.6 units/kg/day). The chosen 0.2 units/kg is a model choice within the
+  ADA range.
