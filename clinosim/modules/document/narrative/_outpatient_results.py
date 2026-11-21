@@ -112,7 +112,10 @@ def stage_from_pending_lab(ctx: Any, code: str, stored: str) -> bool:
     rules = stage_from_labs_rules()
     code_u = str(code).upper()
     if code_u.startswith(rules.ckd.icd_base):
-        lab = rules.ckd.lab
+        # Issue #3466: a pending creatinine restates the stage as well.
+        wanted = {rules.ckd.lab.lower(), rules.ckd.creatinine_lab.lower()}
+        late = results_after(list(getattr(ctx, "lab_results", None) or []), _authored(ctx))
+        return any(canonical_lab_name(str(_o(r, "lab_name", "") or "")).lower() in wanted for r in late)
     elif stored.startswith(rules.hba1c.prefix):
         lab = rules.hba1c.lab
     else:
@@ -167,18 +170,18 @@ def prior_lab_values(ctx: Any, *, include_own: bool = False) -> dict[str, tuple[
     return {k: (_o(lab, "value", None), _o(lab, "unit", None), at.date().isoformat()) for k, (at, lab) in best.items()}
 
 
-def latest_lab_stage(code: str, stored: str, labs: dict[str, tuple[Any, str | None, str]]) -> str:
+def latest_lab_stage(code: str, stored: str, labs: dict[str, tuple[Any, str | None, str]], patient: Any = None) -> str:
     """The stage of a chronic problem stated by the latest known lab (``labs``
     from :func:`prior_lab_values`): the CKD G category and eGFR of an N18
-    problem, the HbA1c of a problem whose stored stage is an HbA1c. Empty when
-    no lab states it (the stored stage is used)."""
-    egfr = labs.get("egfr")
-    if code.upper().startswith("N18") and egfr is not None:
-        try:
-            value = float(egfr[0])
-        except (TypeError, ValueError):
-            return ""
-        return f"CKD {ckd_g_stage(value)}, eGFR {value:g} ({egfr[2]})"
+    problem, the HbA1c of a problem whose stored stage is an HbA1c. The eGFR is
+    the later of the eGFR result and the one calculated from the creatinine
+    result with the patient's country equation (Issue #3466; an eGFR result of
+    the same day wins). Empty when no lab states it (the stored stage is used)."""
+    if code.upper().startswith("N18"):
+        found = _latest_egfr(labs, patient)
+        if found is not None:
+            value, day = found
+            return f"CKD {ckd_g_stage(value)}, eGFR {value:g} ({day})"
     hba1c = labs.get("hba1c")
     if hba1c is not None and stored.startswith("HbA1c"):
         try:
@@ -186,6 +189,29 @@ def latest_lab_stage(code: str, stored: str, labs: dict[str, tuple[Any, str | No
         except (TypeError, ValueError):
             return ""
     return ""
+
+
+def _latest_egfr(labs: dict[str, tuple[Any, str | None, str]], patient: Any) -> tuple[float, str] | None:
+    """``(eGFR, YYYY-MM-DD)`` of the latest renal function in ``labs``."""
+    from clinosim.modules.longitudinal.stage_refresh import creatinine_egfr, stage_from_labs_rules
+
+    candidates: list[tuple[str, int, float]] = []
+    egfr = labs.get("egfr")
+    if egfr is not None:
+        try:
+            candidates.append((egfr[2], 1, float(egfr[0])))
+        except (TypeError, ValueError):
+            pass
+    cr = labs.get(stage_from_labs_rules().ckd.creatinine_lab.lower())
+    if cr is not None and patient is not None:
+        at = parse_iso_datetime(cr[2], lenient=True)
+        derived = creatinine_egfr(patient, cr[0], at, cr[1]) if at is not None else None
+        if derived is not None:
+            candidates.append((cr[2], 0, derived))
+    if not candidates:
+        return None
+    day, _, value = max(candidates, key=lambda c: (c[0], c[1]))
+    return value, day
 
 
 def screening_scores(lab_results: list[Any]) -> list[tuple[str, float, str | None]]:
