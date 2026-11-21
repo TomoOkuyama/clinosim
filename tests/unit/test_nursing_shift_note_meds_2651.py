@@ -93,3 +93,36 @@ def test_a_note_authored_before_the_end_of_the_window_quotes_nothing_later() -> 
 def test_the_drug_line_head_does_not_say_continued() -> None:
     ja = _note_at("2025-03-23T16:00:00", lang="ja")
     assert "投薬継続" not in ja and "与薬" in ja
+
+
+# Issue #3459: every distinct drug given in the shift is listed, not three.
+
+
+def _shift_text(mars: list[dict], lang: str = "en") -> str:
+    ctx = SimpleNamespace(
+        target_lang=lang,
+        day_index=3,
+        los_days=10,
+        shift="day",
+        encounter={"admission_datetime": "2025-03-01T10:00:00"},
+        roster_map={},
+        vitals=[],
+        medications=mars,
+        nursing_risk_assessments=[],
+    )
+    return render_nursing_shift_note(ctx, None).raw_text
+
+
+def test_all_drugs_of_the_shift_are_listed_in_first_given_order() -> None:
+    names = ["Ceftriaxone", "Enoxaparin", "Furosemide", "Metformin", "Aspirin", "Pantoprazole"]
+    mars = [_mar(n, f"2025-03-04T{8 + i:02d}:00:00") for i, n in enumerate(names)]
+    mars.append(_mar("Ondansetron", "2025-03-04T12:00:00", status="held"))
+    text = _shift_text(mars)
+    positions = [text.index(n) for n in names]
+    assert positions == sorted(positions)
+    assert "Ondansetron" not in text
+
+
+def test_a_drug_given_twice_is_listed_once() -> None:
+    mars = [_mar("Ceftriaxone", "2025-03-04T08:00:00"), _mar("Ceftriaxone", "2025-03-04T15:00:00")]
+    assert _shift_text(mars).count("Ceftriaxone") == 1
