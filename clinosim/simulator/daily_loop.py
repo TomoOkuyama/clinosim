@@ -140,6 +140,7 @@ from clinosim.simulator.medication_pipeline import (
     generate_prn_administrations,
 )
 from clinosim.simulator.mixed_condition import CoDiseaseCourse
+from clinosim.simulator.oxygen_course import OxygenCourse
 from clinosim.simulator.vasoactive_support import (
     hospital_day_start,
     stop_weaned_vasoactive_infusions,
@@ -371,6 +372,7 @@ class _Run:
     potassium_hold: PotassiumHold | None = None  # Issue #2981: hyperkalemia hold, from the first K >= threshold
     hyperkalemia_last_day: int | None = None  # Issue #2981: last day with K >= threshold
     aki: AkiCourse = field(default_factory=AkiCourse)  # Issue #3281: creatinine course, KDIGO AKI per result
+    oxygen: OxygenCourse = field(default_factory=OxygenCourse)  # Issue #3469: supplemental-oxygen state
 
 
 def _escalate_on_arrival(stay: _Stay, run: _Run) -> None:
@@ -1279,6 +1281,7 @@ def _record_bedside_observations(stay: _Stay, run: _Run, day: int) -> None:
         disease_id=stay.disease_id,
         nurse_id=ward_nurse_id,
         ventricular_rate=_ventricular_rate_course(stay, run),
+        oxygen=run.oxygen,
     )  # noqa: E501
     run.vitals.extend(vitals_today)
     _start_vasopressor_for_hypotension(stay, run, day, vitals_today)

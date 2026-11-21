@@ -1,0 +1,33 @@
+# When supplemental oxygen is weaned during an inpatient stay (Issue #3469).
+#
+# Read by clinosim/simulator/oxygen_course.py (`oxygen_course_rules`). The
+# oxygen state of a stay (on / off, device, flow) is carried across readings
+# and days: oxygen starts at the first room-air SpO2 below the target (92 %,
+# 88 % for a COPD exacerbation: simulator/_oxygen_therapy_thresholds.py and
+# modules/observation/oxygenation.py), is titrated up only while the SpO2
+# recorded on oxygen is still below the target, and is stopped (weaned) only
+# when the room-air SpO2 has stayed at or above `target + wean_margin_spo2`
+# for `wean_hours`, over at least `wean_min_readings` readings. A later
+# reading below the target starts a new course. Before this, each reading
+# decided on its own, so the flag flipped on and off between readings.
+#
+# Source (read in the session that wrote this file):
+#   - BTS Guideline for oxygen use in adults in healthcare and emergency
+#     settings (O'Driscoll et al., Thorax 2017; 72 Suppl 1: ii1-ii90), summary
+#     for hospital use (BTS web appendix 3): "Oxygen should be prescribed to
+#     achieve target saturations of 94-98% for most acutely ill patients or
+#     88-92% for those at risk of hypercapnic respiratory failure." and
+#     "Oxygen therapy should be reduced and eventually discontinued in stable
+#     patients with satisfactory oxygen saturation." -> oxygen is stopped only
+#     in a stable patient whose saturation is satisfactory, not on one reading.
+# The guideline gives no duration or margin: `wean_hours`, `wean_margin_spo2`
+# and `wean_min_readings` are clinosim modelling choices (hysteresis so that a
+# noisy reading near the target does not toggle oxygen).
+metadata:
+  kind: reference
+  name: oxygen_course
+  source: clinosim
+
+wean_hours: 12
+wean_margin_spo2: 1.0
+wean_min_readings: 2

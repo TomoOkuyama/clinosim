@@ -34,7 +34,8 @@ from clinosim.simulator._daily_loop_thresholds import (
     TERMINAL_VOLUME_MAX,
     TERMINAL_WINDOW_HOURS,
 )
-from clinosim.simulator.vitals_pipeline import _loc_for, _o2_for, spo2_on_oxygen
+from clinosim.simulator.oxygen_course import OxygenCourse
+from clinosim.simulator.vitals_pipeline import _loc_for, _o2_for, o2_target, spo2_on_oxygen
 from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.encounter import Order, OrderResult, OrderStatus, OrderType, VitalSignRecord
 from clinosim.types.patient import PatientProfile
@@ -91,8 +92,12 @@ def apply_terminal_course(
         on_o2, flow, device = record.on_supplemental_oxygen, record.oxygen_flow_rate_lpm, record.oxygen_delivery_device
         spo2 = record.spo2
         if spo2 is not None:
-            on_o2, flow, device = _o2_for(raw["spo2"], disease_id, rng)
-            spo2 = round(spo2_on_oxygen(raw["spo2"], flow, state, disease_id) if on_o2 else raw["spo2"], 1)
+            # The draw is consumed here; the oxygen state it feeds is resolved
+            # in time order after the loop (Issue #3469).
+            draws.append((len(rewritten), record.timestamp, raw["spo2"], _o2_for(raw["spo2"], disease_id, rng)))
+            states[len(rewritten)] = state
+            spo2 = round(raw["spo2"], 1)
+            on_o2, flow, device = False, None, ""
         note = ". ".join(p for p in record.nursing_note.rstrip(".").split(". ") if p and p != _RECOVERY_NOTE)
         return replace(
             record,
@@ -109,9 +114,37 @@ def apply_terminal_course(
             nursing_note=note + "." if note else "",
         )
 
+    draws: list = []
+    states: dict[int, PhysiologicalState] = {}
+    rewritten: list[int] = []
     for i, record in enumerate(vitals):
         if start <= record.timestamp < death_time:
             vitals[i] = observe(record)
+            rewritten.append(i)
+    # Oxygen continues from the last reading before the window and follows the
+    # state's course through it, as it does over the stay.
+    course = OxygenCourse()
+    before = [v for v in vitals if v.timestamp < start and v.spo2 is not None]
+    if before:
+        last = max(before, key=lambda v: v.timestamp)
+        if last.on_supplemental_oxygen:
+            course.on, course.flow, course.device = True, last.oxygen_flow_rate_lpm, last.oxygen_delivery_device
+    target = o2_target(disease_id)
+    for key, when, raw_spo2, draw in sorted(draws, key=lambda d: d[1]):
+        i = rewritten[key]
+        row_state = states[key]
+
+        def on_oxygen(r: float, f: float, st: PhysiologicalState = row_state) -> float:
+            return spo2_on_oxygen(r, f, st, disease_id)
+
+        on, flow, device, spo2 = course.resolve(when, raw_spo2, target, draw, on_oxygen)
+        vitals[i] = replace(
+            vitals[i],
+            spo2=round(spo2, 1),
+            on_supplemental_oxygen=on,
+            oxygen_flow_rate_lpm=round(flow, 1) if flow else None,
+            oxygen_delivery_device=device,
+        )
 
     full_sets = [v for v in vitals if v.timestamp < death_time and None not in (v.heart_rate, v.systolic_bp, v.spo2)]
     last_full = max(full_sets, key=lambda v: v.timestamp) if full_sets else None

@@ -83,11 +83,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #2 — assessment]",
-        "objective": "BP 131/82 mmHg, HR 97 bpm, RR 16 /min, SpO2 92% (RA), T 36.9°C, weaned off supplemental O2",
+        "objective": "BP 131/82 mmHg, HR 97 bpm, RR 16 /min, SpO2 98% (nasal cannula 3.7 L/min), T 36.9°C (past 24 h: SpO2 min 94%)",
         "plan": "[Mock LLM response #2 — plan]",
         "subjective": "[Mock LLM response #2 — subjective]"
       },
-      "text": "S: [Mock LLM response #2 — subjective]\nO: BP 131/82 mmHg, HR 97 bpm, RR 16 /min, SpO2 92% (RA), T 36.9°C, weaned off supplemental O2\nA: [Mock LLM response #2 — assessment]\nP: [Mock LLM response #2 — plan]"
+      "text": "S: [Mock LLM response #2 — subjective]\nO: BP 131/82 mmHg, HR 97 bpm, RR 16 /min, SpO2 98% (nasal cannula 3.7 L/min), T 36.9°C (past 24 h: SpO2 min 94%)\nA: [Mock LLM response #2 — assessment]\nP: [Mock LLM response #2 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-160487169457-03": {
@@ -133,11 +133,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #3 — assessment]",
-        "objective": "BP 132/81 mmHg, HR 101 bpm, RR 15 /min, SpO2 96% (nasal cannula 3.8 L/min), T 38.2°C (past 24 h: Tmax 38.9°C, HR max 105 bpm, SpO2 min 92%)",
+        "objective": "BP 132/81 mmHg, HR 101 bpm, RR 15 /min, SpO2 96% (nasal cannula 3.7 L/min), T 38.2°C (past 24 h: Tmax 38.9°C, HR max 105 bpm, SpO2 min 94%)",
         "plan": "[Mock LLM response #3 — plan]",
         "subjective": "[Mock LLM response #3 — subjective]"
       },
-      "text": "S: [Mock LLM response #3 — subjective]\nO: BP 132/81 mmHg, HR 101 bpm, RR 15 /min, SpO2 96% (nasal cannula 3.8 L/min), T 38.2°C (past 24 h: Tmax 38.9°C, HR max 105 bpm, SpO2 min 92%)\nA: [Mock LLM response #3 — assessment]\nP: [Mock LLM response #3 — plan]"
+      "text": "S: [Mock LLM response #3 — subjective]\nO: BP 132/81 mmHg, HR 101 bpm, RR 15 /min, SpO2 96% (nasal cannula 3.7 L/min), T 38.2°C (past 24 h: Tmax 38.9°C, HR max 105 bpm, SpO2 min 94%)\nA: [Mock LLM response #3 — assessment]\nP: [Mock LLM response #3 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-160487169457-04": {
@@ -183,11 +183,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #4 — assessment]",
-        "objective": "BP 134/81 mmHg, HR 103 bpm, RR 19 /min, SpO2 96% (RA), T 37.9°C, weaned off supplemental O2 (past 24 h: Tmax 39.1°C, HR max 106 bpm, RR max 24 /min, SpO2 min 92%)",
+        "objective": "BP 134/81 mmHg, HR 103 bpm, RR 19 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.9°C (past 24 h: Tmax 39.1°C, HR max 106 bpm, RR max 24 /min)",
         "plan": "[Mock LLM response #4 — plan]",
         "subjective": "[Mock LLM response #4 — subjective]"
       },
-      "text": "S: [Mock LLM response #4 — subjective]\nO: BP 134/81 mmHg, HR 103 bpm, RR 19 /min, SpO2 96% (RA), T 37.9°C, weaned off supplemental O2 (past 24 h: Tmax 39.1°C, HR max 106 bpm, RR max 24 /min, SpO2 min 92%)\nA: [Mock LLM response #4 — assessment]\nP: [Mock LLM response #4 — plan]"
+      "text": "S: [Mock LLM response #4 — subjective]\nO: BP 134/81 mmHg, HR 103 bpm, RR 19 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.9°C (past 24 h: Tmax 39.1°C, HR max 106 bpm, RR max 24 /min)\nA: [Mock LLM response #4 — assessment]\nP: [Mock LLM response #4 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-160487169457-05": {
@@ -233,11 +233,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #5 — assessment]",
-        "objective": "BP 133/78 mmHg, HR 99 bpm, RR 19 /min, SpO2 95% (RA), T 37.6°C, weaned off supplemental O2 (past 24 h: Tmax 38.7°C, HR max 107 bpm, RR max 21 /min, SpO2 min 92%)",
+        "objective": "BP 133/78 mmHg, HR 99 bpm, RR 19 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.6°C (past 24 h: Tmax 38.7°C, HR max 107 bpm, RR max 21 /min)",
         "plan": "[Mock LLM response #5 — plan]",
         "subjective": "[Mock LLM response #5 — subjective]"
       },
-      "text": "S: [Mock LLM response #5 — subjective]\nO: BP 133/78 mmHg, HR 99 bpm, RR 19 /min, SpO2 95% (RA), T 37.6°C, weaned off supplemental O2 (past 24 h: Tmax 38.7°C, HR max 107 bpm, RR max 21 /min, SpO2 min 92%)\nA: [Mock LLM response #5 — assessment]\nP: [Mock LLM response #5 — plan]"
+      "text": "S: [Mock LLM response #5 — subjective]\nO: BP 133/78 mmHg, HR 99 bpm, RR 19 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.6°C (past 24 h: Tmax 38.7°C, HR max 107 bpm, RR max 21 /min)\nA: [Mock LLM response #5 — assessment]\nP: [Mock LLM response #5 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-160487169457-06": {
@@ -283,11 +283,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #6 — assessment]",
-        "objective": "BP 132/82 mmHg, HR 96 bpm, RR 19 /min, SpO2 96% (RA), T 38.2°C, weaned off supplemental O2 (past 24 h: Tmax 38.5°C, HR max 108 bpm, SpO2 min 92%)",
+        "objective": "BP 132/82 mmHg, HR 96 bpm, RR 19 /min, SpO2 98% (simple face mask 7.7 L/min), T 38.2°C (past 24 h: Tmax 38.5°C, HR max 108 bpm)",
         "plan": "[Mock LLM response #6 — plan]",
         "subjective": "[Mock LLM response #6 — subjective]"
       },
-      "text": "S: [Mock LLM response #6 — subjective]\nO: BP 132/82 mmHg, HR 96 bpm, RR 19 /min, SpO2 96% (RA), T 38.2°C, weaned off supplemental O2 (past 24 h: Tmax 38.5°C, HR max 108 bpm, SpO2 min 92%)\nA: [Mock LLM response #6 — assessment]\nP: [Mock LLM response #6 — plan]"
+      "text": "S: [Mock LLM response #6 — subjective]\nO: BP 132/82 mmHg, HR 96 bpm, RR 19 /min, SpO2 98% (simple face mask 7.7 L/min), T 38.2°C (past 24 h: Tmax 38.5°C, HR max 108 bpm)\nA: [Mock LLM response #6 — assessment]\nP: [Mock LLM response #6 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-160487169457-07": {
@@ -333,11 +333,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #7 — assessment]",
-        "objective": "BP 134/78 mmHg, HR 98 bpm, RR 19 /min, SpO2 93% (RA), T 37.6°C, weaned off supplemental O2 (past 24 h: Tmax 38.7°C, HR max 105 bpm, RR max 21 /min, SpO2 min 92%)",
+        "objective": "BP 134/78 mmHg, HR 98 bpm, RR 19 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.6°C (past 24 h: Tmax 38.7°C, HR max 105 bpm, RR max 21 /min)",
         "plan": "[Mock LLM response #7 — plan]",
         "subjective": "[Mock LLM response #7 — subjective]"
       },
-      "text": "S: [Mock LLM response #7 — subjective]\nO: BP 134/78 mmHg, HR 98 bpm, RR 19 /min, SpO2 93% (RA), T 37.6°C, weaned off supplemental O2 (past 24 h: Tmax 38.7°C, HR max 105 bpm, RR max 21 /min, SpO2 min 92%)\nA: [Mock LLM response #7 — assessment]\nP: [Mock LLM response #7 — plan]"
+      "text": "S: [Mock LLM response #7 — subjective]\nO: BP 134/78 mmHg, HR 98 bpm, RR 19 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.6°C (past 24 h: Tmax 38.7°C, HR max 105 bpm, RR max 21 /min)\nA: [Mock LLM response #7 — assessment]\nP: [Mock LLM response #7 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-160487169457-08": {
@@ -383,11 +383,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #8 — assessment]",
-        "objective": "BP 134/78 mmHg, HR 96 bpm, RR 20 /min, SpO2 93% (RA), T 37.3°C, weaned off supplemental O2 (past 24 h: Tmax 38.5°C, HR max 105 bpm, RR max 21 /min)",
+        "objective": "BP 134/78 mmHg, HR 96 bpm, RR 20 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.3°C (past 24 h: Tmax 38.5°C, HR max 105 bpm, RR max 21 /min)",
         "plan": "[Mock LLM response #8 — plan]",
         "subjective": "[Mock LLM response #8 — subjective]"
       },
-      "text": "S: [Mock LLM response #8 — subjective]\nO: BP 134/78 mmHg, HR 96 bpm, RR 20 /min, SpO2 93% (RA), T 37.3°C, weaned off supplemental O2 (past 24 h: Tmax 38.5°C, HR max 105 bpm, RR max 21 /min)\nA: [Mock LLM response #8 — assessment]\nP: [Mock LLM response #8 — plan]"
+      "text": "S: [Mock LLM response #8 — subjective]\nO: BP 134/78 mmHg, HR 96 bpm, RR 20 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.3°C (past 24 h: Tmax 38.5°C, HR max 105 bpm, RR max 21 /min)\nA: [Mock LLM response #8 — assessment]\nP: [Mock LLM response #8 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-160487169457-09": {
@@ -433,11 +433,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #9 — assessment]",
-        "objective": "BP 134/81 mmHg, HR 96 bpm, RR 17 /min, SpO2 98% (RA), T 37.3°C, weaned off supplemental O2 (past 24 h: Tmax 39.0°C, HR max 103 bpm, RR max 21 /min, SpO2 min 92%)",
+        "objective": "BP 134/81 mmHg, HR 96 bpm, RR 17 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.3°C (past 24 h: Tmax 39.0°C, HR max 103 bpm, RR max 21 /min)",
         "plan": "[Mock LLM response #9 — plan]",
         "subjective": "[Mock LLM response #9 — subjective]"
       },
-      "text": "S: [Mock LLM response #9 — subjective]\nO: BP 134/81 mmHg, HR 96 bpm, RR 17 /min, SpO2 98% (RA), T 37.3°C, weaned off supplemental O2 (past 24 h: Tmax 39.0°C, HR max 103 bpm, RR max 21 /min, SpO2 min 92%)\nA: [Mock LLM response #9 — assessment]\nP: [Mock LLM response #9 — plan]"
+      "text": "S: [Mock LLM response #9 — subjective]\nO: BP 134/81 mmHg, HR 96 bpm, RR 17 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.3°C (past 24 h: Tmax 39.0°C, HR max 103 bpm, RR max 21 /min)\nA: [Mock LLM response #9 — assessment]\nP: [Mock LLM response #9 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-160487169457-10": {
@@ -483,11 +483,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #10 — assessment]",
-        "objective": "BP 135/82 mmHg, HR 98 bpm, RR 15 /min, SpO2 94% (RA), T 37.4°C, weaned off supplemental O2 (past 24 h: Tmax 38.4°C, HR max 107 bpm, RR max 21 /min, SpO2 min 93%)",
+        "objective": "BP 135/82 mmHg, HR 98 bpm, RR 15 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.4°C (past 24 h: Tmax 38.4°C, HR max 107 bpm, RR max 21 /min)",
         "plan": "[Mock LLM response #10 — plan]",
         "subjective": "[Mock LLM response #10 — subjective]"
       },
-      "text": "S: [Mock LLM response #10 — subjective]\nO: BP 135/82 mmHg, HR 98 bpm, RR 15 /min, SpO2 94% (RA), T 37.4°C, weaned off supplemental O2 (past 24 h: Tmax 38.4°C, HR max 107 bpm, RR max 21 /min, SpO2 min 93%)\nA: [Mock LLM response #10 — assessment]\nP: [Mock LLM response #10 — plan]"
+      "text": "S: [Mock LLM response #10 — subjective]\nO: BP 135/82 mmHg, HR 98 bpm, RR 15 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.4°C (past 24 h: Tmax 38.4°C, HR max 107 bpm, RR max 21 /min)\nA: [Mock LLM response #10 — assessment]\nP: [Mock LLM response #10 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-160487169457-11": {
@@ -533,11 +533,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #11 — assessment]",
-        "objective": "BP 134/82 mmHg, HR 96 bpm, RR 20 /min, SpO2 96% (RA), T 37.2°C (past 24 h: Tmax 38.8°C, HR max 101 bpm, SpO2 min 93%)",
+        "objective": "BP 134/82 mmHg, HR 96 bpm, RR 20 /min, SpO2 96% (RA), T 37.2°C, weaned off supplemental O2 (past 24 h: Tmax 38.8°C, HR max 101 bpm, SpO2 min 93%)",
         "plan": "[Mock LLM response #11 — plan]",
         "subjective": "[Mock LLM response #11 — subjective]"
       },
-      "text": "S: [Mock LLM response #11 — subjective]\nO: BP 134/82 mmHg, HR 96 bpm, RR 20 /min, SpO2 96% (RA), T 37.2°C (past 24 h: Tmax 38.8°C, HR max 101 bpm, SpO2 min 93%)\nA: [Mock LLM response #11 — assessment]\nP: [Mock LLM response #11 — plan]"
+      "text": "S: [Mock LLM response #11 — subjective]\nO: BP 134/82 mmHg, HR 96 bpm, RR 20 /min, SpO2 96% (RA), T 37.2°C, weaned off supplemental O2 (past 24 h: Tmax 38.8°C, HR max 101 bpm, SpO2 min 93%)\nA: [Mock LLM response #11 — assessment]\nP: [Mock LLM response #11 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-160487169457-12": {
@@ -721,7 +721,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 136/78, HR 103, SpO2 95%, T 37.7°C; nasal cannula 3.2 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 136/78, HR 103, SpO2 96%, T 37.7°C; nasal cannula 3.7 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-17-evening": {
@@ -744,7 +744,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 134/80, HR 101, SpO2 98%, T 37.6°C.\nMeds administered: Nicardipine, NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 134/80, HR 101, SpO2 98%, T 37.6°C; nasal cannula 3.7 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-18-night": {
@@ -767,7 +767,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 131/77, HR 98, SpO2 96%, T 38.2°C.\nMeds administered: Nicardipine, Labetalol, NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 131/77, HR 98, SpO2 98%, T 38.2°C; nasal cannula 3.7 L/min.\nMeds administered: Nicardipine, Labetalol, NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-19-day": {
@@ -790,7 +790,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 133/79, HR 105, SpO2 97%, T 38.5°C.\nMeds administered: Nicardipine, NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 133/79, HR 105, SpO2 98%, T 38.5°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-20-evening": {
@@ -813,7 +813,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 132/80, HR 101, SpO2 96%, T 38.0°C.\nMeds administered: Nicardipine, NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 132/80, HR 101, SpO2 98%, T 38.0°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-21-night": {
@@ -836,7 +836,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 132/82, HR 104, SpO2 96%, T 38.4°C; nasal cannula 3.3 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 132/82, HR 104, SpO2 98%, T 38.4°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-22-day": {
@@ -859,7 +859,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 133/80, HR 103, SpO2 97%, T 38.5°C; simple face mask 4.8 L/min.\nMeds administered: Nicardipine, Labetalol, NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 133/80, HR 103, SpO2 98%, T 38.5°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, Labetalol, NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-23-evening": {
@@ -882,7 +882,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 138/82, HR 101, SpO2 98%, T 38.3°C; simple face mask 4.6 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 138/82, HR 101, SpO2 98%, T 38.3°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-24-night": {
@@ -905,7 +905,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 134/78, HR 102, SpO2 95%, T 37.5°C; nasal cannula 3.5 L/min.\nMeds administered: Nicardipine, Labetalol.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 134/78, HR 102, SpO2 98%, T 37.5°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, Labetalol.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-25-day": {
@@ -928,7 +928,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 133/80, HR 106, SpO2 93%, T 38.5°C.\nMeds administered: Nicardipine, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 133/80, HR 106, SpO2 98%, T 38.5°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-26-evening": {
@@ -951,7 +951,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 133/74, HR 102, SpO2 97%, T 38.2°C; nasal cannula 3.9 L/min.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 133/74, HR 102, SpO2 98%, T 38.2°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-27-night": {
@@ -974,7 +974,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 131/80, HR 100, SpO2 92%, T 37.7°C.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 131/80, HR 100, SpO2 98%, T 37.7°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-28-day": {
@@ -997,7 +997,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 136/76, HR 105, SpO2 96%, T 37.7°C; simple face mask 4.8 L/min.\nMeds administered: Nicardipine, Labetalol.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 136/76, HR 105, SpO2 98%, T 37.7°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, Labetalol.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-29-evening": {
@@ -1020,7 +1020,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 129/80, HR 97, SpO2 96%, T 38.1°C.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 129/80, HR 97, SpO2 98%, T 38.1°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-30-night": {
@@ -1043,7 +1043,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 6\nRecorded by: Clara Pittman\nPatient status: BP 137/79, HR 95, SpO2 94%, T 37.1°C.\nMeds administered: Nicardipine, Labetalol.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 6\nRecorded by: Clara Pittman\nPatient status: BP 137/79, HR 95, SpO2 98%, T 37.1°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, Labetalol.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-31-day": {
@@ -1066,7 +1066,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 6\nRecorded by: Clara Pittman\nPatient status: BP 132/80, HR 105, SpO2 97%, T 38.5°C; nasal cannula 3.6 L/min.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 6\nRecorded by: Clara Pittman\nPatient status: BP 132/80, HR 105, SpO2 98%, T 38.5°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-32-evening": {
@@ -1089,7 +1089,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 6\nRecorded by: Clara Pittman\nPatient status: BP 131/78, HR 97, SpO2 93%, T 37.5°C.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 6\nRecorded by: Clara Pittman\nPatient status: BP 131/78, HR 97, SpO2 98%, T 37.5°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-33-night": {
@@ -1112,7 +1112,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 134/78, HR 98, SpO2 93%, T 37.3°C.\nMeds administered: Nicardipine, Labetalol.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 134/78, HR 98, SpO2 98%, T 37.3°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, Labetalol.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-34-day": {
@@ -1135,7 +1135,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 133/78, HR 103, SpO2 93%, T 38.3°C.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 133/78, HR 103, SpO2 98%, T 38.3°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-35-evening": {
@@ -1158,7 +1158,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 136/79, HR 98, SpO2 96%, T 37.6°C.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 136/79, HR 98, SpO2 98%, T 37.6°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-36-night": {
@@ -1181,7 +1181,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 132/81, HR 94, SpO2 94%, T 37.3°C.\nMeds administered: Nicardipine, Labetalol.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 132/81, HR 94, SpO2 98%, T 37.3°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, Labetalol.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-37-day": {
@@ -1204,7 +1204,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 133/80, HR 101, SpO2 95%, T 37.8°C.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 133/80, HR 101, SpO2 98%, T 37.8°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-38-evening": {
@@ -1227,7 +1227,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 135/82, HR 98, SpO2 94%, T 37.4°C.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 135/82, HR 98, SpO2 98%, T 37.4°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-39-night": {
@@ -1250,7 +1250,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 9\nRecorded by: Clara Pittman\nPatient status: BP 134/78, HR 96, SpO2 97%, T 37.6°C.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 9\nRecorded by: Clara Pittman\nPatient status: BP 134/78, HR 96, SpO2 98%, T 37.6°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-40-day": {
@@ -1531,7 +1531,7 @@
       "sections": {
         "admission_status": "Hospital stay: 12 days. Admission reason: Sudden severe headache, vomiting, altered consciousness. Fever had not resolved; discharged with outpatient follow-up arranged.",
         "discharge_readiness": "Discharge readiness: Discharge Barthel 95/100.",
-        "nursing_interventions_provided": "Medication administration: 101 doses (4 drugs); Vital-sign monitoring: 180 sets; Oxygen therapy: observed on 43 sets of vital signs; Procedures: Urinary catheter insertion, Nasogastric tube insertion, Transthoracic echocardiography, Central venous catheter insertion, Craniotomy for intracranial hematoma evacuation; Cumulative IN 13524 mL / OUT 13183 mL (net +341 mL); Education: Ask the patient to report headache, nausea or weakness at once.",
+        "nursing_interventions_provided": "Medication administration: 101 doses (4 drugs); Vital-sign monitoring: 180 sets; Oxygen therapy: observed on 156 sets of vital signs; Procedures: Urinary catheter insertion, Nasogastric tube insertion, Transthoracic echocardiography, Central venous catheter insertion, Craniotomy for intracranial hematoma evacuation; Cumulative IN 13524 mL / OUT 13183 mL (net +341 mL); Education: Ask the patient to report headache, nausea or weakness at once.",
         "patient_education": "Patient education: BP control, salt restriction and medication adherence; recurrence signs and when to call for help; continuing rehabilitation and home safety."
       },
       "text": ""

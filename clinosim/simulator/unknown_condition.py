@@ -78,6 +78,7 @@ from clinosim.simulator.diagnosis_rules import unknown_condition_codes
 from clinosim.simulator.encounter_setup import attach_orders, encounter_diagnosis
 from clinosim.simulator.hospital_ops import pick_ward, resolve_department
 from clinosim.simulator.lab_pipeline import patient_true_labs, relate_egfr_to_creatinine
+from clinosim.simulator.oxygen_course import OxygenCourse
 from clinosim.types.clinical import ConditionEvent
 from clinosim.types.config import HealthcareSystemConfig, SimulatorConfig
 from clinosim.types.encounter import (
@@ -158,6 +159,7 @@ def _simulate_unknown_condition(
         rng.integers(UNK_TARGET_LOS_MIN, UNK_TARGET_LOS_MAX_EXCLUSIVE)
     )  # unknown conditions: longer workup
     all_vitals: list[VitalSignRecord] = []
+    oxygen_course = OxygenCourse()  # Issue #3469: oxygen state across the stay's days
     all_orders: list[Order] = []
     all_lab_results: list[OrderResult] = []
     state_history = [deepcopy(state)]
@@ -356,7 +358,9 @@ def _simulate_unknown_condition(
         unk_nurse_id = assign_staff("medication_administration", department, roster, rng).get(
             "administering_nurse", FALLBACK_NURSE_ID
         )  # noqa: E501
-        all_vitals.extend(_generate_vitals(state, patient, day, admission_time, rng, nurse_id=unk_nurse_id))
+        all_vitals.extend(
+            _generate_vitals(state, patient, day, admission_time, rng, nurse_id=unk_nurse_id, oxygen=oxygen_course)
+        )
 
         # MAR for supportive medications
         mars_today = _generate_mar(
