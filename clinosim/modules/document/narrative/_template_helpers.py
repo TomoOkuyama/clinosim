@@ -468,7 +468,10 @@ def _render_safety_skips_line(skips: list[dict], lang: str) -> str:
         except Exception:  # noqa: BLE001
             return value
 
-    return "\n".join(safety_skip_line(s, lang, prefix="safety_skips", drug_name=_drug) for s in skips)
+    # Issue #3458: two raw names of one drug localize to one display form, so a
+    # line is stated once however many entries rendered it.
+    lines = (safety_skip_line(s, lang, prefix="safety_skips", drug_name=_drug) for s in skips)
+    return "\n".join(dict.fromkeys(lines))
 
 
 # English HPI onset phrases per severity — the disease YAML

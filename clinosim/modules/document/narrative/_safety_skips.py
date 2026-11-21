@@ -35,6 +35,16 @@ _AVOID_KIND_STEMS = {"allergy": "avoid_allergy", "disease": "avoid_condition"}
 # (``simulator/discharge_rx.py``): a decision about the prescription, not a
 # hold during the stay.
 _DISCHARGE_HOLD_RULE = "discharge-medication-hold"
+# Issue #3458: only a rule of ``contraindicated`` severity is a contraindication;
+# a drug-drug avoidance of a lower severity is an interaction risk.
+_INTERACTION_SEVERITIES = frozenset({"minor", "moderate", "major"})
+
+
+def _identity(name: object) -> str:
+    """The drug identity of a name (``KCl`` and ``塩化カリウム`` are one drug),
+    the lower-cased text itself for a reason that is not a drug."""
+    text = str(name or "").strip()
+    return drug_key(text) or text.lower()
 
 
 def progress_note_safety_skips(skips: list[dict], held_refs: Collection[str] = ()) -> list[dict]:
@@ -54,12 +64,13 @@ def progress_note_safety_skips(skips: list[dict], held_refs: Collection[str] = (
         if skip.get("rule_id") == _DISCHARGE_HOLD_RULE:
             continue
         # The same event logged twice (a candidate drug avoided for the same
-        # reason on two orders) is stated once.
+        # reason on two orders, or one drug under two raw names; Issue #3458)
+        # is stated once.
         same = (
             str(skip.get("event_type") or "avoid").lower(),
-            str(skip.get("considered") or ""),
-            str(skip.get("avoided_due_to") or ""),
-            str(skip.get("substituted_with") or ""),
+            _identity(skip.get("considered")),
+            _identity(skip.get("avoided_due_to")),
+            _identity(skip.get("substituted_with")),
         )
         if same in seen:
             continue
@@ -90,6 +101,11 @@ def safety_skip_line(
         # Issue #2930: an allergy is not a co-administration conflict;
         # Issue #3283: neither is a condition.
         stem = _AVOID_KIND_STEMS[str(skip.get("conflict_kind"))]
+    elif stem == "avoid" and str(skip.get("severity") or "").lower() in _INTERACTION_SEVERITIES:
+        # Issue #3458: a major / moderate interaction is a risk, not a
+        # contraindication; the wording follows the rule's severity. An entry
+        # with no severity (an older log) keeps the legacy phrase.
+        stem = "avoid_interaction"
     localize = drug_name or (lambda name: name)
     considered = localize(localized_field(skip, "considered", lang))
     # Issue #2992: the phrase supplies the sentence's own full stop, so a

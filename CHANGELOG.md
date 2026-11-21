@@ -39,6 +39,10 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Fixed
+
+- Progress-note drug-safety lines state a drug avoidance once even when its two raw names are one drug (the dedup keys on the drug identity), and word a major/moderate drug interaction as an interaction risk instead of a contraindication; only a contraindicated rule keeps the contraindication wording (#3458).
+
 ## [0.7.0] - 2026-11-11
 
 ### Highlights
