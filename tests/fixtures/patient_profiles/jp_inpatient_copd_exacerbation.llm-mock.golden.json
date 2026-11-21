@@ -847,7 +847,7 @@
         "discharge_details": "2024-07-01自宅退院となった。",
         "discharge_diagnoses": "COPD急性増悪（J44.1）。副病名: せん妄。",
         "discharge_instructions": "[Mock LLM response #18 — discharge_instructions]",
-        "discharge_medications": "プレドニゾロン 20mg 経口 1日1回 x7日分; アモキシシリン/クラブラン酸 250mg 経口 1日3回 x5日分",
+        "discharge_medications": "プレドニゾロン 20mg 経口 1日1回 7日分; アモキシシリン/クラブラン酸 250mg 経口 1日3回 5日分",
         "hospital_course": "[Mock LLM response #18 — hospital_course]",
         "present_illness": "[Mock LLM response #18 — present_illness]"
       },
@@ -2023,7 +2023,7 @@
         "assessment": "[Mock LLM response #19 — assessment]",
         "chief_complaint": "1週間前より痰の量と粘稠度が増加",
         "disposition": "[Mock LLM response #19 — disposition]",
-        "ed_workup": "検査: WBC 10583.0 /uL [H]、CRP 2.8 mg/L [H]、PCT、クレアチニン 1.18 mg/dL [H]、BUN 24.0 mg/dL [H]、Na 140.0 mmol/L、K 4.9 mmol/L [H]、血糖 117.0 mg/dL [H]。画像: 胸部 CT（今回撮像範囲内に急性期異常所見を認めず）、胸部レントゲン (正面・側面)（肺過膨張、横隔膜平坦化、胸骨後腔拡大）。投薬: サルブタモール、イプラトロピウム、プレドニゾロン、ステロイド: プレドニゾロン 40mg 経口 1日1回 x5 日間、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）。処置指示: 気管支拡張薬: サルブタモール 2.5mg ネブライザー 4時間毎 (急性期は1時間毎に頓用)、気管支拡張薬: イプラトロピウム 0.5mg ネブライザー 6時間毎。異常値: CRP 0.28 mg/dL [H]",
+        "ed_workup": "検査: WBC 10583.0 /uL [H]、CRP 2.8 mg/L [H]、PCT、クレアチニン 1.18 mg/dL [H]、BUN 24.0 mg/dL [H]、Na 140.0 mmol/L、K 4.9 mmol/L [H]、血糖 117.0 mg/dL [H]。画像: 胸部 CT（今回撮像範囲内に急性期異常所見を認めず）、胸部レントゲン (正面・側面)（肺過膨張、横隔膜平坦化、胸骨後腔拡大）。投薬: サルブタモール、イプラトロピウム、プレドニゾロン、プレドニゾロン 40mg 経口 1日1回 5日間、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）。処置指示: 気管支拡張薬: サルブタモール 2.5mg ネブライザー 4時間毎 (急性期は1時間毎に頓用)、気管支拡張薬: イプラトロピウム 0.5mg ネブライザー 6時間毎。異常値: CRP 0.28 mg/dL [H]",
         "hpi": "[Mock LLM response #19 — hpi]",
         "physical_exam": "来院時所見: BP 126/79 mmHg, HR 86 回/分, RR 28 回/分, SpO2 81%, T 37.1°C。一般状態: 意識清明、中等度の苦痛様。呼吸器: 喘鳴、呼吸音減弱、呼気延長、呼吸数増加。",
         "triage_details": "トリアージレベル: JTAS レベル2。来院形態: 救急車搬送。アレルギー: 薬物アレルギーなし（NKDA）。"

@@ -22,7 +22,7 @@ from tests.unit.modules.document.narrative.test_jp_no_english_words_3034 import 
 pytestmark = pytest.mark.unit
 
 _REPO = Path(__file__).resolve().parents[3]
-_LEFTOVER = re.compile(r"\bq\d|\bstat\b|_")
+_LEFTOVER = re.compile(r"\bq\d|\bstat\b|_|\bx\s*\d")
 
 
 def _dose_strings() -> set[str]:
@@ -97,3 +97,21 @@ def test_us_output_is_unchanged() -> None:
 
 def test_an_unlisted_dose_falls_back_to_term_substitution() -> None:
     assert localize_dose_text("500mg PO BID", "ja") == "500mg 経口 1日2回"
+
+
+def test_a_duration_multiplier_is_written_in_japanese() -> None:
+    # Issue #3473: "x 1h" / "x 7 days" must not survive in a JP dose.
+    assert (
+        localize_dose_text("1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h", "ja")
+        == "1000 mL/h で1時間、その後 500 mL/h で4時間、その後 250 mL/h"
+    )
+    assert localize_dose_text("1g IV daily x 7 days", "ja") == "1g 静注 1日1回 7日間"
+
+
+def test_jp_golden_narratives_carry_no_multiplier() -> None:
+    # Issue #3473: rendered JP narrative of every golden profile has no "x7日分" / "x 1h".
+    bad = re.compile(r"\bx\s*\d+\s*(日分|h\b|日間)|mL/h x ")
+    hits = []
+    for path in sorted((_REPO / "tests/fixtures/patient_profiles").glob("jp_*.golden.json")):
+        hits += [f"{path.name}: {m.group(0)}" for m in bad.finditer(path.read_text(encoding="utf-8"))]
+    assert not hits, "\n".join(hits)

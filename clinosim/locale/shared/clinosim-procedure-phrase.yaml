@@ -273,6 +273,23 @@ dose_phrases:
   "40mg PO daily (after IV course)": {ja: "40mg 経口 1日1回 (静注治療後)"}
   "10mg IV slow infusion": {ja: "10mg 緩徐に静注"}
   "300mL 20% IV rapid": {ja: "20% 300mL 急速静注"}
+
+  # Issue #3473: schedules with a duration multiplier ("x 1h", "x 7 days"). Without a
+  # whole phrase the multiplier survived as a raw "x 1h" in the JP record.
+  "1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h": {ja: "1000 mL/h で1時間、その後 500 mL/h で4時間、その後 250 mL/h"}
+  "15-20 mL/kg/h x 1h (1-1.5L), then 250-500 mL/h": {ja: "15-20 mL/kg/h で1時間 (1-1.5L)、その後 250-500 mL/h"}
+  "150mg IV over 10min, then 1mg/min x6h, then 0.5mg/min": {ja: "150mg を10分かけて静注、その後 1mg/分 で6時間、その後 0.5mg/分"}
+  "15mg PO BID x 21 days then 20mg PO daily": {ja: "15mg 経口 1日2回 21日間、その後 20mg 経口 1日1回"}
+  "15mg PO BID x21 days, then 20mg PO daily": {ja: "15mg 経口 1日2回 21日間、その後 20mg 経口 1日1回"}
+  "15mg PO BID x21d then 20mg daily": {ja: "15mg 経口 1日2回 21日間、その後 20mg 1日1回"}
+  "1g IV daily x 7 days": {ja: "1g 静注 1日1回 7日間"}
+  "2000IU SC daily x14 days": {ja: "2000IU 皮下注 1日1回 14日間"}
+  "30-40mg PO daily x5-7 days": {ja: "30-40mg 経口 1日1回 5-7日間"}
+  "40mg PO daily x5 days": {ja: "40mg 経口 1日1回 5日間"}
+  "500mg PO qid x7d": {ja: "500mg 経口 1日4回 7日間"}
+  "50mcg IV bolus, then 50mcg/h continuous infusion x 3-5 days": {ja: "50mcg 静注ボーラス、その後 50mcg/h で持続静注 3-5日間"}
+  "80mg IV bolus, then 8mg/h continuous infusion x 72h": {ja: "80mg 静注ボーラス、その後 8mg/h で持続静注 72時間"}
+  "Alteplase 0.5-1mg/h via catheter x12-24h": {ja: "アルテプラーゼ 0.5-1mg/h カテーテル経由 12-24時間"}
   "300mg IV single dose": {ja: "300mg 静注 単回投与"}
   "600mg IV single dose": {ja: "600mg 静注 単回投与"}
   "30mL PO TID (titrate to 2-3 soft stools/day)": {ja: "30mL 経口 1日3回 (軟便 2-3 回/日を目安に調節)"}

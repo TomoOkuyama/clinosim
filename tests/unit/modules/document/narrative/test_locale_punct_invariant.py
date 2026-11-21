@@ -108,7 +108,7 @@ def test_compose_today_prescription_line_ja_uses_fullwidth_join():
     """L4795 minor polish: JA prescription list should use `、` not `; `.
 
     The item builder emitted the JA prescription list as
-    "本日処方: Metformin 500mg tid x14日分; Tiotropium 18mcg qd" — an
+    "本日処方: Metformin 500mg tid 14日分; Tiotropium 18mcg qd" — an
     ASCII semicolon inside a JA sentence reads as mixed-locale style.
     The locale-conditional join keeps the JP `、` for JA and `; ` for EN.
     """

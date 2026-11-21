@@ -947,7 +947,7 @@
         "discharge_details": "2024-07-03自宅退院となった。",
         "discharge_diagnoses": "肺炎（J18.9）。副病名: せん妄。",
         "discharge_instructions": "[Mock LLM response #20 — discharge_instructions]",
-        "discharge_medications": "アモキシシリン 250mg 経口 1日3回 x5日分",
+        "discharge_medications": "アモキシシリン 250mg 経口 1日3回 5日分",
         "hospital_course": "[Mock LLM response #20 — hospital_course]",
         "present_illness": "[Mock LLM response #20 — present_illness]"
       },
