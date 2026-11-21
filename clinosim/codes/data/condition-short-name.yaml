@@ -116,6 +116,7 @@ codes:
   E66.9: {en: "Obesity", ja: "肥満"}
   E79.0: {en: "Hyperuricemia", ja: "高尿酸血症"}
   E84: {en: "Cystic fibrosis", ja: "嚢胞性線維症"}
+  F05: {en: "Delirium", ja: "せん妄"}
   F10: {en: "Alcohol-related disorder", ja: "アルコール関連障害"}
   F10.2: {en: "Alcohol dependence", ja: "アルコール依存症"}
   F10.23: {en: "Alcohol withdrawal", ja: "アルコール離脱"}

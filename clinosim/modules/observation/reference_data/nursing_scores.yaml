@@ -119,7 +119,8 @@ morse:
   #     whose memory and judgement deficits interfere with everyday activities;
   #     CDR 0.5 (questionable dementia, fully capable of self-care) is not;
   #   - in-hospital delirium (complication name), from the day of its onset
-  #     to the end of the stay (the simulator does not model its resolution).
+  #     to the end of the stay (the recorded resolution of a derived delirium
+  #     episode, Issue #3519, is not applied here).
   # Clinical mapping chosen for this simulator, not part of the published
   # scale, which leaves the judgement to the assessing nurse.
   forgets_limitations:

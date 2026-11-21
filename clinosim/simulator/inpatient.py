@@ -76,7 +76,9 @@ from clinosim.simulator._stay_thresholds import (
     URGENT_ADMISSION_HOUR_MIN,
     URGENT_ADMISSION_HOUR_STD,
 )
+from clinosim.simulator.complications import complication_names
 from clinosim.simulator.daily_loop import SYMPTOM_AXES, _run_daily_loop
+from clinosim.simulator.delirium import delirium_code, derive_delirium, has_delirium
 from clinosim.simulator.discharge_gate import discharge_disposition_for
 from clinosim.simulator.discharge_rx import build_discharge_rx
 from clinosim.simulator.encounter_setup import (
@@ -1016,6 +1018,17 @@ def _simulate_patient(
     all_adl = loop_result.adl_assessments
     state_history = loop_result.state_history
     complications_occurred = loop_result.complications
+    # Issue #3519: a susceptible patient whose level of consciousness stays
+    # reduced for days has a delirium episode (onset, duration, resolution),
+    # derived from the recorded AVPU without any draw.
+    _delirium = derive_delirium(
+        loop_result.vitals,
+        patient.physiological_profile.delirium_susceptibility,
+        admission_time,
+        existing=complication_names(complications_occurred),
+    )
+    if _delirium is not None:
+        complications_occurred = [*complications_occurred, _delirium]
     death_occurred = loop_result.death_occurred
     icu_transferred = loop_result.icu_transferred
     # Issue #2091: intubation performed when the state crossed the airway threshold.
@@ -1038,6 +1051,15 @@ def _simulate_patient(
         encounter_id=encounter.encounter_id,
         secondary_recognised_late=co_disease_recognised_late(encounter.encounter_id),
     )
+
+    # Issue #3519: a delirium of the stay (derived, or an ICU / postoperative
+    # delirium complication) is a coded secondary diagnosis.
+    _dx_primary = (clinical_diagnosis.admission_diagnosis_code, clinical_diagnosis.discharge_diagnosis_code)
+    if has_delirium(complication_names(complications_occurred)) and delirium_code() not in (
+        *clinical_diagnosis.secondary_diagnosis_codes,
+        *_dx_primary,
+    ):
+        clinical_diagnosis.secondary_diagnosis_codes.append(delirium_code())
 
     # Build ground truth diseases list
     if event.condition_type == "mixed" and secondary_disease_id:

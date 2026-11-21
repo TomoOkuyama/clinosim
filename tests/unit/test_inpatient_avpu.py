@@ -22,7 +22,9 @@ def test_loc_for_reaches_unresponsive_at_severe_shock():
 def test_loc_for_does_not_regress_existing_bands():
     """Existing V/P/A bands must still fire for their prior perfusion ranges."""
     moderate_shock = PhysiologicalState(perfusion_status=0.35)
-    seen = {_loc_for(moderate_shock, "sepsis", 3, np.random.default_rng(seed)) for seed in range(200)}
+    # Acute window only (the admission day): beyond it a perfusion band alone
+    # no longer reduces the level (Issue #3519).
+    seen = {_loc_for(moderate_shock, "sepsis", 0, np.random.default_rng(seed)) for seed in range(200)}
     assert seen <= {"V", "P"}
 
     healthy = PhysiologicalState(perfusion_status=1.0)

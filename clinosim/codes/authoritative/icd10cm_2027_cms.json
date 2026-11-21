@@ -4,7 +4,7 @@
     "source_url": "https://www.cms.gov/files/zip/2027-code-descriptions-tabular-order.zip",
     "source_file": "Code Descriptions/icd10cm_order_2027.txt (long description, columns 78-)",
     "extracted_at": "2026-11-10",
-    "clinosim_codes_total": 543,
+    "clinosim_codes_total": 544,
     "clinosim_codes_missing_from_source": [
       "F00",
       "J46",
@@ -366,6 +366,11 @@
     {
       "code": "F03.90",
       "display": "Unspecified dementia, unspecified severity, without behavioral disturbance, psychotic disturbance, mood disturbance, and anxiety",
+      "billable": true
+    },
+    {
+      "code": "F05",
+      "display": "Delirium due to known physiological condition",
       "billable": true
     },
     {

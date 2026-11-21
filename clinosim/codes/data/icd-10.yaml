@@ -57,6 +57,10 @@ codes:
   F00:
     en: Dementia in Alzheimer disease[G30.-]
     ja: "アルツハイマー＜Alzheimer＞病の認知症（G30.-†）"
+  # Issue #3519: delirium of an inpatient stay (tx.fhir.org $lookup 2026-11-21).
+  F05:
+    en: Delirium, not induced by alcohol and other psychoactive substances
+    ja: "せん妄，アルコールその他の精神作用物質によらないもの"
   F10:
     en: Mental and behavioural disorders due to use of alcohol
     ja: "アルコール使用＜飲酒＞による精神及び行動の障害"

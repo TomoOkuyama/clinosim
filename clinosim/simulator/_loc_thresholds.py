@@ -24,6 +24,7 @@ __all__ = [
     "LOC_MODERATE_V_OVER_P_PROBABILITY",
     "LOC_NEURO_MILD_HYPOPERFUSION_THRESHOLD",
     "LOC_NEURO_MILD_V_OVER_A_PROBABILITY",
+    "LOC_PERFUSION_ACUTE_MAX_DAY",
     "LOC_REFRACTORY_SHOCK_THRESHOLD",
     "LOC_REFRACTORY_U_OVER_P_PROBABILITY",
 ]
@@ -88,3 +89,23 @@ hypoperfusion band with a neuro disease.
 Empirical tuning for the synthetic simulator: 50/50 split reflects
 the day-to-day fluctuation seen in neuro patients — some days alert,
 some days drowsy — with any given assessment landing on either."""
+
+
+# ---------------------------------------------------------------------------
+# Window of the perfusion-derived reduced level (Issue #3519)
+# ---------------------------------------------------------------------------
+
+LOC_PERFUSION_ACUTE_MAX_DAY: int = 0
+"""Last hospital day on which the moderate and neuro-mild perfusion bands
+above reduce the level of consciousness.
+
+A low-output state that persists at a stable level (a plateau course in acute
+MI or heart failure at ``perfusion_status`` 0.3-0.4, with a normal blood
+pressure) is a compensated state with preserved cerebral perfusion: it kept
+the patient at AVPU V for 10 consecutive days with no driver. A reduced level
+beyond the acute window needs its own driver: the ``consciousness_impairment``
+axis, or refractory shock (below ``LOC_REFRACTORY_SHOCK_THRESHOLD``), which
+applies on every day. Model choice (the window is the admission day, day 0,
+so the perfusion bands alone never give two calendar days of reduced
+level); the draws of the bands are still taken on every day, so no random
+stream shifts."""

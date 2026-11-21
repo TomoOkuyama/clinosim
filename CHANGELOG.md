@@ -54,6 +54,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 - An operative note states its indication: a procedure recorded without a pre-operative diagnosis (an isolated-rule or bedside procedure) falls back to the encounter admission and discharge diagnosis, and reads "Indication: not documented" when the stay records none, instead of leaving the diagnosis out.
 - The delivery discharge prescription continues the mother's maintenance home medications (28 days, dose/route/frequency kept; allergy-blocked drugs left out) alongside the two analgesics, so the discharge summary no longer reports them stopped while the postpartum visits keep listing them (#3463). CIF drift, a MINOR-class change.
 - Progress-note Objective writes the "no special findings" filler only when the section has no other content, and a Japanese exam sentence that loses its trailing clause to the vital-sign agreement ends in the sentence-final verb (`脱水を認める`, not `脱水を認め。`) (#3456).
+- Persistent reduced consciousness has a recorded cause: a perfusion band alone reduces AVPU only on the admission day (a compensated low-output plateau no longer reads as drowsy for days), and a patient with high `delirium_susceptibility` whose AVPU stays below Alert for two or more days gets a `delirium` complication (onset, duration, resolution) with ICD-10-CM / ICD-10 F05 as a coded secondary diagnosis; an ICU or postoperative delirium complication is coded the same way (#3519). CIF drift, a MINOR-class change.
 
 ## [0.7.0] - 2026-11-11
 

@@ -163,6 +163,10 @@ clinosim/simulator/
                          hospital day 1-3 when recognised late), and its onset axes
                          returned to baseline over the days after treatment starts
                          (Issue #3392)
+  delirium.py            delirium derived from persistent reduced AVPU in a patient with
+                         high delirium_susceptibility: complication entry (onset,
+                         duration, resolution) and ICD-10-CM / ICD-10 F05 as a
+                         secondary diagnosis; no RNG (Issue #3519)
   vasopressor_initiation.py  starts a vasopressor from the recorded mean arterial
                          pressure (low despite fluids) instead of a fixed day
                          (Issue #3332)
@@ -290,6 +294,7 @@ Reference data (`reference_data/`, 8 YAMLs):
   reference_data/maintenance_iv_fluid.yaml    when the maintenance IV-fluid order is stopped (maintenance_iv_fluid.py)
   reference_data/ketoacidosis_resolution.yaml DKA resolution criteria and the IV-to-subcutaneous insulin transition (ketoacidosis_resolution.py)
   reference_data/mixed_condition.yaml         late recognition, recovery and order merge of a mixed admission's co-disease (mixed_condition.py)
+  reference_data/delirium_derivation.yaml     susceptibility cut, episode rule and code of a derived delirium (delirium.py)
   reference_data/aki_response.yaml            AKI detection, drugs held during AKI, discharge gate (aki_response.py)
   reference_data/device_removal.yaml          catheter placing events and the indications that end them (device_removal.py)
 ```

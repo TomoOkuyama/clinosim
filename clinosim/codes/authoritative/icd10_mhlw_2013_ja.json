@@ -5,7 +5,7 @@
     "source_file": "kihon2013.xlsx (sheet 基本分類表データ, columns コード / コード名)",
     "extracted_at": "2026-11-01",
     "note": "Japanese official names of the ICD-10 codes clinosim emits for JP, filtered from the full table (15,296 codes).",
-    "later_additions": "E11.2, E11.3 and E11.4 (Issue #3259), G35, I69.1 and I69.3 (Issue #3327) were added on 2026-11-16 from the same kihon2013.xlsx table. T20.0-T25.0 (Issue #3258) were added on 2026-11-18 from the same kihon2013.xlsx table."
+    "later_additions": "E11.2, E11.3 and E11.4 (Issue #3259), G35, I69.1 and I69.3 (Issue #3327) were added on 2026-11-16 from the same kihon2013.xlsx table. T20.0-T25.0 (Issue #3258) were added on 2026-11-18 from the same kihon2013.xlsx table. F05 (Issue #3519) was added on 2026-11-21 from the same kihon2013.xlsx table."
   },
   "concept": [
     {
@@ -247,6 +247,10 @@
     {
       "code": "F00",
       "display": "アルツハイマー＜Alzheimer＞病の認知症（G30.-†）"
+    },
+    {
+      "code": "F05",
+      "display": "せん妄，アルコールその他の精神作用物質によらないもの"
     },
     {
       "code": "F10",

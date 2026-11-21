@@ -77,6 +77,8 @@ The four symptom axes default to 0, are clamped to their range by `state_variabl
 - **Observations**:
   - pain score = max(noise draw, round(10 × pain_level)) for inpatient / ED; outpatient records it when set; FHIR LOINC 72514-3
   - AVPU = consciousness + N(0, 0.12) mapped to V ≥ 0.25, P ≥ 0.5, U ≥ 0.75 (inpatient and ED; clinic visits do not assess it)
+  - perfusion fallback (Issue #3519): without a consciousness driver, perfusion < 0.4 (and < 0.6 in neuro diseases) reduces AVPU only on hospital day 0 (the admission day); refractory shock (perfusion < 0.2) reduces it on any day, so a compensated plateau is not drowsiness
+  - delirium (Issue #3519): a patient with `delirium_susceptibility` >= 0.3 whose AVPU stays below Alert for 2 or more consecutive days gets a `delirium` complication (onset, duration, resolution; ICD-10-CM / ICD-10 F05 as a secondary diagnosis), see `simulator/delirium.py`
 - **Decisions**:
   - discharge is unsafe while sympathetic ≥ 0.25, oxygenation > baseline + 0.12, consciousness ≥ baseline + 0.25 or perfusion < 0.5; the stay extends to the protocol maximum, then discharge goes to SNF
   - oxygen starts below SpO2 92% (88% for COPD) and raises the recorded SpO2
