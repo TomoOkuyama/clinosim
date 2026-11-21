@@ -53,6 +53,55 @@ tar -xzf clinosim-dataset-jp-100-v0.3.0.tar.gz
 リリース間は `clinosim dataset build` をローカルで使用 — 出力は
 バイト同一保証。
 
+## H100 で生成した大規模サンプルコホート (LLM 仕上げ)
+
+一部のリリース (v0.6.1 以降) には、Sakura H100 (vLLM 上の
+Qwen3.8-27B-FP8) で生成した、より大規模な LLM 仕上げのサンプル
+コホートも添付される。これらは CLI でビルドできるプリセットでは
+*ない* — seed は 42 以外で、
+[`verify/EMPIRICAL_RESULTS.md`](../verify/EMPIRICAL_RESULTS.md) に記載の
+H100 vLLM チューニング契約に従う — が、下流利用者が一括ダウンロード
+やリリース間の差分をスクリプト化できるよう、**安定した命名規則**に
+従う:
+
+```
+clinosim-v<VERSION>-<locale>-p<POP>-s<SEED>-<narrative-generator>.tar.gz
+```
+
+各フィールド:
+
+- `<VERSION>`: リリース tag。例 `0.6.3`。
+- `<locale>`: `jp` または `us` (小文字)。
+- `<POP>`: 診療圏人口。例 `p10000`。
+- `<SEED>`: `clinosim simulate` 実行時の `--seed` 値。例 `s3532`。
+- `<narrative-generator>`: `template-narrative` (決定的、LLM なし)
+  または `llm-polished-narrative` (LLM 生成の bundle narrative)。
+
+内部構成は両 variant で同一:
+
+```
+cif/
+  hospital.json
+  metadata.json            (clinosim_version はリリース tag に固定)
+  structural/
+    patients/*.json
+  narratives/
+    current_version.txt    ("llm-polished" または "template" を指す)
+    template/              (決定的 template narrative。常に存在)
+    llm-polished/          (llm-polished-narrative アーカイブのみ)
+fhir_r4/
+  *.ndjson                 (全 FHIR R4 リソース)
+  _generator_metadata.json (clinosim_version + cif_metadata の入れ子ミラー)
+```
+
+両 metadata ファイルは `clinosim_version` をリリース tag に固定する。
+`_generator_metadata.json` には、コホート生成時の git commit と直近の
+PR 履歴も記録される。
+
+最近の例: `clinosim-v0.6.3-jp-p10000-s3532-llm-polished-narrative.tar.gz`
+と `clinosim-v0.6.3-us-p10000-s3532-llm-polished-narrative.tar.gz`
+(`v0.6.3` リリースページ参照)。
+
 ## 倫理と免責
 
 同梱される全データセットは **完全に合成**。clinosim は実患者データ、
