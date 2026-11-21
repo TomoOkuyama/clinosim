@@ -132,7 +132,16 @@ def compose_progress_subjective_from_state(ctx: NarrativeContext) -> str:
                 parts.append(t("progress.fever_persistent", lang, t=now_t, peak=peak))
         abnormal_added = True
     elif tmin is not None and tmin < trend.hypothermia_below_c:
-        parts.append(t("progress.hypothermia", lang, t=tmin))
+        # Issue #3453: the core-temperature definition, on the latest reading;
+        # a lower minimum earlier in the period is time-qualified.
+        now_t = tmin if cur_t is None else cur_t
+        if now_t >= trend.hypothermia_below_c:
+            parts.append(t("progress.hypothermia_transient_low", lang, tmin=tmin, t=now_t, when=when))
+        else:
+            peak = (
+                t("progress.hypothermia_peak", lang, tmin=tmin, when=when) if round(tmin, 1) != round(now_t, 1) else ""
+            )
+            parts.append(t("progress.hypothermia", lang, t=now_t, peak=peak))
         abnormal_added = True
     elif (
         prev_tmax is not None
@@ -160,7 +169,7 @@ def compose_progress_subjective_from_state(ctx: NarrativeContext) -> str:
         parts.append(t("progress.spo2_recovering", lang, ps=prev_spo2, s=spo2_min))
         abnormal_added = True
 
-    symptom_parts = _progress_symptom_phrases(ctx, picks, prev, lang)
+    symptom_parts = _progress_symptom_phrases(ctx, picks, prev, lang, when)
     parts.extend(symptom_parts)
     abnormal_added = abnormal_added or bool(symptom_parts)
 
@@ -245,14 +254,24 @@ _SUBJ_PAIN_CHANGE = 2
 _SUBJ_WITHDRAWAL_HR = 100
 
 
-def _progress_symptom_phrases(ctx: NarrativeContext, today: list, prev: list, lang: str) -> list[str]:
+def _progress_symptom_phrases(ctx: NarrativeContext, today: list, prev: list, lang: str, when: str) -> list[str]:
     """Pain trend, consciousness change and withdrawal symptoms from the
-    recorded vitals of today vs the previous day (Issue #2095)."""
+    recorded vitals of today vs the previous day (Issue #2095). Consciousness
+    is stated on the latest AVPU of each period, the one the Assessment's
+    course line judges, with a worse level earlier in the period
+    time-qualified (Issue #3455)."""
     out: list[str] = []
 
     def _max(rows: list, key: str) -> int | None:
         vals = [int(x) for x in (_o(r, key, None) for r in rows) if x is not None]
         return max(vals) if vals else None
+
+    def _latest_avpu(rows: list) -> str:
+        for r in reversed(rows):
+            level = str(_o(r, "consciousness_level", "") or "")
+            if level in _AVPU_ORDER:
+                return level
+        return ""
 
     def _worst_avpu(rows: list) -> str:
         levels = [str(_o(r, "consciousness_level", "") or "") for r in rows]
@@ -262,7 +281,8 @@ def _progress_symptom_phrases(ctx: NarrativeContext, today: list, prev: list, la
     from clinosim.modules.document.narrative._narrative_interpretation_thresholds import progress_vitals_rules
 
     rules = progress_vitals_rules()
-    avpu, prev_avpu = _worst_avpu(today), _worst_avpu(prev)
+    avpu, prev_avpu = _latest_avpu(today), _latest_avpu(prev)
+    worst = _worst_avpu(today)
     # Issue #3235: a self-reported score only while the patient can give one
     # (no behavioural pain scale is recorded), named by the disease's pain.
     pain, prev_pain = _max(today, "pain_score"), _max(prev, "pain_score")
@@ -285,9 +305,12 @@ def _progress_symptom_phrases(ctx: NarrativeContext, today: list, prev: list, la
 
     if avpu and avpu != "A":
         key = "progress.confusion_persistent" if prev_avpu and prev_avpu != "A" else "progress.confusion_new"
-        out.append(t(key, lang, a=avpu))
+        peak = t("progress.consciousness_peak", lang, w=worst, when=when) if worst != avpu else ""
+        out.append(t(key, lang, a=avpu, peak=peak))
     elif avpu == "A" and prev_avpu and prev_avpu != "A":
         out.append(t("progress.consciousness_improved", lang, a=prev_avpu))
+    elif avpu == "A" and worst != "A":
+        out.append(t("progress.consciousness_transient_low", lang, w=worst, when=when))
 
     disease_id = getattr(getattr(ctx, "disease_protocol", None), "disease_id", "") or ""
     if disease_id == "alcohol_withdrawal":

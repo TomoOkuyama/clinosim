@@ -33,7 +33,15 @@ metadata:
 #     the period's maximum is below this.
 #   fever_rise_c: a period maximum this much above the previous maximum is a
 #     worsening fever.
-#   hypothermia_below_c: a period minimum below this is hypothermia.
+#   hypothermia_below_c: a latest reading below this is hypothermia. 35.0 °C
+#     is the clinical definition, "an unintentional fall in core body
+#     temperature below 35 °C" (Epstein E, Anna K. Accidental hypothermia.
+#     BMJ 2006;332:706-9; mild 32.2-35 °C). Readings of 35.0-35.9 °C are not
+#     hypothermia and are not named (Issue #3453). The note records an
+#     oral / axillary / core temperature without saying which, so this is the
+#     conservative end of the definition. Judged on the latest reading like
+#     the fever and SpO2 trends; a lower minimum earlier in the period is
+#     stated time-qualified.
 #   spo2_desaturation_below / spo2_recovered_at_least / spo2_drop: SpO2
 #     desaturation is a period minimum below 92 % (the oxygen-start trigger of
 #     the vitals generator); recovered when the minimum is back at 94 % or
@@ -43,13 +51,14 @@ trend:
   fever_c: 38.0
   fever_resolved_below_c: 37.5
   fever_rise_c: 0.3
-  hypothermia_below_c: 36.0
+  hypothermia_below_c: 35.0
   spo2_desaturation_below: 92
   spo2_recovered_at_least: 94
   spo2_drop: 2
 
-# A self-reported pain score (NRS) is quoted only while the patient's worst
-# AVPU level of the period is one of these. A patient who responds only to
+# A self-reported pain score (NRS) is quoted only while the patient's latest
+# AVPU level of the period is one of these (Issue #3455: the same reading the
+# consciousness line and the Assessment's course use). A patient who responds only to
 # pain or not at all cannot self-report; clinosim records no behavioural pain
 # scale (CPOT / BPS / PAINAD), so no pain score is quoted then.
 self_report_avpu: [A, V]

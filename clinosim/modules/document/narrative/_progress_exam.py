@@ -23,6 +23,7 @@ from clinosim.datafiles import load_validated_yaml
 from clinosim.locale.i18n import t
 from clinosim.locale.localized import normalize_lang
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules.document.narrative._vitals_line import latest_vitals_set
 from clinosim.modules.observation.pediatric_ranges import age_in_completed_months, pediatric_vital_range
 
 if TYPE_CHECKING:
@@ -106,6 +107,9 @@ class _CourseItem(BaseModel):
     vital: str
     state: _State
     name: _Localized
+    # The move of the vital's latest value (its unit) that makes a persisting
+    # state improving / worsening; ``None`` for a pseudo-vital.
+    min_change: float | None = Field(default=None, gt=0)
 
 
 class ProgressExamRules(BaseModel):
@@ -129,6 +133,9 @@ class ProgressExamRules(BaseModel):
         named |= {f.vital for f in self.state_findings} | {c.vital for c in self.course_items}
         if named - known:
             raise ValueError(f"progress_exam.yaml: vitals without a limit {sorted(named - known)}")
+        unmeasured = sorted(c.vital for c in self.course_items if c.vital in self.limits and c.min_change is None)
+        if unmeasured:
+            raise ValueError(f"progress_exam.yaml: course items of a measured vital need min_change {unmeasured}")
         bad = sorted({f.system for f in self.state_findings} - set(PHYSICAL_EXAM_SYSTEMS))
         if bad:
             raise ValueError(f"progress_exam.yaml: unknown exam systems {bad}")
@@ -367,8 +374,37 @@ def course_line(ctx: NarrativeContext, readings: list, previous: list, lang: str
         return t("progress.course_improving", lang, list=sep.join(n for n in before if n not in now))
     if len(now) > len(before):
         return t("progress.course_worsening", lang, list=sep.join(n for n in now if n not in before))
-    common = [n for n in now if n in before]
-    return t("progress.course_persisting", lang, list=sep.join(common)) if common else ""
+    # Issue #3455: a state present in both periods is persisting unless the
+    # vital's latest value moved by its ``min_change`` between them.
+    cur, prev = latest_vitals_set(readings), latest_vitals_set(previous)
+    persisting: list[str] = []
+    improving: list[str] = []
+    worsening: list[str] = []
+    for i in items:
+        label = i.name.get(code) or i.name["en"]
+        if label not in now or label not in before:
+            continue
+        a, b = _o(prev, i.vital, None), _o(cur, i.vital, None)
+        if i.min_change is None or a is None or b is None or abs(float(b) - float(a)) < i.min_change:
+            persisting.append(label)
+            continue
+        moved_down = float(b) < float(a)
+        detail = f"{label} {_fmt(float(a), i.min_change)} → {_fmt(float(b), i.min_change)}"
+        (improving if moved_down == (i.state == "high") else worsening).append(detail)
+    lines = []
+    for key, group in (
+        ("progress.course_persisting", persisting),
+        ("progress.course_persisting_improving", improving),
+        ("progress.course_persisting_worsening", worsening),
+    ):
+        if group:
+            lines.append(t(key, lang, list=sep.join(group)))
+    return t("list_sep.sentence_gap", lang).join(lines)
+
+
+def _fmt(value: float, step: float) -> str:
+    """A vital value with the decimals its meaningful change needs."""
+    return f"{value:.1f}" if step < 1 else f"{value:.0f}"
 
 
 def worst_avpu(readings: list) -> str:
