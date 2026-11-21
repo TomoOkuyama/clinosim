@@ -195,7 +195,7 @@ from clinosim.modules.physiology.engine import (
 ```
 clinosim/modules/physiology/
   __init__.py                        空
-  engine.py                          initialize_state / apply_* / derive_* / flag helper (~1570 LOC)
+  engine.py                          initialize_state / apply_* / derive_* / flag helper
   _coupling_coefficients.py          慢性疾患ごとの coupling (Issue #637 PR-B)
   _lab_derivation_thresholds.py      analyte 式定数 (Issue #637)
   _state_coupling_thresholds.py      apply_coupling_rules 定数 (Issue #637)
@@ -203,6 +203,7 @@ clinosim/modules/physiology/
   dehydration_thresholds.py          canonical volume_status 閾値 (Issue #561)
   renal_thresholds.py                canonical renal_function 閾値 (Issue #561)
   statin_response.py                 statin / ezetimibe による LDL 低下 (Issue #2917, #2947)
+  egfr.py                            estimated_gfr — 血清クレアチニン・年齢・性別 (小児は身長も) から国別の式で eGFR を求める (Issue #3019)
   reference_data/
     chronic_glycemic_thresholds.yaml HbA1c / glucose / acid-base scalar
     state_variable_ranges.yaml       state 変数ごとの min / max range

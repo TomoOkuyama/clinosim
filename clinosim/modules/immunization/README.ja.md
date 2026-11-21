@@ -210,8 +210,8 @@ Z26.9)。FHIR の Encounter・Procedure の `reasonCode` がこれを使い、US
     COVID-19 mRNA, PPSV23, Tdap, RZV Shingrix) + 小児 13
     (`pediatric_series` 12 + 小児インフルエンザ annual)。
   - [`clinosim/locale/jp/immunization_schedule.yaml`](../../locale/jp/immunization_schedule.yaml)
-    — MHLW 定期接種 schedule。現状 13 エントリ: 成人 3
-    (Influenza, COVID-19 mRNA, PPSV23) + 小児 `pediatric_series` 10。
+    — MHLW 定期接種 schedule。現状 14 エントリ: 成人 3
+    (Influenza, COVID-19 mRNA, PPSV23) + 小児 `pediatric_series` 11。
 - Schedule エントリ shape:
   | キー | 意味 |
   | --- | --- |
@@ -231,10 +231,9 @@ Z26.9)。FHIR の Encounter・Procedure の `reasonCode` がこれを使い、US
   | `history_years` | 任意。EHR 保持期間 (flu → 10 y 等)。 |
   | `administration` | 接種方法 (Issue #3005): `route` (`codes/data/snomed-maps.yaml` の route キー: `IM` / `SC` / `PO` / `PERCUTANEOUS`)、`dose_ml` (BCG のように添付文書に固定量がない場合は省略)、任意の `dose_ml_by_age` `[{max_age_months, ml}]` (例: JP 日本脳炎 3 歳未満 0.25 mL)。schedule 最上位の `administration_sites` が経路と月齢帯ごとの SNOMED 接種部位を与える (乳幼児の筋注は大腿、それ以外は上腕、経口は部位なし)。`engine.vaccine_administration(country, cvx, age_months)` が FHIR Immunization の `route` / `site` / `doseQuantity` に使う。 |
   | `coverage_by_age_sex` | `{"age_band": {sex: rate}}` (0-1、小児 series 以外)。 |
-  | `program_type` | 小児エントリ (`mandatory` / `elective`)。情報用で engine は読まない。 |
 - CVX コード表:
   [`clinosim/codes/data/cvx.yaml`](../../codes/data/cvx.yaml)
-  — 34 コード。
+  — 38 コード。
   FHIR system URI: `http://hl7.org/fhir/sid/cvx`。
 
 ## ディレクトリ構造
@@ -267,7 +266,7 @@ clinosim/modules/immunization/
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
 | CSV adapter | [`clinosim/modules/output/csv_adapter.py`](../output/csv_adapter.py) (`convert_cif_to_csv`) | `record["immunizations"]` から `immunizations.csv` を書き出し。 |
-| FHIR `Immunization` builder | [`clinosim/modules/output/fhir_r4/procedures/immunization.py`](../output/fhir_r4/procedures/immunization.py) | 記録ごとに FHIR R4 `Immunization` を 1 件出力。id は structural key `{patient_id}-{index}` (identifier に保持) から導出した `imm-<12hex>`、`vaccineCode` = CVX + locale 表示、`occurrenceDateTime` = 接種日、`primarySource` は記録値 (window 前の接種は `false`)、`encounter` は `encounter_id` から (emit 時キーワード照合が fallback)、`not-done` は `statusReason` PATOBJ、`dose_number` を `protocolApplied[0].doseNumberPositiveInt` に、`administered_by` が非空なら `performer` に反映、`_synthetic_lot` を `lotNumber` に emit。 |
+| FHIR `Immunization` builder | [`clinosim/modules/output/fhir_r4/procedures/immunization.py`](../output/fhir_r4/procedures/immunization.py) | 記録ごとに FHIR R4 `Immunization` を 1 件出力。id は structural key `{patient_id}-{index}` (identifier に保持) から導出した `imm-<12hex>`、`vaccineCode` = CVX + locale 表示、`occurrenceDateTime` = 接種日、`primarySource` は記録値 (window 前の接種は `false`)、`encounter` は `encounter_id` から (emit 時キーワード照合が fallback)、`not-done` は `statusReason` PATOBJ、`dose_number` を `protocolApplied[0].doseNumberPositiveInt` に、`administered_by` が非空なら `performer` に反映、記録の `lot_number` が非空なら `lotNumber` に emit (`engine.synthetic_lot_number` が生成)。 |
 | Enricher registry | [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) `register_builtin_enrichers` | POST_RECORDS 登録。 |
 
 ## テスト

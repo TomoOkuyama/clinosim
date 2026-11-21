@@ -73,7 +73,10 @@ from clinosim.modules.nursing import (
 The POST_ENCOUNTER entry point `nursing_enricher(ctx) -> None` is
 defined in `engine.py` but is not re-exported; the simulator imports
 it directly from
-[`clinosim.modules.nursing.engine`](engine.py).
+[`clinosim.modules.nursing.engine`](engine.py). `shift_note_author` and
+`load_nursing_shift_rotation` are likewise imported from
+`clinosim.modules.nursing.engine` (the document engine consumes them);
+neither is in `__init__.__all__`.
 
 ## Determinism
 
@@ -119,7 +122,14 @@ it directly from
     interventions: {<lang>: list[str]}}}` (nursing-focus text).
   - `baseline` — same `{focus, interventions}` shape, used as the
     fallback when no disease-specific entry matches.
-- Load-time validation is the `NursingAssessment` Pydantic model
+- [`reference_data/nursing_shift_rotation.yaml`](reference_data/nursing_shift_rotation.yaml)
+  — read via `load_nursing_shift_rotation()` (`NursingShiftRotation`
+  model, `extra="forbid"`; Issue #3408). Keys:
+  - `day_shift_primary_share` — fraction (0-1) of day shifts taken by
+    the admission's primary nurse.
+  - `primary_nurse_shift` — the shift key on which the primary nurse
+    works.
+- Load-time validation of `nursing_assessment.yaml` is the `NursingAssessment` Pydantic model
   (with `_NursingFocus` for `baseline` and each disease entry),
   applied by `load_validated_yaml`. It rejects an empty top-level,
   missing top-level keys, a focus without `focus` / `interventions`,
@@ -138,9 +148,10 @@ it directly from
 clinosim/modules/nursing/
   __init__.py                     re-exports public constants + functions
   engine.py                       loader / validator / assign_primary_nurse /
-                                  nursing_enricher (POST_ENCOUNTER)
+                                  shift_note_author / nursing_enricher (POST_ENCOUNTER)
   reference_data/
     nursing_assessment.yaml       ADL + risk + disease-focus scaffolding
+    nursing_shift_rotation.yaml   day-shift primary share + rotation rules of shift_note_author (Issue #3408)
 ```
 
 The module has **no dedicated `enricher.py`** — the enricher entry

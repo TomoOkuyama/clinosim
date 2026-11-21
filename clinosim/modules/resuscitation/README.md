@@ -35,3 +35,22 @@ from clinosim.modules.resuscitation.enricher import enrich_resuscitation
 ## Dependencies
 
 `clinosim.modules.code_status` (the tier and its SNOMED code), `clinosim.codes.procedures` (catalog entry `cpr`), `clinosim.modules.order.placed_order_mar.stable_nurse`, `clinosim.seeding`, pydantic (the rules YAML is validated at load).
+
+## Constants and configuration
+
+All values live in [`reference_data/resuscitation_rules.yaml`](reference_data/resuscitation_rules.yaml), loaded once by `load_rules()` and validated by a pydantic model: `attempt_tier` (the code-status tier an attempt is made for), `encounter_types` (`inpatient`, `emergency`), `procedure` (catalog type `cpr`), `duration_minutes` (`min` / `max`) and the `epinephrine` block (drug, dose, route, `min_age`, `interval_minutes`, `first_dose_offset_minutes`, `clinical_intent` per language). See the Rules table above for the values and their basis.
+
+## Directory contents
+
+```
+clinosim/modules/resuscitation/
+  __init__.py
+  engine.py                          load_rules / attempt_status_code / is_resuscitation_order / attempt_minutes / build_cpr_procedure / build_epinephrine
+  enricher.py                        enrich_resuscitation (POST_RECORDS)
+  reference_data/
+    resuscitation_rules.yaml         attempt tier, encounter types, CPR procedure type, duration range, epinephrine dose / route / interval
+```
+
+## Enricher wiring
+
+Registered in [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py): `name="resuscitation"`, `stage=POST_RECORDS`, `order=55` (after `code_status` 50, before `care_level` 60), always on. The sub-seed is `clinosim.seeding.resuscitation_seed(patient_id, encounter_id)`; it is not an `ENRICHER_SEED_OFFSETS` entry.

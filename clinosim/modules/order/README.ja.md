@@ -107,12 +107,18 @@ from clinosim.modules.order import (
 
 # Order engine (各 simulator が直接 import)
 from clinosim.modules.order.engine import (
-    place_admission_orders,             # (protocol, patient_id, encounter_id, admission_time, country, rng, ordered_by="", patient_age=None, patient_weight_kg=None, ed_period=None) -> list[Order]
+    place_admission_orders,             # (protocol, patient_id, encounter_id, admission_time, country, rng, ordered_by="", patient_age=None, patient_weight_kg=None, id_infix="", ed_period=None) -> list[Order]
     place_daily_lab_orders,             # (protocol, patient_id, encounter_id, day_number, order_time, lab_frequency_multiplier, rng, ordered_by="") -> list[Order]
     place_imaging_orders,               # (disease_protocol, encounter_id, patient_id, admission_dt, day_index, severity, rng, sequence_counter, ed_period=None) -> list[Order]
     drop_legacy_duplicate_imaging,      # (admission_orders, structured_orders) -> list[Order]
     enrich_medication_order,            # (order, dose_str="") -> Order
     parse_dose_string,                  # (dose_str) -> dict
+    protocol_medication_orders,         # (med_spec, *, order_id, encounter_id, patient_id, country, ordered_datetime, ordered_by, urgency="stat", order_set=...) -> list[Order]; 1 件のオーダー、または初回投与 + 維持のオーダー (Issue #3002)
+    first_line_alternative_groups,      # (protocol, encounter_id, country, id_infix="") -> tuple[tuple[order_id, ...], ...]; `select: one_of` と宣言した `drugs.first_line` のオーダー ID (Issue #3274)
+    protocol_drug_order_code,           # (spec, country) -> 疾患 YAML の薬剤項目のオーダーコード (Issue #2351)
+    protocol_drug_order_code_system,    # (spec, country) -> その code system キー、コードが無ければ "" (Issue #2378)
+    dosing_interval_days,               # (frequency) -> 1 日より長い周期の投与間隔 (日)、それ以外は None (Issue #2982)
+    imaging_study_keys,                 # (orders) -> 画像オーダーの (modality, report group) の集合 (Issue #3392)
     calculate_lab_result_time,          # (order, rng) -> datetime
     calculate_imaging_result_time,      # (order, rng) -> datetime
     calculate_result_time_from_state,   # (order, hospital_state, hospital_ops, rng) -> datetime
@@ -155,9 +161,9 @@ from clinosim.modules.order.placed_order_mar import (
 from clinosim.modules.order.prescription_supersede import prescription_closures  # (records, run_end) -> {(encounter_id, seq): Closure}
 
 # 小児 ED 投与量の体重換算 (Issue #2857)
-from clinosim.modules.order.pediatric_dose import pediatric_order_name  # (name, age_months, weight_kg, country) -> 再計算した名称 (成人 / 非掲載薬はそのまま) | None (最低年齢未満)
-from clinosim.modules.order.pediatric_dose import redose_order_for_child  # (order, age_months, weight_kg, country) -> None; 未成年の入院オーダーをその場で再計算 (Issue #3004)
-from clinosim.modules.order.pediatric_dose import pediatric_dose_text  # (drug, dose, age_months, weight_kg, country) -> 未成年の処方用量テキスト
+from clinosim.modules.order.pediatric_dose import pediatric_order_name  # (name, age_months, weight_kg, country, age_days=None) -> 再計算した名称 (成人 / 非掲載薬はそのまま) | None (最低年齢未満)
+from clinosim.modules.order.pediatric_dose import redose_order_for_child  # (order, age_months, weight_kg, country, age_days=None) -> None; 未成年の入院オーダーをその場で再計算 (Issue #3004)
+from clinosim.modules.order.pediatric_dose import pediatric_dose_text  # (drug, dose, age_months, weight_kg, country, age_days=None) -> 未成年の処方用量テキスト
 from clinosim.modules.order.pediatric_dose import maintenance_fluid_ml_per_h  # (weight_kg) -> Holliday-Segar の mL/h
 
 # 国別の添付文書用量上限 (Issue #3012)
@@ -325,6 +331,7 @@ clinosim/modules/order/
   discontinue_flip.py                POST_ENCOUNTER enricher: DISCONTINUE marker → 元 order を STOPPED に (Issue #1346)
   supersede.py                       POST_ENCOUNTER enricher: 同一薬剤の新 order / 登録済 class 切替が旧 order を停止 (Issue #2615)
   prescription_supersede.py          prescription_closures — FHIR export 時に持ち帰り処方の更新 / 供給終了で終了を決定 (Issue #2610)
+  _supersede_thresholds.py           supersede pass の定数 (Issue #2983)
   placed_order_mar.py                daily_times + stable_nurse + administrations_for — 日次 loop 外で発注された order の RNG-free MAR (Issue #2607)
   absolute_dose.py                   absolute_dose + body_surface_area + is_continuous_infusion + is_one_time_infusion — per-kg / per-m2 投与量の絶対量 (Issue #2750)、投与形態の判定 (Issue #3043)
   insulin_initiation.py              basal_insulin_start_dose — 体重換算の基礎インスリン開始量 (Issue #3462, #3450)

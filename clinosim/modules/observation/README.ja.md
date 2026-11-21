@@ -61,7 +61,7 @@ previously-inline scalar を全て lift し、単一 edit が全経路に伝播�
 # Lab engine
 from clinosim.modules.observation.engine import (
     canonical_lab_name,                  # (name) -> canonical str
-    lab_panel_components,                # (panel_name) -> list[str]
+    lab_panel_components,                # (name) -> list[str]
     get_lab_unit,                        # (lab_name) -> unit str
     reported_lab_value,                  # (lab_name, value, unit, country) -> 国の報告単位の (value, unit) (Issue #3011)
     reported_lab_results,                # (lab_results, country) -> 報告単位に換算した複製 (ナラティブ用)
@@ -218,8 +218,10 @@ clinosim/modules/observation/
   microbiology.py                    culture + susceptibility + antibiogram
   order_routing.py                   プロトコルの lab リスト要素が出すオーダー (Issue #2583)
   fluid_balance.py                   IV regimen + urine-output 閾値 (Issue #561)
+  fluid_balance_model.py             1 日の水分出納記録の生理学的な連動 (Issue #3271)
   oxygenation.py                     SpO₂ escalation trigger (Issue #561)
   pre_analytical.py                  specimen error rate (Issue #561)
+  hemolysis_redraw.py                溶血フラグ + 再採血の規則 (Issue #3452)
   vitals_thresholds.py               発熱 / 再検閾値 (Issue #561)
   _nursing_score_thresholds.py       スコア band 境界 (Issue #637)
   _variability_defaults.py           default CV + qualitative 分布 (Issue #637)
@@ -230,6 +232,8 @@ clinosim/modules/observation/
     order_routing.yaml               lab リスト要素の画像 / 構成検査 / オーダーなしへの振り分け
     lab_constants.yaml               検査ごとの単位 / CV / 桁数 / 限界値 / 基準値 / パニック値 (Issue #2302)
     lab_panels.yaml                  panel → components
+    fluid_balance.yaml               fluid_balance_model.py のパラメータ (腎 / ループ利尿 / 摂取 / feedback)
+    hemolysis_redraw.yaml            溶血フラグ・再採血する検査項目・再採血までの遅れ (hemolysis_redraw.py)
     microbiology.yaml                organism + susceptibility カタログ
     nursing_scores.yaml              NEWS2 / GCS / Braden / Morse band
     pediatric_reference_ranges.yaml  年齢帯別の小児 vital + lab 範囲

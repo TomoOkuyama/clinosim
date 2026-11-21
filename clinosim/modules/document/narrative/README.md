@@ -254,7 +254,6 @@ clinosim/modules/document/narrative/
   _replacement_renderers.py                Per-section rendering helpers (chronic list / newborn workup / vitals-for-day / supplemental-O2 / med lists / abnormal labs / lab trend / lab carry-forward / key procedures / stay-phase — META #1633 P6 replacement slice 2)
   _patient_info_renderers.py               Patient demographics / biometrics / health-literacy renderers + _localize_token enum lookup (META #1633 P6 replacement slice 3)
   _extra_context_builder.py                _build_extra_context + _writing_day_of — composes every renderer into the LLM-prompt context dict (META #1633 P6 replacement slice 4)
-  _safety_skips.py                         safety_skip_line — one phrasing of drug-safety skip events for template + LLM paths (Issue #2519)
   _prescription_line.py                    prescription_bits — the dose / route / frequency / days of a prescription line, shared by the ED take-home Rx, discharge summary and outpatient SOAP (Issue #3389)
   _safety_skips.py                         safety_skip_line — one phrasing of drug-safety skip events for template + LLM paths (Issue #2519); progress_note_safety_skips — the in-stay events a daily note states, one hold per drug and each avoidance once per drug identity; an interaction below contraindicated severity is worded as an interaction risk (Issues #3411, #3458)
   _vitals_line.py                          format_vitals_line — one formatter for vital-signs one-liners across narrative styles (Issue #2523)
@@ -264,6 +263,15 @@ clinosim/modules/document/narrative/
   _hedging.py                              hedging phrase pool
   _chronic_soap.py                         chronic-disease SOAP resolver (v9 density fix)
   _visit_reason.py                         visit_kind / kind_lines / vital_findings / next_visit_line — outpatient SOAP by visit reason (Issues #3249, #3251, #3252)
+  _interval_events.py                      interval_events / interval_event_line — admissions and ED visits since the previous outpatient visit
+  _medication_plan.py                      ranked_medication_names / note_medications — the drugs a daily note's plan names
+  _next_visit.py                           next_visit_days — the next visit of a series (Issue #3465)
+  _nursing_shift_items.py                  nursing_shift_item_lines — the data-driven nursing items of a shift note (Issue #3478)
+  _outpatient_results.py                   outpatient_results / known_labs / ckd_g_stage — the results an outpatient SOAP states
+  _progress_course.py                      post_procedure_line / lab_course_lines / diet_line — the course lines of a daily note
+  _progress_exam.py                        progress_exam_rules / period_states / agreeing_clauses — the exam of a daily note follows the period's vitals
+  _progress_symptoms.py                    respiratory_symptom_line — the respiratory course of a daily note's Subjective
+  _ros_contradictions.py                   contradicted — review-of-systems negatives contradicted by the record (Issue #3391)
   _narrative_interpretation_thresholds.py  interpretation cutoff scalars (Issue #637)
   reference_data/
     chief_complaint_variants.yaml          chief-complaint phrasing variants (load_chief_complaint_variant_rules)

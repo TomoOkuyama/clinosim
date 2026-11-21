@@ -120,7 +120,7 @@ from clinosim.modules.imaging.inference import (
 
 ## Constants and configuration
 
-- **Three YAMLs** ([`reference_data/`](reference_data/)):
+- **Reference YAMLs** ([`reference_data/`](reference_data/); the Directory contents section lists each file):
   - `modalities.yaml` — modality catalog + `default_views_by_body_site`
     (empty-views fallback the order module consults) + `report_read_minutes`
     per modality (and `stub_report_read_minutes` for a study whose modality
@@ -185,12 +185,14 @@ clinosim/modules/imaging/
   __init__.py                      re-exports the three CIF types (ImagingStudyRecord / ImagingSeries / RadiologyReport)
   engine.py                        imaging_enricher + loaders + YAML models + multi-view expansion
   inference.py                     infer_imaging_metadata whitelist (case-D fallback)
+  cardiac_report.py                ECG / coronary angiography / heart-failure echo report builders (Issue #3020, #3451), used in place of the radiology template
   audit.py                         AD-60 audit plug-in #4 — 15-check lift_firing_proof + basedon_coverage
   reference_data/
     modalities.yaml                modality + default_views_by_body_site
     body_sites.yaml                SNOMED body-site catalog
     exam_region_patterns.yaml      en/ja order-name patterns of region- / indication-specific studies, matched first by inference.py (Issue #3113)
     impression_templates.yaml      per-(modality × body_site) report templates
+    cardiac_reports.yaml           ECG, coronary angiogram and HF-echo report content
     view_labels.yaml               en / ja view names for series descriptions (series_view_display, Issue #3030)
     bedside_examinations.yaml      work-up order names that are bedside examinations, not imaging (bedside_examination_names, Issue #2796)
     imaging-impression-keywords.yaml  normal / abnormal impression phrases for the radiology DiagnosticReport conclusionCode (read by output/fhir_r4/labs/diagnostic_report.py)

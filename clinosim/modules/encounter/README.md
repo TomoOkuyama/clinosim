@@ -215,6 +215,7 @@ clinosim/modules/encounter/
   __init__.py                     empty
   engine.py                       inpatient encounter creation + daily-cycle timeline
   protocol.py                     EncounterConditionProtocol + child models + loaders
+  discharge_outcome.py            discharge_outcome — the DPC discharge outcome of a finished stay (rules of locale/shared/discharge_outcomes.yaml, Issue #3150)
   reference_data/
     <condition_id>.yaml           52 files (one per outpatient / ED / screening condition)
   SPEC.md                         extended design reference (not runtime)

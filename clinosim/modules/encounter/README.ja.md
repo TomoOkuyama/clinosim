@@ -199,6 +199,7 @@ clinosim/modules/encounter/
   __init__.py                     空
   engine.py                       入院 encounter 生成 + 日次 cycle timeline
   protocol.py                     EncounterConditionProtocol + child model + loader
+  discharge_outcome.py            discharge_outcome — 完了した入院の DPC 退院時転帰 (locale/shared/discharge_outcomes.yaml の規則、Issue #3150)
   reference_data/
     <condition_id>.yaml           52 file (外来 / ED / screening condition ごと 1 file)
   SPEC.md                         拡張設計参考 (runtime data ではない)

@@ -69,6 +69,9 @@ from clinosim.modules.nursing import (
 POST_ENCOUNTER エントリ `nursing_enricher(ctx) -> None` は `engine.py`
 に定義されるが再 export されていない。シミュレータは
 [`clinosim.modules.nursing.engine`](engine.py) から直接 import する。
+`shift_note_author` と `load_nursing_shift_rotation` も同様に
+`clinosim.modules.nursing.engine` から import する (document engine が
+使う)。どちらも `__init__.__all__` には無い。
 
 ## 決定論
 
@@ -113,7 +116,13 @@ POST_ENCOUNTER エントリ `nursing_enricher(ctx) -> None` は `engine.py`
     interventions: {<lang>: list[str]}}}` (看護 focus テキスト)。
   - `baseline` — 疾患別が無いときの fallback。同 `{focus, interventions}`
     形状。
-- load 時検証は `NursingAssessment` Pydantic model (`baseline` と各疾患
+- [`reference_data/nursing_shift_rotation.yaml`](reference_data/nursing_shift_rotation.yaml)
+  — `load_nursing_shift_rotation()` 経由で読まれる (`NursingShiftRotation`
+  model、`extra="forbid"`; Issue #3408)。キー:
+  - `day_shift_primary_share` — 日勤のうち入院時の primary nurse が
+    担当する割合 (0-1)。
+  - `primary_nurse_shift` — primary nurse が勤務する shift キー。
+- `nursing_assessment.yaml` の load 時検証は `NursingAssessment` Pydantic model (`baseline` と各疾患
   エントリは `_NursingFocus`) を `load_validated_yaml` で適用する。
   空 top-level、top-level キー欠落、`focus` / `interventions` の無い
   focus、言語ごとに list でない `interventions`、
@@ -130,9 +139,10 @@ POST_ENCOUNTER エントリ `nursing_enricher(ctx) -> None` は `engine.py`
 clinosim/modules/nursing/
   __init__.py                     公開定数 + 関数を再 export
   engine.py                       loader / validator / assign_primary_nurse /
-                                  nursing_enricher (POST_ENCOUNTER)
+                                  shift_note_author / nursing_enricher (POST_ENCOUNTER)
   reference_data/
     nursing_assessment.yaml       ADL + リスク + 疾患別 focus scaffolding
+    nursing_shift_rotation.yaml   shift_note_author の日勤 primary 担当割合 + 交代規則 (Issue #3408)
 ```
 
 **専用 `enricher.py` は存在しない** — enricher エントリは `engine.py`。

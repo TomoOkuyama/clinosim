@@ -161,7 +161,7 @@ clinosim/modules/output/fhir_r4/
   conditions/                        Condition / AllergyIntolerance / ClinicalImpression / HAI Condition / CodeStatus (custom Observation) / primary_ref
   documents/                         Composition / DocumentReference / DocumentReference (checkup / eCheckup) / imaging_report / referral_orgs / jp_clins/ (per-document JP-CLINS section builders)
   post_process/                      bundle-level pipeline (datetime normalise / profile / specimen / strip / populate)
-  reference_data/                    FHIR-layer yaml: clinosim-drug-dosing-conventions + mhlw-ecs-non-oral-route-markers (post_process/populate.py), evaluation-orders (labs/service_request.py)
+  reference_data/                    FHIR-layer yaml: clinosim-drug-dosing-conventions + mhlw-ecs-non-oral-route-markers + jp-medication-dosage-ecs (post_process/populate.py), evaluation-orders (labs/service_request.py)
 ```
 
 ## FHIR resource → domain mapping (canonical table)

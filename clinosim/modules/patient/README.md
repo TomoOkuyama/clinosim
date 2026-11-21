@@ -223,7 +223,7 @@ from clinosim.modules.patient.activator import (
 ```
 clinosim/modules/patient/
   __init__.py                          empty
-  activator.py                         activate_patient orchestrator (~1150 LOC)
+  activator.py                         activate_patient orchestrator
   _patient_activator_thresholds.py     named thresholds (478 LOC, Issue #637)
   _marital.py                          marital status + contact relationship from locale marital_status.yaml (Issue #3189)
   _severity_activation.py              chronic-condition stage + severity tables (Issue #637 PR-D)

@@ -124,7 +124,7 @@ clinosim test-disease bacterial_pneumonia --archetype treatment_resistant -n 5
 
 ## ディレクトリ構成
 
-シミュレーションオーケストレーション (24 ファイル):
+シミュレーションオーケストレーション:
 
 ```
 clinosim/simulator/
@@ -166,7 +166,7 @@ clinosim/simulator/
   discharge_rx.py        退院時処方ビルダー
   antithrombotic_plan.py 脳梗塞の入院中・退院時の抗血栓療法
                          (プロトコルの `antithrombotic_plan`, Issue #3277)
-  enrichers.py           enricher レジストリ (post-population / post-records)
+  enrichers.py           enricher レジストリ (post-population / post-encounter / post-records)
   outpatient_dept.py     外来フォローアップ診療科リゾルバ
   perinatal.py           分娩エンカウンター + 新生児 emit (母の退院処方 = 鎮痛薬 + 母の維持的な常用薬の継続)
   complications.py       合併症イベントスキーマヘルパー
@@ -183,6 +183,11 @@ clinosim/simulator/
                          スタチン調整
   diagnosis_rules.py     エンカウンターシミュレータの診断コーディング規則表
                          (reference_data/diagnosis_rules.yaml を読む)
+  chronic_reconcile.py   患者の慢性疾患の発症日を受診記録と整合させる (Issue #3263)
+  implied_chronic.py     入院が含意する慢性疾患。エンカウンターのプロファイルと人物レコードで同じ規則を使う (Issue #3263;
+                         reference_data/implied_chronic_prevalence.yaml)
+  injury_coding.py       疾患 YAML からの外傷入院のコーディング: 診断・手術・外因 (Issue #3258)
+  ventricular_rate.py    不整脈入院の心室レート。例: レートコントロールで低下する RVR 伴う AF (Issue #3274)
   sepsis_severity.py     敗血症の退院診断の重症度コード (敗血症性ショック /
                          重症敗血症 / 敗血症) を入院中のバイタル・MAR・検査
                          から決める (Issue #3269)。R65.2x の重症度は
@@ -261,7 +266,7 @@ CLI サブコマンドハンドラ (11 ファイル):
   cli_test_encounter.py  `clinosim test-encounter` サブコマンド
 ```
 
-リファレンスデータ (`reference_data/`、8 YAML):
+リファレンスデータ (`reference_data/`、17 YAML):
 
 ```
   reference_data/adl_functional_ceilings.yaml  認知症 CDR 病期による病前 Barthel 上限 (adl_ceiling.py)
@@ -280,6 +285,7 @@ CLI サブコマンドハンドラ (11 ファイル):
   reference_data/delirium_derivation.yaml     導出せん妄のリスク閾値・エピソード規則・コード (delirium.py)
   reference_data/aki_response.yaml            AKI の判定・AKI 中に保留する薬剤・退院判定 (aki_response.py)
   reference_data/device_removal.yaml          カテーテルの留置契機と抜去の適応 (device_removal.py)
+  reference_data/implied_chronic_prevalence.yaml  入院が含意する慢性疾患の有病率 (implied_chronic.py)
 ```
 
 抽出済閾値定数 (14 ファイル、`_<area>_thresholds.py`):
@@ -308,7 +314,7 @@ pytest tests/unit -k simulator -q          # 単体テスト
 pytest tests/integration -q                # エンドツーエンド + byte-diff
 ```
 
-`clinosim.simulator` を参照するテストファイルは約 160。統合テストは
+`clinosim.simulator` を参照するテストファイルは約 300。統合テストは
 固定 seed でのフル走行 byte-diff 決定性を網羅。単体テストは個別
 パイプラインステージ、退院ゲートエッジケース、閾値定数挙動が中心。
 

@@ -129,7 +129,7 @@ Concrete consequences:
 
 ## Directory contents
 
-Simulation orchestration (24 files):
+Simulation orchestration:
 
 ```
 clinosim/simulator/
@@ -178,7 +178,7 @@ clinosim/simulator/
   discharge_rx.py        discharge-time prescription builder
   antithrombotic_plan.py in-stay and discharge antithrombotic regimen of a
                          stroke (protocol `antithrombotic_plan`, Issue #3277)
-  enrichers.py           enricher registry (post-population / post-records)
+  enrichers.py           enricher registry (post-population / post-encounter / post-records)
   outpatient_dept.py     outpatient follow-up department resolver
   perinatal.py           delivery encounter + newborn emission (the mother's discharge Rx = analgesics + her maintenance home medications)
   complications.py       complication-event schema helpers
@@ -197,6 +197,11 @@ clinosim/simulator/
                          follow-up visits
   diagnosis_rules.py     diagnosis-coding rule tables of the encounter
                          simulators (loads reference_data/diagnosis_rules.yaml)
+  chronic_reconcile.py   makes a patient's chronic-condition onsets agree with their encounters (Issue #3263)
+  implied_chronic.py     chronic conditions a stay implies; one rule for the encounter profile and the person record (Issue #3263;
+                         reference_data/implied_chronic_prevalence.yaml)
+  injury_coding.py       coding of an injury admission from the disease YAML: diagnosis, operation, external cause (Issue #3258)
+  ventricular_rate.py    ventricular rate of an arrhythmia stay, e.g. AF with RVR falling with rate control (Issue #3274)
   sepsis_severity.py     severity code of a sepsis discharge diagnosis
                          (septic shock / severe sepsis / sepsis) from the
                          stay's vitals, MAR and labs (Issue #3269); the
@@ -278,7 +283,7 @@ CLI subcommand handlers (11 files):
   cli_test_encounter.py  `clinosim test-encounter` subcommand
 ```
 
-Reference data (`reference_data/`, 8 YAMLs):
+Reference data (`reference_data/`, 17 YAMLs):
 
 ```
   reference_data/adl_functional_ceilings.yaml  premorbid Barthel ceiling by dementia CDR stage (adl_ceiling.py)
@@ -297,6 +302,7 @@ Reference data (`reference_data/`, 8 YAMLs):
   reference_data/delirium_derivation.yaml     susceptibility cut, episode rule and code of a derived delirium (delirium.py)
   reference_data/aki_response.yaml            AKI detection, drugs held during AKI, discharge gate (aki_response.py)
   reference_data/device_removal.yaml          catheter placing events and the indications that end them (device_removal.py)
+  reference_data/implied_chronic_prevalence.yaml  prevalence of the chronic conditions a stay implies (implied_chronic.py)
 ```
 
 Extracted threshold constants (14 files, `_<area>_thresholds.py`):
@@ -325,7 +331,7 @@ pytest tests/unit -k simulator -q          # unit tests
 pytest tests/integration -q                # end-to-end + byte-diff
 ```
 
-Approximately 160 test files reference `clinosim.simulator`.
+About 300 test files reference `clinosim.simulator`.
 Integration tests cover full-run byte-diff determinism at pinned
 seeds; unit tests focus on individual pipeline stages, discharge-gate
 edge cases, and threshold-constant behavior.
