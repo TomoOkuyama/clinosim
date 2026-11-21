@@ -222,6 +222,9 @@ progress:
   procs_today:
     ja: "本日の処置: {list}。"
     en: "Procedures today: {list}."
+  procs_planned_later:
+    ja: "本日予定の処置: {list}。"
+    en: "Planned later today: {list}."
   # A body system whose exam equals the previous day's (Issue #3235).
   exam_unchanged:
     ja: "{systems}: 前日と著変なし"
@@ -446,6 +449,9 @@ ap_plan:
   workup_procedures:
     ja: "検査・処置: {list}。"
     en: "Workup / procedures: {list}."
+  planned_procedures:
+    ja: "予定処置: {list}。"
+    en: "Planned procedures: {list}."
   observation_fallback:
     ja: "経過観察・症状に応じた対応。"
     en: "Observation with symptom-directed management."

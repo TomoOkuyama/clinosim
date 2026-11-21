@@ -19,6 +19,7 @@ from clinosim.locale.i18n import t
 from clinosim.locale.loader import map_diagnosis_code
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules.document.narrative._as_of import procedures_after, procedures_started_by
 from clinosim.timeutil import parse_iso_datetime
 
 if TYPE_CHECKING:
@@ -170,14 +171,26 @@ def procedure_prose_name(proc: Any, lang: str) -> str:
     return resolve_procedure_display(proc, lang)
 
 
-def procedure_names(procedures: Any, lang: str, *, admission: Any = None, day: int | None = None) -> list[str]:
+def procedure_names(
+    procedures: Any,
+    lang: str,
+    *,
+    admission: Any = None,
+    day: int | None = None,
+    as_of: datetime | None = None,
+    later: bool = False,
+) -> list[str]:
     """Distinct prose names of CIF procedures, in record order (Issue #3246).
 
     CIF ``ProcedureRecord`` holds codes only (AD-30), so each name comes from
     ``procedure_prose_name``. With ``day``, only the procedures that
     started on that hospital day (calendar-day offset of ``start_datetime``
     from ``admission``) are named; a procedure whose day cannot be derived
-    (no admission or start time) is kept, like a medication without a day."""
+    (no admission or start time) is kept, like a medication without a day.
+    With ``as_of`` (the note's authored time), only the procedures started by
+    then are named (they are done); ``later=True`` names instead those that
+    start after it (planned, Issue #3468)."""
+    procedures = (procedures_after if later else procedures_started_by)(procedures, as_of)
     adm = parse_iso_datetime(admission, lenient=True) if admission is not None else None
     names: list[str] = []
     for proc in procedures or []:

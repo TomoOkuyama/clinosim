@@ -523,15 +523,20 @@ def compose_progress_plan_from_state(ctx: NarrativeContext) -> str:
         if names:
             parts.append(t(key, lang, list=cap_names(names, lang)))
     # Today's procedures only, named from their codes (Issue #3246).
-    procs = procedure_names(
-        ctx.procedures,
-        lang,
-        admission=_o(getattr(ctx, "encounter", None), "admission_datetime", None),
-        day=ctx.day_index,
-    )[:4]
+    # Done by the authored time; a later one the same day is planned (Issue #3468).
+    _proc_kw: dict[str, Any] = {
+        "admission": _o(getattr(ctx, "encounter", None), "admission_datetime", None),
+        "day": ctx.day_index,
+        "as_of": getattr(ctx, "authored_datetime", None),
+    }
+    procs = procedure_names(ctx.procedures, lang, **_proc_kw)[:4]
     if procs:
         sep = t("list_sep.serial", lang)
         parts.append(t("progress.procs_today", lang, list=sep.join(procs)))
+    planned_procs = procedure_names(ctx.procedures, lang, later=True, **_proc_kw)[:4]
+    if planned_procs:
+        sep = t("list_sep.serial", lang)
+        parts.append(t("progress.procs_planned_later", lang, list=sep.join(planned_procs)))
     # Issue #3247: diet, rehabilitation and the discharge arrangement.
     from clinosim.modules.document.narrative._progress_course import (
         diet_line,
