@@ -2413,6 +2413,46 @@ SemVer 決定性契約; <code>reproducibility</code> CI ジョブが全 push で
 </span></code></pre></div>
 <p>リリース間は <code>clinosim dataset build</code> をローカルで使用 — 出力は
 バイト同一保証。</p>
+<h2 id="h100-で生成した大規模サンプルコホート-llm-仕上げ">H100 で生成した大規模サンプルコホート (LLM 仕上げ)<a class="headerlink" href="#h100-で生成した大規模サンプルコホート-llm-仕上げ" title="Permanent link">&para;</a></h2>
+<p>一部のリリース (v0.6.1 以降) には、Sakura H100 (vLLM 上の
+Qwen3.8-27B-FP8) で生成した、より大規模な LLM 仕上げのサンプル
+コホートも添付される。これらは CLI でビルドできるプリセットでは
+<em>ない</em> — seed は 42 以外で、
+<a href="https://github.com/TomoOkuyama/clinosim/blob/master/verify/EMPIRICAL_RESULTS.md"><code>verify/EMPIRICAL_RESULTS.md</code></a> に記載の
+H100 vLLM チューニング契約に従う — が、下流利用者が一括ダウンロード
+やリリース間の差分をスクリプト化できるよう、<strong>安定した命名規則</strong>に
+従う:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>clinosim-v&lt;VERSION&gt;-&lt;locale&gt;-p&lt;POP&gt;-s&lt;SEED&gt;-&lt;narrative-generator&gt;.tar.gz
+</span></code></pre></div>
+<p>各フィールド:</p>
+<ul>
+<li><code>&lt;VERSION&gt;</code>: リリース tag。例 <code>0.6.3</code>。</li>
+<li><code>&lt;locale&gt;</code>: <code>jp</code> または <code>us</code> (小文字)。</li>
+<li><code>&lt;POP&gt;</code>: 診療圏人口。例 <code>p10000</code>。</li>
+<li><code>&lt;SEED&gt;</code>: <code>clinosim simulate</code> 実行時の <code>--seed</code> 値。例 <code>s3532</code>。</li>
+<li><code>&lt;narrative-generator&gt;</code>: <code>template-narrative</code> (決定的、LLM なし)
+  または <code>llm-polished-narrative</code> (LLM 生成の bundle narrative)。</li>
+</ul>
+<p>内部構成は両 variant で同一:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>cif/
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>  hospital.json
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>  metadata.json            (clinosim_version はリリース tag に固定)
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>  structural/
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    patients/*.json
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>  narratives/
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>    current_version.txt    ("llm-polished" または "template" を指す)
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    template/              (決定的 template narrative。常に存在)
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>    llm-polished/          (llm-polished-narrative アーカイブのみ)
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>fhir_r4/
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>  *.ndjson                 (全 FHIR R4 リソース)
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>  _generator_metadata.json (clinosim_version + cif_metadata の入れ子ミラー)
+</span></code></pre></div>
+<p>両 metadata ファイルは <code>clinosim_version</code> をリリース tag に固定する。
+<code>_generator_metadata.json</code> には、コホート生成時の git commit と直近の
+PR 履歴も記録される。</p>
+<p>最近の例: <code>clinosim-v0.6.3-jp-p10000-s3532-llm-polished-narrative.tar.gz</code>
+と <code>clinosim-v0.6.3-us-p10000-s3532-llm-polished-narrative.tar.gz</code>
+(<code>v0.6.3</code> リリースページ参照)。</p>
 <h2 id="倫理と免責">倫理と免責<a class="headerlink" href="#倫理と免責" title="Permanent link">&para;</a></h2>
 <p>同梱される全データセットは <strong>完全に合成</strong>。clinosim は実患者データ、
 PHI、PII を取り込み・参照・再現しません。出力は <strong>臨床用途を意図
