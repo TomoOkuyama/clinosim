@@ -401,6 +401,11 @@ def _generate_daily_io(
     )
 
 
+def _febrile_recheck_note(first_time: datetime, recheck_time: datetime) -> str:
+    """Nursing note for a febrile re-check; the interval is the elapsed minutes (valid across an hour boundary)."""
+    return f"febrile recheck after {int((recheck_time - first_time).total_seconds() // 60)} min"
+
+
 def _make_raw(state, patient, vit_time, rng, ventricular_rate: VentricularRateCourse | None = None):
     age_months = age_in_completed_months(patient.date_of_birth, vit_time)
     return derive_observed_vitals(
@@ -691,7 +696,7 @@ def _generate_vitals(
                 recheck_time,
                 fields={"temp"},
                 raw=recheck_raw,
-                note=f"febrile recheck after {recheck_time.minute - actual_time.minute} min",
+                note=_febrile_recheck_note(actual_time, recheck_time),
             )
 
     # 2. Continuous bedside monitoring (HR + SpO2 only) every ~2h
