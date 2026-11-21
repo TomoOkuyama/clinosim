@@ -889,6 +889,9 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
+        "ctx.vitals.shift.desaturation",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -901,7 +904,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 1 日目\n記録者: 若林 淳\n患者状態: BP 123/75, HR 87, SpO2 92%, T 37.8°C、酸素投与: 酸素マスク 4.2 L/min。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 1 日目\n記録者: 若林 淳\n患者状態: BP 123/75, HR 87, SpO2 92%, T 37.8°C、酸素投与: 酸素マスク 4.2 L/min。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n疼痛あり、NRS 4。\n38.8°Cの発熱あり、経過観察。\n22:01 SpO2 87%に低下、酸素マスク 4.2 L/分投与下で管理。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-21-night": {
@@ -912,6 +915,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -924,7 +928,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 2 日目\n記録者: 若林 淳\n患者状態: BP 128/75, HR 87, SpO2 91%, T 37.2°C、酸素投与: 酸素マスク 4.2 L/min。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 2 日目\n記録者: 若林 淳\n患者状態: BP 128/75, HR 87, SpO2 91%, T 37.2°C、酸素投与: 酸素マスク 4.2 L/min。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 2。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-22-day": {
@@ -935,6 +939,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -947,7 +952,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 2 日目\n記録者: 若林 淳\n患者状態: BP 126/73, HR 95, SpO2 93%, T 37.8°C、酸素投与: 酸素マスク 4.2 L/min。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 2 日目\n記録者: 若林 淳\n患者状態: BP 126/73, HR 95, SpO2 93%, T 37.8°C、酸素投与: 酸素マスク 4.2 L/min。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n疼痛あり、NRS 2。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-23-evening": {
@@ -958,6 +963,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -970,7 +976,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 2 日目\n記録者: 若林 淳\n患者状態: BP 122/73, HR 93, SpO2 92%, T 36.8°C、酸素投与: 酸素マスク 4.2 L/min。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 2 日目\n記録者: 若林 淳\n患者状態: BP 122/73, HR 93, SpO2 92%, T 36.8°C、酸素投与: 酸素マスク 4.2 L/min。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n疼痛あり、NRS 3。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-24-night": {
@@ -981,6 +987,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -993,7 +1000,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 3 日目\n記録者: 若林 淳\n患者状態: BP 128/77, HR 91, SpO2 94%, T 36.9°C、酸素投与: 酸素マスク 4.2 L/min。\n与薬: サルブタモール、イプラトロピウム、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 3 日目\n記録者: 若林 淳\n患者状態: BP 128/77, HR 91, SpO2 94%, T 36.9°C、酸素投与: 酸素マスク 4.2 L/min。\n与薬: サルブタモール、イプラトロピウム、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 最大 4、最終 2。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-25-day": {
@@ -1004,6 +1011,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1016,7 +1024,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 3 日目\n記録者: 若林 淳\n患者状態: BP 129/75, HR 100, SpO2 94%, T 37.5°C、酸素投与: 酸素マスク 4.2 L/min。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 3 日目\n記録者: 若林 淳\n患者状態: BP 129/75, HR 100, SpO2 94%, T 37.5°C、酸素投与: 酸素マスク 4.2 L/min。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、ヘパリン。\n疼痛あり、NRS 3。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-26-evening": {
@@ -1027,6 +1035,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1039,7 +1048,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 3 日目\n記録者: 若林 淳\n患者状態: BP 125/73, HR 90, SpO2 94%, T 37.7°C、酸素投与: 酸素マスク 4.2 L/min。\n与薬: サルブタモール、イプラトロピウム、セフトリアキソン 1g 静注 1日1回、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 3 日目\n記録者: 若林 淳\n患者状態: BP 125/73, HR 90, SpO2 94%, T 37.7°C、酸素投与: 酸素マスク 4.2 L/min。\n与薬: サルブタモール、イプラトロピウム、セフトリアキソン 1g 静注 1日1回、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 6。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-27-night": {
@@ -1050,6 +1059,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1062,7 +1072,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 4 日目\n記録者: 若林 淳\n患者状態: BP 127/78, HR 88, SpO2 93%, T 37.4°C、酸素投与: 酸素マスク 4.2 L/min。\n与薬: サルブタモール、イプラトロピウム、セフトリアキソン 1g 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 4 日目\n記録者: 若林 淳\n患者状態: BP 127/78, HR 88, SpO2 93%, T 37.4°C、酸素投与: 酸素マスク 4.2 L/min。\n与薬: サルブタモール、イプラトロピウム、セフトリアキソン 1g 静注 1日1回。\n疼痛あり、NRS 1。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-28-day": {
@@ -1073,6 +1083,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1085,7 +1096,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 4 日目\n記録者: 若林 淳\n患者状態: BP 127/75, HR 93, SpO2 94%, T 37.5°C、酸素投与: 酸素マスク 4.2 L/min。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 4 日目\n記録者: 若林 淳\n患者状態: BP 127/75, HR 93, SpO2 94%, T 37.5°C、酸素投与: 酸素マスク 4.2 L/min。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、ヘパリン。\n疼痛あり、NRS 2。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-29-evening": {
@@ -1096,6 +1107,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1108,7 +1120,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 4 日目\n記録者: 若林 淳\n患者状態: BP 126/73, HR 90, SpO2 94%, T 37.6°C、酸素投与: 酸素マスク 4.2 L/min。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 4 日目\n記録者: 若林 淳\n患者状態: BP 126/73, HR 90, SpO2 94%, T 37.6°C、酸素投与: 酸素マスク 4.2 L/min。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 3。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-30-night": {
@@ -1119,6 +1131,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1131,7 +1144,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 5 日目\n記録者: 若林 淳\n患者状態: BP 122/76, HR 83, SpO2 94%, T 36.9°C、酸素投与: 酸素マスク 4.2 L/min。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 5 日目\n記録者: 若林 淳\n患者状態: BP 122/76, HR 83, SpO2 94%, T 36.9°C、酸素投与: 酸素マスク 4.2 L/min。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n疼痛の訴えなし (NRS 0)。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-31-day": {
@@ -1142,6 +1155,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1154,7 +1169,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 5 日目\n記録者: 若林 淳\n患者状態: BP 123/77, HR 92, SpO2 98%, T 38.0°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 5 日目\n記録者: 若林 淳\n患者状態: BP 123/77, HR 92, SpO2 98%, T 38.0°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 3。\n38.0°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-32-evening": {
@@ -1165,6 +1180,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1177,7 +1193,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 5 日目\n記録者: 若林 淳\n患者状態: BP 126/77, HR 87, SpO2 97%, T 37.5°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 5 日目\n記録者: 若林 淳\n患者状態: BP 126/77, HR 87, SpO2 97%, T 37.5°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 3。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-33-night": {
@@ -1188,6 +1204,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1200,7 +1217,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 6 日目\n記録者: 若林 淳\n患者状態: BP 122/73, HR 82, SpO2 94%, T 37.2°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 6 日目\n記録者: 若林 淳\n患者状態: BP 122/73, HR 82, SpO2 94%, T 37.2°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n疼痛の訴えなし (NRS 0)。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-34-day": {
@@ -1211,6 +1228,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1223,7 +1241,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 6 日目\n記録者: 若林 淳\n患者状態: BP 122/76, HR 87, SpO2 89%, T 37.2°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 6 日目\n記録者: 若林 淳\n患者状態: BP 122/76, HR 87, SpO2 89%, T 37.2°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、ヘパリン。\n疼痛の訴えなし (NRS 0)。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-35-evening": {
@@ -1234,6 +1252,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1246,7 +1266,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 6 日目\n記録者: 若林 淳\n患者状態: BP 122/73, HR 87, SpO2 96%, T 38.1°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 6 日目\n記録者: 若林 淳\n患者状態: BP 122/73, HR 87, SpO2 96%, T 38.1°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n38.1°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-36-night": {
@@ -1257,6 +1277,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1269,7 +1290,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 7 日目\n記録者: 若林 淳\n患者状態: BP 120/74, HR 83, SpO2 94%, T 36.8°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 7 日目\n記録者: 若林 淳\n患者状態: BP 120/74, HR 83, SpO2 94%, T 36.8°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン。\n疼痛の訴えなし (NRS 0)。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-37-day": {
@@ -1280,6 +1301,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1292,7 +1315,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 7 日目\n記録者: 若林 淳\n患者状態: BP 122/76, HR 89, SpO2 97%, T 38.0°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 7 日目\n記録者: 若林 淳\n患者状態: BP 122/76, HR 89, SpO2 97%, T 38.0°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 1。\n38.0°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-38-evening": {
@@ -1303,6 +1326,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1315,7 +1339,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 7 日目\n記録者: 若林 淳\n患者状態: BP 124/74, HR 88, SpO2 94%, T 37.5°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 7 日目\n記録者: 若林 淳\n患者状態: BP 124/74, HR 88, SpO2 94%, T 37.5°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛の訴えなし (NRS 0)。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-39-night": {
@@ -1326,6 +1350,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1338,7 +1364,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 8 日目\n記録者: 若林 淳\n患者状態: BP 125/75, HR 81, SpO2 94%, T 38.5°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 8 日目\n記録者: 若林 淳\n患者状態: BP 125/75, HR 81, SpO2 94%, T 38.5°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n疼痛あり、NRS 2。\n38.5°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-40-day": {
@@ -1349,6 +1375,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1361,7 +1388,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 8 日目\n記録者: 若林 淳\n患者状態: BP 127/73, HR 88, SpO2 92%, T 37.9°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 8 日目\n記録者: 若林 淳\n患者状態: BP 127/73, HR 88, SpO2 92%, T 37.9°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 1。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-41-evening": {
@@ -1372,6 +1399,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1384,7 +1412,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 8 日目\n記録者: 若林 淳\n患者状態: BP 124/72, HR 85, SpO2 92%, T 37.9°C。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 8 日目\n記録者: 若林 淳\n患者状態: BP 124/72, HR 85, SpO2 92%, T 37.9°C。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n疼痛の訴えなし (NRS 0)。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-42-night": {
@@ -1395,6 +1423,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1407,7 +1436,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 9 日目\n記録者: 若林 淳\n患者状態: BP 123/78, HR 79, SpO2 95%, T 37.3°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 9 日目\n記録者: 若林 淳\n患者状態: BP 123/78, HR 79, SpO2 95%, T 37.3°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n疼痛あり、NRS 1。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-43-day": {
@@ -1418,6 +1447,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1430,7 +1460,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 9 日目\n記録者: 若林 淳\n患者状態: BP 125/77, HR 87, SpO2 92%, T 37.0°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 9 日目\n記録者: 若林 淳\n患者状態: BP 125/77, HR 87, SpO2 92%, T 37.0°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、ヘパリン。\n疼痛の訴えなし (NRS 0)。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-44-evening": {
@@ -1441,6 +1471,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1453,7 +1484,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 9 日目\n記録者: 若林 淳\n患者状態: BP 125/76, HR 85, SpO2 96%, T 36.7°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 9 日目\n記録者: 若林 淳\n患者状態: BP 125/76, HR 85, SpO2 96%, T 36.7°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛の訴えなし (NRS 0)。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-45-night": {
@@ -1464,6 +1495,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.consciousness",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1476,7 +1509,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 10 日目\n記録者: 若林 淳\n患者状態: BP 125/72, HR 80, SpO2 95%, T 36.7°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 10 日目\n記録者: 若林 淳\n患者状態: BP 125/72, HR 80, SpO2 95%, T 36.7°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n疼痛の訴えなし (NRS 0)。\n意識レベル低下あり (AVPU V)、観察継続。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-46-day": {
@@ -1487,6 +1520,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.consciousness",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1499,7 +1534,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 10 日目\n記録者: 若林 淳\n患者状態: BP 127/72, HR 89, SpO2 96%, T 37.3°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 10 日目\n記録者: 若林 淳\n患者状態: BP 127/72, HR 89, SpO2 96%, T 37.3°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n意識レベル低下あり (AVPU V)、観察継続。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-47-evening": {
@@ -1510,6 +1545,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.consciousness",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1522,7 +1559,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 10 日目\n記録者: 若林 淳\n患者状態: BP 122/74, HR 83, SpO2 93%, T 37.2°C。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 10 日目\n記録者: 若林 淳\n患者状態: BP 122/74, HR 83, SpO2 93%, T 37.2°C。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n意識レベル低下あり (AVPU V)、観察継続。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-48-night": {
@@ -1533,6 +1570,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1545,7 +1583,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 11 日目\n記録者: 若林 淳\n患者状態: BP 121/75, HR 81, SpO2 97%, T 37.2°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 11 日目\n記録者: 若林 淳\n患者状態: BP 121/75, HR 81, SpO2 97%, T 37.2°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、メロペネム 1g 静注 8時間毎。\n疼痛あり、NRS 2。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-49-day": {
@@ -1556,6 +1594,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1568,7 +1607,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 11 日目\n記録者: 若林 淳\n患者状態: BP 122/75, HR 84, SpO2 95%, T 37.6°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 11 日目\n記録者: 若林 淳\n患者状態: BP 122/75, HR 84, SpO2 95%, T 37.6°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛の訴えなし (NRS 0)。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-50-evening": {
@@ -1579,6 +1618,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1591,7 +1631,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 11 日目\n記録者: 若林 淳\n患者状態: BP 125/76, HR 84, SpO2 94%, T 37.5°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 11 日目\n記録者: 若林 淳\n患者状態: BP 125/76, HR 84, SpO2 94%, T 37.5°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 1。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-51-night": {
@@ -1602,6 +1642,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1614,7 +1655,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 12 日目\n記録者: 若林 淳\n患者状態: BP 121/75, HR 81, SpO2 96%, T 37.0°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 12 日目\n記録者: 若林 淳\n患者状態: BP 121/75, HR 81, SpO2 96%, T 37.0°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n疼痛の訴えなし (NRS 0)。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-52-day": {
@@ -1625,6 +1666,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1637,7 +1680,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 12 日目\n記録者: 若林 淳\n患者状態: BP 125/70, HR 85, SpO2 94%, T 37.8°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 12 日目\n記録者: 若林 淳\n患者状態: BP 125/70, HR 85, SpO2 94%, T 37.8°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n38.6°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-53-evening": {
@@ -1648,6 +1691,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1660,7 +1704,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 12 日目\n記録者: 若林 淳\n患者状態: BP 125/71, HR 83, SpO2 92%, T 36.2°C。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 12 日目\n記録者: 若林 淳\n患者状態: BP 125/71, HR 83, SpO2 92%, T 36.2°C。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n疼痛の訴えなし (NRS 0)。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-54-night": {
@@ -1671,6 +1715,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1683,7 +1728,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 13 日目\n記録者: 若林 淳\n患者状態: BP 126/74, HR 84, SpO2 95%, T 36.7°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 13 日目\n記録者: 若林 淳\n患者状態: BP 126/74, HR 84, SpO2 95%, T 36.7°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n疼痛あり、NRS 3。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-55-day": {
@@ -1694,6 +1739,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1706,7 +1752,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 13 日目\n記録者: 若林 淳\n患者状態: BP 125/73, HR 82, SpO2 99%, T 36.9°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 13 日目\n記録者: 若林 淳\n患者状態: BP 125/73, HR 82, SpO2 99%, T 36.9°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 1。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-56-evening": {
@@ -1717,6 +1763,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1729,7 +1776,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 13 日目\n記録者: 若林 淳\n患者状態: BP 122/70, HR 85, SpO2 92%, T 37.1°C。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 13 日目\n記録者: 若林 淳\n患者状態: BP 122/70, HR 85, SpO2 92%, T 37.1°C。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n疼痛あり、NRS 2。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-57-night": {
@@ -1740,6 +1787,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1752,7 +1800,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 14 日目\n記録者: 若林 淳\n患者状態: BP 123/77, HR 85, SpO2 94%, T 37.5°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 14 日目\n記録者: 若林 淳\n患者状態: BP 123/77, HR 85, SpO2 94%, T 37.5°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n疼痛の訴えなし (NRS 0)。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-58-day": {
@@ -1763,6 +1811,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1775,7 +1824,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 14 日目\n記録者: 若林 淳\n患者状態: BP 126/79, HR 87, SpO2 96%, T 37.3°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 14 日目\n記録者: 若林 淳\n患者状態: BP 126/79, HR 87, SpO2 96%, T 37.3°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 1。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-59-evening": {
@@ -1786,6 +1835,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1798,7 +1848,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 14 日目\n記録者: 若林 淳\n患者状態: BP 123/74, HR 86, SpO2 94%, T 37.2°C。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 14 日目\n記録者: 若林 淳\n患者状態: BP 123/74, HR 86, SpO2 94%, T 37.2°C。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n疼痛あり、NRS 1。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-60-night": {
@@ -1809,6 +1859,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1821,7 +1872,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 15 日目\n記録者: 若林 淳\n患者状態: BP 124/74, HR 81, SpO2 94%, T 37.1°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 15 日目\n記録者: 若林 淳\n患者状態: BP 124/74, HR 81, SpO2 94%, T 37.1°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n疼痛の訴えなし (NRS 0)。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-61-day": {
@@ -1832,6 +1883,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1844,7 +1897,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 15 日目\n記録者: 若林 淳\n患者状態: BP 124/73, HR 86, SpO2 94%, T 38.2°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 15 日目\n記録者: 若林 淳\n患者状態: BP 124/73, HR 86, SpO2 94%, T 38.2°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 2。\n38.2°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-62-evening": {
@@ -1855,6 +1908,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1867,7 +1921,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 15 日目\n記録者: 若林 淳\n患者状態: BP 125/75, HR 83, SpO2 96%, T 36.7°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 15 日目\n記録者: 若林 淳\n患者状態: BP 125/75, HR 83, SpO2 96%, T 36.7°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛の訴えなし (NRS 0)。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-63-night": {
@@ -1878,6 +1932,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1890,7 +1945,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 16 日目\n記録者: 若林 淳\n患者状態: BP 123/74, HR 86, SpO2 96%, T 36.6°C。\n与薬: サルブタモール、イプラトロピウム。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 16 日目\n記録者: 若林 淳\n患者状態: BP 123/74, HR 86, SpO2 96%, T 36.6°C。\n与薬: サルブタモール、イプラトロピウム。\n疼痛の訴えなし (NRS 0)。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-64-day": {
@@ -1901,6 +1956,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1913,7 +1969,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 16 日目\n記録者: 若林 淳\n患者状態: BP 122/78, HR 89, SpO2 94%, T 36.2°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 16 日目\n記録者: 若林 淳\n患者状態: BP 122/78, HR 89, SpO2 94%, T 36.2°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 3。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-65-evening": {
@@ -1924,6 +1980,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1936,7 +1993,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 16 日目\n記録者: 若林 淳\n患者状態: BP 125/76, HR 87, SpO2 94%, T 36.5°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 16 日目\n記録者: 若林 淳\n患者状態: BP 125/76, HR 87, SpO2 94%, T 36.5°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛の訴えなし (NRS 0)。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-66": {

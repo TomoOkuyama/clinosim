@@ -989,6 +989,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1001,7 +1003,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 1 日目\n記録者: 若林 淳\n患者状態: BP 118/69, HR 102, SpO2 98%, T 38.6°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: アンピシリン/スルバクタム、生理食塩液 125 mL/h、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 1 日目\n記録者: 若林 淳\n患者状態: BP 118/69, HR 102, SpO2 98%, T 38.6°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: アンピシリン/スルバクタム、生理食塩液 125 mL/h、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 最大 5、最終 4。\n38.9°Cの発熱あり、アセトアミノフェン投与、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-23-night": {
@@ -1012,6 +1014,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1024,7 +1027,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 2 日目\n記録者: 若林 淳\n患者状態: BP 122/69, HR 100, SpO2 98%, T 37.8°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: アンピシリン/スルバクタム、生理食塩液 125 mL/h。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 2 日目\n記録者: 若林 淳\n患者状態: BP 122/69, HR 100, SpO2 98%, T 37.8°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: アンピシリン/スルバクタム、生理食塩液 125 mL/h。\n疼痛あり、NRS 最大 5、最終 3。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-24-day": {
@@ -1035,6 +1038,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1047,7 +1052,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 2 日目\n記録者: 若林 淳\n患者状態: BP 122/69, HR 105, SpO2 98%, T 38.3°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: アンピシリン/スルバクタム、生理食塩液 125 mL/h、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 2 日目\n記録者: 若林 淳\n患者状態: BP 122/69, HR 105, SpO2 98%, T 38.3°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: アンピシリン/スルバクタム、生理食塩液 125 mL/h、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 最大 5、最終 2。\n38.3°Cの発熱あり、アセトアミノフェン投与後も 38.3°Cで経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-25-evening": {
@@ -1058,6 +1063,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1070,7 +1077,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 2 日目\n記録者: 若林 淳\n患者状態: BP 120/74, HR 99, SpO2 98%, T 37.6°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: アンピシリン/スルバクタム、生理食塩液 125 mL/h、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 2 日目\n記録者: 若林 淳\n患者状態: BP 120/74, HR 99, SpO2 98%, T 37.6°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: アンピシリン/スルバクタム、生理食塩液 125 mL/h、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 6。\n38.0°Cの発熱あり、アセトアミノフェン投与後 37.6°Cに解熱傾向。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-26-night": {
@@ -1081,6 +1088,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1093,7 +1102,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 3 日目\n記録者: 若林 淳\n患者状態: BP 118/76, HR 94, SpO2 98%, T 36.0°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: アンピシリン/スルバクタム、生理食塩液 125 mL/h、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 3 日目\n記録者: 若林 淳\n患者状態: BP 118/76, HR 94, SpO2 98%, T 36.0°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: アンピシリン/スルバクタム、生理食塩液 125 mL/h、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 最大 7、最終 6。\n38.8°Cの発熱あり、アセトアミノフェン投与後も 38.8°Cで経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-27-day": {
@@ -1104,6 +1113,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1116,7 +1126,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 3 日目\n記録者: 若林 淳\n患者状態: BP 119/74, HR 104, SpO2 98%, T 37.9°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: アンピシリン/スルバクタム、生理食塩液 125 mL/h、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 3 日目\n記録者: 若林 淳\n患者状態: BP 119/74, HR 104, SpO2 98%, T 37.9°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: アンピシリン/スルバクタム、生理食塩液 125 mL/h、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-28-evening": {
@@ -1127,6 +1137,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1139,7 +1151,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 3 日目\n記録者: 若林 淳\n患者状態: BP 119/74, HR 97, SpO2 98%, T 37.6°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: アンピシリン/スルバクタム、生理食塩液 125 mL/h、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 3 日目\n記録者: 若林 淳\n患者状態: BP 119/74, HR 97, SpO2 98%, T 37.6°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: アンピシリン/スルバクタム、生理食塩液 125 mL/h、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 最大 5、最終 2。\n38.5°Cの発熱あり、アセトアミノフェン投与後 38.0°Cに低下、発熱は持続。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-29-night": {
@@ -1150,6 +1162,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1162,7 +1175,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 4 日目\n記録者: 若林 淳\n患者状態: BP 120/74, HR 95, SpO2 98%, T 37.2°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: アンピシリン/スルバクタム。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 4 日目\n記録者: 若林 淳\n患者状態: BP 120/74, HR 95, SpO2 98%, T 37.2°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: アンピシリン/スルバクタム。\n疼痛あり、NRS 3。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-30-day": {
@@ -1173,6 +1186,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1185,7 +1200,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 4 日目\n記録者: 若林 淳\n患者状態: BP 120/73, HR 101, SpO2 98%, T 38.1°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: アンピシリン/スルバクタム、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 4 日目\n記録者: 若林 淳\n患者状態: BP 120/73, HR 101, SpO2 98%, T 38.1°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: アンピシリン/スルバクタム、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n38.1°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-31-evening": {
@@ -1196,6 +1211,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1208,7 +1225,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 4 日目\n記録者: 若林 淳\n患者状態: BP 123/73, HR 97, SpO2 98%, T 37.5°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: アンピシリン/スルバクタム、メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 4 日目\n記録者: 若林 淳\n患者状態: BP 123/73, HR 97, SpO2 98%, T 37.5°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: アンピシリン/スルバクタム、メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 最大 3、最終 0。\n38.4°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-32-night": {
@@ -1219,6 +1236,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1231,7 +1250,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 5 日目\n記録者: 若林 淳\n患者状態: BP 119/74, HR 94, SpO2 98%, T 38.3°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 5 日目\n記録者: 若林 淳\n患者状態: BP 119/74, HR 94, SpO2 98%, T 38.3°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: メロペネム 1g 静注 8時間毎。\n疼痛あり、NRS 3。\n38.3°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-33-day": {
@@ -1242,6 +1261,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1254,7 +1275,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 5 日目\n記録者: 若林 淳\n患者状態: BP 121/72, HR 101, SpO2 98%, T 37.9°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 5 日目\n記録者: 若林 淳\n患者状態: BP 121/72, HR 101, SpO2 98%, T 37.9°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 2。\n38.9°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-34-evening": {
@@ -1265,6 +1286,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1277,7 +1300,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 5 日目\n記録者: 若林 淳\n患者状態: BP 122/71, HR 100, SpO2 98%, T 38.1°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 5 日目\n記録者: 若林 淳\n患者状態: BP 122/71, HR 100, SpO2 98%, T 38.1°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 最大 3、最終 2。\n38.9°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-35-night": {
@@ -1288,6 +1311,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.day_index"
       ],
       "generated_at": "2024-06-20T08:00:00+09:00",
@@ -1299,7 +1323,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 6 日目\n記録者: 若林 淳\n患者状態: BP 121/73, HR 93, SpO2 98%, T 37.1°C、酸素投与: 酸素マスク 7.3 L/min。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 6 日目\n記録者: 若林 淳\n患者状態: BP 121/73, HR 93, SpO2 98%, T 37.1°C、酸素投与: 酸素マスク 7.3 L/min。\n疼痛あり、NRS 2。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-36-day": {
@@ -1310,6 +1334,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1322,7 +1348,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 6 日目\n記録者: 若林 淳\n患者状態: BP 118/75, HR 100, SpO2 98%, T 38.5°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 6 日目\n記録者: 若林 淳\n患者状態: BP 118/75, HR 100, SpO2 98%, T 38.5°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 3。\n38.5°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-37-evening": {
@@ -1333,6 +1359,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1345,7 +1373,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 6 日目\n記録者: 若林 淳\n患者状態: BP 120/73, HR 98, SpO2 98%, T 37.8°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 6 日目\n記録者: 若林 淳\n患者状態: BP 120/73, HR 98, SpO2 98%, T 37.8°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 4。\n38.4°Cの発熱あり、アセトアミノフェン投与後 37.8°Cに解熱傾向。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-38-night": {
@@ -1356,6 +1384,9 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
+        "ctx.vitals.shift.consciousness",
         "ctx.day_index"
       ],
       "generated_at": "2024-06-21T08:00:00+09:00",
@@ -1367,7 +1398,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 7 日目\n記録者: 若林 淳\n患者状態: BP 115/73, HR 95, SpO2 98%, T 38.1°C、酸素投与: 酸素マスク 7.3 L/min。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 7 日目\n記録者: 若林 淳\n患者状態: BP 115/73, HR 95, SpO2 98%, T 38.1°C、酸素投与: 酸素マスク 7.3 L/min。\n疼痛あり、NRS 最大 3、最終 1。\n38.5°Cの発熱あり、経過観察。\n意識レベル低下あり (AVPU V)、観察継続。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-39-day": {
@@ -1378,6 +1409,9 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
+        "ctx.vitals.shift.consciousness",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1390,7 +1424,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 7 日目\n記録者: 若林 淳\n患者状態: BP 124/73, HR 97, SpO2 98%, T 37.6°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 7 日目\n記録者: 若林 淳\n患者状態: BP 124/73, HR 97, SpO2 98%, T 37.6°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 最大 2、最終 1。\n39.0°Cの発熱あり、経過観察。\n意識レベル低下あり (AVPU V)、観察継続。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-40-evening": {
@@ -1401,6 +1435,9 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
+        "ctx.vitals.shift.consciousness",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1413,7 +1450,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 7 日目\n記録者: 若林 淳\n患者状態: BP 122/71, HR 98, SpO2 98%, T 37.9°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 7 日目\n記録者: 若林 淳\n患者状態: BP 122/71, HR 98, SpO2 98%, T 37.9°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n38.8°Cの発熱あり、アセトアミノフェン投与、経過観察。\n意識レベル低下あり (AVPU V)、観察継続。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-41-night": {
@@ -1424,6 +1461,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1436,7 +1474,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 8 日目\n記録者: 若林 淳\n患者状態: BP 118/74, HR 93, SpO2 98%, T 37.7°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 8 日目\n記録者: 若林 淳\n患者状態: BP 118/74, HR 93, SpO2 98%, T 37.7°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: メロペネム 1g 静注 8時間毎。\n疼痛あり、NRS 1。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-42-day": {
@@ -1447,6 +1485,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1459,7 +1499,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 8 日目\n記録者: 若林 淳\n患者状態: BP 121/78, HR 99, SpO2 98%, T 38.1°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 8 日目\n記録者: 若林 淳\n患者状態: BP 121/78, HR 99, SpO2 98%, T 38.1°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 2。\n38.1°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-43-evening": {
@@ -1470,6 +1510,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1482,7 +1524,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 8 日目\n記録者: 若林 淳\n患者状態: BP 117/70, HR 96, SpO2 98%, T 38.5°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 8 日目\n記録者: 若林 淳\n患者状態: BP 117/70, HR 96, SpO2 98%, T 38.5°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n38.5°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-44-night": {
@@ -1493,6 +1535,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1505,7 +1548,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 9 日目\n記録者: 若林 淳\n患者状態: BP 120/72, HR 97, SpO2 98%, T 37.4°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 9 日目\n記録者: 若林 淳\n患者状態: BP 120/72, HR 97, SpO2 98%, T 37.4°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: メロペネム 1g 静注 8時間毎。\n疼痛の訴えなし (NRS 0)。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-45-day": {
@@ -1516,6 +1559,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1528,7 +1573,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 9 日目\n記録者: 若林 淳\n患者状態: BP 118/75, HR 101, SpO2 98%, T 38.6°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 9 日目\n記録者: 若林 淳\n患者状態: BP 118/75, HR 101, SpO2 98%, T 38.6°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 2。\n38.6°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-46-evening": {
@@ -1539,6 +1584,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1551,7 +1598,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 9 日目\n記録者: 若林 淳\n患者状態: BP 119/73, HR 93, SpO2 98%, T 38.8°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 9 日目\n記録者: 若林 淳\n患者状態: BP 119/73, HR 93, SpO2 98%, T 38.8°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: ヘパリン。\n疼痛あり、NRS 2。\n38.8°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-47-night": {
@@ -1562,6 +1609,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.consciousness",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1574,7 +1623,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 10 日目\n記録者: 若林 淳\n患者状態: BP 119/73, HR 95, SpO2 98%, T 37.6°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 10 日目\n記録者: 若林 淳\n患者状態: BP 119/73, HR 95, SpO2 98%, T 37.6°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: メロペネム 1g 静注 8時間毎。\n疼痛あり、NRS 1。\n意識レベル低下あり (AVPU V)、観察継続。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-48-day": {
@@ -1585,6 +1634,9 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
+        "ctx.vitals.shift.consciousness",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1597,7 +1649,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 10 日目\n記録者: 若林 淳\n患者状態: BP 119/70, HR 99, SpO2 98%, T 38.4°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 10 日目\n記録者: 若林 淳\n患者状態: BP 119/70, HR 99, SpO2 98%, T 38.4°C、酸素投与: 酸素マスク 7.3 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n38.5°Cの発熱あり、経過観察。\n意識レベル低下あり (AVPU V)、観察継続。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-49-evening": {
@@ -1608,6 +1660,9 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
+        "ctx.vitals.shift.consciousness",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1620,7 +1675,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 10 日目\n記録者: 若林 淳\n患者状態: BP 124/71, HR 96, SpO2 94%, T 38.1°C。\n与薬: メロペネム 1g 静注 8時間毎、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 10 日目\n記録者: 若林 淳\n患者状態: BP 124/71, HR 96, SpO2 94%, T 38.1°C。\n与薬: メロペネム 1g 静注 8時間毎、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n39.3°Cの発熱あり、アセトアミノフェン投与後 38.1°Cに低下、発熱は持続。\n意識レベル低下あり (AVPU V)、観察継続。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-50-night": {
@@ -1631,6 +1686,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1643,7 +1699,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 11 日目\n記録者: 若林 淳\n患者状態: BP 118/73, HR 94, SpO2 98%, T 37.5°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 11 日目\n記録者: 若林 淳\n患者状態: BP 118/73, HR 94, SpO2 98%, T 37.5°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎。\n疼痛あり、NRS 1。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-51-day": {
@@ -1654,6 +1710,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1666,7 +1724,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 11 日目\n記録者: 若林 淳\n患者状態: BP 121/74, HR 103, SpO2 97%, T 38.4°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 11 日目\n記録者: 若林 淳\n患者状態: BP 121/74, HR 103, SpO2 97%, T 38.4°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: ヘパリン。\n疼痛あり、NRS 2。\n38.4°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-52-evening": {
@@ -1677,6 +1735,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1689,7 +1749,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 11 日目\n記録者: 若林 淳\n患者状態: BP 122/76, HR 101, SpO2 98%, T 38.5°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 11 日目\n記録者: 若林 淳\n患者状態: BP 122/76, HR 101, SpO2 98%, T 38.5°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 3。\n38.9°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-53-night": {
@@ -1700,6 +1760,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1712,7 +1773,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 12 日目\n記録者: 若林 淳\n患者状態: BP 121/74, HR 94, SpO2 98%, T 37.5°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 12 日目\n記録者: 若林 淳\n患者状態: BP 121/74, HR 94, SpO2 98%, T 37.5°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎。\n疼痛あり、NRS 1。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-54-day": {
@@ -1723,6 +1784,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1735,7 +1798,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 12 日目\n記録者: 若林 淳\n患者状態: BP 122/72, HR 101, SpO2 97%, T 38.4°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 12 日目\n記録者: 若林 淳\n患者状態: BP 122/72, HR 101, SpO2 97%, T 38.4°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: ヘパリン。\n疼痛の訴えなし (NRS 0)。\n38.4°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-55-evening": {
@@ -1746,6 +1809,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1758,7 +1822,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 12 日目\n記録者: 若林 淳\n患者状態: BP 121/74, HR 101, SpO2 95%, T 37.6°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 12 日目\n記録者: 若林 淳\n患者状態: BP 121/74, HR 101, SpO2 95%, T 37.6°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 1。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-56-night": {
@@ -1769,6 +1833,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1781,7 +1847,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 13 日目\n記録者: 若林 淳\n患者状態: BP 118/75, HR 97, SpO2 98%, T 38.4°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 13 日目\n記録者: 若林 淳\n患者状態: BP 118/75, HR 97, SpO2 98%, T 38.4°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎。\n疼痛あり、NRS 1。\n38.4°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-57-day": {
@@ -1792,6 +1858,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1804,7 +1872,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 13 日目\n記録者: 若林 淳\n患者状態: BP 119/72, HR 101, SpO2 98%, T 38.2°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 13 日目\n記録者: 若林 淳\n患者状態: BP 119/72, HR 101, SpO2 98%, T 38.2°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: ヘパリン。\n疼痛あり、NRS 2。\n38.2°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-58-evening": {
@@ -1815,6 +1883,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1827,7 +1897,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 13 日目\n記録者: 若林 淳\n患者状態: BP 119/72, HR 97, SpO2 98%, T 38.2°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 13 日目\n記録者: 若林 淳\n患者状態: BP 119/72, HR 97, SpO2 98%, T 38.2°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n38.2°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-59-night": {
@@ -1838,6 +1908,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.day_index"
       ],
       "generated_at": "2024-06-28T08:00:00+09:00",
@@ -1849,7 +1921,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 14 日目\n記録者: 若林 淳\n患者状態: BP 121/71, HR 97, SpO2 98%, T 37.6°C、酸素投与: 鼻カニューラ 3.6 L/min。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 14 日目\n記録者: 若林 淳\n患者状態: BP 121/71, HR 97, SpO2 98%, T 37.6°C、酸素投与: 鼻カニューラ 3.6 L/min。\n疼痛の訴えなし (NRS 0)。\n39.4°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-60-day": {
@@ -1860,6 +1932,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1872,7 +1946,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 14 日目\n記録者: 若林 淳\n患者状態: BP 118/72, HR 100, SpO2 97%, T 38.4°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 14 日目\n記録者: 若林 淳\n患者状態: BP 118/72, HR 100, SpO2 97%, T 38.4°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 1。\n38.4°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-61-evening": {
@@ -1883,6 +1957,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1895,7 +1971,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 14 日目\n記録者: 若林 淳\n患者状態: BP 121/72, HR 96, SpO2 98%, T 38.1°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 14 日目\n記録者: 若林 淳\n患者状態: BP 121/72, HR 96, SpO2 98%, T 38.1°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 3。\n38.1°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-62-night": {
@@ -1906,6 +1982,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1918,7 +1995,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 15 日目\n記録者: 若林 淳\n患者状態: BP 117/76, HR 97, SpO2 98%, T 37.4°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 15 日目\n記録者: 若林 淳\n患者状態: BP 117/76, HR 97, SpO2 98%, T 37.4°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎。\n疼痛の訴えなし (NRS 0)。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-63-day": {
@@ -1929,6 +2006,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1941,7 +2020,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 15 日目\n記録者: 若林 淳\n患者状態: BP 116/75, HR 95, SpO2 98%, T 39.5°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 15 日目\n記録者: 若林 淳\n患者状態: BP 116/75, HR 95, SpO2 98%, T 39.5°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 3。\n39.5°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-64-evening": {
@@ -1952,6 +2031,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1964,7 +2045,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 15 日目\n記録者: 若林 淳\n患者状態: BP 122/74, HR 96, SpO2 96%, T 38.0°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 15 日目\n記録者: 若林 淳\n患者状態: BP 122/74, HR 96, SpO2 96%, T 38.0°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n38.0°Cの発熱あり、アセトアミノフェン投与、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-65-night": {
@@ -1975,6 +2056,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1987,7 +2069,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 16 日目\n記録者: 若林 淳\n患者状態: BP 119/74, HR 95, SpO2 98%, T 37.9°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 16 日目\n記録者: 若林 淳\n患者状態: BP 119/74, HR 95, SpO2 98%, T 37.9°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎。\n疼痛の訴えなし (NRS 0)。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-66-day": {
@@ -1998,6 +2080,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -2010,7 +2094,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 16 日目\n記録者: 若林 淳\n患者状態: BP 117/73, HR 102, SpO2 98%, T 37.5°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 16 日目\n記録者: 若林 淳\n患者状態: BP 117/73, HR 102, SpO2 98%, T 37.5°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 1。\n38.6°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-67-evening": {
@@ -2021,6 +2105,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -2033,7 +2119,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 16 日目\n記録者: 若林 淳\n患者状態: BP 123/75, HR 96, SpO2 98%, T 38.3°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 16 日目\n記録者: 若林 淳\n患者状態: BP 123/75, HR 96, SpO2 98%, T 38.3°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 2。\n38.3°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-68-night": {
@@ -2044,6 +2130,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -2056,7 +2144,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 17 日目\n記録者: 若林 淳\n患者状態: BP 121/74, HR 93, SpO2 98%, T 38.4°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 17 日目\n記録者: 若林 淳\n患者状態: BP 121/74, HR 93, SpO2 98%, T 38.4°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎。\n疼痛あり、NRS 1。\n38.4°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-69-day": {
@@ -2067,6 +2155,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -2079,7 +2169,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 17 日目\n記録者: 若林 淳\n患者状態: BP 119/74, HR 101, SpO2 97%, T 38.2°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 17 日目\n記録者: 若林 淳\n患者状態: BP 119/74, HR 101, SpO2 97%, T 38.2°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 1。\n38.2°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-70-evening": {
@@ -2090,6 +2180,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -2102,7 +2194,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 17 日目\n記録者: 若林 淳\n患者状態: BP 120/73, HR 96, SpO2 97%, T 38.0°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 17 日目\n記録者: 若林 淳\n患者状態: BP 120/73, HR 96, SpO2 97%, T 38.0°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 2。\n38.0°Cの発熱あり、経過観察。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-71-night": {
@@ -2113,6 +2205,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -2125,7 +2218,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 18 日目\n記録者: 若林 淳\n患者状態: BP 119/74, HR 98, SpO2 97%, T 37.8°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 18 日目\n記録者: 若林 淳\n患者状態: BP 119/74, HR 98, SpO2 97%, T 37.8°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎。\n疼痛あり、NRS 3。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-72-day": {
@@ -2136,6 +2229,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -2148,7 +2242,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 18 日目\n記録者: 若林 淳\n患者状態: BP 120/75, HR 102, SpO2 98%, T 37.7°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 18 日目\n記録者: 若林 淳\n患者状態: BP 120/75, HR 102, SpO2 98%, T 37.7°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 2。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-73-evening": {
@@ -2159,6 +2253,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -2171,7 +2266,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 18 日目\n記録者: 若林 淳\n患者状態: BP 120/71, HR 98, SpO2 98%, T 37.8°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: ヘパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 18 日目\n記録者: 若林 淳\n患者状態: BP 120/71, HR 98, SpO2 98%, T 37.8°C、酸素投与: 鼻カニューラ 3.6 L/min。\n与薬: ヘパリン。\n疼痛の訴えなし (NRS 0)。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-74": {

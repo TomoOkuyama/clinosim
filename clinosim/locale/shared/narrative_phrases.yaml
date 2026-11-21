@@ -1047,6 +1047,63 @@ nursing_shift:
     ja: "観察・ケア継続、特記事項なし。"
     en: "Observation and care ongoing, no significant findings."
 
+# Nursing items of a shift note (Issue #3478); the ordered list and the rule of
+# each item is reference_data/nursing_shift_items.yaml of the document module.
+nursing_shift_items:
+  pain:
+    generic:
+      ja: "疼痛"
+      en: "Pain"
+    none:
+      ja: "疼痛の訴えなし (NRS 0)。"
+      en: "No pain reported (NRS 0)."
+    single:
+      ja: "{pain}あり、NRS {q}。"
+      en: "{pain} reported, NRS {q}."
+    range:
+      ja: "{pain}あり、NRS 最大 {peak}、最終 {last}。"
+      en: "{pain} reported, NRS peak {peak}, latest {last}."
+  fever:
+    observed:
+      ja: "{tmax}°Cの発熱あり、経過観察。"
+      en: "Fever {tmax}°C; observation continued."
+    given:
+      ja: "{tmax}°Cの発熱あり、{drug}投与、経過観察。"
+      en: "Fever {tmax}°C; {drug} given, observation continued."
+    improved:
+      ja: "{tmax}°Cの発熱あり、{drug}投与後 {after}°Cに解熱傾向。"
+      en: "Fever {tmax}°C; {drug} given, temperature down to {after}°C afterwards."
+    lower:
+      ja: "{tmax}°Cの発熱あり、{drug}投与後 {after}°Cに低下、発熱は持続。"
+      en: "Fever {tmax}°C; {drug} given, temperature {after}°C afterwards, fever persists."
+    persisting:
+      ja: "{tmax}°Cの発熱あり、{drug}投与後も {after}°Cで経過観察。"
+      en: "Fever {tmax}°C; {drug} given, temperature still {after}°C afterwards, observation continued."
+  desaturation:
+    on_oxygen:
+      ja: "{time} SpO2 {min}%に低下、{o2}投与下で管理。"
+      en: "SpO2 fell to {min}% at {time}; managed on {o2}."
+    oxygen_started:
+      ja: "{time} SpO2 {min}%に低下、{o2}投与後 SpO2 {after}%。"
+      en: "SpO2 fell to {min}% at {time}; {o2} given, SpO2 {after}% afterwards."
+    observed:
+      ja: "{time} SpO2 {min}%に低下、酸素投与なしで経過観察。"
+      en: "SpO2 fell to {min}% at {time}; no oxygen given, observation continued."
+  consciousness:
+    new:
+      ja: "意識レベル低下あり (AVPU {a})、観察継続。"
+      en: "Decreased level of consciousness (AVPU {a}); observation continued."
+    persistent:
+      ja: "意識レベル低下持続 (AVPU {a})。"
+      en: "Level of consciousness remains decreased (AVPU {a})."
+    transient:
+      ja: "一過性の意識レベル低下 (AVPU {w}) あり、最終確認時は清明 (AVPU A)。"
+      en: "Transient decrease in level of consciousness (AVPU {w}); alert (AVPU A) at the last check."
+  news2:
+    urgent:
+      ja: "{time} NEWS2 {score}、緊急対応基準 ({threshold}点以上) に該当。"
+      en: "NEWS2 {score} at {time}, at or above the urgent-response level ({threshold})."
+
 # Newborn / infant screening phrases (Phase 1d-9, from
 # replacement_strategy._build_neonatal_addendum).
 newborn:

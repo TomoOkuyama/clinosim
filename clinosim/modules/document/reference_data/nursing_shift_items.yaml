@@ -1,0 +1,62 @@
+# The nursing items of a shift note beyond its fixed lines (Issue #3478, child
+# of #3476). Read by narrative/_nursing_shift_items.py::nursing_shift_items_config
+# and applied by narrative/renderers/nursing_shift_note.py: each item is
+# written only when the record of the shift shows it, in this order, after the
+# status and medication lines and before the fall-risk line. The phrases of an
+# item are the ``nursing_shift_items.<id>`` block of
+# locale/shared/narrative_phrases.yaml (ja and en).
+#
+#   id:        the item (a function of the same name in _nursing_shift_items.py)
+#   source:    the CIF field(s) the item reads (documentation; the function is
+#              the reader)
+#   rule:      when the item is written
+#   fact:      the facts_used tag the item adds (allowed prefix ``ctx.``)
+#   skip_neonate: the item is not written for a patient in the neonatal period
+#              (no self-reported pain score for a newborn)
+#
+# Thresholds are not repeated here: fever is the ``trend.fever_c`` of
+# progress_vitals.yaml, the SpO2 floor is the ``limits.spo2`` of
+# progress_exam.yaml (a COPD patient's own floor replacing it), the NEWS2
+# urgent-response level is observation/reference_data scores ``news2``.
+# Nothing is written for a reading the shift does not have; no response to an
+# abnormal vital is stated beyond what the record shows (a dose on the MAR, the
+# oxygen of a reading).
+
+metadata:
+  kind: reference
+  name: nursing_shift_items
+  source: clinosim
+
+items:
+  - id: pain
+    source: vital_signs[].pain_score
+    rule: a pain score (NRS 0-10) is recorded in the shift; the highest and the latest score, the pain named by the disease's pain site
+    fact: ctx.vitals.shift.pain
+    skip_neonate: true
+  - id: fever
+    source: vital_signs[].temperature_celsius; medication_administrations[]
+    rule: the shift's highest temperature is at or above the fever threshold; the response is the antipyretic given in the shift (MAR) and the first temperature after it, else observation
+    fact: ctx.vitals.shift.fever
+    skip_neonate: false
+  - id: desaturation
+    source: vital_signs[].spo2, on_supplemental_oxygen, oxygen_delivery_device, oxygen_flow_rate_lpm
+    rule: the shift's lowest SpO2 is below the patient's SpO2 floor; the response is the oxygen of that reading or the oxygen started after it, else observation
+    fact: ctx.vitals.shift.desaturation
+    skip_neonate: false
+  - id: consciousness
+    source: vital_signs[].consciousness_level
+    rule: an AVPU level other than Alert is recorded in the shift; new, persisting (the reading before the shift was not Alert) or transient (the shift's last level is Alert)
+    fact: ctx.vitals.shift.consciousness
+    skip_neonate: false
+  - id: news2
+    source: vital_signs[].news2_score
+    rule: the latest NEWS2 of the shift is at or above the urgent-response level (an earlier unstable episode is the status line's)
+    fact: ctx.vitals.shift.news2
+    skip_neonate: false
+
+# Drugs (drug_key of the bare drug name) counted as the antipyretic response
+# to a fever when given in the shift.
+antipyretic_drug_keys:
+  - acetaminophen
+  - ibuprofen
+  - loxoprofen
