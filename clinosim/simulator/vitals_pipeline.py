@@ -38,6 +38,7 @@ Supporting sets:
 
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import datetime, timedelta
 
 import numpy as np
@@ -192,6 +193,7 @@ from clinosim.simulator._vitals_schedule_thresholds import (
 )
 from clinosim.simulator.adl_ceiling import barthel_item_caps
 from clinosim.simulator.maintenance_iv_fluid import maintenance_iv_fluid_rules
+from clinosim.simulator.oxygen_course import OxygenCourse
 from clinosim.simulator.ventricular_rate import VentricularRateCourse
 from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.encounter import (
@@ -418,6 +420,27 @@ def _make_raw(state, patient, vit_time, rng, ventricular_rate: VentricularRateCo
     )
 
 
+def o2_target(disease_id: str) -> float:
+    """Room-air SpO2 below which oxygen starts (88% for a COPD exacerbation)."""
+    return SPO2_TARGET_COPD if disease_id == "copd_exacerbation" else SPO2_HYPOXEMIA_TRIGGER
+
+
+def resolve_oxygen(
+    course: OxygenCourse,
+    readings: list[tuple[int, datetime, float, tuple[bool, float | None, str]]],
+    state,
+    disease_id: str,
+) -> dict[int, tuple[bool, float | None, str, float]]:
+    """Run ``readings`` (key, time, room-air SpO2, per-reading ``_o2_for``
+    draw) through ``course`` in time order: key -> (on, flow, device, SpO2
+    recorded). The draws were already made, so no stream moves (Issue #3469)."""
+    target = o2_target(disease_id)
+    return {
+        key: course.resolve(when, raw, target, draw, lambda r, f: spo2_on_oxygen(r, f, state, disease_id))
+        for key, when, raw, draw in sorted(readings, key=lambda r: r[1])
+    }
+
+
 def _o2_for(spo2, disease_id, rng):
     """Return (on_o2, flow, device) for a room-air SpO2 reading.
 
@@ -425,7 +448,7 @@ def _o2_for(spo2, disease_id, rng):
     weaned as the room-air SpO2 recovers (Issue #2083). Previously every
     respiratory / heart-failure patient received oxygen at every round.
     """
-    target = SPO2_TARGET_COPD if disease_id == "copd_exacerbation" else SPO2_HYPOXEMIA_TRIGGER
+    target = o2_target(disease_id)
     if spo2 >= target:
         return False, None, ""
     if spo2 < SPO2_SEVERE_HYPOXEMIA and disease_id != "copd_exacerbation":
@@ -569,8 +592,14 @@ def _generate_vitals(
     disease_id: str = "",
     nurse_id: str = "",
     ventricular_rate: VentricularRateCourse | None = None,
+    oxygen: OxygenCourse | None = None,
 ) -> list[VitalSignRecord]:
     """Generate vital sign measurements for this day.
+
+    ``oxygen`` is the stay's oxygen course (Issue #3469): the on / off state,
+    device and flow carry across the readings and days; without one the day
+    starts on room air. The per-reading ``_o2_for`` draws are still made, so
+    the RNG stream is the same with or without it.
 
     ``ventricular_rate`` is the stay's ventricular-rate course of an
     arrhythmia protocol (Issue #3274); the draws are the same with or
@@ -625,13 +654,14 @@ def _generate_vitals(
     else:
         full_hours = list(VITALS_TID_HOURS)
 
+    o2_draws: list[tuple[int, datetime, float, tuple[bool, float | None, str]]] = []
+
     def _emit(time: datetime, *, fields: set[str], raw: dict, note: str = "") -> None:
         """Emit a VitalSignRecord with only the specified fields populated."""
-        on_o2, o2_flow, o2_device = (False, None, "")
         if "spo2" in fields:
-            on_o2, o2_flow, o2_device = _o2_for(raw["spo2"], disease_id, rng)
-            if on_o2:
-                raw = {**raw, "spo2": spo2_on_oxygen(raw["spo2"], o2_flow, state, disease_id)}
+            # The draw is consumed here; the oxygen state it feeds is resolved
+            # in time order once the day's readings are all made (below).
+            o2_draws.append((len(vitals), time, raw["spo2"], _o2_for(raw["spo2"], disease_id, rng)))
         # Issue #911: preserve master-rng consumption for downstream
         # determinism (call _loc_for and discard) but return the per-day
         # stable AVPU. See the ``_stable_day_avpu`` derivation above.
@@ -655,9 +685,6 @@ def _generate_vitals(
                 spo2=round(raw["spo2"], 1) if "spo2" in fields else None,
                 pain_score=pain,
                 consciousness_level=loc,
-                on_supplemental_oxygen=on_o2,
-                oxygen_flow_rate_lpm=round(o2_flow, 1) if o2_flow else None,
-                oxygen_delivery_device=o2_device,
                 nursing_note=note,
                 measured_by=nurse_id,
                 data_source="manual",
@@ -718,5 +745,16 @@ def _generate_vitals(
             mon_time += timedelta(minutes=float(rng.normal(0, VITALS_MONITOR_JITTER_MIN_SD)))
             raw = _make_raw(state, patient, mon_time, rng, ventricular_rate)
             _emit(mon_time, fields={"hr", "spo2"}, raw=raw, note="continuous monitor")
+
+    # Issue #3469: oxygen is a state of the stay, resolved chronologically.
+    resolved = resolve_oxygen(oxygen if oxygen is not None else OxygenCourse(), o2_draws, state, disease_id)
+    for i, (on_o2, flow, device, spo2) in resolved.items():
+        vitals[i] = replace(
+            vitals[i],
+            spo2=round(spo2, 1),
+            on_supplemental_oxygen=on_o2,
+            oxygen_flow_rate_lpm=round(flow, 1) if flow else None,
+            oxygen_delivery_device=device,
+        )
 
     return vitals
