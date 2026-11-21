@@ -25,6 +25,7 @@ from clinosim.modules._shared import strip_protocol_prefix
 from clinosim.modules.document.engine import SHIFT_HOURS, SHIFT_SCHEDULE
 from clinosim.modules.document.narrative._as_of import in_force_at
 from clinosim.modules.document.narrative._narrative_utils import _filter_vitals_for_day
+from clinosim.modules.document.narrative._nursing_shift_items import nursing_shift_item_lines
 from clinosim.modules.document.narrative._template_helpers import _resolve_staff_name
 from clinosim.modules.document.narrative._vitals_line import (
     NURSING_SHIFT,
@@ -236,7 +237,11 @@ def render_nursing_shift_note(ctx: NarrativeContext, spec: DocumentTypeSpec) -> 
         )
     else:
         meds_line = ""
-    observations = risk_bit or t("nursing_shift.observations_default", lang)
+    # Issue #3478: the nursing items the shift's record shows (pain, fever,
+    # desaturation, consciousness, NEWS2), in the registry's order.
+    item_lines = nursing_shift_item_lines(ctx, lang, picks, window) if window is not None else []
+    for _, item_fact in item_lines:
+        facts.append(item_fact)
 
     lines = [header]
     if nurse_line:
@@ -245,7 +250,11 @@ def render_nursing_shift_note(ctx: NarrativeContext, spec: DocumentTypeSpec) -> 
     if meds_line:
         lines.append(meds_line)
         facts.append("ctx.medications.today")
-    lines.append(observations)
+    lines.extend(text for text, _ in item_lines)
+    if risk_bit:
+        lines.append(risk_bit)
+    elif not item_lines:
+        lines.append(t("nursing_shift.observations_default", lang))
     raw_text = "\n".join(lines)
 
     facts.append("ctx.day_index")

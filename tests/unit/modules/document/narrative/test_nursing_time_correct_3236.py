@@ -202,7 +202,8 @@ def test_an_earlier_reading_is_not_repeated_while_the_patient_is_still_unstable(
     ]
     text = _shift_note(1, "evening", datetime(2026, 9, 1, 16, 0), lang="en", vitals=rows)
     assert "HR 134" in text
-    assert "17:10" not in text
+    # The status line does not repeat the earlier reading (the desaturation item of #3478 may name its time).
+    assert "NEWS2 9 at 17:10" not in text and "HR 136" not in text
 
 
 def test_a_stable_shift_has_no_unstable_reading_line() -> None:

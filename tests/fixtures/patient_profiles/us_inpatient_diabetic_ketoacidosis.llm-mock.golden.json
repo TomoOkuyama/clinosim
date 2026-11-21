@@ -263,6 +263,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -275,7 +276,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 112/68, HR 114, SpO2 99%, T 36.4°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 112/68, HR 114, SpO2 99%, T 36.4°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids, target K 4.0-5.0.\nNo pain reported (NRS 0)."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-08-evening": {
@@ -286,6 +287,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.desaturation",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -298,7 +301,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 117/72, HR 107, SpO2 93%, T 35.7°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), Enoxaparin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 117/72, HR 107, SpO2 93%, T 35.7°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), Enoxaparin.\nabdominal pain reported, NRS peak 3, latest 2.\nSpO2 fell to 93% at 23:54; no oxygen given, observation continued."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-09-night": {
@@ -309,6 +312,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -321,7 +325,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 112/75, HR 106, SpO2 97%, T 36.6°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 112/75, HR 106, SpO2 97%, T 36.6°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids, target K 4.0-5.0.\nabdominal pain reported, NRS 1."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-10-day": {
@@ -332,6 +336,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -344,7 +349,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 117/71, HR 104, SpO2 98%, T 37.0°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 117/71, HR 104, SpO2 98%, T 37.0°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids, target K 4.0-5.0.\nNo pain reported (NRS 0)."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-11-evening": {
@@ -355,6 +360,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -367,7 +373,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 115/75, HR 105, SpO2 98%, T 37.1°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids, target K 4.0-5.0, Enoxaparin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 115/75, HR 105, SpO2 98%, T 37.1°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids, target K 4.0-5.0, Enoxaparin.\nNo pain reported (NRS 0)."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-12-night": {
@@ -378,6 +384,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -390,7 +397,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 119/71, HR 107, SpO2 96%, T 36.5°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 119/71, HR 107, SpO2 96%, T 36.5°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids, target K 4.0-5.0.\nabdominal pain reported, NRS 3."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-13-day": {
@@ -401,6 +408,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -413,7 +421,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 115/75, HR 103, SpO2 97%, T 36.5°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 115/75, HR 103, SpO2 97%, T 36.5°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids, target K 4.0-5.0.\nabdominal pain reported, NRS 2."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-14-evening": {
@@ -424,6 +432,7 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -436,7 +445,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 113/72, HR 101, SpO2 96%, T 36.7°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids, target K 4.0-5.0, Enoxaparin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 113/72, HR 101, SpO2 96%, T 36.7°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids, target K 4.0-5.0, Enoxaparin.\nabdominal pain reported, NRS 1."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-15": {
