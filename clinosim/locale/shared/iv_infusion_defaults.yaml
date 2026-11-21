@@ -27,6 +27,8 @@
 #       # bolus      → emit timing.repeat.duration = <duration_min>, durationUnit = 'min'
 #       # push       → emit NEITHER (drug is legitimately given as a fast
 #       #              IV push < 5 min; a rate would be a fabrication)
+#       one_off_mode: push         # optional (continuous drugs): the mode when the order is
+#                                  # ONCE / STAT, instead of the default bolus (Issue #3483)
 #       rate_value: <number>       # required for continuous
 #       rate_unit: <UCUM string>   # required for continuous; e.g. mL/h, mcg/min, U/kg/h
 #       duration_min: <int>        # required for bolus; typical 15 / 30 / 60 / 120
@@ -318,6 +320,9 @@ drugs:
     rate_value: 0.05
     rate_unit: "ug/kg/min"
     note: "start 0.02-0.05 mcg/kg/min for shock / anaphylaxis drip."
+    # Ordered once (ONCE / STAT) it is a push: the 1 mg IV dose of a cardiac
+    # arrest (AHA 2020 Adult Cardiac Arrest Algorithm), not a drip (Issue #3483).
+    one_off_mode: push
   "dopamine":
     mode: continuous
     rate_value: 5

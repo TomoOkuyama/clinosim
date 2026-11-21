@@ -496,8 +496,14 @@ def augment_iv_dosage_with_rate(
     if freq in ("ONCE", "STAT") and mode == "continuous":
         from clinosim.locale.loader import load_iv_infusion_defaults
 
-        entry = (load_iv_infusion_defaults() or {}).get("default") or {}
-        mode = str(entry.get("mode", "") or "").lower()
+        # Issue #3483: a drug given as a push when ordered once (epinephrine
+        # in a cardiac arrest) names that mode; no timed bolus is invented.
+        one_off_mode = str(entry.get("one_off_mode", "") or "").lower()
+        if one_off_mode:
+            mode = one_off_mode
+        else:
+            entry = (load_iv_infusion_defaults() or {}).get("default") or {}
+            mode = str(entry.get("mode", "") or "").lower()
     if mode == "continuous":
         rate_value = entry.get("rate_value")
         rate_unit = entry.get("rate_unit", "")

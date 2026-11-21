@@ -114,6 +114,7 @@ Cross-module invariant:
 | [`staff/`](staff/README.ja.md) | Staff roster + event 別 `assign_staff` dispatch。 |
 | [`care_level/`](care_level/README.ja.md) | JP 要介護度付与 (POST_RECORDS order=60、JP 限定)。 |
 | [`code_status/`](code_status/README.ja.md) | 蘇生方針 tier 付与 (POST_RECORDS order=50)。 |
+| [`resuscitation/`](resuscitation/README.ja.md) | 蘇生処置を行う院内死亡の CPR 処置とエピネフリン投与 (POST_RECORDS order=55)。 |
 | [`hai/`](hai/README.ja.md) | HAI 発症サンプリング (CLABSI / CAUTI / VAP) + Phase 3a lift + AD-60 audit。 |
 
 ### 文書

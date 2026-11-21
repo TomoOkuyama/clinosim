@@ -5,7 +5,8 @@
   "retrieved": "2026-11-01",
   "key": "点数表区分番号 (column 117) or 区分番号-枝番 (columns 85, 92, 93)",
   "note": "Names of the master rows for each code registered in codes/data/k-codes.yaml (additions excluded); at most 8 per code.",
-  "note_d206": "D206 rows (Issue #2655) taken from s_ALL20261102.csv, retrieved 2026-11-06."
+  "note_d206": "D206 rows (Issue #2655) taken from s_ALL20261102.csv, retrieved 2026-11-06.",
+  "note_j046": "J046 row (Issue #3483) taken from s_ALL20261102.csv (レセプト電算コード 140010210), retrieved 2026-11-21."
  },
  "codes": {
   "K0004": [
@@ -175,6 +176,9 @@
   ],
   "J044": [
    "救命のための気管挿管"
+  ],
+  "J046": [
+   "非開胸的心マッサージ"
   ],
   "J047": [
    "カウンターショック（１日につき）（その他の場合）",

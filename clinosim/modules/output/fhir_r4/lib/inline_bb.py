@@ -63,6 +63,7 @@ from clinosim.modules.output.fhir_r4.procedures.procedures import (
     _resolve_procedure_id,
     procedure_reason_codes,
 )
+from clinosim.modules.resuscitation.engine import is_resuscitation_order
 from clinosim.modules.triage.engine import admitted_ed_stay
 from clinosim.simulator._ed_thresholds import ED_DEPARTMENT_ID, ED_WARD_ID
 
@@ -702,6 +703,9 @@ def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
     # a drug-name fallback in `dose` (continue-home-med / sliding-scale
     # / PRN paths where MA generation had no explicit dose to record).
     _order_by_oid = {o.get("order_id"): o for o in (ctx.record.get("orders") or []) if o.get("order_id")}
+    # Issue #3483: the epinephrine doses of a resuscitation attempt are minutes
+    # apart on purpose and are not scheduling duplicates.
+    _resuscitation_doses: set[int] = set()
     for i, mar in enumerate(ctx.record.get("medication_administrations", [])):
         if not (mar.get("drug_name") or "").strip():
             continue
@@ -743,10 +747,12 @@ def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
                 elif _target not in _gate:
                     _resource.pop("request", None)  # drop the dangling ref
         out.append(_resource)
-    return _dedup_medication_admins(out)
+        if is_resuscitation_order(_oid):
+            _resuscitation_doses.add(id(_resource))
+    return _dedup_medication_admins(out, keep=_resuscitation_doses)
 
 
-def _dedup_medication_admins(mas: list[dict]) -> list[dict]:
+def _dedup_medication_admins(mas: list[dict], keep: set[int] | None = None) -> list[dict]:
     """Drop MedicationAdministration duplicates within the same hour bucket.
 
     Issue #1187 F5: a 25-day inpatient stay recorded 33 MedicationAdministration
@@ -768,7 +774,9 @@ def _dedup_medication_admins(mas: list[dict]) -> list[dict]:
     Key: (drug_name lower, hour-bucketed scheduled_datetime, patient
     reference). The hour bucket collapses jitter within the same slot.
     Empty `drug_name` or missing `effectiveDateTime` rows pass through
-    unchanged (cannot key). First occurrence wins.
+    unchanged (cannot key). First occurrence wins. A resource whose ``id()``
+    is in ``keep`` is never dropped (Issue #3483: the epinephrine doses of a
+    resuscitation attempt, a few minutes apart by design).
     """
     seen: set[tuple[str, str, str]] = set()
     out: list[dict] = []
@@ -794,7 +802,7 @@ def _dedup_medication_admins(mas: list[dict]) -> list[dict]:
         # period. Two MARs in the same hour for the same drug on the same
         # patient are, at best, a scheduling artifact.
         hour_bucket = eff[:13] if len(eff) >= 13 else eff
-        if not drug or not hour_bucket:
+        if not drug or not hour_bucket or (keep and id(ma) in keep):
             out.append(ma)
             continue
         key = (drug, hour_bucket, subject)
