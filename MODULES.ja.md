@@ -1,6 +1,6 @@
 # clinosim モジュールマップ
 
-clinosim の **38 モジュール** (数え方: `clinosim/modules/` 配下の
+clinosim の **39 モジュール** (数え方: `clinosim/modules/` 配下の
 top-level package。`_shared.py` 等の非 package file は除く。
 `nursing_assignment` は observation-layer nursing flowsheet enricher
 と `clinosim/modules/nursing/` を共有) を 1 ページで俯瞰する。プロジェクト
@@ -110,6 +110,7 @@ framework (現在 registry 登録済み 6 per-module plug-in: `antibiotic`,
 │  care_level(60)   JP 要介護度 (JP 限定)                  │
 │  medication_monitoring(65) 慢性薬 → labs (Issue #757)    │
 │  health_checkup(70) JP 事業者健診 (JP 限定、opt-in)      │
+│  stage_refresh(900) 慢性疾患 stage を最新検査値で再記述  │
 └──────────────────────────────────────────────────────────┘
             ↓                ↓               ↓
 ┌─ Output ─────────────────────────────────────────────────┐
@@ -121,7 +122,7 @@ framework (現在 registry 登録済み 6 per-module plug-in: `antibiotic`,
 
 ## モジュール索引
 
-計 38 モジュール (`clinosim/modules/` 配下 top-level package;
+計 39 モジュール (`clinosim/modules/` 配下 top-level package;
 下表は追加で foundation の `codes` / `locale` も列挙)。各エントリは
 canonical 11-section 構造に従う per-module README にリンクする。
 
@@ -137,7 +138,7 @@ canonical 11-section 構造に従う per-module README にリンクする。
 | [procedure](clinosim/modules/procedure/README.ja.md) | 手術 + bedside + rehab 生成 | simulation | — (caller RNG) | — |
 | [encounter](clinosim/modules/encounter/README.ja.md) | encounter registry (51 YAML) + 入院日次 cycle timeline | simulation | — | — |
 | [disease](clinosim/modules/disease/README.ja.md) | 疾患 registry (36 YAML) + 重症度 + acuity + 薬剤 vocabulary | simulation | — | — |
-| [longitudinal](clinosim/modules/longitudinal/README.ja.md) | 年次 trajectory engine (AR(1) HbA1c / Markov stage ladder / event firing — Phase 4a-4d 慢性進展) | simulation | — (`advance_one_year` に caller RNG) | — (library、aging pass が利用) |
+| [longitudinal](clinosim/modules/longitudinal/README.ja.md) | 年次 trajectory engine (AR(1) HbA1c / Markov stage ladder / event firing — Phase 4a-4d 慢性進展) | simulation | — (`advance_one_year` に caller RNG) | POST_RECORDS 900 (`stage_refresh`: 慢性疾患 stage を最新検査値で再記述、乱数なし) |
 | [population](clinosim/modules/population/README.ja.md) | demographics + life event (Layer 1) + 年次 aging / 院外死亡 (`aging.advance_population` + `mortality.py`。旧 `natural_death` モジュールは #2167 でここへ統合) | population | — (pipeline 頭) | — |
 | [patient](clinosim/modules/patient/README.ja.md) | Layer 1 → Layer 2 activation + 常用薬 | population | — (caller cache) | — |
 | [identity](clinosim/modules/identity/README.ja.md) | JP 保険 + national ID (opt-in) | population | `540054` (decimal、grandfathered) | POST_POPULATION 10 (JP gate) |

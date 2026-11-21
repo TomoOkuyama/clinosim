@@ -49,7 +49,7 @@ design review):
 
 ```
  population (demographics / households)                   Layer 0-1: reference YAML
-   └→ scenario firing (36 diseases / 51 encounters)         (disease / encounter protocols,
+   └→ scenario firing (36 diseases / 52 encounters)         (disease / encounter protocols,
         └→ encounter simulation (inpatient / ED / outpatient) locale, codes)
              ├ physiology-state transition (daily loop)
              ├ orders / labs / vitals / MAR / procedures
@@ -85,10 +85,10 @@ design review):
 | 0 | International code systems (LOINC / ICD / RxNorm / JLAC10 …, EN-first) | `clinosim/codes/` |
 | 1 | Reference-data YAML (disease / lab / locale / hospital config) | `modules/*/reference_data/`, `locale/`, `config/` |
 | 2 | Loader (cached + fail-loud validation) | inside each module |
-| 3 | CIF generation (simulator + 38 modules) | `simulator/`, `modules/` |
+| 3 | CIF generation (simulator + 39 modules) | `simulator/`, `modules/` |
 | 4 | Output adapter (FHIR builders and others) | `modules/output/` |
 
-- **38 modules** (see `MODULES.md` for the map). They split into
+- **39 modules** (see `MODULES.md` for the map). They split into
   always-on (mandatory in the clinical cascade: device → hai →
   antibiotic / imaging / document / triage / nursing_assignment,
   etc.) and opt-in.
@@ -186,12 +186,12 @@ C-1) drove a three-layer defense across the codebase: fail-loud
 validation, canonical constants, and firing counters. Details:
 `implementation-rules.md` §9.
 
-## 7. Current state and roadmap (as of 2026-09-02)
+## 7. Current state and roadmap (as of 2026-11-22)
 
-- **Version**: v0.5.0 (v0.6.0 release-gate — all 3 META Issues
-  (#914 / #957 / #757) closed; awaiting tag). Production cohorts of
-  US p=10k / JP p=5k generate with all audit axes PASS. 32 diseases
-  + 46 outpatient / ED conditions, 33 modules, 25+ FHIR R4 resource
+- **Version**: v0.7.0 (released 2026-11-11; changes since then are in
+  the `[Unreleased]` section of `CHANGELOG.md`). Production cohorts of
+  US p=10k / JP p=5k generate with all audit axes PASS. 36 diseases
+  + 52 outpatient / ED conditions, 39 modules, 25+ FHIR R4 resource
   types emitted. Longitudinal service lines (oncology + obstetrics —
   cancer chronic markers × chemo regimen cycles + per-cycle drug
   MedicationRequest/Administration × radiation therapy Procedure ×

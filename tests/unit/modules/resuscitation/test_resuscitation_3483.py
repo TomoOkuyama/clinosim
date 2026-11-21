@@ -10,7 +10,7 @@ import pytest
 
 from clinosim.codes.loader import display
 from clinosim.codes.procedures import procedure_code, procedure_type_display
-from clinosim.modules.resuscitation.engine import load_rules
+from clinosim.modules.resuscitation import load_rules
 from clinosim.modules.resuscitation.enricher import enrich_resuscitation
 from clinosim.types.encounter import EncounterStatus, EncounterType
 from clinosim.types.patient import PatientProfile

@@ -16,7 +16,7 @@ on **HOW-TO**.
 
 > **When creating a new module**: start by copying
 > [`.github/TEMPLATE_MODULE_README.md`](../.github/TEMPLATE_MODULE_README.md).
-> For an overview of all 38 modules (counting rule: packages under
+> For an overview of all 39 modules (counting rule: packages under
 > `clinosim/modules/`; non-package files such as `_shared.py` are
 > excluded), see [`MODULES.md`](../MODULES.md). For picking the PR
 > verification approach, see the "PR verification guide: byte-diff
@@ -600,10 +600,10 @@ every new YAML protocol in Pydantic** with
 
 ### Publish the public API via `__init__.py`
 
-> **Known debt:** 14 of the 38 module `__init__.py` files are
+> **Known debt:** 14 of the 39 module `__init__.py` files are
 > still empty, so callers of those modules reach into submodules
 > directly. **New modules re-export the public surface from
-> `__init__.py` via `__all__`** (as the other 24 do), and callers
+> `__init__.py` via `__all__`** (as the other 25 do), and callers
 > use `from clinosim.modules.<name> import X` rather than
 > `.engine`.
 

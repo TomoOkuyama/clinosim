@@ -28,7 +28,7 @@ The duration is drawn from a per-stay sub-RNG seeded by `clinosim.seeding.resusc
 ## Public API
 
 ```python
-from clinosim.modules.resuscitation.engine import load_rules, build_cpr_procedure, build_epinephrine
+from clinosim.modules.resuscitation import build_cpr_procedure, build_epinephrine, is_resuscitation_order, load_rules
 from clinosim.modules.resuscitation.enricher import enrich_resuscitation
 ```
 

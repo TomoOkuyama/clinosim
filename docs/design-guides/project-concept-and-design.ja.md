@@ -66,10 +66,10 @@
 | 0 | 国際コード体系(LOINC/ICD/RxNorm/JLAC10…、EN-first) | `clinosim/codes/` |
 | 1 | 参照データ YAML(疾患・検査・locale・病院設定) | `modules/*/reference_data/`, `locale/`, `config/` |
 | 2 | loader(cached + fail-loud validation) | 各 module 内 |
-| 3 | CIF 生成(simulator + 38 modules) | `simulator/`, `modules/` |
+| 3 | CIF 生成(simulator + 39 modules) | `simulator/`, `modules/` |
 | 4 | 出力 adapter(FHIR builders ほか) | `modules/output/` |
 
-- **module は 38 個**(`MODULES.md` が地図)。always-on(臨床カスケード上必須:device →
+- **module は 39 個**(`MODULES.md` が地図)。always-on(臨床カスケード上必須:device →
   hai → antibiotic / imaging / document / triage / nursing_assignment 等)と opt-in がある。
 - module 間依存は README の Dependencies 宣言 + `types/` / `codes/` / `locale/` のみ。
   CIF への書込みは `extensions[<module>]`(typed field 追加は Base のみ)。
@@ -135,9 +135,9 @@
 歴史的事故(PR-90 / J5 / C-1)から fail-loud validation・canonical constants・発火 counter
 の 3 層防御が全域に張られている。詳細 = `implementation-rules.md` §9。
 
-## 7. 現在地とロードマップ(2026-09-02 時点)
+## 7. 現在地とロードマップ(2026-11-22 時点)
 
-- **version**: v0.5.0 (v0.6.0 release-gate — 3 META Issue (#914 / #957 / #757) 全 close、tag 待ち)。US p=10k / JP p=5k の production cohort が audit 全 PASS で生成可能。32 疾患 + 46 外来 / ED 病態、33 モジュール、25+ FHIR R4 resource 型 emit。縦断サービスライン (腫瘍 + 産科 — がん chronic marker × 化学療法 regimen サイクル + per-cycle drug MedicationRequest/Administration × 放射線治療 Procedure × **時限 `TemporalStatePeriod` 妊娠 lifecycle** (受精 → 妊婦健診 12/24/36 週 → 分娩 encounter → 産褥) × 新生児 Patient chain × 妊娠中絶 outcome × Z37 過去出産 problem-list-item (state_history 由来)) は META #957 Incr 1 (PR #1051) で完成 — 詳細は `docs/reference/oncology-obstetric-service-lines.ja.md` + AD-71 `docs/architecture/architecture-notes.ja.md` §9。
+- **version**: v0.7.0 (2026-11-11 リリース。以降の変更は `CHANGELOG.md` の `[Unreleased]` 節)。US p=10k / JP p=5k の production cohort が audit 全 PASS で生成可能。36 疾患 + 52 外来 / ED 病態、39 モジュール、25+ FHIR R4 resource 型 emit。縦断サービスライン (腫瘍 + 産科 — がん chronic marker × 化学療法 regimen サイクル + per-cycle drug MedicationRequest/Administration × 放射線治療 Procedure × **時限 `TemporalStatePeriod` 妊娠 lifecycle** (受精 → 妊婦健診 12/24/36 週 → 分娩 encounter → 産褥) × 新生児 Patient chain × 妊娠中絶 outcome × Z37 過去出産 problem-list-item (state_history 由来)) は META #957 Incr 1 (PR #1051) で完成 — 詳細は `docs/reference/oncology-obstetric-service-lines.ja.md` + AD-71 `docs/architecture/architecture-notes.ja.md` §9。
   32 疾患 + 46 外来/ED 条件、33 modules、FHIR R4 で 25+ resource type を emit。
 - **β-JP-1 chain 2(厚労省帳票)は完了**: 入院診療計画書 / 看護必要度
   A・B・C 項目評価票(公式には「D 表」という帳票は存在しない、名称は訂正

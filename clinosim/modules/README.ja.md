@@ -55,7 +55,7 @@ Cross-module invariant:
   生成し、[`output/`](output/README.ja.md) アダプタが国別に描画する。
   code system は [`clinosim.codes`](../codes/data/) 側。
 
-## モジュール索引 (38 module)
+## モジュール索引 (39 module)
 
 ### 患者生成
 
