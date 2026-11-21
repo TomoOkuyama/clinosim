@@ -5,15 +5,14 @@ returns a list of DeviceRecord for that encounter (deterministic; no RNG),
 honouring devices.yaml placement criteria. State unchanged
 (BNP-pattern surgical principle).
 
-Phase 1 simplification (PR-A): ICU stay period is approximated as the
-inpatient Encounter's admission_datetime / discharge_datetime, because
-the CIF does not currently record an explicit ICU sub-period. This
-slightly over-estimates true ICU line-days but stays clinically
-defensible for the HAI Phase 2 risk-window computation.
+Placement and removal dates follow the placing event and the end of the
+device's indication (Issue #3516, ``simulator/device_removal.py``); a device
+whose indication never ends is removed on the discharge date.
 """
 
 from __future__ import annotations
 
+from datetime import date, timedelta
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -160,30 +159,40 @@ def place_devices_for_encounter(
 ) -> list[DeviceRecord]:
     """Return DeviceRecord list for a single encounter.
 
-    Returns [] when:
-    - the patient did not transfer to ICU during their stay
-    - the encounter is not an inpatient encounter
-    - no device's placement_criteria are met by the patient state
+    Returns [] for a non-inpatient encounter. Two sources of devices:
+
+    - ICU devices (devices.yaml criteria met by an ICU stay);
+    - a catheter placed by an insertion procedure or a catheter order of the
+      stay that has no ICU device of its type (Issue #3516).
+
+    The placement is the date of the placing event (insertion procedure,
+    catheter order, else the ICU transfer day) and the removal the day the
+    device's indication ended (``simulator/device_removal.py``). Draws no RNG.
     """
-    if not record.icu_transferred:
-        return []
     if encounter.encounter_type != EncounterType.INPATIENT:
         return []
-    severity_moderate_plus = True  # ICU transfer ≈ severity moderate+
-    altered = _altered_consciousness_for_encounter(record, encounter)
-    state = _peak_state_for_encounter(record, encounter)
-    intubated = any(
-        getattr(p, "procedure_type", "") == "intubation" and getattr(p, "encounter_id", "") == encounter.encounter_id
-        for p in (record.procedures or [])
+    from clinosim.simulator.device_removal import (
+        device_removal_rules,
+        placing_date,
+        removal_date,
+        surgery_dates,
     )
-    indications = _evaluate_indications(state, severity_moderate_plus, altered, intubated=intubated)
-    placement = encounter.admission_datetime.date().isoformat()
-    removal = encounter.discharge_datetime.date().isoformat() if encounter.discharge_datetime else None
-    out: list[DeviceRecord] = []
+
+    rules = device_removal_rules().kinds
+    admitted = encounter.admission_datetime.date()
+    discharged = encounter.discharge_datetime.date() if encounter.discharge_datetime else None
+    states = record.physiological_states or []
+    operations = surgery_dates(record, encounter)
     enc_id = encounter.encounter_id or "unknown"
-    for device_type, cfg in devices_config["devices"].items():
-        if not _indications_met(cfg["placement_criteria"], indications):
-            continue
+    out: list[DeviceRecord] = []
+
+    def _add(device_type: str, placed: date, indication: str, origin: str) -> None:
+        rule = rules[device_type]
+        removed, basis = removal_date(
+            rule, placed=placed, admitted=admitted, discharged=discharged, states=states, operations=operations
+        )
+        if removed is not None and removed < placed:
+            removed = placed
         # feedback FB-F2: FHIR id 型は英数字+'-'+'.' のみ許可、_ 禁止。
         # device_type YAML key(indwelling_catheter 等)の _ を - に置換。
         _device_type_id = device_type.replace("_", "-")
@@ -192,10 +201,37 @@ def place_devices_for_encounter(
                 device_id=f"dev-{enc_id}-{_device_type_id}-{len(out)}",
                 encounter_id=enc_id,
                 device_type=device_type,
-                snomed_code=cfg["snomed_code"],
-                placement_date=placement,
-                removal_date=removal,
-                placement_indication=",".join(sorted(indications)),
+                snomed_code=devices_config["devices"][device_type]["snomed_code"],
+                placement_date=placed.isoformat(),
+                removal_date=removed.isoformat() if removed is not None else None,
+                placement_indication=indication,
+                origin=origin,
+                removal_indication=basis,
             )
         )
+
+    if record.icu_transferred:
+        # severity_moderate_plus: ICU transfer ≈ severity moderate+
+        altered = _altered_consciousness_for_encounter(record, encounter)
+        state = _peak_state_for_encounter(record, encounter)
+        intubated = any(
+            getattr(p, "procedure_type", "") == "intubation"
+            and getattr(p, "encounter_id", "") == encounter.encounter_id
+            for p in (record.procedures or [])
+        )
+        indications = _evaluate_indications(state, True, altered, intubated=intubated)
+        icu_day = record.icu_transferred_day if record.icu_transferred_day > 0 else 0
+        icu_date = admitted + timedelta(days=icu_day)
+        for device_type, cfg in devices_config["devices"].items():
+            if not _indications_met(cfg["placement_criteria"], indications):
+                continue
+            placed = placing_date(rules[device_type], record, encounter) or icu_date
+            _add(device_type, placed, ",".join(sorted(indications)), "icu_stay")
+    placed_types = {d.device_type for d in out}
+    for device_type, rule in rules.items():
+        if device_type in placed_types or not rule.indications:
+            continue
+        inserted = placing_date(rule, record, encounter)
+        if inserted is not None:
+            _add(device_type, inserted, "catheter_insertion", "insertion")
     return out

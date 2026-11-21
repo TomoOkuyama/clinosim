@@ -116,6 +116,10 @@ def enrich_hai(ctx) -> None:
             continue
         hai_events: list[HAIEvent] = []
         for device in devices:
+            # NHSN rates are ICU device-day rates; a catheter placed outside
+            # an ICU stay carries no sampled infection (Issue #3516).
+            if _get(device, "origin", "icu_stay") != "icu_stay":
+                continue
             device_type = _get(device, "device_type", "")
             hai_type = _DEVICE_TO_HAI.get(device_type)
             if not hai_type:

@@ -14,6 +14,7 @@ from pydantic import BaseModel, ValidationError
 from clinosim.datafiles import load_data_yaml, load_validated_yaml
 from clinosim.simulator.adl_ceiling import AdlCeilingRules
 from clinosim.simulator.aki_response import AkiResponseRules
+from clinosim.simulator.device_removal import DeviceRemovalRules
 from clinosim.simulator.diagnosis_rules import DiagnosisRulesFile
 from clinosim.simulator.helpers import ChronicPropagationRules
 from clinosim.simulator.implied_chronic import ImpliedChronicPrevalence
@@ -32,6 +33,7 @@ _DIR = Path(__file__).resolve().parents[3] / "clinosim" / "simulator" / "referen
 _MODELS: dict[str, type[BaseModel]] = {
     "adl_functional_ceilings.yaml": AdlCeilingRules,
     "chronic_propagation.yaml": ChronicPropagationRules,
+    "device_removal.yaml": DeviceRemovalRules,
     "diagnosis_rules.yaml": DiagnosisRulesFile,
     "icd10_sex_restrictions.yaml": SexRestrictionRules,
     "implied_chronic_prevalence.yaml": ImpliedChronicPrevalence,
@@ -77,6 +79,9 @@ def _stray_top_level_key(data: dict[str, Any]) -> None:
 _NESTED: dict[str, Callable[[dict[str, Any]], None]] = {
     "adl_functional_ceilings.yaml": lambda d: d["conditions"][0].update(stage_atribute="x"),
     "chronic_propagation.yaml": lambda d: d["chronic_propagatable"].append("E11.9"),
+    "device_removal.yaml": lambda d: _rename(
+        d["kinds"]["cvc"]["indications"]["hemodynamic_monitoring"], "anchor", "ancor"
+    ),
     "diagnosis_rules.yaml": lambda d: _rename(d["unknown_condition_codes"]["default"], "admission", "admision"),
     "icd10_sex_restrictions.yaml": lambda d: d["male_only"].append({"code": "N40"}),
     "implied_chronic_prevalence.yaml": lambda d: d["prevalence"]["cerebral_infarction"].update(I48=1.5),

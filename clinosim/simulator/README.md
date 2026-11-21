@@ -165,6 +165,9 @@ clinosim/simulator/
                          (Issue #3332)
   aki_response.py        acute kidney injury (KDIGO creatinine definition): drugs held
                          while it is active and the discharge gate (Issue #3281)
+  device_removal.py      urinary / central venous catheter placement and removal:
+                         the event that placed it and the day its indication
+                         ended (Issue #3516)
   discharge_rx.py        discharge-time prescription builder
   antithrombotic_plan.py in-stay and discharge antithrombotic regimen of a
                          stroke (protocol `antithrombotic_plan`, Issue #3277)
@@ -283,6 +286,7 @@ Reference data (`reference_data/`, 8 YAMLs):
   reference_data/maintenance_iv_fluid.yaml    when the maintenance IV-fluid order is stopped (maintenance_iv_fluid.py)
   reference_data/mixed_condition.yaml         late recognition, recovery and order merge of a mixed admission's co-disease (mixed_condition.py)
   reference_data/aki_response.yaml            AKI detection, drugs held during AKI, discharge gate (aki_response.py)
+  reference_data/device_removal.yaml          catheter placing events and the indications that end them (device_removal.py)
 ```
 
 Extracted threshold constants (14 files, `_<area>_thresholds.py`):

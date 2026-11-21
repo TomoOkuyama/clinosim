@@ -1,0 +1,80 @@
+# When a urinary catheter or a central venous catheter is removed, and which
+# event placed it (Issue #3516).
+#
+# Read by clinosim/simulator/device_removal.py and applied by the device
+# enricher (modules/device/engine.py), which writes the placement and removal
+# dates on each DeviceRecord (FHIR Device status and DeviceUseStatement
+# timingPeriod follow them).
+#
+# Per device type (keys of modules/device/reference_data/devices.yaml):
+#   - `procedure_types` / `order_patterns`: the events that place the device.
+#     The earliest of the encounter's insertion procedures (catalog procedure
+#     types) and catheter orders (regular expressions matched, ignoring case,
+#     against the order's display name and code) is the placement; an ICU
+#     device with neither is placed on the ICU transfer day.
+#   - `indications`: the reasons the device stays, in priority order. The first
+#     whose `when` holds for the stay is the device's indication (`always`, or
+#     `surgery_in_stay`: a surgical procedure, SNOMED 387713003, in the
+#     encounter). The device is removed on the first day on or after
+#     `anchor` (`placement`, or `last_surgery`) plus `days_after_anchor` on
+#     which the patient has needed no ICU-level care (the criteria that
+#     transfer a patient to the ICU: airway escalation, shock-level perfusion,
+#     a high-flow oxygen requirement) for `stable_consecutive_days` days, or on
+#     the discharge date when that never happens. A device type with no
+#     indication stays until discharge.
+#
+# Sources read for this rule:
+#   - CDC / HICPAC, Guideline for Prevention of Catheter-Associated Urinary
+#     Tract Infections (2009), Recommendation I.A: "Insert catheters only for
+#     appropriate indications ..., and leave in place only as long as needed"
+#     (Category IB); I.A.4: "For operative patients who have an indication for
+#     an indwelling catheter, remove the catheter as soon as possible
+#     postoperatively, preferably within 24 hours, unless there are
+#     appropriate indications for continued use" (Category IB); Table 2A lists
+#     "Need for accurate measurements of urinary output in critically ill
+#     patients" as an appropriate indication.
+#   - CDC / HICPAC, Guidelines for the Prevention of Intravascular
+#     Catheter-Related Infections (2011), Recommendation: "Promptly remove any
+#     intravascular catheter that is no longer essential" (Category IA).
+# Neither source gives a number of days for a medical patient or defines
+# "no longer essential"; the two-day minimum dwell for the strict intake and
+# output indication and for the central line, and the use of the ICU-level
+# care criteria as the end of critical illness, are clinosim modelling choices.
+metadata:
+  kind: reference
+  name: device_removal
+  source: clinosim
+
+kinds:
+  indwelling_catheter:
+    procedure_types: [urinary_catheter]
+    order_patterns: ["foley", "urinary[_ ]catheter"]
+    indications:
+      # Post-operative: removed the day after the last operation (the guideline
+      # prefers within 24 hours), once the patient needs no ICU-level care.
+      perioperative:
+        when: surgery_in_stay
+        anchor: last_surgery
+        days_after_anchor: 1
+        stable_consecutive_days: 1
+      # Strict intake and output monitoring (the guideline's critically ill
+      # indication): ends when the patient has been stable after the minimum
+      # dwell.
+      strict_io_monitoring:
+        when: always
+        anchor: placement
+        days_after_anchor: 2
+        stable_consecutive_days: 1
+  cvc:
+    procedure_types: [central_line]
+    order_patterns: []
+    indications:
+      hemodynamic_monitoring:
+        when: always
+        anchor: placement
+        days_after_anchor: 2
+        stable_consecutive_days: 1
+  mechanical_ventilator:
+    procedure_types: [intubation]
+    order_patterns: []
+    indications: {}
