@@ -2406,6 +2406,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <li>Progress notes state hypothermia only for a latest temperature below 35.0 °C (time-qualified earlier minimum), state consciousness on the latest AVPU with the worse earlier level time-qualified, and word a persisting abnormal vital as improving or worsening only past a per-vital meaningful change (#3453, #3455).</li>
 <li>ED note physical exam no longer doubles the sentence terminator between body systems ("。。" in Japanese, ".." in English); the exam is joined with the shared terminator-safe helper (#3474).</li>
 <li>An operative note states its indication: a procedure recorded without a pre-operative diagnosis (an isolated-rule or bedside procedure) falls back to the encounter admission and discharge diagnosis, and reads "Indication: not documented" when the stay records none, instead of leaving the diagnosis out.</li>
+<li>The delivery discharge prescription continues the mother's maintenance home medications (28 days, dose/route/frequency kept; allergy-blocked drugs left out) alongside the two analgesics, so the discharge summary no longer reports them stopped while the postpartum visits keep listing them (#3463). CIF drift, a MINOR-class change.</li>
 </ul>
 <h2 id="070---2026-11-11">[0.7.0] - 2026-11-11<a class="headerlink" href="#070---2026-11-11" title="Permanent link">&para;</a></h2>
 <h3 id="highlights">Highlights<a class="headerlink" href="#highlights" title="Permanent link">&para;</a></h3>
