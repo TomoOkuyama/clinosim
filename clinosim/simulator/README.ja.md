@@ -158,6 +158,8 @@ clinosim/simulator/
                          (固定病日ではなく生理状態駆動, Issue #3332)
   aki_response.py        急性腎障害 (KDIGO のクレアチニン基準): 活動期間中の薬剤保留と
                          退院判定 (Issue #3281)
+  device_removal.py      尿道・中心静脈カテーテルの留置契機と、適応が終了して
+                         抜去する日 (Issue #3516)
   discharge_rx.py        退院時処方ビルダー
   antithrombotic_plan.py 脳梗塞の入院中・退院時の抗血栓療法
                          (プロトコルの `antithrombotic_plan`, Issue #3277)
@@ -272,6 +274,7 @@ CLI サブコマンドハンドラ (11 ファイル):
   reference_data/ketoacidosis_resolution.yaml DKA の改善基準と静注から皮下インスリンへの移行 (ketoacidosis_resolution.py)
   reference_data/mixed_condition.yaml         混合入院の併存疾患の遅れた認識・回復・オーダー統合 (mixed_condition.py)
   reference_data/aki_response.yaml            AKI の判定・AKI 中に保留する薬剤・退院判定 (aki_response.py)
+  reference_data/device_removal.yaml          カテーテルの留置契機と抜去の適応 (device_removal.py)
 ```
 
 抽出済閾値定数 (14 ファイル、`_<area>_thresholds.py`):

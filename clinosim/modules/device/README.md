@@ -15,8 +15,14 @@ risk).
 - **In scope**: `place_devices_for_encounter` per-encounter
   evaluation (worst physiology state of the stay + altered
   consciousness (GCS < 13) + intubation procedure + YAML criteria →
-  device set; placement / removal dates = the encounter's admission /
-  discharge dates), `load_devices_config` YAML loader,
+  device set; placement = the earliest insertion procedure or catheter
+  order, else the ICU transfer day; removal = the day the device's
+  indication ended, else the discharge date, see
+  [`simulator/device_removal.py`](../../simulator/device_removal.py);
+  a urinary / central venous catheter placed by an insertion procedure
+  or order of a stay with no ICU device of that type also gets a
+  `DeviceRecord` with `origin="insertion"`, which carries no HAI
+  sampling), `load_devices_config` YAML loader,
   the POST_ENCOUNTER `enrich_device` enricher.
 - **Out of scope**: HAI event sampling from device line-days
   ([`clinosim.modules.hai`](../hai/README.md)), device antibiotic
@@ -85,8 +91,16 @@ Internal helpers (in `engine.py`): `_evaluate_indications`,
   and `high_respiratory_demand` are computed but no yaml criterion
   uses them today (`high_respiratory_demand` is not in
   `INDICATION_TOKENS`, so the schema rejects it in `devices.yaml`).
-- Gate: only fires when `record.icu_transferred` is true and the
-  encounter's type is `EncounterType.INPATIENT`.
+- Gate: ICU devices only when `record.icu_transferred` is true and the
+  encounter's type is `EncounterType.INPATIENT`; catheters of an
+  insertion procedure / order on any inpatient encounter.
+- [`simulator/reference_data/device_removal.yaml`](../../simulator/reference_data/device_removal.yaml)
+  — per device type the placing events and the indications that end
+  the device (post-operative: the day after the last operation;
+  strict intake / output or haemodynamic monitoring: after a minimum
+  dwell), each only once the patient needs no ICU-level care. Sources:
+  CDC / HICPAC CAUTI guideline (2009) and intravascular catheter
+  guideline (2011); the day counts are model choices (Issue #3516).
 
 ## Directory contents
 

@@ -100,6 +100,7 @@ _.cif_format  # types/config.py:201
 # types/device.py
 _.snomed_code  # types/device.py:20
 _.placement_indication  # types/device.py:23
+_.removal_indication  # types/device.py DeviceRecord, written to the CIF (Issue #3516)
 
 # types/diagnosis.py
 _.confirmed  # types/diagnosis.py:24

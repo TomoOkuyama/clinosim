@@ -13,8 +13,12 @@ encounter に対して ICU デバイス (中心静脈カテーテル、
 
 - **In scope**: `place_devices_for_encounter` の per-encounter 評価
   (入院中の最悪 physiology state + 意識障害 (GCS < 13) + 挿管 procedure
-  + YAML 条件 → device 集合。留置日 / 抜去日 = encounter の入院日 /
-  退院日)、`load_devices_config` YAML loader、POST_ENCOUNTER
+  + YAML 条件 → device 集合。留置日 = 最初の挿入 procedure またはカテーテル
+  order、無ければ ICU 転棟日。抜去日 = そのデバイスの適応が終了した日、
+  終了しなければ退院日 ([`simulator/device_removal.py`](../../simulator/device_removal.py))。
+  同型の ICU デバイスが無い入院で挿入 procedure / order により入れた
+  尿道・中心静脈カテーテルにも `origin="insertion"` の `DeviceRecord` を
+  作る (HAI サンプリング対象外))、`load_devices_config` YAML loader、POST_ENCOUNTER
   `enrich_device` enricher。
 - **Out of scope**: デバイス line-days からの HAI event サンプリング
   ([`clinosim.modules.hai`](../hai/README.ja.md))、デバイス関連抗菌薬
@@ -83,8 +87,15 @@ from clinosim.modules.device.enricher import enrich_device
   `high_respiratory_demand` は算出されるが現状どの yaml 条件も使わない
   (`high_respiratory_demand` は `INDICATION_TOKENS` に無いため
   `devices.yaml` ではスキーマが拒否する)。
-- Gate: `record.icu_transferred` が真かつ encounter type が
-  `EncounterType.INPATIENT` の場合のみ発火。
+- Gate: ICU デバイスは `record.icu_transferred` が真かつ encounter type が
+  `EncounterType.INPATIENT` の場合のみ。挿入 procedure / order のカテーテルは
+  入院 encounter であれば対象。
+- [`simulator/reference_data/device_removal.yaml`](../../simulator/reference_data/device_removal.yaml)
+  — デバイス型ごとの留置契機と抜去の適応 (術後: 最終手術の翌日、厳密な
+  intake / output またはモニタリング: 最低留置日数後)。いずれも ICU レベルの
+  ケアが不要になってから。出典は CDC / HICPAC の CAUTI ガイドライン (2009) と
+  血管内カテーテル感染予防ガイドライン (2011)、日数はモデル上の選択
+  (Issue #3516)。
 
 ## ディレクトリ構造
 
