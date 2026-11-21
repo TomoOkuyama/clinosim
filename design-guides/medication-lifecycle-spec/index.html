@@ -2507,6 +2507,11 @@
 <td><code>tests/unit/test_hold_rules_one_source_2296.py</code>, <code>tests/unit/test_medication_holds_acute_illness_1335.py</code></td>
 </tr>
 <tr>
+<td>A disease-protocol <code>medication_holds</code> entry applies at discharge only with <code>applies_at_discharge: true</code> (default: admission only); a discharge hold is logged, at the discharge time, only for a drug the final discharge prescription lacks.</td>
+<td><code>discharge_rx.py::build_discharge_rx</code>; data <code>modules/disease/reference_data/*.yaml</code></td>
+<td><code>tests/unit/test_discharge_hold_final_rx_3441.py</code></td>
+</tr>
+<tr>
 <td>A drug is decided on by its catalog identity, never by a substring of its name.</td>
 <td><code>clinosim/codes/drugs.py</code> (see the code-mapping spec)</td>
 <td><code>tests/unit/test_has_drug_logic_2377.py</code></td>

@@ -2507,6 +2507,11 @@
 <td><code>tests/unit/test_hold_rules_one_source_2296.py</code>, <code>tests/unit/test_medication_holds_acute_illness_1335.py</code></td>
 </tr>
 <tr>
+<td>疾患プロトコルの <code>medication_holds</code> は <code>applies_at_discharge: true</code> の項目だけ退院時にも適用する(既定は入院中のみ)。退院時の保留は、最終的な退院処方に含まれない薬剤についてだけ、退院日時で記録する。</td>
+<td><code>discharge_rx.py::build_discharge_rx</code>; データ <code>modules/disease/reference_data/*.yaml</code></td>
+<td><code>tests/unit/test_discharge_hold_final_rx_3441.py</code></td>
+</tr>
+<tr>
 <td>薬剤の判断はカタログ上の同一性で行い、名前の部分文字列では行わない。</td>
 <td><code>clinosim/codes/drugs.py</code>(コードマッピング仕様参照)</td>
 <td><code>tests/unit/test_has_drug_logic_2377.py</code></td>
