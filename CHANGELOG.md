@@ -41,6 +41,8 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Fixed
 
+- The death summary describes one terminal course: the terminal-course mechanism and the causes it names come from the certificate's cause chain instead of the last vitals, a full-code death without a CPR record no longer reads "cardiopulmonary arrest", the family-communication section no longer states who was at the bedside, the ICU place needs an ICU record, and an AKI's time to death runs from the first creatinine that meets the KDIGO criterion (#3470).
+
 - Progress-note drug-safety lines state a drug avoidance once even when its two raw names are one drug (the dedup keys on the drug identity), and word a major/moderate drug interaction as an interaction risk instead of a contraindication; only a contraindicated rule keeps the contraindication wording (#3458).
 - Progress notes state hypothermia only for a latest temperature below 35.0 °C (time-qualified earlier minimum), state consciousness on the latest AVPU with the worse earlier level time-qualified, and word a persisting abnormal vital as improving or worsening only past a per-vital meaningful change (#3453, #3455).
 - ED note physical exam no longer doubles the sentence terminator between body systems ("。。" in Japanese, ".." in English); the exam is joined with the shared terminator-safe helper (#3474).

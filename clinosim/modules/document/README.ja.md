@@ -192,7 +192,7 @@ clinosim/modules/document/
     ed_note_admitted.yaml            ED 経由入院の ED 記録: 来院時バイタルの成人の判定範囲とバイタルを述べる所見語 (来院時の測定値と矛盾する day-0 身体所見の句は書かない)、トリアージの来院手段と照合する救急搬入の HPI 表現 (load_ed_note_admitted)
     hpi_pertinent_negatives.yaml     HPI pertinent negative、疾患ごとに言語別の文言と否定する症状語 (hpi_pertinent_negatives(disease_id, lang)、英語にフォールバック)。主訴の症状を否定する negative は出力しない
     bedside_procedure_codes.yaml     bedside procedure code (load_bedside_procedure_codes)
-    death_cause_chain.yaml           死亡診断書の死因の連鎖: 直接死因になりうる合併症・続発コード・影響を及ぼした傷病名の区分 (load_death_cause_chain)
+    death_cause_chain.yaml           死亡診断書の死因の連鎖: 直接死因になりうる合併症・終末期経過の機序・検査値で定義する発症時刻・続発コード・影響を及ぼした傷病名の区分 (load_death_cause_chain)
     death_course.yaml                死亡退院サマリーの死亡時状況と経過: 蘇生処置を行わない方針のコード・死亡時の生命維持・心肺蘇生の判定・列挙数・日/週の境界 (load_death_course)
     narrative_extras_whitelists.yaml narrative extra-context whitelist (narrative/_extra_context_builder.py)
     ja_only_fallback_sections.yaml   US H&P の JA 文字 audit 対象外 section (audit.py)

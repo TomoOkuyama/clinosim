@@ -985,6 +985,16 @@ def _registered_diagnosis_code(code: str) -> str:
     return code
 
 
+class _TerminalMechanism(BaseModel):
+    """One ``terminal_mechanisms`` entry: the ICD code prefixes of an immediate
+    cause and the terminal-course phrase they name."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    prefixes: list[Annotated[str, Field(pattern=r"^[A-Z][0-9]{2}(\.[0-9A-Z]{1,4})?$")]] = Field(min_length=1)
+    phrase: Annotated[str, Field(pattern=r"^[a-z_]+$")]
+
+
 class DeathCauseChain(BaseModel):
     """Shape of death_cause_chain.yaml: the complications that can be the
     immediate cause of death (lower-case token -> internal ICD code or null),
@@ -996,10 +1006,21 @@ class DeathCauseChain(BaseModel):
         Annotated[str, Field(pattern=r"^[a-z0-9_]+$")],
         Annotated[str, AfterValidator(_registered_diagnosis_code)] | None,
     ] = Field(min_length=1)
+    terminal_mechanisms: list[_TerminalMechanism] = Field(min_length=1)
+    onset_from_lab_complications: list[Annotated[str, Field(pattern=r"^[a-z0-9_]+$")]] = Field(min_length=1)
     sequel_codes: list[Annotated[str, AfterValidator(_registered_diagnosis_code)]] = Field(min_length=1)
     contributing_categories: dict[
         str, Annotated[list[Annotated[str, Field(pattern=_ICD_CATEGORY_RANGE)]], Field(min_length=1)]
     ] = Field(min_length=1)
+
+    def terminal_phrase(self, code: str) -> str | None:
+        """The terminal-course phrase name of an immediate cause's internal ICD
+        code (the first ``terminal_mechanisms`` entry whose prefix starts it), or
+        ``None`` when the code names no mechanism."""
+        for entry in self.terminal_mechanisms:
+            if any((code or "").startswith(prefix) for prefix in entry.prefixes):
+                return entry.phrase
+        return None
 
     def is_contributing(self, code: str) -> bool:
         """Whether the 3-character category of ``code`` is in a contributing range."""

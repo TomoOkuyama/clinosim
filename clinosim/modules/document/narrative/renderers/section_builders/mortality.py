@@ -6,7 +6,7 @@ as step C1f of the full-review Phase C renderer split (CRITICAL C1).
 Behavior is byte-identical.
 
 All helpers scoped exclusively to the DC/DDS cluster
-(``_dc_resolve_primary_cause``, ``_dc_disease_pattern``,
+(``_dc_cause_chain``, ``_dc_disease_pattern``,
 ``_dc_admission_to_discharge_hours``, ``_dc_duration_phrase``,
 ``_dds_severity``) are moved alongside the builders as module-level
 private functions — no caller outside this cluster uses them.
@@ -19,9 +19,10 @@ function. The class methods of the same name become thin delegators so
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from clinosim.codes import display as registry_display
 from clinosim.codes.drugs import drug_classes, drug_display
@@ -47,6 +48,7 @@ if TYPE_CHECKING:
 # ─────────────────────────────────────────────────────────────────────
 # DC/DDS-local helpers (private to this module).
 # ─────────────────────────────────────────────────────────────────────
+
 
 TERMINAL_HYPOTENSION_SBP_MAX = 90
 """Last recorded SBP (mmHg) below which the terminal course reads as
@@ -86,8 +88,28 @@ def _last_recorded_vitals(ctx: NarrativeContext) -> object | None:
     return best
 
 
+def _terminal_mechanism(chain: _CauseChain | None, lang: str) -> tuple[str | None, str]:
+    """The terminal-course phrase key and the "attributed to ..." part of the
+    certificate's cause chain: the mechanism of the immediate cause (``None``
+    when its code names none) and the causes in certificate order, each as the
+    certificate prints it."""
+    if chain is None:
+        return None, ""
+    name = load_death_cause_chain().terminal_phrase(chain.immediate.internal)
+    key = f"dds_terminal_course.phrase_{name}" if name else None
+    causes = [chain.immediate]
+    for cause in (chain.due_to, chain.underlying):
+        if cause is not None and cause.internal != causes[-1].internal:
+            causes.append(cause)
+    text = _cause_text(causes[0], lang) + "".join(
+        t("dds_terminal_course.chain_due_to", lang, cause=_cause_text(c, lang)) for c in causes[1:]
+    )
+    return key, t("dds_terminal_course.dx_part", lang, display=text)
+
+
 def _terminal_phrase_key(last: object) -> str | None:
-    """The terminal-course phrase the last recorded vitals show, or ``None``."""
+    """The terminal-course phrase the last recorded vitals show, or ``None``.
+    Used only when the record has no cause chain (Issue #3470)."""
     sbp = _o(last, "systolic_bp", None)
     if sbp is not None and sbp < TERMINAL_HYPOTENSION_SBP_MAX:
         return "dds_terminal_course.phrase_acute"
@@ -116,36 +138,6 @@ def _last_vitals_line(last: object, lang: str) -> str:
 
 def _sex(ctx: NarrativeContext) -> str:
     return str(_o(ctx.patient, "sex", "") or "") if ctx.patient else ""
-
-
-def _dc_resolve_primary_cause(ctx: NarrativeContext) -> tuple[str, str, list[str]]:
-    """Resolve (icd_code, localized_display, facts_used) for the primary
-    cause of death.
-
-    Priority chain:
-      1. clinical_diagnosis.discharge_diagnosis_code (the final ICD-10
-         recorded at the terminating encounter — what the physician
-         would enter as 直接死因 on the 死亡診断書).
-      2. clinical_diagnosis.admission_diagnosis_code (fallback for
-         encounters where the discharge dx was never recoded because
-         death happened early in the admission).
-
-    Returns ("", "", []) when neither code is available — the caller
-    renders a never-fabricate fallback phrase.
-    """
-    facts: list[str] = []
-    diagnoses = ctx.diagnoses or []
-    primary = diagnoses[0] if diagnoses else None
-    if primary is None:
-        return "", "", facts
-    code = _o(primary, "discharge_diagnosis_code", "") or _o(primary, "admission_diagnosis_code", "") or ""
-    if not code:
-        return "", "", facts
-    # Issue #3259: the name of the code the output emits, as the
-    # certificate's coded lines name it.
-    _, display = diagnosis_coded(code, country_code(ctx.locale), ctx.target_lang, _sex(ctx))
-    facts.append("ctx.diagnoses[0].discharge_diagnosis_code")
-    return code, display, facts
 
 
 @dataclass(frozen=True)
@@ -183,6 +175,59 @@ def _coded_cause(code: str, ctx: NarrativeContext, fact: str, onset: datetime | 
     return _Cause(emit, display, code, onset, fact)
 
 
+def _creatinine_rows(labs: Iterable[Any] | None, analyte: str) -> list[tuple[datetime, float, str]]:
+    """``(result time, value, unit)`` of the creatinine results in ``labs``, by time."""
+    from clinosim.modules.observation.engine import canonical_lab_name
+
+    rows: list[tuple[datetime, float, str]] = []
+    for lab in labs or []:
+        if canonical_lab_name(str(_o(lab, "lab_name", "") or "")) != analyte:
+            continue
+        at = _as_datetime(_o(lab, "result_datetime", None))
+        value = _o(lab, "value", None)
+        if at is None or isinstance(value, bool) or not isinstance(value, (int, float)):
+            continue
+        rows.append((at.replace(tzinfo=None), float(value), str(_o(lab, "unit", "") or "")))
+    return sorted(rows)
+
+
+def _first_abnormal_onset(ctx: NarrativeContext, event_onset: datetime | None) -> datetime | None:
+    """The onset of a lab-defined complication (``onset_from_lab_complications``:
+    KDIGO AKI): the first creatinine of the stay that rises by the absolute
+    amount within its window, or to the relative multiple of the baseline
+    (``notable_labs.yaml`` ``aki``), when that is earlier than the logged
+    event. The baseline is the lowest of the patient's latest earlier result
+    (another encounter) and the stay's own earlier results within the relative
+    window. A first stay result that already meets the criterion against an
+    earlier result dates the onset to the admission. ``event_onset`` when no
+    result meets the criterion earlier."""
+    from clinosim.modules.document.narrative._narrative_interpretation_thresholds import notable_lab_rules
+
+    rule = notable_lab_rules().aki
+    stay = _creatinine_rows(ctx.lab_results, rule.analyte)
+    if not stay:
+        return event_onset
+    admission = _as_datetime(_o(ctx.encounter, "admission_datetime", None))
+    prior = [r for r in _creatinine_rows(ctx.prior_lab_results, rule.analyte) if admission is None or r[0] < admission]
+    prior_row = prior[-1] if prior else None
+    for index, (at, value, unit) in enumerate(stay):
+        if event_onset is not None and at >= event_onset:
+            break
+        refs = [v for t_, v, u in stay[:index] if u == unit and t_ >= at - timedelta(days=rule.relative_window_days)]
+        if prior_row is not None and prior_row[2] == unit:
+            refs.append(prior_row[1])
+        if not refs:
+            continue
+        relative = value >= rule.relative_rise * min(refs)
+        near = [v for t_, v, u in stay[:index] if u == unit and t_ >= at - timedelta(hours=rule.absolute_window_hours)]
+        if prior_row is not None and prior_row[2] == unit:
+            near.append(prior_row[1])
+        absolute = unit == rule.absolute_rise_unit and bool(near) and round(value - min(near), 6) >= rule.absolute_rise
+        if relative or absolute:
+            return admission if index == 0 and admission is not None else at
+    return event_onset
+
+
 def _terminal_complication(ctx: NarrativeContext, death: datetime | None) -> tuple[_Cause, str] | None:
     """The latest-onset in-hospital complication that can be the immediate
     cause of death (``death_cause_chain.yaml``) and its token, or ``None``.
@@ -204,6 +249,8 @@ def _terminal_complication(ctx: NarrativeContext, death: datetime | None) -> tup
         return None
     onset = best[0] if best[0] != datetime.min else None
     key = best[2]
+    if key in load_death_cause_chain().onset_from_lab_complications:
+        onset = _first_abnormal_onset(ctx, onset)
     code = table[key]
     if code:
         return _coded_cause(code, ctx, "ctx.complications_events", onset), key
@@ -810,6 +857,13 @@ def _recorded_cpr(ctx: NarrativeContext) -> bool:
     return False
 
 
+def _in_icu(ctx: NarrativeContext) -> bool:
+    """Whether the record shows an ICU stay: an ICU transfer with its day, the
+    same fields the FHIR Encounter ``classHistory`` ICU segment is written from
+    (``encounter.py::_set_inpatient_histories``)."""
+    return bool(ctx.icu_transferred) and ctx.icu_transferred_day >= 0
+
+
 def _not_for_resuscitation(ctx: NarrativeContext) -> bool:
     return ctx.code_status in load_death_course().not_for_resuscitation_codes
 
@@ -900,7 +954,7 @@ def build_dds_treatment_course(generator: TemplateNarrativeGenerator, ctx: Narra
         parts.append(
             t("dds_treatment_course.proc_part", lang, list=_capped_list(procedures, caps.max_named_procedures, lang))
         )
-    if ctx.icu_transferred and ctx.icu_transferred_day >= 0:
+    if _in_icu(ctx):
         facts.append("ctx.icu_transferred_day")
         parts.append(t("dds_treatment_course.icu_part", lang, day=ctx.icu_transferred_day + 1))
     new_dx = _new_diagnoses(ctx, lang)
@@ -917,12 +971,14 @@ def build_dds_terminal_course(generator: TemplateNarrativeGenerator, ctx: Narrat
     """終末期経過 / Terminal course (final ~24-72 h).
 
     Anchors on the discharge (= death) datetime and describes the
-    final hours from the last full set of vitals recorded before death
-    (Issue #2985): circulatory failure, respiratory failure or falling
-    consciousness as those vitals show, followed by the values
-    themselves. Without such vitals (or when they show none of these)
-    the phrase is keyed on disease pattern (chronic decompensation vs
-    acute event) and no vital values are quoted.
+    final hours with the mechanism of the certificate's immediate cause
+    (Issue #3470; ``death_cause_chain.yaml`` ``terminal_mechanisms``) and
+    the chain itself (immediate, due to, underlying), then the last full set
+    of vitals recorded before death (Issue #2985) quoted as observations. A
+    cause with no mechanism entry is keyed on disease pattern (chronic
+    decompensation vs acute event); a record with no diagnosis falls back to
+    the mechanism the last vitals show (Issue #2985). Without such vitals no
+    values are quoted.
     """
     lang = ctx.target_lang
     facts: list[str] = []
@@ -930,22 +986,24 @@ def build_dds_terminal_course(generator: TemplateNarrativeGenerator, ctx: Narrat
     dis_str = str(dis_dt)[:16].replace("T", " ") if dis_dt else ""
     if dis_dt:
         facts.append("ctx.encounter.discharge_datetime")
-    code, display, _ = _dc_resolve_primary_cause(ctx)
-    pattern = _dc_disease_pattern(code)
-    if code:
-        facts.append("ctx.diagnoses[0].discharge_diagnosis_code")
-
-    # Issue #2985: the course the last recorded vitals show, quoted; the
-    # disease-pattern phrase only when they show none.
+    # Issue #3470: the mechanism and the cause named come from the cause
+    # chain the certificate prints (one walk, ``_dc_cause_chain``); the last
+    # vitals are quoted, and choose the mechanism only without a chain.
+    chain = _dc_cause_chain(ctx)
+    phrase_key, dx_part = _terminal_mechanism(chain, lang)
+    if chain is not None:
+        facts.extend(_chain_facts(chain))
     last = _last_recorded_vitals(ctx)
-    phrase_key = _terminal_phrase_key(last) if last is not None else None
+    if chain is None and last is not None:
+        # No diagnosis on record: nothing to take the mechanism from.
+        phrase_key = _terminal_phrase_key(last)
     if phrase_key is None:
+        pattern = _dc_disease_pattern(chain.underlying.internal) if chain is not None else "unknown"
         phrase_key = {
             "acute": "dds_terminal_course.phrase_acute",
             "chronic": "dds_terminal_course.phrase_chronic",
         }.get(pattern, "dds_terminal_course.phrase_unknown")
     phrase = t(phrase_key, lang)
-    dx_part = t("dds_terminal_course.dx_part", lang, display=display) if display else ""
     when = (
         t("dds_terminal_course.when_at", lang, ts=dis_str)
         if dis_str
@@ -969,18 +1027,20 @@ def build_dds_circumstances_of_death(
     and the event — CPR when a resuscitation procedure is recorded; for a
     not-for-resuscitation patient, CPR withheld while the life support of
     the final hours ran, or palliative bedside care (看取り) without it;
-    otherwise an arrest during treatment, naming the life support. The
-    rules are in ``death_course.yaml``.
+    otherwise (full code, or no code status, and no CPR record) that death
+    was confirmed, naming the life support, and for a full-code patient that
+    no resuscitation is documented — the record holds no code event, so no
+    arrest is asserted (Issue #3470). The rules are in ``death_course.yaml``.
     """
     lang = ctx.target_lang
     facts: list[str] = []
     if ctx.procedures:
         facts.append("ctx.procedures")
     place = t(
-        "dds_circumstances_of_death.place_icu" if ctx.icu_transferred else "dds_circumstances_of_death.place_ward",
+        "dds_circumstances_of_death.place_icu" if _in_icu(ctx) else "dds_circumstances_of_death.place_ward",
         lang,
     )
-    facts.append("ctx.icu_transferred")
+    facts.append("ctx.icu_transferred_day")
     support = _life_support_phrases(ctx, lang)
     if support:
         facts.append("ctx.medications")
@@ -989,8 +1049,20 @@ def build_dds_circumstances_of_death(
         key = "dds_circumstances_of_death.resuscitation"
     elif _not_for_resuscitation(ctx):
         key = "dds_circumstances_of_death.support_cpr_withheld" if support else "dds_circumstances_of_death.palliative"
+    elif ctx.code_status:
+        # Full code with no CPR record: the record holds no code event, so no
+        # arrest or resuscitation is asserted (Issue #3470).
+        key = (
+            "dds_circumstances_of_death.support_full_code_no_cpr"
+            if support
+            else "dds_circumstances_of_death.full_code_no_cpr"
+        )
     else:
-        key = "dds_circumstances_of_death.support_arrest" if support else "dds_circumstances_of_death.arrest"
+        key = (
+            "dds_circumstances_of_death.support_death_confirmed"
+            if support
+            else "dds_circumstances_of_death.death_confirmed"
+        )
     event = t(key, lang, place=place, support=support_text)
     status = registry_display("snomed-ct", ctx.code_status, lang) if ctx.code_status else ""
     if not status:
@@ -1066,16 +1138,12 @@ def build_dds_family_communication(
 ) -> tuple[str, list[str]]:
     """家族への説明経過 / Family communication timeline.
 
-    clinosim's CIF does not currently model family-communication
-    events (no dedicated Encounter subtype or Communication resource).
-    Real JP hospital DDS narratives commonly carry a boilerplate
-    "家族に病状悪化を説明、死亡時立会い" when the electronic record
-    is minimal — this is what a physician writes when the paper
-    family-communication log lives outside the EHR. The template
-    emits that boilerplate anchored on the encounter's LOS bucket
-    (short admission = "入院時から重篤性を説明" / long admission =
-    "経過に応じて随時説明") so the LLM refinement pass can polish
-    without inventing specific meeting dates.
+    clinosim's CIF does not model family-communication events (no dedicated
+    Encounter subtype or Communication resource), so the template states only
+    what the length of stay supports — how the family was kept informed
+    (short admission = explained from admission / long admission = at each
+    deterioration) — and not who was present at the death (Issue #3470: no
+    record shows it).
     """
     lang = ctx.target_lang
     facts: list[str] = ["ctx.los_days"]
