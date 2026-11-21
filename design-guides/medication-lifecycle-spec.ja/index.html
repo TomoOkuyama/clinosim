@@ -2584,6 +2584,11 @@
 <td><code>tests/unit/modules/order/test_placed_order_mar_spec.py</code>, <code>tests/unit/test_hai_abx_giving_nurse_2823.py</code>, <code>tests/unit/modules/newborn/test_newborn_giving_nurse_2824.py</code></td>
 </tr>
 <tr>
+<td>VTE 予防のレジメンは、国と腎機能に応じて一つのデータファイルから選ぶ。US はエノキサパリン 40 mg 皮下注 1 日 1 回、Cockcroft-Gault のクレアチニンクリアランス(オーダー時刻以前の直近のクレアチニン、その入院で記録された体重、入院時年齢)が 30 mL/min 未満の間は 30 mg 1 日 1 回(FDA Lovenox 添付文書 2.3、8.7)。JP は未分画ヘパリン 5,000 単位 皮下注 12 時間ごと(日本ではエノキサパリンの適応は整形外科・腹部手術に限られ、30 mL/min 未満は禁忌)。その後のクレアチニンが初めて閾値を下回ったら、その結果時刻でオーダーを中止し、減量した用量の新しいオーダー(<code>prior_order_id</code>)に置き換え、以後は退院まで減量のままとする(その後の値の揺れで増量に戻さない)。既知のクレアチニンクリアランスが 30 未満の間に標準用量の投与は行わない。</td>
+<td><code>modules/prophylaxis/engine.py</code>(<code>dvt_regimen</code>, <code>build_dvt_prophylaxis_orders</code>)、<code>modules/prophylaxis/renal_dose.py</code>、データ <code>modules/prophylaxis/reference_data/prophylaxis_rules.yaml</code></td>
+<td><code>tests/unit/test_prophylaxis_renal_dose_3449.py</code></td>
+</tr>
+<tr>
 <td>オーダーの FHIR timing は頻度を一度だけ述べる。範囲指定("q4-6h")と頓用の上限は一つの解決関数から得る。用量テキストに既にある頻度は繰り返さない。</td>
 <td><code>modules/output/fhir_r4/lib/dosage.py</code>(<code>resolve_timing_repeat</code>, <code>frequency_in_text</code>)</td>
 <td><code>tests/unit/output/test_prn_timing_2613.py</code></td>

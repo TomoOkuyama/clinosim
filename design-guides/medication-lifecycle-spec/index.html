@@ -2589,6 +2589,11 @@
 <td><code>tests/unit/modules/order/test_placed_order_mar_spec.py</code>, <code>tests/unit/test_hai_abx_giving_nurse_2823.py</code>, <code>tests/unit/modules/newborn/test_newborn_giving_nurse_2824.py</code></td>
 </tr>
 <tr>
+<td>The VTE prophylaxis regimen is chosen by country and renal function from one data file: US enoxaparin 40 mg SC daily, 30 mg daily while the Cockcroft-Gault creatinine clearance (latest creatinine at or before the order time, the encounter's charted weight, age at admission) is below 30 mL/min (FDA Lovenox label 2.3, 8.7); JP unfractionated heparin 5,000 units SC every 12 hours (enoxaparin is labelled in Japan only for orthopedic / abdominal surgery and is contraindicated below 30 mL/min). The first later creatinine below the threshold stops the order at its result time and a new order (<code>prior_order_id</code>) carries the reduced dose for the rest of the stay (a noisy later value does not step it back up), so no administration at the standard dose is given while the known creatinine clearance is below 30.</td>
+<td><code>modules/prophylaxis/engine.py</code> (<code>dvt_regimen</code>, <code>build_dvt_prophylaxis_orders</code>), <code>modules/prophylaxis/renal_dose.py</code>; data <code>modules/prophylaxis/reference_data/prophylaxis_rules.yaml</code></td>
+<td><code>tests/unit/test_prophylaxis_renal_dose_3449.py</code></td>
+</tr>
+<tr>
 <td>The FHIR timing of an order states its frequency once: ranges ("q4-6h") and PRN caps come from one resolver, and a frequency already in the dose text is not repeated.</td>
 <td><code>modules/output/fhir_r4/lib/dosage.py</code> (<code>resolve_timing_repeat</code>, <code>frequency_in_text</code>)</td>
 <td><code>tests/unit/output/test_prn_timing_2613.py</code></td>
