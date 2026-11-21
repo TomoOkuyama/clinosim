@@ -3195,6 +3195,9 @@ order_intent:
   archetype_procedure:
     ja: "第{day}病日 病状変化に伴う新規処置"
     en: "Day {day}: new procedure for a change in the clinical course"
+  ketoacidosis_sc_transition:
+    ja: "第{day}病日 ケトアシドーシスの改善により皮下インスリンへ移行"
+    en: "Day {day}: transition to subcutaneous insulin as ketoacidosis resolved"
   vasopressor_for_hypotension:
     ja: "第{day}病日 輸液後も平均血圧が{target}mmHg未満のため昇圧薬を開始"
     en: "Day {day}: vasopressor started for mean arterial pressure below {target} mmHg despite fluids"

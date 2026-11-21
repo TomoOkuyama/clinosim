@@ -1,0 +1,61 @@
+# When the intravenous treatment of diabetic ketoacidosis ends (Issue #3450).
+#
+# Read by clinosim/simulator/ketoacidosis_resolution.py and applied in the
+# inpatient daily loop (simulator/daily_loop.py). The admission orders of the
+# DKA protocol (insulin infusion, saline, potassium chloride in the fluid) have
+# no stop of their own; without this rule they ran until discharge.
+#
+#   - Resolution. At the start of a hospital day, DKA is resolved when the
+#     latest resulted venous pH (`ph_lab`) is at least `ph_min` OR the latest
+#     bicarbonate (`bicarbonate_lab`) is at least `bicarbonate_min`, and the
+#     latest ketone (`ketone_lab`), when one was resulted, is below
+#     `ketone_max_mmol_l`. The anion gap is not a criterion (the consensus
+#     warns it can mislead) and a glucose below 200 mg/dL is "ideal", not
+#     required, so glucose is not read.
+#   - Transition. A basal subcutaneous insulin order (the protocol's
+#     `transition_to_subcutaneous` entry of `basal_drug_id`, dosed by
+#     insulin_initiation.yaml or the home dose) is placed at the start of the
+#     day, and the infusion orders end `overlap_hours` later (1-2 h overlap).
+#   - Cap. When DKA is not resolved `max_infusion_days` days after the insulin
+#     infusion began, the same transition is made (model choice).
+#   - Scope. Only the stays of `disease_ids`; the orders stopped are the
+#     running intravenous medication orders of `stop_drug_ids` that are not
+#     one-time doses.
+#
+# Source: Umpierrez GE, Davis GM, ElSayed NA, et al. Hyperglycaemic crises in
+# adults with diabetes: a consensus report (ADA / EASD / JBDS / AACE / DTS),
+# Diabetes Care 2024 (PMC11343900), the first 100,000 characters read for this rule: "Resolution of
+# DKA is defined as achieving plasma ketone <0.6 mmol/l and venous pH >=7.3 or
+# bicarbonate >=18 mmol/l."; "The anion gap should not be used as a criterion";
+# "it is important to allow an overlap of 1-2 h between the administration of
+# subcutaneous insulin and the discontinuation of intravenous insulin."; basal
+# insulin "started 1-2 h before cessation of intravenous insulin".
+# clinosim's `pH` lab is an arterial gas value, used for the venous pH criterion
+# (arterial is slightly higher). `max_infusion_days` and `stop_drug_ids` are
+# clinosim modelling choices; the consensus text read does not say when
+# intravenous fluids are stopped, so the fluid orders end with the insulin
+# infusion.
+metadata:
+  kind: reference
+  name: ketoacidosis_resolution
+  source: clinosim
+
+disease_ids:
+  - diabetic_ketoacidosis
+ph_lab: pH
+ph_min: 7.3
+bicarbonate_lab: HCO3
+bicarbonate_min: 18.0
+ketone_lab: Beta_hydroxybutyrate
+ketone_max_mmol_l: 0.6
+overlap_hours: 2
+max_infusion_days: 4
+regimen_block: transition_to_subcutaneous
+basal_drug_id: insulin_glargine
+infusion_insulin_drug_id: insulin_regular_human
+stop_drug_ids:
+  - insulin_regular_human
+  - normal_saline
+  - potassium_chloride
+stop_routes:
+  - IV

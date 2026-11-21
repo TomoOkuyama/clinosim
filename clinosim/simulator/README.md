@@ -154,6 +154,9 @@ clinosim/simulator/
   maintenance_iv_fluid.py  stops the admission maintenance IV-fluid order once the
                          diet is oral (after a grace day) or after a maximum
                          number of days (Issue #3409)
+  ketoacidosis_resolution.py  ends the DKA insulin infusion, saline and potassium orders
+                         when pH / bicarbonate resolve, switching to subcutaneous
+                         basal insulin (Issue #3450)
   mixed_condition.py     the co-disease of a mixed admission (condition_type "mixed"):
                          coded as a secondary diagnosis, its protocol's admission
                          orders merged into the stay's (from the admission, or from
@@ -281,6 +284,7 @@ Reference data (`reference_data/`, 8 YAMLs):
   reference_data/vasopressor_initiation.yaml  starting a vasopressor from low pressure after fluids (vasopressor_initiation.py)
   reference_data/vasoactive_weaning.yaml      vasopressor / inotrope weaning and the discharge gate after it (vasoactive_support.py)
   reference_data/maintenance_iv_fluid.yaml    when the maintenance IV-fluid order is stopped (maintenance_iv_fluid.py)
+  reference_data/ketoacidosis_resolution.yaml DKA resolution criteria and the IV-to-subcutaneous insulin transition (ketoacidosis_resolution.py)
   reference_data/mixed_condition.yaml         late recognition, recovery and order merge of a mixed admission's co-disease (mixed_condition.py)
   reference_data/aki_response.yaml            AKI detection, drugs held during AKI, discharge gate (aki_response.py)
 ```

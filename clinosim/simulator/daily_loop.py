@@ -118,6 +118,12 @@ from clinosim.simulator.discharge_gate import (
     extend_stay_for_symptoms,
     mortality_state_multiplier,
 )
+from clinosim.simulator.ketoacidosis_resolution import (
+    basal_regimen_entry,
+    ketoacidosis_resolution_rules,
+    ketoacidosis_transition_due,
+    stop_ketoacidosis_infusions,
+)
 from clinosim.simulator.lab_pipeline import _run_lab_result_pipeline, patient_true_labs
 from clinosim.simulator.maintenance_iv_fluid import (
     maintenance_iv_fluid_rules,
@@ -1447,6 +1453,51 @@ def _wean_vasoactive_support(stay: _Stay, run: _Run, day: int) -> None:
     )
 
 
+def _transition_ketoacidosis_to_subcutaneous(stay: _Stay, run: _Run, day: int) -> None:
+    """Switch a diabetic-ketoacidosis stay to subcutaneous basal insulin at the
+    start of the day once the resulted labs meet the resolution criteria (or the
+    infusion reached its day cap), and end the intravenous insulin, saline and
+    potassium orders after the overlap (Issue #3450). Draws nothing."""
+    if day == 0 or stay.disease_id not in ketoacidosis_resolution_rules().disease_ids:
+        return
+    day_start = hospital_day_start(stay.admission_time, day)
+    if not ketoacidosis_transition_due(run.orders, run.lab_results, day_start):
+        return
+    from clinosim.modules.order.engine import protocol_medication_orders
+    from clinosim.simulator.discharge_rx import _resolve_item_dose
+
+    entry = basal_regimen_entry(stay.protocol.drugs or {}, stay.country_key)
+    if entry is not None:
+        patient = stay.patient
+        home_meds = list(patient.baseline_chronic_medications or []) + list(patient.current_medications or [])
+
+        def _weight() -> float:
+            from clinosim.modules.population.encounter_anthropometry import encounter_weight_kg
+
+            return float(encounter_weight_kg(patient, stay.encounter_id, stay.admission_time, stay.country_key))
+
+        regimen = _resolve_item_dose(
+            {**entry, "home_dose": "resume", "start_dose": {"rule": "basal_insulin"}}, home_meds, _weight
+        )
+        spec = {**entry, "dose": f"{regimen['dose']} {regimen['route']} {regimen['frequency']}".strip()}
+        for order in protocol_medication_orders(
+            spec,
+            order_id=f"ORD-{stay.encounter_id}-DKA-SC-D{day}",
+            encounter_id=stay.encounter_id,
+            patient_id=patient.patient_id,
+            country=stay.country,
+            ordered_datetime=day_start,
+            ordered_by=stay.attending_id,
+            urgency="urgent",
+            order_set="",
+        ):
+            order.drug_id = str(entry.get("drug_id") or "")
+            order.clinical_intent = t("order_intent.ketoacidosis_sc_transition", "en", day=day)
+            order.clinical_intent_ja = t("order_intent.ketoacidosis_sc_transition", "ja", day=day)
+            run.orders.append(order)
+    stop_ketoacidosis_infusions(run.orders, day_start)
+
+
 def _on_vasoactive_support(stay: _Stay, run: _Run, day: int) -> bool:
     """Whether a vasopressor / inotrope infusion ran on any of the last
     ``off_support_days_before_discharge`` hospital days up to ``day``
@@ -1618,6 +1669,7 @@ def _run_daily_loop(
         if day == TREATMENT_ESCALATION_DAY and run.state.inflammation_level > TREATMENT_ESCALATION_INFLAMMATION_MIN:
             _escalate_treatment(stay, run, day)
         _wean_vasoactive_support(stay, run, day)
+        _transition_ketoacidosis_to_subcutaneous(stay, run, day)
         # Issue #3409: the maintenance IV fluid ends once the patient eats.
         stop_maintenance_iv_fluid(
             run.orders, day, run.oral_diet_since_day, hospital_day_start(stay.admission_time, day)
@@ -1686,6 +1738,10 @@ def _run_daily_loop(
                     break
             los_ceiling += 1
 
+    if not run.death_occurred:
+        # Issue #3450: the discharge day starts like any day, so a resolved
+        # ketoacidosis goes home on subcutaneous insulin, not on the infusion.
+        _transition_ketoacidosis_to_subcutaneous(stay, run, day + 1)
     orders = _gate_new_medication_orders(stay, admission_orders, run.orders, run.admission_order_ids)
     # Orders placed after the last day's administrations (and substitutes of
     # the gate) are a minor's weight-based doses too (Issue #3004).
