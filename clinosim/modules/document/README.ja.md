@@ -179,16 +179,14 @@ clinosim/modules/document/
   engine.py                          document_enricher + doc-stub helper + NURSING_LOINCS
   reference_data_loaders.py          load_physical_exam_findings + load_discharge_instructions (6-layer) + 他の cached loader
   audit.py                           AD-60 audit plug-in #5 — 49-check lift_firing_proof
+  referral_recipient.py              pick_external_hospital — 診療情報提供書の宛先 (reference_data/referral_recipients.yaml)、narrative と FHIR で共有
   reference_data/
     document_type_specs.yaml         文書種別 registry (ed_note は authored_at: period_end で ED 受診の終了時点に記載し、その時点で存在したものだけを書く。nutrition_care_plan は入院8時間後、初日の食事オーダー後に作成し、食事内容と補給方法は有効な食事オーダーに従う: narrative/_progress_course.py diet_order_at)
     section_catalog.yaml             Composition section slug catalog (narrative/registry.py, composition.py)
     physical_exam_findings.yaml      per-disease PE 所見 (baseline + 新生児セット + override)
-    clinosim-discharge-instruction.yaml  退院指導 (load_discharge_instructions、旧 discharge_instructions.yaml、#1862)。各項目に `applies_when` 条件 (性別・喫煙/飲酒状況・疾患群・退院処方薬、該当薬は `{drugs}` に展開) を付けられ、renderers/_resolvers.py resolve_discharge_instructions が評価し重複文を除く (#3254)
+    clinosim-discharge-instruction.yaml  退院指導 (load_discharge_instructions、旧 discharge_instructions.yaml、#1862)。各項目に `applies_when` 条件 (性別・喫煙/飲酒状況・疾患群・退院処方薬、該当薬は `{drugs}` に展開、最終クレアチニンが AKI 定義を満たす `aki_at_discharge` (#3281)、喘息増悪のピークフロー・長期管理薬・コントロール評価文の `age_min` / `age_max` (#3264)) を付けられ、renderers/_resolvers.py resolve_discharge_instructions が評価し重複文を除く (#3254)
     clinosim-nursing-content.yaml    急性疾患別 (看護診断・目標と OP/TP/EP の看護計画・教育) と慢性 ICD-10 併存疾患別の看護記録内容 (load_nursing_content)
-    clinosim-discharge-instruction.yaml  退院指導 (load_discharge_instructions、旧 discharge_instructions.yaml、#1862)。各項目に `applies_when` 条件 (性別・喫煙/飲酒状況・疾患群・退院処方薬、該当薬は `{drugs}` に展開、最終クレアチニンが AKI 定義を満たす `aki_at_discharge` (#3281)) を付けられ、renderers/_resolvers.py resolve_discharge_instructions が評価し重複文を除く (#3254)
-    clinosim-nursing-content.yaml    急性疾患 / 慢性 ICD-10 別の看護記録内容 (load_nursing_content)
     cc-pe-consistency-keywords.yaml  主訴 ↔ 身体所見の整合 rail (narrative/_narrative_utils.py)
-    clinosim-discharge-instruction.yaml  退院指導。項目は `applies_when` (性別・喫煙・飲酒・疾患・退院薬、および喘息増悪のピークフロー・長期管理薬・コントロール評価文の `age_min` / `age_max`; Issue #3264) で絞れる
     asthma-control-instruments.yaml  年齢別の喘息コントロール評価 (12 歳以上 ACT、4-11 歳 C-ACT、4 歳未満は保護者への症状聴取; Issue #3264, GINA 2024)
     chronic-med-class-hints.yaml     慢性疾患 assessment の薬効分類 hint (narrative/renderers/section_builders/outpatient_soap.py)
     disease_exam.yaml                疾患ごとの入院時身体所見 (疾患が及ぶ系統の所見、英語・日本語)、AVPU による意識の句、心房細動の脈の規則、急性期脳卒中の局所神経症状と NIHSS の範囲、分娩入院の分娩様式別の産科所見 (分娩処置の終了前は分娩前、終了後は産褥の所見、Issue #3403) (load_disease_exam)
@@ -207,16 +205,14 @@ clinosim/modules/document/
     hedging_phrases.yaml             narrative hedging phrase pool
     drug_plan_priority.yaml          経過記録の計画の薬剤の優先順位・単回投与の頻度・一覧の上限 (narrative/_medication_plan.py)
     progress_vitals.yaml             経過記録のバイタル要約: 経過の閾値・自己申告可能な AVPU・表示する極値・疼痛部位 (narrative/renderers/_composers.py)
-    progress_exam.yaml               経過記録の身体所見をバイタルに合わせる: バイタルの判定範囲 (小児の収縮期血圧の下限は PALS の低血圧閾値)・バイタルを述べる語・異常値に加える所見・経過の項目・後句を落とした文の文末形 (terminal_forms)・患者別の下限の上書き (COPD の SpO2 下限 88 %)・「現在」の記述は最新値で判定 (narrative/_progress_exam.py)
-    progress_exam.yaml               経過記録の身体所見をバイタルに合わせる: 意識レベル低下の持続の規則 (評価に問題と原因検索を記載)・バイタルの判定範囲 (小児の収縮期血圧の下限は PALS の低血圧閾値)・バイタルを述べる語・異常値に加える所見・経過の項目・患者別の下限の上書き (COPD の SpO2 下限 88 %)・「現在」の記述は最新値で判定 (narrative/_progress_exam.py)
-    nursing_shift_items.yaml         看護 shift 記録の看護項目 (疼痛・発熱・SpO2 低下・意識・NEWS2) の順序付き一覧と CIF 出典・規則 (narrative/_nursing_shift_items.py)
-    nursing_shift_items.yaml         看護 shift 記録の看護項目 (疼痛・発熱・SpO2 低下・意識・NEWS2・保留/拒否された投薬) の順序付き一覧と CIF 出典・規則 (narrative/_nursing_shift_items.py)
-    nursing_shift_items.yaml         看護 shift 記録の看護項目 (疼痛・発熱・SpO2 低下・意識・NEWS2・保留/拒否された投薬・前日の水分出納・留置 device) の順序付き一覧と CIF 出典・規則 (narrative/_nursing_shift_items.py)
+    progress_exam.yaml               経過記録の身体所見をバイタルに合わせる: 意識レベル低下の持続の規則 (評価に問題と原因検索を記載)・バイタルの判定範囲 (小児の収縮期血圧の下限は PALS の低血圧閾値)・バイタルを述べる語・異常値に加える所見・経過の項目・後句を落とした文の文末形 (terminal_forms)・患者別の下限の上書き (COPD の SpO2 下限 88 %)・「現在」の記述は最新値で判定 (narrative/_progress_exam.py)
     nursing_shift_items.yaml         看護 shift 記録の看護項目 (疼痛・発熱・SpO2 低下・意識・NEWS2・保留/拒否された投薬・前日の水分出納・留置 device・食事・皮膚・移動/ADL・創部・転倒リスク・新生児ケア) の順序付き一覧と CIF 出典・規則 (narrative/_nursing_shift_items.py)
-    progress_exam.yaml               経過記録の身体所見をバイタルに合わせる: バイタルの判定範囲 (小児の収縮期血圧の下限は PALS の低血圧閾値)・バイタルを述べる語・異常値に加える所見・経過の項目・患者別の下限の上書き (COPD の SpO2 下限 88 %)・「現在」の記述は最新値で判定 (narrative/_progress_exam.py)
     progress_course.yaml             経過記録の経過: 処置後の処置種別・主要検査の件数・退院調整の期間 (narrative/_progress_course.py)
     progress_symptoms.yaml           経過記録 S の呼吸器疾患群: 呼吸状態の経過を書く疾患 (narrative/_progress_symptoms.py)
     hospital_course.yaml             退院時サマリーの入院経過: 治療薬の一覧の上限・異常検査値の対応薬・薬剤変更の上限 (narrative/_hospital_course.py)
+    referral_recipients.yaml         診療情報提供書の宛先となる外部病院と、転院扱いとなる退院区分
+    notable_labs.yaml                note が引用する異常検査値の選択規則 (narrative/_notable_labs.py、lab_timeseries.select_notable_labs)
+    chronic_control_targets.yaml     国別の慢性疾患コントロール目標 (血圧・LDL)、narrative/_narrative_interpretation_thresholds.chronic_control_targets が読む
   narrative/                         narrative subpackage (Stage 2 pipeline) — narrative/README.md 参照
 ```
 

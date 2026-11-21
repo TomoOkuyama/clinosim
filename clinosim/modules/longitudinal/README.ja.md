@@ -16,7 +16,7 @@ Phase 1 で engine 本体と最初の属性 (HbA1c AR(1)) を導入した。以�
 ```python
 from clinosim.modules.longitudinal import (
     YearSnapshot,           # 年次状態コンテナ
-    advance_one_year,       # (person, year, year_rng, *, country) -> 新 YearSnapshot
+    advance_one_year,       # (person, year, year_rng, *, multiplier_fn=None, country) -> 新 YearSnapshot
     state_at,               # (person, when) -> YearSnapshot
     initial_snapshot,       # (person, year, init_rng, *, country) -> 初回 YearSnapshot
     yearsnapshot_from_dict, # dict -> YearSnapshot (deserialise helper)
@@ -78,7 +78,7 @@ clinosim/modules/longitudinal/
 
 ## Enricher 配線
 
-該当なし — engine は `register_builtin_enrichers` ([`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py)) に登録されず、[`clinosim/seeding.py`](../../seeding.py) の `ENRICHER_SEED_OFFSETS` にも entry を持たない。population 生成と aging の中で実行され (caller 統合を参照)、`aging_sub_seed` と `longitudinal_event_seed` で seed される。
+年次 engine (`engine.py`) は enricher ではなく、[`clinosim/seeding.py`](../../seeding.py) の `ENRICHER_SEED_OFFSETS` にも entry を持たない。population 生成と aging の中で実行され (caller 統合を参照)、`aging_sub_seed` と `longitudinal_event_seed` で seed される。`stage_refresh.py` は [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) に `name="stage_refresh"`、`stage=POST_RECORDS`、`order=900` で登録される (読み取る検査が確定するよう他の全 POST_RECORDS enricher の後。常時 on、乱数を引かない)。
 
 ## caller 統合
 

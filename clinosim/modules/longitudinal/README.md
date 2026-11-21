@@ -16,7 +16,7 @@ Phase 1 shipped the engine plus the first attribute (HbA1c, AR(1)). Later phases
 ```python
 from clinosim.modules.longitudinal import (
     YearSnapshot,           # per-year state container
-    advance_one_year,       # (person, year, year_rng, *, country) -> new YearSnapshot
+    advance_one_year,       # (person, year, year_rng, *, multiplier_fn=None, country) -> new YearSnapshot
     state_at,               # (person, when) -> YearSnapshot
     initial_snapshot,       # (person, year, init_rng, *, country) -> first YearSnapshot
     yearsnapshot_from_dict, # dict -> YearSnapshot (deserialisation helper)
@@ -78,7 +78,7 @@ The module has no `audit.py`; its attribute yaml lives under `clinosim/locale/sh
 
 ## Enricher wiring
 
-Not applicable — the engine is not registered in `register_builtin_enrichers` ([`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py)) and has no `ENRICHER_SEED_OFFSETS` entry in [`clinosim/seeding.py`](../../seeding.py). It runs inside population generation and aging (see Caller integration), seeded by `aging_sub_seed` and `longitudinal_event_seed`.
+The yearly engine (`engine.py`) is not an enricher and has no `ENRICHER_SEED_OFFSETS` entry in [`clinosim/seeding.py`](../../seeding.py); it runs inside population generation and aging (see Caller integration), seeded by `aging_sub_seed` and `longitudinal_event_seed`. `stage_refresh.py` is registered in [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) as `name="stage_refresh"`, `stage=POST_RECORDS`, `order=900` (after every other POST_RECORDS enricher, so the labs it reads are final), always on, and draws no random number.
 
 ## Caller integration
 

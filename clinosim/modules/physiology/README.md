@@ -202,7 +202,7 @@ from clinosim.modules.physiology.engine import (
 ```
 clinosim/modules/physiology/
   __init__.py                        empty
-  engine.py                          initialize_state / apply_* / derive_* / flag helpers (~1570 LOC)
+  engine.py                          initialize_state / apply_* / derive_* / flag helpers
   _coupling_coefficients.py          per-chronic-condition coupling (Issue #637 PR-B)
   _lab_derivation_thresholds.py      analyte-formula constants (Issue #637)
   _state_coupling_thresholds.py      apply_coupling_rules constants (Issue #637)
@@ -210,6 +210,7 @@ clinosim/modules/physiology/
   dehydration_thresholds.py          canonical volume_status cutoffs (Issue #561)
   renal_thresholds.py                canonical renal_function cutoffs (Issue #561)
   statin_response.py                 statin / ezetimibe LDL reduction (Issues #2917, #2947)
+  egfr.py                            estimated_gfr — eGFR from serum creatinine, age, sex (and height for children) by the country's equation (Issue #3019)
   reference_data/
     chronic_glycemic_thresholds.yaml HbA1c / glucose / acid-base scalars
     state_variable_ranges.yaml       per-state-variable min / max ranges

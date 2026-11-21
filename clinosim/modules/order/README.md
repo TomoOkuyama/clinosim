@@ -115,12 +115,18 @@ from clinosim.modules.order import (
 
 # Order engine (imported directly by each simulator)
 from clinosim.modules.order.engine import (
-    place_admission_orders,             # (protocol, patient_id, encounter_id, admission_time, country, rng, ordered_by="", patient_age=None, patient_weight_kg=None, ed_period=None) -> list[Order]
+    place_admission_orders,             # (protocol, patient_id, encounter_id, admission_time, country, rng, ordered_by="", patient_age=None, patient_weight_kg=None, id_infix="", ed_period=None) -> list[Order]
     place_daily_lab_orders,             # (protocol, patient_id, encounter_id, day_number, order_time, lab_frequency_multiplier, rng, ordered_by="") -> list[Order]
     place_imaging_orders,               # (disease_protocol, encounter_id, patient_id, admission_dt, day_index, severity, rng, sequence_counter, ed_period=None) -> list[Order]
     drop_legacy_duplicate_imaging,      # (admission_orders, structured_orders) -> list[Order]
     enrich_medication_order,            # (order, dose_str="") -> Order
     parse_dose_string,                  # (dose_str) -> dict
+    protocol_medication_orders,         # (med_spec, *, order_id, encounter_id, patient_id, country, ordered_datetime, ordered_by, urgency="stat", order_set=...) -> list[Order]; one order, or a loading dose + maintenance order (Issue #3002)
+    first_line_alternative_groups,      # (protocol, encounter_id, country, id_infix="") -> tuple[tuple[order_id, ...], ...]; the order ids of a `drugs.first_line` block declared `select: one_of` (Issue #3274)
+    protocol_drug_order_code,           # (spec, country) -> the order code of a disease-YAML drug entry (Issue #2351)
+    protocol_drug_order_code_system,    # (spec, country) -> its code-system key, "" when there is no code (Issue #2378)
+    dosing_interval_days,               # (frequency) -> days between doses of a cadence longer than a day, None otherwise (Issue #2982)
+    imaging_study_keys,                 # (orders) -> set of (modality, report group) of the imaging orders (Issue #3392)
     calculate_lab_result_time,          # (order, rng) -> datetime
     calculate_imaging_result_time,      # (order, rng) -> datetime
     calculate_result_time_from_state,   # (order, hospital_state, hospital_ops, rng) -> datetime
@@ -163,9 +169,9 @@ from clinosim.modules.order.placed_order_mar import (
 from clinosim.modules.order.prescription_supersede import prescription_closures  # (records, run_end) -> {(encounter_id, seq): Closure}
 
 # Weight-based ED doses for children (Issue #2857)
-from clinosim.modules.order.pediatric_dose import pediatric_order_name  # (name, age_months, weight_kg, country) -> re-dosed name (unchanged for adults / unlisted drugs) | None (below minimum age)
-from clinosim.modules.order.pediatric_dose import redose_order_for_child  # (order, age_months, weight_kg, country) -> None; a minor's inpatient order re-dosed in place (Issue #3004)
-from clinosim.modules.order.pediatric_dose import pediatric_dose_text  # (drug, dose, age_months, weight_kg, country) -> a minor's prescription dose text
+from clinosim.modules.order.pediatric_dose import pediatric_order_name  # (name, age_months, weight_kg, country, age_days=None) -> re-dosed name (unchanged for adults / unlisted drugs) | None (below minimum age)
+from clinosim.modules.order.pediatric_dose import redose_order_for_child  # (order, age_months, weight_kg, country, age_days=None) -> None; a minor's inpatient order re-dosed in place (Issue #3004)
+from clinosim.modules.order.pediatric_dose import pediatric_dose_text  # (drug, dose, age_months, weight_kg, country, age_days=None) -> a minor's prescription dose text
 from clinosim.modules.order.pediatric_dose import maintenance_fluid_ml_per_h  # (weight_kg) -> Holliday-Segar mL/h
 
 # Per-country label dose limits (Issue #3012)
@@ -350,6 +356,7 @@ clinosim/modules/order/
   discontinue_flip.py                POST_ENCOUNTER enricher: DISCONTINUE marker → original order STOPPED (Issue #1346)
   supersede.py                       POST_ENCOUNTER enricher: a newer order for the same drug / a listed class switch stops the earlier one (Issue #2615)
   prescription_supersede.py          prescription_closures — renewal / supply-end closure of take-home prescriptions at FHIR export (Issue #2610)
+  _supersede_thresholds.py           constants of the supersede pass (Issue #2983)
   placed_order_mar.py                daily_times + stable_nurse + administrations_for — RNG-free MAR for orders placed outside the daily loop (Issue #2607)
   absolute_dose.py                   absolute_dose + body_surface_area + is_continuous_infusion + is_one_time_infusion — per-kg / per-m2 dose amounts (Issue #2750), infusion kinds (Issue #3043)
   insulin_initiation.py              basal_insulin_start_dose — weight-based starting basal insulin (Issues #3462, #3450)

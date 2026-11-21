@@ -183,6 +183,7 @@ clinosim/modules/document/
   engine.py                          document_enricher + doc-stub helpers + NURSING_LOINCS
   reference_data_loaders.py          load_physical_exam_findings + load_discharge_instructions (6-layer) + other cached loaders
   audit.py                           AD-60 audit plug-in #5 — 49-check lift_firing_proof
+  referral_recipient.py              pick_external_hospital — the named recipient of a referral letter (reference_data/referral_recipients.yaml), shared by narrative and FHIR
   reference_data/
     document_type_specs.yaml         per-document-type registry (the ed_note spec has authored_at: period_end, so the ED physician note is authored at the end of the ED visit and quotes only what existed by then; nutrition_care_plan is authored 8 h after admission, after the day-0 diet order, so its diet and supply route follow the active diet order via narrative/_progress_course.py diet_order_at)
     section_catalog.yaml             Composition section slug catalog (narrative/registry.py, composition.py)
@@ -195,12 +196,9 @@ clinosim/modules/document/
     death_course.yaml                death-summary circumstances and course: not-for-resuscitation codes, life support at death, CPR detection, list lengths, day/week boundary (load_death_course)
     narrative_extras_whitelists.yaml narrative extra-context whitelists (narrative/_extra_context_builder.py)
     ja_only_fallback_sections.yaml   sections exempt from the US H&P JA-char audit (audit.py)
-    clinosim-discharge-instruction.yaml  discharge instructions (load_discharge_instructions; was discharge_instructions.yaml, #1862); entries may carry an `applies_when` gate (sex, smoking / alcohol status, condition groups, discharge drugs filling `{drugs}`) evaluated by renderers/_resolvers.py resolve_discharge_instructions, which also drops repeated sentences (#3254)
+    clinosim-discharge-instruction.yaml  discharge instructions (load_discharge_instructions; was discharge_instructions.yaml, #1862); entries may carry an `applies_when` gate (sex, smoking / alcohol status, condition groups, discharge drugs filling `{drugs}`, `aki_at_discharge` for a final creatinine that still meets the AKI definition, #3281, and `age_min` / `age_max` for the asthma exacerbation peak-flow, controller and control-review texts, #3264) evaluated by renderers/_resolvers.py resolve_discharge_instructions, which also drops repeated sentences (#3254)
     clinosim-nursing-content.yaml    nursing-note content per acute disease (diagnoses, goal + OP/TP/EP care plan, education) / chronic ICD-10 comorbidity (load_nursing_content)
-    clinosim-discharge-instruction.yaml  discharge instructions (load_discharge_instructions; was discharge_instructions.yaml, #1862); entries may carry an `applies_when` gate (sex, smoking / alcohol status, condition groups, discharge drugs filling `{drugs}`, `aki_at_discharge` for a final creatinine that still meets the AKI definition, #3281) evaluated by renderers/_resolvers.py resolve_discharge_instructions, which also drops repeated sentences (#3254)
-    clinosim-nursing-content.yaml    nursing-note content per acute disease / chronic ICD-10 (load_nursing_content)
     cc-pe-consistency-keywords.yaml  chief-complaint ↔ physical-exam consistency rails (narrative/_narrative_utils.py)
-    clinosim-discharge-instruction.yaml  discharge instructions; an entry may be gated by `applies_when` (sex, smoking, alcohol, conditions, discharge drugs, and `age_min` / `age_max` for the asthma exacerbation peak-flow, controller and control-review texts, Issue #3264)
     asthma-control-instruments.yaml  asthma control instrument by age: ACT 12+, Childhood ACT 4-11, caregiver symptom review under 4 (Issue #3264, GINA 2024)
     chronic-med-class-hints.yaml     chronic-assessment medication-class hints (narrative/renderers/section_builders/outpatient_soap.py)
     chronic_soap_templates.yaml      chronic-condition SOAP note templates (the visit diagnosis's entry; findings, not instructions)
@@ -211,15 +209,14 @@ clinosim/modules/document/
     hedging_phrases.yaml             narrative hedging phrase pool
     drug_plan_priority.yaml          progress-note plan drug ranking tiers, one-time frequencies, list cap (narrative/_medication_plan.py)
     progress_vitals.yaml             progress-note vitals period summary: trend thresholds, self-report AVPU, printed extremes, pain sites (narrative/renderers/_composers.py)
-    progress_exam.yaml               progress-note exam follows the period's vitals: vital limits (a child's low systolic limit is the PALS hypotension threshold), vital-stating terms, findings added for abnormal readings, course items, sentence-final verb forms for a sentence that lost its trailing clause, patient-specific limit overrides (a COPD patient's SpO2 floor 88 %); "now" statements use the latest reading (narrative/_progress_exam.py)
-    nursing_shift_items.yaml         ordered nursing items of a shift note (pain, fever, desaturation, consciousness, NEWS2) with CIF source and rule (narrative/_nursing_shift_items.py)
-    nursing_shift_items.yaml         ordered nursing items of a shift note (pain, fever, desaturation, consciousness, NEWS2, held/refused doses) with CIF source and rule (narrative/_nursing_shift_items.py)
-    nursing_shift_items.yaml         ordered nursing items of a shift note (pain, fever, desaturation, consciousness, NEWS2, held/refused doses, previous-day intake/output, devices in place) with CIF source and rule (narrative/_nursing_shift_items.py)
+    progress_exam.yaml               progress-note exam follows the period's vitals: vital limits (a child's low systolic limit is the PALS hypotension threshold), vital-stating terms, findings added for abnormal readings, course items, the persistent-low-consciousness rule, sentence-final verb forms for a sentence that lost its trailing clause, patient-specific limit overrides (a COPD patient's SpO2 floor 88 %); "now" statements use the latest reading (narrative/_progress_exam.py)
     nursing_shift_items.yaml         ordered nursing items of a shift note (pain, fever, desaturation, consciousness, NEWS2, held/refused doses, previous-day intake/output, devices in place, meals, skin, mobility/ADL, surgical site, fall risk, newborn care) with CIF source and rule (narrative/_nursing_shift_items.py)
-    progress_exam.yaml               progress-note exam follows the period's vitals: vital limits (a child's low systolic limit is the PALS hypotension threshold), vital-stating terms, findings added for abnormal readings, course items, patient-specific limit overrides (a COPD patient's SpO2 floor 88 %); "now" statements use the latest reading (narrative/_progress_exam.py)
     progress_course.yaml             progress-note course: post-procedure types, key-lab limit, discharge-planning window (narrative/_progress_course.py)
     progress_symptoms.yaml           progress-note Subjective respiratory group: diseases whose breathing course is stated (narrative/_progress_symptoms.py)
     hospital_course.yaml             discharge-summary hospital course: treatment list caps, abnormal-result treatments, medication-change cap (narrative/_hospital_course.py)
+    referral_recipients.yaml         external hospitals a referral letter is addressed to, and the transfer dispositions
+    notable_labs.yaml                abnormal-lab selection rules a note cites (narrative/_notable_labs.py, lab_timeseries.select_notable_labs)
+    chronic_control_targets.yaml     per-country chronic-control targets (BP, LDL) read by narrative/_narrative_interpretation_thresholds.chronic_control_targets
   narrative/                         narrative subpackage (Stage 2 pipeline) — see narrative/README.md
 ```
 

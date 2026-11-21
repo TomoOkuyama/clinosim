@@ -127,7 +127,9 @@ The full `__all__`: functions `check_pair`,
 `suggest_alternative`, `discharge_reconciliation_rules`,
 `resolve_classes`, `canonical_name`, `japanese_display`,
 `rule_kind` (allergy / disease / interaction kind of a verdict's
-`rule_id`); types
+`rule_id`), the ACS antithrombotic-plan helpers `acs_plan_action`,
+`acs_plan_verdict`, `acs_plan_p2y12_alternative`,
+`acs_plan_p2y12_names`; types
 `SafetyVerdict`, `SafetySkipEntry`, `Severity`, `SEVERITY_RANK`
 (re-exported from `clinosim.types.drug_safety` via `verdict.py`),
 `AlternativeDrug` (`engine.py`) and `DemographicVerdict`

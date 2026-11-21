@@ -238,7 +238,6 @@ clinosim/modules/document/narrative/
   _replacement_renderers.py                Per-section rendering helpers (chronic list / newborn workup / vitals-for-day / supplemental-O2 / med lists / abnormal labs / lab trend / lab carry-forward / key procedures / stay-phase — META #1633 P6 replacement slice 2)
   _patient_info_renderers.py               Patient demographics / biometrics / health-literacy renderers + _localize_token enum lookup (META #1633 P6 replacement slice 3)
   _extra_context_builder.py                _build_extra_context + _writing_day_of — composes every renderer into the LLM-prompt context dict (META #1633 P6 replacement slice 4)
-  _safety_skips.py                         safety_skip_line — 薬剤安全 skip event の文言を template / LLM path で共通化 (Issue #2519)
   _prescription_line.py                    prescription_bits — 処方行の用量・経路・頻度・日数を ED 持ち帰り処方・退院サマリ・外来 SOAP で共有 (Issue #3389)
   _safety_skips.py                         safety_skip_line — 薬剤安全 skip event の文言を template / LLM path で共通化 (Issue #2519)。progress_note_safety_skips — 日々の経過記録が書く入院中の事象 (保留は薬剤ごとに 1 回、回避は薬剤の同一性ごとに 1 回、禁忌未満の相互作用は「相互作用リスク」と表現、Issues #3411 / #3458)
   _vitals_line.py                          format_vitals_line — narrative 各 style のバイタル 1 行要約を 1 つの formatter に集約 (Issue #2523)
@@ -248,6 +247,15 @@ clinosim/modules/document/narrative/
   _hedging.py                              hedging phrase pool
   _chronic_soap.py                         chronic-disease SOAP resolver (v9 density fix)
   _visit_reason.py                         visit_kind / kind_lines / vital_findings / next_visit_line — 受診理由別の外来 SOAP (Issue #3249、#3251、#3252)
+  _interval_events.py                      interval_events / interval_event_line — 前回の外来受診以降の入院・救急受診
+  _medication_plan.py                      ranked_medication_names / note_medications — 経過記録の計画に挙げる薬剤
+  _next_visit.py                           next_visit_days — 一連の受診の次回受診 (Issue #3465)
+  _nursing_shift_items.py                  nursing_shift_item_lines — 看護 shift 記録のデータ駆動の看護項目 (Issue #3478)
+  _outpatient_results.py                   outpatient_results / known_labs / ckd_g_stage — 外来 SOAP が記載する検査結果
+  _progress_course.py                      post_procedure_line / lab_course_lines / diet_line — 経過記録の経過の各行
+  _progress_exam.py                        progress_exam_rules / period_states / agreeing_clauses — 経過記録の身体所見を期間のバイタルに合わせる
+  _progress_symptoms.py                    respiratory_symptom_line — 経過記録 S の呼吸器症状の経過
+  _ros_contradictions.py                   contradicted — 記録と矛盾する review-of-systems の否定 (Issue #3391)
   _narrative_interpretation_thresholds.py  interpretation cutoff scalars (Issue #637)
   reference_data/
     chief_complaint_variants.yaml          chief-complaint phrasing variants (load_chief_complaint_variant_rules)

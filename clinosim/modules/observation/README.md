@@ -69,7 +69,7 @@ directly:
 # Lab engine
 from clinosim.modules.observation.engine import (
     canonical_lab_name,                  # (name) -> canonical str
-    lab_panel_components,                # (panel_name) -> list[str]
+    lab_panel_components,                # (name) -> list[str]
     get_lab_unit,                        # (lab_name) -> unit str
     reported_lab_value,                  # (lab_name, value, unit, country) -> (value, unit) in the country's reporting unit (Issue #3011)
     reported_lab_results,                # (lab_results, country) -> copies in the reporting unit (narrative context)
@@ -235,6 +235,7 @@ clinosim/modules/observation/
   microbiology.py                    culture + susceptibility + antibiogram
   order_routing.py                   what a protocol lab-list entry orders (Issue #2583)
   fluid_balance.py                   IV regimen + urine-output thresholds (Issue #561)
+  fluid_balance_model.py             physiological coupling of the daily intake / output record (Issue #3271)
   oxygenation.py                     SpO₂ escalation triggers (Issue #561)
   pre_analytical.py                  specimen-error rates (Issue #561)
   hemolysis_redraw.py                hemolyzed flags + repeat-draw rules (Issue #3452)
@@ -248,6 +249,8 @@ clinosim/modules/observation/
     order_routing.yaml               lab-list entries routed to imaging / components / no order
     lab_constants.yaml               per-lab units / CVs / precision / limits / normals / panic (Issue #2302)
     lab_panels.yaml                  panel → components
+    fluid_balance.yaml               parameters of fluid_balance_model.py (kidney / loop / intake / feedback)
+    hemolysis_redraw.yaml            hemolyzed flags, redrawn analytes and repeat-draw delay (hemolysis_redraw.py)
     microbiology.yaml                organism + susceptibility catalog
     nursing_scores.yaml              NEWS2 / GCS / Braden / Morse bands
     pediatric_reference_ranges.yaml  age-banded pediatric vital + lab ranges

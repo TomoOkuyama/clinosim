@@ -115,7 +115,9 @@ drug_safety.japanese_display("Aspirin")   # → "アスピリン"
 `suggest_alternative`, `discharge_reconciliation_rules`,
 `resolve_classes`, `canonical_name`, `japanese_display`,
 `rule_kind` (verdict の `rule_id` が allergy / disease / interaction の
-どの種別か)、型
+どの種別か)、ACS 抗血栓計画の helper `acs_plan_action`,
+`acs_plan_verdict`, `acs_plan_p2y12_alternative`,
+`acs_plan_p2y12_names`、型
 `SafetyVerdict`, `SafetySkipEntry`, `Severity`, `SEVERITY_RANK`
 (`clinosim.types.drug_safety` を `verdict.py` 経由で再 export)、
 `AlternativeDrug` (`engine.py`)、`DemographicVerdict`

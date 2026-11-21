@@ -113,7 +113,7 @@ from clinosim.modules.imaging.inference import (
 
 ## 定数と設定
 
-- **3 YAML** ([`reference_data/`](reference_data/)):
+- **リファレンス YAML** ([`reference_data/`](reference_data/); 各ファイルはディレクトリ構造の節に列挙):
   - `modalities.yaml` — modality カタログ +
     `default_views_by_body_site` (order module が empty-views
     fallback で参照) + modality 別の読影時間 `report_read_minutes`
@@ -172,12 +172,14 @@ clinosim/modules/imaging/
   __init__.py                      3 CIF 型 (ImagingStudyRecord / ImagingSeries / RadiologyReport) を再 export
   engine.py                        imaging_enricher + loader + YAML model + multi-view 展開
   inference.py                     infer_imaging_metadata whitelist (case-D fallback)
+  cardiac_report.py                ECG / 冠動脈造影 / 心不全心エコーの report 生成 (Issue #3020, #3451)、radiology template の代わりに使う
   audit.py                         AD-60 audit plug-in #4 — 15-check lift_firing_proof + basedon_coverage
   reference_data/
     modalities.yaml                modality + default_views_by_body_site
     body_sites.yaml                SNOMED body-site カタログ
     exam_region_patterns.yaml      部位・適応別の検査の en/ja order 名パターン (inference.py が先に照合、Issue #3113)
     impression_templates.yaml      (modality × body_site) 別 report template
+    cardiac_reports.yaml           ECG・冠動脈造影・心不全心エコーの report 内容
     view_labels.yaml               series description 用の en / ja view 名 (series_view_display、Issue #3030)
     bedside_examinations.yaml      画像検査ではなくベッドサイド診察である work-up order 名 (bedside_examination_names、Issue #2796)
     imaging-impression-keywords.yaml  放射線 DiagnosticReport conclusionCode 用の正常 / 異常 impression 語句 (output/fhir_r4/labs/diagnostic_report.py が読む)

@@ -35,3 +35,22 @@ from clinosim.modules.resuscitation.enricher import enrich_resuscitation
 ## 依存
 
 `clinosim.modules.code_status` (区分とその SNOMED コード)、`clinosim.codes.procedures` (カタログの `cpr`)、`clinosim.modules.order.placed_order_mar.stable_nurse`、`clinosim.seeding`、pydantic (ルール YAML を読み込み時に検証)。
+
+## 定数と設定
+
+値はすべて [`reference_data/resuscitation_rules.yaml`](reference_data/resuscitation_rules.yaml) にあり、`load_rules()` が 1 回だけ読み込み、pydantic model で検証する。`attempt_tier` (蘇生を記録するコードステータス区分)、`encounter_types` (`inpatient`、`emergency`)、`procedure` (カタログの種別 `cpr`)、`duration_minutes` (`min` / `max`)、`epinephrine` ブロック (薬剤・用量・経路・`min_age`・`interval_minutes`・`first_dose_offset_minutes`・言語別の `clinical_intent`)。値とその根拠は上の規則の表を参照。
+
+## ディレクトリ構造
+
+```
+clinosim/modules/resuscitation/
+  __init__.py
+  engine.py                          load_rules / attempt_status_code / is_resuscitation_order / attempt_minutes / build_cpr_procedure / build_epinephrine
+  enricher.py                        enrich_resuscitation (POST_RECORDS)
+  reference_data/
+    resuscitation_rules.yaml         蘇生の区分・対象 encounter 種別・CPR の処置種別・継続時間の範囲・エピネフリンの用量 / 経路 / 間隔
+```
+
+## Enricher 配線
+
+[`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) に登録: `name="resuscitation"`、`stage=POST_RECORDS`、`order=55` (`code_status` 50 の後、`care_level` 60 の前)、常時 on。サブ seed は `clinosim.seeding.resuscitation_seed(patient_id, encounter_id)` で、`ENRICHER_SEED_OFFSETS` の entry ではない。
