@@ -2625,6 +2625,11 @@
 <td><code>tests/unit/modules/document/narrative/test_interval_events_3407.py</code></td>
 </tr>
 <tr>
+<td>The next-visit line of an outpatient plan states the visit the patient is actually scheduled for: the next outpatient visit of the same series after this one (a vaccination visit's series is the vaccination visits; any other visit's is its <code>visit_type</code> and <code>visit_condition_id</code>), in days; unplanned emergency, inpatient and other-series visits do not count, and a visit after the simulated period cannot appear. Without one, the encounter protocol's interval, then the chronic follow-up schedule's interval; without any, the note states no next visit (an interval is never invented).</td>
+<td><code>clinosim/modules/document/narrative/_next_visit.py</code> (<code>next_visit_days</code>), <code>_interval_events.py::other_encounters</code>, <code>renderers/section_builders/outpatient_soap.py::_compose_follow_up_line</code></td>
+<td><code>tests/unit/modules/document/narrative/test_next_visit_3465.py</code></td>
+</tr>
+<tr>
 <td>An acute stroke exam states the focal deficit that brought the patient in and never "no paralysis" (Issue #3227): the weakness side is drawn per encounter from the encounter id (right weakness with aphasia and leftward gaze, left weakness with hemispatial neglect and rightward gaze), the NIHSS score lies in the band of the record's severity and is written on the admission day, and the deficit replaces the neurological finding in the H&amp;P, the ED note and the progress notes. A patient in atrial fibrillation (an AF admission, or chronic AF outside the paroxysmal stage) has an irregularly irregular rhythm in place of the regular one.</td>
 <td><code>renderers/_disease_exam.py::stroke_deficit</code> / <code>apply_exam_rules</code>, <code>reference_data/disease_exam.yaml</code></td>
 <td><code>tests/unit/modules/document/narrative/test_admission_hp_exam_3245.py</code></td>
