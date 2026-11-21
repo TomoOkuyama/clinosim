@@ -51,9 +51,10 @@
 #   - KDIGO AKI 2012, Recommendation 3.8.1: aminoglycosides are not used
 #     "unless no suitable, less nephrotoxic, therapeutic alternatives are
 #     available" (the drug catalog has no aminoglycoside, so no rule applies).
-# Not covered: vancomycin and enoxaparin renal dose adjustment (enoxaparin is
-# already reduced or held by renal_medication_rules.yaml; no vancomycin
-# level model exists). Aspirin, a member of the catalog class `nsaid`, is not
+# Not covered: vancomycin renal dose adjustment (no vancomycin level model
+# exists). Enoxaparin: the prophylactic dose follows the Cockcroft-Gault
+# creatinine clearance (modules/prophylaxis, Issue #3449); renal_medication_rules.yaml
+# reduces or holds the home-medication order. Aspirin, a member of the catalog class `nsaid`, is not
 # held: the antiplatelet dose is not the nephrotoxic NSAID exposure, so the
 # NSAIDs are listed by drug id. The fever threshold (38.0 degrees C), the
 # 24-hour window, the 10% fall that counts as recovering and the extension

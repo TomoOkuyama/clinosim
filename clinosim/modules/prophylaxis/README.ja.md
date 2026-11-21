@@ -5,8 +5,11 @@
 ## 概要
 
 実際の病棟プロトコルでは、48 時間以上入院する全患者に VTE 予防の
-評価が求められ、禁忌の無い大多数に対する標準治療レジメンは
-Enoxaparin 40 mg SC 1 日 1 回である。本 module 以前は、32 の疾患
+評価が求められ、米国で禁忌の無い大多数に対する標準治療レジメンは
+Enoxaparin 40 mg SC 1 日 1 回 (Cockcroft-Gault のクレアチニン
+クリアランスが 30 mL/min 未満なら 30 mg 1 日 1 回) である。日本では
+エノキサパリンの適応は整形外科・腹部手術に限られるため、内科入院患者には
+低用量未分画ヘパリン (5,000 単位 SC 12 時間ごと) を用いる。本 module 以前は、32 の疾患
 YAML のうち 14 しか `supportive_orders:` に DVT 予防を載せておらず、
 48 時間以上の IMP encounter の約 40 % が予防投与なしになっていた
 (US p=2000 seed=500 baseline: 103 件中 40 件が未カバー)。
@@ -15,7 +18,8 @@ YAML のうち 14 しか `supportive_orders:` に DVT 予防を載せておら�
 
 **In scope**: 48 時間以上の IMP encounter に対する DVT (VTE) 薬物的
 予防 Order の emit と、その日次 MedicationAdministration 行 (Issue
-#2607 — order から退院まで毎日 `administration_hour` に 1 回、
+#2607 — order から退院まで (用量変更で次の order に置き換わる場合はその時点まで)、
+レジメンの `administration_hours` の各時刻に 1 回、
 `order.placed_order_mar.stable_nurse` で選んだ病棟看護師が投与)。
 以下の場合はルールベースで skip する: 患者が
 小児年齢上限 (既定 15) 未満、既に治療量の抗凝固療法中 (warfarin /
@@ -49,9 +53,33 @@ skip, reason = should_skip_dvt_prophylaxis(
 # → (True, "therapeutic_anticoagulant_active")
 
 # Order builder for a CIF record
-orders = build_dvt_prophylaxis_orders(record=cif_record)
+orders = build_dvt_prophylaxis_orders(record=cif_record, country="US")
 # → [Order(order_id="ORD-<encounter_id>-DVT-01", display_name="Enoxaparin", ...)]
 ```
+
+## 国別・腎機能別のレジメン (Issue #3449)
+
+YAML の `dvt_prophylaxis.regimens` が国ごとのレジメンを持つ (無い国は
+`default_country` を使う):
+
+- **US**: Enoxaparin 40 mg SC 1 日 1 回 (Lovenox 添付文書 2.2、急性疾患時の内科患者)。
+  **Cockcroft-Gault の CrCl が 30 mL/min 未満の間は 30 mg 1 日 1 回**
+  (添付文書 2.3 Table 1、8.7)。30 mL/min 以上は調整しない。
+- **JP**: ヘパリン 5,000 IU (単位) SC 12 時間ごと (`q12h`、09:00 と 21:00)。
+  エノキサパリン (クレキサン) は日本では下肢整形外科手術と高リスク腹部手術
+  にのみ承認され、CrCl 30 mL/min 未満は禁忌 (添付文書 2.4、4.) のため、
+  内科入院患者には使わない。未分画ヘパリンの添付文書は血栓塞栓症の治療及び
+  予防を効能とし、日本循環器学会 2017 年 PTE/DVT ガイドライン (3.4) は基礎疾患を
+  問わず 5,000 単位を 8 または 12 時間ごととしている。手術時のエノキサパリン
+  (2,000 IU 1 日 2 回) は扱わない: order は手術時刻に関わらず入院 6 時間後に
+  置かれるが、添付文書は術後 24〜36 時間から開始とする。
+
+クレアチニンクリアランス (`renal_dose.crcl_cockcroft_gault`、項は YAML の
+`creatinine_clearance`) には、その入院で記録された体重、入院時年齢、order 時刻
+以前の直近のクレアチニンを使う (クレアチニンが無ければ標準用量)。その後の
+クレアチニンが CrCl を閾値の反対側へ動かしたら、その結果時刻で order を中止し、
+もう一方の用量の新しい order (`...-DVT-02`、`prior_order_id` 設定) を置く。
+減量は一度だけで、以後は退院まで減量のまま (その後の値の揺れで増量に戻さない)。
 
 ## 決定論
 
@@ -80,8 +108,11 @@ byte-identical である。
 ## 定数と設定
 
 `reference_data/prophylaxis_rules.yaml`:
-- `dvt_prophylaxis` ブロック: 薬剤 / 用量 / 経路 / 頻度 / LOS 閾値 /
-  `administration_hour` (MAR の投与時刻、Issue #2607)
+- `dvt_prophylaxis` ブロック: LOS 閾値、intent 文、国別の `regimens`
+  (薬剤 / 用量 / 経路 / 頻度 / `administration_hours` (MAR の投与時刻、Issue #2607) /
+  任意の `renal_adjustment`: `crcl_below_ml_min` と減量後の `dose_quantity`、Issue #3449)
+- `creatinine_clearance` ブロック: Cockcroft-Gault の項 (年齢オフセット、分母、
+  女性係数、クレアチニン単位)
 - `skip_conditions` ブロック: 5 ルール (治療量抗凝固 / 活動性出血 /
   周産期の分娩 / 活動性 DVT-PE 治療 / 小児年齢 gate)。薬剤 needle、
   ICD prefix、または `pediatric_age_ceiling` (18) を持つ。
@@ -98,6 +129,7 @@ byte-identical である。
 clinosim/modules/prophylaxis/
 ├── __init__.py            # public API re-export
 ├── engine.py              # rule loader + skip dispatch + order builder
+├── renal_dose.py          # Cockcroft-Gault、クレアチニン系列、用量期間 (純関数)
 ├── enricher.py            # POST_ENCOUNTER order 75 entrypoint + 日次 MAR 行
 ├── reference_data/
 │   └── prophylaxis_rules.yaml
@@ -137,6 +169,10 @@ Unit test: `tests/unit/test_prophylaxis.py` が以下をカバー
 - 小児 (18 歳未満) の入院 → skip (Issue #1276, #3082)
 - 慢性 aspirin / encounter 内 NSAID → drug_safety ペア経由で skip (Issue #1087)
 - 通常の J18 肺炎 IMP 48 時間以上 → order を emit
+
+`tests/unit/test_prophylaxis_renal_dose_3449.py` は Cockcroft-Gault の値、US の
+40 mg / 30 mg の CrCl 別用量、クレアチニン上昇による order 分割 (減量は一度、回復しても維持)、order 期間ごとの
+MAR 用量、JP のヘパリンレジメンをカバーする。
 
 ## Ownership
 
