@@ -13,7 +13,7 @@ from __future__ import annotations
 import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -59,9 +59,24 @@ class HoldReasonPattern(BaseModel):
         return self
 
 
+class DeviceKind(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    kind: str
+    device_types: list[str]
+    procedure_types: list[str]
+    order_patterns: list[str]
+
+    @model_validator(mode="after")
+    def _compiles(self) -> DeviceKind:
+        for p in self.order_patterns:
+            re.compile(p)
+        return self
+
+
 class NursingShiftItems(BaseModel):
     model_config = ConfigDict(extra="forbid")
     items: list[NursingShiftItem] = Field(min_length=1)
+    device_kinds: list[DeviceKind] = Field(min_length=1)
     oral_routes: list[str] = Field(min_length=1)
     hold_reason_patterns: list[HoldReasonPattern]
     antipyretic_drug_keys: list[str] = Field(min_length=1)
@@ -241,6 +256,75 @@ def _item_doses_not_given(d: ShiftData) -> str | None:
     return "\n".join(sentences) or None
 
 
+def _item_intake_output(d: ShiftData) -> str | None:
+    """The previous calendar day's intake / output balance. The record is one
+    per day (no shift split), so only a completed day is stated, labelled as
+    such; the shift's own day is never summarised."""
+    if d.window is None:
+        return None
+    prev = d.window[0].date() - timedelta(days=1)
+    rec = next(
+        (r for r in getattr(d.ctx, "intake_output_records", None) or [] if _record_date(_o(r, "date", None)) == prev),
+        None,
+    )
+    if rec is None:
+        return None
+    intake = sum(int(_o(rec, k, 0) or 0) for k in ("intake_iv_ml", "intake_oral_ml", "intake_other_ml"))
+    urine = int(_o(rec, "output_urine_ml", 0) or 0)
+    drain = int(_o(rec, "output_drain_ml", 0) or 0)
+    output = urine + drain + int(_o(rec, "output_other_ml", 0) or 0)
+    if intake == 0 and output == 0:
+        return None
+    net = _o(rec, "net_balance_ml", None)
+    balance = f"{int(net) if net is not None else intake - output:+d}"
+    key = "balance_drain" if drain > 0 else "balance"
+    return t(
+        f"nursing_shift_items.io.{key}",
+        d.lang,
+        date=f"{prev.month}/{prev.day}",
+        intake=intake,
+        output=output,
+        urine=urine,
+        drain=drain,
+        balance=balance,
+    )
+
+
+def _record_date(value: Any) -> date | None:
+    parsed = parse_iso_datetime(value, lenient=True)
+    return parsed.date() if parsed is not None else None
+
+
+def _item_devices(d: ShiftData) -> str | None:
+    """The devices in place during the shift, each with its routine care: the
+    kinds of ``ctx.devices`` (inserted before the shift's end, not removed
+    before its day) and the oxygen device of the shift's last reading."""
+    if d.window is None:
+        return None
+    start, end = d.window
+    lines: list[str] = []
+    in_place = {
+        str(_o(x, "kind", "")) for x in getattr(d.ctx, "devices", None) or [] if _device_in_place(x, start, end)
+    }
+    for dk in nursing_shift_items_config().device_kinds:
+        if dk.kind in in_place:
+            lines.append(t(f"nursing_shift_items.devices.{dk.kind}", d.lang))
+    on_o2 = [v for v in d.readings if _o(v, "on_supplemental_oxygen", None) is not None]
+    if on_o2 and _o(on_o2[-1], "on_supplemental_oxygen", False):
+        last = on_o2[-1]
+        o2 = oxygen_text(_o(last, "oxygen_delivery_device", None), _o(last, "oxygen_flow_rate_lpm", None), d.lang)
+        lines.append(t("nursing_shift_items.devices.oxygen", d.lang, o2=o2))
+    return "\n".join(lines) or None
+
+
+def _device_in_place(device: Any, start: datetime, end: datetime) -> bool:
+    inserted = parse_iso_datetime(_o(device, "start", None), lenient=True)
+    if inserted is None or inserted >= end:
+        return False
+    removed = _record_date(_o(device, "end_date", None))
+    return removed is None or start.date() <= removed
+
+
 ITEM_FUNCTIONS: dict[str, Callable[[ShiftData], str | None]] = {
     "pain": _item_pain,
     "fever": _item_fever,
@@ -248,6 +332,8 @@ ITEM_FUNCTIONS: dict[str, Callable[[ShiftData], str | None]] = {
     "consciousness": _item_consciousness,
     "news2": _item_news2,
     "doses_not_given": _item_doses_not_given,
+    "intake_output": _item_intake_output,
+    "devices": _item_devices,
 }
 
 

@@ -58,6 +58,16 @@ items:
     rule: a MAR row scheduled in the shift (and before the authored time) has status held, refused or not_available; one sentence per drug and status, with the recorded reason where present
     fact: ctx.medications.shift.not_given
     skip_neonate: false
+  - id: intake_output
+    source: intake_output_records[] (one record per calendar day)
+    rule: the record of the calendar day before the shift's day has an intake or an output; the whole day's intake, output (urine, drain) and balance, labelled as the previous day (the record has no shift split, so no shift-level figure is ever written)
+    fact: ctx.intake_output_records.previous_day
+    skip_neonate: true
+  - id: devices
+    source: ctx.devices (device records, insertion procedures and catheter orders of the stay); vital_signs[].on_supplemental_oxygen, oxygen_delivery_device, oxygen_flow_rate_lpm
+    rule: a urinary catheter or central venous catheter in place during the shift (inserted before the shift's end, not yet removed), and the oxygen device of the shift's last reading when it is on oxygen; one sentence per device with its routine care
+    fact: ctx.devices.shift
+    skip_neonate: false
 
 # MAR routes written as an oral dose (内服); any other route is a plain dose.
 oral_routes:
@@ -79,3 +89,30 @@ antipyretic_drug_keys:
   - acetaminophen
   - ibuprofen
   - loxoprofen
+
+# The devices of a stay that ``narrative/_devices.py::build_devices`` gathers
+# for ``NarrativeContext.devices``. A device is in place from its insertion
+# until its removal. The insertion is the stay's insertion procedure (start
+# time), else the placing order's time, else the device record's placement
+# date; the removal is the device record's removal date (no procedure or
+# order records a removal). A device with no removal date is in place until
+# discharge: the record cannot show an earlier removal.
+#
+#   kind:            the device as the note names it (phrase
+#                    ``nursing_shift_items.devices.<kind>``)
+#   device_types:    ``extensions["device"][].device_type`` values of the kind
+#   procedure_types: ``procedures[].procedure_type`` values of the insertion
+#   order_patterns:  case-insensitive regexes matched at the start of an
+#                    order's ``display_name`` / ``order_code`` (a cancelled
+#                    order places nothing)
+# The mechanical ventilator of a device record is not listed: its record spans
+# the whole stay although intubation is a part of it.
+device_kinds:
+  - kind: urinary_catheter
+    device_types: [indwelling_catheter]
+    procedure_types: [urinary_catheter]
+    order_patterns: ['^(foley|urinary)[ _]catheter']
+  - kind: central_line
+    device_types: [cvc]
+    procedure_types: [central_line]
+    order_patterns: []

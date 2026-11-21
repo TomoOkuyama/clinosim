@@ -30,6 +30,7 @@ from clinosim.modules.document import specs_for_country
 from clinosim.modules.document.narrative.context import (
     _build_newborn_workup,
     _build_safety_skips,
+    build_devices,
     build_prior_safety_holds,
     encounter_microbiology,
     icu_transfer_day,
@@ -679,6 +680,7 @@ class NarrativePass(ABC):
             **visit_reason_fields(patient_dict, encounter_dict),
             # Issue #3268: the encounter's culture results.
             microbiology=encounter_microbiology(patient_dict, encounter_dict),
+            devices=build_devices(patient_dict, encounter_dict),
             # Issue #3246: readmission (H&P HPI and discharge summary).
             is_readmission=bool(patient_dict.get("is_readmission", False)),
             readmission_number=int(patient_dict.get("readmission_number", 0) or 0),

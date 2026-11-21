@@ -9,6 +9,7 @@ from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.drug_safety import rule_kind
 from clinosim.modules.observation.engine import reported_lab_results
 from clinosim.simulator.complications import complication_names, normalized_complications
+from clinosim.timeutil import parse_iso_datetime
 from clinosim.types.document import DocumentType, NarrativeContext
 
 
@@ -116,6 +117,7 @@ def build_narrative_context(
         **visit_reason_fields(record, encounter),
         # Issue #3268: the encounter's culture results.
         microbiology=encounter_microbiology(record, encounter),
+        devices=build_devices(record, encounter),
         # Issue #3246: readmission (H&P HPI and discharge summary).
         is_readmission=bool(_o(record, "is_readmission", False)),
         readmission_number=int(_o(record, "readmission_number", 0) or 0),
@@ -152,6 +154,74 @@ def encounter_microbiology(record: Any, encounter: Any) -> list[Any]:
     """The culture results of ``encounter`` (Issue #3268)."""
     enc_id = str(_o(encounter, "encounter_id", "") or "")
     return [m for m in (_o(record, "microbiology", []) or []) if enc_id and _o(m, "encounter_id", "") == enc_id]
+
+
+def build_devices(record: Any, encounter: Any) -> list[dict[str, Any]]:
+    """The urinary and central venous catheters of ``encounter`` (Issue #3480).
+
+    Per kind of ``nursing_shift_items.yaml`` ``device_kinds``: the insertion is
+    the stay's insertion procedure (start time), else the placing order (its
+    time), else the ICU device record's placement date; the removal is the
+    device record's removal date, the only place a removal is recorded (a
+    device with none is in place until discharge). Returns ``{"kind",
+    "start", "end_date", "source"}`` per device, in the YAML order."""
+    import re
+
+    from clinosim.modules.document.narrative._nursing_shift_items import nursing_shift_items_config
+
+    enc_id = str(_o(encounter, "encounter_id", "") or "")
+    extensions = _o(record, "extensions", {}) or {}
+    records = [
+        d
+        for d in (extensions.get("device", []) if isinstance(extensions, dict) else []) or []
+        if not enc_id or str(_o(d, "encounter_id", "") or enc_id) == enc_id
+    ]
+    procedures = [
+        p
+        for p in _o(record, "procedures", []) or []
+        if not enc_id or str(_o(p, "encounter_id", "") or enc_id) == enc_id
+    ]
+    orders = [
+        o
+        for o in _o(record, "orders", []) or []
+        if str(_o(o, "status", "") or "") != "cancelled"
+        and (not enc_id or str(_o(o, "encounter_id", "") or enc_id) == enc_id)
+    ]
+    out: list[dict[str, Any]] = []
+    for dk in nursing_shift_items_config().device_kinds:
+        dev = [d for d in records if _o(d, "device_type", "") in dk.device_types]
+        starts: list[tuple[Any, str]] = [
+            (_o(p, "start_datetime", None), "procedure")
+            for p in procedures
+            if _o(p, "procedure_type", "") in dk.procedure_types
+        ]
+        starts += [
+            (_o(o, "ordered_datetime", None), "order")
+            for o in orders
+            if any(
+                re.search(pat, str(_o(o, field, "") or ""), re.IGNORECASE)
+                for pat in dk.order_patterns
+                for field in ("display_name", "order_code")
+            )
+        ]
+        starts += [(_o(d, "placement_date", None), "device") for d in dev]
+        timed = [(w, src) for v, src in starts if (w := parse_iso_datetime(v, lenient=True)) is not None]
+        if not timed:
+            continue
+        # The earliest procedure / order time; the coarse placement date only
+        # when neither exists.
+        precise = [x for x in timed if x[1] != "device"]
+        when, source = min(precise or timed, key=lambda x: x[0])
+        removals = [r for d in dev if (r := _o(d, "removal_date", None))]
+        out.append(
+            {
+                "kind": dk.kind,
+                "start": when.isoformat(),
+                "end_date": str(max(removals))[:10] if removals else None,
+                "source": source,
+            }
+        )
+    return out
 
 
 def icu_transfer_day(value: Any) -> int:
