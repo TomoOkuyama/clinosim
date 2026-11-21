@@ -170,6 +170,7 @@ def lab_result_display(value: Any, lang: str) -> Any:
     return out if out != sep.join(p.strip() for p in text.split(",")) else value
 
 
+@lru_cache(maxsize=1)
 def load_condition_stage_labels() -> dict[str, dict[str, str]]:
     """Condition stage labels (``locale/shared/condition_stage_labels.yaml``, Issue #3032)."""
     raw = _load_yaml(_LOCALE_DIR / "shared" / "condition_stage_labels.yaml", fallback={})

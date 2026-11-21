@@ -10,6 +10,7 @@ automatically.
 
 from __future__ import annotations
 
+import functools
 import json
 import logging
 import os
@@ -144,6 +145,26 @@ def _without_companion_vitals(patient_dict: dict[str, Any], encounters: list[Any
     if len(kept) == len(vitals):
         return patient_dict
     return {**patient_dict, "vital_signs": kept}
+
+
+@functools.lru_cache(maxsize=4)
+def _record_names_by_head(structural_dir: str, mtime_ns: int) -> dict[str, tuple[str, ...]]:
+    """The structural record file names of ``structural_dir``, grouped by the
+    ``ENC-<patient_id>`` head of ``ENC-<patient_id>-<first encounter>.json``.
+
+    Listed once per directory state (``mtime_ns`` is part of the key, so a
+    record written later is seen): listing the directory for every document
+    made the narrative pass quadratic in the cohort size.
+    """
+    del mtime_ns  # cache key only
+    grouped: dict[str, list[str]] = {}
+    for name in sorted(os.listdir(structural_dir)):
+        if not name.endswith(".json"):
+            continue
+        head, sep, tail = name[: -len(".json")].rpartition("-")
+        if sep and tail:
+            grouped.setdefault(head, []).append(name)
+    return {head: tuple(names) for head, names in grouped.items()}
 
 
 class NarrativePass(ABC):
@@ -707,11 +728,11 @@ class NarrativePass(ABC):
         """
         stem = own_file[: -len(".json")] if own_file.endswith(".json") else own_file
         head = stem.rsplit("-", 1)[0]
-        pattern = re.compile(rf"^{re.escape(head)}-[^-]+\.json$")
         patient_id = head[len("ENC-") :] if head.startswith("ENC-") else head
         records: list[dict[str, Any]] = []
-        for name in sorted(os.listdir(structural_dir)):
-            if name == own_file or not pattern.match(name):
+        names = _record_names_by_head(structural_dir, os.stat(structural_dir).st_mtime_ns).get(head, ())
+        for name in names:
+            if name == own_file:
                 continue
             try:
                 with open(os.path.join(structural_dir, name), encoding="utf-8") as f:
