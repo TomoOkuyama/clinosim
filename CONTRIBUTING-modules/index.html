@@ -3704,7 +3704,7 @@ extend a FHIR builder (Layer 4 = <code>fhir_r4/&lt;domain&gt;/*.py</code>)</stro
 system conventions / register_bundle_builder).</p>
 <p><strong>When creating a new module</strong>: start by copying
 <a href="https://github.com/TomoOkuyama/clinosim/blob/master/.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a>.
-For an overview of all 38 modules (counting rule: packages under
+For an overview of all 39 modules (counting rule: packages under
 <code>clinosim/modules/</code>; non-package files such as <code>_shared.py</code> are
 excluded), see <a href="https://github.com/TomoOkuyama/clinosim/blob/master/MODULES.md"><code>MODULES.md</code></a>. For picking the PR
 verification approach, see the "PR verification guide: byte-diff
@@ -4273,10 +4273,10 @@ every new YAML protocol in Pydantic</strong> with
 <code>bare except</code> is forbidden.</p>
 <h3 id="publish-the-public-api-via-__init__py">Publish the public API via <code>__init__.py</code><a class="headerlink" href="#publish-the-public-api-via-__init__py" title="Permanent link">&para;</a></h3>
 <blockquote>
-<p><strong>Known debt:</strong> 14 of the 38 module <code>__init__.py</code> files are
+<p><strong>Known debt:</strong> 14 of the 39 module <code>__init__.py</code> files are
 still empty, so callers of those modules reach into submodules
 directly. <strong>New modules re-export the public surface from
-<code>__init__.py</code> via <code>__all__</code></strong> (as the other 24 do), and callers
+<code>__init__.py</code> via <code>__all__</code></strong> (as the other 25 do), and callers
 use <code>from clinosim.modules.&lt;name&gt; import X</code> rather than
 <code>.engine</code>.</p>
 </blockquote>

@@ -2361,7 +2361,7 @@
 
 <h1 id="modules">Modules<a class="headerlink" href="#modules" title="Permanent link">&para;</a></h1>
 <h1 id="clinosim-module-map">clinosim Module Map<a class="headerlink" href="#clinosim-module-map" title="Permanent link">&para;</a></h1>
-<p>A single-page overview of clinosim's <strong>38 modules</strong> (counting rule:
+<p>A single-page overview of clinosim's <strong>39 modules</strong> (counting rule:
 top-level packages under <code>clinosim/modules/</code>; non-package files like
 <code>_shared.py</code> excluded, and <code>nursing_assignment</code> shares
 <code>clinosim/modules/nursing/</code> with the observation-layer nursing
@@ -2487,16 +2487,17 @@ load-bearing verification gate that protects this goal.</p>
 </span><span id="__span-0-59"><a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a>│  care_level(60)   JP 要介護度 (JP only)                  │
 </span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a>│  medication_monitoring(65) chronic-med → labs (Issue #757)│
 </span><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a>│  health_checkup(70) JP 事業者健診 (JP only, opt-in)      │
-</span><span id="__span-0-62"><a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a>└──────────────────────────────────────────────────────────┘
-</span><span id="__span-0-63"><a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a>            ↓                ↓               ↓
-</span><span id="__span-0-64"><a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a>┌─ Output ─────────────────────────────────────────────────┐
-</span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a>│  output       CIF → FHIR R4 NDJSON / CSV adapters        │
-</span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a>│  llm_service  optional narrative generation (Stage 2)    │
-</span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a>│  validator    realism benchmarks + consistency checks    │
-</span><span id="__span-0-68"><a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a>└──────────────────────────────────────────────────────────┘
+</span><span id="__span-0-62"><a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a>│  stage_refresh(900) chronic stages from the latest labs  │
+</span><span id="__span-0-63"><a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a>└──────────────────────────────────────────────────────────┘
+</span><span id="__span-0-64"><a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a>            ↓                ↓               ↓
+</span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a>┌─ Output ─────────────────────────────────────────────────┐
+</span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a>│  output       CIF → FHIR R4 NDJSON / CSV adapters        │
+</span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a>│  llm_service  optional narrative generation (Stage 2)    │
+</span><span id="__span-0-68"><a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a>│  validator    realism benchmarks + consistency checks    │
+</span><span id="__span-0-69"><a id="__codelineno-0-69" name="__codelineno-0-69" href="#__codelineno-0-69"></a>└──────────────────────────────────────────────────────────┘
 </span></code></pre></div>
 <h2 id="module-inventory">Module inventory<a class="headerlink" href="#module-inventory" title="Permanent link">&para;</a></h2>
-<p>38 modules total (top-level packages under <code>clinosim/modules/</code>; the
+<p>39 modules total (top-level packages under <code>clinosim/modules/</code>; the
 table below additionally lists the <code>codes</code> / <code>locale</code> foundation
 packages). Every entry links to the per-module README (which follows
 the canonical 11-section structure).</p>
@@ -2586,7 +2587,7 @@ the canonical 11-section structure).</p>
 <td>year-indexed trajectory engine (AR(1) HbA1c / Markov stage ladders / event firing — Phase 4a-4d chronic evolution)</td>
 <td>simulation</td>
 <td>— (uses caller RNG per <code>advance_one_year</code>)</td>
-<td>— (library, consumed by aging pass)</td>
+<td>POST_RECORDS 900 (<code>stage_refresh</code>: chronic stages restated from the latest labs, no random draw)</td>
 </tr>
 <tr>
 <td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/population/README.md">population</a></td>
