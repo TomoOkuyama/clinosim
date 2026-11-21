@@ -1641,11 +1641,14 @@ op_note:
     ja: "手術部位：{body_site}"
     en: "Body site: {body_site}"
   findings_preop:
-    ja: "術前診断：{dx}"
-    en: "Preop diagnosis: {dx}"
+    ja: "術前診断・適応：{dx}"
+    en: "Pre-operative diagnosis / indication: {dx}"
   findings_postop:
     ja: "術後診断：{dx}"
-    en: "Postop diagnosis: {dx}"
+    en: "Post-operative diagnosis: {dx}"
+  indication_not_documented:
+    ja: "適応：記載なし"
+    en: "Indication: not documented"
   findings_intraop:
     ja: "術中合併症：{list}"
     en: "Intraop complications: {list}"
