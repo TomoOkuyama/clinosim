@@ -60,17 +60,28 @@ _PROCEDURE_KEYS = (
 def other_encounters(records: list[Any]) -> list[dict[str, Any]]:
     """The encounters of a patient's structural ``records`` as
     ``{encounter_id, encounter_type, start, end, diagnosis_code, admit_source_encounter_id,
-    procedures}`` (start/end ISO strings), in the order given."""
+    procedures, visit_type, visit_condition_id, vaccination}`` (start/end ISO strings), in the
+    order given. ``visit_type`` / ``visit_condition_id`` are the simulator's, for the record's
+    own (first) encounter only; ``vaccination`` marks an encounter an immunization was given
+    at (Issue #3465: the series a next visit belongs to)."""
     out: list[dict[str, Any]] = []
     for record in records:
+        event = _o(record, "condition_event", None)
+        vaccinated = {str(_o(i, "encounter_id", "") or "") for i in _o(record, "immunizations", []) or []}
+        own_id = str(_o((_o(record, "encounters", []) or [{}])[0], "encounter_id", "") or "")
         diagnosis = _o(record, "clinical_diagnosis", None)
         code = str(_o(diagnosis, "discharge_diagnosis_code", "") or _o(diagnosis, "admission_diagnosis_code", "") or "")
         procedures = [{k: _o(p, k, None) for k in _PROCEDURE_KEYS} for p in _o(record, "procedures", []) or []]
         for enc in _o(record, "encounters", []) or []:
             start = str(_o(enc, "admission_datetime", "") or "")
+            enc_id = str(_o(enc, "encounter_id", "") or "")
+            own = bool(enc_id) and enc_id == own_id
             out.append(
                 {
-                    "encounter_id": str(_o(enc, "encounter_id", "") or ""),
+                    "encounter_id": enc_id,
+                    "visit_type": str(_o(event, "visit_type", "") or "") if own else "",
+                    "visit_condition_id": str(_o(event, "visit_condition_id", "") or "") if own else "",
+                    "vaccination": enc_id in vaccinated,
                     "encounter_type": str(_o(enc, "encounter_type", "") or ""),
                     "start": start,
                     "end": str(_o(enc, "discharge_datetime", "") or "") or start,

@@ -316,7 +316,7 @@ class NarrativePass(ABC):
                 # Issue #3407: the patient's other encounters, read once per
                 # patient and only for the outpatient SOAP note.
                 if not interval_encounters:
-                    interval_encounters.append(self._patient_other_encounters(structural_dir, pf))
+                    interval_encounters.append(self._patient_other_encounters(structural_dir, pf, patient_dict))
                 return interval_encounters[0]
 
             for spec, language in iter_specs_x_lang:
@@ -733,12 +733,20 @@ class NarrativePass(ABC):
         return list(reported_lab_results(labs, self.country))
 
     @staticmethod
-    def _patient_other_encounters(structural_dir: str, own_file: str) -> list[dict[str, Any]]:
-        """The encounters of the patient's other structural records.
-        Issues #3407, #3446."""
+    def _patient_other_encounters(
+        structural_dir: str, own_file: str, own_record: dict[str, Any] | None = None
+    ) -> list[dict[str, Any]]:
+        """The encounters of the patient's other structural records, and the
+        ones appended to ``own_record`` besides its first (the immunization
+        enricher's vaccination visits live in the record of the visit they
+        were attached to; the note's own encounter is excluded by its id where
+        the list is read). Issues #3407, #3446, #3465."""
         from clinosim.modules.document.narrative._interval_events import other_encounters
 
-        return other_encounters(NarrativePass._patient_record_files(structural_dir, own_file))
+        records = NarrativePass._patient_record_files(structural_dir, own_file)
+        if own_record is not None:
+            records.append(own_record)
+        return other_encounters(records)
 
     @staticmethod
     def _parse_rehab_sessions(raw: list[Any]) -> list[Any]:
