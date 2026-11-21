@@ -39,6 +39,10 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Fixed
+
+- The template narrative pass is linear in the cohort size again: the lookup of a patient's other structural records lists the structural directory once per directory state instead of once per document, and the condition stage label table is parsed once instead of on every stage a note prints. A US p=1000 pass takes 22 s instead of 83 s with byte-identical narratives; the p=10000 release cohort pass had grown to about 20 times the v0.7.0 time.
+
 ## [0.7.1] - 2026-11-22
 
 ### Highlights
