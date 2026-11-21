@@ -35,6 +35,7 @@ from clinosim.modules.document.narrative._narrative_utils import (
     encounter_died,
     is_neonate,
 )
+from clinosim.modules.document.narrative._progress_symptoms import respiratory_symptom_line
 from clinosim.modules.document.narrative._vitals_line import (
     PHYSICAL_EXAM,
     PROGRESS_DAY,
@@ -281,13 +282,21 @@ def _progress_symptom_phrases(ctx: NarrativeContext, today: list, prev: list, la
     from clinosim.modules.document.narrative._narrative_interpretation_thresholds import progress_vitals_rules
 
     rules = progress_vitals_rules()
+    # Issue #3454: how breathing is going, for a respiratory admission, leads
+    # the symptoms.
+    resp = respiratory_symptom_line(ctx, today, prev)
+    if resp:
+        out.append(resp)
     avpu, prev_avpu = _latest_avpu(today), _latest_avpu(prev)
     worst = _worst_avpu(today)
     # Issue #3235: a self-reported score only while the patient can give one
     # (no behavioural pain scale is recorded), named by the disease's pain.
     pain, prev_pain = _max(today, "pain_score"), _max(prev, "pain_score")
-    if pain is not None:
-        label = _pain_label(ctx, rules, lang)
+    # Issue #3454: a pain score is stated only for a pain with a source (the
+    # disease's pain site, a site the chief complaint names, or an operation /
+    # procedure done by the note's time), never as a bare "pain".
+    label = _pain_label(ctx, rules, lang) if pain is not None else ""
+    if pain is not None and label:
         if not avpu or avpu in rules.self_report_avpu:
             if prev_pain is not None and prev_pain >= _SUBJ_PAIN_NOTABLE and pain < _SUBJ_PAIN_NOTABLE:
                 out.append(t("progress.pain_controlled", lang, pain=label, p=prev_pain, q=pain))
@@ -324,7 +333,8 @@ def _progress_symptom_phrases(ctx: NarrativeContext, today: list, prev: list, la
 
 def _pain_label(ctx: NarrativeContext, rules: Any, lang: str) -> str:
     """The pain a progress note names (Issue #3235): the disease's pain site,
-    else the site the admission chief complaint names, else "pain"."""
+    else the site the admission chief complaint names, else "pain" after an
+    operation or procedure (Issue #3454); ``""`` for a pain with no source."""
     from clinosim.locale.loader import resolve_localized_display
     from clinosim.locale.localized import normalize_lang
 
@@ -345,7 +355,9 @@ def _pain_label(ctx: NarrativeContext, rules: Any, lang: str) -> str:
         terms = entry.terms.get(code) or entry.terms["en"]
         if any(term.lower() in complaint.lower() for term in terms):
             return entry.site.get(code) or entry.site["en"]
-    return t("progress.pain_generic", lang)
+    from clinosim.modules.document.narrative._progress_course import post_procedure_line
+
+    return t("progress.pain_generic", lang) if post_procedure_line(ctx, getattr(ctx, "authored_datetime", None)) else ""
 
 
 def pick_stable_progress_phrase(ctx: NarrativeContext, *, lang: str) -> str:

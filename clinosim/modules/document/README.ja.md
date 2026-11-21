@@ -209,6 +209,7 @@ clinosim/modules/document/
     progress_vitals.yaml             経過記録のバイタル要約: 経過の閾値・自己申告可能な AVPU・表示する極値・疼痛部位 (narrative/renderers/_composers.py)
     progress_exam.yaml               経過記録の身体所見をバイタルに合わせる: バイタルの判定範囲 (小児の収縮期血圧の下限は PALS の低血圧閾値)・バイタルを述べる語・異常値に加える所見・経過の項目・後句を落とした文の文末形 (terminal_forms)・患者別の下限の上書き (COPD の SpO2 下限 88 %)・「現在」の記述は最新値で判定 (narrative/_progress_exam.py)
     progress_course.yaml             経過記録の経過: 処置後の処置種別・主要検査の件数・退院調整の期間 (narrative/_progress_course.py)
+    progress_symptoms.yaml           経過記録 S の呼吸器疾患群: 呼吸状態の経過を書く疾患 (narrative/_progress_symptoms.py)
     hospital_course.yaml             退院時サマリーの入院経過: 治療薬の一覧の上限・異常検査値の対応薬・薬剤変更の上限 (narrative/_hospital_course.py)
   narrative/                         narrative subpackage (Stage 2 pipeline) — narrative/README.md 参照
 ```

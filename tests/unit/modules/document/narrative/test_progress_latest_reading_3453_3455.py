@@ -4,6 +4,8 @@ progress note follow the latest reading and a meaningful change (Issues #3453,
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 import pytest
 
 from clinosim.modules.document.narrative._narrative_interpretation_thresholds import (
@@ -80,8 +82,10 @@ def test_never_resolved_while_latest_avpu_is_below_alert(lang: str) -> None:
 
 def test_pain_self_report_follows_the_latest_avpu() -> None:
     vitals = [_v(1, 9, consciousness_level="U"), _v(2, 8, consciousness_level="A", pain_score=5)]
-    assert "疼痛" in _subj(vitals, "ja") or "ain" in _subj(vitals, "en")
-    assert "自己申告" not in _subj(vitals, "ja") and "self-report" not in _subj(vitals, "en")
+    ctx = _ctx(vitals, day=2, lang="ja")
+    ctx.disease_protocol = SimpleNamespace(disease_id="hip_fracture")  # a disease with a pain site (Issue #3454)
+    text = compose_progress_subjective_from_state(ctx)
+    assert "股関節部痛" in text and "自己申告" not in text
 
 
 def test_course_items_carry_a_meaningful_change_per_vital() -> None:
