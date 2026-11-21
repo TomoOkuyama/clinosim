@@ -16,9 +16,12 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from typing import Any
 
+from clinosim.codes.drugs import drug_key
+from clinosim.locale.free_text import localize_drug_name
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules._shared import strip_protocol_prefix
 from clinosim.modules.document.engine import SHIFT_HOURS, SHIFT_SCHEDULE
 from clinosim.modules.document.narrative._as_of import in_force_at
 from clinosim.modules.document.narrative._narrative_utils import _filter_vitals_for_day
@@ -169,8 +172,9 @@ def render_nursing_shift_note(ctx: NarrativeContext, spec: DocumentTypeSpec) -> 
 
     # Issue #2651: the drugs given in this shift (the 8-hour shift window of
     # this hospital day; the whole calendar day for a note with no shift),
-    # from the MAR — never the stay's first administrations. Limit 3 for
-    # shift-note brevity.
+    # from the MAR — never the stay's first administrations. Every distinct
+    # drug given is listed (Issue #3459): the record of administration is not
+    # truncated.
     med_names: list[str] = []
     seen: set[str] = set()
     for m in ctx.medications or []:
@@ -180,16 +184,17 @@ def render_nursing_shift_note(ctx: NarrativeContext, spec: DocumentTypeSpec) -> 
         if window is None or when is None or not (window[0] <= when < window[1]):
             continue
         n = _o(m, "drug_name", None) or _o(m, "medication", None)
-        if not n or n in seen:
+        if not n:
             continue
-        seen.add(n)
+        # Dedupe on the bare drug, so two spellings of one drug appear once.
+        bare, _ = strip_protocol_prefix(str(n))
+        key = drug_key(bare)
+        if not bare or key in seen:
+            continue
+        seen.add(key)
         # Drug-name katakana lookup via lang-aware wrapper —
         # no-op for lang without a lookup table.
-        from clinosim.locale.free_text import localize_drug_name
-
-        med_names.append(localize_drug_name(str(n), lang))
-        if len(med_names) >= 3:
-            break
+        med_names.append(localize_drug_name(bare, lang))
 
     # Issue #3236: the risk assessment in force at this shift.
     latest = in_force_at(
