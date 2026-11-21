@@ -2,7 +2,7 @@
 # of #3476). Read by narrative/_nursing_shift_items.py::nursing_shift_items_config
 # and applied by narrative/renderers/nursing_shift_note.py: each item is
 # written only when the record of the shift shows it, in this order, after the
-# status and medication lines and before the fall-risk line. The phrases of an
+# status and medication lines and before the fall-risk item (the last of the list). The phrases of an
 # item are the ``nursing_shift_items.<id>`` block of
 # locale/shared/narrative_phrases.yaml (ja and en).
 #
@@ -13,6 +13,8 @@
 #   fact:      the facts_used tag the item adds (allowed prefix ``ctx.``)
 #   skip_neonate: the item is not written for a patient in the neonatal period
 #              (no self-reported pain score for a newborn)
+#   only_neonate: the item is written only for a patient in the neonatal period
+#              (the newborn set replaces the adult assessments; default false)
 #
 # Thresholds are not repeated here: fever is the ``trend.fever_c`` of
 # progress_vitals.yaml, the SpO2 floor is the ``limits.spo2`` of
@@ -68,6 +70,87 @@ items:
     rule: a urinary catheter or central venous catheter in place during the shift (inserted before the shift's end, not yet removed), and the oxygen device of the shift's last reading when it is on oxygen; one sentence per device with its routine care
     fact: ctx.devices.shift
     skip_neonate: false
+  - id: meal
+    source: orders[] (diet orders); adl_assessments[].feeding; intake_output_records[].intake_oral_ml
+    rule: the diet order in force at the shift's end; nil by mouth (continuing when the order was placed on an earlier day) or the diet taken orally, with the feeding help level of the assessment in force and the previous completed day's oral intake when recorded (no intake percentage is ever written)
+    fact: ctx.orders.diet.shift
+    skip_neonate: true
+  - id: skin
+    source: nursing_risk_assessments[].braden_total
+    rule: the Braden total in force is at or below the reporting level; the risk band, with skin observation, and repositioning and pressure relief when at or below the prevention level
+    fact: ctx.nursing_risk_assessments.braden
+    skip_neonate: true
+  - id: mobility
+    source: adl_assessments[] (Barthel total, mobility, transfers, toilet_use)
+    rule: an ADL assessment is in force at the shift's end; the Barthel total with its band and the help level of mobility, transfer and toileting
+    fact: ctx.adl_assessments.shift
+    skip_neonate: true
+  - id: wound
+    source: procedures[] (surgical procedures of the encounter)
+    rule: a surgical procedure of the encounter started before the shift's end, within the post-operative window below; the post-operative day and the routine surgical-site observation (no finding is stated)
+    fact: ctx.procedures.surgical_site
+    skip_neonate: true
+  - id: fall_risk
+    source: nursing_risk_assessments[].fall_risk_level, morse_total
+    rule: the fall-risk level in force at the shift's end is moderate or high; the level with the Morse total
+    fact: ctx.nursing_risk_assessments@authored
+    skip_neonate: true
+  - id: newborn_care
+    source: patient.date_of_birth
+    rule: a newborn; the day of life, and the routine feeding, voiding / stooling and umbilical-cord observation (no intake, count or finding is stated, as the record holds none)
+    fact: ctx.newborn.care
+    skip_neonate: false
+    only_neonate: true
+  - id: newborn_weight
+    source: patient.weight_kg
+    rule: a newborn; the birth weight of the newborn's profile (no later weight is recorded)
+    fact: ctx.newborn.birth_weight
+    skip_neonate: false
+    only_neonate: true
+  - id: newborn_jaundice
+    source: extensions.newborn.bilirubin[]
+    rule: a transcutaneous bilirubin was measured by the shift's end; the latest value with its day of life, and observation of jaundice
+    fact: ctx.newborn.bilirubin
+    skip_neonate: false
+    only_neonate: true
+
+# Barthel Index total -> band (phrase barthel_band.<band>); the lowest total
+# of each band, highest band first.
+barthel_bands:
+  - [91, independent]
+  - [61, minimal_assist]
+  - [41, moderate_assist]
+  - [21, severe_dependence]
+  - [0, total_care]
+
+# Braden total -> risk band (phrase morse_band.<band>, which names the risk
+# bands of both scales); the lowest total of each band, highest first. The
+# same bands are used by the nursing diagnosis and care plan builders.
+braden_bands:
+  - [19, low]
+  - [15, mild]
+  - [13, moderate]
+  - [10, high]
+  - [0, severe]
+# The skin item is written at or below this Braden total (the lowest band
+# above ``low``), and states repositioning and pressure relief at or below
+# the prevention level (the same level as the care plan's pressure-injury
+# prevention).
+braden_report_at_or_below: 18
+braden_prevention_at_or_below: 14
+
+# Barthel item score -> help level (phrase ``nursing_shift_items.adl_level.<level>``)
+# of the items the mobility and meal items state. The scores are those of
+# types/encounter.py::ADLAssessment (feeding / toilet_use 0-5-10, mobility 0-5-10-15).
+adl_levels:
+  feeding: {10: independent, 5: partial, 0: dependent}
+  mobility: {15: independent, 10: assisted, 5: wheelchair, 0: bedbound}
+  toilet_use: {10: independent, 5: partial, 0: dependent}
+
+# Post-operative days (the day of the procedure is day 0) up to which the
+# surgical-site observation is written. A routine limit chosen for the notes,
+# not a guideline value.
+wound_observation_max_post_op_days: 14
 
 # MAR routes written as an oral dose (内服); any other route is a plain dose.
 oral_routes:

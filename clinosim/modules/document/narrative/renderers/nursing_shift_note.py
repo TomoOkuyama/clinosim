@@ -23,7 +23,6 @@ from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import strip_protocol_prefix
 from clinosim.modules.document.engine import SHIFT_HOURS, SHIFT_SCHEDULE
-from clinosim.modules.document.narrative._as_of import in_force_at
 from clinosim.modules.document.narrative._narrative_utils import _filter_vitals_for_day
 from clinosim.modules.document.narrative._nursing_shift_items import nursing_shift_item_lines
 from clinosim.modules.document.narrative._template_helpers import _resolve_staff_name
@@ -197,24 +196,6 @@ def render_nursing_shift_note(ctx: NarrativeContext, spec: DocumentTypeSpec) -> 
         # no-op for lang without a lookup table.
         med_names.append(localize_drug_name(bare, lang))
 
-    # Issue #3236: the risk assessment in force at this shift.
-    latest = in_force_at(
-        list(getattr(ctx, "nursing_risk_assessments", None) or []), getattr(ctx, "authored_datetime", None)
-    )
-    risk_bit = ""
-    if latest is not None:
-        fall = _o(latest, "fall_risk_level", None)
-        if fall and str(fall).lower() in ("high", "moderate"):
-            # Localize the risk-level enum via the shared morse_band
-            # phrase catalog (low/moderate/high → 低リスク/中等度リスク/
-            # 高リスク on JA output). Unknown values fall back to the
-            # raw token so novel risk levels still surface.
-            fall_disp = t(f"morse_band.{str(fall).lower()}", lang)
-            if fall_disp == f"morse_band.{str(fall).lower()}":
-                fall_disp = str(fall)
-            risk_bit = t("nursing_shift.fall_risk_line", lang, level=fall_disp)
-            facts.append("ctx.nursing_risk_assessments@authored")
-
     title = (
         t("nursing_shift.title_with_shift", lang, shift=shift_label)
         if shift_label
@@ -237,8 +218,8 @@ def render_nursing_shift_note(ctx: NarrativeContext, spec: DocumentTypeSpec) -> 
         )
     else:
         meds_line = ""
-    # Issue #3478: the nursing items the shift's record shows (pain, fever,
-    # desaturation, consciousness, NEWS2), in the registry's order.
+    # Issues #3478-#3481: the nursing items the shift's record shows (the
+    # registry of nursing_shift_items.yaml, fall risk last), in its order.
     item_lines = nursing_shift_item_lines(ctx, lang, picks, window) if window is not None else []
     for _, item_fact in item_lines:
         facts.append(item_fact)
@@ -251,9 +232,7 @@ def render_nursing_shift_note(ctx: NarrativeContext, spec: DocumentTypeSpec) -> 
         lines.append(meds_line)
         facts.append("ctx.medications.today")
     lines.extend(text for text, _ in item_lines)
-    if risk_bit:
-        lines.append(risk_bit)
-    elif not item_lines:
+    if not item_lines:
         lines.append(t("nursing_shift.observations_default", lang))
     raw_text = "\n".join(lines)
 
