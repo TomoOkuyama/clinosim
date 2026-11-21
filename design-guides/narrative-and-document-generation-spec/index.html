@@ -2433,9 +2433,9 @@
 <td><code>tests/unit/modules/document/test_document_planners_2532.py</code></td>
 </tr>
 <tr>
-<td>A nursing shift note is authored by the nurse on duty for its shift (<code>shift_note_author</code>), not by the admission's primary nurse: the primary nurse takes the day shift on the YAML share <code>day_shift_primary_share</code>, every other shift goes to another nurse of the ward who has not worked that calendar day, chosen by a SHA-256 of encounter id, date and shift (no RNG draw). The admission assessment, care plan and discharge summary stay with the primary nurse.</td>
+<td>A nursing shift note is authored by the nurse on duty for its shift (<code>shift_note_author</code>), not by the admission's primary nurse: the primary nurse takes the day shift on the YAML share <code>day_shift_primary_share</code>, every other shift goes to another nurse of the ward who has not worked that calendar day, chosen by a SHA-256 of encounter id, date and shift (no RNG draw). The admission assessment, care plan and discharge summary stay with the primary nurse. The shift note's header names that author (<code>ClinicalDocument.author_practitioner_id</code>, carried to the renderer as <code>NarrativeContext.author_practitioner_id</code>) as "Recorded by", falling back to the primary nurse only when the document has no author.</td>
 <td><code>clinosim/modules/nursing/engine.py::shift_note_author</code>, <code>clinosim/modules/nursing/reference_data/nursing_shift_rotation.yaml</code></td>
-<td><code>tests/unit/modules/document/test_shift_note_author_rotation_3408.py</code></td>
+<td><code>tests/unit/modules/document/test_shift_note_author_rotation_3408.py</code>, <code>tests/unit/modules/document/narrative/test_shift_note_author_3445.py</code></td>
 </tr>
 <tr>
 <td>Each Composition section is built by exactly one function registered with <code>@section(name)</code>; registering a name twice fails at import. A section that one document type writes differently registers that type's builder with <code>@section(name, document_type=...)</code> (one per document type and section, e.g. the ED note's assessment), and the renderer prefers it over the shared builder. The composition renderer looks sections up in the registry.</td>
