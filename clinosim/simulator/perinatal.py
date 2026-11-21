@@ -38,6 +38,7 @@ from clinosim.country_profile import country_profile
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_perinatal_config
 from clinosim.modules.encounter.engine import create_inpatient_encounter
+from clinosim.modules.population.encounter_anthropometry import age_at_measurement
 from clinosim.modules.staff.engine import FALLBACK_PHYSICIAN_ID, StaffRoster, assign_staff
 from clinosim.seeding import newborn_conditions_seed, newborn_seed, pregnancy_outcome_seed, text_seed
 from clinosim.simulator.encounter_setup import attach_orders, encounter_diagnosis, finalize_encounter
@@ -581,7 +582,7 @@ def _birth_data(mother: PatientProfile, delivered_at: datetime, cesarean: bool) 
     return {
         "gestational_age_days": gestational_days,
         "delivery_mode": "cesarean" if cesarean else "vaginal",
-        "maternal_age": mother.age,
+        "maternal_age": age_at_measurement(mother, delivered_at)[0],
         "maternal_condition_codes": [c.code for c in mother.chronic_conditions if c.code],
     }
 
