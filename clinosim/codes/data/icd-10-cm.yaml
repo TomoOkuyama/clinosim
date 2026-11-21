@@ -160,6 +160,9 @@ codes:
     en: Disorders of lipoprotein metabolism and other lipidemias
   F00:
     en: Dementia in Alzheimer disease
+  # Issue #3519: delirium of an inpatient stay (NLM Clinical Tables 2026-11-21).
+  F05:
+    en: Delirium due to known physiological condition
   F10:
     en: Alcohol related disorders
   F10.20:

@@ -1,0 +1,57 @@
+# When a stay's reduced level of consciousness is recorded as delirium
+# (Issue #3519).
+#
+# Read by clinosim/simulator/delirium.py and applied once per inpatient stay in
+# simulator/inpatient.py, after the daily loop. Everything is RNG-free: the
+# episode is derived from the recorded AVPU of the stay and the patient's
+# `delirium_susceptibility` (patient/activator.py: a Beta(2, 8) draw plus
+# premiums for age >= 75, dementia and Parkinson disease).
+#
+#   - Eligibility. A patient whose `delirium_susceptibility` is at least
+#     `susceptibility_min`. 0.3 is the cut the disease protocols already use in
+#     their complication risk factors ("delirium_susceptibility > 0.3").
+#   - Episode. A run of consecutive hospital days with an AVPU below Alert on
+#     the assessments of the day. The run is an episode when at least
+#     `min_reduced_days` of its days are at a level of `qualifying_levels`
+#     (drowsy and rousable to voice, or to pain). Days at U (unresponsive) do
+#     not count: a patient who cannot be roused cannot be assessed for
+#     delirium, and that picture is stupor or coma with an organic cause.
+#     The onset is the first qualifying day (the time of its first reduced
+#     assessment); the episode resolves on the first day the patient is Alert
+#     again, and has no resolution when the stay ends first. `duration_days`
+#     counts the days from the onset to the last reduced day.
+#   - Record. A complication entry `complication_name` (source
+#     `derived_from_consciousness`) in `complications_occurred`, and the
+#     `icd_code` as a coded secondary diagnosis of the stay. A stay that already
+#     carries a complication named in `existing_names` is not given a second
+#     entry; its diagnosis is still coded.
+#
+# Model choices, not guideline figures: `susceptibility_min`,
+# `min_reduced_days`, `qualifying_levels` and the day-level reading of the
+# course. The clinical frame is Inouye SK, Westendorp RGJ, Saczynski JS.
+# Delirium in elderly people. Lancet 2014;383:911-22 (PMC4120864, read for this
+# rule): delirium results from "a vulnerable patient with multiple predisposing
+# factors" meeting noxious insults; dementia or cognitive impairment and
+# advanced age (> 70 years) are leading predisposing factors; new-onset
+# incidence is about 11-14% on general medical wards, 19-82% in intensive care
+# and 11-51% after surgery; the hypoactive form is the predominant
+# presentation in older patients, and patients can switch between hypoactive
+# and hyperactive forms during the course. The article reports no episode
+# duration, so the duration here simply follows the recorded consciousness.
+#
+# Codes: F05 is ICD-10-CM "Delirium due to known physiological condition"
+# (NLM Clinical Tables, queried 2026-11-21, billable) and WHO ICD-10 "Delirium,
+# not induced by alcohol and other psychoactive substances" (tx.fhir.org
+# $lookup, queried 2026-11-21; MHLW 2013 basic classification "せん妄，アルコール
+# その他の精神作用物質によらないもの"); JP uses the same code.
+metadata:
+  kind: reference
+  name: delirium_derivation
+  source: clinosim
+
+complication_name: delirium
+icd_code: F05
+susceptibility_min: 0.3
+min_reduced_days: 2
+qualifying_levels: [V, P]
+existing_names: [delirium, icu_delirium, postoperative_delirium]

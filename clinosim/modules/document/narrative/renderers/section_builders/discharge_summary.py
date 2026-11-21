@@ -29,6 +29,7 @@ from clinosim.modules.document.narrative._localization import _localize_complica
 from clinosim.modules.document.narrative._prescription_line import prescription_bits
 from clinosim.modules.document.narrative.renderers._shared_helpers import diagnosis_coded
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section, section_builder
+from clinosim.simulator.delirium import delirium_token_code
 from clinosim.types.document import NarrativeContext
 
 if TYPE_CHECKING:
@@ -230,7 +231,7 @@ def _secondary_diagnoses(ctx: NarrativeContext, diagnoses: list) -> list[str]:
     for event in ctx.complications_events or []:
         token = str(_o(event, "name", "") or "")
         key = "_".join(token.strip().lower().split())
-        code = complication_codes.get(key) or ""
+        code = complication_codes.get(key) or delirium_token_code(key)
         if not token or (code and code.split(".")[0] in seen):
             continue
         label = _localize_complication(token, lang)

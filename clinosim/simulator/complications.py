@@ -20,11 +20,16 @@ dict. ``complication_names`` returns the plain names for legacy code
 paths (validator set-membership, CSV export) that do not yet consume
 onset information.
 
+An episode complication (``derived_from_consciousness``, Issue #3519) adds
+``resolution_day`` (``None`` while it lasts at the end of the stay) and
+``duration_days``.
+
 Producers (all via ``build_complication``):
   * ``simulator/daily_loop.py`` — ``daily_loop`` complications
   * ``simulator/_dispatch.py::_merge_disease_into_active_encounter`` —
     ``in_hospital_new_disease``
   * ``simulator/engine.py::run_forced`` — ``scenario_forced``
+  * ``simulator/delirium.py`` — ``derived_from_consciousness``
 
 ``lab_derived`` is an accepted source with no current producer:
 ``modules/diagnosis/lab_derived_dx.py`` appends its lab-derived AKI to
@@ -43,6 +48,7 @@ SOURCES: frozenset[str] = frozenset(
         "in_hospital_new_disease",
         "lab_derived",
         "scenario_forced",
+        "derived_from_consciousness",
         "legacy",
         "unknown",
     }
@@ -79,12 +85,18 @@ def _normalize_complication(entry: Any) -> dict[str, Any]:
         onset_day_int = None
     onset_dt = entry.get("onset_datetime")
     source = str(entry.get("source", "unknown"))
-    return {
+    out: dict[str, Any] = {
         "name": str(entry.get("name", "")),
         "onset_day": onset_day_int,
         "onset_datetime": str(onset_dt) if onset_dt is not None else None,
         "source": source if source in SOURCES else "unknown",
     }
+    # Issue #3519: an episode complication (delirium) also records when it
+    # ended; entries without a course carry neither key.
+    for key in ("resolution_day", "duration_days"):
+        if key in entry:
+            out[key] = int(entry[key]) if entry[key] is not None else None
+    return out
 
 
 def normalized_complications(entries: list[Any] | None) -> list[dict[str, Any]]:

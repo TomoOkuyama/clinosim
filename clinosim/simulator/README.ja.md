@@ -154,6 +154,9 @@ clinosim/simulator/
                          コード化し、その疾患プロトコルの入院時オーダーを入院の
                          オーダーに統合し (入院時から、遅れて認識した場合は病日 1-3 から)、
                          治療開始後の数日で発症時の生理軸を元に戻す (Issue #3392)
+  delirium.py            せん妄リスク (delirium_susceptibility) が高い患者の意識レベル低下
+                         (AVPU) が数日続いた場合にせん妄を導出: 合併症エントリ (発症・
+                         持続・回復) と副診断 ICD-10-CM / ICD-10 F05。乱数なし (Issue #3519)
   vasopressor_initiation.py  記録された平均血圧が輸液後も低い場合に昇圧薬を開始する
                          (固定病日ではなく生理状態駆動, Issue #3332)
   aki_response.py        急性腎障害 (KDIGO のクレアチニン基準): 活動期間中の薬剤保留と
@@ -274,6 +277,7 @@ CLI サブコマンドハンドラ (11 ファイル):
   reference_data/maintenance_iv_fluid.yaml    維持輸液オーダーの終了条件 (maintenance_iv_fluid.py)
   reference_data/ketoacidosis_resolution.yaml DKA の改善基準と静注から皮下インスリンへの移行 (ketoacidosis_resolution.py)
   reference_data/mixed_condition.yaml         混合入院の併存疾患の遅れた認識・回復・オーダー統合 (mixed_condition.py)
+  reference_data/delirium_derivation.yaml     導出せん妄のリスク閾値・エピソード規則・コード (delirium.py)
   reference_data/aki_response.yaml            AKI の判定・AKI 中に保留する薬剤・退院判定 (aki_response.py)
   reference_data/device_removal.yaml          カテーテルの留置契機と抜去の適応 (device_removal.py)
 ```

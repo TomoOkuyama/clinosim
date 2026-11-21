@@ -141,6 +141,7 @@ from clinosim.simulator._loc_thresholds import (
     LOC_MODERATE_V_OVER_P_PROBABILITY,
     LOC_NEURO_MILD_HYPOPERFUSION_THRESHOLD,
     LOC_NEURO_MILD_V_OVER_A_PROBABILITY,
+    LOC_PERFUSION_ACUTE_MAX_DAY,
     LOC_REFRACTORY_SHOCK_THRESHOLD,
     LOC_REFRACTORY_U_OVER_P_PROBABILITY,
 )
@@ -485,10 +486,17 @@ def _loc_for(state, disease_id, day, rng):
         # Refractory shock / severe neuro insult — matches the sepsis.yaml
         # severe-septic-shock complication threshold (perfusion_status < 0.2).
         return "U" if rng.random() < LOC_REFRACTORY_U_OVER_P_PROBABILITY else "P"
+    # Issue #3519: the draws are taken on every day, but beyond the acute
+    # window a perfusion band alone does not reduce the level (a compensated
+    # plateau is not drowsiness); the consciousness axis and refractory shock
+    # above still do.
+    acute = day <= LOC_PERFUSION_ACUTE_MAX_DAY
     if state.perfusion_status < LOC_MODERATE_HYPOPERFUSION_THRESHOLD:
-        return "V" if rng.random() < LOC_MODERATE_V_OVER_P_PROBABILITY else "P"
+        reduced = "V" if rng.random() < LOC_MODERATE_V_OVER_P_PROBABILITY else "P"
+        return reduced if acute else "A"
     if state.perfusion_status < LOC_NEURO_MILD_HYPOPERFUSION_THRESHOLD and disease_id in _NEURO_DISEASES:
-        return "V" if rng.random() < LOC_NEURO_MILD_V_OVER_A_PROBABILITY else "A"
+        reduced = "V" if rng.random() < LOC_NEURO_MILD_V_OVER_A_PROBABILITY else "A"
+        return reduced if acute else "A"
     return "A"
 
 

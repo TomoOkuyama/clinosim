@@ -845,7 +845,7 @@
         "admission_reason": "COPD急性増悪のため入院となった。",
         "chief_complaint": "1週間前より痰の量と粘稠度が増加",
         "discharge_details": "2024-07-01自宅退院となった。",
-        "discharge_diagnoses": "COPD急性増悪（J44.1）。副病名: せん妄。",
+        "discharge_diagnoses": "COPD急性増悪（J44.1）。副病名: せん妄（F05）。",
         "discharge_instructions": "[Mock LLM response #18 — discharge_instructions]",
         "discharge_medications": "プレドニゾロン 20mg 経口 1日1回 7日分; アモキシシリン/クラブラン酸 250mg 経口 1日3回 5日分",
         "hospital_course": "[Mock LLM response #18 — hospital_course]",
