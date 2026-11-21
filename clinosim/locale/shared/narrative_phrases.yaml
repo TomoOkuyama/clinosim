@@ -1125,6 +1125,23 @@ nursing_shift_items:
     unavailable:
       ja: "{drug}{act}は薬剤の準備ができず未実施。"
       en: "{drug} {act} not given: drug not available."
+  io:
+    balance:
+      ja: "前日 ({date}) の水分出納: 摂取 {intake} mL、排出 {output} mL (うち尿 {urine} mL)、バランス {balance} mL。"
+      en: "Previous day ({date}) fluid balance: intake {intake} mL, output {output} mL (urine {urine} mL), net {balance} mL."
+    balance_drain:
+      ja: "前日 ({date}) の水分出納: 摂取 {intake} mL、排出 {output} mL (うち尿 {urine} mL、ドレーン {drain} mL)、バランス {balance} mL。"
+      en: "Previous day ({date}) fluid balance: intake {intake} mL, output {output} mL (urine {urine} mL, drain {drain} mL), net {balance} mL."
+  devices:
+    urinary_catheter:
+      ja: "尿道留置カテーテル留置中。固定状況、尿の流出と性状の観察を継続。"
+      en: "Indwelling urinary catheter in place; securement, urine flow and character observation continued."
+    central_line:
+      ja: "中心静脈カテーテル留置中。刺入部の状態と固定の観察を継続。"
+      en: "Central venous catheter in place; insertion site and securement observation continued."
+    oxygen:
+      ja: "酸素: {o2}。装着状態の観察を継続。"
+      en: "Oxygen: {o2}; device fit and observation continued."
   hold_reason:
     sbp:
       ja: "血圧低値 (SBP {n}未満)"

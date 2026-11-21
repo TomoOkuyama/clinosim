@@ -410,6 +410,12 @@ class NarrativeContext:
     visit_condition_id: str = ""
     immunizations: list[Any] = field(default_factory=list)
     imaging_studies: list[Any] = field(default_factory=list)
+    # === Issue #3480: the devices of the stay (nursing shift note) ===
+    # ``{"kind", "start", "end_date", "source"}`` per urinary catheter /
+    # central venous catheter of the encounter, gathered from the ICU device
+    # records, the insertion procedures and the catheter orders
+    # (``narrative/_devices.py::build_devices``).
+    devices: list[Any] = field(default_factory=list)
     # === Issue #3268: the encounter's culture results (referral letter) ===
     microbiology: list[Any] = field(default_factory=list)
     # === Issue #3246 (readmission) ===

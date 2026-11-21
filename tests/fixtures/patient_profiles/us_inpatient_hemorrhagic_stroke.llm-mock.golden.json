@@ -712,6 +712,7 @@
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
         "ctx.vitals.shift.consciousness",
+        "ctx.devices.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -724,7 +725,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 136/78, HR 103, SpO2 96%, T 37.7°C; nasal cannula 3.7 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS 5.\nFever 38.8°C; observation continued.\nLevel of consciousness remains decreased (AVPU V)."
+      "text": "[Nursing Shift Note - day shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 136/78, HR 103, SpO2 96%, T 37.7°C; nasal cannula 3.7 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS 5.\nFever 38.8°C; observation continued.\nLevel of consciousness remains decreased (AVPU V).\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 3.7 L/min; device fit and observation continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-17-evening": {
@@ -738,6 +739,7 @@
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
         "ctx.vitals.shift.consciousness",
+        "ctx.devices.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -750,7 +752,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 134/80, HR 101, SpO2 98%, T 37.6°C; nasal cannula 3.7 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS 4.\nFever 38.9°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued."
+      "text": "[Nursing Shift Note - evening shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 134/80, HR 101, SpO2 98%, T 37.6°C; nasal cannula 3.7 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS 4.\nFever 38.9°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 3.7 L/min; device fit and observation continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-18-night": {
@@ -764,6 +766,8 @@
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
         "ctx.vitals.shift.consciousness",
+        "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -776,7 +780,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 131/77, HR 98, SpO2 98%, T 38.2°C; nasal cannula 3.7 L/min.\nMeds administered: Nicardipine, Labetalol, NS 80 mL/h.\nheadache reported, NRS peak 5, latest 4.\nFever 38.2°C; observation continued.\nLevel of consciousness remains decreased (AVPU V)."
+      "text": "[Nursing Shift Note - night shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 131/77, HR 98, SpO2 98%, T 38.2°C; nasal cannula 3.7 L/min.\nMeds administered: Nicardipine, Labetalol, NS 80 mL/h.\nheadache reported, NRS peak 5, latest 4.\nFever 38.2°C; observation continued.\nLevel of consciousness remains decreased (AVPU V).\nPrevious day (6/15) fluid balance: intake 959 mL, output 931 mL (urine 149 mL), net +28 mL.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 3.7 L/min; device fit and observation continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-19-day": {
@@ -790,6 +794,8 @@
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
         "ctx.vitals.shift.consciousness",
+        "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -802,7 +808,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 133/79, HR 105, SpO2 98%, T 38.5°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS peak 6, latest 5.\nFever 39.1°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued."
+      "text": "[Nursing Shift Note - day shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 133/79, HR 105, SpO2 98%, T 38.5°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS peak 6, latest 5.\nFever 39.1°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/15) fluid balance: intake 959 mL, output 931 mL (urine 149 mL), net +28 mL.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-20-evening": {
@@ -816,6 +822,8 @@
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
         "ctx.vitals.shift.consciousness",
+        "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -828,7 +836,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 132/80, HR 101, SpO2 98%, T 38.0°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS peak 6, latest 4.\nFever 38.6°C; observation continued.\nLevel of consciousness remains decreased (AVPU V)."
+      "text": "[Nursing Shift Note - evening shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 132/80, HR 101, SpO2 98%, T 38.0°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS peak 6, latest 4.\nFever 38.6°C; observation continued.\nLevel of consciousness remains decreased (AVPU V).\nPrevious day (6/15) fluid balance: intake 959 mL, output 931 mL (urine 149 mL), net +28 mL.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-21-night": {
@@ -842,6 +850,8 @@
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
         "ctx.vitals.shift.consciousness",
+        "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -854,7 +864,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 132/82, HR 104, SpO2 98%, T 38.4°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS peak 4, latest 3.\nFever 38.4°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued."
+      "text": "[Nursing Shift Note - night shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 132/82, HR 104, SpO2 98%, T 38.4°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS peak 4, latest 3.\nFever 38.4°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/16) fluid balance: intake 787 mL, output 687 mL (urine 50 mL), net +100 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-22-day": {
@@ -868,6 +878,8 @@
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
         "ctx.vitals.shift.consciousness",
+        "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -880,7 +892,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 133/80, HR 103, SpO2 98%, T 38.5°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, Labetalol, NS 80 mL/h.\nheadache reported, NRS 7.\nFever 38.7°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued."
+      "text": "[Nursing Shift Note - day shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 133/80, HR 103, SpO2 98%, T 38.5°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, Labetalol, NS 80 mL/h.\nheadache reported, NRS 7.\nFever 38.7°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/16) fluid balance: intake 787 mL, output 687 mL (urine 50 mL), net +100 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-23-evening": {
@@ -894,6 +906,8 @@
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
         "ctx.vitals.shift.consciousness",
+        "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -906,7 +920,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 138/82, HR 101, SpO2 98%, T 38.3°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS 6.\nFever 38.6°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued."
+      "text": "[Nursing Shift Note - evening shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 138/82, HR 101, SpO2 98%, T 38.3°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS 6.\nFever 38.6°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/16) fluid balance: intake 787 mL, output 687 mL (urine 50 mL), net +100 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-24-night": {
@@ -919,6 +933,8 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.consciousness",
+        "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -931,7 +947,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 134/78, HR 102, SpO2 98%, T 37.5°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS 2.\nDecreased level of consciousness (AVPU V); observation continued."
+      "text": "[Nursing Shift Note - night shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 134/78, HR 102, SpO2 98%, T 37.5°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS 2.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/17) fluid balance: intake 879 mL, output 852 mL (urine 215 mL), net +27 mL.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-25-day": {
@@ -945,6 +961,8 @@
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
         "ctx.vitals.shift.consciousness",
+        "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -957,7 +975,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 133/80, HR 106, SpO2 98%, T 38.5°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.\nheadache reported, NRS 4.\nFever 38.5°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued."
+      "text": "[Nursing Shift Note - day shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 133/80, HR 106, SpO2 98%, T 38.5°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.\nheadache reported, NRS 4.\nFever 38.5°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/17) fluid balance: intake 879 mL, output 852 mL (urine 215 mL), net +27 mL.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-26-evening": {
@@ -971,6 +989,8 @@
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
         "ctx.vitals.shift.consciousness",
+        "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -983,7 +1003,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 133/74, HR 102, SpO2 98%, T 38.2°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS 3.\nFever 38.2°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued."
+      "text": "[Nursing Shift Note - evening shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 133/74, HR 102, SpO2 98%, T 38.2°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS 3.\nFever 38.2°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/17) fluid balance: intake 879 mL, output 852 mL (urine 215 mL), net +27 mL.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-27-night": {
@@ -996,6 +1016,7 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
+        "ctx.intake_output_records.previous_day",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1008,7 +1029,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 131/80, HR 100, SpO2 98%, T 37.7°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS 2.\nFever 38.7°C; observation continued."
+      "text": "[Nursing Shift Note - night shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 131/80, HR 100, SpO2 98%, T 37.7°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS 2.\nFever 38.7°C; observation continued.\nPrevious day (6/18) fluid balance: intake 1108 mL, output 932 mL (urine 50 mL), net +176 mL."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-28-day": {
@@ -1021,6 +1042,8 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
+        "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1033,7 +1056,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 136/76, HR 105, SpO2 98%, T 37.7°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS 4.\nFever 38.1°C; observation continued."
+      "text": "[Nursing Shift Note - day shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 136/76, HR 105, SpO2 98%, T 37.7°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS 4.\nFever 38.1°C; observation continued.\nPrevious day (6/18) fluid balance: intake 1108 mL, output 932 mL (urine 50 mL), net +176 mL.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-29-evening": {
@@ -1046,6 +1069,8 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
+        "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1058,7 +1083,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 129/80, HR 97, SpO2 98%, T 38.1°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS 6.\nFever 38.1°C; observation continued."
+      "text": "[Nursing Shift Note - evening shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 129/80, HR 97, SpO2 98%, T 38.1°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS 6.\nFever 38.1°C; observation continued.\nPrevious day (6/18) fluid balance: intake 1108 mL, output 932 mL (urine 50 mL), net +176 mL.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-30-night": {
@@ -1070,6 +1095,8 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
+        "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1082,7 +1109,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 6\nRecorded by: Clara Pittman\nPatient status: BP 137/79, HR 95, SpO2 98%, T 37.1°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS 4."
+      "text": "[Nursing Shift Note - night shift] Day 6\nRecorded by: Clara Pittman\nPatient status: BP 137/79, HR 95, SpO2 98%, T 37.1°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS 4.\nPrevious day (6/19) fluid balance: intake 945 mL, output 882 mL (urine 135 mL), net +63 mL.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-31-day": {
@@ -1095,6 +1122,8 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
+        "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1107,7 +1136,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 6\nRecorded by: Clara Pittman\nPatient status: BP 132/80, HR 105, SpO2 98%, T 38.5°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS 4.\nFever 38.5°C; observation continued."
+      "text": "[Nursing Shift Note - day shift] Day 6\nRecorded by: Clara Pittman\nPatient status: BP 132/80, HR 105, SpO2 98%, T 38.5°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS 4.\nFever 38.5°C; observation continued.\nPrevious day (6/19) fluid balance: intake 945 mL, output 882 mL (urine 135 mL), net +63 mL.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-32-evening": {
@@ -1120,6 +1149,8 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
+        "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1132,7 +1163,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 6\nRecorded by: Clara Pittman\nPatient status: BP 131/78, HR 97, SpO2 98%, T 37.5°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS peak 2, latest 1.\nFever 38.1°C; observation continued."
+      "text": "[Nursing Shift Note - evening shift] Day 6\nRecorded by: Clara Pittman\nPatient status: BP 131/78, HR 97, SpO2 98%, T 37.5°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS peak 2, latest 1.\nFever 38.1°C; observation continued.\nPrevious day (6/19) fluid balance: intake 945 mL, output 882 mL (urine 135 mL), net +63 mL.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-33-night": {
@@ -1145,6 +1176,8 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.consciousness",
+        "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1157,7 +1190,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 134/78, HR 98, SpO2 98%, T 37.3°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS peak 2, latest 1.\nDecreased level of consciousness (AVPU V); observation continued."
+      "text": "[Nursing Shift Note - night shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 134/78, HR 98, SpO2 98%, T 37.3°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS peak 2, latest 1.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/20) fluid balance: intake 1206 mL, output 1182 mL (urine 391 mL), net +24 mL.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-34-day": {
@@ -1171,6 +1204,8 @@
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
         "ctx.vitals.shift.consciousness",
+        "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1183,7 +1218,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 133/78, HR 103, SpO2 98%, T 38.3°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS peak 2, latest 0.\nFever 39.0°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued."
+      "text": "[Nursing Shift Note - day shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 133/78, HR 103, SpO2 98%, T 38.3°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS peak 2, latest 0.\nFever 39.0°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/20) fluid balance: intake 1206 mL, output 1182 mL (urine 391 mL), net +24 mL.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-35-evening": {
@@ -1196,6 +1231,8 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.consciousness",
+        "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1208,7 +1245,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 136/79, HR 98, SpO2 98%, T 37.6°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS peak 3, latest 0.\nDecreased level of consciousness (AVPU V); observation continued."
+      "text": "[Nursing Shift Note - evening shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 136/79, HR 98, SpO2 98%, T 37.6°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS peak 3, latest 0.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/20) fluid balance: intake 1206 mL, output 1182 mL (urine 391 mL), net +24 mL.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-36-night": {
@@ -1220,6 +1257,8 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
+        "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1232,7 +1271,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 132/81, HR 94, SpO2 98%, T 37.3°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS 1."
+      "text": "[Nursing Shift Note - night shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 132/81, HR 94, SpO2 98%, T 37.3°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS 1.\nPrevious day (6/21) fluid balance: intake 1265 mL, output 1326 mL (urine 689 mL), net -61 mL.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-37-day": {
@@ -1244,6 +1283,8 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
+        "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1256,7 +1297,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 133/80, HR 101, SpO2 98%, T 37.8°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS peak 3, latest 0."
+      "text": "[Nursing Shift Note - day shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 133/80, HR 101, SpO2 98%, T 37.8°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS peak 3, latest 0.\nPrevious day (6/21) fluid balance: intake 1265 mL, output 1326 mL (urine 689 mL), net -61 mL.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-38-evening": {
@@ -1269,6 +1310,8 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
+        "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1281,7 +1324,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 135/82, HR 98, SpO2 98%, T 37.4°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS 2.\nFever 38.4°C; observation continued."
+      "text": "[Nursing Shift Note - evening shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 135/82, HR 98, SpO2 98%, T 37.4°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS 2.\nFever 38.4°C; observation continued.\nPrevious day (6/21) fluid balance: intake 1265 mL, output 1326 mL (urine 689 mL), net -61 mL.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-39-night": {
@@ -1294,6 +1337,7 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
+        "ctx.intake_output_records.previous_day",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1306,7 +1350,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 9\nRecorded by: Clara Pittman\nPatient status: BP 134/78, HR 96, SpO2 98%, T 37.6°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nNo pain reported (NRS 0).\nFever 38.8°C; observation continued."
+      "text": "[Nursing Shift Note - night shift] Day 9\nRecorded by: Clara Pittman\nPatient status: BP 134/78, HR 96, SpO2 98%, T 37.6°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nNo pain reported (NRS 0).\nFever 38.8°C; observation continued.\nPrevious day (6/22) fluid balance: intake 1391 mL, output 1543 mL (urine 906 mL), net -152 mL."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-40-day": {
@@ -1320,6 +1364,7 @@
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
         "ctx.vitals.shift.desaturation",
+        "ctx.intake_output_records.previous_day",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1332,7 +1377,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 9\nRecorded by: Clara Pittman\nPatient status: BP 131/83, HR 101, SpO2 93%, T 38.0°C.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS 1.\nFever 38.0°C; observation continued.\nSpO2 fell to 93% at 13:51; no oxygen given, observation continued."
+      "text": "[Nursing Shift Note - day shift] Day 9\nRecorded by: Clara Pittman\nPatient status: BP 131/83, HR 101, SpO2 93%, T 38.0°C.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS 1.\nFever 38.0°C; observation continued.\nSpO2 fell to 93% at 13:51; no oxygen given, observation continued.\nPrevious day (6/22) fluid balance: intake 1391 mL, output 1543 mL (urine 906 mL), net -152 mL."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-41-evening": {
@@ -1344,6 +1389,7 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
+        "ctx.intake_output_records.previous_day",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1356,7 +1402,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 9\nRecorded by: Clara Pittman\nPatient status: BP 134/82, HR 96, SpO2 96%, T 37.2°C.\nMeds administered: Nicardipine.\nheadache reported, NRS 2."
+      "text": "[Nursing Shift Note - evening shift] Day 9\nRecorded by: Clara Pittman\nPatient status: BP 134/82, HR 96, SpO2 96%, T 37.2°C.\nMeds administered: Nicardipine.\nheadache reported, NRS 2.\nPrevious day (6/22) fluid balance: intake 1391 mL, output 1543 mL (urine 906 mL), net -152 mL."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-42-night": {
@@ -1370,6 +1416,7 @@
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
         "ctx.vitals.shift.consciousness",
+        "ctx.intake_output_records.previous_day",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1382,7 +1429,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 10\nRecorded by: Clara Pittman\nPatient status: BP 132/81, HR 96, SpO2 97%, T 38.2°C.\nMeds administered: Nicardipine.\nheadache reported, NRS 4.\nFever 38.2°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued."
+      "text": "[Nursing Shift Note - night shift] Day 10\nRecorded by: Clara Pittman\nPatient status: BP 132/81, HR 96, SpO2 97%, T 38.2°C.\nMeds administered: Nicardipine.\nheadache reported, NRS 4.\nFever 38.2°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/23) fluid balance: intake 1367 mL, output 1341 mL (urine 704 mL), net +26 mL."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-43-day": {
@@ -1396,6 +1443,7 @@
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
         "ctx.vitals.shift.consciousness",
+        "ctx.intake_output_records.previous_day",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1408,7 +1456,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 10\nRecorded by: Clara Pittman\nPatient status: BP 130/83, HR 103, SpO2 95%, T 38.5°C.\nMeds administered: Nicardipine, Labetalol.\nNo pain reported (NRS 0).\nFever 38.6°C; observation continued.\nLevel of consciousness remains decreased (AVPU V)."
+      "text": "[Nursing Shift Note - day shift] Day 10\nRecorded by: Clara Pittman\nPatient status: BP 130/83, HR 103, SpO2 95%, T 38.5°C.\nMeds administered: Nicardipine, Labetalol.\nNo pain reported (NRS 0).\nFever 38.6°C; observation continued.\nLevel of consciousness remains decreased (AVPU V).\nPrevious day (6/23) fluid balance: intake 1367 mL, output 1341 mL (urine 704 mL), net +26 mL."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-44-evening": {
@@ -1421,6 +1469,7 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.consciousness",
+        "ctx.intake_output_records.previous_day",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1433,7 +1482,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 10\nRecorded by: Clara Pittman\nPatient status: BP 134/79, HR 98, SpO2 94%, T 37.0°C.\nMeds administered: Nicardipine.\nheadache reported, NRS 1.\nDecreased level of consciousness (AVPU V); observation continued."
+      "text": "[Nursing Shift Note - evening shift] Day 10\nRecorded by: Clara Pittman\nPatient status: BP 134/79, HR 98, SpO2 94%, T 37.0°C.\nMeds administered: Nicardipine.\nheadache reported, NRS 1.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/23) fluid balance: intake 1367 mL, output 1341 mL (urine 704 mL), net +26 mL."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-45-night": {
@@ -1446,6 +1495,7 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.desaturation",
+        "ctx.intake_output_records.previous_day",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1458,7 +1508,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 11\nRecorded by: Clara Pittman\nPatient status: BP 133/77, HR 92, SpO2 94%, T 37.4°C.\nMeds administered: Nicardipine.\nNo pain reported (NRS 0).\nSpO2 fell to 94% at 06:10; no oxygen given, observation continued."
+      "text": "[Nursing Shift Note - night shift] Day 11\nRecorded by: Clara Pittman\nPatient status: BP 133/77, HR 92, SpO2 94%, T 37.4°C.\nMeds administered: Nicardipine.\nNo pain reported (NRS 0).\nSpO2 fell to 94% at 06:10; no oxygen given, observation continued.\nPrevious day (6/24) fluid balance: intake 928 mL, output 747 mL (urine 110 mL), net +181 mL."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-46-day": {
@@ -1470,6 +1520,7 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
+        "ctx.intake_output_records.previous_day",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1482,7 +1533,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 11\nRecorded by: Clara Pittman\nPatient status: BP 133/80, HR 99, SpO2 96%, T 37.9°C.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS 2."
+      "text": "[Nursing Shift Note - day shift] Day 11\nRecorded by: Clara Pittman\nPatient status: BP 133/80, HR 99, SpO2 96%, T 37.9°C.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS 2.\nPrevious day (6/24) fluid balance: intake 928 mL, output 747 mL (urine 110 mL), net +181 mL."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-47-evening": {
@@ -1496,6 +1547,7 @@
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
         "ctx.vitals.shift.desaturation",
+        "ctx.intake_output_records.previous_day",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1508,7 +1560,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 11\nRecorded by: Clara Pittman\nPatient status: BP 131/76, HR 94, SpO2 93%, T 38.2°C.\nMeds administered: Nicardipine.\nheadache reported, NRS 3.\nFever 38.2°C; observation continued.\nSpO2 fell to 93% at 22:11; no oxygen given, observation continued."
+      "text": "[Nursing Shift Note - evening shift] Day 11\nRecorded by: Clara Pittman\nPatient status: BP 131/76, HR 94, SpO2 93%, T 38.2°C.\nMeds administered: Nicardipine.\nheadache reported, NRS 3.\nFever 38.2°C; observation continued.\nSpO2 fell to 93% at 22:11; no oxygen given, observation continued.\nPrevious day (6/24) fluid balance: intake 928 mL, output 747 mL (urine 110 mL), net +181 mL."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-48-night": {
@@ -1520,6 +1572,7 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
+        "ctx.intake_output_records.previous_day",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1532,7 +1585,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 12\nRecorded by: Clara Pittman\nPatient status: BP 132/79, HR 92, SpO2 98%, T 37.0°C.\nMeds administered: Nicardipine.\nheadache reported, NRS 1."
+      "text": "[Nursing Shift Note - night shift] Day 12\nRecorded by: Clara Pittman\nPatient status: BP 132/79, HR 92, SpO2 98%, T 37.0°C.\nMeds administered: Nicardipine.\nheadache reported, NRS 1.\nPrevious day (6/25) fluid balance: intake 1590 mL, output 1680 mL (urine 923 mL), net -90 mL."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-49-day": {
@@ -1544,6 +1597,7 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
+        "ctx.intake_output_records.previous_day",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1556,7 +1610,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 12\nRecorded by: Clara Pittman\nPatient status: BP 129/81, HR 99, SpO2 98%, T 37.4°C.\nMeds administered: Nicardipine, Labetalol.\nNo pain reported (NRS 0)."
+      "text": "[Nursing Shift Note - day shift] Day 12\nRecorded by: Clara Pittman\nPatient status: BP 129/81, HR 99, SpO2 98%, T 37.4°C.\nMeds administered: Nicardipine, Labetalol.\nNo pain reported (NRS 0).\nPrevious day (6/25) fluid balance: intake 1590 mL, output 1680 mL (urine 923 mL), net -90 mL."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-50-evening": {
@@ -1568,6 +1622,7 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
+        "ctx.intake_output_records.previous_day",
         "ctx.medications.today",
         "ctx.day_index"
       ],
@@ -1580,7 +1635,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 12\nRecorded by: Clara Pittman\nPatient status: BP 130/79, HR 95, SpO2 96%, T 37.1°C.\nMeds administered: Nicardipine.\nNo pain reported (NRS 0)."
+      "text": "[Nursing Shift Note - evening shift] Day 12\nRecorded by: Clara Pittman\nPatient status: BP 130/79, HR 95, SpO2 96%, T 37.1°C.\nMeds administered: Nicardipine.\nNo pain reported (NRS 0).\nPrevious day (6/25) fluid balance: intake 1590 mL, output 1680 mL (urine 923 mL), net -90 mL."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-51": {
