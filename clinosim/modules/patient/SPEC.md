@@ -37,6 +37,8 @@ Activate a person from the population registry (Layer 1) into a full clinical pa
 > registered via `population/newborn.py::register_newborn`. See
 > [`README.md`](README.md).
 
+**Prenatal supplements (Issue #3503).** The virtual Z34 medication input is added only while a pregnancy is open or within `perinatal.yaml` `lifecycle.prenatal_supplement_postpartum_days` (a modelling choice, not a guideline value) after it ended, evaluated per `as_of_year`; outside the window the supplements are removed from the carried `current_medications`. `as_of_year=None` keeps the any-pregnancy behaviour.
+
 ### Activation Flow
 
 ```

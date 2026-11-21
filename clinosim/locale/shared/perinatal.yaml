@@ -126,6 +126,14 @@ lifecycle:
   prenatal_visit_gestational_weeks: [12, 24, 36]
   # Postpartum visits fired at these day offsets after the delivery date.
   postpartum_visit_offsets_days: [7, 28]
+  # Prenatal supplements (folic acid, iron; the Z34 entry of
+  # chronic_medications.yaml) are a home medication while a pregnancy is
+  # open and for this many days after its end, then stop (Issue #3503).
+  # 84 days = 12 weeks. MODEL CHOICE: not taken from a guideline read
+  # for this project; it spans the 6-week puerperium plus a margin for
+  # early lactation and is evaluated at calendar-year granularity (the
+  # patient profile is built once per simulated year).
+  prenatal_supplement_postpartum_days: 84
 
 # ---------------------------------------------------------------------------
 # Pregnancy complications sampler — Issue #1285. Bernoulli draws per

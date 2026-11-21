@@ -19,6 +19,7 @@ severity score 付きの慢性疾患活性化、disease profile 由来の常用�
 
 ## Scope
 
+- **妊娠中ビタミン・鉄剤** (`chronic_medications.yaml` の Z34 エントリ) は、妊娠中、または終了後 `perinatal.yaml` の `lifecycle.prenatal_supplement_postpartum_days` 以内 (暦年単位) の間だけ自宅内服として導出する。窓の外では引き継いだ内服リストからも外す。
 - **In scope**: `activate_patient(person, rng, demo, as_of_year=None)` orchestrator、
   身長 + 体重 (60 歳超の年齢別 shrinkage 込)、
   `PatientPhysiologicalProfile` field (immune / metabolism / renal /

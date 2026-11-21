@@ -425,11 +425,9 @@ C61:  # Prostate cancer — androgen deprivation therapy (ADT)
 # Post-Incr-1 gate: Z34 no longer sits in `PersonRecord.chronic_conditions`,
 # so the default activator loop over chronic_conditions never reaches this
 # entry. Instead `patient/activator.py` synthesizes a virtual Z34
-# `ChronicCondition` for the med-derivation input WHEN the person has a
-# non-empty `state_history("pregnancy")` — so this block still fires as
-# home medications for women who have (or previously had) a pregnancy in
-# the sim window. Proper per-encounter MedicationRequest emission scoped
-# to prenatal visits is Incr 1.5.
+# `ChronicCondition` for the med-derivation input only while a pregnancy
+# is open or within `perinatal.yaml` `lifecycle.prenatal_supplement_postpartum_days`
+# after it ended (Issue #3503); the supplements then stop.
 # ---------------------------------------------------------------------
 # Mental health chronic medications — Issue #1281, aligned with META
 # #1137 mental-health cluster (closed via axes 1-8; axes landed into

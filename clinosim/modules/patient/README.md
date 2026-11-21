@@ -24,6 +24,7 @@ simulator consumes.
 
 ## Scope
 
+- **Prenatal supplements** (the Z34 entry of `chronic_medications.yaml`) are derived as home medications only while a pregnancy is open or within `lifecycle.prenatal_supplement_postpartum_days` of `perinatal.yaml` after it ended (calendar-year granularity); outside that window they are also dropped from a carried medication list.
 - **In scope**: `activate_patient(person, rng, demo, as_of_year=None)` orchestrator,
   height + weight (with age-based shrinkage past 60),
   `PatientPhysiologicalProfile` fields (immune / metabolism / renal /
