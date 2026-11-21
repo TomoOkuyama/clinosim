@@ -758,6 +758,33 @@ def _age_on(patient: PatientProfile, when: datetime) -> int:
     return when.year - dob.year - ((when.month, when.day) < (dob.month, dob.day))
 
 
+def home_medication_continuation_items(
+    patient: PatientProfile, encounter: Encounter, when: datetime, *, exclude_drugs: frozenset[str] = frozenset()
+) -> list[dict]:
+    """The patient's home medications carried on in a discharge prescription
+    (Issue #3463): maintenance renewal shape (name, dose, route, frequency,
+    ``OUTPATIENT_PRESCRIPTION_DURATION_DAYS``), drugs the patient is allergic
+    to left out, a drug named in ``exclude_drugs`` (already on the
+    prescription) not repeated. No pregnancy substitution: the pregnancy is
+    over at a delivery discharge."""
+    skip = {d.strip().lower() for d in exclude_drugs}
+    return unique_items_by_drug(
+        [
+            {
+                "drug_name": med.drug_name,
+                "drug_name_ja": med.drug_name_ja,
+                "dose": med.dose,
+                "route": med.route,
+                "frequency": med.frequency,
+                "duration_days": OUTPATIENT_PRESCRIPTION_DURATION_DAYS,
+            }
+            for med in patient.current_medications
+            if med.drug_name.strip().lower() not in skip
+            and not allergy_blocked(patient, med.drug_name, encounter_id=encounter.encounter_id, timestamp=when)
+        ]
+    )
+
+
 def unique_items_by_drug(items: list[dict]) -> list[dict]:
     """Keep the first prescription item per drug (Issue #2710)."""
     seen: set[str] = set()

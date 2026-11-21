@@ -173,7 +173,7 @@ clinosim/simulator/
                          stroke (protocol `antithrombotic_plan`, Issue #3277)
   enrichers.py           enricher registry (post-population / post-records)
   outpatient_dept.py     outpatient follow-up department resolver
-  perinatal.py           delivery encounter + newborn emission
+  perinatal.py           delivery encounter + newborn emission (the mother's discharge Rx = analgesics + her maintenance home medications)
   complications.py       complication-event schema helpers
   sex_gating.py          sex-gating for ICD-10 diagnosis dispatch
   unknown_condition.py   handling for chronic conditions without a
