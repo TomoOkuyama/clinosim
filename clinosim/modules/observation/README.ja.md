@@ -191,6 +191,11 @@ from clinosim.modules.observation.microbiology import (
   - [`pre_analytical.py`](pre_analytical.py) (Issue #561) —
     specimen-rejection と K / LDH の hemolysis rate。
     `simulator/lab_pipeline.py` が消費。
+  - [`hemolysis_redraw.py`](hemolysis_redraw.py) (Issue #3452) — 溶血フラグの
+    正準集合 (`HEMOLYZED_FLAGS`) と再採血ルール
+    (`reference_data/hemolysis_redraw.yaml`: 再採血対象項目、`delay_minutes`、
+    `max_redraws`)。溶血した K は治療・hold の根拠にせず、daily loop が再採血
+    orderを出し、治療は再採血値に従う。
   - [`vitals_thresholds.py`](vitals_thresholds.py) (Issue #561) —
     発熱判定と発熱時再検 cadence (`FEVER_THRESHOLD_C = 38.0`、
     `HIGH_FEVER_RECHECK_C = 38.5`、`FEBRILE_RECHECK_PROB`、

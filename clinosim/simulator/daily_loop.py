@@ -45,6 +45,7 @@ from clinosim.modules.drug_safety.hyperkalemia import (
 )
 from clinosim.modules.observation.engine import canonical_lab_name, lab_panel_components, medications_in_effect
 from clinosim.modules.observation.fluid_balance_model import fluid_params, volume_status_shift
+from clinosim.modules.observation.hemolysis_redraw import hemolysis_redraw_rules, is_hemolyzed
 from clinosim.modules.observation.order_routing import lab_order_targets
 from clinosim.modules.order.engine import (
     parse_dose_string,
@@ -639,7 +640,69 @@ def _result_labs(stay: _Stay, run: _Run, day: int, lab_state_pre_update: Physiol
             medications=meds_in_effect,
         )
     )
+    _redraw_hemolyzed(stay, run, day_results_start, true_labs, meds_in_effect)
     return day_results_start
+
+
+def _redraw_hemolyzed(
+    stay: _Stay,
+    run: _Run,
+    day_results_start: int,
+    true_labs: dict[str, float],
+    medications: list,
+) -> None:
+    """Issue #3452: a hemolyzed specimen of a redrawn analyte (potassium) is
+    repeated. The repeat is a new stat lab order placed ``delay_minutes`` after
+    the hemolyzed result and resulted from the true value by the same pipeline
+    (own ``individual_lab_seed(order_id)`` stream, so no existing stream moves);
+    a repeat that is hemolyzed or rejected too is repeated again, up to
+    ``max_redraws``. Stays without a hemolyzed result are untouched."""
+    rules = hemolysis_redraw_rules()
+    by_result = {id(o.result): o for o in run.orders if o.result is not None}
+    hemolyzed = [
+        r
+        for r in run.lab_results[day_results_start:]
+        if r.lab_name in rules.labs and is_hemolyzed(r.flag) and id(r) in by_result
+    ]
+    n_existing = sum("-REDRAW-" in o.order_id for o in run.orders)
+    for result in hemolyzed:
+        source = by_result[id(result)]
+        canon = result.lab_name
+        at = result.result_datetime
+        for _ in range(rules.max_redraws):
+            n_existing += 1
+            redraw = Order(
+                order_id=f"ORD-{stay.encounter_id}-REDRAW-{n_existing:02d}",
+                encounter_id=stay.encounter_id,
+                patient_id=stay.patient.patient_id,
+                order_type=OrderType.LAB,
+                order_code=source.order_code,
+                order_code_system=source.order_code_system,
+                display_name=source.display_name,
+                urgency="stat",
+                clinical_intent=t("encounter_intent.hemolysis_redraw", "en", test=canon),
+                clinical_intent_ja=t("encounter_intent.hemolysis_redraw", "ja", test=canon),
+                ordered_datetime=(at + timedelta(minutes=rules.delay_minutes)).replace(second=0, microsecond=0),
+                ordered_by=source.ordered_by,
+                status=OrderStatus.PLACED,
+            )
+            run.orders.append(redraw)
+            produced = _run_lab_result_pipeline(
+                [redraw],
+                {},
+                set(),
+                true_labs,
+                stay.patient,
+                stay.country_key,
+                stay.roster,
+                stay.hospital_state,
+                stay.hospital_ops,
+                medications=medications,
+            )
+            run.lab_results.extend(produced)
+            if produced and not is_hemolyzed(produced[0].flag):
+                break
+            at = produced[0].result_datetime if produced else redraw.ordered_datetime
 
 
 def _respond_to_hyperkalemia(stay: _Stay, run: _Run, day: int, day_results_start: int) -> None:

@@ -208,6 +208,11 @@ from clinosim.modules.observation.microbiology import (
   - [`pre_analytical.py`](pre_analytical.py) (Issue #561) —
     specimen-rejection and K / LDH hemolysis rates, consumed
     by `simulator/lab_pipeline.py`.
+  - [`hemolysis_redraw.py`](hemolysis_redraw.py) (Issue #3452) — the
+    canonical hemolyzed-flag set (`HEMOLYZED_FLAGS`) and the repeat-draw
+    rules (`reference_data/hemolysis_redraw.yaml`: redrawn analytes,
+    `delay_minutes`, `max_redraws`). A hemolyzed potassium is never acted
+    on; the daily loop orders a repeat draw and treatment follows it.
   - [`vitals_thresholds.py`](vitals_thresholds.py) (Issue #561) —
     fever detection and febrile-recheck cadence
     (`FEVER_THRESHOLD_C = 38.0`, `HIGH_FEVER_RECHECK_C = 38.5`,
@@ -232,6 +237,7 @@ clinosim/modules/observation/
   fluid_balance.py                   IV regimen + urine-output thresholds (Issue #561)
   oxygenation.py                     SpO₂ escalation triggers (Issue #561)
   pre_analytical.py                  specimen-error rates (Issue #561)
+  hemolysis_redraw.py                hemolyzed flags + repeat-draw rules (Issue #3452)
   vitals_thresholds.py               fever / febrile-recheck thresholds (Issue #561)
   _nursing_score_thresholds.py       score-band boundaries (Issue #637)
   _variability_defaults.py           default CVs + qualitative distributions (Issue #637)

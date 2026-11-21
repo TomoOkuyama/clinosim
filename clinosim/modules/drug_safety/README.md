@@ -32,8 +32,9 @@ drug-vs-age/sex (`check_demographic_gate`) and drug-vs-recorded-allergy
   rules out (block) or flags (caution), with cross-reactivity per current
   evidence.
 - Inpatient hyperkalemia response (`hyperkalemia.py`,
-  `hyperkalemia_response.yaml`, Issue #2981): a resulted potassium
-  >= 6.0 mmol/L holds every ACE inhibitor, ARB and potassium-sparing
+  `hyperkalemia_response.yaml`, Issue #2981): a resulted, non-hemolyzed
+  potassium (a hemolyzed `H*` / `L*` specimen is repeated instead and never
+  acted on, Issue #3452) >= 6.0 mmol/L holds every ACE inhibitor, ARB and potassium-sparing
   diuretic dose scheduled from that result to discharge, and digoxin while
   the latest potassium stays >= 6.0 mmol/L (MAR status `held`, reason
   `K <value> mmol/L` of the latest potassium before the dose, shown as
