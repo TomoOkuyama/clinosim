@@ -10,6 +10,7 @@ there).
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -47,9 +48,22 @@ class NursingShiftItem(BaseModel):
     skip_neonate: bool
 
 
+class HoldReasonPattern(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    pattern: str
+    phrase: str
+
+    @model_validator(mode="after")
+    def _compiles(self) -> HoldReasonPattern:
+        re.compile(self.pattern)
+        return self
+
+
 class NursingShiftItems(BaseModel):
     model_config = ConfigDict(extra="forbid")
     items: list[NursingShiftItem] = Field(min_length=1)
+    oral_routes: list[str] = Field(min_length=1)
+    hold_reason_patterns: list[HoldReasonPattern]
     antipyretic_drug_keys: list[str] = Field(min_length=1)
 
     @model_validator(mode="after")
@@ -77,6 +91,7 @@ class ShiftData:
     prior: Any | None
     window: tuple[datetime, datetime] | None
     doses: list[tuple[datetime, str, str]] = field(default_factory=list)  # (time, drug_key, localized name)
+    not_given: list[Any] = field(default_factory=list)  # MAR rows of the shift held / refused / not available
 
 
 def _when(v: Any) -> datetime | None:
@@ -187,12 +202,52 @@ def _item_news2(d: ShiftData) -> str | None:
     return t("nursing_shift_items.news2.urgent", d.lang, score=score, time=_hhmm(v), threshold=threshold)
 
 
+def _reason_text(raw: str, lang: str) -> str:
+    """A recorded hold / refusal reason in ``lang``: a measured value through the
+    YAML patterns, else the shared hold-reason table (as stored when unlisted)."""
+    from clinosim.locale.loader import hold_reason_display
+
+    for p in nursing_shift_items_config().hold_reason_patterns:
+        m = re.match(p.pattern, raw)
+        if m:
+            return t(f"nursing_shift_items.hold_reason.{p.phrase}", lang, **m.groupdict())
+    return hold_reason_display(raw, lang)
+
+
+def _item_doses_not_given(d: ShiftData) -> str | None:
+    cfg = nursing_shift_items_config()
+    seen: set[tuple[str, str]] = set()
+    sentences: list[str] = []
+    for m in d.not_given:
+        status = str(_o(m, "status", "") or "")
+        name = _o(m, "drug_name", None) or _o(m, "medication", None)
+        bare, _ = strip_protocol_prefix(str(name))
+        key = drug_key(bare)
+        if (key, status) in seen:
+            continue
+        seen.add((key, status))
+        drug = drug_display(key, d.lang) or bare
+        oral = str(_o(m, "route", "") or "").upper() in cfg.oral_routes
+        act = t("nursing_shift_items.not_given.act_oral" if oral else "nursing_shift_items.not_given.act_other", d.lang)
+        raw = str((_o(m, "hold_reason", None) if status == "held" else _o(m, "refusal_reason", None)) or "")
+        reason = _reason_text(raw, d.lang) if raw else ""
+        if status == "held":
+            phrase = "held" if reason else "held_plain"
+        elif status == "refused":
+            phrase = "refused_reason" if reason else "refused"
+        else:
+            phrase = "unavailable"
+        sentences.append(t(f"nursing_shift_items.not_given.{phrase}", d.lang, drug=drug, act=act, reason=reason))
+    return "\n".join(sentences) or None
+
+
 ITEM_FUNCTIONS: dict[str, Callable[[ShiftData], str | None]] = {
     "pain": _item_pain,
     "fever": _item_fever,
     "desaturation": _item_desaturation,
     "consciousness": _item_consciousness,
     "news2": _item_news2,
+    "doses_not_given": _item_doses_not_given,
 }
 
 
@@ -218,6 +273,27 @@ def _shift_doses(
     return out
 
 
+_NOT_GIVEN = ("held", "refused", "not_available")
+
+
+def _shift_not_given(ctx: NarrativeContext, window: tuple[datetime, datetime] | None) -> list[Any]:
+    """The MAR rows scheduled in the shift window (which ends at the authored
+    time) that were held, refused or not available, in time order."""
+    if window is None:
+        return []
+    rows: list[tuple[datetime, Any]] = []
+    for m in ctx.medications or []:
+        if str(_o(m, "status", "given") or "given") not in _NOT_GIVEN:
+            continue
+        when = parse_iso_datetime(_o(m, "scheduled_datetime", None) or _o(m, "actual_datetime", None), lenient=True)
+        if when is None or not (_o(m, "drug_name", None) or _o(m, "medication", None)):
+            continue
+        if window[0] <= when < window[1]:
+            rows.append((when, m))
+    rows.sort(key=lambda r: r[0])
+    return [m for _, m in rows]
+
+
 def nursing_shift_item_lines(
     ctx: NarrativeContext,
     lang: str,
@@ -230,7 +306,7 @@ def nursing_shift_item_lines(
     if window is not None:
         before = [(w, v) for v in ctx.vitals or [] if (w := _when(v)) is not None and w < window[0]]
         prior = max(before, key=lambda p: p[0])[1] if before else None
-    data = ShiftData(ctx, lang, readings, prior, window, _shift_doses(ctx, window, lang))
+    data = ShiftData(ctx, lang, readings, prior, window, _shift_doses(ctx, window, lang), _shift_not_given(ctx, window))
     neonate = is_neonate(ctx)
     out: list[tuple[str, str]] = []
     for item in nursing_shift_items_config().items:

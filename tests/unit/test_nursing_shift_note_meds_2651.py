@@ -38,6 +38,12 @@ def _note(day: int, shift: str) -> str:
     return render_nursing_shift_note(ctx, None).raw_text
 
 
+def _given_line(text: str) -> str:
+    """The note's given-drugs line (a held or refused dose is stated on its own
+    line since Issue #3479, never on this one)."""
+    return next((line for line in text.splitlines() if "Meds administered" in line), "")
+
+
 def test_a_late_day_note_does_not_list_the_day_zero_bolus() -> None:
     text = _note(22, "day")
     assert "Crystalloid" not in text
@@ -46,7 +52,8 @@ def test_a_late_day_note_does_not_list_the_day_zero_bolus() -> None:
 
 def test_only_what_was_given_in_the_shift_is_listed() -> None:
     day, evening = _note(22, "day"), _note(22, "evening")
-    assert "Acetaminophen" not in day  # held, not given
+    assert "Acetaminophen" not in _given_line(day)  # held, not given
+    assert "Acetaminophen dose held" in day  # stated as held (Issue #3479)
     assert "Enoxaparin" not in day and "Enoxaparin" in evening
     assert "Ceftriaxone" not in evening
 
@@ -120,7 +127,7 @@ def test_all_drugs_of_the_shift_are_listed_in_first_given_order() -> None:
     text = _shift_text(mars)
     positions = [text.index(n) for n in names]
     assert positions == sorted(positions)
-    assert "Ondansetron" not in text
+    assert "Ondansetron" not in _given_line(text)  # held: not on the given line
 
 
 def test_a_drug_given_twice_is_listed_once() -> None:

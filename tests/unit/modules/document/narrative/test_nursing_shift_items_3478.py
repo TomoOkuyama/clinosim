@@ -74,6 +74,15 @@ def test_registry_matches_functions_and_phrases() -> None:
         "consciousness.persistent",
         "consciousness.transient",
         "news2.urgent",
+        "not_given.act_oral",
+        "not_given.act_other",
+        "not_given.held",
+        "not_given.held_plain",
+        "not_given.refused",
+        "not_given.refused_reason",
+        "not_given.unavailable",
+        "hold_reason.sbp",
+        "hold_reason.hr",
     ):
         for lang in ("ja", "en"):
             assert t(f"nursing_shift_items.{key}", lang) != f"nursing_shift_items.{key}"
@@ -179,3 +188,58 @@ def test_default_line_only_when_nothing_fired() -> None:
 def test_vitals_nursing_note_text_is_not_printed() -> None:
     text, _ = _note("ja", [_v("10:00", temperature_celsius=38.5, nursing_note="febrile recheck after 30 min")])
     assert "febrile recheck" not in text
+
+
+def _row(hhmm: str, name: str, status: str, **kw) -> dict:
+    return {
+        "drug_name": name,
+        "status": status,
+        "scheduled_datetime": f"{_DAY}T{hhmm}:00",
+        "actual_datetime": None,
+        "route": "PO",
+        **kw,
+    }
+
+
+def test_held_dose_with_reason_ja_and_en() -> None:
+    meds = [_row("12:00", "Amlodipine 5mg", "held", hold_reason="SBP < 90")]
+    ja, facts = _note("ja", [], meds)
+    assert "アムロジピン内服は血圧低値 (SBP 90未満)のため保留。" in ja
+    assert "ctx.medications.shift.not_given" in facts
+    en, _ = _note("en", [], meds)
+    assert "Amlodipine oral dose held: low blood pressure (SBP below 90)." in en
+
+
+def test_refused_dose_ja_and_en_once_per_drug() -> None:
+    meds = [_row("12:00", "Amlodipine 5mg", "refused"), _row("13:00", "Amlodipine 5mg", "refused")]
+    ja, _ = _note("ja", [], meds)
+    assert ja.count("アムロジピン内服を拒否。") == 1
+    en, _ = _note("en", [], meds)
+    assert en.count("Patient refused Amlodipine oral dose.") == 1
+
+
+def test_refusal_reason_and_unlisted_hold_reason() -> None:
+    meds = [
+        _row("12:00", "Amlodipine 5mg", "refused", refusal_reason="nausea"),
+        _row("13:00", "Metformin 500mg", "held", hold_reason="K 6.1 mmol/L", route="IV"),
+    ]
+    ja, _ = _note("ja", [], meds)
+    assert "アムロジピン内服を拒否 (nausea)。" in ja
+    assert "K 6.1 mmol/L のため" not in ja and "メトホルミン投与はK 6.1 mmol/Lのため保留。" in ja
+
+
+def test_not_given_rows_outside_shift_or_after_authored_are_not_stated() -> None:
+    meds = [
+        _row("07:00", "Amlodipine 5mg", "held", hold_reason="SBP < 90"),  # before the day shift
+        _row("18:00", "Amlodipine 5mg", "refused"),  # after authored 17:00
+    ]
+    ja, facts = _note("ja", [], meds)
+    assert "保留" not in ja and "拒否" not in ja
+    assert "ctx.medications.shift.not_given" not in facts
+
+
+def test_not_given_drug_is_not_in_given_line() -> None:
+    meds = [_row("12:00", "Amlodipine 5mg", "held", hold_reason="SBP < 90"), _mar("13:00", "Loxoprofen 60mg")]
+    ja, _ = _note("ja", [], meds)
+    given = next(line for line in ja.split("\n") if line.startswith(t("nursing_shift.meds_head", "ja")))
+    assert "アムロジピン" not in given and "ロキソプロフェン" in given
