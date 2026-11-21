@@ -248,10 +248,10 @@ templates:
       normal:
         findings:
           en: 'Lungs clear. Heart size normal.'
-          ja: '両肺野明らか、心陰影正常。'
+          ja: '両肺野に異常陰影なし、心陰影正常。'
         impression:
           en: 'Lungs clear. Heart size normal.'
-          ja: '両肺野明らか、心陰影正常。'
+          ja: '両肺野に異常陰影なし、心陰影正常。'
       abnormal:
         findings:
           en: 'Hyperinflated lungs with flattened diaphragms, no infiltrate.'
@@ -265,10 +265,10 @@ templates:
       normal:
         findings:
           en: 'Lungs clear. Heart size normal.'
-          ja: '両肺野明らか、心陰影正常。'
+          ja: '両肺野に異常陰影なし、心陰影正常。'
         impression:
           en: 'Lungs clear. Heart size normal.'
-          ja: '両肺野明らか、心陰影正常。'
+          ja: '両肺野に異常陰影なし、心陰影正常。'
       abnormal:
         findings:
           en: 'Enlarged cardiac silhouette, mild pulmonary vascular congestion.'
@@ -331,10 +331,10 @@ templates:
       normal:
         findings:
           en: 'Lungs clear. Heart size normal.'
-          ja: '両肺野明らか、心陰影正常。'
+          ja: '両肺野に異常陰影なし、心陰影正常。'
         impression:
           en: 'Lungs clear. Heart size normal.'
-          ja: '両肺野明らか、心陰影正常。'
+          ja: '両肺野に異常陰影なし、心陰影正常。'
       abnormal:
         findings:
           en: 'Hyperinflation with flattened diaphragms and increased retrosternal airspace.'
@@ -365,10 +365,10 @@ templates:
       normal:
         findings:
           en: 'Compressible veins throughout; no thrombus.'
-          ja: '全区分静脈圧迫良好、血栓なし。'
+          ja: '全区間で静脈は圧迫可能、血栓なし。'
         impression:
           en: 'Compressible veins throughout; no thrombus.'
-          ja: '全区分静脈圧迫良好、血栓なし。'
+          ja: '全区間で静脈は圧迫可能、血栓なし。'
       abnormal:
         findings:
           en: 'Non-compressible femoropopliteal vein with echogenic intraluminal material, consistent with DVT.'
@@ -382,10 +382,10 @@ templates:
       normal:
         findings:
           en: 'Lungs clear. Heart size normal.'
-          ja: '両肺野明らか、心陰影正常。'
+          ja: '両肺野に異常陰影なし、心陰影正常。'
         impression:
           en: 'Lungs clear. Heart size normal.'
-          ja: '両肺野明らか、心陰影正常。'
+          ja: '両肺野に異常陰影なし、心陰影正常。'
       abnormal:
         findings:
           en: 'Left lower lobe consolidation.'
@@ -399,10 +399,10 @@ templates:
       normal:
         findings:
           en: 'Lungs clear. Heart size normal.'
-          ja: '両肺野明らか、心陰影正常。'
+          ja: '両肺野に異常陰影なし、心陰影正常。'
         impression:
           en: 'Lungs clear. Heart size normal.'
-          ja: '両肺野明らか、心陰影正常。'
+          ja: '両肺野に異常陰影なし、心陰影正常。'
       abnormal:
         findings:
           en: 'No acute cardiopulmonary abnormality.'
@@ -483,10 +483,10 @@ templates:
       normal:
         findings:
           en: 'Lungs clear. Heart size normal.'
-          ja: '両肺野明らか、心陰影正常。'
+          ja: '両肺野に異常陰影なし、心陰影正常。'
         impression:
           en: 'Lungs clear. Heart size normal.'
-          ja: '両肺野明らか、心陰影正常。'
+          ja: '両肺野に異常陰影なし、心陰影正常。'
       abnormal:
         findings:
           en: 'Multiple rib fractures on the right; small pneumothorax.'
@@ -625,10 +625,10 @@ templates:
       normal:
         findings:
           en: 'Lungs clear. Heart size normal.'
-          ja: '両肺野明らか、心陰影正常。'
+          ja: '両肺野に異常陰影なし、心陰影正常。'
         impression:
           en: 'Lungs clear. Heart size normal.'
-          ja: '両肺野明らか、心陰影正常。'
+          ja: '両肺野に異常陰影なし、心陰影正常。'
       abnormal:
         findings:
           en: 'Bibasilar atelectasis; no infiltrate or pneumothorax.'
@@ -642,10 +642,10 @@ templates:
       normal:
         findings:
           en: 'Lungs clear. Heart size normal.'
-          ja: '両肺野明らか、心陰影正常。'
+          ja: '両肺野に異常陰影なし、心陰影正常。'
         impression:
           en: 'Lungs clear. Heart size normal.'
-          ja: '両肺野明らか、心陰影正常。'
+          ja: '両肺野に異常陰影なし、心陰影正常。'
       abnormal:
         findings:
           en: 'Bilateral patchy interstitial opacities, viral pneumonia pattern.'

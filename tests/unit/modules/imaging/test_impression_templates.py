@@ -29,3 +29,25 @@ def test_hemorrhagic_stroke_ct_head_abnormal_only():
     hs = t["hemorrhagic_stroke"]
     assert "CT_head" in hs
     assert "abnormal" in hs["CT_head"]
+
+
+def _ja_texts(node):
+    if isinstance(node, dict):
+        for k, v in node.items():
+            if k == "ja" and isinstance(v, str):
+                yield v
+            else:
+                yield from _ja_texts(v)
+    elif isinstance(node, list):
+        for v in node:
+            yield from _ja_texts(v)
+
+
+def test_ja_impressions_avoid_literal_translations_3477():
+    """'Lungs clear' must read as radiology Japanese, not word-by-word."""
+    deny = ("両肺野明らか", "全区分静脈圧迫良好")
+    texts = list(_ja_texts(load_impression_templates()))
+    assert texts
+    bad = sorted({t for t in texts for d in deny if d in t})
+    assert not bad, bad
+    assert any("両肺野に異常陰影なし、心陰影正常。" == t for t in texts)
