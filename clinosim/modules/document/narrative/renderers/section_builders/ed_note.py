@@ -44,6 +44,7 @@ from clinosim.modules.document.narrative._template_helpers import (
     _fill_template_placeholders,
     _pick_localized,
 )
+from clinosim.modules.document.narrative._visit_reason import join_sentences
 from clinosim.modules.document.narrative._vitals_line import PHYSICAL_EXAM, format_vitals_line
 from clinosim.modules.document.narrative.renderers._disease_exam import admission_exam, apply_exam_rules
 from clinosim.modules.document.narrative.renderers._exam_agreement import agreeing_clauses, arrival_vital_states
@@ -352,8 +353,8 @@ def build_ed_physical_exam(generator: TemplateNarrativeGenerator, ctx: Narrative
 
     if parts:
         facts.append(f"encounter_protocol.narrative.ed_note_template.{field}_{lang}")  # provenance label as before
-        sep = t("list_sep.period_space", lang)
-        text = sep.join(parts)
+        # Each part already ends in its own terminator: join without doubling it.
+        text = join_sentences(parts, lang)
         # The contradiction rewrite pools + trigger keywords of
         # _apply_cc_pe_consistency are JP terminology (a locale-specific data
         # pipeline gate, not a display translation; Issue #980). The arrival
