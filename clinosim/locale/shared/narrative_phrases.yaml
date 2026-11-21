@@ -946,8 +946,8 @@ chronic_labs:
 # status + meds line + observations.
 nursing_shift:
   nurse_line:
-    ja: "担当看護師: {name}"
-    en: "Nurse: {name}"
+    ja: "記録者: {name}"
+    en: "Recorded by: {name}"
   o2_device_with_flow:
     ja: "酸素投与: {device} {flow} L/min"
     en: "{device} {flow} L/min"

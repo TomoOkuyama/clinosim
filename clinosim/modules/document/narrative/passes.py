@@ -319,6 +319,7 @@ class NarrativePass(ABC):
                     # "night"/"day"/"evening"; all other stubs "").
                     ctx.shift = str(stub.get("shift", "") or "")
                     ctx.authored_datetime = parse_iso_datetime(stub.get("authored_datetime"), lenient=True)
+                    ctx.author_practitioner_id = str(stub.get("author_practitioner_id", "") or "")
                     # Per-stub hospital day. Daily notes previously all
                     # rendered as day 0 because ctx was built once per
                     # patient with day_index=0.

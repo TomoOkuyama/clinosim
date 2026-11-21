@@ -103,10 +103,16 @@ def render_nursing_shift_note(ctx: NarrativeContext, spec: DocumentTypeSpec) -> 
         # Unknown key → render the neutral key itself (never drop silently).
         shift_label = _label("shift_labels", shift_key, lang, fallback=shift_key)
 
-    nurse_id = _o(ctx.encounter, "primary_nurse_id", "") or ""
+    # Issue #3445: the nurse who wrote this shift's note (the rotated author,
+    # Issue #3408); the admission's primary nurse only when no author is set.
+    nurse_id = getattr(ctx, "author_practitioner_id", "") or ""
+    nurse_fact = "ctx.author_practitioner_id"
+    if not nurse_id:
+        nurse_id = _o(ctx.encounter, "primary_nurse_id", "") or ""
+        nurse_fact = "encounter.primary_nurse_id"
     nurse_line = ""
     if nurse_id:
-        facts.append("encounter.primary_nurse_id")
+        facts.append(nurse_fact)
         nurse_disp = _resolve_staff_name(nurse_id, ctx.roster_map)
         nurse_line = t("nursing_shift.nurse_line", lang, name=nurse_disp)
 
