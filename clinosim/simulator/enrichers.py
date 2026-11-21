@@ -273,6 +273,20 @@ def register_builtin_enrichers() -> None:
         )
     )
 
+    # Resuscitation attempt of a full-code in-hospital death (Issue #3483).
+    # Runs right after code_status (50), whose tier it reads.
+    from clinosim.modules.resuscitation.enricher import enrich_resuscitation
+
+    register_enricher(
+        Enricher(
+            name="resuscitation",
+            stage=POST_RECORDS,
+            order=55,
+            enabled=lambda c: True,
+            run=enrich_resuscitation,
+        )
+    )
+
     # JP long-term-care need level (要介護度, AD-55 Base). JP only.
     from clinosim.modules.care_level.enricher import enrich_care_level
 

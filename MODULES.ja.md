@@ -106,6 +106,7 @@ framework (現在 registry 登録済み 6 per-module plug-in: `antibiotic`,
 │  immunization(30) CVX ワクチン接種歴                     │
 │  family_history(40) 第 1 度近親歴                        │
 │  code_status(50)  DNR / Full Code 蘇生方針               │
+│  resuscitation(55) 蘇生処置を行う院内死亡の CPR・投与    │
 │  care_level(60)   JP 要介護度 (JP 限定)                  │
 │  medication_monitoring(65) 慢性薬 → labs (Issue #757)    │
 │  health_checkup(70) JP 事業者健診 (JP 限定、opt-in)      │
@@ -158,6 +159,7 @@ canonical 11-section 構造に従う per-module README にリンクする。
 | [document](clinosim/modules/document/README.ja.md) | stub emission + AD-60 audit + Stage 2 narrative subpackage | enrichment | `0x444F` ("DO") | POST_ENCOUNTER 95 |
 | [immunization](clinosim/modules/immunization/README.ja.md) | CVX 成人ワクチン接種歴 | enrichment | `0x494D` ("IM") | POST_RECORDS 30 |
 | [code_status](clinosim/modules/code_status/README.ja.md) | DNR / Full Code SNOMED 蘇生方針 | enrichment | `0x4353` ("CS") | POST_RECORDS 50 |
+| [resuscitation](clinosim/modules/resuscitation/README.ja.md) | 蘇生処置を行う方針の院内死亡に付く CPR 処置とエピネフリン投与 (Issue #3483) | enrichment | — (患者 ID と入院 ID の sha256) | POST_RECORDS 55 |
 | [care_level](clinosim/modules/care_level/README.ja.md) | JP 要介護度 (JP 限定) | enrichment | `0x434C` ("CL") | POST_RECORDS 60 (JP gate) |
 | [monitoring](clinosim/modules/monitoring/README.ja.md) | 慢性薬 → monitoring labs (Issue #757) | enrichment | `0x4D4D` ("MM") | POST_RECORDS 65 |
 | [health_checkup](clinosim/modules/health_checkup/README.ja.md) | JP 事業者健診 (JP 限定 opt-in) | enrichment | `0x4843` ("HC") | POST_RECORDS 70 |

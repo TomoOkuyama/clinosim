@@ -121,6 +121,7 @@ Cross-module invariants:
 | [`staff/`](staff/README.md) | Staff roster + per-event `assign_staff` dispatch. |
 | [`care_level/`](care_level/README.md) | JP 要介護度 assignment (POST_RECORDS order=60, JP-only). |
 | [`code_status/`](code_status/README.md) | Resuscitation-status tier assignment (POST_RECORDS order=50). |
+| [`resuscitation/`](resuscitation/README.md) | CPR procedure and epinephrine doses of a full-code in-hospital death (POST_RECORDS order=55). |
 | [`hai/`](hai/README.md) | HAI onset sampling (CLABSI / CAUTI / VAP) + Phase 3a lift + AD-60 audit. |
 
 ### Documents

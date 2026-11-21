@@ -108,6 +108,7 @@ load-bearing verification gate that protects this goal.
 │  immunization(30) CVX vaccine history                    │
 │  family_history(40) first-degree relative history        │
 │  code_status(50)  DNR / Full Code resuscitation status   │
+│  resuscitation(55) CPR + epinephrine of a full-code death│
 │  care_level(60)   JP 要介護度 (JP only)                  │
 │  medication_monitoring(65) chronic-med → labs (Issue #757)│
 │  health_checkup(70) JP 事業者健診 (JP only, opt-in)      │
@@ -161,6 +162,7 @@ the canonical 11-section structure).
 | [document](clinosim/modules/document/README.md) | stub emission + AD-60 audit + Stage 2 narrative subpackage | enrichment | `0x444F` ("DO") | POST_ENCOUNTER 95 |
 | [immunization](clinosim/modules/immunization/README.md) | CVX adult vaccine history | enrichment | `0x494D` ("IM") | POST_RECORDS 30 |
 | [code_status](clinosim/modules/code_status/README.md) | DNR / Full Code SNOMED resuscitation status | enrichment | `0x4353` ("CS") | POST_RECORDS 50 |
+| [resuscitation](clinosim/modules/resuscitation/README.md) | CPR procedure + epinephrine doses ending a full-code in-hospital death (Issue #3483) | enrichment | — (sha256 of patient + encounter ids) | POST_RECORDS 55 |
 | [care_level](clinosim/modules/care_level/README.md) | JP 要介護度 (JP only) | enrichment | `0x434C` ("CL") | POST_RECORDS 60 (JP-gated) |
 | [monitoring](clinosim/modules/monitoring/README.md) | chronic-med → monitoring labs (Issue #757) | enrichment | `0x4D4D` ("MM") | POST_RECORDS 65 |
 | [health_checkup](clinosim/modules/health_checkup/README.md) | JP 事業者健診 (JP-only opt-in) | enrichment | `0x4843` ("HC") | POST_RECORDS 70 |

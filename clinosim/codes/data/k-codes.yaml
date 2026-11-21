@@ -146,6 +146,9 @@ codes:
   J044:
     en: Endotracheal intubation for resuscitation
     ja: 救命のための気管挿管
+  J046:
+    en: Closed-chest cardiac massage
+    ja: 非開胸的心マッサージ
   J047:
     en: Countershock (electrical cardioversion or defibrillation)
     ja: カウンターショック

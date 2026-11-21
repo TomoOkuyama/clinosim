@@ -457,6 +457,12 @@ def terminal_course_seed(patient_id: str, encounter_id: str) -> int:
     return _digest_int(f"terminal:{patient_id}:{encounter_id}", 8)
 
 
+def resuscitation_seed(patient_id: str, encounter_id: str) -> int:
+    """Per-stay seed of the duration of the resuscitation attempt that ends a
+    full-code in-hospital death (Issue #3483, 64-bit)."""
+    return _digest_int(f"resuscitation:{patient_id}:{encounter_id}", 8)
+
+
 def newborn_seed(key: str) -> int:
     """Per-mother (or per-key) seed for newborn attributes, bed and delivery
     mode draws, in ``[0, 2**32)``."""

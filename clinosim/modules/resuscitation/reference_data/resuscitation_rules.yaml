@@ -1,0 +1,54 @@
+# clinosim/modules/resuscitation/reference_data/resuscitation_rules.yaml
+# The resuscitation attempt that ends the in-hospital death of a full-code
+# patient (Issue #3483). Read by clinosim.modules.resuscitation.engine.
+#
+# Sources and model choices:
+#   * Epinephrine 1 mg IV/IO every 3-5 minutes: AHA 2020 Adult Cardiac Arrest
+#     Algorithm (American Heart Association, "Adult Cardiac Arrest Algorithm",
+#     2020 guidelines for CPR and ECC; read in this form: "Epinephrine IV/IO
+#     dose: 1 mg every 3-5 minutes"). The interval used is 4 minutes, the
+#     middle of the guideline's range (a model choice inside it).
+#   * Timing of the first dose, and the duration of the attempt, are model
+#     choices: the guideline gives no figure for either. The first dose is
+#     given `first_dose_offset_minutes` after the start (nonshockable rhythm:
+#     "as soon as feasible", after the first compressions and IV access). The
+#     duration is drawn per stay between `min` and `max` minutes from a
+#     sub-RNG seeded by the patient and encounter ids
+#     (clinosim.seeding.resuscitation_seed), so no existing stream is read.
+#   * The 1 mg dose is the adult dose; a patient under `epinephrine.min_age`
+#     has the CPR record but no epinephrine administration (the paediatric
+#     weight-based dose was not read in this change, so none is invented).
+#   * No intubation is added: an airway the record already holds stays as
+#     recorded, and the attempt does not invent one (the record has no
+#     advanced-airway or rhythm data to base it on).
+metadata:
+  kind: reference
+  name: resuscitation_rules
+  source: clinosim
+
+# The tier of code_status.yaml (key) for which an attempt is made; the
+# not-for-resuscitation tiers get none.
+attempt_tier: full_code
+
+# Encounter types (Encounter.encounter_type values) whose death is a
+# hospital death with an attempt.
+encounter_types: [inpatient, emergency]
+
+procedure:
+  type: cpr                      # catalog type (codes/data/clinosim-procedure-catalog.yaml)
+  location: ""                   # no location is modelled
+
+duration_minutes: {min: 15, max: 45}
+
+epinephrine:
+  drug: "Epinephrine"
+  dose_quantity: 1.0
+  dose_unit: "mg"
+  route: "IV"
+  frequency: "once"
+  min_age: 18
+  interval_minutes: 4
+  first_dose_offset_minutes: 2
+  clinical_intent:
+    en: "Cardiopulmonary resuscitation: epinephrine 1 mg IV every 3-5 minutes during cardiac arrest (AHA 2020)"
+    ja: "心肺蘇生: 心停止中のエピネフリン 1 mg 静注 (3~5 分ごと、AHA 2020)"

@@ -91,11 +91,17 @@ bedside:
 # AABR is recorded through skin electrodes on a sleeping newborn, and the
 # metabolic screen is a heel-prick blood spot (`anesthesia: none`, Issue #3257).
 #
+# `cpr` (Issue #3483) is recorded by the resuscitation enricher, not the
+# bedside dispatch: CPT 92950 (AMA CPT), K-code J046 非開胸的心マッサージ (the
+# 点数表 item billed for a closed-chest resuscitation; checked against the
+# 支払基金 診療行為マスター s_ALL20261102, 2026-11-21).
+#
 # `anesthesia` (bedside and named entries) is the anesthesia the procedure is
 # done under; the record's estimated blood loss and ASA class stay unrecorded
 # for every catalog procedure (no modelled value; the surgical path of the
 # disease protocols is the only source of them).
 named:
+  - {type: cpr, cpt: "92950", k_code: "J046", name: {en: "Cardiopulmonary resuscitation", ja: "心肺蘇生"}, anesthesia: none}
   - {type: hearing_screen_aabr, name: {en: "Newborn hearing screening (AABR)", ja: "新生児聴覚スクリーニング（AABR）"}, anesthesia: none}
   - {type: metabolic_screen_tandem_ms, name: {en: "Newborn metabolic screening (tandem mass spectrometry)", ja: "新生児マススクリーニング（タンデムマス法）"}, anesthesia: none}
   # Surgical procedure types the procedure engine records from the disease
