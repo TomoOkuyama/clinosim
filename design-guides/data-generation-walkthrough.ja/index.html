@@ -2687,7 +2687,7 @@ Layer 1 → Layer 2 <code>PatientProfile</code> に厚くなる:身長/体重、
 例:高血圧 Stage 2 → 高い baseline 血圧)、常用薬、アレルギー、baseline vitals。</p>
 <h3 id="1d-受診シミュレーションdaily-loop-simulatorinpatientpy-ほか">1d. 受診シミュレーション(daily loop)— <code>simulator/inpatient.py</code> ほか<a class="headerlink" href="#1d-受診シミュレーションdaily-loop-simulatorinpatientpy-ほか" title="Permanent link">&para;</a></h3>
 <p>受診タイプ別に分岐:
-- <strong>入院</strong>: <code>inpatient.py:_simulate_patient()</code> → <code>_run_daily_loop()</code>。
+- <strong>入院</strong>: <code>inpatient.py:_simulate_patient()</code> → <code>daily_loop.py:_run_daily_loop()</code>。
 - <strong>ED</strong>: <code>emergency.py</code>。<strong>外来</strong>: <code>outpatient.py</code>。</p>
 <p>入院の 1 日ループがデータの中心。おおまかに:</p>
 <ol>
@@ -2708,8 +2708,14 @@ Layer 1 → Layer 2 <code>PatientProfile</code> に厚くなる:身長/体重、
 <li><strong>オーダ/検査/バイタル/投薬</strong>: physiology 状態から <code>derive_lab_values</code>(30+ analyte)で検査値、
    vitals、<code>place_admission_orders</code> / <code>place_daily_lab_orders</code>(panel-aware)/ 画像
    (<code>place_imaging_orders</code>)/ MAR を生成。</li>
-<li><strong>退院/死亡</strong>: LOS(疾患 YAML <code>target_los</code>)と <code>outcome_benchmarks</code>(死亡率)で決定。
-   <code>--end</code>(snapshot)以降は in-progress 扱い(AD-32)。</li>
+<li><strong>退院/死亡</strong>: サンプルした LOS(疾患 YAML <code>target_los</code>)と <code>outcome_benchmarks</code>(死亡率)が
+   予定の終点を決める。<code>discharge_gate.py</code> が状態に基づく退院基準を持ち、患者が退院可でない間は
+   ループが退院を 1 日ずつ延ばす: 最終日またはその翌観察日までの昇圧薬・強心薬の投与
+   (<code>vasoactive_support.py</code>)、AKI が回復していない・発熱が続く場合(<code>aki_response.yaml</code> の
+   <code>max_extension_days</code> まで)、AF の心室応答数が調節できていない場合(<code>ventricular_rate.py</code>、
+   疾患の最大 LOS まで)。<code>--end</code>(snapshot)以降は in-progress 扱い(AD-32)。ループは他にも、
+   溶血検体の再採血、昇圧薬の開始、ケトアシドーシスの移行といった日次の規則を実行する
+   (<code>simulator/README.md</code> 参照)。</li>
 </ol>
 <p>結果は 1 患者 = 1 <code>CIFPatientRecord</code>。<strong>scenario / severity / course / complications / labs は
 すべて疾患 YAML 駆動</strong>で、engine コードに臨床値をハードコードしない。</p>
@@ -2724,8 +2730,8 @@ Layer 1 → Layer 2 <code>PatientProfile</code> に厚くなる:身長/体重、
   → document(95)</code>(同 order は名前順)。前段の <code>extensions[X]</code> を読んで次段が動く
   (device なしに HAI なし等)。</li>
 <li><strong>POST_RECORDS</strong>(全患者シミュレーション後): cross-record。<code>nursing(20)</code> flowsheet /
-  <code>immunization(30)</code> / <code>family_history(40)</code> / <code>code_status(50)</code> / <code>care_level(60)</code> /
-  <code>medication_monitoring(65)</code> / <code>health_checkup(70)</code>。</li>
+  <code>immunization(30)</code> / <code>family_history(40)</code> / <code>code_status(50)</code> / <code>resuscitation(55)</code> /
+  <code>care_level(60)</code> / <code>medication_monitoring(65)</code> / <code>health_checkup(70)</code> / <code>stage_refresh(900)</code>。</li>
 </ul>
 <p>モジュールは <code>CIFPatientRecord.extensions[&lt;module&gt;]</code> にだけ書く(コア型への typed field 追加は
 Base のみ)。新モジュール追加 = enricher を registry 登録するだけ(dispatch 本体は編集しない、AD-56)。</p>

@@ -2652,7 +2652,7 @@
 <td>Independent generator per simulation phase and key.</td>
 </tr>
 <tr>
-<td><code>clinosim/seeding.py</code> <code>text_seed</code>, <code>panel_specimen_seed</code>, <code>individual_lab_seed</code>, <code>chronic_medication_seed</code>, <code>discharge_prescription_seed</code>, <code>ambulatory_visit_length_seed</code>, <code>issue939_procedure_seed</code>, <code>chronic_augment_sex_seed</code>, <code>chronic_isolated_seed</code>, <code>longitudinal_event_seed</code>, <code>perinatal_delivery_seed</code>, <code>chemotherapy_regimen_seed</code>, <code>daily_output_seed</code>, <code>radiation_therapy_seed</code>, <code>avpu_day_seed</code>, <code>newborn_seed</code>, <code>pregnancy_outcome_seed</code>, <code>newborn_conditions_seed</code>, <code>enumeration_case_seed</code>, <code>identity_person_seed</code></td>
+<td><code>clinosim/seeding.py</code> <code>text_seed</code>, <code>panel_specimen_seed</code>, <code>individual_lab_seed</code>, <code>chronic_medication_seed</code>, <code>discharge_prescription_seed</code>, <code>ambulatory_visit_length_seed</code>, <code>issue939_procedure_seed</code>, <code>chronic_augment_sex_seed</code>, <code>chronic_isolated_seed</code>, <code>longitudinal_event_seed</code>, <code>perinatal_delivery_seed</code>, <code>chemotherapy_regimen_seed</code>, <code>daily_output_seed</code>, <code>radiation_therapy_seed</code>, <code>avpu_day_seed</code>, <code>newborn_seed</code>, <code>pregnancy_outcome_seed</code>, <code>newborn_conditions_seed</code>, <code>enumeration_case_seed</code>, <code>identity_person_seed</code>, <code>terminal_course_seed</code>, <code>emergency_contact_seed</code>, <code>marital_status_seed</code>, <code>vasopressor_start_seed</code>, <code>co_disease_orders_seed</code>, <code>resuscitation_seed</code></td>
 <td>Named per-entity seeds. Add a new named function here rather than deriving a seed at the call site.</td>
 </tr>
 <tr>
@@ -3059,6 +3059,26 @@
 <td><code>clinosim/modules/document/engine.py</code> <code>_compute_los_days</code> <em>(module-internal, also used by the narrative pass)</em></td>
 <td>Length of stay, including the in-progress proxy.</td>
 </tr>
+<tr>
+<td><code>clinosim/modules/observation/hemolysis_redraw.py</code> <code>is_hemolyzed(flag)</code> / <code>HEMOLYZED_FLAGS</code></td>
+<td>The one definition of a hemolysed specimen flag; never compare <code>H*</code> / <code>L*</code> inline.</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/longitudinal/stage_refresh.py</code> <code>creatinine_egfr(patient, creatinine, at, unit=None)</code></td>
+<td>The eGFR of a creatinine result by the country's equation; shared by the stage refresh enricher and the H&amp;P past history.</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/order/dose_range.py</code> <code>resolve_dose_ranges(text)</code></td>
+<td>A protocol dose range as one dose.</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/order/insulin_initiation.py</code> <code>basal_insulin_start_dose(weight_kg)</code></td>
+<td>The weight-based basal insulin start dose.</td>
+</tr>
+<tr>
+<td><code>clinosim/simulator/terminal_course.py</code> <code>drop_results_after_death(orders, lab_results, death_time)</code></td>
+<td>Removing lab orders and results dated after death.</td>
+</tr>
 </tbody>
 </table>
 <h2 id="8-fhir-building-layer-4">8. FHIR building (Layer 4)<a class="headerlink" href="#8-fhir-building-layer-4" title="Permanent link">&para;</a></h2>
@@ -3136,8 +3156,40 @@
 <td>The readings of a time window (a nursing shift) and the latest value of each vital over them.</td>
 </tr>
 <tr>
-<td><code>clinosim/modules/document/narrative/_as_of.py</code> <code>in_force_at(records, as_of)</code></td>
+<td><code>clinosim/modules/document/narrative/_as_of.py</code> <code>in_force_at(records, as_of, key=)</code></td>
 <td>The dated record (ADL, nursing risk assessment) in force at a document's authored time; never the last of the stay by position.</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/document/narrative/_as_of.py</code> <code>recorded_by</code> / <code>results_known_at</code> / <code>results_after</code> / <code>procedures_started_by</code> / <code>procedures_after</code></td>
+<td>Filtering dated records, lab results and procedures to a document's authored time; a note never compares times inline.</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/document/narrative/_prescription_line.py</code> <code>prescription_bits(med, lang, drug_name=, show_route=)</code></td>
+<td>The dose, route, frequency and days of a prescription line (ED take-home prescription, discharge summary, outpatient SOAP); never read raw <code>frequency</code> / <code>days_supply</code>.</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/document/narrative/_visit_reason.py</code> <code>join_sentences(sentences, lang)</code></td>
+<td>Sentences as one paragraph without doubling a terminator they already end with (the terminator-safe join).</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/document/narrative/renderers/section_builders/chief_complaint.py</code> <code>encounter_chief_complaint(ctx)</code> / <code>chief_complaint_texts(ctx)</code></td>
+<td>The encounter's one chief complaint, and the displayed and recorded complaint texts to test a presented symptom against.</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/document/narrative/_outpatient_results.py</code> <code>known_labs(ctx)</code> / <code>note_time(ctx)</code> / <code>latest_lab_stage(code, stored, labs)</code></td>
+<td>The lab results known at an outpatient note's time and the chronic stage they state.</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/document/narrative/_progress_exam.py</code> <code>agreeing_clauses(text, states, lang)</code></td>
+<td>Dropping an exam clause that a reading of the note's period contradicts (the daily progress note).</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/document/narrative/renderers/_exam_agreement.py</code> <code>agreeing_clauses(text, states, lang)</code></td>
+<td>The same for a disease exam against the arrival reading (the ED note and the H&amp;P).</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/document/referral_recipient.py</code> <code>is_transfer_disposition</code> / <code>pick_external_hospital</code></td>
+<td>The recipient of a referral letter: only on a transfer-of-care disposition, a deterministic pick of the country's external hospitals.</td>
 </tr>
 <tr>
 <td><code>clinosim/modules/document/narrative/_narrative_interpretation_thresholds.py</code> <code>bmi_band</code> / <code>bp_band</code></td>

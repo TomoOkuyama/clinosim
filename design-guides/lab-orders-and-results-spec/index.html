@@ -2528,6 +2528,21 @@
 <td><code>simulator/lab_pipeline.py::TYPE_AND_SCREEN</code>, <code>fhir_r4/labs/blood_type.py</code></td>
 <td><code>tests/unit/output/test_type_and_screen_2587.py</code>, <code>tests/unit/output/test_screen_report_performer_3357.py</code></td>
 </tr>
+<tr>
+<td>A hemolysed specimen (flag <code>H*</code> / <code>L*</code>) of a redrawn analyte (potassium) is repeated by a stat lab order placed <code>delay_minutes</code> after it, up to <code>max_redraws</code>; the repeat is resulted from the true value on its own per-order random stream, and a hemolysed value is never used as a clinical trigger (Issue #3452).</td>
+<td><code>modules/observation/hemolysis_redraw.py</code> (<code>is_hemolyzed</code>, <code>hemolysis_redraw_rules</code>), <code>simulator/daily_loop.py::_redraw_hemolyzed</code>; data <code>modules/observation/reference_data/hemolysis_redraw.yaml</code></td>
+<td><code>tests/unit/drug_safety/test_hemolyzed_potassium_redraw_3452.py</code></td>
+</tr>
+<tr>
+<td>No lab order is placed and no lab result is timed after a patient's time of death: the orders placed after it are removed, and a result timed after it is removed and its order cancelled. It draws no random number (Issue #3280).</td>
+<td><code>simulator/terminal_course.py::drop_results_after_death</code>, called from <code>simulator/daily_loop.py</code></td>
+<td><code>tests/unit/simulator/test_no_labs_after_death_3280.py</code></td>
+</tr>
+<tr>
+<td>Inpatient lab turnaround is the hospital-state delay model bounded by the lab's <code>delay_limits</code> in the hospital YAML (<code>max_load_factor</code> and <code>max_delay_min</code> for stat and routine), so routine results are not pushed to the generic ceiling; a resource without <code>delay_limits</code> (imaging) keeps the generic caps (Issue #3287).</td>
+<td><code>modules/facility/hospital_state.py</code> (<code>calculate_delay</code>); data <code>config/hospital_small.yaml</code>, <code>config/hospital_large.yaml</code>, <code>config/hospital_operations.yaml</code></td>
+<td><code>tests/unit/test_lab_turnaround_3287.py</code></td>
+</tr>
 </tbody>
 </table>
 <h2 id="5-eval-bounds">5. Eval bounds<a class="headerlink" href="#5-eval-bounds" title="Permanent link">&para;</a></h2>

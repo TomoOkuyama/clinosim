@@ -2516,6 +2516,11 @@
 <td><code>clinosim/codes/drugs.py</code>(コードマッピング仕様参照)</td>
 <td><code>tests/unit/test_has_drug_logic_2377.py</code></td>
 </tr>
+<tr>
+<td>範囲で書かれたプロトコルの用量・詳細 (「25-100mg PO daily」「NS 80-125 mL/h」) は、プロトコルの読み込み時に一度だけ、範囲の単位ごとの規則で一つの用量に解決する。既定は下限の開始用量で、維持輸液の mL/h 速度だけは上限の速度とする。書かれた範囲は <code>titration_range</code> としてエントリに残るので、オーダー・処方・投与は一つの用量を述べる。乱数は引かない (Issue #3265)。</td>
+<td><code>modules/order/dose_range.py::resolve_dose_ranges</code>、<code>modules/disease/protocol.py::resolve_protocol_dose_ranges</code>。データは <code>modules/order/reference_data/dose_range_resolution.yaml</code></td>
+<td><code>tests/unit/test_dose_range_resolution_3265.py</code></td>
+</tr>
 </tbody>
 </table>
 <h2 id="4-投与">4. 投与<a class="headerlink" href="#4-投与" title="Permanent link">&para;</a></h2>
@@ -2532,6 +2537,11 @@
 <td>日次ループが置いたオーダーの投与は、オーダーの頻度と患者状態(保留・拒否・頓用の契機)からループ内で作る。</td>
 <td><code>medication_pipeline.py::_generate_mar</code>, <code>generate_prn_administrations</code>, <code>prn_category</code></td>
 <td><code>tests/unit/test_prn_from_state.py</code>, <code>tests/unit/test_prn_inhaler_cadence_1318.py</code></td>
+</tr>
+<tr>
+<td>血清カリウムが治療閾値以上になると、薬剤を二つの範囲で保留する。<code>hold_classes</code> (ACE 阻害薬・ARB・カリウム保持性利尿薬) は結果が出てから退院まで、<code>hold_while_high_classes</code> (ジゴキシン) は投与前の直近のカリウムが閾値以上である間だけ保留する。保留した投与の理由は、その投与前に結果が出た直近のカリウムとする。オーダーセットは、インスリンと併用するデキストロースを単回投与として別に記録する。溶血したカリウム (flag <code>H*</code> / <code>L*</code>、<code>is_hemolyzed</code>) は、保留の契機にも治療の値にもカリウム履歴の値にもしない。日次ループはその <code>delay_minutes</code> 後に stat の再採血をオーダーし (<code>_redraw_hemolyzed</code>、<code>hemolysis_redraw.yaml</code>)、上限 <code>max_redraws</code> まで繰り返し、治療は再採血の結果に従う (Issue #3452)。</td>
+<td><code>modules/drug_safety/hyperkalemia.py</code> (<code>PotassiumHold.high_at</code>, <code>reason_at</code>, <code>hyperkalemia_treatment_orders</code>)、<code>modules/observation/hemolysis_redraw.py</code> (<code>is_hemolyzed</code>, <code>hemolysis_redraw_rules</code>)、<code>simulator/daily_loop.py::_redraw_hemolyzed</code>。データは <code>modules/drug_safety/reference_data/hyperkalemia_response.yaml</code>、<code>modules/observation/reference_data/hemolysis_redraw.yaml</code>。適用は <code>simulator/daily_loop.py::_respond_to_hyperkalemia</code> と <code>medication_pipeline.py::_generate_mar</code></td>
+<td><code>tests/unit/drug_safety/test_hyperkalemia_response_2981.py</code>, <code>tests/unit/drug_safety/test_hyperkalemia_dextrose_digoxin_3232.py</code>, <code>tests/unit/drug_safety/test_hemolyzed_potassium_redraw_3452.py</code></td>
 </tr>
 <tr>
 <td>昇圧薬・強心薬を持続投与している間(オーダー時刻から終了時刻まで)は、降圧薬・β遮断薬・利尿薬・硝酸薬の予定投与をすべて「昇圧薬・強心薬の持続投与中」を理由に保留する。経口の昇圧薬と単回投与は保留の契機にならない。バイタルの保留条件(SBP &lt; 90、HR &lt; 50)は、各投与の前に入院中に記録された最新のバイタルで判定する(最初の記録より前だけ入院前の基準値を使う)。その日のバイタルを記録した後に適用する。保留理由は <code>hold_reason_display</code> で記録の言語に表示する。</td>
@@ -2569,9 +2579,9 @@
 <td><code>tests/unit/simulator/test_mixed_co_disease_3392.py</code></td>
 </tr>
 <tr>
-<td>直近の血清クレアチニンが KDIGO 2012 の AKI 定義(48 時間以内に 0.3 mg/dL 以上の上昇、または入院中のそれまでの最低値(基準値)の 1.5 倍以上)を満たす間は、NSAID(アスピリンを除く)・ACE 阻害薬・ARB・サイアザイド系またはカリウム保持性利尿薬・メトホルミンの予定投与をすべて「急性腎障害」を理由に保留し、クレアチニンが定義を満たさなくなれば再開する。退院処方も、最終クレアチニンが定義を満たす間は同じ薬剤を処方せず(保留として記録)、満たさなくなっていれば継続する。クレアチニンが定義を満たしピークから 10% 以上低下していない間、または直近 24 時間に 38.0 °C 以上の体温が記録された間は退院可としない。入院はサンプルした在院日数から最長 5 日延長し、上限に達しても未解決の場合は、本来の退院先をそのまま用い、最終クレアチニンが定義を満たしているときは退院時指導に、退院後 1 週間ほどでの外来クレアチニン再検査、約 3 か月後の腎機能再評価(KDIGO 2012 推奨 2.3.4)、保留した薬剤は再検査の結果を確認してから再開する旨を加える。</td>
-<td><code>aki_response.py</code>、<code>medication_pipeline.py::_generate_mar</code>、<code>discharge_gate.py</code>、<code>discharge_rx.py::build_discharge_rx</code>、値は <code>reference_data/aki_response.yaml</code></td>
-<td></td>
+<td>直近の血清クレアチニンが KDIGO 2012 の AKI 定義(48 時間以内に 0.3 mg/dL 以上の上昇、または入院中のそれまでの最低値(基準値)の 1.5 倍以上)を満たす間は、NSAID(アスピリンを除く)・ACE 阻害薬・ARB・サイアザイド系またはカリウム保持性利尿薬・メトホルミンの予定投与をすべて<code>aki_response.yaml</code> の理由 (<code>reason</code>) をつけて保留し、クレアチニンが定義を満たさなくなれば再開する。退院処方も、最終クレアチニンが定義を満たす間は同じ薬剤を処方せず(保留として記録)、満たさなくなっていれば継続する。クレアチニンが定義を満たしピークから 10% 以上低下していない間、または直近 24 時間に 38.0 °C 以上の体温が記録された間は退院可としない。入院はサンプルした在院日数から最長 5 日延長し、上限に達しても未解決の場合は、本来の退院先をそのまま用い、最終クレアチニンが定義を満たしているときは退院時指導に、退院後 1 週間ほどでの外来クレアチニン再検査、約 3 か月後の腎機能再評価(KDIGO 2012 推奨 2.3.4)、保留した薬剤は再検査の結果を確認してから再開する旨を加える。</td>
+<td><code>simulator/aki_response.py</code>、<code>simulator/medication_pipeline.py::_generate_mar</code>、<code>simulator/discharge_gate.py</code>、<code>simulator/discharge_rx.py::build_discharge_rx</code>、値は <code>simulator/reference_data/aki_response.yaml</code></td>
+<td><code>tests/unit/simulator/test_aki_response_3281.py</code></td>
 </tr>
 <tr>
 <td>1 日より長い間隔の頻度 (週 1 回・月 1 回・隔日) のオーダーは、オーダーした日とその後の間隔ごとに 1 回投与する。間隔は頻度トークン表から読むので、週 1 回の用量文字列が 1 日 1 回に置き換わることはない。</td>
@@ -2584,8 +2594,8 @@
 <td><code>tests/unit/simulator/test_mar_not_before_order_3311.py</code>, <code>tests/unit/simulator/test_mar_late_admission_first_dose.py</code></td>
 </tr>
 <tr>
-<td>ループ外で置いたオーダー(VTE 予防 enricher、分娩バンドル)の投与は、乱数を引かない一組の補助関数で作る。投与時刻は日次の固定時刻で、看護師は安定ハッシュで選ぶ。投与時刻を自前で決める enricher(HAI の抗菌薬、新生児の出生入院時の予防投与)も、投与した看護師は同じ <code>stable_nurse</code> で名指す。</td>
-<td><code>modules/order/placed_order_mar.py</code>(<code>daily_times</code>, <code>stable_nurse</code>, <code>administrations_for</code>)</td>
+<td>ループ外で置いたオーダー(VTE 予防 enricher、分娩バンドル)の投与は、乱数を引かない一組の補助関数で作る。投与時刻は日次の固定時刻で、看護師は安定ハッシュで選ぶ。投与時刻を自前で決める enricher(HAI の抗菌薬、新生児の出生入院時の予防投与)も、投与した看護師は同じ <code>stable_nurse</code> で名指す。蘇生 enricher (POST_RECORDS) もエピネフリンのオーダーと投与を置き、投与した看護師を同じ <code>stable_nurse</code> で名指す。</td>
+<td><code>modules/order/placed_order_mar.py</code>(<code>daily_times</code>, <code>stable_nurse</code>, <code>administrations_for</code>)、<code>modules/resuscitation/enricher.py</code></td>
 <td><code>tests/unit/modules/order/test_placed_order_mar_spec.py</code>, <code>tests/unit/test_hai_abx_giving_nurse_2823.py</code>, <code>tests/unit/modules/newborn/test_newborn_giving_nurse_2824.py</code></td>
 </tr>
 <tr>
@@ -2621,7 +2631,7 @@
 <td><code>tests/unit/test_close_orders_at_discharge_2606.py</code></td>
 </tr>
 <tr>
-<td>両者はオーダーを置くすべてのモジュールの後、一つの POST_ENCOUNTER enricher で動く。</td>
+<td>両者はオーダーを置くすべての POST_ENCOUNTER モジュールの後、一つの POST_ENCOUNTER enricher で動く。その後に POST_RECORDS の蘇生 enricher が置くオーダー (フルコードの死亡時のエピネフリン) は、この enricher の処理対象にならない。</td>
 <td><code>supersede.py::enrich_supersede_orders</code></td>
 <td><code>tests/unit/test_supersede_medication_orders_2615.py</code></td>
 </tr>
@@ -2638,14 +2648,24 @@
 </thead>
 <tbody>
 <tr>
-<td>退院処方は、プロトコルの退院薬と継続する在宅薬から作り、腎機能で保留する薬剤を除く。</td>
-<td><code>simulator/discharge_rx.py::build_discharge_rx</code></td>
-<td><code>tests/unit/test_build_discharge_rx_continue_at_discharge.py</code>, <code>tests/unit/test_discharge_rx_drug_safety_1334.py</code>, <code>tests/unit/test_discharge_oral_route_integrity.py</code></td>
+<td>退院処方は、プロトコルの退院薬と継続する在宅薬から作り、腎機能で保留する薬剤を除く。 用量が空の <code>discharge_oral</code> エントリは <code>home_dose: resume</code> または <code>start_dose</code> を宣言する。患者に在宅の処方があればその用量・投与経路・頻度を引き継ぎ、なければ開始用量を使う (インスリンは <code>insulin_initiation.yaml</code> の体重に基づく基礎インスリン開始用量 <code>basal_insulin_start_dose</code>) (Issue #3461)。</td>
+<td><code>simulator/discharge_rx.py::build_discharge_rx</code>、<code>modules/order/insulin_initiation.py::basal_insulin_start_dose</code></td>
+<td><code>tests/unit/test_build_discharge_rx_continue_at_discharge.py</code>, <code>tests/unit/test_discharge_rx_drug_safety_1334.py</code>, <code>tests/unit/test_discharge_oral_route_integrity.py</code>, <code>tests/unit/test_discharge_resume_or_start_dose_3461.py</code></td>
 </tr>
 <tr>
 <td>退院時・在宅薬の有効化・経年履歴は一つの規則リストで突き合わせる。リストの規則が名指す系統の 2 剤目は加えない(スタチン 1 剤、P2Y12 阻害薬 1 剤、抗凝固薬 1 剤、β遮断薬 1 剤 (Issue #3274)、ACE 阻害薬と ARB の併用なし)。</td>
 <td><code>modules/drug_safety/engine.py::discharge_reconciliation_rules</code>。呼び出し元 <code>discharge_rx.py</code>, <code>modules/patient/activator.py</code>, <code>modules/longitudinal/engine.py</code></td>
 <td><code>tests/unit/test_discharge_reconciliation_2713.py</code></td>
+</tr>
+<tr>
+<td>分娩の退院処方は、母親の維持的な在宅薬も継続する (28 日分、用量・投与経路・頻度は構造化。アレルギーで禁忌の薬剤と、すでに処方した鎮痛薬との重複は除く) (Issue #3463)。</td>
+<td><code>simulator/perinatal.py::simulate_delivery_encounter</code>、<code>simulator/outpatient.py::home_medication_continuation_items</code></td>
+<td><code>tests/unit/simulator/test_delivery_discharge_continues_home_meds_3463.py</code></td>
+</tr>
+<tr>
+<td>妊婦用サプリメントの入力 (<code>chronic_medications.yaml</code> の Z34 エントリ) は、有効化の時点で妊娠が継続中か、<code>perinatal.yaml</code> の産後期間 <code>prenatal_supplement_postpartum_days</code> 以内の場合にだけ加える。過去の有効化から引き継いだサプリメントは、この期間を過ぎると外す (Issue #3503)。</td>
+<td><code>modules/patient/activator.py</code> (<code>_prenatal_supplement_window_active</code>)、<code>locale/shared/perinatal.yaml</code></td>
+<td><code>tests/unit/test_activator_prenatal_supplement_window_3503.py</code></td>
 </tr>
 <tr>
 <td>経口抗凝固薬があれば、退院時と在宅薬の有効化で、抗血小板 2 剤を抗凝固薬+クロピドグレルにし、アスピリンを短期にする。</td>

@@ -2956,7 +2956,7 @@ medications, allergies, baseline vitals.</p>
 <h3 id="1d-encounter-simulation-daily-loop--simulatorinpatientpy-and-siblings">1d. Encounter simulation (daily loop) — <code>simulator/inpatient.py</code> and siblings<a class="headerlink" href="#1d-encounter-simulation-daily-loop--simulatorinpatientpy-and-siblings" title="Permanent link">&para;</a></h3>
 <p>Dispatch by visit type:
 - <strong>Inpatient</strong>: <code>inpatient.py:_simulate_patient()</code> →
-  <code>_run_daily_loop()</code>.
+  <code>daily_loop.py:_run_daily_loop()</code>.
 - <strong>ED</strong>: <code>emergency.py</code>. <strong>Outpatient</strong>: <code>outpatient.py</code>.</p>
 <p>The inpatient daily loop is the heart of the data. Roughly:</p>
 <ol>
@@ -2988,9 +2988,19 @@ medications, allergies, baseline vitals.</p>
    <code>place_admission_orders</code> / <code>place_daily_lab_orders</code>
    (panel-aware) / imaging (<code>place_imaging_orders</code>) / MAR
    generation.</li>
-<li><strong>Discharge / death</strong>: decided by LOS (disease YAML
-   <code>target_los</code>) and <code>outcome_benchmarks</code> (mortality). Past <code>--end</code>
-   (snapshot) is treated as in-progress (AD-32).</li>
+<li><strong>Discharge / death</strong>: the sampled LOS (disease YAML
+   <code>target_los</code>) and <code>outcome_benchmarks</code> (mortality) set the planned
+   end. <code>discharge_gate.py</code> holds the state-based criteria, and the loop
+   defers a discharge one day at a time while the patient is not
+   ready: vasopressor or inotrope support on the last day or the
+   observation day after it (<code>vasoactive_support.py</code>), AKI not
+   recovering or a persisting fever (up to the <code>max_extension_days</code> of
+   <code>aki_response.yaml</code>), or an AF ventricular rate not controlled
+   (<code>ventricular_rate.py</code>, up to the disease's maximum LOS). Past
+   <code>--end</code> (snapshot) is treated as in-progress (AD-32). The loop also
+   runs per-day rules such as the redraw of a hemolysed specimen, the
+   vasopressor start and the ketoacidosis transition; see
+   <code>simulator/README.md</code>.</li>
 </ol>
 <p>Result: 1 patient = 1 <code>CIFPatientRecord</code>. <strong>Scenario / severity /
 course / complications / labs are all disease-YAML driven</strong> — the
@@ -3013,8 +3023,9 @@ modules</strong> run in three stages:</p>
   earlier ones (no HAI without a device, etc.).</li>
 <li><strong>POST_RECORDS</strong> (after all patients are simulated): cross-record.
   <code>nursing(20)</code> flowsheet / <code>immunization(30)</code> /
-  <code>family_history(40)</code> / <code>code_status(50)</code> / <code>care_level(60)</code> /
-  <code>medication_monitoring(65)</code> / <code>health_checkup(70)</code>.</li>
+  <code>family_history(40)</code> / <code>code_status(50)</code> / <code>resuscitation(55)</code> /
+  <code>care_level(60)</code> / <code>medication_monitoring(65)</code> /
+  <code>health_checkup(70)</code> / <code>stage_refresh(900)</code>.</li>
 </ul>
 <p>Modules write only into <code>CIFPatientRecord.extensions[&lt;module&gt;]</code>
 (new typed fields on core types are Base-only). Adding a module =

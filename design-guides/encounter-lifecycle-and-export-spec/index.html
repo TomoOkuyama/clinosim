@@ -2447,14 +2447,14 @@
 <td><code>tests/unit/simulator/test_procedures_in_encounter_2863.py</code></td>
 </tr>
 <tr>
-<td>The simulation advances month by month in one loop: year boundary (population advance, healthcare calendar), monthly life events, ED slots, then dispatch of the month's queued events in date order.</td>
-<td><code>simulator/phases/_forward_loop.py</code></td>
-<td><code>tests/unit/simulator/test_forward_loop_2169.py</code></td>
+<td>The simulation advances month by month in one loop: year boundary (population advance, healthcare calendar), monthly life events, ED slots (a slot that falls inside an inpatient stay is dropped, not deferred), then dispatch of the month's queued events in date order.</td>
+<td><code>simulator/phases/_forward_loop.py</code>, <code>simulator/phases/_ed_slot.py::dispatch_ed_slot</code></td>
+<td><code>tests/unit/simulator/test_forward_loop_2169.py</code>, <code>tests/unit/simulator/test_ed_slot_inpatient_gate_3393.py</code></td>
 </tr>
 <tr>
-<td>A person's death is recorded once, through one method; the earliest recorded death wins (an in-hospital death replaces a later pre-sampled community death).</td>
-<td><code>types/population.py::PersonRecord.record_death</code></td>
-<td><code>tests/unit/test_death_record_2166.py</code></td>
+<td>A person's death is recorded once, through one method; the earliest recorded death wins (an in-hospital death replaces a later pre-sampled community death). A deceased inpatient or emergency record whose code status is the full-code tier gets one CPR procedure ending at the death time and the epinephrine given during it (a POST_RECORDS enricher, order 55, after <code>code_status</code>); a record that is not for resuscitation gets none (Issue #3483).</td>
+<td><code>types/population.py::PersonRecord.record_death</code>, <code>modules/resuscitation/enricher.py::enrich_resuscitation</code></td>
+<td><code>tests/unit/test_death_record_2166.py</code>, <code>tests/unit/modules/resuscitation/test_resuscitation_3483.py</code></td>
 </tr>
 </tbody>
 </table>

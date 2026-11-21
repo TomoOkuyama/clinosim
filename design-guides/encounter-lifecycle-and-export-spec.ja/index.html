@@ -2447,14 +2447,14 @@
 <td><code>tests/unit/simulator/test_procedures_in_encounter_2863.py</code></td>
 </tr>
 <tr>
-<td>シミュレーションは一つのループで月ごとに進む: 年の境目(人口の前進、医療カレンダー)、月次のライフイベント、救急枠、その月に積まれた事象の日付順の実行。</td>
-<td><code>simulator/phases/_forward_loop.py</code></td>
-<td><code>tests/unit/simulator/test_forward_loop_2169.py</code></td>
+<td>シミュレーションは一つのループで月ごとに進む: 年の境目(人口の前進、医療カレンダー)、月次のライフイベント、救急枠 (入院中に当たる枠は、後ろに回さず捨てる)、その月に積まれた事象の日付順の実行。</td>
+<td><code>simulator/phases/_forward_loop.py</code>、<code>simulator/phases/_ed_slot.py::dispatch_ed_slot</code></td>
+<td><code>tests/unit/simulator/test_forward_loop_2169.py</code>, <code>tests/unit/simulator/test_ed_slot_inpatient_gate_3393.py</code></td>
 </tr>
 <tr>
-<td>死亡は一つのメソッドで一度だけ記録し、最も早いものを採る(後日の事前抽選の地域死亡は、それより早い院内死亡で置き換える)。</td>
-<td><code>types/population.py::PersonRecord.record_death</code></td>
-<td><code>tests/unit/test_death_record_2166.py</code></td>
+<td>死亡は一つのメソッドで一度だけ記録し、最も早いものを採る(後日の事前抽選の地域死亡は、それより早い院内死亡で置き換える)。 死亡した入院・救急の記録で code status がフルコードの階層のものには、死亡時刻に終わる CPR の処置を 1 件と、その間に投与したエピネフリンを加える (POST_RECORDS の enricher、順序 55、<code>code_status</code> の後)。蘇生を行わない記録には加えない (Issue #3483)。</td>
+<td><code>types/population.py::PersonRecord.record_death</code>、<code>modules/resuscitation/enricher.py::enrich_resuscitation</code></td>
+<td><code>tests/unit/test_death_record_2166.py</code>, <code>tests/unit/modules/resuscitation/test_resuscitation_3483.py</code></td>
 </tr>
 </tbody>
 </table>

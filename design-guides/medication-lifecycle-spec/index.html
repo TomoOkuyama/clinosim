@@ -2516,6 +2516,11 @@
 <td><code>clinosim/codes/drugs.py</code> (see the code-mapping spec)</td>
 <td><code>tests/unit/test_has_drug_logic_2377.py</code></td>
 </tr>
+<tr>
+<td>A protocol dose or detail written as a range ("25-100mg PO daily", "NS 80-125 mL/h") is resolved to one dose once, when the protocol is loaded, by the rule of the range's unit: the lower, starting dose by default, the upper rate for a maintenance-fluid mL/h rate. The written range stays on the entry as <code>titration_range</code>, so an order, a prescription or an administration states one dose. It draws no random number (Issue #3265).</td>
+<td><code>modules/order/dose_range.py::resolve_dose_ranges</code>, <code>modules/disease/protocol.py::resolve_protocol_dose_ranges</code>; data <code>modules/order/reference_data/dose_range_resolution.yaml</code></td>
+<td><code>tests/unit/test_dose_range_resolution_3265.py</code></td>
+</tr>
 </tbody>
 </table>
 <h2 id="4-administrations">4. Administrations<a class="headerlink" href="#4-administrations" title="Permanent link">&para;</a></h2>
@@ -2534,9 +2539,9 @@
 <td><code>tests/unit/test_prn_from_state.py</code>, <code>tests/unit/test_prn_inhaler_cadence_1318.py</code></td>
 </tr>
 <tr>
-<td>A potassium at or above the treatment threshold holds two scopes of drugs: <code>hold_classes</code> (ACE inhibitors, ARBs, potassium-sparing diuretics) from the result to discharge, and <code>hold_while_high_classes</code> (digoxin) only while the latest potassium before the dose stays at or above it. A held dose's reason is the latest potassium resulted before it. The order set records the dextrose given with the insulin as its own one-time dose.</td>
-<td><code>modules/drug_safety/hyperkalemia.py</code> (<code>PotassiumHold.high_at</code>, <code>reason_at</code>, <code>hyperkalemia_treatment_orders</code>); data <code>modules/drug_safety/reference_data/hyperkalemia_response.yaml</code>; applied in <code>simulator/daily_loop.py::_respond_to_hyperkalemia</code> and <code>medication_pipeline.py::_generate_mar</code></td>
-<td><code>tests/unit/drug_safety/test_hyperkalemia_response_2981.py</code>, <code>tests/unit/drug_safety/test_hyperkalemia_dextrose_digoxin_3232.py</code></td>
+<td>A potassium at or above the treatment threshold holds two scopes of drugs: <code>hold_classes</code> (ACE inhibitors, ARBs, potassium-sparing diuretics) from the result to discharge, and <code>hold_while_high_classes</code> (digoxin) only while the latest potassium before the dose stays at or above it. A held dose's reason is the latest potassium resulted before it. The order set records the dextrose given with the insulin as its own one-time dose. A hemolysed potassium (flag <code>H*</code> / <code>L*</code>, <code>is_hemolyzed</code>) is neither a hold trigger nor a treatment value nor a value of the potassium history: the daily loop orders a stat repeat draw <code>delay_minutes</code> after it (<code>_redraw_hemolyzed</code>, <code>hemolysis_redraw.yaml</code>), up to <code>max_redraws</code>, and treatment follows the repeat (Issue #3452).</td>
+<td><code>modules/drug_safety/hyperkalemia.py</code> (<code>PotassiumHold.high_at</code>, <code>reason_at</code>, <code>hyperkalemia_treatment_orders</code>); <code>modules/observation/hemolysis_redraw.py</code> (<code>is_hemolyzed</code>, <code>hemolysis_redraw_rules</code>), <code>simulator/daily_loop.py::_redraw_hemolyzed</code>; data <code>modules/observation/reference_data/hemolysis_redraw.yaml</code>, <code>modules/drug_safety/reference_data/hyperkalemia_response.yaml</code>; applied in <code>simulator/daily_loop.py::_respond_to_hyperkalemia</code> and <code>medication_pipeline.py::_generate_mar</code></td>
+<td><code>tests/unit/drug_safety/test_hyperkalemia_response_2981.py</code>, <code>tests/unit/drug_safety/test_hyperkalemia_dextrose_digoxin_3232.py</code>, <code>tests/unit/drug_safety/test_hemolyzed_potassium_redraw_3452.py</code></td>
 </tr>
 <tr>
 <td>While a vasopressor or inotrope runs as a continuous infusion (from its order time to its end time), every scheduled dose of an antihypertensive, beta-blocker, diuretic or nitrate is held with the reason "on vasopressor or inotrope infusion"; an oral vasopressor or a one-time dose holds nothing. The vital-sign hold parameters (SBP &lt; 90, HR &lt; 50) are judged on the latest vital signs recorded in the stay before each dose (the pre-admission baseline only before the first ones), applied once the day's vital signs are recorded. A hold reason is displayed in the note's language through <code>hold_reason_display</code>.</td>
@@ -2574,9 +2579,9 @@
 <td><code>tests/unit/simulator/test_mixed_co_disease_3392.py</code></td>
 </tr>
 <tr>
-<td>While the latest serum creatinine meets the KDIGO 2012 AKI definition (a rise of at least 0.3 mg/dL within 48 hours or to at least 1.5 times the lowest result of the stay so far, which is the baseline), every scheduled dose of an NSAID (aspirin excepted), ACE inhibitor, ARB, thiazide or potassium-sparing diuretic, or metformin is held with the reason "acute kidney injury" and given again once the creatinine no longer meets the definition. The discharge prescription leaves the same drugs off (logged as a hold) while the final creatinine meets it, and continues them once it no longer does. The patient is not discharge-ready, and the stay is extended by at most 5 days beyond the sampled stay, while the creatinine meets the definition and has not fallen by 10% from its peak or a temperature of at least 38.0 °C was recorded in the last 24 hours; a stay that reaches the cap with either finding unresolved keeps the disposition it would otherwise have had, and when the final creatinine still meets the definition the discharge instructions add an outpatient creatinine recheck about 1 week after discharge, a kidney-function evaluation about 3 months after the illness (KDIGO 2012 Recommendation 2.3.4) and a note that the held drugs are restarted only after the recheck has been reviewed.</td>
-<td><code>aki_response.py</code>, <code>medication_pipeline.py::_generate_mar</code>, <code>discharge_gate.py</code>, <code>discharge_rx.py::build_discharge_rx</code>; values in <code>reference_data/aki_response.yaml</code></td>
-<td></td>
+<td>While the latest serum creatinine meets the KDIGO 2012 AKI definition (a rise of at least 0.3 mg/dL within 48 hours or to at least 1.5 times the lowest result of the stay so far, which is the baseline), every scheduled dose of an NSAID (aspirin excepted), ACE inhibitor, ARB, thiazide or potassium-sparing diuretic, or metformin is held with the reason of <code>aki_response.yaml</code> (<code>reason</code>) and given again once the creatinine no longer meets the definition. The discharge prescription leaves the same drugs off (logged as a hold) while the final creatinine meets it, and continues them once it no longer does. The patient is not discharge-ready, and the stay is extended by at most 5 days beyond the sampled stay, while the creatinine meets the definition and has not fallen by 10% from its peak or a temperature of at least 38.0 °C was recorded in the last 24 hours; a stay that reaches the cap with either finding unresolved keeps the disposition it would otherwise have had, and when the final creatinine still meets the definition the discharge instructions add an outpatient creatinine recheck about 1 week after discharge, a kidney-function evaluation about 3 months after the illness (KDIGO 2012 Recommendation 2.3.4) and a note that the held drugs are restarted only after the recheck has been reviewed.</td>
+<td><code>simulator/aki_response.py</code>, <code>simulator/medication_pipeline.py::_generate_mar</code>, <code>simulator/discharge_gate.py</code>, <code>simulator/discharge_rx.py::build_discharge_rx</code>; values in <code>simulator/reference_data/aki_response.yaml</code></td>
+<td><code>tests/unit/simulator/test_aki_response_3281.py</code></td>
 </tr>
 <tr>
 <td>An order whose frequency is a cadence longer than a day (weekly, monthly, every other day) is given once on the day it is ordered and on every interval after; the cadence is read from the frequency-token catalog, so a weekly dose text is never defaulted to daily.</td>
@@ -2589,8 +2594,8 @@
 <td><code>tests/unit/simulator/test_mar_not_before_order_3311.py</code>, <code>tests/unit/simulator/test_mar_late_admission_first_dose.py</code></td>
 </tr>
 <tr>
-<td>Orders placed outside the loop (VTE prophylaxis enricher, delivery bundle) get administrations from one helper set that draws no RNG: fixed daily times and a nurse picked by a stable hash. Enrichers that schedule their own doses (HAI antibiotic regimens, newborn birth-admission prophylaxis) still name the giving nurse through the same <code>stable_nurse</code>.</td>
-<td><code>modules/order/placed_order_mar.py</code> (<code>daily_times</code>, <code>stable_nurse</code>, <code>administrations_for</code>)</td>
+<td>Orders placed outside the loop (VTE prophylaxis enricher, delivery bundle) get administrations from one helper set that draws no RNG: fixed daily times and a nurse picked by a stable hash. Enrichers that schedule their own doses (HAI antibiotic regimens, newborn birth-admission prophylaxis) still name the giving nurse through the same <code>stable_nurse</code>. The resuscitation enricher (POST_RECORDS) places an epinephrine order and its administrations and names the giving nurse the same way (<code>stable_nurse</code>).</td>
+<td><code>modules/order/placed_order_mar.py</code> (<code>daily_times</code>, <code>stable_nurse</code>, <code>administrations_for</code>), <code>modules/resuscitation/enricher.py</code></td>
 <td><code>tests/unit/modules/order/test_placed_order_mar_spec.py</code>, <code>tests/unit/test_hai_abx_giving_nurse_2823.py</code>, <code>tests/unit/modules/newborn/test_newborn_giving_nurse_2824.py</code></td>
 </tr>
 <tr>
@@ -2626,7 +2631,7 @@
 <td><code>tests/unit/test_close_orders_at_discharge_2606.py</code></td>
 </tr>
 <tr>
-<td>Both run in one POST_ENCOUNTER enricher, after every module that places orders.</td>
+<td>Both run in one POST_ENCOUNTER enricher, after every POST_ENCOUNTER module that places orders. An order placed later by the POST_RECORDS resuscitation enricher (the epinephrine of a full-code death) is not seen by it.</td>
 <td><code>supersede.py::enrich_supersede_orders</code></td>
 <td><code>tests/unit/test_supersede_medication_orders_2615.py</code></td>
 </tr>
@@ -2643,14 +2648,24 @@
 </thead>
 <tbody>
 <tr>
-<td>The discharge prescription is built from the protocol's discharge medications and the continued home medications, without the drugs held for renal function.</td>
-<td><code>simulator/discharge_rx.py::build_discharge_rx</code></td>
-<td><code>tests/unit/test_build_discharge_rx_continue_at_discharge.py</code>, <code>tests/unit/test_discharge_rx_drug_safety_1334.py</code>, <code>tests/unit/test_discharge_oral_route_integrity.py</code></td>
+<td>The discharge prescription is built from the protocol's discharge medications and the continued home medications, without the drugs held for renal function. A <code>discharge_oral</code> entry with an empty dose declares <code>home_dose: resume</code> or a <code>start_dose</code>: it takes the dose, route and frequency of the patient's home regimen when the patient has it, else the start dose (insulin: the weight-based basal start dose of <code>insulin_initiation.yaml</code>, <code>basal_insulin_start_dose</code>) (Issue #3461).</td>
+<td><code>simulator/discharge_rx.py::build_discharge_rx</code>, <code>modules/order/insulin_initiation.py::basal_insulin_start_dose</code></td>
+<td><code>tests/unit/test_build_discharge_rx_continue_at_discharge.py</code>, <code>tests/unit/test_discharge_rx_drug_safety_1334.py</code>, <code>tests/unit/test_discharge_oral_route_integrity.py</code>, <code>tests/unit/test_discharge_resume_or_start_dose_3461.py</code></td>
 </tr>
 <tr>
 <td>Discharge, activation of home medications and the longitudinal history reconcile against one rule list: a second agent of a class a listed rule names is not added (one statin, one P2Y12 inhibitor, one anticoagulant, one beta-blocker (Issue #3274), no ACE inhibitor with an ARB).</td>
 <td><code>modules/drug_safety/engine.py::discharge_reconciliation_rules</code>; callers <code>discharge_rx.py</code>, <code>modules/patient/activator.py</code>, <code>modules/longitudinal/engine.py</code></td>
 <td><code>tests/unit/test_discharge_reconciliation_2713.py</code></td>
+</tr>
+<tr>
+<td>The delivery discharge prescription also continues the mother's maintenance home medications (28 days, structured dose, route and frequency; allergy-blocked drugs and duplicates of an analgesic already prescribed are left out) (Issue #3463).</td>
+<td><code>simulator/perinatal.py::simulate_delivery_encounter</code>, <code>simulator/outpatient.py::home_medication_continuation_items</code></td>
+<td><code>tests/unit/simulator/test_delivery_discharge_continues_home_meds_3463.py</code></td>
+</tr>
+<tr>
+<td>The prenatal supplement input (the Z34 entry of <code>chronic_medications.yaml</code>) is added at activation only while a pregnancy is open or within the postpartum window <code>prenatal_supplement_postpartum_days</code> of <code>perinatal.yaml</code>; supplements carried from an earlier activation are dropped after it (Issue #3503).</td>
+<td><code>modules/patient/activator.py</code> (<code>_prenatal_supplement_window_active</code>), <code>locale/shared/perinatal.yaml</code></td>
+<td><code>tests/unit/test_activator_prenatal_supplement_window_3503.py</code></td>
 </tr>
 <tr>
 <td>With an oral anticoagulant, dual antiplatelet therapy becomes the anticoagulant + clopidogrel and aspirin a short course, at discharge and at activation of home medications.</td>

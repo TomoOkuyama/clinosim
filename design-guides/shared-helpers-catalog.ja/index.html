@@ -2497,7 +2497,7 @@
 <td>シミュレーションのフェーズとキーごとに独立した生成器。</td>
 </tr>
 <tr>
-<td><code>clinosim/seeding.py</code> <code>text_seed</code>, <code>panel_specimen_seed</code>, <code>individual_lab_seed</code>, <code>chronic_medication_seed</code>, <code>discharge_prescription_seed</code>, <code>ambulatory_visit_length_seed</code>, <code>issue939_procedure_seed</code>, <code>chronic_augment_sex_seed</code>, <code>chronic_isolated_seed</code>, <code>longitudinal_event_seed</code>, <code>perinatal_delivery_seed</code>, <code>chemotherapy_regimen_seed</code>, <code>daily_output_seed</code>, <code>radiation_therapy_seed</code>, <code>avpu_day_seed</code>, <code>newborn_seed</code>, <code>pregnancy_outcome_seed</code>, <code>newborn_conditions_seed</code>, <code>enumeration_case_seed</code>, <code>identity_person_seed</code></td>
+<td><code>clinosim/seeding.py</code> <code>text_seed</code>, <code>panel_specimen_seed</code>, <code>individual_lab_seed</code>, <code>chronic_medication_seed</code>, <code>discharge_prescription_seed</code>, <code>ambulatory_visit_length_seed</code>, <code>issue939_procedure_seed</code>, <code>chronic_augment_sex_seed</code>, <code>chronic_isolated_seed</code>, <code>longitudinal_event_seed</code>, <code>perinatal_delivery_seed</code>, <code>chemotherapy_regimen_seed</code>, <code>daily_output_seed</code>, <code>radiation_therapy_seed</code>, <code>avpu_day_seed</code>, <code>newborn_seed</code>, <code>pregnancy_outcome_seed</code>, <code>newborn_conditions_seed</code>, <code>enumeration_case_seed</code>, <code>identity_person_seed</code>, <code>terminal_course_seed</code>, <code>emergency_contact_seed</code>, <code>marital_status_seed</code>, <code>vasopressor_start_seed</code>, <code>co_disease_orders_seed</code>, <code>resuscitation_seed</code></td>
 <td>実体ごとの名前付きシード。呼び出し側でシードを導出せず、ここに名前付き関数を足す。</td>
 </tr>
 <tr>
@@ -2904,6 +2904,26 @@
 <td><code>clinosim/modules/document/engine.py</code> <code>_compute_los_days</code> <em>(モジュール内部、narrative pass も使用)</em></td>
 <td>在院日数 (入院中の代替値を含む)。</td>
 </tr>
+<tr>
+<td><code>clinosim/modules/observation/hemolysis_redraw.py</code> <code>is_hemolyzed(flag)</code> / <code>HEMOLYZED_FLAGS</code></td>
+<td>溶血した検体の flag の唯一の定義。<code>H*</code> / <code>L*</code> をその場で比較しない。</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/longitudinal/stage_refresh.py</code> <code>creatinine_egfr(patient, creatinine, at, unit=None)</code></td>
+<td>クレアチニン結果の eGFR を国ごとの式で求める。病期更新 enricher と H&amp;P の既往歴で共有する。</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/order/dose_range.py</code> <code>resolve_dose_ranges(text)</code></td>
+<td>プロトコルの用量の範囲を一つの用量にする。</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/order/insulin_initiation.py</code> <code>basal_insulin_start_dose(weight_kg)</code></td>
+<td>体重に基づく基礎インスリンの開始用量。</td>
+</tr>
+<tr>
+<td><code>clinosim/simulator/terminal_course.py</code> <code>drop_results_after_death(orders, lab_results, death_time)</code></td>
+<td>死亡後の日付の検査オーダーと結果を除く。</td>
+</tr>
 </tbody>
 </table>
 <h2 id="8-fhir-の組み立て-layer-4">8. FHIR の組み立て (Layer 4)<a class="headerlink" href="#8-fhir-の組み立て-layer-4" title="Permanent link">&para;</a></h2>
@@ -2981,8 +3001,40 @@
 <td>ある時間枠 (看護の勤務帯) の測定と、その中の各バイタルの最新値。</td>
 </tr>
 <tr>
-<td><code>clinosim/modules/document/narrative/_as_of.py</code> <code>in_force_at(records, as_of)</code></td>
+<td><code>clinosim/modules/document/narrative/_as_of.py</code> <code>in_force_at(records, as_of, key=)</code></td>
 <td>文書の作成時刻に有効な日付つき記録 (ADL、看護リスク評価)。在院中最後の記録を位置で取らない。</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/document/narrative/_as_of.py</code> <code>recorded_by</code> / <code>results_known_at</code> / <code>results_after</code> / <code>procedures_started_by</code> / <code>procedures_after</code></td>
+<td>日付つき記録・検査結果・処置を文書の作成時刻までに絞る。ノートは時刻の比較をその場で書かない。</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/document/narrative/_prescription_line.py</code> <code>prescription_bits(med, lang, drug_name=, show_route=)</code></td>
+<td>処方行の用量・投与経路・頻度・日数 (ED の持ち帰り処方、退院サマリー、外来 SOAP)。生の <code>frequency</code> / <code>days_supply</code> は読まない。</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/document/narrative/_visit_reason.py</code> <code>join_sentences(sentences, lang)</code></td>
+<td>すでに文末記号で終わる文を、記号を重ねずに一つの段落にする (文末記号に安全な連結)。</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/document/narrative/renderers/section_builders/chief_complaint.py</code> <code>encounter_chief_complaint(ctx)</code> / <code>chief_complaint_texts(ctx)</code></td>
+<td>受診の主訴は一つ。提示された症状かどうかを照らす、表示される主訴と記録された主訴の文。</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/document/narrative/_outpatient_results.py</code> <code>known_labs(ctx)</code> / <code>note_time(ctx)</code> / <code>latest_lab_stage(code, stored, labs)</code></td>
+<td>外来ノートの時刻に判明している検査結果と、それが示す慢性疾患の病期。</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/document/narrative/_progress_exam.py</code> <code>agreeing_clauses(text, states, lang)</code></td>
+<td>その期間の測定値と矛盾する身体所見の句を落とす (日々の経過記録)。</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/document/narrative/renderers/_exam_agreement.py</code> <code>agreeing_clauses(text, states, lang)</code></td>
+<td>疾患の身体所見を来院時の測定値に照らして同様に落とす (ED ノートと入院時記録)。</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/document/referral_recipient.py</code> <code>is_transfer_disposition</code> / <code>pick_external_hospital</code></td>
+<td>紹介状の宛先。転院・転送を伴う退院区分のときだけ、その国の外部病院から決定的に選ぶ。</td>
 </tr>
 <tr>
 <td><code>clinosim/modules/document/narrative/_narrative_interpretation_thresholds.py</code> <code>bmi_band</code> / <code>bp_band</code></td>
