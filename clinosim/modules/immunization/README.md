@@ -178,6 +178,13 @@ physician roster), hosted once per patient. When any `ENC-VAX-*`
 encounter exists, `document.engine.document_enricher` is re-invoked so
 those encounters get their document stubs.
 
+Each synthesised `ENC-VAX-*` encounter also gets the visit's pre-vaccination
+vital signs (Issue #3464): one `VitalSignRecord` at the visit instant,
+temperature and pulse for a child and additionally blood pressure for an
+adult (`_visit_vitals` in `locale/shared/chronic_followup.yaml`), derived
+from the patient's physiological state through a sub-RNG seeded by the
+encounter id, so no existing stream gains a draw.
+
 `Z23` is the ICD-10-CM "Encounter for immunization" the CIF records on a
 vaccination visit. In WHO ICD-10 (JP output) `Z23` means single bacterial
 diseases only, so `visits.vaccination_visit_reason_codes(country, cvx_codes)`

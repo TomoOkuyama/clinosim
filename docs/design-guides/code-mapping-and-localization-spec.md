@@ -261,7 +261,7 @@ Consumers resolve names only through these functions.
 | `order_test_display(test, lang)` | the test an order names (lab, panel or imaging exam) in an order reason (`clinical_intent_ja`, `ServiceRequest.reasonCode.text`): `lab_display`, else `imaging_exam_display` (Issue #3024) |
 | `department_display(dept, lang)` / `department_specialty_snomed(dept)` | department label / specialty code |
 | `role_display(role, lang, *, facet)` | staff role title, suffix or qualification |
-| `chronic_followup_vitals(code)` / `chronic_followup_interval_months(codes)` | follow-up schedule data |
+| `chronic_followup_vitals(code)` / `visit_vitals(key)` / `chronic_followup_interval_months(codes)` | follow-up schedule data; vitals taken at a vaccination visit |
 | `t(key, lang, **kwargs)` (`clinosim.locale.i18n`) | phrase; `""` for an unknown key (never the key) |
 | `locale.localized`: `localized(entry, lang, *, fallback)`, `localized_field(record, base, lang, *, fallback)`, `label(catalog, section, key, lang, *, fallback)` | the one value selection for language maps, `<base>_<lang>` fields and vocabulary catalogs (§6). `t`, `resolve_localized_display` and `resolve_text` delegate to it |
 | `locale.table`: `LocalizedTable.get(key, lang, *, fallback)`, `localized_tables()` | the base class every display and translation table is read through (§2.3); `vocab_display`, `imaging_exam_display`, `prompt_label` and `narrative_label` delegate to it; `localized_tables()` lists every table for tests |

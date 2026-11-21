@@ -153,6 +153,11 @@ attending は primary-care 医師 roster から決定論選出) を合成し、�
 あたり 1 回だけ host する。`ENC-VAX-*` が存在すれば
 `document.engine.document_enricher` を再実行して文書 stub を付与する。
 
+合成した各 `ENC-VAX-*` encounter には接種前のバイタルサイン (Issue #3464) も
+付く。受診時刻の `VitalSignRecord` 1 件で、小児は体温と脈拍、成人はさらに血圧
+(`locale/shared/chronic_followup.yaml` の `_visit_vitals`)。患者の生理状態から
+encounter id を seed とする sub-RNG で導出するため、既存 stream に draw は増えない。
+
 `Z23` は CIF が予防接種受診に記録する ICD-10-CM の "Encounter for
 immunization"。WHO ICD-10 (JP 出力) の `Z23` は単独の細菌性疾患のみを指すため、
 `visits.vaccination_visit_reason_codes(country, cvx_codes)` が JP の受診に、

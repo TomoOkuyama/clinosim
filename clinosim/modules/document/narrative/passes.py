@@ -84,8 +84,10 @@ def scope_record_to_encounter(patient_dict: dict[str, Any], encounter_dict: Any)
     encounters = patient_dict.get("encounters") or []
     primary_id = str(_o(encounters[0], "encounter_id", "") or "") if encounters else ""
     enc_id = str(_o(encounter_dict, "encounter_id", "") or "")
-    if not enc_id or enc_id == primary_id:
+    if not enc_id:
         return patient_dict
+    if enc_id == primary_id:
+        return _without_companion_vitals(patient_dict, encounters)
 
     start = _naive(_o(encounter_dict, "admission_datetime", None))
     end = _naive(_o(encounter_dict, "discharge_datetime", None)) or start
@@ -114,6 +116,33 @@ def scope_record_to_encounter(patient_dict: dict[str, Any], encounter_dict: Any)
     rx = patient_dict.get("discharge_prescription") or None
     scoped["discharge_prescription"] = rx if rx is not None and _within(_o(rx, "issue_date", None)) else None
     return scoped
+
+
+def _without_companion_vitals(patient_dict: dict[str, Any], encounters: list[Any]) -> dict[str, Any]:
+    """The record seen from its own encounter, minus the vital signs of the
+    visits appended to it (Issue #3464): the pre-vaccination check of an
+    ``ENC-VAX-*`` visit is that visit's, not the hosting encounter's, so it
+    must not appear in the hosting note or its measurement counts. The record
+    is returned unchanged when no vital falls in an appended visit."""
+
+    def _period(enc: Any) -> tuple[Any, Any]:
+        start = _naive(_o(enc, "admission_datetime", None))
+        return start, _naive(_o(enc, "discharge_datetime", None)) or start
+
+    def _in(period: tuple[Any, Any], ts: Any) -> bool:
+        return ts is not None and period[0] is not None and period[0] <= ts <= period[1]
+
+    own = _period(encounters[0])
+    others = [_period(e) for e in encounters[1:]]
+    vitals = patient_dict.get("vital_signs") or []
+    kept = [
+        v
+        for v in vitals
+        if (ts := _naive(_o(v, "timestamp", None))) is None or _in(own, ts) or not any(_in(p, ts) for p in others)
+    ]
+    if len(kept) == len(vitals):
+        return patient_dict
+    return {**patient_dict, "vital_signs": kept}
 
 
 class NarrativePass(ABC):
