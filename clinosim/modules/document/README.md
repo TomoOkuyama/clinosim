@@ -210,6 +210,7 @@ clinosim/modules/document/
     progress_vitals.yaml             progress-note vitals period summary: trend thresholds, self-report AVPU, printed extremes, pain sites (narrative/renderers/_composers.py)
     progress_exam.yaml               progress-note exam follows the period's vitals: vital limits (a child's low systolic limit is the PALS hypotension threshold), vital-stating terms, findings added for abnormal readings, course items, sentence-final verb forms for a sentence that lost its trailing clause, patient-specific limit overrides (a COPD patient's SpO2 floor 88 %); "now" statements use the latest reading (narrative/_progress_exam.py)
     progress_course.yaml             progress-note course: post-procedure types, key-lab limit, discharge-planning window (narrative/_progress_course.py)
+    progress_symptoms.yaml           progress-note Subjective respiratory group: diseases whose breathing course is stated (narrative/_progress_symptoms.py)
     hospital_course.yaml             discharge-summary hospital course: treatment list caps, abnormal-result treatments, medication-change cap (narrative/_hospital_course.py)
   narrative/                         narrative subpackage (Stage 2 pipeline) — see narrative/README.md
 ```

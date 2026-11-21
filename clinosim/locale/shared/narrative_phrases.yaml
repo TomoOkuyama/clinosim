@@ -211,6 +211,59 @@ progress:
   withdrawal_settling:
     ja: "振戦・発汗軽快、離脱症状は改善傾向 (HR {hr})。"
     en: "Tremor and sweating settling, withdrawal improving (HR {hr})."
+  # Issue #3454: how breathing is going in a respiratory admission, from the
+  # respiratory rate, SpO2 and oxygen therapy of the latest readings
+  # (progress_symptoms.yaml). ``resp_dyspnea_*`` is used for a disease whose
+  # chief complaint is dyspnea, ``resp_status_*`` otherwise; no cough, wheeze
+  # or sputum is stated (the CIF holds none). ``{detail}`` is resp_detail.
+  resp_detail:
+    ja: " ({list})"
+    en: " ({list})"
+  resp_detail_rr:
+    ja: "RR {v}"
+    en: "RR {v}"
+  resp_detail_spo2:
+    ja: "SpO2 {v}%"
+    en: "SpO2 {v}%"
+  resp_status_stable:
+    ja: "呼吸状態は安定{detail}。"
+    en: "Respiratory status stable{detail}."
+  resp_dyspnea_present:
+    ja: "呼吸困難感あり{detail}。"
+    en: "Dyspnea present{detail}."
+  resp_dyspnea_new:
+    ja: "呼吸困難感が出現{detail}。"
+    en: "New dyspnea{detail}."
+  resp_dyspnea_worsening:
+    ja: "呼吸困難感は前日より増強{detail}。"
+    en: "Dyspnea worsening since yesterday{detail}."
+  resp_dyspnea_persistent:
+    ja: "呼吸困難感は前日と同程度に持続{detail}。"
+    en: "Dyspnea persisting, unchanged from yesterday{detail}."
+  resp_dyspnea_improving:
+    ja: "呼吸困難感は前日より軽減{detail}。"
+    en: "Dyspnea improving since yesterday{detail}."
+  resp_dyspnea_resolved:
+    ja: "呼吸困難感は前日より軽減し、呼吸状態は安定{detail}。"
+    en: "Dyspnea improved since yesterday, respiratory status now stable{detail}."
+  resp_status_present:
+    ja: "呼吸状態は不良{detail}。"
+    en: "Respiratory status impaired{detail}."
+  resp_status_new:
+    ja: "呼吸状態が悪化{detail}。"
+    en: "Respiratory status has worsened{detail}."
+  resp_status_worsening:
+    ja: "呼吸状態は前日より悪化{detail}。"
+    en: "Respiratory status worse than yesterday{detail}."
+  resp_status_persistent:
+    ja: "呼吸状態は前日と同程度に不良{detail}。"
+    en: "Respiratory status still impaired, unchanged from yesterday{detail}."
+  resp_status_improving:
+    ja: "呼吸状態は前日より改善傾向{detail}。"
+    en: "Respiratory status improving since yesterday{detail}."
+  resp_status_resolved:
+    ja: "呼吸状態は前日より改善し、安定{detail}。"
+    en: "Respiratory status improved since yesterday, now stable{detail}."
   # From template_generator._compose_progress_plan_from_state (Phase 1d-20).
   # Per-day inpatient plan lines: the drugs of the note's period by what
   # happened to them (Issue #3247: started, continued, given once by a

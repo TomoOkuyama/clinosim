@@ -1,0 +1,34 @@
+# The symptom a daily progress note's Subjective states from the recorded vital
+# signs (Issue #3454). Read by narrative/_progress_symptoms.py and applied by
+# narrative/renderers/_composers.py (progress Subjective).
+#
+# clinosim records no cough, wheeze or sputum; the one symptom of a respiratory
+# admission the CIF supports is the respiratory state: the respiratory rate, the
+# SpO2 and the oxygen therapy of the latest reading of the note's period against
+# the previous period's (progress_exam.yaml: the high-rate / low-SpO2 limits,
+# the patient's own SpO2 target, and the ``min_change`` of the course items that
+# decides whether a persisting abnormality is improving or worsening). The
+# note therefore states only how breathing is going, never a cough or wheeze.
+metadata:
+  kind: reference
+  name: progress_symptoms
+  source: clinosim
+
+# A group of diseases whose admission problem is breathing. ``diseases`` are
+# disease ids of disease/reference_data/<id>.yaml. The respiratory state is
+# worded as dyspnea ("呼吸困難感") when the admission chief complaint contains
+# one of ``dyspnea_terms`` (the disease presents with dyspnea), else as the
+# respiratory status ("呼吸状態"): influenza, whose complaint is fever and cough,
+# is not credited with a breathlessness the record does not name.
+respiratory:
+  diseases:
+    - asthma_exacerbation
+    - copd_exacerbation
+    - bacterial_pneumonia
+    - aspiration_pneumonia
+    - influenza
+    - pulmonary_embolism
+    - heart_failure_exacerbation
+  dyspnea_terms:
+    ja: [呼吸困難]
+    en: [dyspnea]

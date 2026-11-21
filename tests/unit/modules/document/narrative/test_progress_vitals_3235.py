@@ -152,9 +152,27 @@ def test_pain_named_by_disease_site() -> None:
     assert "Persistent right lower quadrant pain (NRS 7)" in en
 
 
-def test_pain_without_site_for_a_disease_without_one() -> None:
+def test_pain_without_a_source_is_not_stated() -> None:
+    # Issue #3454: a disease with no pain site, no complaint site and no
+    # operation or procedure has no source for a pain line.
     vitals = [_v(0, 12, pain_score=7), _v(1, 6, pain_score=7)]
-    assert "疼痛持続 (NRS 7)" in compose_progress_subjective_from_state(_ctx(vitals, disease="sepsis"))
+    assert "疼痛" not in compose_progress_subjective_from_state(_ctx(vitals, disease="sepsis"))
+
+
+def test_generic_pain_is_stated_after_an_operation() -> None:
+    vitals = [_v(0, 12, pain_score=7), _v(1, 6, pain_score=7)]
+    ctx = _ctx(vitals, disease="sepsis")
+    ctx.procedures = [
+        {
+            "encounter_id": "E1",
+            "procedure_type": "appendectomy",
+            "category_code": "387713003",
+            "start_datetime": _v(0, 14)["timestamp"],
+            "procedure_name": "Appendectomy",
+            "procedure_name_ja": "虫垂切除術",
+        }
+    ]
+    assert "疼痛持続 (NRS 7)" in compose_progress_subjective_from_state(ctx)
 
 
 def test_fever_of_exactly_38_is_an_extreme() -> None:
