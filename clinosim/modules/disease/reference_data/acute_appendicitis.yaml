@@ -32,6 +32,8 @@ diagnostic:
 
 icd_codes:
   primary: "K35.80"  # Unspecified acute appendicitis without abscess
+  # Codes the discharge diagnosis may refine the primary to (organism, etiology, severity); see diagnosis_progression.
+  discharge_refinements: ["K35.2"]
   variants:
     - {code: "K35.80", name: "Acute appendicitis without abscess", probability: 0.55}
     - {code: "K35.2", name: "Acute appendicitis with generalized peritonitis", probability: 0.10}

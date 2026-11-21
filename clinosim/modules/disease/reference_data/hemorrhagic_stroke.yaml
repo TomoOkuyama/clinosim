@@ -32,6 +32,8 @@ medication_holds:
 
 icd_codes:
   primary: "I61.9"  # Nontraumatic intracerebral hemorrhage, unspecified
+  # Codes the discharge diagnosis may refine the primary to (organism, etiology, severity); see diagnosis_progression.
+  discharge_refinements: ["I61.0"]
   variants:
     - {code: "I61.0", name: "Nontraumatic ICH in hemisphere, subcortical", probability: 0.35}
     - {code: "I61.1", name: "Nontraumatic ICH in hemisphere, cortical", probability: 0.20}

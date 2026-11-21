@@ -19,6 +19,8 @@ minimum_severity: null
 acid_base_type: respiratory  # severe bronchospasm → CO2 retention (respiratory acidosis)
 icd_codes:
   primary: "J45.21"  # Mild intermittent asthma with acute exacerbation (catch-all for exacerbation)
+  # Codes the discharge diagnosis may refine the primary to (organism, etiology, severity); see diagnosis_progression.
+  discharge_refinements: ["J45.41"]
   variants:
     - {code: "J45.21", name: "Mild intermittent asthma with acute exacerbation", probability: 0.10}
     - {code: "J45.31", name: "Mild persistent asthma with acute exacerbation", probability: 0.15}

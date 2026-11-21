@@ -178,7 +178,9 @@ clinosim/simulator/
                          (reference_data/diagnosis_rules.yaml を読む)
   sepsis_severity.py     敗血症の退院診断の重症度コード (敗血症性ショック /
                          重症敗血症 / 敗血症) を入院中のバイタル・MAR・検査
-                         から決める (Issue #3269)
+                         から決める (Issue #3269)。R65.2x の重症度は
+                         A41.x 感染症の後に続く副傷病コードとして記録する
+                         (Issue #3448)
   event_refs.py          LifeEvent.disease_id / ConditionEvent.ground_truth_diseases
                          の値の名前空間宣言
 ```

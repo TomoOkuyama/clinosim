@@ -18,6 +18,8 @@ readmission_eligible: true  # high readmission rate ~15%
 
 icd_codes:
   primary: "K92.2"  # Gastrointestinal hemorrhage, unspecified
+  # Codes the discharge diagnosis may refine the primary to (organism, etiology, severity); see diagnosis_progression.
+  discharge_refinements: ["K25.4"]
   variants:
     - {code: "K92.0", name: "Hematemesis", probability: 0.25}
     - {code: "K92.1", name: "Melena", probability: 0.20}

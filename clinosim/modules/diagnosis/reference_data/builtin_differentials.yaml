@@ -483,6 +483,11 @@ differentials:
   - disease: other
     icd: S06.9
     prior: 0.15
+# A row is the discharge code of a stay at that diagnostic confidence. It may
+# only be the stay's primary code, an extension of it, or a refinement declared
+# in the protocol's `icd_codes.discharge_refinements`; never a less specific or
+# different condition (Issue #3448, guard test
+# tests/unit/simulator/test_discharge_progression_refines_primary_3448.py).
 diagnosis_progression:
   bacterial_pneumonia:
   - - 0.0
@@ -507,7 +512,7 @@ diagnosis_progression:
     - S72.00
   urinary_tract_infection:
   - - 0.0
-    - N39.0
+    - N10
   - - 0.7
     - N10
   - - 0.9
@@ -549,14 +554,14 @@ diagnosis_progression:
     - K25.4
   diabetic_ketoacidosis:
   - - 0.0
-    - E11.65
+    - E11.10
   - - 0.7
     - E11.10
   - - 0.9
     - E11.10
   ileus:
   - - 0.0
-    - K56.9
+    - K56.6
   - - 0.7
     - K56.6
   - - 0.9
@@ -570,7 +575,7 @@ diagnosis_progression:
     - K85.1
   acute_appendicitis:
   - - 0.0
-    - K37
+    - K35.80
   - - 0.7
     - K35.80
   - - 0.9
@@ -584,7 +589,7 @@ diagnosis_progression:
     - I26.0
   acute_cholecystitis:
   - - 0.0
-    - K81.9
+    - K81.0
   - - 0.7
     - K81.0
   - - 0.9
@@ -626,14 +631,14 @@ diagnosis_progression:
     - J69.0
   influenza:
   - - 0.0
-    - J11.1
+    - J10.1
   - - 0.7
     - J10.1
   - - 0.9
     - J10.0
   asthma_exacerbation:
   - - 0.0
-    - J45.9
+    - J45.21
   - - 0.7
     - J45.21
   - - 0.9
@@ -647,14 +652,14 @@ diagnosis_progression:
     - I61.0
   vertebral_compression_fracture:
   - - 0.0
-    - M48.50
+    - M80.08
   - - 0.7
     - M80.08
   - - 0.9
     - M80.08
   deep_vein_thrombosis:
   - - 0.0
-    - I82.90
+    - I80.20
   - - 0.7
     - I80.20
   - - 0.9

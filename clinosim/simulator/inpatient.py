@@ -14,6 +14,7 @@ from clinosim.modules.clinical_course.engine import (
     select_archetype,
 )
 from clinosim.modules.diagnosis.engine import (
+    discharge_code_is_admissible,
     discharge_diagnosis_code,
     initialize_differential,
 )
@@ -162,9 +163,10 @@ def _derive_final_diagnosis(
     """Walk the differential to a final discharge diagnosis + sample
     the mixed-case missed-secondary-dx coin flip.
 
-    A sepsis code is then set to its severity (septic shock / severe sepsis /
-    sepsis) from the stay's ``vitals``, ``mars`` and ``lab_results`` (Issue
-    #3269, ``sepsis_severity_code``).
+    A sepsis stay's severity (septic shock / severe sepsis) is taken from the
+    stay's ``vitals``, ``mars`` and ``lab_results`` (Issue #3269,
+    ``sepsis_severity_code``) and recorded as a secondary diagnosis code; the
+    discharge diagnosis stays the systemic infection (Issue #3448).
 
     Returns ``(clinical_diagnosis, dx_name)``. ``dx_name`` is the
     human-readable diagnosis name (used by downstream narrative /
@@ -203,16 +205,33 @@ def _derive_final_diagnosis(
         from clinosim.codes import lookup
 
         dx_code, dx_name = refined, lookup("icd-10-cm", refined, "en")
-    severity_code = sepsis_severity_code(dx_code, vitals=vitals, mars=mars, lab_results=lab_results)
-    if severity_code != dx_code:
+    # Issue #3448: the walked code may refine the admitted condition, never
+    # replace it with a less specific or different one.
+    protocol_icd = getattr(protocol, "icd_codes", None) or {}
+    admitted = stay_primary_code(protocol, encounter_id)
+    if (
+        dx_code != UNRESOLVED_DIAGNOSIS_ICD
+        and not discharge_code_is_admissible(
+            dx_code, str(protocol_icd.get("primary") or ""), protocol_icd.get("discharge_refinements")
+        )
+        and not discharge_code_is_admissible(dx_code, admitted, protocol_icd.get("discharge_refinements"))
+    ):
         from clinosim.codes import lookup
 
-        dx_code, dx_name = severity_code, lookup("icd-10-cm", severity_code, "en")
+        dx_code, dx_name = admitted, lookup("icd-10-cm", admitted, "en")
+    # Issue #3269 / #3448: the stay's severity (R65.20 / R65.21) is an
+    # additional code sequenced after the systemic infection, never the
+    # discharge (principal) diagnosis (ICD-10-CM Official Guidelines FY2026,
+    # I.C.1.d.3).
+    severity_code = sepsis_severity_code(dx_code, vitals=vitals, mars=mars, lab_results=lab_results)
+    severity_secondary = severity_code if severity_code != dx_code and severity_code.startswith("R65.2") else None
 
     # Diagnosis correctness and missed diagnoses (AD-29)
     missed: list[str] = []
     overcalled: list[str] = []
     secondary_codes = secondary_diagnosis_codes(protocol, encounter_id)
+    if severity_secondary and severity_secondary not in secondary_codes:
+        secondary_codes.append(severity_secondary)
     if secondary_protocol and secondary_disease_id:
         rng.random()  # the AD-29 draw's place in the stay's stream (see above)
         if secondary_recognised_late:

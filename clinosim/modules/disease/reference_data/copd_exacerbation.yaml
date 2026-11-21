@@ -20,6 +20,8 @@ minimum_severity: null
 
 icd_codes:
   primary: "J44.1"  # COPD with acute exacerbation
+  # Codes the discharge diagnosis may refine the primary to (organism, etiology, severity); see diagnosis_progression.
+  discharge_refinements: ["J44.0"]
   variants:
     - {code: "J44.0", name: "COPD with acute lower respiratory infection", probability: 0.35}
     - {code: "J44.1", name: "COPD with acute exacerbation, unspecified", probability: 0.50}

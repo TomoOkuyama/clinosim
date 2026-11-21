@@ -83,6 +83,23 @@ P(Disease|Test) ∝ P(Test|Disease) × P(Disease)
 > (Issue #3258), which restricts the walk to the ground-truth disease's
 > candidate: the differential's top candidate may be another disease and is
 > never the discharge diagnosis. See [`README.md`](README.md).
+>
+> **Progression rows refine, never replace (Issue #3448).** Every code of a
+> `diagnosis_progression` table (built-in or protocol) is admissible for a stay
+> admitted as `icd_codes.primary` only if it is that primary, extends it (the
+> same characters plus more, `S72.0` -> `S72.00`) or is listed in the
+> protocol's `icd_codes.discharge_refinements` (organism, etiology or severity
+> that adds specificity: `J18.9` -> `J13`, `I50.9` -> `I50.0`). A less specific
+> or different condition (DKA -> hyperglycemia, acute pyelonephritis -> UTI
+> site not specified) is not. `discharge_code_is_admissible` is the canonical
+> predicate: the guard test
+> `tests/unit/simulator/test_discharge_progression_refines_primary_3448.py`
+> checks every protocol, and `_derive_final_diagnosis` falls back to the
+> admitted code when a walked code is not admissible. Sepsis severity
+> (R65.20 / R65.21) is an additional code sequenced after the systemic
+> infection (ICD-10-CM Official Guidelines FY2026, I.C.1.d.3: a code from
+> R65.2 can never be a principal diagnosis), so the discharge diagnosis stays
+> the infection code and the severity is a secondary diagnosis code.
 
 ### Bayesian update engine
 

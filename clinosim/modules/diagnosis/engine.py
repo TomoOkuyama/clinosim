@@ -6,6 +6,7 @@ updates via likelihood ratios as test results arrive.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
@@ -306,6 +307,18 @@ def get_current_diagnosis_code(
             return (target_candidate.icd_code, _display(target_candidate.icd_code))
         return UNRESOLVED_DIAGNOSIS_ICD, _display(UNRESOLVED_DIAGNOSIS_ICD)
     return code, _display(code)
+
+
+def discharge_code_is_admissible(code: str, primary: str, declared_refinements: Iterable[str] | None) -> bool:
+    """True when ``code`` may be the discharge diagnosis of a stay admitted as
+    ``primary`` (Issue #3448): the primary itself, a code that extends it (same
+    characters plus more, e.g. ``S72.0`` -> ``S72.00``) or a refinement the
+    protocol declares in ``icd_codes.discharge_refinements`` (organism, etiology,
+    severity). A less specific or different condition is not admissible."""
+    if not primary:
+        return True
+    plain = code.replace(".", "")
+    return plain.startswith(primary.replace(".", "")) or code in (declared_refinements or ())
 
 
 def discharge_diagnosis_code(

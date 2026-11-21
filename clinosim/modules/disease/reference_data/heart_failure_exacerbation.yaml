@@ -24,6 +24,8 @@ medication_holds:
 
 icd_codes:
   primary: "I50.9"
+  # Codes the discharge diagnosis may refine the primary to (organism, etiology, severity); see diagnosis_progression.
+  discharge_refinements: ["I50.0"]
   variants:
     - {code: "I50.0", name: "Congestive heart failure", probability: 0.40}
     - {code: "I50.1", name: "Left ventricular failure", probability: 0.30}

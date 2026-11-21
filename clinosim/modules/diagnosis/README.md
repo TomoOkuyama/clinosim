@@ -24,14 +24,19 @@ one RNG-free POST_ENCOUNTER enricher that appends a lab-derived AKI
   diagnosis — or the top candidate when none is set — through the
   confidence-keyed `diagnosis_progression` table — sepsis has no
   confidence rows: its severity code is set from the stay's physiology by
-  `simulator/sepsis_severity.py`, Issue #3269 — skips candidates
+  `simulator/sepsis_severity.py`, Issue #3269, and recorded as a
+  secondary code after the A41.x infection, never as the discharge
+  diagnosis, Issue #3448 — skips candidates
   sex-locked for the patient (Issue #947), and returns the
   `UNRESOLVED_DIAGNOSIS_ICD` sentinel when nothing resolves);
   `discharge_diagnosis_code` (the inpatient discharge diagnosis, Issue
   #3258 — the candidate of the ground-truth disease, never another
   candidate of the differential; a disease without such a candidate, e.g.
   a trauma protocol on the built-in default differential, discharges with
-  its own progression or primary code); named
+  its own progression or primary code). A progression row may only be the
+  stay's primary code, a code extending it or a refinement declared in the
+  protocol's `icd_codes.discharge_refinements`
+  (`discharge_code_is_admissible`, Issue #3448); named
   non-specific / fallback codes (`UNRESOLVED_DIAGNOSIS_ICD = "R69"`,
   `ICD_COUGH = "R05"`; R50.9 / R53.1 / R68.8 / Z09 are tracked for a
   follow-up sweep and not yet extracted); ICD-10 predicates

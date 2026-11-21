@@ -18,6 +18,8 @@ readmission_eligible: true
 
 icd_codes:
   primary: "L03.90"  # Cellulitis, unspecified
+  # Codes the discharge diagnosis may refine the primary to (organism, etiology, severity); see diagnosis_progression.
+  discharge_refinements: ["L03.11"]
   variants:
     - {code: "L03.11", name: "Cellulitis of right lower limb", probability: 0.30}
     - {code: "L03.12", name: "Cellulitis of left lower limb", probability: 0.30}

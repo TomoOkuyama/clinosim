@@ -21,13 +21,16 @@ POST_ENCOUNTER enricher 1 本 (`lab_derived_dx.py`、Issue #1326) も所有す�
   `get_current_diagnosis_code` (working diagnosis — 未設定なら最上位
   候補 — を confidence キーの `diagnosis_progression` table で解決。
   敗血症は confidence 行を持たず、重症度コードは入院中の病態から
-  `simulator/sepsis_severity.py` が決める (Issue #3269)。
+  `simulator/sepsis_severity.py` が決め (Issue #3269)、A41.x 感染症の後の
+  副傷病コードとして記録し、退院時診断にはしない (Issue #3448)。
   患者の性別に解剖学的に不適合な候補は skip (Issue #947)、何も解決
   できなければ `UNRESOLVED_DIAGNOSIS_ICD` sentinel);
   `discharge_diagnosis_code` (入院の退院時診断, Issue #3258 — ground-truth
   疾患の候補を使い、鑑別の別候補は使わない。該当候補を持たない疾患
   (組み込みの既定鑑別を使う外傷 protocol 等) は自身の progression か
-  primary コードで退院する); named 非特異 /
+  primary コードで退院する)。progression の各行は、その入院の primary
+  コード・その拡張・protocol の `icd_codes.discharge_refinements` に宣言した
+  精緻化のいずれかに限る (`discharge_code_is_admissible`, Issue #3448); named 非特異 /
   fallback コード (`UNRESOLVED_DIAGNOSIS_ICD = "R69"`,
   `ICD_COUGH = "R05"`。R50.9 / R53.1 / R68.8 / Z09 は follow-up sweep
   で抽出予定で未実装); ICD-10 predicate `is_visit_reason_zcode`

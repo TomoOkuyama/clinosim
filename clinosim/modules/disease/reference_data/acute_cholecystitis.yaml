@@ -32,6 +32,8 @@ diagnostic:
 
 icd_codes:
   primary: "K81.0"  # Acute cholecystitis
+  # Codes the discharge diagnosis may refine the primary to (organism, etiology, severity); see diagnosis_progression.
+  discharge_refinements: ["K80.0"]
   variants:
     - {code: "K80.00", name: "Calculus of gallbladder with acute cholecystitis without obstruction", probability: 0.55}
     - {code: "K80.01", name: "Calculus of gallbladder with acute cholecystitis with obstruction", probability: 0.15}

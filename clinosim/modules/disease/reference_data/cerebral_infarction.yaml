@@ -43,6 +43,8 @@ diagnostic:
 
 icd_codes:
   primary: "I63.9"  # Cerebral infarction, unspecified
+  # Codes the discharge diagnosis may refine the primary to (organism, etiology, severity); see diagnosis_progression.
+  discharge_refinements: ["I63.3"]
   variants:
     - {code: "I63.3", name: "Cerebral infarction due to thrombosis of middle cerebral artery", probability: 0.35}
     - {code: "I63.5", name: "Cerebral infarction due to unspecified occlusion of basilar artery", probability: 0.10}
