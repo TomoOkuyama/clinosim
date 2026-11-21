@@ -25,6 +25,7 @@ from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.procedures import procedure_aftercare, specimen_label
 from clinosim.codes.snomed_concepts import PROCEDURE_UNSUCCESSFUL
+from clinosim.countries import country_code
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_narrative_labels
 from clinosim.locale.loader import narrative_label as _label
@@ -118,6 +119,32 @@ def build_op_surgeon(generator: TemplateNarrativeGenerator, ctx: NarrativeContex
     return f"{surgeon_part}{assist_part}", facts
 
 
+def _encounter_operative_diagnoses(ctx: NarrativeContext) -> tuple[str, str]:
+    """``(pre-operative, post-operative)`` diagnosis text taken from the
+    encounter's diagnosis record: the admission diagnosis before the operation,
+    the discharge diagnosis after it, each as "name (code)". ``("", "")`` when
+    the stay records no diagnosis."""
+    from clinosim.modules.document.narrative.renderers._shared_helpers import diagnosis_coded
+
+    lang = ctx.target_lang
+    country = country_code(ctx.locale)
+    sex = str(_o(ctx.patient, "sex", "") or "") if ctx.patient is not None else ""
+
+    def render(code: str) -> str:
+        emitted, display = diagnosis_coded(code, country, lang, sex)
+        return (
+            t("list_item.inline_dx_with_code", lang, display=display, code=emitted) if display != emitted else emitted
+        )
+
+    for dx in ctx.diagnoses or []:
+        adm = str(_o(dx, "admission_diagnosis_code", "") or "")
+        dis = str(_o(dx, "discharge_diagnosis_code", "") or "")
+        pre = adm or dis
+        if pre:
+            return render(pre), render(dis) if dis else ""
+    return "", ""
+
+
 @section("op_findings")
 def build_op_findings(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """術中所見 — body site + preop/postop diagnosis + intraop complications."""
@@ -143,12 +170,22 @@ def build_op_findings(generator: TemplateNarrativeGenerator, ctx: NarrativeConte
     # 「術前診断：hip_fracture」.
     preop_disp = _localize_complication(preop, lang) if preop else ""
     postop_disp = _localize_complication(postop, lang) if postop else ""
+    if not preop_disp:
+        # Issue #3472: a procedure recorded by an isolated rule or at the
+        # bedside carries no diagnosis; the stay's own diagnoses stand in.
+        fb_pre, fb_post = _encounter_operative_diagnoses(ctx)
+        if fb_pre:
+            preop_disp = fb_pre
+            postop_disp = postop_disp or fb_post
+            facts.append("ctx.diagnoses")
     intraop_disp = [_localize_complication(str(c), lang) for c in intraop]
     parts = []
     if body_site:
         parts.append(t("op_note.findings_line", lang, body_site=body_site))
     if preop_disp:
         parts.append(t("op_note.findings_preop", lang, dx=preop_disp))
+    else:
+        parts.append(t("op_note.indication_not_documented", lang))
     if postop_disp and postop_disp != preop_disp:
         parts.append(t("op_note.findings_postop", lang, dx=postop_disp))
     if intraop_disp:
