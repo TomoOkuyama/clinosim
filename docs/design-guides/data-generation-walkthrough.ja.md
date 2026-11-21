@@ -151,7 +151,7 @@ Layer 1 → Layer 2 `PatientProfile` に厚くなる:身長/体重、**慢性疾
 ### 1d. 受診シミュレーション(daily loop)— `simulator/inpatient.py` ほか
 
 受診タイプ別に分岐:
-- **入院**: `inpatient.py:_simulate_patient()` → `_run_daily_loop()`。
+- **入院**: `inpatient.py:_simulate_patient()` → `daily_loop.py:_run_daily_loop()`。
 - **ED**: `emergency.py`。**外来**: `outpatient.py`。
 
 入院の 1 日ループがデータの中心。おおまかに:
@@ -173,8 +173,14 @@ Layer 1 → Layer 2 `PatientProfile` に厚くなる:身長/体重、**慢性疾
 5. **オーダ/検査/バイタル/投薬**: physiology 状態から `derive_lab_values`(30+ analyte)で検査値、
    vitals、`place_admission_orders` / `place_daily_lab_orders`(panel-aware)/ 画像
    (`place_imaging_orders`)/ MAR を生成。
-6. **退院/死亡**: LOS(疾患 YAML `target_los`)と `outcome_benchmarks`(死亡率)で決定。
-   `--end`(snapshot)以降は in-progress 扱い(AD-32)。
+6. **退院/死亡**: サンプルした LOS(疾患 YAML `target_los`)と `outcome_benchmarks`(死亡率)が
+   予定の終点を決める。`discharge_gate.py` が状態に基づく退院基準を持ち、患者が退院可でない間は
+   ループが退院を 1 日ずつ延ばす: 最終日またはその翌観察日までの昇圧薬・強心薬の投与
+   (`vasoactive_support.py`)、AKI が回復していない・発熱が続く場合(`aki_response.yaml` の
+   `max_extension_days` まで)、AF の心室応答数が調節できていない場合(`ventricular_rate.py`、
+   疾患の最大 LOS まで)。`--end`(snapshot)以降は in-progress 扱い(AD-32)。ループは他にも、
+   溶血検体の再採血、昇圧薬の開始、ケトアシドーシスの移行といった日次の規則を実行する
+   (`simulator/README.md` 参照)。
 
 結果は 1 患者 = 1 `CIFPatientRecord`。**scenario / severity / course / complications / labs は
 すべて疾患 YAML 駆動**で、engine コードに臨床値をハードコードしない。
@@ -191,8 +197,8 @@ Base の受診シミュレーションの前後に、**opt-in / always-on モジ
   → document(95)`(同 order は名前順)。前段の `extensions[X]` を読んで次段が動く
   (device なしに HAI なし等)。
 - **POST_RECORDS**(全患者シミュレーション後): cross-record。`nursing(20)` flowsheet /
-  `immunization(30)` / `family_history(40)` / `code_status(50)` / `care_level(60)` /
-  `medication_monitoring(65)` / `health_checkup(70)`。
+  `immunization(30)` / `family_history(40)` / `code_status(50)` / `resuscitation(55)` /
+  `care_level(60)` / `medication_monitoring(65)` / `health_checkup(70)` / `stage_refresh(900)`。
 
 モジュールは `CIFPatientRecord.extensions[<module>]` にだけ書く(コア型への typed field 追加は
 Base のみ)。新モジュール追加 = enricher を registry 登録するだけ(dispatch 本体は編集しない、AD-56)。

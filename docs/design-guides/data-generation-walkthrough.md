@@ -204,7 +204,7 @@ medications, allergies, baseline vitals.
 
 Dispatch by visit type:
 - **Inpatient**: `inpatient.py:_simulate_patient()` →
-  `_run_daily_loop()`.
+  `daily_loop.py:_run_daily_loop()`.
 - **ED**: `emergency.py`. **Outpatient**: `outpatient.py`.
 
 The inpatient daily loop is the heart of the data. Roughly:
@@ -237,9 +237,19 @@ The inpatient daily loop is the heart of the data. Roughly:
    `place_admission_orders` / `place_daily_lab_orders`
    (panel-aware) / imaging (`place_imaging_orders`) / MAR
    generation.
-6. **Discharge / death**: decided by LOS (disease YAML
-   `target_los`) and `outcome_benchmarks` (mortality). Past `--end`
-   (snapshot) is treated as in-progress (AD-32).
+6. **Discharge / death**: the sampled LOS (disease YAML
+   `target_los`) and `outcome_benchmarks` (mortality) set the planned
+   end. `discharge_gate.py` holds the state-based criteria, and the loop
+   defers a discharge one day at a time while the patient is not
+   ready: vasopressor or inotrope support on the last day or the
+   observation day after it (`vasoactive_support.py`), AKI not
+   recovering or a persisting fever (up to the `max_extension_days` of
+   `aki_response.yaml`), or an AF ventricular rate not controlled
+   (`ventricular_rate.py`, up to the disease's maximum LOS). Past
+   `--end` (snapshot) is treated as in-progress (AD-32). The loop also
+   runs per-day rules such as the redraw of a hemolysed specimen, the
+   vasopressor start and the ketoacidosis transition; see
+   `simulator/README.md`.
 
 Result: 1 patient = 1 `CIFPatientRecord`. **Scenario / severity /
 course / complications / labs are all disease-YAML driven** — the
@@ -264,8 +274,9 @@ modules** run in three stages:
   earlier ones (no HAI without a device, etc.).
 - **POST_RECORDS** (after all patients are simulated): cross-record.
   `nursing(20)` flowsheet / `immunization(30)` /
-  `family_history(40)` / `code_status(50)` / `care_level(60)` /
-  `medication_monitoring(65)` / `health_checkup(70)`.
+  `family_history(40)` / `code_status(50)` / `resuscitation(55)` /
+  `care_level(60)` / `medication_monitoring(65)` /
+  `health_checkup(70)` / `stage_refresh(900)`.
 
 Modules write only into `CIFPatientRecord.extensions[<module>]`
 (new typed fields on core types are Base-only). Adding a module =

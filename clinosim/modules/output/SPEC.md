@@ -38,6 +38,8 @@ The sections under "Internal Design" are the original design sketch. Where they 
 - **Code mapping**: there is no `CodeMapper` / `code_mapping/mappings/`; code lookup goes through `clinosim.codes` and the per-locale `clinosim/locale/<cc>/code_mapping_*.yaml` files.
 
 ## Inputs
+The names below that "As implemented" does not mention (`SimulationResult`, `HealthcareSystemConfig`, `FormatAdapter`, `CodeMapper`, `OutputService`) do not exist in the code.
+
 - Stage 1: `SimulationResult` (from simulator — in-memory)
 - Stage 2: CIF structural files on disk + LLM config
 - Stage 3: CIF full files on disk + `HealthcareSystemConfig` (for code mapping)

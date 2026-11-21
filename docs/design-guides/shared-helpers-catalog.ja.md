@@ -26,7 +26,7 @@ Governing spec: [`determinism-and-rng-spec.ja.md`](determinism-and-rng-spec.ja.m
 | `clinosim/determinism.py` `sha_index(salt, n, byte_count)` | ストリーム非消費の `[0, n)` の添字。固定リストから 1 件を選ぶ (文言の変種、カタログの行)。 |
 | `clinosim/seeding.py` `derive_sub_seed(master_seed, module_offset, key)` + `ENRICHER_SEED_OFFSETS` | enricher ごと・キーごとのサブシード。新しい offset を登録し、シードをその場でハッシュしない。 |
 | `clinosim/seeding.py` `derive_phase_rng(master_seed, phase_salt, key)` | シミュレーションのフェーズとキーごとに独立した生成器。 |
-| `clinosim/seeding.py` `text_seed`, `panel_specimen_seed`, `individual_lab_seed`, `chronic_medication_seed`, `discharge_prescription_seed`, `ambulatory_visit_length_seed`, `issue939_procedure_seed`, `chronic_augment_sex_seed`, `chronic_isolated_seed`, `longitudinal_event_seed`, `perinatal_delivery_seed`, `chemotherapy_regimen_seed`, `daily_output_seed`, `radiation_therapy_seed`, `avpu_day_seed`, `newborn_seed`, `pregnancy_outcome_seed`, `newborn_conditions_seed`, `enumeration_case_seed`, `identity_person_seed` | 実体ごとの名前付きシード。呼び出し側でシードを導出せず、ここに名前付き関数を足す。 |
+| `clinosim/seeding.py` `text_seed`, `panel_specimen_seed`, `individual_lab_seed`, `chronic_medication_seed`, `discharge_prescription_seed`, `ambulatory_visit_length_seed`, `issue939_procedure_seed`, `chronic_augment_sex_seed`, `chronic_isolated_seed`, `longitudinal_event_seed`, `perinatal_delivery_seed`, `chemotherapy_regimen_seed`, `daily_output_seed`, `radiation_therapy_seed`, `avpu_day_seed`, `newborn_seed`, `pregnancy_outcome_seed`, `newborn_conditions_seed`, `enumeration_case_seed`, `identity_person_seed`, `terminal_course_seed`, `emergency_contact_seed`, `marital_status_seed`, `vasopressor_start_seed`, `co_disease_orders_seed`, `resuscitation_seed` | 実体ごとの名前付きシード。呼び出し側でシードを導出せず、ここに名前付き関数を足す。 |
 | `clinosim/seeding.py` `rendezvous_pick(key, ids, hashes)` / `id_hashes(ids)` | プール (職員・病室) から 1 人を一様かつ安定に選ぶ。プールが増えても選択が動かない。 |
 | `clinosim/seeding.py` `morse_fall_history_unit(patient_id, encounter_id)` | Morse 転倒歴項目が使う、入院ごとに安定な単位値。 |
 | `clinosim/modules/_shared.py` `normalize_probabilities(p, fallback="raise")` | YAML 由来の確率ベクトルを `rng.choice(p=...)` に渡す前に必ず通す。 |
@@ -152,6 +152,11 @@ Governing specs: [`medication-lifecycle-spec.ja.md`](medication-lifecycle-spec.j
 | `clinosim/modules/staff/engine.py` `scoped_nurses(roster, ward=, department=)` | 病棟の看護師、無ければ診療科、それも無ければ全看護師。 |
 | `clinosim/modules/diagnosis/nonspecific_codes.py` `is_visit_reason_zcode(code)` | Z コードが診断ではなく受診理由か。 |
 | `clinosim/modules/document/engine.py` `_compute_los_days` *(モジュール内部、narrative pass も使用)* | 在院日数 (入院中の代替値を含む)。 |
+| `clinosim/modules/observation/hemolysis_redraw.py` `is_hemolyzed(flag)` / `HEMOLYZED_FLAGS` | 溶血した検体の flag の唯一の定義。`H*` / `L*` をその場で比較しない。 |
+| `clinosim/modules/longitudinal/stage_refresh.py` `creatinine_egfr(patient, creatinine, at, unit=None)` | クレアチニン結果の eGFR を国ごとの式で求める。病期更新 enricher と H&P の既往歴で共有する。 |
+| `clinosim/modules/order/dose_range.py` `resolve_dose_ranges(text)` | プロトコルの用量の範囲を一つの用量にする。 |
+| `clinosim/modules/order/insulin_initiation.py` `basal_insulin_start_dose(weight_kg)` | 体重に基づく基礎インスリンの開始用量。 |
+| `clinosim/simulator/terminal_course.py` `drop_results_after_death(orders, lab_results, death_time)` | 死亡後の日付の検査オーダーと結果を除く。 |
 
 ## 8. FHIR の組み立て (Layer 4)
 
@@ -179,7 +184,15 @@ Governing spec: [`narrative-and-document-generation-spec.ja.md`](narrative-and-d
 |---|---|
 | `clinosim/modules/document/narrative/_vitals_line.py` `format_vitals_line` | 全文書が使う唯一のバイタル行。 |
 | `clinosim/modules/document/narrative/_vitals_line.py` `vitals_in_window` / `latest_vitals_set` | ある時間枠 (看護の勤務帯) の測定と、その中の各バイタルの最新値。 |
-| `clinosim/modules/document/narrative/_as_of.py` `in_force_at(records, as_of)` | 文書の作成時刻に有効な日付つき記録 (ADL、看護リスク評価)。在院中最後の記録を位置で取らない。 |
+| `clinosim/modules/document/narrative/_as_of.py` `in_force_at(records, as_of, key=)` | 文書の作成時刻に有効な日付つき記録 (ADL、看護リスク評価)。在院中最後の記録を位置で取らない。 |
+| `clinosim/modules/document/narrative/_as_of.py` `recorded_by` / `results_known_at` / `results_after` / `procedures_started_by` / `procedures_after` | 日付つき記録・検査結果・処置を文書の作成時刻までに絞る。ノートは時刻の比較をその場で書かない。 |
+| `clinosim/modules/document/narrative/_prescription_line.py` `prescription_bits(med, lang, drug_name=, show_route=)` | 処方行の用量・投与経路・頻度・日数 (ED の持ち帰り処方、退院サマリー、外来 SOAP)。生の `frequency` / `days_supply` は読まない。 |
+| `clinosim/modules/document/narrative/_visit_reason.py` `join_sentences(sentences, lang)` | すでに文末記号で終わる文を、記号を重ねずに一つの段落にする (文末記号に安全な連結)。 |
+| `clinosim/modules/document/narrative/renderers/section_builders/chief_complaint.py` `encounter_chief_complaint(ctx)` / `chief_complaint_texts(ctx)` | 受診の主訴は一つ。提示された症状かどうかを照らす、表示される主訴と記録された主訴の文。 |
+| `clinosim/modules/document/narrative/_outpatient_results.py` `known_labs(ctx)` / `note_time(ctx)` / `latest_lab_stage(code, stored, labs)` | 外来ノートの時刻に判明している検査結果と、それが示す慢性疾患の病期。 |
+| `clinosim/modules/document/narrative/_progress_exam.py` `agreeing_clauses(text, states, lang)` | その期間の測定値と矛盾する身体所見の句を落とす (日々の経過記録)。 |
+| `clinosim/modules/document/narrative/renderers/_exam_agreement.py` `agreeing_clauses(text, states, lang)` | 疾患の身体所見を来院時の測定値に照らして同様に落とす (ED ノートと入院時記録)。 |
+| `clinosim/modules/document/referral_recipient.py` `is_transfer_disposition` / `pick_external_hospital` | 紹介状の宛先。転院・転送を伴う退院区分のときだけ、その国の外部病院から決定的に選ぶ。 |
 | `clinosim/modules/document/narrative/_narrative_interpretation_thresholds.py` `bmi_band` / `bp_band` | BMI と血圧の文言の区分。 |
 | `clinosim/modules/document/narrative/_safety_skips.py` `safety_skip_line` | 保留・スキップされた投与 (安全イベント) の文。 |
 | `clinosim/modules/document/narrative/_template_helpers.py` `allergen_display` | 文書中のアレルゲン名。 |

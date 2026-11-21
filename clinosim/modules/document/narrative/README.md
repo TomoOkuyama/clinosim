@@ -242,6 +242,8 @@ clinosim/modules/document/narrative/
   section_extractor.py                     extract_for_composition (per-COMPOSITION section, AD-65 E3)
   template_generator.py                    TemplateNarrativeGenerator + placeholder engine (per-document rendering split into renderers/)
   renderers/                               per-document renderers (progress_note / nursing_shift_note / ed_triage_note / composition_sections + shared helpers) and section_builders/ (one module per Composition section family)
+  renderers/_disease_exam.py               admission_exam / exam_findings — the exam of the disease the patient is admitted for (Issue #3245)
+  renderers/_exam_agreement.py             agreeing_clauses / arrival_vital_states — an exam clause dropped when the arrival reading contradicts it (Issues #3243, #3245)
   lab_timeseries.py                        lab time-series helpers for narrative rendering; group_draws (rows of one analyte close in time are one draw, Issue #3457); select_notable_labs (the abnormal labs a note cites, Issue #3230)
   _notable_labs.py                         notable_lab_entries: wording of those labs for the template Assessment and the LLM context
   _hospital_course.py                      sentences of the discharge-summary hospital course (treatments, procedures, complications, significant results, medication changes, condition at discharge, readmission; Issue #3246)
@@ -257,21 +259,21 @@ clinosim/modules/document/narrative/
   _prescription_line.py                    prescription_bits — the dose / route / frequency / days of a prescription line, shared by the ED take-home Rx, discharge summary and outpatient SOAP (Issue #3389)
   _safety_skips.py                         safety_skip_line — one phrasing of drug-safety skip events for template + LLM paths (Issue #2519); progress_note_safety_skips — the in-stay events a daily note states, one hold per drug and each avoidance once per drug identity; an interaction below contraindicated severity is worded as an interaction risk (Issues #3411, #3458)
   _vitals_line.py                          format_vitals_line — one formatter for vital-signs one-liners across narrative styles (Issue #2523)
-  _as_of.py                                in_force_at — the dated record in force at a document's authored time (Issue #3236)
+  _as_of.py                                in_force_at / recorded_by / results_known_at / results_after / procedures_started_by / procedures_after — filter records to a document's authored time (Issues #3236, #3241, #3396, #3468)
   cache.py                                 NarrativeCache (layer-1 in-memory, seed_hash keyed)
   semantic_check.py                        check_narratives (β-JP-1 verification gate)
   _hedging.py                              hedging phrase pool
   _chronic_soap.py                         chronic-disease SOAP resolver (v9 density fix)
-  _visit_reason.py                         visit_kind / kind_lines / vital_findings / next_visit_line — outpatient SOAP by visit reason (Issues #3249, #3251, #3252)
-  _interval_events.py                      interval_events / interval_event_line — admissions and ED visits since the previous outpatient visit
-  _medication_plan.py                      ranked_medication_names / note_medications — the drugs a daily note's plan names
-  _next_visit.py                           next_visit_days — the next visit of a series (Issue #3465)
-  _nursing_shift_items.py                  nursing_shift_item_lines — the data-driven nursing items of a shift note (Issue #3478)
-  _outpatient_results.py                   outpatient_results / known_labs / ckd_g_stage — the results an outpatient SOAP states
-  _progress_course.py                      post_procedure_line / lab_course_lines / diet_line — the course lines of a daily note
-  _progress_exam.py                        progress_exam_rules / period_states / agreeing_clauses — the exam of a daily note follows the period's vitals
-  _progress_symptoms.py                    respiratory_symptom_line — the respiratory course of a daily note's Subjective
-  _ros_contradictions.py                   contradicted — review-of-systems negatives contradicted by the record (Issue #3391)
+  _visit_reason.py                         visit_kind / kind_lines / vital_findings / next_visit_line / join_sentences / known_conditions_tail — outpatient SOAP by visit reason (Issues #3249, #3251, #3252); join_sentences joins sentences without doubling a terminator (Issue #3410)
+  _medication_plan.py                      note_medications / ranked_medication_names / cap_names — the drugs a daily note's plan names, by tier (Issue #3247)
+  _nursing_shift_items.py                  nursing_shift_item_lines — the ordered registry of nursing-shift-note items (Issues #3478 and after)
+  _progress_course.py                      post_procedure_line / lab_course_lines / diet_line / rehab_line / discharge_planning_line — the hospital course in the daily note
+  _progress_exam.py                        progress_exam_findings / course_line / consciousness_assessment_line / agreeing_clauses — the daily note's exam and course against the period's vitals
+  _progress_symptoms.py                    respiratory_symptom_line — the breathing course in the daily note's Subjective
+  _outpatient_results.py                   known_labs / latest_lab_stage / note_time — the results and chronic stages known at an outpatient note
+  _interval_events.py                      interval_event_line — the admissions and ED visits since the previous visit (Issue #3407)
+  _next_visit.py                           next_visit_days — the scheduled next visit (Issue #3465)
+  _ros_contradictions.py                   contradicted — the ROS negatives the record contradicts (Issue #3391)
   _narrative_interpretation_thresholds.py  interpretation cutoff scalars (Issue #637)
   reference_data/
     chief_complaint_variants.yaml          chief-complaint phrasing variants (load_chief_complaint_variant_rules)
