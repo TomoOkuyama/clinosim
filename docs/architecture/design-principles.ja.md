@@ -462,6 +462,26 @@ nursing_seed、observation_seed、llm_cache_key)。各モジュールは
 sub-seed から独自の `numpy.random.Generator` を初期化時に作成、
 それのみを使用。モジュール間で random state を共有しない。
 
+#### 再現性の検証
+
+(置き換え済みのスケッチ — `Simulator` クラスは存在しない。再現性は同梱の
+unit / e2e テストと、生成コホートの byte-diff で確認する。)
+
+```python
+def test_reproducibility():
+    result1 = Simulator(config, seed=42).run()
+    result2 = Simulator(config, seed=42).run()
+
+    # 構造データは bit 単位で一致しなければならない
+    assert result1.patients == result2.patients
+    assert result1.lab_values == result2.lab_values
+    assert result1.vital_signs == result2.vital_signs
+    assert result1.timestamps == result2.timestamps
+
+    # LLM テキスト: cache を共有する場合のみ一致
+    # (cache なしではテキストは異なりうるが、構造は同じ)
+```
+
 ### テスト戦略
 
 3 レベルのテスト、各明確な目的を持つ。
