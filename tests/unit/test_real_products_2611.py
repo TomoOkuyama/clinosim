@@ -12,7 +12,7 @@ import pytest
 import yaml
 
 from clinosim.codes.drugs import drug_ref
-from clinosim.modules.order.engine import place_admission_orders
+from clinosim.modules.order.engine import is_drugs_section_pointer, place_admission_orders
 from clinosim.modules.order.treatment_classifier import classify_inpatient_supportive
 from clinosim.modules.output.fhir_r4.medications.medications import _resolve_medication_concept
 from clinosim.simulator.medication_pipeline import _generate_mar
@@ -30,7 +30,10 @@ def _supportive_meds() -> list[tuple[str, str, str]]:
     def walk(x: object, name: str) -> None:
         if isinstance(x, dict):
             if isinstance(x.get("detail"), str) and "type" in x:
-                if classify_inpatient_supportive(x["detail"], x["type"]) == OrderType.MEDICATION:
+                if (
+                    classify_inpatient_supportive(x["detail"], x["type"]) == OrderType.MEDICATION
+                    and not is_drugs_section_pointer(x["detail"])  # not an order (Issue #3596)
+                ):
                     out.append((name, str(x["type"]), x["detail"]))
             for v in x.values():
                 walk(v, name)

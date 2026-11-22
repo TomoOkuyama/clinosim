@@ -17,6 +17,12 @@ metadata:
   name: admission_order_sets
   source: clinosim
 
+# A supportive line whose detail holds one of these phrases only points to the
+# protocol's drugs section (the drug, dose and route come from the country's
+# drug entry there); it is not itself a drug order (Issue #3596).
+drugs_section_pointer_phrases:
+  - see drugs section
+
 care_supportive_types:
   # Activity, diet, positioning
   - bed_rest

@@ -308,6 +308,8 @@ from clinosim.modules.order.label_dose import within_label  # (name, frequency, 
   連日・以後のオーダー、救急外来受診のみのオーダー) は `""`。入院患者の
   救急外来記録は、記載時点までに出された `"admission_initial"` のオーダーだけを
   検査・処置として記載する。生成時に設定し、乱数は引かない。
+- **薬剤セクション参照行** (同ファイルの `drugs_section_pointer_phrases`、`engine.is_drugs_section_pointer`、Issue #3596): 詳細に「... (see drugs section)」のような句を含む支持療法行は、プロトコルの `drugs` セクションを指すだけなので、`place_admission_orders` は薬剤オーダーにしない (そのままだと代替薬の先頭 1 剤を既定の PO 経路で出していた)。薬剤・用量・経路は `drugs.first_line` の患者の国のエントリから来る。
+- **アーキタイプの中止マーカー** (`daily_loop._stop_archetype_medications`、Issue #3596): `treatment_modifications.<day>.stop` は国別ではないため、`DISCONTINUE: <薬剤>` マーカーは、その入院に当該薬剤の実行中オーダーがあるときだけ書く (`_running_order`)。その国のレジメンが使わない薬剤の中止 (米国入院でのセフメタゾール) や、中止済みの薬剤の再中止は何も書かない。乱数は引かない。
 - **救急外来経由入院のオーダー時刻** (Issue #3434): 救急外来経由で入院する
   患者には、simulator が `ed_period=(救急外来到着, 入院)` (救急外来の期間は
   `[入院 - admitted_ed_stay(), 入院]`) を `place_admission_orders` と入院日の

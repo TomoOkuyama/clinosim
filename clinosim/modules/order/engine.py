@@ -607,6 +607,7 @@ class _AdmissionOrderSets(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     care_supportive_types: list[Annotated[StrictStr, Field(min_length=1)]] = Field(min_length=1)
+    drugs_section_pointer_phrases: list[Annotated[StrictStr, Field(min_length=1)]] = Field(min_length=1)
 
 
 @lru_cache(maxsize=1)
@@ -615,6 +616,15 @@ def admission_care_supportive_types() -> frozenset[str]:
     (``Order.order_set`` ``"admission_care"``), not initial ED orders."""
     data = load_validated_yaml(_ADMISSION_ORDER_SETS, _AdmissionOrderSets)
     return frozenset(data["care_supportive_types"])
+
+
+def is_drugs_section_pointer(detail: str) -> bool:
+    """True when a supportive line only points to the protocol's drugs section
+    ("... (see drugs section)"): its drug, dose and route come from the
+    country's drug entry there, so the line is not a drug order (Issue #3596)."""
+    data = load_validated_yaml(_ADMISSION_ORDER_SETS, _AdmissionOrderSets)
+    lowered = detail.lower()
+    return any(phrase.lower() in lowered for phrase in data["drugs_section_pointer_phrases"])
 
 
 def _first_line_order_id(encounter_id: str, med_idx: int, id_infix: str = "") -> str:
@@ -1004,6 +1014,12 @@ def place_admission_orders(
         # skips (Issue #1276), so no orders are emitted here EITHER,
         # closing the leak Issue #1306 originally targeted.
         if sup_type == "DVT_prophylaxis":
+            continue
+        # Issue #3596: a line that only points to the drugs section is not an
+        # order (it would name one alternative with a defaulted route); the
+        # drug comes from ``drugs.first_line`` of the patient's country. Kept
+        # after the order build so the RNG cursor above stays unchanged.
+        if is_drugs_section_pointer(detail_raw):
             continue
         orders.append(order)
 
