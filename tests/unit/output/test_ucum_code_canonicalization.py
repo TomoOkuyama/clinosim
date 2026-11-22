@@ -37,6 +37,7 @@ pytestmark = pytest.mark.unit
         ("unit", "U"),
         ("units", "U"),
         ("mmHg", "mm[Hg]"),
+        ("puff", "{puff}"),
         # Compound forms (split on `/`, map each factor).
         ("IU/L", "[iU]/L"),
         ("mcg/kg", "ug/kg"),

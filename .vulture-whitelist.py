@@ -774,6 +774,8 @@ _.triage_level_max  # modules/encounter/protocol.py (Pydantic field; read from t
 _.triage_level_min  # modules/encounter/protocol.py (Pydantic field; read from the YAML dict in triage/engine.py)
 _.admitted_with_inpatient_unit  # modules/encounter/protocol.py (Pydantic field; read from the YAML dict in phases/_ed_slot.py)
 _.locale_frequency  # modules/encounter/protocol.py (Pydantic field; read from the YAML dict in simulator/emergency.py, Issue #3012)
+_.locale_dose  # modules/encounter/protocol.py (Pydantic field; read from the YAML dict in prescription_dose, Issue #3594)
+_.min_age_years  # modules/encounter/protocol.py (Pydantic field; read from the YAML dict in simulator/emergency.py, Issue #3594)
 _.country_overrides  # modules/order/pediatric_dose.py (Pydantic field; read from the YAML dict in pediatric_order_name, Issue #3012)
 _.max_age_days  # modules/encounter/protocol.py (Pydantic field; read from the YAML dict in phases/_ed_slot.py and procedure/engine.py, Issue #3063)
 _.neonatal_drugs  # modules/order/pediatric_dose.py (Pydantic field; read from the YAML dict in _neonatal_band, Issue #3063)

@@ -242,6 +242,10 @@ medication_orders:
 dose_phrases:
   # Issue #3562: schedules of take-home prescriptions with an as-needed condition or a
   # daily maximum, and infusion steps through a central line.
+  # Issue #3594: take-home prescriptions whose amount is a count of actuations or a sig.
+  "2 puffs": {ja: "2吸入"}
+  "1 drop in the affected eye": {ja: "患眼に1滴"}
+  "apply a thin layer to the affected area": {ja: "患部に薄く塗布"}
   "TID PRN": {ja: "頓用（1日3回まで）"}
   "BID PRN": {ja: "頓用（1日2回まで）"}
   "QID PRN": {ja: "頓用（1日4回まで）"}

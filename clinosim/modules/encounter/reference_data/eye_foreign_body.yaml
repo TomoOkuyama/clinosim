@@ -55,7 +55,7 @@ discharge_instructions:
 follow_up: {en: "ophthalmology the next day", ja: "翌日に眼科再診"}
 
 discharge_prescriptions:
-  - {drug: "Ofloxacin ophthalmic drops", route: "topical", frequency: "qid", duration_days: 5, probability: 0.9}
+  - {drug: "Ofloxacin ophthalmic drops", dose: "1 drop in the affected eye", route: "topical", frequency: "qid", duration_days: 5, probability: 0.9}
   - {drug: "Acetaminophen 500mg", route: "PO", frequency: "q6h PRN", duration_days: 3, probability: 0.5}
 
 incidence_modifier: 1.0

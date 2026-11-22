@@ -72,7 +72,7 @@ follow_up: {en: "primary care physician or pulmonologist within 1 week", ja: "1é
 discharge_prescriptions:
   - {drug: "Prednisone 40mg", locale_name: {jp: "Prednisolone 30mg"}, route: "PO", frequency: "daily", duration_days: 5, probability: 0.85}
   - {drug: "Azithromycin 250mg", route: "PO", frequency: "daily", duration_days: 5, probability: 0.5}
-  - {drug: "Albuterol MDI", route: "INH", frequency: "Q4-6H PRN", duration_days: 30, probability: 0.4}
+  - {drug: "Albuterol MDI", dose: "2 puffs", route: "INH", frequency: "Q4-6H PRN", duration_days: 30, probability: 0.4}
 
 incidence_modifier: 1.0
 probability: 0.017

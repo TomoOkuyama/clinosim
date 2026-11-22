@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from dataclasses import replace
 from datetime import datetime, timedelta
 
@@ -18,7 +17,12 @@ from clinosim.locale.loader import order_test_display, treatment_intent_display
 from clinosim.modules._shared import normalize_probabilities
 from clinosim.modules.disease.severity import sample_severity_category
 from clinosim.modules.encounter.engine import create_inpatient_encounter
-from clinosim.modules.encounter.protocol import imaging_red_flag, study_in_country
+from clinosim.modules.encounter.protocol import (
+    DOSE_IN_NAME,
+    imaging_red_flag,
+    prescription_dose,
+    study_in_country,
+)
 from clinosim.modules.imaging.engine import load_impression_templates
 from clinosim.modules.observation.engine import get_lab_unit
 from clinosim.modules.observation.order_routing import lab_order_targets
@@ -388,12 +392,6 @@ def _ed_medication_skipped(
     return False
 
 
-# Strength written into a protocol drug name ("Ibuprofen 600mg",
-# "Amoxicillin/clavulanate 875/125mg"); a discharge prescription item
-# carries it as ``dose`` unless the entry declares one.
-_DOSE_IN_NAME = re.compile(r"\d[\d.]*(?:/\d[\d.]*)*\s*(?:mg|mcg|g|mL|%)", re.IGNORECASE)
-
-
 def _ed_discharge_prescription(
     protocol: dict | None,
     patient: PatientProfile,
@@ -439,6 +437,9 @@ def _ed_discharge_prescription(
     def _name(spec: dict) -> str:
         written = str((spec.get("locale_name") or {}).get(country_key) or spec.get("drug", ""))
         # Issue #2857: a child's script is weight-based ("" when below the drug's minimum age).
+        # Issue #3594: below the age the product is labelled for, none is written.
+        if _age_months(patient, issued) < 12 * int(spec.get("min_age_years") or 0):
+            return ""
         name = ed_pediatric_dose_name(written, patient, encounter, issued, country) or ""
         # Issue #3012: within the country's label dose (JP ibuprofen 200 mg).
         return within_label(name, _frequency(spec), country)[0] if name else ""
@@ -480,11 +481,12 @@ def _ed_discharge_prescription(
         active.append(name)
         # Item shape of the inpatient discharge prescription: the drug name
         # without its strength, which goes in ``dose``.
-        strength = m.group(0) if (m := _DOSE_IN_NAME.search(name)) else ""
-        drug = " ".join(_DOSE_IN_NAME.sub("", name).split()) or name
+        drug = " ".join(DOSE_IN_NAME.sub("", name).split()) or name
         # Issue #3012: the dose and doses a day within the country's label
         # (JP ibuprofen 200 mg, 600 mg/day), also for a declared ``dose``.
-        labelled, frequency = within_label(f"{drug} {spec.get('dose') or strength}", _frequency(spec), country)
+        labelled, frequency = within_label(
+            f"{drug} {prescription_dose(spec, name, country_key)}", _frequency(spec), country
+        )
         dose = labelled[len(drug) :].strip()
         items.append(
             {

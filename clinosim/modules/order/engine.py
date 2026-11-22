@@ -458,11 +458,13 @@ def parse_dose_string(dose_str: str) -> dict[str, Any]:
         # (the plain pattern below would take the second number).
         m = re.search(r"(\d+(?:\.\d+)?)\s*/\s*\d+(?:\.\d+)?\s*(mg|g|mcg|ug)\b", s, re.IGNORECASE)
     if not m:
-        m = re.search(r"(\d+(?:\.\d+)?)\s*(mg|g|mcg|ug|mL|ml|L|IU|U|unit|units|%)", s, re.IGNORECASE)
+        m = re.search(r"(\d+(?:\.\d+)?)\s*(mg|g|mcg|ug|mL|ml|L|IU|U|unit|units|%|puffs?)", s, re.IGNORECASE)
     if m:
         try:
             result["dose_quantity"] = float(m.group(1))
             result["dose_unit"] = re.sub(r"\s+", "", m.group(2)).replace("/hr", "/h")
+            if result["dose_unit"].lower() == "puffs":  # Issue #3594: 2 puffs -> 2 puff
+                result["dose_unit"] = "puff"
         except ValueError:
             pass
 
