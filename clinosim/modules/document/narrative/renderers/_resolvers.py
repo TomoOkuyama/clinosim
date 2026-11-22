@@ -115,7 +115,7 @@ def resolve_physical_exam(
 def resolve_neonatal_exam(ctx: NarrativeContext, day_index: int) -> dict[str, str]:
     """The newborn exam set of ``physical_exam_findings.yaml`` ``neonatal`` in
     ``ctx.target_lang`` (Issue #3260), as ``{body_system: text}``. The skin
-    finding is the jaundice band of the latest total bilirubin measured by
+    finding is the jaundice band of the latest transcutaneous bilirubin measured by
     the note's time; none measured yet reads as the first band."""
     neonatal = load_physical_exam_findings()["neonatal"]
     lang = ctx.target_lang
@@ -138,7 +138,7 @@ def _bilirubin_known_at(ctx: NarrativeContext, day_index: int) -> float | None:
 
 
 def latest_bilirubin_at(ctx: NarrativeContext, day_index: int) -> tuple[int | None, float] | None:
-    """``(day of life, mg/dL)`` of the latest total bilirubin measured by the
+    """``(day of life, mg/dL)`` of the latest transcutaneous bilirubin measured by the
     document's authored time (or the end of ``day_index``), ``None`` when none
     was measured yet (Issue #3260)."""
     series = (getattr(ctx, "newborn_workup", None) or {}).get("bilirubin_series") or []

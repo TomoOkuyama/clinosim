@@ -541,6 +541,14 @@ def _item_newborn_jaundice(d: ShiftData) -> str | None:
     if not series:
         return None
     last = max(series, key=lambda e: str(e.get("timestamp") or ""))
+    # Stated once, in the shift that holds the measurement: a later shift with no
+    # new reading does not repeat it as an ongoing observation (Issue #3564).
+    measured = parse_iso_datetime(last.get("timestamp"), lenient=True)
+    if d.window is not None and measured is not None:
+        if not (d.window[0] <= measured.replace(tzinfo=None) < d.window[1].replace(tzinfo=None)):
+            return None
+    elif last.get("day") != _day_of_life(d):
+        return None
     return t(
         "nursing_shift_items.newborn.jaundice",
         d.lang,

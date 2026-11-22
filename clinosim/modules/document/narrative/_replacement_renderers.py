@@ -95,8 +95,33 @@ def _render_chronic_list(chronic: list, lang: str = "en", *, country: str) -> st
     return "; ".join(parts) if parts else ""
 
 
+def _bilirubin_phrases(workup: dict, lang: str) -> list[str]:
+    """The last transcutaneous bilirubin with its day of life, then the peak
+    when higher (Issue #3564); only the peak for a workup with no dated series."""
+    series = [e for e in workup.get("bilirubin_series") or [] if e.get("value_mg_dl") is not None]
+    out: list[str] = []
+    last_v: float | None = None
+    if series:
+        last = max(
+            series, key=lambda e: (str(e.get("timestamp") or ""), e.get("day") if isinstance(e.get("day"), int) else -1)
+        )
+        last_v = float(last["value_mg_dl"])
+        day = last.get("day")
+        if isinstance(day, int):
+            out.append(t("newborn.bilirubin_last", lang, v=last_v, day=day))
+        else:
+            out.append(t("newborn.bilirubin_last_undated", lang, v=last_v))
+    try:
+        peak = float(workup["bilirubin_peak"]) if workup.get("bilirubin_peak") is not None else None
+    except (TypeError, ValueError):
+        peak = None
+    if peak is not None and (last_v is None or peak > last_v):
+        out.append(t("newborn.bilirubin_peak", lang, v=peak))
+    return out
+
+
 def _render_newborn_workup_summary(
-    workup: dict, lang: str = "en", *, birth: bool = False, screening_only: bool = False
+    workup: dict, lang: str = "en", *, birth: bool = False, screening_only: bool = False, bilirubin: bool = True
 ) -> str:
     """Issue #1404: one-line neonatal workup anchor for admission_hp
     narrative. Reads the projection built by
@@ -110,6 +135,10 @@ def _render_newborn_workup_summary(
     ``context.newborn_metabolic_status`` (``workup["metabolic_status"]`` once
     ``newborn_workup_known_at`` has limited the workup): "submitted, result
     pending" before the reported time, the result from it on.
+
+    The bilirubin is the transcutaneous series: the last measurement with its
+    day of life, and the peak when it is higher (Issue #3564). ``bilirubin=False``
+    leaves it out (a note that states it in a sentence of its own).
 
     Missing elements drop silently — the summary always reflects what
     the CIF actually carries. Never fabricates a screening not run.
@@ -151,13 +180,8 @@ def _render_newborn_workup_summary(
         outcome = "refer" if workup.get("metabolic_outcome_key") == "refer" else "pass"
         parts.append(t(f"newborn.tandem_ms_resulted_{outcome}", lang))
 
-    bili = workup.get("bilirubin_peak")
-    if bili is not None:
-        try:
-            bili_f = float(bili)
-            parts.append(t("newborn.bilirubin_peak", lang, v=bili_f))
-        except (TypeError, ValueError):
-            pass
+    if bilirubin:
+        parts.extend(_bilirubin_phrases(workup, lang))
 
     ru = workup.get("cchd_ru_spo2")
     le = workup.get("cchd_le_spo2")

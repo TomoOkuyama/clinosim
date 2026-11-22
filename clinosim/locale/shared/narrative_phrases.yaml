@@ -901,6 +901,10 @@ hospital_course:
   newborn_given_line:
     ja: "新生児への投与: {list}。"
     en: "Given to the newborn: {list}."
+  # Issue #3565: the discharge weight and the feeding method are not in the record.
+  newborn_discharge_not_recorded:
+    ja: "退院時体重、哺乳方法は記録なし。"
+    en: "Discharge weight and feeding method not recorded."
   newborn_dose_on_day:
     ja: "{name} (日齢{day})"
     en: "{name} (day of life {day})"
@@ -1228,14 +1232,14 @@ nursing_shift_items:
       en: "Fall risk: {level}; fall precautions continued."
   newborn:
     care:
-      ja: "日齢{day}。哺乳状況、排尿・排便の回数と性状、臍帯の状態 (乾燥・出血・発赤・悪臭) を観察。"
-      en: "Day of life {day}. Observation of feeding, voiding and stooling (frequency and character) and the umbilical cord (dryness, bleeding, redness, odor)."
+      ja: "日齢{day}。哺乳、排尿・排便、臍帯の所見は記録なし。"
+      en: "Day of life {day}. Feeding, voiding and stooling, and umbilical-cord findings not recorded."
     birth_weight:
       ja: "出生体重 {kg} kg。"
       en: "Birth weight {kg} kg."
     jaundice:
-      ja: "黄疸の観察を継続 (日齢{day}の経皮ビリルビン {v} mg/dL)。"
-      en: "Jaundice observation continued (transcutaneous bilirubin {v} mg/dL on day of life {day})."
+      ja: "日齢{day}の経皮ビリルビン測定値 {v} mg/dL。"
+      en: "Transcutaneous bilirubin on day of life {day}: {v} mg/dL."
   hold_reason:
     sbp:
       ja: "血圧低値 (SBP {n}未満)"
@@ -1276,9 +1280,15 @@ newborn:
   apgar_line:
     ja: "Apgar {a1}(1分)/{a5}(5分)"
     en: "Apgar {a1}(1 min) / {a5}(5 min)"
+  bilirubin_last:
+    ja: "経皮ビリルビン最終測定値 {v:.1f} mg/dL (日齢{day})"
+    en: "last transcutaneous bilirubin {v:.1f} mg/dL (day of life {day})"
+  bilirubin_last_undated:
+    ja: "経皮ビリルビン最終測定値 {v:.1f} mg/dL"
+    en: "last transcutaneous bilirubin {v:.1f} mg/dL"
   bilirubin_peak:
-    ja: "総ビリルビン最高値 {v:.1f} mg/dL"
-    en: "peak total bilirubin {v:.1f} mg/dL"
+    ja: "経皮ビリルビン最高値 {v:.1f} mg/dL"
+    en: "peak transcutaneous bilirubin {v:.1f} mg/dL"
   cchd_spo2_line:
     ja: "CCHD SpO2 右上肢 {ru} / 下肢 {le}"
     en: "CCHD SpO2 RU {ru} / LE {le}"
@@ -1311,6 +1321,9 @@ neonate_history:
   birth_weight:
     ja: "出生体重 {kg} kg"
     en: "birth weight {kg} kg"
+  birth_weight_banded:
+    ja: "出生体重 {kg} kg ({band})"
+    en: "birth weight {kg} kg ({band})"
   birth_length:
     ja: "出生時身長 {cm} cm"
     en: "birth length {cm} cm"
@@ -1326,6 +1339,41 @@ neonate_history:
   caregiver_line:
     ja: "養育者: {caregiver}"
     en: "Caregiver: {caregiver}"
+# Newborn admission H&P impression and plan (Issue #3565): the birth data and
+# the prophylaxis / screening / measurements the record holds. No finding or
+# intake is stated that the record does not hold.
+neonate_ap:
+  impression:
+    ja: "新生児 ({items})。"
+    en: "Newborn ({items})."
+  impression_plain:
+    ja: "新生児。"
+    en: "Newborn."
+  plan_observation:
+    ja: "哺乳・排尿・排便・体重の経過を観察する。"
+    en: "Monitor feeding, voiding, stooling and weight."
+  plan_vitamin_k:
+    ja: "ビタミン K を予防投与する。"
+    en: "Vitamin K prophylaxis."
+  plan_ophthalmic:
+    ja: "眼科的予防投与を行う。"
+    en: "Ophthalmic prophylaxis."
+  plan_screening:
+    ja: "新生児スクリーニング ({list}) を実施する。"
+    en: "Newborn screening ({list})."
+  screen_aabr:
+    ja: "聴覚 AABR"
+    en: "hearing AABR"
+  screen_metabolic:
+    ja: "タンデム MS 代謝異常症"
+    en: "tandem-MS metabolic"
+  screen_cchd:
+    ja: "CCHD パルスオキシメトリ"
+    en: "CCHD pulse oximetry"
+  plan_jaundice:
+    ja: "黄疸を経皮ビリルビン測定で経過観察する。"
+    en: "Follow jaundice with transcutaneous bilirubin measurement."
+
 # Newborn progress-note subjective sentences (Issue #3260).
 neonate_progress:
   day_of_life:
@@ -1335,11 +1383,16 @@ neonate_progress:
     ja: "哺乳良好、排尿・排便あり。"
     en: "Feeding well; voiding and stooling."
   bilirubin_dated:
-    ja: "黄疸の評価: 総ビリルビン {v:.1f} mg/dL (日齢{day}の測定)。"
-    en: "Jaundice review: total bilirubin {v:.1f} mg/dL (day of life {day})."
+    ja: "黄疸の評価: 経皮ビリルビン {v:.1f} mg/dL (日齢{day}の測定)。"
+    en: "Jaundice review: transcutaneous bilirubin {v:.1f} mg/dL (day of life {day})."
+  # The latest measurement is from an earlier day of life: it is stated as the
+  # last one, not as today's value (Issue #3564).
+  bilirubin_last:
+    ja: "黄疸の評価: 経皮ビリルビンの最終測定は日齢{day}の {v:.1f} mg/dL (以後の測定なし)。"
+    en: "Jaundice review: last transcutaneous bilirubin was {v:.1f} mg/dL on day of life {day} (no measurement since)."
   bilirubin:
-    ja: "黄疸の評価: 総ビリルビン {v:.1f} mg/dL。"
-    en: "Jaundice review: total bilirubin {v:.1f} mg/dL."
+    ja: "黄疸の評価: 経皮ビリルビン {v:.1f} mg/dL。"
+    en: "Jaundice review: transcutaneous bilirubin {v:.1f} mg/dL."
 neonate_nursing:
   adl:
     ja: "ADL：新生児のため全介助（授乳・清潔・おむつ交換）"

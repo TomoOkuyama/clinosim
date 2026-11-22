@@ -34,7 +34,7 @@ def _progress(lang: str, day: int = 2, **kw):
 def test_newborn_subjective_ja_has_feeding_elimination_and_jaundice() -> None:
     text = compose_progress_subjective_from_state(_progress("ja", day=2))
     assert "日齢2" in text and "哺乳良好" in text and "排尿・排便" in text
-    assert "総ビリルビン 8.8 mg/dL" in text
+    assert "経皮ビリルビン 8.8 mg/dL (日齢2の測定)" in text
     assert "自立訓練" not in text and "リハビリ" not in text
 
 

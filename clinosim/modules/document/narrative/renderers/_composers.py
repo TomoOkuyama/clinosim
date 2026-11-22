@@ -206,7 +206,13 @@ def _newborn_subjective_parts(ctx: NarrativeContext) -> list[str]:
     latest = latest_bilirubin_at(ctx, ctx.day_index)
     if latest is not None:
         day, value = latest
-        key = "neonate_progress.bilirubin_dated" if day is not None else "neonate_progress.bilirubin"
+        if day is None:
+            key = "neonate_progress.bilirubin"
+        elif day < ctx.day_index:
+            # No measurement since: the earlier value is the last one, not today's (Issue #3564).
+            key = "neonate_progress.bilirubin_last"
+        else:
+            key = "neonate_progress.bilirubin_dated"
         parts.append(t(key, lang, v=value, day=day))
     return parts
 
@@ -544,10 +550,12 @@ def compose_progress_assessment_from_state(ctx: NarrativeContext) -> str:
     return t("list_sep.chunk", lang).join(parts)
 
 
-def newborn_screening_to_date(ctx: NarrativeContext) -> str:
+def newborn_screening_to_date(ctx: NarrativeContext, *, with_bilirubin: bool = False) -> str:
     """The newborn screening results, measurements and prophylaxis recorded by
     the note's authored time (Issue #3245; the H&P cites none of them),
-    ``""`` for a patient who is not a newborn or has none yet."""
+    ``""`` for a patient who is not a newborn or has none yet. The bilirubin is
+    left out unless ``with_bilirubin`` (a progress note states it in its own
+    sentence; the discharge summary states the last measurement here)."""
     from clinosim.modules.document.narrative._replacement_renderers import _render_newborn_workup_summary
     from clinosim.modules.document.narrative.context import newborn_workup_known_at
 
@@ -555,7 +563,7 @@ def newborn_screening_to_date(ctx: NarrativeContext) -> str:
     if not workup.get("is_neonate"):
         return ""
     known = newborn_workup_known_at(workup, getattr(ctx, "authored_datetime", None))
-    return _render_newborn_workup_summary(known, lang=ctx.target_lang, screening_only=True)
+    return _render_newborn_workup_summary(known, lang=ctx.target_lang, screening_only=True, bilirubin=with_bilirubin)
 
 
 def compose_progress_held_line(ctx: NarrativeContext) -> str:

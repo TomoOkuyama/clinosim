@@ -145,6 +145,13 @@ class _JaundiceBand(BaseModel):
     text: _EnglishLangMap
 
 
+class _BirthWeightBand(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    below_kg: float = Field(gt=0)
+    text: _EnglishLangMap
+
+
 class NeonatalExam(BaseModel):
     """The newborn exam set (Issue #3260): one language map per body system
     and the jaundice bands, ascending from 0 mg/dL."""
@@ -153,6 +160,15 @@ class NeonatalExam(BaseModel):
 
     systems: dict[str, _EnglishLangMap] = Field(min_length=1)
     jaundice: list[_JaundiceBand] = Field(min_length=1)
+    birth_weight_bands: list[_BirthWeightBand] = Field(default_factory=list)
+
+    @field_validator("birth_weight_bands")
+    @classmethod
+    def _bands_ascend(cls, bands: list[_BirthWeightBand]) -> list[_BirthWeightBand]:
+        bounds = [band.below_kg for band in bands]
+        if bounds != sorted(set(bounds)):
+            raise ValueError("physical_exam_findings.yaml: neonatal.birth_weight_bands must ascend strictly")
+        return bands
 
     @field_validator("systems")
     @classmethod

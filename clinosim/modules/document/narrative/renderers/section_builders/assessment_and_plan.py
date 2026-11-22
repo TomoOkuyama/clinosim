@@ -29,9 +29,11 @@ from typing import TYPE_CHECKING
 
 from clinosim.countries import country_code, has_authored_narrative
 from clinosim.locale.i18n import t
+from clinosim.locale.localized import localized
 from clinosim.modules._shared import CO_DISEASE_SEVERITY
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import _localize_complication
+from clinosim.modules.document.narrative._narrative_utils import is_neonate
 from clinosim.modules.document.narrative.renderers._shared_helpers import (
     chronic_condition_label,
     ordered_chronic_conditions,
@@ -123,7 +125,12 @@ def _compose_ap_assessment_from_state(ctx: NarrativeContext) -> str:
     )
 
     cc = encounter_chief_complaint(ctx) if enc is not None else None
-    if cc:
+    # Issue #3565: a newborn's impression is its birth data, not the complaint
+    # (which is the title of the note).
+    impression = newborn_impression(ctx)
+    if impression:
+        parts.append(impression)
+    elif cc:
         parts.append(t("ap_assessment.chief_complaint_line", lang, cc=cc))
     # Severity + disease
     # session-88j P1-12/Bug-3: JA output must not leak raw EN severity
@@ -278,6 +285,75 @@ def admission_order_items(ctx: NarrativeContext) -> list[str]:
     return items
 
 
+def newborn_impression(ctx: NarrativeContext) -> str:
+    """The impression of a newborn admission (Issue #3565): gestational age,
+    birth weight (with its ICD-10 birth-weight band) and the Apgar scores the
+    record holds. ``""`` for a patient who is not a newborn."""
+    from clinosim.modules.document.reference_data_loaders import load_physical_exam_findings
+
+    workup = getattr(ctx, "newborn_workup", None) or {}
+    if not workup.get("is_neonate"):
+        return ""
+    lang = ctx.target_lang
+    items: list[str] = []
+    days = (workup.get("birth") or {}).get("gestational_age_days")
+    if isinstance(days, int) and days > 0:
+        items.append(t("neonate_history.gestational_age", lang, weeks=days // 7, days=days % 7))
+    kg = workup.get("birth_weight_kg")
+    if kg:
+        weight = f"{float(kg):g}"
+        band = next(
+            (
+                localized(b["text"], lang)
+                for b in load_physical_exam_findings()["neonatal"]["birth_weight_bands"]
+                if float(kg) < b["below_kg"]
+            ),
+            "",
+        )
+        items.append(
+            t("neonate_history.birth_weight_banded", lang, kg=weight, band=band)
+            if band
+            else t("neonate_history.birth_weight", lang, kg=weight)
+        )
+    a1, a5 = workup.get("apgar_1min"), workup.get("apgar_5min")
+    if a1 is not None or a5 is not None:
+        items.append(
+            t("neonate_history.apgar", lang, a1=a1 if a1 is not None else "-", a5=a5 if a5 is not None else "-")
+        )
+    if not items:
+        return t("neonate_ap.impression_plain", lang)
+    return t("neonate_ap.impression", lang, items=t("list_sep.serial", lang).join(items))
+
+
+def newborn_plan_items(ctx: NarrativeContext) -> list[str]:
+    """The newborn admission plan (Issue #3565): observation, and the
+    prophylaxis, screenings and jaundice follow-up the record holds. Nothing
+    is planned that the record has no trace of."""
+    workup = getattr(ctx, "newborn_workup", None) or {}
+    if not workup.get("is_neonate"):
+        return []
+    lang = ctx.target_lang
+    items = [t("neonate_ap.plan_observation", lang)]
+    if workup.get("has_vitamin_k"):
+        items.append(t("neonate_ap.plan_vitamin_k", lang))
+    if workup.get("has_ophthalmic"):
+        items.append(t("neonate_ap.plan_ophthalmic", lang))
+    screens = [
+        t(f"neonate_ap.screen_{name}", lang)
+        for name, held in (
+            ("aabr", workup.get("has_aabr")),
+            ("metabolic", workup.get("has_metabolic")),
+            ("cchd", workup.get("cchd_ru_spo2") is not None or workup.get("cchd_le_spo2") is not None),
+        )
+        if held
+    ]
+    if screens:
+        items.append(t("neonate_ap.plan_screening", lang, list=t("list_sep.serial", lang).join(screens)))
+    if workup.get("bilirubin_series"):
+        items.append(t("neonate_ap.plan_jaundice", lang))
+    return items
+
+
 def admission_plan_items(ctx: NarrativeContext) -> list[str]:
     """The problem-specific items of the admission plan (Issue #3245): the
     operation an admission for a surgical disease plans (the disease protocol's
@@ -297,7 +373,10 @@ def admission_plan_items(ctx: NarrativeContext) -> list[str]:
         name = procedure_prose_name(surgery, lang) if surgery is not None else ""
         if name:
             items.append(t("ap_plan.planned_surgery", lang, name=name))
-    status = registry_display("snomed-ct", ctx.code_status, lang) if ctx.code_status else ""
+    items.extend(newborn_plan_items(ctx))
+    # A healthy newborn has no resuscitation-status decision to record (Issue #3565).
+    routine_newborn = is_neonate(ctx) and not getattr(ctx, "complications_events", None)
+    status = registry_display("snomed-ct", ctx.code_status, lang) if ctx.code_status and not routine_newborn else ""
     if status:
         items.append(t("ap_plan.code_status", lang, status=status))
     return items

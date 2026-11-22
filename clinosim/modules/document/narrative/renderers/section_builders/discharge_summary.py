@@ -120,10 +120,13 @@ def compose_hospital_course(ctx: NarrativeContext, *, with_results: bool = True)
     # the early notes cite only what existed then).
     from clinosim.modules.document.narrative.renderers._composers import newborn_screening_to_date
 
-    screening = newborn_screening_to_date(ctx)
+    screening = newborn_screening_to_date(ctx, with_bilirubin=True)
     if screening:
         parts.append(t("progress.newborn_screening", lang, list=screening))
         facts.append("ctx.newborn_workup")
+    # Issue #3565: the record holds neither a discharge weight nor the feeding.
+    if (getattr(ctx, "newborn_workup", None) or {}).get("is_neonate"):
+        parts.append(t("hospital_course.newborn_discharge_not_recorded", lang))
 
     facts.append("ctx.los_days")
     return t("list_sep.sentence_gap", lang).join(parts), facts
