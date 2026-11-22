@@ -13,6 +13,7 @@ vital signs as a finding linked to the known diagnosis with a plan line, and
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
@@ -20,6 +21,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from clinosim.age_bands import find_age_band, parse_age_band
+from clinosim.codes.drugs import medication_matches
 from clinosim.countries import country_code
 from clinosim.datafiles import load_validated_yaml
 from clinosim.locale.i18n import t
@@ -75,7 +77,9 @@ class _Finding(BaseModel):
 class _VitalFindings(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    tachycardia: dict[Literal["af", "febrile", "default"], _Finding]
+    tachycardia: dict[
+        Literal["af_no_rate_control", "af_on_rate_control", "af_unchanged", "febrile", "default"], _Finding
+    ]
     fever: dict[Literal["infection", "default"], _Finding]
     hypoxemia: dict[Literal["known", "default"], _Finding]
     hypoxemia_severe: dict[Literal["known", "default"], _Finding]
@@ -632,8 +636,23 @@ def known_conditions_tail(labels: list[str], lang: str) -> str:
 # ─────────────────────────────────────────────────────────────────────
 
 
+def _rate_control_classes() -> tuple[str, ...]:
+    """Drug classes that control the ventricular rate in atrial fibrillation
+    (``ventricular_rate.rate_control_classes`` of the AF protocol, Issue #3546)."""
+    from clinosim.modules.disease.protocol import load_disease_protocol
+
+    spec = load_disease_protocol("atrial_fibrillation_rvr").ventricular_rate
+    return tuple(spec.rate_control_classes) if spec is not None else ()
+
+
 def vital_findings(
-    ctx: Any, hr: float | None, temp: float | None, spo2: float | None, tachycardic: bool
+    ctx: Any,
+    hr: float | None,
+    temp: float | None,
+    spo2: float | None,
+    tachycardic: bool,
+    medications: Sequence[Any] = (),
+    rx_unchanged: bool = True,
 ) -> list[tuple[str, str]]:
     """``(assessment item, plan line)`` of each abnormal vital sign of the
     visit, linked to the diagnosis already known: tachycardia in atrial
@@ -656,7 +675,18 @@ def vital_findings(
 
     if hr is not None and tachycardic:
         if any(_code_matches(c, links.atrial_fibrillation) for c in codes):
-            variant = "af"
+            # Issue #3546: the plan line states an action only when the
+            # medication list holds it: no rate-control drug -> starting one is
+            # to be considered; one on the list and the prescription changed ->
+            # a step-up is to be considered; one on the list and the
+            # prescription unchanged -> the regimen continues.
+            classes = _rate_control_classes()
+            if not any(medication_matches(m, classes=classes) for m in medications):
+                variant = "af_no_rate_control"
+            elif rx_unchanged:
+                variant = "af_unchanged"
+            else:
+                variant = "af_on_rate_control"
         elif febrile:
             variant = "febrile"
         else:

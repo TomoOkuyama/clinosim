@@ -210,7 +210,7 @@ def test_tachycardia_in_known_af_is_rate_control_with_a_plan() -> None:
     soap = _soap(record, "US")
     assert "assess volume + arrhythmia" not in soap["A"]
     assert "known atrial fibrillation" in soap["A"]
-    assert "rate-control therapy to be stepped up" in soap["P"]
+    assert "stepped up" not in soap["P"]  # Issue #3546: no rate-control drug on the list
 
 
 _INSTRUCTION = re.compile(r"を確認。|を聴取。|評価要|精査要|\bassess\b|evaluate for|review needed")
