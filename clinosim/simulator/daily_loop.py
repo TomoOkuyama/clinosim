@@ -1702,7 +1702,7 @@ def _run_daily_loop(
         _record_bedside_observations(stay, run, day)
         # Issue #3233: the vital-sign hold parameters read the vital signs
         # recorded before each dose (today's are recorded after the MAR).
-        apply_vital_holds(mars_today, run.vitals, patient.baseline_vitals)
+        apply_vital_holds(mars_today, run.vitals, patient.baseline_vitals, run.orders)
         if comp_list and day >= 1:
             _apply_complications(stay, run, day, comp_list)
         _escalate_airway_and_icu(stay, run, day)

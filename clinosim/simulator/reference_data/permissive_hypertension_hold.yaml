@@ -1,0 +1,32 @@
+# Antihypertensives held while a permissive-hypertension order is active
+# (Issue #3557).
+#
+# Read by clinosim/simulator/permissive_hypertension.py and applied with
+# `apply_vital_holds` (medication_pipeline.py): a scheduled dose of a drug in
+# `held_classes` (catalog classes, codes/data/drugs.yaml, matched with their
+# dotted ancestors) is recorded as held, with `reason`, while a disease
+# protocol's supportive item carries a `permissive_hypertension` block (see
+# cerebral_infarction.yaml) that is in its window and the latest systolic
+# pressure recorded before the dose is below the block's limit
+# (`sbp_limit_mmhg`, or `sbp_limit_thrombolysed_mmhg` once a drug of
+# `thrombolytic_classes` has been ordered). `reason` is a key of
+# locale/shared/medication_hold_reasons.yaml (English and Japanese display).
+#
+# Sources and modelling choices (the guideline text itself was not available
+# to read in this change, so nothing here is quoted from it):
+#   - The two pressure limits (220 and 185 mmHg) are those of the protocol's
+#     own order text ("Permissive hypertension: allow SBP < 220 (or < 185 if
+#     tPA given)"); the held classes follow that order — a pressure below the
+#     limit is the target of the order, not a reason to treat it.
+#   - MODELLING CHOICE: the length of the window (`window_hours` in the
+#     protocol block) is a simulation choice; no source was read for how long
+#     permissive hypertension lasts. It is kept short (48 h) so the effect on
+#     home antihypertensives stays conservative.
+metadata:
+  kind: reference
+  name: permissive_hypertension_hold
+  source: clinosim
+
+held_classes: [antihypertensive]
+thrombolytic_classes: [thrombolytic]
+reason: "Permissive hypertension (acute stroke)"

@@ -24,6 +24,7 @@ from clinosim.simulator.maintenance_iv_fluid import MaintenanceIVFluidRules
 from clinosim.simulator.medication_pipeline import RenalMedicationRules, VasoactiveHoldRules
 from clinosim.simulator.mixed_condition import MixedConditionRules
 from clinosim.simulator.oxygen_course import OxygenCourseRules
+from clinosim.simulator.permissive_hypertension import PermissiveHypertensionRules
 from clinosim.simulator.sex_gating import SexRestrictionRules
 from clinosim.simulator.statin_monitoring import StatinMonitoringRules
 from clinosim.simulator.vasoactive_support import VasoactiveWeaningRules
@@ -46,6 +47,7 @@ _MODELS: dict[str, type[BaseModel]] = {
     "maintenance_iv_fluid.yaml": MaintenanceIVFluidRules,
     "mixed_condition.yaml": MixedConditionRules,
     "oxygen_course.yaml": OxygenCourseRules,
+    "permissive_hypertension_hold.yaml": PermissiveHypertensionRules,
     "renal_medication_rules.yaml": RenalMedicationRules,
     "statin_monitoring.yaml": StatinMonitoringRules,
     "vasoactive_hold.yaml": VasoactiveHoldRules,
@@ -97,6 +99,7 @@ _NESTED: dict[str, Callable[[dict[str, Any]], None]] = {
     "maintenance_iv_fluid.yaml": lambda d: d.update(grace_days={"days": 1}),
     "mixed_condition.yaml": lambda d: d.update(recovery_days={"days": 1}),
     "oxygen_course.yaml": lambda d: d.update(wean_hours={"hours": 12}),
+    "permissive_hypertension_hold.yaml": lambda d: d["held_classes"].append("antihypertensives"),
     "renal_medication_rules.yaml": lambda d: d["renal_drugs"].update(metformin="hld"),
     "statin_monitoring.yaml": lambda d: _rename(d["countries"]["US"]["step_up_ldl"][0], "ldl_mg_dl", "ldl_mgdl"),
     "vasoactive_hold.yaml": lambda d: d["held_classes"].append("antihypertensives"),

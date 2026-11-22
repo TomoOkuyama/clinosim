@@ -306,6 +306,11 @@ class Order:
     # for ward care written with it, ``""`` for every other order (home
     # medications continued, later and ED-visit orders).
     order_set: str = ""
+    # Issue #3557: structured limits of a permissive-hypertension order
+    # (``simulator.permissive_hypertension.PermissiveHypertension``: systolic
+    # limit, limit once a thrombolytic is ordered, window in hours), copied
+    # from the protocol's supportive item; empty on every other order.
+    permissive_hypertension: dict[str, float] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if not self.drug_id and self.order_type == OrderType.MEDICATION and self.display_name:

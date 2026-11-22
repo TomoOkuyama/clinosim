@@ -148,6 +148,7 @@ clinosim/simulator/
   outpatient.py          outpatient encounter simulator
   emergency.py           ED encounter simulator
   discharge_gate.py      discharge-timing decision logic
+  permissive_hypertension.py  permissive-hypertension order window and the antihypertensive hold (Issue #3557)
   vasoactive_support.py  vasopressor / inotrope weaning (MAP target met and
                          out of shock) and the observation day off support
                          before discharge (Issue #3270)
@@ -292,6 +293,7 @@ Reference data (`reference_data/`, 17 YAMLs):
   reference_data/chronic_propagation.yaml     chronic-condition propagation (helpers.py)
   reference_data/diagnosis_rules.yaml         diagnosis-coding rules (diagnosis_rules.py)
   reference_data/icd10_sex_restrictions.yaml  ICD-10 sex gates (sex_gating.py)
+  reference_data/permissive_hypertension_hold.yaml  antihypertensives held during permissive hypertension while SBP is below the limit (permissive_hypertension.py)
   reference_data/renal_medication_rules.yaml  renal dosing rules (medication_pipeline.py, discharge_rx.py)
   reference_data/statin_monitoring.yaml       lipid monitoring / statin titration (statin_monitoring.py)
   reference_data/vasoactive_hold.yaml         drugs held during vasopressor / inotrope infusions (medication_pipeline.py)

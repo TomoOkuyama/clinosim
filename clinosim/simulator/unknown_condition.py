@@ -367,7 +367,7 @@ def _simulate_unknown_condition(
             patient, all_orders, day, admission_time, department=department, roster=roster, rng=rng
         )
         # Issue #3233: vital-sign holds read the vital signs recorded before each dose.
-        apply_vital_holds(mars_today, all_vitals, patient.baseline_vitals)
+        apply_vital_holds(mars_today, all_vitals, patient.baseline_vitals, all_orders)
         all_mars.extend(mars_today)
 
     encounter.status = EncounterStatus.COMPLETED

@@ -72,6 +72,11 @@ reasons:
   "On vasopressor or inotrope infusion":
     en: "on vasopressor or inotrope infusion"
     ja: "昇圧薬・強心薬の持続投与中"
+  # Issue #3557: the MAR reason of an antihypertensive dose held during
+  # permissive hypertension (simulator/reference_data/permissive_hypertension_hold.yaml).
+  "Permissive hypertension (acute stroke)":
+    en: "permissive hypertension (acute stroke), systolic pressure below the limit"
+    ja: "許容性高血圧 (急性期脳卒中) のため、収縮期血圧が上限未満の間は降圧薬を保留"
   "Sepsis — lactic acidosis risk, potential renal impairment":
     en: "sepsis (lactic acidosis + renal impairment risk)"
     ja: "敗血症 (乳酸アシドーシス・腎機能悪化リスクのため保留)"

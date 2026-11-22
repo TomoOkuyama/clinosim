@@ -144,6 +144,7 @@ clinosim/simulator/
   outpatient.py          外来エンカウンターシミュレータ
   emergency.py           ED エンカウンターシミュレータ
   discharge_gate.py      退院タイミング判定ロジック
+  permissive_hypertension.py  許容性高血圧オーダーの期間と降圧薬の保留 (Issue #3557)
   vasoactive_support.py  昇圧薬・強心薬の離脱 (MAP 目標達成かつショック離脱) と
                          離脱後に退院まで 1 病日観察する判定 (Issue #3270)
   maintenance_iv_fluid.py  入院時の維持輸液オーダーを、食事が経口になった後 (猶予 1 日)
@@ -274,6 +275,7 @@ CLI サブコマンドハンドラ (11 ファイル):
   reference_data/chronic_propagation.yaml     慢性疾患の伝播 (helpers.py)
   reference_data/diagnosis_rules.yaml         診断コーディング規則 (diagnosis_rules.py)
   reference_data/icd10_sex_restrictions.yaml  ICD-10 の性別ゲート (sex_gating.py)
+  reference_data/permissive_hypertension_hold.yaml  許容性高血圧の間、収縮期血圧が上限未満なら保留する降圧薬 (permissive_hypertension.py)
   reference_data/renal_medication_rules.yaml  腎機能別投与規則 (medication_pipeline.py, discharge_rx.py)
   reference_data/statin_monitoring.yaml       脂質モニタリング / スタチン調整 (statin_monitoring.py)
   reference_data/vasoactive_hold.yaml         昇圧薬・強心薬の持続投与中に保留する薬 (medication_pipeline.py)
