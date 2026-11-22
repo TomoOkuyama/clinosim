@@ -99,10 +99,10 @@ narrative:
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
-        abdominal: "Distended lower abdomen with a tender, dull suprapubic mass"
+        abdominal: "Abdomen: distended lower abdomen with a tender, dull suprapubic mass"
       ja:
         general: '意識清明、{appearance_ja}'
-        abdominal: "下腹部は膨隆し、恥骨上部に圧痛を伴う濁音の腫瘤を触れる"
+        abdominal: "腹部：下腹部は膨隆し、恥骨上部に圧痛を伴う濁音の腫瘤を触れる"
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

@@ -109,13 +109,13 @@ narrative:
         general: 'Alert and oriented, {appearance_en}'
         cardiovascular: 'BP {sbp}/{dbp} mmHg, HR {hr}/min, regular heart sounds, no murmurs, no jugular venous distension'
         respiratory: Respiratory rate normal, lungs clear, no pleural friction rub
-        abdominal: Flat, soft, non-tender
+        abdominal: 'Abdomen: flat, soft, non-tender'
         neurological: No paralysis
       ja:
         general: '意識清明、{appearance_ja}'
         cardiovascular: 血圧{sbp}/{dbp}mmHg、心拍数{hr}/分、心音整、雑音なし、頸静脈怒張なし
         respiratory: 呼吸数正常、肺野清明、胸膜摩擦音なし
-        abdominal: 平坦、軟、圧痛なし
+        abdominal: 腹部：平坦、軟、圧痛なし
         neurological: 麻痺なし
     ed_workup_summary:
       en: 'ECG: {ecg_result_en}. Cardiac troponin: {troponin_result_en} (repeat at 3 hours). Chest X-ray: {cxr_result_en}. ACS rule-out criteria assessed.'

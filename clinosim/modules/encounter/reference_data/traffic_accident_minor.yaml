@@ -77,11 +77,11 @@ narrative:
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
-        abdominal: "Soft, non-tender"
+        abdominal: "Abdomen: soft, non-tender"
         musculoskeletal: "Cervical and lumbar paraspinal tenderness without midline bony tenderness; limb strength full"
       ja:
         general: '意識清明、{appearance_ja}'
-        abdominal: "腹部は軟、圧痛なし"
+        abdominal: "腹部：腹部は軟、圧痛なし"
         musculoskeletal: "頸部・腰部の傍脊柱筋に圧痛あり、正中の骨性圧痛なし、四肢筋力は保たれている"
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'

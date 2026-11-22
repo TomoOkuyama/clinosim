@@ -65,12 +65,12 @@ narrative:
         general: 'Alert and oriented, {appearance_en}'
         heent: "Oropharynx clear, no drooling, airway patent"
         respiratory: "No stridor; breath sounds clear"
-        abdominal: "Soft, non-tender, not distended"
+        abdominal: "Abdomen: soft, non-tender, not distended"
       ja:
         general: '意識清明、{appearance_ja}'
         heent: "咽頭所見なし、流涎なし、気道開通"
         respiratory: "吸気性喘鳴なし、呼吸音清明"
-        abdominal: "腹部は軟、圧痛・膨満なし"
+        abdominal: "腹部：腹部は軟、圧痛・膨満なし"
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'
