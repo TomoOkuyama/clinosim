@@ -37,8 +37,9 @@ def _reading(sbp: float) -> dict:
 
 @pytest.mark.parametrize("sbp, expected", [(63, {"normal"}), (60, {"normal"}), (59, {"low"}), (55, {"low"})])
 def test_newborn_systolic_state_uses_hypotension_threshold(sbp: float, expected: set[str]) -> None:
+    # two consecutive readings: a newborn's low counts only when sustained (Issue #3563)
     ctx = _ctx("2026-05-01", sbp)
-    assert period_states(ctx, [_reading(sbp)])["systolic_bp"] == expected
+    assert period_states(ctx, [_reading(sbp), _reading(sbp)])["systolic_bp"] == expected
 
 
 def test_adult_systolic_state_unchanged() -> None:

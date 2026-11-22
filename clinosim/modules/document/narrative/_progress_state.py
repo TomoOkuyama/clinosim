@@ -46,10 +46,17 @@ def _measured(reading: Any, vital: str) -> bool:
     return _o(reading, vital, None) is not None
 
 
-def _series(ctx: NarrativeContext, readings: list) -> list[dict[str, set[str]]]:
+def _series(
+    ctx: NarrativeContext, readings: list, before: list | tuple = (), after: list | tuple = ()
+) -> list[dict[str, set[str]]]:
+    """The state of each reading; a newborn's low counts only when sustained
+    over its neighbours, those of ``before`` / ``after`` (the readings preceding
+    / following ``readings``) included (Issue #3563)."""
     from clinosim.modules.document.narrative._progress_exam import period_states
 
-    return [period_states(ctx, [r]) for r in readings]
+    chain = [*before, *readings, *after]
+    offset = len(before)
+    return [period_states(ctx, [r], chain[: offset + i], chain[offset + i + 1 :]) for i, r in enumerate(readings)]
 
 
 def finding_states(ctx: NarrativeContext, readings: list, previous: list) -> dict[tuple[str, str], str]:
@@ -61,7 +68,7 @@ def finding_states(ctx: NarrativeContext, readings: list, previous: list) -> dic
     rules = progress_exam_rules()
     window = rules.course_state
     as_of = getattr(ctx, "authored_datetime", None)
-    cur_series, prev_series = _series(ctx, readings), _series(ctx, previous)
+    cur_series, prev_series = _series(ctx, readings, previous), _series(ctx, previous, after=readings)
     sustained = list(range(len(readings)))
     if as_of is not None:
         start = as_of - timedelta(hours=window.resolved_window_hours)

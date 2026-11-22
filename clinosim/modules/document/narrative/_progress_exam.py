@@ -126,12 +126,23 @@ class _CourseState(BaseModel):
     resolved_min_readings: int = Field(ge=2)
 
 
+class _SustainedLow(BaseModel):
+    """A vital whose low reading counts only when sustained, for a patient up
+    to ``max_age_months`` old (Issue #3563)."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    max_age_months: int = Field(ge=0)
+    min_readings: int = Field(ge=2)
+    accompanying_vitals: list[str] = Field(default_factory=list)
+
+
 class ProgressExamRules(BaseModel):
     """``progress_exam.yaml`` (Issue #3235)."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
     limits: dict[str, _Limit] = Field(min_length=1)
     limit_overrides: list[_LimitOverride] = Field(default_factory=list)
+    sustained_low: dict[str, _SustainedLow] = Field(default_factory=dict)
     clause_separators: Annotated[dict[str, list[str]], AfterValidator(_has_english)]
     terminal_forms: dict[str, dict[str, str]] = Field(default_factory=dict)
     extra_terms: list[_ExtraTerm]
@@ -145,7 +156,8 @@ class ProgressExamRules(BaseModel):
         from clinosim.modules.document.narrative.renderers._shared_helpers import PHYSICAL_EXAM_SYSTEMS
 
         known = set(self.limits) | set(_PSEUDO_VITALS)
-        named = {o.vital for o in self.limit_overrides}
+        named = {o.vital for o in self.limit_overrides} | set(self.sustained_low)
+        named |= {v for rule in self.sustained_low.values() for v in rule.accompanying_vitals}
         named |= {v for term in self.extra_terms for v in term.vitals}
         named |= {f.vital for f in self.state_findings} | {c.vital for c in self.course_items}
         if named - known:
@@ -237,12 +249,63 @@ def _limit(ctx: NarrativeContext, vital: str, limit: _Limit, when: Any) -> tuple
     return (limit.low if override is None else override), limit.high, limit.high_inclusive
 
 
-def period_states(ctx: NarrativeContext, readings: list) -> dict[str, set[str]]:
+def _abnormal(ctx: NarrativeContext, reading: Any, vital: str, when: Any) -> bool:
+    """Whether ``reading`` records ``vital`` outside its limits."""
+    value = _o(reading, vital, None)
+    limit = progress_exam_rules().limits.get(vital)
+    if value is None or limit is None:
+        return False
+    low, high, inclusive = _limit(ctx, vital, limit, when)
+    x = float(value)
+    return (low is not None and x < low) or (high is not None and (x >= high if inclusive else x > high))
+
+
+def _low_marks(ctx: NarrativeContext, vital: str, rows: list, when: Any) -> list[bool]:
+    """Per row of ``rows`` (oldest first), whether its ``vital`` reading is a
+    low that counts. A reading below the limit always counts, except for the
+    ``sustained_low`` patients (newborns, Issue #3563), where it counts only
+    inside a run of ``min_readings`` consecutive low readings of the vital or
+    with another vital abnormal at the same reading."""
+    rules = progress_exam_rules()
+    limit = rules.limits[vital]
+    low = _limit(ctx, vital, limit, when)[0]
+    raw = [low is not None and _o(r, vital, None) is not None and float(_o(r, vital, None)) < low for r in rows]
+    rule = rules.sustained_low.get(vital)
+    months = age_in_completed_months(_o(getattr(ctx, "patient", None), "date_of_birth", None), when)
+    if rule is None or months is None or months > rule.max_age_months:
+        return raw
+    measured = [i for i, r in enumerate(rows) if _o(r, vital, None) is not None]
+    marks = [False] * len(rows)
+    run: list[int] = []
+    for i in [*measured, -1]:
+        if i >= 0 and raw[i]:
+            run.append(i)
+            continue
+        if len(run) >= rule.min_readings:
+            for j in run:
+                marks[j] = True
+        run = []
+    for i in measured:
+        if raw[i] and any(_abnormal(ctx, rows[i], v, when) for v in rule.accompanying_vitals):
+            marks[i] = True
+    return marks
+
+
+def period_states(
+    ctx: NarrativeContext,
+    readings: list,
+    before: list | tuple = (),
+    after: list | tuple = (),
+    *,
+    sustained: bool = True,
+) -> dict[str, set[str]]:
     """The state of each vital over the readings of a note's period:
     ``{vital: {"high"} | {"low"} | {"low", "high"} | {"normal"}}`` (a vital
     with no reading is left out), the pseudo-vital ``on_oxygen`` ("high" when
     the latest reading is on supplemental oxygen) and ``consciousness`` ("high" when
-    an AVPU level other than Alert was recorded)."""
+    an AVPU level other than Alert was recorded). ``before`` / ``after`` are the
+    neighbouring readings that only decide whether a low of ``readings`` is
+    sustained (Issue #3563); ``sustained=False`` judges each reading alone."""
     rules = progress_exam_rules()
     when = getattr(ctx, "authored_datetime", None) or _o(getattr(ctx, "encounter", None), "admission_datetime", None)
     states: dict[str, set[str]] = {}
@@ -253,7 +316,10 @@ def period_states(ctx: NarrativeContext, readings: list) -> dict[str, set[str]]:
             continue
         found: set[str] = set()
         if low is not None and min(values) < low:
-            found.add("low")
+            chain = [*before, *readings, *after]
+            marks = _low_marks(ctx, vital, chain, when)[len(before) : len(before) + len(readings)]
+            if any(marks) or not sustained:
+                found.add("low")
         if high is not None and (max(values) >= high if inclusive else max(values) > high):
             found.add("high")
         states[vital] = found or {"normal"}
@@ -265,15 +331,28 @@ def period_states(ctx: NarrativeContext, readings: list) -> dict[str, set[str]]:
     return states
 
 
-def current_states(ctx: NarrativeContext, readings: list) -> dict[str, set[str]]:
+def current_states(ctx: NarrativeContext, readings: list, before: list | tuple = ()) -> dict[str, set[str]]:
     """The state of each vital at the note's time: that of the latest recorded
     value of each vital among ``readings`` (the values the Objective prints),
     not of the period's extreme. A statement about how the patient is now
     ("tachypnea", "SpO2 low", "worsening") is judged on these; the extreme is
-    stated only as a time-qualified peak (Issue #3401)."""
+    stated only as a time-qualified peak (Issue #3401). A newborn's low counts
+    only when sustained over ``before`` + ``readings`` (Issue #3563)."""
     from clinosim.modules.document.narrative._vitals_line import latest_vitals_set
 
-    return period_states(ctx, [latest_vitals_set(readings)]) if readings else {}
+    if not readings:
+        return {}
+    states = period_states(ctx, [latest_vitals_set(readings)], sustained=False)
+    when = getattr(ctx, "authored_datetime", None) or _o(getattr(ctx, "encounter", None), "admission_datetime", None)
+    chain = [*before, *readings]
+    for vital in progress_exam_rules().sustained_low:
+        if "low" not in states.get(vital, set()):
+            continue
+        marks = _low_marks(ctx, vital, chain, when)
+        last = max(i for i, r in enumerate(chain) if _o(r, vital, None) is not None)
+        if not marks[last]:
+            states[vital] = (states[vital] - {"low"}) or {"normal"}
+    return states
 
 
 def _matches(text: str, code: str) -> list[_Term]:
@@ -334,7 +413,12 @@ def _states_stated(text: str, code: str) -> set[tuple[str, str]]:
 
 
 def progress_exam_findings(
-    ctx: NarrativeContext, readings: list, phys_exam: dict[str, Any], severity: str, lang: str
+    ctx: NarrativeContext,
+    readings: list,
+    phys_exam: dict[str, Any],
+    severity: str,
+    lang: str,
+    before: list | tuple = (),
 ) -> dict[str, str]:
     """The exam of a progress note per body system: the authored findings of
     the day without the clauses the period's readings contradict, plus each
@@ -345,8 +429,8 @@ def progress_exam_findings(
         select_exam_text,
     )
 
-    states = period_states(ctx, readings)
-    now = current_states(ctx, readings)
+    states = period_states(ctx, readings, before)
+    now = current_states(ctx, readings, before)
     code = normalize_lang(lang)
     findings: dict[str, str] = {}
     for system in PHYSICAL_EXAM_SYSTEMS:
