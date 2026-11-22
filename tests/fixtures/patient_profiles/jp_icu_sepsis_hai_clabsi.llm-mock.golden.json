@@ -26,7 +26,7 @@
         "lang": "ja"
       },
       "sections": {
-        "admission_results": "検査（異常値）: K 5.4 mmol/L [H]、血糖 154 mg/dL [H]、CRP 33.77 mg/dL [H]、PaO2 64.3 mmHg [L]、ほか異常値 10 項目。画像・生理検査: 腹部・骨盤 CT（今回撮像範囲内に急性期異常所見を認めず）、胸部単純X線撮影 正面 (AP)（両側下葉肺炎、敗血症の感染源として矛盾せず）",
+        "admission_results": "検査（異常値）: CRP 33.77 mg/dL [H]、PCT 13.11 ng/mL [H]、WBC 12282 /uL [H]、D-ダイマー 1.20 ug/mL [H]、乳酸 3.4 mmol/L [H]、K 5.4 mmol/L [H]、ほか異常値 8 項目。画像・生理検査: 腹部・骨盤 CT（今回撮像範囲内に急性期異常所見を認めず）、胸部単純X線撮影 正面 (AP)（両側下葉肺炎、敗血症の感染源として矛盾せず）",
         "allergies": "薬物アレルギーなし（NKDA）",
         "assessment_and_plan": "[Mock LLM response #1 — assessment_and_plan]",
         "chief_complaint": "3日前より倦怠感・本日ぐったり",

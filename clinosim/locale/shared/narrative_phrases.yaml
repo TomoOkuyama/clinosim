@@ -40,6 +40,12 @@ progress:
   newborn_screening:
     ja: "新生児スクリーニング・予防投与（本記載時点まで）: {list}。"
     en: "Newborn screening and prophylaxis to date: {list}."
+  # The Assessment leads with the problem of the stay (Issue #3545): the
+  # admission diagnosis (and the other diagnoses known since admission) with
+  # the hospital day.
+  working_diagnosis:
+    ja: "主病態: {dx}（入院{day}日目）。"
+    en: "Problem: {dx}, hospital day {day}."
   stable_course_assessment:
     ja: "経過観察中、著変なし。"
     en: "Clinical course stable, no significant change."

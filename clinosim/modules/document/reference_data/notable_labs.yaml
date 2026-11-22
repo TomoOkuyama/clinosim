@@ -18,6 +18,15 @@
 #   clinical source was read for it.
 # max_items: how many analytes each surface lists; the rest are counted
 #   ("+k other abnormal results").
+# relevance: the clinical class of an analyte, in the order a note names them
+#   (Issue #3545): an acute-phase / perfusion marker (inflammation, infection,
+#   hypoperfusion) first, then an organ-injury marker (kidney, heart, liver,
+#   electrolyte), then any analyte not listed, then chronic markers (lipids,
+#   glycaemia) last. A panic result always leads; within a class the tier
+#   order below applies, then first report time. So a chronic marker never
+#   takes the place of an acute or organ marker in the capped list. The
+#   grouping is a clinosim convention (acute-phase versus chronic-disease
+#   markers); no cut-off is involved and no source was needed for it.
 # findings: the abnormality a flagged result of an analyte names, by the side
 #   of the reference range it is on (high / low; the panic flag "critical" is
 #   placed on its side by the panic thresholds of
@@ -62,8 +71,13 @@ window_hours: 24
 draw_window_minutes: 120
 
 max_items:
-  note: 4
+  note: 6
   llm_context: 8
+
+relevance:
+  acute_phase: [Lactate, PCT, CRP, WBC, ESR, pH, D_dimer]
+  organ_injury: [Troponin_I, Troponin, CK_MB, BNP, Creatinine, BUN, eGFR, K, Na, ALT, AST, T_Bil, Plt, Hb]
+  chronic: [Glucose, HbA1c, LDL, HDL, TG, TC]
 
 findings:
   K:

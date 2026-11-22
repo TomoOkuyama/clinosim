@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from clinosim.countries import has_authored_narrative
+from clinosim.countries import country_code, has_authored_narrative
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._as_of import recorded_by
@@ -467,6 +467,43 @@ def _complications_known_on_day(
     return new, ongoing
 
 
+def _working_diagnosis_line(ctx: NarrativeContext) -> str:
+    """The stay's problem for the head of a progress-note Assessment (Issue
+    #3545): the admission diagnosis and the working diagnoses present from
+    admission (``onset_day`` 0), coded and named, with the hospital day.
+    Diagnoses of a later onset are named as complications, and the discharge
+    diagnosis is never used (a note cannot know it). ``""`` without any."""
+    from clinosim.modules.disease.protocol import working_diagnosis_code
+    from clinosim.modules.document.narrative.renderers._shared_helpers import diagnosis_coded
+
+    lang = ctx.target_lang
+    codes: list[str] = []
+    for dx in getattr(ctx, "diagnoses", None) or []:
+        if code := str(_o(dx, "admission_diagnosis_code", "") or ""):
+            codes.append(code)
+    for wd in getattr(ctx, "working_diagnoses", None) or []:
+        if _o(wd, "onset_day", None) == 0 and (code := working_diagnosis_code(str(_o(wd, "disease_id", "") or ""))):
+            codes.append(code)
+    if not codes:
+        return ""
+    country = country_code(ctx.locale)
+    patient = getattr(ctx, "patient", None)
+    sex = str(_o(patient, "sex", "") or "") if patient is not None else ""
+    items: list[str] = []
+    seen: set[str] = set()
+    for code in codes:
+        if code.split(".")[0] in seen:
+            continue
+        seen.add(code.split(".")[0])
+        emitted, display = diagnosis_coded(code, country, lang, sex)
+        items.append(
+            t("list_item.inline_dx_with_code", lang, display=display, code=emitted) if display != emitted else emitted
+        )
+    if not items:
+        return ""
+    return t("progress.working_diagnosis", lang, dx=t("list_sep.serial", lang).join(items[:3]), day=ctx.day_index + 1)
+
+
 def compose_progress_assessment_from_state(ctx: NarrativeContext) -> str:
     """Inpatient progress_note Assessment from CIF facts.
 
@@ -486,6 +523,10 @@ def compose_progress_assessment_from_state(ctx: NarrativeContext) -> str:
     sep = t("list_sep.serial", lang)
     parts: list[str] = []
     as_of = getattr(ctx, "authored_datetime", None)
+    # Issue #3545: the Assessment leads with the problem of the stay.
+    problem = _working_diagnosis_line(ctx)
+    if problem:
+        parts.append(problem)
     # Issue #3247: the post-operative day, the complications with their day of
     # onset, and how the course changed from the previous period.
     from clinosim.modules.document.narrative._progress_course import lab_course_lines, post_procedure_line

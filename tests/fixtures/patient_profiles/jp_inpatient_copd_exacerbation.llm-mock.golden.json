@@ -26,7 +26,7 @@
         "lang": "ja"
       },
       "sections": {
-        "admission_results": "検査（異常値）: PaO2 61 mmHg [L]、クレアチニン 1.18 mg/dL [H]、血糖 117 mg/dL [H]、CRP 0.28 mg/dL [H]、ほか異常値 6 項目。画像・生理検査: 胸部 CT（今回撮像範囲内に急性期異常所見を認めず）、胸部単純X線撮影 PA・側面（肺過膨張、横隔膜平坦化、胸骨後腔拡大）",
+        "admission_results": "検査（異常値）: CRP 0.28 mg/dL [H]、WBC 10583 /uL [H]、PCT 0.38 ng/mL [H]、クレアチニン 1.18 mg/dL [H]、K 4.9 mmol/L [H]、BUN 24.0 mg/dL [H]、ほか異常値 4 項目。画像・生理検査: 胸部 CT（今回撮像範囲内に急性期異常所見を認めず）、胸部単純X線撮影 PA・側面（肺過膨張、横隔膜平坦化、胸骨後腔拡大）",
         "allergies": "薬物アレルギーなし（NKDA）",
         "assessment_and_plan": "[Mock LLM response #1 — assessment_and_plan]",
         "chief_complaint": "1週間前より痰の量と粘稠度が増加",

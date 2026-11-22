@@ -259,6 +259,15 @@ class _AkiCriteria(BaseModel):
     relative_window_days: int = Field(gt=0)
 
 
+class _NotableLabRelevance(BaseModel):
+    """Clinical classes of an analyte for ranking (Issue #3545)."""
+
+    model_config = ConfigDict(extra="forbid")
+    acute_phase: list[str]
+    organ_injury: list[str]
+    chronic: list[str]
+
+
 class NotableLabRules(BaseModel):
     """``notable_labs.yaml`` (Issue #3230)."""
 
@@ -266,14 +275,25 @@ class NotableLabRules(BaseModel):
     window_hours: int = Field(gt=0)
     draw_window_minutes: int = Field(gt=0)
     max_items: _NotableLabMaxItems
+    relevance: _NotableLabRelevance
     findings: dict[str, _NotableLabFinding]
     aki: _AkiCriteria
+
+    def relevance_rank(self, analyte: str) -> int:
+        """Ranking class of a canonical analyte: acute phase 0, organ injury 1,
+        unlisted 2, chronic 3."""
+        if analyte in self.relevance.acute_phase:
+            return 0
+        if analyte in self.relevance.organ_injury:
+            return 1
+        return 3 if analyte in self.relevance.chronic else 2
 
     @model_validator(mode="after")
     def _known_analytes(self) -> NotableLabRules:
         from clinosim.modules.observation.engine import PRECISION
 
-        unknown = sorted(a for a in [*self.findings, self.aki.analyte] if a not in PRECISION)
+        listed = [*self.relevance.acute_phase, *self.relevance.organ_injury, *self.relevance.chronic]
+        unknown = sorted(a for a in [*self.findings, self.aki.analyte, *listed] if a not in PRECISION)
         if unknown:
             raise ValueError(f"notable_labs.yaml: unknown lab analytes {unknown}")
         return self
