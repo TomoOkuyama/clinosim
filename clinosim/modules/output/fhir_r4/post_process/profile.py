@@ -522,11 +522,16 @@ def _is_lab_observation(resource: dict) -> bool:
     separate work item.
     """
     from clinosim.modules.newborn.fhir_emit import METABOLIC_SCREEN_OBS_ID_PREFIX
+    from clinosim.modules.output.fhir_r4.labs.blood_type import BLOOD_ANTIBODY_SCREEN_OBS_ID_PREFIX
     from clinosim.modules.output.fhir_r4.labs.service_request import (
         NON_ORDER_DRIVEN_LAB_OBS_ID_PREFIXES,
     )
 
-    excluded_prefixes = (*NON_ORDER_DRIVEN_LAB_OBS_ID_PREFIXES, METABOLIC_SCREEN_OBS_ID_PREFIX)
+    excluded_prefixes = (
+        *NON_ORDER_DRIVEN_LAB_OBS_ID_PREFIXES,
+        METABOLIC_SCREEN_OBS_ID_PREFIX,
+        BLOOD_ANTIBODY_SCREEN_OBS_ID_PREFIX,
+    )
     for cat in resource.get("category", []) or []:
         for coding in cat.get("coding", []) or []:
             if coding.get("code") == "laboratory":
