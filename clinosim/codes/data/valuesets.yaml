@@ -26,6 +26,8 @@ groups:
   diabetes: {space: internal, match: prefix, members: [E11, E10, E13]}
   dyslipidemia: {space: internal, match: prefix, members: [E78]}
   heart_failure: {space: internal, match: prefix, members: [I50]}
+  # Issue #3554: the acute event (STEMI/NSTEMI and subsequent MI), not the old-MI code I25.2.
+  acute_myocardial_infarction: {space: internal, match: prefix, members: [I21, I22]}
   CKD: {space: internal, match: prefix, members: [N18]}
   N18: {space: internal, match: prefix, members: [N18]}
   COPD: {space: internal, match: prefix, members: [J44]}

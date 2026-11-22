@@ -272,6 +272,14 @@ class DischargeInstructionGate(BaseModel):
     vitamin_k_given: bool | None = None
     # Issue #3281: the stay's final creatinine still meets the KDIGO AKI definition.
     aki_at_discharge: bool = False
+    # Issue #3554: where the patient goes after discharge ("home" = a private
+    # residence, "facility" = a nursing facility or another hospital; the
+    # dispositions that count as a facility are the file's
+    # ``facility_dispositions``).
+    setting: Literal["home", "facility"] | None = None
+    # Issue #3554: only the discharge drugs on a continuing prescription count
+    # as matches, not a fixed-days course (``fixed_course_max_days``).
+    drug_course: Literal["chronic"] | None = None
 
 
 class _BilingualText(BaseModel):
@@ -290,6 +298,39 @@ class _BilingualText(BaseModel):
         return self
 
 
+_SLOT_LAYERS = ("baseline", "disease_specific", "protocol")
+
+
+def _slot_refs(refs: list[str]) -> list[str]:
+    for ref in refs:
+        layer, _, key = ref.partition(".")
+        if layer not in _SLOT_LAYERS or not key:
+            raise ValueError(f"slot entry {ref!r} must be <layer>.<key>, layer one of {_SLOT_LAYERS}")
+    return refs
+
+
+class DischargeSlot(BaseModel):
+    """One instruction slot filled by at most one entry (Issue #3554).
+
+    ``precedence`` lists the ``<layer>.<key>`` entries that can fill the slot,
+    best first (layers: ``baseline``, ``disease_specific``, the disease
+    ``protocol``); the first one that applies to the patient is shown and the
+    others are dropped. ``home_only`` lists entries addressed to a patient at
+    home; for a facility discharge they do not apply."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    precedence: Annotated[list[str], AfterValidator(_slot_refs)] = Field(min_length=1)
+    home_only: Annotated[list[str], AfterValidator(_slot_refs)] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _home_only_in_precedence(self) -> DischargeSlot:
+        extra = sorted(set(self.home_only) - set(self.precedence))
+        if extra:
+            raise ValueError(f"home_only entries {extra} are not in precedence")
+        return self
+
+
 class DischargeInstructions(BaseModel):
     """Shape of clinosim-discharge-instruction.yaml: a baseline with at least
     the hydrate / rest / follow_up instructions, and a ``disease_specific``
@@ -301,6 +342,11 @@ class DischargeInstructions(BaseModel):
     baseline: dict[str, _BilingualText] = Field(min_length=1)
     neonatal: dict[str, _BilingualText] | None = Field(default=None, min_length=1)
     disease_specific: dict[str, dict[str, _BilingualText] | None] | None
+    # Issue #3554: slots, the discharge dispositions that are a facility, and
+    # the longest prescription (days) that is a fixed course, not a chronic drug.
+    slots: dict[str, DischargeSlot] | None = None
+    facility_dispositions: list[str] | None = None
+    fixed_course_max_days: int | None = Field(default=None, ge=1)
 
     @model_validator(mode="before")
     @classmethod

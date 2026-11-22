@@ -1019,3 +1019,6 @@ _.covers_other_sites  # _BodySite field (validated yaml key, read by key in orde
 _.abnormal_by_code  # _ReportVariants field (validated yaml key, read by key in imaging.engine._select_report_template, Issue #3394)
 _.no_interval_event  # _ChronicSoapTemplate field (validated yaml key, read by key in outpatient_soap, Issue #3407)
 _.labs_measured_on_day  # narrative lab helper kept for callers and tests; lab_trend now groups draws itself (Issue #3457)
+_.drug_course  # DischargeInstructionGate field (validated yaml key, read by key in _resolvers, Issue #3554)
+_.facility_dispositions  # DischargeInstructions field (validated yaml key, read by key in _resolvers, Issue #3554)
+_.fixed_course_max_days  # DischargeInstructions field (validated yaml key, read by key in _resolvers, Issue #3554)

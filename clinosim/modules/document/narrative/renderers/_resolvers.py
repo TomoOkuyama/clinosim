@@ -35,6 +35,9 @@ from clinosim.timeutil import parse_iso_datetime
 # not end one) or at a Japanese full stop.
 _SENTENCE_BREAK = re.compile(r"(?<=[.!?])\s+|(?<=。)")
 
+#: Fallback of the discharge-instruction file's ``fixed_course_max_days`` (Issue #3554).
+_FIXED_COURSE_MAX_DAYS_FALLBACK = 14
+
 if TYPE_CHECKING:
     from clinosim.modules.document.narrative.template_generator import (
         TemplateNarrativeGenerator,
@@ -254,11 +257,34 @@ def _patient_condition_codes(ctx: NarrativeContext) -> list[str]:
     return codes
 
 
-def _gate_drugs(ctx: NarrativeContext, refs: list[str]) -> list[Any]:
+def _is_fixed_course(med: Any) -> bool:
+    """True when the discharge prescription line is a fixed-days course (at
+    most the file's ``fixed_course_max_days``) rather than a drug taken
+    indefinitely (Issue #3554). A line with no day count is a continuing one."""
+    days = _o(med, "rx_duration_days", None)
+    limit = load_discharge_instructions().get("fixed_course_max_days") or _FIXED_COURSE_MAX_DAYS_FALLBACK
+    return isinstance(days, (int, float)) and 0 < days <= int(limit)
+
+
+def _gate_drugs(ctx: NarrativeContext, refs: list[str], *, chronic_only: bool = False) -> list[Any]:
     """Discharge-prescription items that are one of the catalog drugs or
-    classes ``refs``."""
+    classes ``refs``; with ``chronic_only``, not a fixed-days course."""
     meds = getattr(ctx, "discharge_medications", None) or []
-    return [m for m in meds if medication_matches(m, drugs=refs, classes=refs)]
+    return [
+        m
+        for m in meds
+        if medication_matches(m, drugs=refs, classes=refs) and not (chronic_only and _is_fixed_course(m))
+    ]
+
+
+def discharge_setting(ctx: NarrativeContext) -> str:
+    """``"facility"`` when the patient is discharged to a nursing facility or
+    another hospital (the file's ``facility_dispositions``), else ``"home"``
+    (Issue #3554)."""
+    encounter = getattr(ctx, "encounter", None)
+    disposition = str(_o(encounter, "discharge_disposition", "") or "") if encounter is not None else ""
+    facility = load_discharge_instructions().get("facility_dispositions") or ()
+    return "facility" if disposition in facility else "home"
 
 
 def _instruction_applies(gate: dict[str, Any] | None, ctx: NarrativeContext) -> bool:
@@ -293,8 +319,10 @@ def _instruction_applies(gate: dict[str, Any] | None, ctx: NarrativeContext) -> 
 
         if not aki_active_from_records(getattr(ctx, "lab_results", None) or []):
             return False
+    if gate.get("setting") and gate["setting"] != discharge_setting(ctx):
+        return False
     refs = gate.get("discharge_drugs") or []
-    return not refs or bool(_gate_drugs(ctx, refs))
+    return not refs or bool(_gate_drugs(ctx, refs, chronic_only=gate.get("drug_course") == "chronic"))
 
 
 def _fill_drugs(entry: dict[str, Any], ctx: NarrativeContext) -> dict[str, str]:
@@ -303,10 +331,11 @@ def _fill_drugs(entry: dict[str, Any], ctx: NarrativeContext) -> dict[str, str]:
     texts = {lang: str(text) for lang, text in entry.items() if lang != "applies_when" and text}
     if not any("{drugs}" in text for text in texts.values()):
         return texts
-    refs = (entry.get("applies_when") or {}).get("discharge_drugs") or []
+    gate = entry.get("applies_when") or {}
+    refs = gate.get("discharge_drugs") or []
     names: list[str] = []
     seen: set[str] = set()
-    for med in _gate_drugs(ctx, refs):
+    for med in _gate_drugs(ctx, refs, chronic_only=gate.get("drug_course") == "chronic"):
         name, _ = strip_protocol_prefix(str(_o(med, "drug_name", "") or ""))
         if name and (key := drug_key(name)) not in seen:
             seen.add(key)
@@ -363,22 +392,28 @@ def resolve_discharge_instructions(ctx: NarrativeContext) -> dict[str, dict[str,
     neither shows nor replaces the layer below (Issue #3254). ``{drugs}``
     names the discharge drugs the gate matched, and a sentence already said
     by an earlier entry is dropped.
+
+    The file's ``slots`` (Issue #3554) are filled by one entry each, whichever
+    layer and key it comes from, so the emergency and diet advice of the
+    disease layer and of the protocol do not both show; for a facility
+    discharge the entries addressed to a patient at home are left out.
     """
     di_data = load_discharge_instructions()
     disease_specific: dict[str, Any] = di_data.get("disease_specific") or {}
 
-    merged: dict[str, dict[str, str]] = {}
+    #: Applicable entries in layer order: (layer, key, entry).
+    layered: list[tuple[str, str, dict[str, str]]] = []
 
-    def _layer(entries: dict[str, Any]) -> None:
+    def _layer(layer: str, entries: dict[str, Any]) -> None:
         for key, entry in entries.items():
             if isinstance(entry, dict) and _instruction_applies(entry.get("applies_when"), ctx):
-                merged[key] = _fill_drugs(entry, ctx)
+                layered.append((layer, key, _fill_drugs(entry, ctx)))
 
-    _layer(baseline_instruction_set(ctx))
+    _layer("baseline", baseline_instruction_set(ctx))
 
     disease_id = _o(ctx.disease_protocol, "disease_id", None) if ctx.disease_protocol else None
     if disease_id and disease_id in disease_specific:
-        _layer(disease_specific[disease_id] or {})
+        _layer("disease_specific", disease_specific[disease_id] or {})
 
     narrative = _o(ctx.disease_protocol, "narrative", None) if ctx.disease_protocol else None
     if narrative is not None:
@@ -388,6 +423,35 @@ def resolve_discharge_instructions(ctx: NarrativeContext) -> dict[str, dict[str,
             for section in _di_sections:
                 sec_data = _o(proto_di, section, {})
                 if isinstance(sec_data, dict) and (sec_data.get("en") or sec_data.get("ja")):
-                    merged[section] = dict(sec_data)
+                    layered.append(("protocol", section, dict(sec_data)))
+
+    slot_of, drop = _slot_resolution(layered, di_data.get("slots") or {}, discharge_setting(ctx))
+    merged: dict[str, dict[str, str]] = {}
+    for layer, key, entry in layered:
+        ref = f"{layer}.{key}"
+        if ref in drop:
+            continue
+        merged[slot_of.get(ref, key)] = entry
 
     return dedupe_instruction_sentences(merged)
+
+
+def _slot_resolution(
+    layered: list[tuple[str, str, dict[str, str]]], slots: dict[str, Any], setting: str
+) -> tuple[dict[str, str], set[str]]:
+    """``(slot name by entry ref, refs to drop)`` for the ``slots`` of
+    clinosim-discharge-instruction.yaml: of each slot's applicable entries
+    the first in ``precedence`` is kept (under the slot's name) and the rest
+    dropped; ``home_only`` entries do not apply to a facility discharge."""
+    present = {f"{layer}.{key}" for layer, key, _ in layered}
+    slot_of: dict[str, str] = {}
+    drop: set[str] = set()
+    for name, slot in slots.items():
+        home_only = set(slot.get("home_only") or ()) if setting == "facility" else set()
+        candidates = [r for r in slot["precedence"] if r in present and r not in home_only]
+        for ref in slot["precedence"]:
+            if ref not in candidates[:1]:
+                drop.add(ref)
+        if candidates:
+            slot_of[candidates[0]] = name
+    return slot_of, drop
