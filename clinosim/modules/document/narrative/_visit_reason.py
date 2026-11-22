@@ -14,6 +14,7 @@ vital signs as a finding linked to the known diagnosis with a plan line, and
 from __future__ import annotations
 
 from collections.abc import Sequence
+from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
@@ -291,17 +292,43 @@ def _lab_values(ctx: Any, values: dict[str, Any]) -> None:
         values["screening_labs"] = _phrase("screening_labs_normal", lang)
 
 
+def _authored_naive(ctx: Any) -> Any:
+    when = getattr(ctx, "authored_datetime", None)
+    return when.replace(tzinfo=None) if isinstance(when, datetime) else None
+
+
 def _imaging_values(ctx: Any, values: dict[str, Any]) -> list[str]:
-    """Impressions of the encounter's imaging reports (in the note language)."""
+    """Impressions of the encounter's imaging reports issued by the note's
+    authored time (in the note language); the studies ordered at the visit and
+    not yet reported are worded as pending (Issue #3548)."""
+    from clinosim.locale.loader import imaging_exam_display
+    from clinosim.modules.document.narrative._as_of import recorded_by
+
     lang = ctx.target_lang
+    authored = _authored_naive(ctx)
     texts: list[str] = []
+    reported: set[str] = set()
     for study in getattr(ctx, "imaging_studies", None) or []:
         report = _o(study, "report", None) or {}
+        if not recorded_by([report], authored, "issued_datetime"):
+            continue
         text = _o(report, f"impression_text_{lang}", None) or _o(report, "impression_text", None) or ""
         if text:
             texts.append(str(text).strip())
+            reported.add(str(_o(study, "order_id", "") or ""))
     if texts:
         values["imaging"] = join_sentences(texts, lang)
+    pending: list[str] = []
+    for order in getattr(ctx, "orders", None) or []:
+        if str(_o(order, "order_type", "") or "") != "imaging":
+            continue
+        if str(_o(order, "order_id", "") or "") in reported:
+            continue
+        name = imaging_exam_display(str(_o(order, "display_name", "") or ""), lang)
+        if name and name not in pending:
+            pending.append(name)
+    if pending:
+        values["imaging_pending"] = _phrase("imaging_pending", lang, list=t("list_sep.serial", lang).join(pending))
     return texts
 
 
@@ -389,6 +416,25 @@ def _therapy_values(ctx: Any, values: dict[str, Any]) -> None:
         values["cytotoxic"] = ""
 
 
+def _dose_timed_by_authored(imm: Any, ctx: Any) -> bool:
+    """Whether the dose of ``imm`` is timed at or before the note's authored
+    time, so that the observation after it can be written (Issue #3548). The
+    record holds a date only: a date-only dose has no time to place before the
+    note, so its observation is not written; with no authored time nothing
+    places the note before the dose."""
+    authored = _authored_naive(ctx)
+    if authored is None:
+        return True
+    given = _o(imm, "occurrence_date", None)
+    if isinstance(given, str):
+        from clinosim.timeutil import parse_iso_datetime
+
+        given = parse_iso_datetime(given, lenient=True) if "T" in given else None
+    if not isinstance(given, datetime):
+        return False
+    return given.replace(tzinfo=None) <= authored
+
+
 def _vaccine_values(ctx: Any, values: dict[str, Any]) -> None:
     from clinosim.codes import display as registry_display
     from clinosim.modules.immunization.engine import vaccine_administration
@@ -398,6 +444,7 @@ def _vaccine_values(ctx: Any, values: dict[str, Any]) -> None:
     data = load_visit_reason_soap()
     names: list[str] = []
     details: list[str] = []
+    observed = False
     birth = _o(ctx.patient, "date_of_birth", None) if ctx.patient is not None else None
     for imm in getattr(ctx, "immunizations", None) or []:
         if str(_o(imm, "status", "completed") or "completed") != "completed":
@@ -425,6 +472,10 @@ def _vaccine_values(ctx: Any, values: dict[str, Any]) -> None:
             if site:
                 parts.append(localized(data.vaccine_detail["site"], lang).format(site=site))
         details.append("".join(parts))
+        if _dose_timed_by_authored(imm, ctx):
+            observed = True
+    if observed:
+        values["vaccine_observed"] = ""
     if names:
         sep = t("list_sep.serial", lang)
         values["vaccine_names"] = sep.join(names)
