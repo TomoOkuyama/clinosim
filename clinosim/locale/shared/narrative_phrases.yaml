@@ -1875,9 +1875,6 @@ op_note:
   assistants_suffix:
     ja: "／助手：{list}"
     en: " / Assistants: {list}"
-  assistants_none_suffix:
-    ja: "／助手：なし"
-    en: " / Assistants: none"
   findings_line:
     ja: "手術部位：{body_site}"
     en: "Body site: {body_site}"
@@ -1900,8 +1897,26 @@ op_note:
     ja: "術中所見：特記すべき所見なし"
     en: "No significant intraoperative findings"
   course_head:
-    ja: "手術経過：{approach_part}予定術式を施行{time_part}{duration_part}{outcome_part}"
-    en: "Operative course: planned procedure performed{approach_part}{time_part}{duration_part}{outcome_part}"
+    ja: "手術経過：{approach_part}{urgency_part}術式を施行{time_part}{duration_part}{outcome_part}"
+    en: "Operative course: {urgency_part}procedure performed{approach_part}{time_part}{duration_part}{outcome_part}"
+  # Issue #3549: the urgency of the operation, from Encounter.priority
+  # (EM / UR / EL); no phrase when the encounter records none.
+  course_urgency_emergency:
+    ja: "緊急"
+    en: "emergency "
+  course_urgency_urgent:
+    ja: "準緊急"
+    en: "urgent "
+  course_urgency_elective:
+    ja: "予定"
+    en: "elective "
+  # Issue #3549: an earlier procedure of the same type in the patient's record.
+  findings_prior_implant:
+    ja: "前回（{date}）に{implant}を留置済み"
+    en: "Prior implant placed on {date}: {implant}"
+  findings_prior_procedure:
+    ja: "前回（{date}）に{name}を施行済み"
+    en: "Prior procedure: {name} on {date}"
   course_approach_part:
     ja: "{approach}アプローチにて"
     en: " via a {approach} approach"

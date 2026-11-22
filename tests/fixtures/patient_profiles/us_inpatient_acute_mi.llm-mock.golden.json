@@ -2062,14 +2062,14 @@
       },
       "sections": {
         "op_anesthesia": "Anesthesia: Local anesthesia",
-        "op_blood_loss": "Estimated blood loss: not recorded; no intraoperative transfusion",
+        "op_blood_loss": "Estimated blood loss: not recorded",
         "op_course": "[Mock LLM response #18 — op_course]",
         "op_equipment": "Implants / devices used: Drug-eluting stent",
         "op_findings": "[Mock LLM response #18 — op_findings]",
         "op_postop_plan": "[Mock LLM response #18 — op_postop_plan]",
         "op_procedure_name": "Procedure: Percutaneous transluminal coronary angioplasty (PCI); single major coronary artery (code 92920); operative time 24 min",
         "op_specimens": "Specimens sent to pathology: none",
-        "op_surgeon": "Primary surgeon: Clara Pittman / Assistants: none"
+        "op_surgeon": "Primary surgeon: Clara Pittman"
       },
       "text": ""
     }

@@ -39,6 +39,7 @@ from clinosim.modules.document.narrative._localization import (
     _op_approach_is_phrase,
 )
 from clinosim.modules.document.narrative._template_helpers import _resolve_staff_name
+from clinosim.modules.document.narrative.renderers._shared_helpers import resolve_procedure_display
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
 from clinosim.timeutil import parse_iso_datetime
 from clinosim.types.document import NarrativeContext
@@ -111,11 +112,9 @@ def build_op_surgeon(generator: TemplateNarrativeGenerator, ctx: NarrativeContex
     surgeon_part = (
         t("op_note.surgeon_line", lang, surgeon=surgeon_name) if surgeon_name else t("op_note.surgeon_none", lang)
     )
-    assist_part = (
-        t("op_note.assistants_suffix", lang, list=sep.join(assistant_names))
-        if assistant_names
-        else t("op_note.assistants_none_suffix", lang)
-    )
+    # Issue #3549: assistants are stated only when the record has some; an empty
+    # list means none recorded, not that there were none.
+    assist_part = t("op_note.assistants_suffix", lang, list=sep.join(assistant_names)) if assistant_names else ""
     return f"{surgeon_part}{assist_part}", facts
 
 
@@ -143,6 +142,41 @@ def _encounter_operative_diagnoses(ctx: NarrativeContext) -> tuple[str, str]:
         if pre:
             return render(pre), render(dis) if dis else ""
     return "", ""
+
+
+def _prior_same_procedure_text(ctx: NarrativeContext, proc: Any, lang: str) -> str:
+    """The line naming the patient's earlier procedure of the same type (Issue
+    #3549): a repeat PCI refers to the stent placed before, with its date. Taken
+    from the procedures of the patient's other encounters (``ctx.prior_procedures``)
+    and of this record; "" when the patient has no earlier one."""
+    ptype = str(_o(proc, "procedure_type", "") or "")
+    start = parse_iso_datetime(_o(proc, "start_datetime", None), lenient=True)
+    if not ptype or start is None:
+        return ""
+    own_id = str(_o(proc, "procedure_id", "") or "")
+    earlier: list[tuple[datetime, Any]] = []
+    for cand in [*(ctx.prior_procedures or []), *(ctx.procedures or [])]:
+        if str(_o(cand, "procedure_type", "") or "") != ptype or str(_o(cand, "procedure_id", "") or "") == own_id:
+            continue
+        when = parse_iso_datetime(_o(cand, "start_datetime", None), lenient=True)
+        if when is not None and when.replace(tzinfo=None) < start.replace(tzinfo=None):
+            earlier.append((when, cand))
+    if not earlier:
+        return ""
+    when, cand = max(earlier, key=lambda x: x[0])
+    date = when.strftime("%Y-%m-%d")
+    implants = [_localize_op_implant(str(x), lang) for x in (_o(cand, "implants_used", []) or []) if x]
+    if implants:
+        return t("op_note.findings_prior_implant", lang, implant=t("list_sep.serial", lang).join(implants), date=date)
+    return t("op_note.findings_prior_procedure", lang, name=resolve_procedure_display(cand, lang), date=date)
+
+
+def _urgency_key(ctx: NarrativeContext) -> str:
+    """``emergency`` / ``urgent`` / ``elective`` from the encounter's priority
+    (Issue #3549), "" when it records none (routine or unset)."""
+    raw = _o(ctx.encounter, "priority", "") or ""
+    code = str(_o(raw, "value", raw) or "").split(".")[-1].upper()
+    return {"EM": "emergency", "UR": "urgent", "EL": "elective"}.get(code, "")
 
 
 @section("op_findings")
@@ -182,6 +216,10 @@ def build_op_findings(generator: TemplateNarrativeGenerator, ctx: NarrativeConte
     parts = []
     if body_site:
         parts.append(t("op_note.findings_line", lang, body_site=body_site))
+    prior = _prior_same_procedure_text(ctx, proc, lang)
+    if prior:
+        parts.append(prior)
+        facts.append("ctx.prior_procedures")
     if preop_disp:
         parts.append(t("op_note.findings_preop", lang, dx=preop_disp))
     else:
@@ -236,10 +274,13 @@ def build_op_course(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
         )
     duration_part = t("op_note.course_duration_part", lang, duration=duration) if duration else ""
     outcome_part = t("op_note.course_outcome_part", lang, outcome=outcome) if outcome else ""
+    urgency = _urgency_key(ctx)
+    urgency_part = t(f"op_note.course_urgency_{urgency}", lang) if urgency else ""
     return (
         t(
             "op_note.course_head",
             lang,
+            urgency_part=urgency_part,
             approach_part=approach_part,
             time_part=time_part,
             duration_part=duration_part,
@@ -287,13 +328,16 @@ def build_op_blood_loss(generator: TemplateNarrativeGenerator, ctx: NarrativeCon
         (_o(p, "encounter_id", "") == enc_id and str(_o(p, "procedure_type", "") or "").lower() == "blood_transfusion")
         for p in (ctx.procedures or [])
     )
+    if ebl is None:
+        # Issue #3257: blood loss is recorded only where it is modelled. Issue
+        # #3549: with no estimate there is no basis to deny a transfusion, so
+        # only a recorded transfusion is stated.
+        transfusion_part = t("op_note.blood_loss_transfusion_yes", lang) if transfused else ""
+        return t("op_note.blood_loss_not_recorded_line", lang, transfusion_part=transfusion_part), facts
     transfusion_part = t(
         "op_note.blood_loss_transfusion_yes" if transfused else "op_note.blood_loss_transfusion_no",
         lang,
     )
-    if ebl is None:
-        # Issue #3257: blood loss is recorded only where it is modelled.
-        return t("op_note.blood_loss_not_recorded_line", lang, transfusion_part=transfusion_part), facts
     return t("op_note.blood_loss_line", lang, ebl=ebl, transfusion_part=transfusion_part), facts
 
 
