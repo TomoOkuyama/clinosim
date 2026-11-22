@@ -39,6 +39,10 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Fixed
+
+- JP output: the antibody-screen Observation of a type-and-screen order no longer declares the JP-CLINS eCS lab-result profile, which it cannot satisfy (it carries LOINC and SNOMED CT codings only, like the ABO and RhD Observations already excluded); a cohort that resulted an antibody screen failed the JP-CLINS lab compliance gate. FHIR-output only.
+
 ## [0.7.2] - 2026-11-22
 
 ### Highlights

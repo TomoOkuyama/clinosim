@@ -303,6 +303,17 @@ class TestIsLabObservation:
         assert _is_lab_observation({**base, "id": "blood-abo-abcdef012345"}) is False
         assert _is_lab_observation({**base, "id": "blood-rh-abcdef012345"}) is False
 
+    def test_false_for_the_type_and_screen_antibody_screen(self):
+        """The antibody screen of a type-and-screen order (``blood-abs-*``,
+        LOINC 890-4) carries LOINC + SNOMED only, like ABO / RhD, so it
+        cannot satisfy the eCS applicability rule and must not declare
+        the eCS profile (it broke the JP-CLINS lab gate on a cohort that
+        resulted one)."""
+        from clinosim.modules.output.fhir_r4.labs.blood_type import BLOOD_ANTIBODY_SCREEN_OBS_ID_PREFIX
+
+        base = {"category": [{"coding": [{"code": "laboratory"}]}]}
+        assert _is_lab_observation({**base, "id": f"{BLOOD_ANTIBODY_SCREEN_OBS_ID_PREFIX}abcdef012345"}) is False
+
     def test_exclusion_uses_shared_by_design_registry(self):
         """``_is_lab_observation`` reads the exclusion prefix set from
         the ``NON_ORDER_DRIVEN_LAB_OBS_ID_PREFIXES`` by-design registry

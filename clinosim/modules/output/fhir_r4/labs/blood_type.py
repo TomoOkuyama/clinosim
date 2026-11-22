@@ -216,6 +216,10 @@ def _build_blood_type_obs(
 
 
 _TYPE_AND_SCREEN = "Type_and_screen"
+# Id prefix of the antibody-screen Observation of a type-and-screen order. Like
+# ABO / RhD it carries LOINC + SNOMED only (no JP-CLINS LocalCode co-emission),
+# so ``post_process.profile._is_lab_observation`` keeps it out of eCS stacking.
+BLOOD_ANTIBODY_SCREEN_OBS_ID_PREFIX = "blood-abs-"
 _LOINC_ANTIBODY_SCREEN = loinc_for("blood_group", "antibody_screen")
 _LOINC_TYPE_AND_SCREEN = loinc_for("blood_group", "type_and_screen")
 _ANTIBODY_SCREEN_NEGATIVE = snomed_for("antibody_screen", "negative") or ""
@@ -261,7 +265,7 @@ def _typed_stay_resources(ctx: BundleContext, order: Any, abo_snomed: str, rh_sn
         (_resolve_blood_abo_id(oid), BLOOD_ABO_KEY_SYSTEM, _LOINC_ABO_GROUP, "fhir_obs_text.abo_group", abo_snomed),
         (_resolve_blood_rh_id(oid), BLOOD_RH_KEY_SYSTEM, _LOINC_RH_GROUP, "fhir_obs_text.rh_group", rh_snomed),
         (
-            derive_opaque_id("blood-abs-", f"blood-antibody-screen-key:{oid}"),
+            derive_opaque_id(BLOOD_ANTIBODY_SCREEN_OBS_ID_PREFIX, f"blood-antibody-screen-key:{oid}"),
             structural_key_system("blood-antibody-screen-key"),
             _LOINC_ANTIBODY_SCREEN,
             "fhir_obs_text.antibody_screen",
