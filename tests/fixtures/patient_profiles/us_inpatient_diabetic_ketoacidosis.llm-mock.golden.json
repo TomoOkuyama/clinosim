@@ -279,7 +279,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 112/68, HR 114, SpO2 99%, T 36.4°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids, target K 4.0-5.0.\nNo pain reported (NRS 0).\nCentral venous catheter in place; insertion site and securement observation continued.\nNPO, nothing by mouth.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - day shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 112/68, HR 114, SpO2 99%, T 36.4°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids.\nNo pain reported (NRS 0).\nCentral venous catheter in place; insertion site and securement observation continued.\nNPO, nothing by mouth.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-08-evening": {
@@ -335,7 +335,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 112/75, HR 106, SpO2 97%, T 36.6°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids, target K 4.0-5.0.\nabdominal pain reported, NRS 1.\nPrevious day (6/15) fluid balance: intake 1234 mL, output 1182 mL (urine 396 mL), net +52 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nNPO continued.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - night shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 112/75, HR 106, SpO2 97%, T 36.6°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids.\nabdominal pain reported, NRS 1.\nPrevious day (6/15) fluid balance: intake 1234 mL, output 1182 mL (urine 396 mL), net +52 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nNPO continued.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-10-day": {
@@ -363,7 +363,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 117/71, HR 104, SpO2 98%, T 37.0°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids, target K 4.0-5.0.\nNo pain reported (NRS 0).\nPrevious day (6/15) fluid balance: intake 1234 mL, output 1182 mL (urine 396 mL), net +52 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Regular diet, feeding independent, oral intake the previous day 90 mL.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - day shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 117/71, HR 104, SpO2 98%, T 37.0°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids.\nNo pain reported (NRS 0).\nPrevious day (6/15) fluid balance: intake 1234 mL, output 1182 mL (urine 396 mL), net +52 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Regular diet, feeding independent, oral intake the previous day 90 mL.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-11-evening": {
@@ -391,7 +391,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 115/75, HR 105, SpO2 98%, T 37.1°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids, target K 4.0-5.0, Enoxaparin.\nNo pain reported (NRS 0).\nPrevious day (6/15) fluid balance: intake 1234 mL, output 1182 mL (urine 396 mL), net +52 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Regular diet, feeding independent, oral intake the previous day 90 mL.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - evening shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 115/75, HR 105, SpO2 98%, T 37.1°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids, Enoxaparin.\nNo pain reported (NRS 0).\nPrevious day (6/15) fluid balance: intake 1234 mL, output 1182 mL (urine 396 mL), net +52 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Regular diet, feeding independent, oral intake the previous day 90 mL.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-12-night": {
@@ -419,7 +419,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 119/71, HR 107, SpO2 96%, T 36.5°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids, target K 4.0-5.0.\nabdominal pain reported, NRS 3.\nPrevious day (6/16) fluid balance: intake 2451 mL, output 2439 mL (urine 1798 mL), net +12 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Regular diet, feeding independent, oral intake the previous day 1107 mL.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - night shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 119/71, HR 107, SpO2 96%, T 36.5°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids.\nabdominal pain reported, NRS 3.\nPrevious day (6/16) fluid balance: intake 2451 mL, output 2439 mL (urine 1798 mL), net +12 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Regular diet, feeding independent, oral intake the previous day 1107 mL.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-13-day": {
@@ -447,7 +447,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 115/75, HR 103, SpO2 97%, T 36.5°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids, target K 4.0-5.0.\nabdominal pain reported, NRS 2.\nPrevious day (6/16) fluid balance: intake 2451 mL, output 2439 mL (urine 1798 mL), net +12 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Regular diet, feeding independent, oral intake the previous day 1107 mL.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - day shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 115/75, HR 103, SpO2 97%, T 36.5°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids.\nabdominal pain reported, NRS 2.\nPrevious day (6/16) fluid balance: intake 2451 mL, output 2439 mL (urine 1798 mL), net +12 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Regular diet, feeding independent, oral intake the previous day 1107 mL.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-14-evening": {
@@ -475,7 +475,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 113/72, HR 101, SpO2 96%, T 36.7°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids, target K 4.0-5.0, Enoxaparin.\nabdominal pain reported, NRS 1.\nPrevious day (6/16) fluid balance: intake 2451 mL, output 2439 mL (urine 1798 mL), net +12 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Regular diet, feeding independent, oral intake the previous day 1107 mL.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - evening shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 113/72, HR 101, SpO2 96%, T 36.7°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids, Enoxaparin.\nabdominal pain reported, NRS 1.\nPrevious day (6/16) fluid balance: intake 2451 mL, output 2439 mL (urine 1798 mL), net +12 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Regular diet, feeding independent, oral intake the previous day 1107 mL.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-15": {

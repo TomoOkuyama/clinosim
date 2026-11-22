@@ -302,6 +302,18 @@ The language of the entry is chosen by §6: the requested language, then the sam
 
 The output language of a country is `countries.lang_for(country)`; CIF `<base>_<lang>` fields are read with `localized_field`.
 
+#### Administered drug label (narrative)
+
+A supportive order is stored as `"<type>: <detail>"`. The `<type>` is a category label for most orders (`antipyretic`, `IV_fluid`) and the drug itself for some (`lactulose: 30mL PO TID if encephalopathy`). Narratives never strip the prefix themselves: every drug named from a medication row (MAR administration or prescription) goes through `modules.document.narrative._drug_names`:
+
+| Function | Use |
+|---|---|
+| `administered_drug_key(row)` | identity of the drug: `drug_id`, else the catalog id of the order text |
+| `administered_drug_label(row, lang)` | drug and dose in `lang`; a category prefix is dropped, a drug prefix kept as the name, a monitoring-target clause cut (`order_detail_cuts` in `document/reference_data/administered_drug_name.yaml`); the catalog name of `drug_id` when the text does not name the drug |
+| `administered_drug_name(row, lang)` | the bare catalog drug name in `lang` |
+
+`tests/unit/modules/document/narrative/test_administered_drug_name_3560.py` fails when a module under `modules/document` other than `_drug_names.py` calls `strip_protocol_prefix`.
+
 ## 5. Localization
 
 ### 5.1 Output language

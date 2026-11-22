@@ -17,13 +17,12 @@ import re
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from clinosim.codes.drugs import drug_key, medication_matches
+from clinosim.codes.drugs import medication_matches
 from clinosim.codes.valuesets import concept_group, iter_chronic_codes
-from clinosim.locale.free_text import localize_drug_name
 from clinosim.locale.i18n import t
 from clinosim.locale.localized import localized
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import strip_protocol_prefix
+from clinosim.modules.document.narrative._drug_names import administered_drug_key, administered_drug_label
 from clinosim.modules.document.narrative._narrative_utils import _age_at, is_neonate
 from clinosim.modules.document.reference_data_loaders import (
     load_discharge_instructions,
@@ -336,12 +335,11 @@ def _fill_drugs(entry: dict[str, Any], ctx: NarrativeContext) -> dict[str, str]:
     names: list[str] = []
     seen: set[str] = set()
     for med in _gate_drugs(ctx, refs, chronic_only=gate.get("drug_course") == "chronic"):
-        name, _ = strip_protocol_prefix(str(_o(med, "drug_name", "") or ""))
-        if name and (key := drug_key(name)) not in seen:
+        if (key := administered_drug_key(med)) and key not in seen:
             seen.add(key)
-            names.append(name)
+            names.append(med)
     return {
-        lang: text.replace("{drugs}", t("list_sep.serial", lang).join(localize_drug_name(n, lang) for n in names))
+        lang: text.replace("{drugs}", t("list_sep.serial", lang).join(administered_drug_label(m, lang) for m in names))
         for lang, text in texts.items()
     }
 

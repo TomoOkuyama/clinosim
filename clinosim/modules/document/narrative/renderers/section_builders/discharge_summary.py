@@ -24,7 +24,7 @@ from typing import TYPE_CHECKING
 from clinosim.countries import country_code
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import strip_protocol_prefix
+from clinosim.modules.document.narrative._drug_names import administered_drug_label, order_drug_text
 from clinosim.modules.document.narrative._localization import _localize_complication
 from clinosim.modules.document.narrative._prescription_line import prescription_bits
 from clinosim.modules.document.narrative.renderers._shared_helpers import diagnosis_coded, secondary_diagnosis_codes
@@ -260,8 +260,7 @@ def build_discharge_medications(generator: TemplateNarrativeGenerator, ctx: Narr
     seen: set[str] = set()
     lines: list[str] = []
     for med in meds:
-        drug = _o(med, "drug_name", "") or ""
-        drug, _protocol_category = strip_protocol_prefix(drug)
+        drug = order_drug_text(str(_o(med, "drug_name", "") or ""))
         if not drug:
             continue
         # v7 (2026-08-16 pm): dedup by case-insensitive drug name
@@ -283,7 +282,6 @@ def build_discharge_medications(generator: TemplateNarrativeGenerator, ctx: Narr
         # drug_name. v11 review found 9/11 discharge_summary carried
         # English drug tokens ("Furosemide 20mg PO daily") because
         # this builder never routed through _localize_drug_name.
-        display = str(drug)
         # Phase 1c-6 (Category F, 2026-09-23): route dose / route /
         # frequency fields through ``_localize_dosage_terms`` on JA
         # output so 「20mg PO daily」 → 「20mg 経口 1日1回」. Pre-
@@ -300,11 +298,7 @@ def build_discharge_medications(generator: TemplateNarrativeGenerator, ctx: Narr
         # any lang without a lookup table (today: any
         # non-`"ja"`); `_localize_dosage_terms` is already
         # lang-aware. Single code path across locales.
-        from clinosim.locale.free_text import (
-            localize_drug_name,
-        )
-
-        display = localize_drug_name(display, lang)
+        display = administered_drug_label(med, lang)
 
         bits: list[str] = [display, *prescription_bits(med, lang, drug_name=display)]
         lines.append(" ".join(bits))

@@ -299,6 +299,18 @@ lab リストの各要素 (`labs`、`add_labs`、`additional_labs`、薬剤モ�
 
 国の出力言語は `countries.lang_for(country)`、CIF の `<base>_<lang>` フィールドは `localized_field` で読む。
 
+#### 投与薬の表示名 (叙述文書)
+
+支持療法オーダーは `"<type>: <detail>"` で保存される。`<type>` は多くの場合カテゴリ名 (`antipyretic`、`IV_fluid`) だが、薬剤そのもの (`lactulose: 30mL PO TID if encephalopathy`) のこともある。叙述文書は接頭辞を自前で除去せず、投薬行 (MAR 投与・処方) から薬剤名を出す箇所はすべて `modules.document.narrative._drug_names` を通す。
+
+| 関数 | 用途 |
+|---|---|
+| `administered_drug_key(row)` | 薬剤の識別子。`drug_id`、なければオーダー文の catalog id |
+| `administered_drug_label(row, lang)` | `lang` での薬剤名と用量。カテゴリ接頭辞は落とし、薬剤の接頭辞は名前として残し、モニタリング目標の節は除く (`document/reference_data/administered_drug_name.yaml` の `order_detail_cuts`)。文が薬剤を示さない場合は `drug_id` の catalog 名 |
+| `administered_drug_name(row, lang)` | `lang` での薬剤名のみ (用量なし) |
+
+`tests/unit/modules/document/narrative/test_administered_drug_name_3560.py` が、`modules/document` 配下で `_drug_names.py` 以外が `strip_protocol_prefix` を呼ぶと失敗する。
+
 ## 5. 多言語対応
 
 ### 5.1 出力言語
