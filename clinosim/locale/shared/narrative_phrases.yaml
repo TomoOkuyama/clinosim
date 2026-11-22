@@ -1770,6 +1770,11 @@ ed_workup:
   labs_head:
     ja: "検査: "
     en: "Labs: "
+  # Issue #3559: a test ordered in the ED whose result is not available at the
+  # ED departure of an admitted patient.
+  lab_pending:
+    ja: " 結果待ち"
+    en: " pending"
   imaging_head:
     ja: "画像: "
     en: "Imaging: "
