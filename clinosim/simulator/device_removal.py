@@ -167,3 +167,38 @@ def removal_date(
             day += timedelta(days=1)
         return discharged, name
     return discharged, ""
+
+
+def extubation_date(record: Any, encounter: Any) -> date | None:
+    """Date the patient came off the ventilator (Issue #3535): the date of the
+    first reading of the encounter after the last ventilated one; ``None``
+    when the encounter has no ventilated reading or none after it (the
+    ventilator then stays until the discharge or death). RNG-free."""
+    from clinosim.simulator.oxygen_course import oxygen_course_rules
+    from clinosim.timeutil import parse_iso_datetime
+
+    device = oxygen_course_rules().ventilation.device
+    enc_id = str(_get(encounter, "encounter_id", "") or "")
+    admitted = parse_iso_datetime(_get(encounter, "admission_datetime", None), lenient=True)
+    discharged = parse_iso_datetime(_get(encounter, "discharge_datetime", None), lenient=True)
+    timed: list[tuple[datetime, bool]] = []
+    for v in _get(record, "vital_signs", []) or []:
+        ts = _get(v, "timestamp", None)
+        when = ts if isinstance(ts, datetime) else parse_iso_datetime(ts, lenient=True)
+        # A stored reading carries no encounter id: it belongs to the
+        # encounter whose stay it falls in.
+        v_enc = str(_get(v, "encounter_id", "") or "")
+        if v_enc:
+            if v_enc != enc_id:
+                continue
+        elif (
+            when is None or (admitted is not None and when < admitted) or (discharged is not None and when > discharged)
+        ):
+            continue
+        if when is not None and _get(v, "spo2", None) is not None:
+            timed.append((when, str(_get(v, "oxygen_delivery_device", "") or "") == device))
+    timed.sort(key=lambda x: x[0])
+    last_vent = max((i for i, (_, vent) in enumerate(timed) if vent), default=None)
+    if last_vent is None or last_vent + 1 >= len(timed):
+        return None
+    return timed[last_vent + 1][0].date()

@@ -807,6 +807,10 @@ vital_o2:
   unspecified:
     ja: "酸素投与中"
     en: "on O2"
+  # A patient on the ventilator (oxygen_delivery_device "ventilator", Issue #3535).
+  ventilator:
+    ja: "人工呼吸器管理下"
+    en: "mechanical ventilation"
 
 # Allergy / criticality parens (JA uses full-width parens).
 allergy:
@@ -1019,6 +1023,9 @@ nursing_shift:
   o2_device_with_flow:
     ja: "酸素投与: {device} {flow} L/min"
     en: "{device} {flow} L/min"
+  on_ventilator:
+    ja: "気管挿管、人工呼吸器管理中"
+    en: "intubated, on mechanical ventilation"
   title_with_shift:
     ja: "【看護記録({shift})】"
     en: "[Nursing Shift Note - {shift} shift]"
@@ -1080,6 +1087,9 @@ nursing_shift_items:
     on_oxygen:
       ja: "{time} SpO2 {min}%に低下、{o2}投与下で管理。"
       en: "SpO2 fell to {min}% at {time}; managed on {o2}."
+    on_ventilator:
+      ja: "{time} SpO2 {min}%に低下、人工呼吸器管理下で経過観察。"
+      en: "SpO2 fell to {min}% at {time}; on mechanical ventilation, observation continued."
     oxygen_started:
       ja: "{time} SpO2 {min}%に低下、{o2}投与後 SpO2 {after}%。"
       en: "SpO2 fell to {min}% at {time}; {o2} given, SpO2 {after}% afterwards."
@@ -1139,6 +1149,9 @@ nursing_shift_items:
     oxygen:
       ja: "酸素: {o2}。装着状態の観察を継続。"
       en: "Oxygen: {o2}; device fit and observation continued."
+    ventilator:
+      ja: "気管挿管、人工呼吸器管理中。換気状態と気管チューブの固定の観察を継続。"
+      en: "Intubated, on mechanical ventilation; ventilation and endotracheal tube securement observation continued."
   meal:
     npo:
       ja: "絶食中。"

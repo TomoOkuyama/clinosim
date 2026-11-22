@@ -28,6 +28,7 @@ from clinosim.modules.document.narrative._nursing_shift_items import nursing_shi
 from clinosim.modules.document.narrative._template_helpers import _resolve_staff_name
 from clinosim.modules.document.narrative._vitals_line import (
     NURSING_SHIFT,
+    VENTILATOR_DEVICE,
     format_vitals_line,
     latest_vitals_set,
     vitals_in_window,
@@ -137,7 +138,9 @@ def render_nursing_shift_note(ctx: NarrativeContext, spec: DocumentTypeSpec) -> 
         vital_line = format_vitals_line(v, NURSING_SHIFT, lang)
         if vital_line:
             status_bits.append(vital_line)
-        if on_o2:
+        if on_o2 and device == VENTILATOR_DEVICE:
+            status_bits.append(t("nursing_shift.on_ventilator", lang))
+        elif on_o2:
             # Device-name katakana lookup is a JA-locale data
             # pipeline via `localize_oxygen_device(x, lang)` — a
             # no-op for any lang without a lookup table.

@@ -31,7 +31,7 @@ from clinosim.modules.document.narrative._narrative_interpretation_thresholds im
 from clinosim.modules.document.narrative._narrative_utils import is_neonate
 from clinosim.modules.document.narrative._progress_course import diet_display, diet_order_at
 from clinosim.modules.document.narrative._progress_exam import _limit, progress_exam_rules
-from clinosim.modules.document.narrative._vitals_line import oxygen_text
+from clinosim.modules.document.narrative._vitals_line import VENTILATOR_DEVICE, oxygen_text
 from clinosim.modules.observation.nursing import news2_urgent_response_threshold
 from clinosim.timeutil import parse_iso_datetime
 from clinosim.types.document import NarrativeContext
@@ -188,6 +188,8 @@ def _item_desaturation(d: ShiftData) -> str | None:
     lang = d.lang
     r = d.readings[low_i]
     base = {"min": f"{spo2_min:.0f}", "time": _hhmm(r)}
+    if _o(r, "on_supplemental_oxygen", False) and _o(r, "oxygen_delivery_device", None) == VENTILATOR_DEVICE:
+        return t("nursing_shift_items.desaturation.on_ventilator", lang, **base)
     if _o(r, "on_supplemental_oxygen", False):
         o2 = oxygen_text(_o(r, "oxygen_delivery_device", None), _o(r, "oxygen_flow_rate_lpm", None), lang)
         return t("nursing_shift_items.desaturation.on_oxygen", lang, o2=o2, **base)
@@ -322,6 +324,9 @@ def _item_devices(d: ShiftData) -> str | None:
     on_o2 = [v for v in d.readings if _o(v, "on_supplemental_oxygen", None) is not None]
     if on_o2 and _o(on_o2[-1], "on_supplemental_oxygen", False):
         last = on_o2[-1]
+        if _o(last, "oxygen_delivery_device", None) == VENTILATOR_DEVICE:
+            lines.append(t("nursing_shift_items.devices.ventilator", d.lang))
+            return "\n".join(lines)
         o2 = oxygen_text(_o(last, "oxygen_delivery_device", None), _o(last, "oxygen_flow_rate_lpm", None), d.lang)
         lines.append(t("nursing_shift_items.devices.oxygen", d.lang, o2=o2))
     return "\n".join(lines) or None

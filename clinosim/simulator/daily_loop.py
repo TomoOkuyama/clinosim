@@ -140,7 +140,7 @@ from clinosim.simulator.medication_pipeline import (
     generate_prn_administrations,
 )
 from clinosim.simulator.mixed_condition import CoDiseaseCourse
-from clinosim.simulator.oxygen_course import OxygenCourse
+from clinosim.simulator.oxygen_course import OxygenCourse, oxygen_course_rules
 from clinosim.simulator.vasoactive_support import (
     hospital_day_start,
     stop_weaned_vasoactive_infusions,
@@ -158,6 +158,7 @@ from clinosim.simulator.vitals_pipeline import (
     _generate_adl_assessment,
     _generate_daily_io,
     _generate_vitals,
+    put_on_ventilator,
 )
 from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.config import HealthcareSystemConfig
@@ -381,6 +382,7 @@ def _escalate_on_arrival(stay: _Stay, run: _Run) -> None:
     if airway_escalation_needed(run.state):
         run.intubated = True
         run.intubated_day = 0
+        run.oxygen.start_ventilation(stay.admission_time + timedelta(hours=1))
         run.escalation_procedures.append(
             build_intubation_procedure(
                 stay.patient.patient_id,
@@ -1191,9 +1193,41 @@ def _escalate_treatment(stay: _Stay, run: _Run, day: int) -> None:
         )
 
 
+def _append_diet_order(stay: _Stay, run: _Run, day: int, diet: str, when: datetime, suffix: str = "") -> None:
+    """Place a diet order of ``diet`` at ``when`` unless it is the current diet."""
+    if diet == run.prev_diet:
+        return
+    run.orders.append(
+        Order(
+            order_id=f"ORD-{stay.encounter_id}-DIET-D{day}{suffix}",
+            patient_id=stay.patient.patient_id,
+            order_type=OrderType.DIET,
+            display_name=diet,
+            urgency="routine",
+            clinical_intent=t("order_intent.diet", "en", day=day, diet=diet),
+            # Issue #871: JA display for JP SR reasonCode.text.
+            # Issue #3107: the diet's Japanese name (diet_type_display).
+            clinical_intent_ja=t(
+                "order_intent.diet",
+                "ja",
+                day=day,
+                diet=localized(load_diet_type_display().get(diet), "ja", fallback=diet),
+            ),
+            ordered_datetime=when,
+            ordered_by=stay.attending_id,
+            status=OrderStatus.PLACED,
+        )
+    )
+    run.prev_diet = diet
+
+
 def _order_diet(stay: _Stay, run: _Run, day: int) -> None:
-    """Diet order (only when diet changes: NPO → clear liquid → soft → regular)."""
-    if day == 0:
+    """Diet order (only when diet changes: NPO → clear liquid → soft → regular;
+    the ventilated diet while the patient is on the ventilator, Issue #3535)."""
+    order_time = stay.admission_time + timedelta(days=day, hours=7)
+    if run.oxygen.ventilated_at(order_time):
+        diet = oxygen_course_rules().ventilation.diet
+    elif day == 0:
         diet = "NPO"
     elif day == 1 and run.state.inflammation_level > DIET_CLEAR_LIQUID_INFLAMMATION_THRESHOLD:
         diet = "clear_liquid"
@@ -1201,29 +1235,7 @@ def _order_diet(stay: _Stay, run: _Run, day: int) -> None:
         diet = "soft_diet"
     else:
         diet = "regular_diet"
-    if diet != run.prev_diet:
-        run.orders.append(
-            Order(
-                order_id=f"ORD-{stay.encounter_id}-DIET-D{day}",
-                patient_id=stay.patient.patient_id,
-                order_type=OrderType.DIET,
-                display_name=diet,
-                urgency="routine",
-                clinical_intent=t("order_intent.diet", "en", day=day, diet=diet),
-                # Issue #871: JA display for JP SR reasonCode.text.
-                # Issue #3107: the diet's Japanese name (diet_type_display).
-                clinical_intent_ja=t(
-                    "order_intent.diet",
-                    "ja",
-                    day=day,
-                    diet=localized(load_diet_type_display().get(diet), "ja", fallback=diet),
-                ),
-                ordered_datetime=stay.admission_time + timedelta(days=day, hours=7),
-                ordered_by=stay.attending_id,
-                status=OrderStatus.PLACED,
-            )
-        )
-        run.prev_diet = diet
+    _append_diet_order(stay, run, day, diet, order_time)
     # Issue #3409: the day the diet became oral starts the maintenance IV-fluid stop.
     if diet not in maintenance_iv_fluid_rules().oral_diets:
         run.oral_diet_since_day = None
@@ -1371,17 +1383,47 @@ def _apply_complications(stay: _Stay, run: _Run, day: int, comp_list: list) -> N
                         o.status = OrderStatus.CANCELLED
 
 
+def _start_ventilation(stay: _Stay, run: _Run, day: int, intubated_at: datetime) -> None:
+    """From the intubation the stay is ventilated (Issue #3535): the readings
+    already charted today after the intubation time (the vitals were
+    generated before the escalation) are rewritten as ventilator readings,
+    later readings follow the oxygen course, and the diet becomes the
+    ventilated diet from the intubation. Draws nothing."""
+    run.oxygen.start_ventilation(intubated_at)
+    put_on_ventilator(run.vitals, intubated_at, run.state, stay.disease_id)
+    _append_diet_order(stay, run, day, oxygen_course_rules().ventilation.diet, intubated_at, suffix="-VENT")
+    run.oral_diet_since_day = None
+
+
+def _update_ventilation(stay: _Stay, run: _Run, day: int, *, last_day: bool) -> None:
+    """End of day: extubate (at the start of the next hospital day) when the
+    extubation rule of ``reference_data/oxygen_course.yaml`` is met. Draws
+    nothing."""
+    oxygen = run.oxygen
+    if oxygen.ventilated_since is None or oxygen.ventilated_until is not None or run.intubated_day is None:
+        return
+    if oxygen.extubation_due(
+        run.state.oxygenation_impairment,
+        run.state.consciousness_impairment,
+        day - run.intubated_day,
+        force=last_day,
+    ):
+        oxygen.end_ventilation(hospital_day_start(stay.admission_time, day + 1))
+
+
 def _escalate_airway_and_icu(stay: _Stay, run: _Run, day: int) -> None:
     """State-driven airway / ICU escalation (Issue #2091): intubation on the
     day the airway threshold is crossed, ICU transfer for airway or shock."""
     if not run.intubated and airway_escalation_needed(run.state):
         run.intubated = True
         run.intubated_day = day
+        intubated_at = stay.admission_time + timedelta(days=day, hours=AIRWAY_ESCALATION_HOUR)
+        _start_ventilation(stay, run, day, intubated_at)
         run.escalation_procedures.append(
             build_intubation_procedure(
                 stay.patient.patient_id,
                 stay.encounter_id,
-                stay.admission_time + timedelta(days=day, hours=AIRWAY_ESCALATION_HOUR),
+                intubated_at,
                 stay.country,
                 f"PROC-{stay.patient.patient_id}-AIR{day:02d}",
                 performer_id=stay.attending_id,
@@ -1441,6 +1483,7 @@ def _record_terminal_course(stay: _Stay, run: _Run, day: int) -> None:
         disease_id=stay.disease_id,
         encounter_id=stay.encounter_id,
         death_time=death_time,
+        stay_oxygen=run.oxygen,
     )
 
 
@@ -1641,7 +1684,8 @@ def _run_daily_loop(
     actual_los = max(1, target_los)  # a stay whose loop never runs
     on_support = False
     unresolved = False
-    for day in range(max(target_los, max_los or 0) + vasoactive_weaning_rules().max_extension_days):
+    loop_days = max(target_los, max_los or 0) + vasoactive_weaning_rules().max_extension_days
+    for day in range(loop_days):
         actual_los = day + 1
         lab_state_pre_update = _advance_state(stay, run, day)
         if co_disease is not None:
@@ -1710,6 +1754,10 @@ def _run_daily_loop(
             )
             _drop_doses_after_death(stay, run, day)
             break
+        # Issue #3535: extubation at the start of tomorrow when the rule is
+        # met; no discharge on a day the patient was ventilated.
+        _update_ventilation(stay, run, day, last_day=day + 1 >= loop_days)
+        ventilated = run.oxygen.ventilated_during(hospital_day_start(stay.admission_time, day))
         # Issue #3270: no discharge on or within the observation day after
         # vasopressor / inotrope support.
         on_support = _on_vasoactive_support(stay, run, day)
@@ -1720,7 +1768,12 @@ def _run_daily_loop(
         # Early discharge: if state-based criteria met before target_los
         # (not for protocols whose recovery the physiology does not model,
         # e.g. psychiatric admissions, Issue #2132).
-        if day >= min_los and getattr(protocol, "state_based_discharge", True) and not rate_uncontrolled:
+        if (
+            day >= min_los
+            and getattr(protocol, "state_based_discharge", True)
+            and not rate_uncontrolled
+            and not ventilated
+        ):
             if _check_discharge_ready(
                 run.state,
                 day,
@@ -1731,9 +1784,13 @@ def _run_daily_loop(
             ):
                 break  # actual_los = day + 1
         if day + 1 >= los_ceiling:
-            if not extend_stay_for_symptoms(
-                run.state, los_ceiling, max_los, symptom_floor, on_vasoactive_support=on_support
-            ) and not (rate_uncontrolled and max_los is not None and los_ceiling < max_los):
+            if (
+                not ventilated
+                and not extend_stay_for_symptoms(
+                    run.state, los_ceiling, max_los, symptom_floor, on_vasoactive_support=on_support
+                )
+                and not (rate_uncontrolled and max_los is not None and los_ceiling < max_los)
+            ):
                 # Issue #3281: one more day (at most ``max_extension_days``
                 # past the sampled stay) while AKI is not recovering or a
                 # fever persists.

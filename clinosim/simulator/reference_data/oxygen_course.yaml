@@ -31,3 +31,39 @@ metadata:
 wean_hours: 12
 wean_margin_spo2: 1.0
 wean_min_readings: 2
+
+# Mechanical ventilation after an intubation (Issue #3535). The stay is
+# ventilated from the intubation until the extubation rule below is met, or
+# until death. While ventilated the recorded oxygen device is the ventilator
+# (no flow: a ventilator has a FiO2, not an oxygen flow), the SpO2 is the
+# room-air value raised as if by `equivalent_flow_lpm` of oxygen (the same
+# flow-proportional model as other devices, capped at 98 %), and the diet is
+# `diet`. The patient is extubated at the start of the day after the first
+# day on which `consecutive_days` consecutive end-of-day states had an
+# oxygenation impairment below `oxygenation_impairment_below` and a
+# consciousness impairment below `consciousness_impairment_below`, at least
+# `min_days_after_intubation` days after the intubation day, or after
+# `max_days` ventilated days. No discharge happens on a ventilated day.
+# After extubation the patient is on `post_extubation_device` at
+# `post_extubation_flow_lpm` and oxygen is weaned by the rules above.
+#
+# Source status: NONE of the values below is taken from a guideline read in
+# the session that wrote this block. They are clinosim modelling choices:
+# `oxygenation_impairment_below` and `consciousness_impairment_below` are set
+# well under the intubation thresholds (AIRWAY_OXYGENATION_MIN 0.6,
+# AIRWAY_CONSCIOUSNESS_MIN 0.62 in simulator/_daily_loop_thresholds.py) so
+# that an extubated patient no longer meets the airway criteria; the day
+# counts and `equivalent_flow_lpm` are plain choices (a ventilated patient is
+# oxygenated at least as well as on a 10 L/min mask). Reviewers with a
+# weaning guideline at hand should replace them.
+ventilation:
+  device: ventilator
+  equivalent_flow_lpm: 10.0
+  diet: NPO
+  oxygenation_impairment_below: 0.4
+  consciousness_impairment_below: 0.4
+  consecutive_days: 1
+  min_days_after_intubation: 1
+  max_days: 14
+  post_extubation_device: nasal_cannula
+  post_extubation_flow_lpm: 4.0

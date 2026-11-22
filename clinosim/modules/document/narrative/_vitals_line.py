@@ -45,6 +45,9 @@ _FIELDS = {
     "temp": "temperature_celsius",
 }
 # Recorded with the SpO2 reading they qualify.
+# The oxygen_delivery_device of a reading on the ventilator (Issue #3535); a
+# ventilator has no oxygen flow, so it is worded as the ventilation itself.
+VENTILATOR_DEVICE = "ventilator"
 _OXYGEN_FIELDS = ("on_supplemental_oxygen", "oxygen_delivery_device", "oxygen_flow_rate_lpm")
 
 
@@ -207,6 +210,8 @@ def oxygen_text(device: Any, flow: Any, lang: str) -> str:
     alone when the other is not recorded, else "on O2" (Issue #3247)."""
     from clinosim.locale.loader import oxygen_device_label
 
+    if device == VENTILATOR_DEVICE:
+        return t("vital_o2.ventilator", lang)
     label = (oxygen_device_label(str(device), lang) or str(device)) if device else ""
     if flow is None:
         return label or t("vital_o2.unspecified", lang)

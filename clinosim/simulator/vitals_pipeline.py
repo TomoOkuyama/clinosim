@@ -442,6 +442,28 @@ def resolve_oxygen(
     }
 
 
+def put_on_ventilator(vitals: list[VitalSignRecord], since: datetime, state, disease_id: str) -> None:
+    """Rewrite, in place, the readings with an SpO2 timed at or after
+    ``since`` (an intubation decided after they were generated, Issue #3535)
+    as readings on the ventilator: the device, no flow, and an SpO2 at least
+    as high as charted (raised as by the ventilation's equivalent oxygen
+    flow). Draws nothing."""
+    from clinosim.simulator.oxygen_course import oxygen_course_rules
+
+    vent = oxygen_course_rules().ventilation
+    for i, v in enumerate(vitals):
+        if v.timestamp < since or v.spo2 is None:
+            continue
+        spo2 = max(v.spo2, spo2_on_oxygen(v.spo2, vent.equivalent_flow_lpm, state, disease_id))
+        vitals[i] = replace(
+            v,
+            spo2=round(spo2, 1),
+            on_supplemental_oxygen=True,
+            oxygen_flow_rate_lpm=None,
+            oxygen_delivery_device=vent.device,
+        )
+
+
 def _o2_for(spo2, disease_id, rng):
     """Return (on_o2, flow, device) for a room-air SpO2 reading.
 
