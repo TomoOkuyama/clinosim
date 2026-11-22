@@ -213,7 +213,7 @@ complications:
     detection:
       test: "Lactate"
       finding: "elevated_lactate"
-    actions: ["icu_transfer", "broad_spectrum_antibiotics"]
+    actions: ["icu_transfer", "start_broad_spectrum_antibiotic"]
 
   - name: "acute_kidney_injury"
     description: "AKI from burn shock hypovolemia / rhabdomyolysis (myoglobinuria)"

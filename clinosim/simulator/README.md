@@ -168,6 +168,11 @@ clinosim/simulator/
                          high delirium_susceptibility: complication entry (onset,
                          duration, resolution) and ICD-10-CM / ICD-10 F05 as a
                          secondary diagnosis; no RNG (Issue #3519)
+  complication_actions.py  the antibiotic `actions` a disease YAML declares on a
+                         complication: one canonical spelling, and the first-line
+                         antibiotic of the protocol named for the complication,
+                         ordered at onset through the drug-safety gate; no RNG
+                         (Issue #3543)
   vasopressor_initiation.py  starts a vasopressor from the recorded mean arterial
                          pressure (low despite fluids) instead of a fixed day
                          (Issue #3332)
@@ -297,6 +302,7 @@ Reference data (`reference_data/`, 17 YAMLs):
   reference_data/renal_medication_rules.yaml  renal dosing rules (medication_pipeline.py, discharge_rx.py)
   reference_data/statin_monitoring.yaml       lipid monitoring / statin titration (statin_monitoring.py)
   reference_data/vasoactive_hold.yaml         drugs held during vasopressor / inotrope infusions (medication_pipeline.py)
+  reference_data/complication_actions.yaml    canonical complication action keys and the empirical-regimen protocol of each infectious complication (complication_actions.py)
   reference_data/vasopressor_initiation.yaml  starting a vasopressor from low pressure after fluids (vasopressor_initiation.py)
   reference_data/vasoactive_weaning.yaml      vasopressor / inotrope weaning and the discharge gate after it (vasoactive_support.py)
   reference_data/oxygen_course.yaml           when supplemental oxygen is weaned and a ventilated stay is extubated (oxygen_course.py)

@@ -209,7 +209,7 @@ complications:
     detection:
       test: "CRP"
       finding: "wound_infection"
-    actions: ["order_wound_culture", "start_antibiotics"]
+    actions: ["order_wound_culture", "start_antibiotic"]
 
   - name: "acute_kidney_injury"
     description: "AKI from hypoperfusion / rhabdomyolysis / contrast nephropathy"

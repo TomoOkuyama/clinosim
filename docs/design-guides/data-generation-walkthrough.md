@@ -231,7 +231,11 @@ The inpatient daily loop is the heart of the data. Roughly:
    protocol.complications, …, severity=…)` evaluates the disease
    YAML's `complications` (incidence, risk factors, state_impact,
    actions). A complication whose `actions` include
-   `["icu_transfer"]` fires and triggers ICU transfer.
+   `["icu_transfer"]` fires and triggers ICU transfer, and one that
+   declares `start_antibiotic` (or `start_broad_spectrum_antibiotic`)
+   gets the first-line antibiotic of its empirical-regimen protocol at
+   onset (`simulator/reference_data/complication_actions.yaml`); the
+   other action strings are not executed.
 5. **Orders / labs / vitals / meds**: physiology state drives
    `derive_lab_values` (30+ analytes) for lab values, vitals, and
    `place_admission_orders` / `place_daily_lab_orders`

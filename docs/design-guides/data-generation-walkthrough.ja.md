@@ -170,6 +170,10 @@ Layer 1 → Layer 2 `PatientProfile` に厚くなる:身長/体重、**慢性疾
 4. **合併症**: `evaluate_complications(day, state, patient, protocol.complications, …, severity=…)`
    が疾患 YAML の `complications`(発生率・リスク因子・state_impact・actions)を評価。
    `actions: ["icu_transfer"]` を含む合併症が発火すると ICU 転送。
+   `start_antibiotic` (または `start_broad_spectrum_antibiotic`) を宣言する
+   合併症は、発症時に経験的治療プロトコルの第一選択抗菌薬を発注する
+   (`simulator/reference_data/complication_actions.yaml`)。その他のアクション
+   文字列は実行されない。
 5. **オーダ/検査/バイタル/投薬**: physiology 状態から `derive_lab_values`(30+ analyte)で検査値、
    vitals、`place_admission_orders` / `place_daily_lab_orders`(panel-aware)/ 画像
    (`place_imaging_orders`)/ MAR を生成。

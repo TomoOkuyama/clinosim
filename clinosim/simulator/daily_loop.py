@@ -36,7 +36,7 @@ from clinosim.modules.clinical_course.engine import (
 )
 from clinosim.modules.diagnosis.engine import update_differential
 from clinosim.modules.disease.localization import archetype_start_entries
-from clinosim.modules.disease.protocol import DiseaseProtocol
+from clinosim.modules.disease.protocol import DiseaseProtocol, load_disease_protocol
 from clinosim.modules.drug_safety.hyperkalemia import (
     PotassiumHold,
     hyperkalemia_treatment_orders,
@@ -70,7 +70,7 @@ from clinosim.modules.staff.engine import (
     StaffRoster,
     assign_staff,
 )
-from clinosim.seeding import vasopressor_start_seed
+from clinosim.seeding import complication_antibiotic_seed, vasopressor_start_seed
 from clinosim.simulator._daily_loop_thresholds import (
     AIRWAY_CONSCIOUSNESS_MIN,
     AIRWAY_ESCALATION_HOUR,
@@ -110,6 +110,12 @@ from clinosim.simulator.aki_response import (
     aki_response_rules,
     discharge_findings_unresolved,
     lactate_course,
+)
+from clinosim.simulator.complication_actions import (
+    antibiotic_actions_of,
+    complication_action_rules,
+    first_line_antibiotics,
+    regimen_protocol_id,
 )
 from clinosim.simulator.complications import build_complication
 from clinosim.simulator.diagnosis_rules import day1_imaging_findings, lab_finding_rules
@@ -1383,6 +1389,8 @@ def _apply_complications(stay: _Stay, run: _Run, day: int, comp_list: list) -> N
             lower_consciousness_from(
                 run.vitals, onset_dt, run.state, stay.disease_id, patient.patient_id, day, comp_name
             )
+        for antibiotic_action in antibiotic_actions_of(comp):
+            _start_complication_antibiotic(stay, run, day, comp_name, antibiotic_action, onset_dt)
         if "icu_transfer" in comp.get("actions", []):
             if not run.icu_transferred:
                 # C5-22: capture day of transfer for
@@ -1398,6 +1406,97 @@ def _apply_complications(stay: _Stay, run: _Run, day: int, comp_list: list) -> N
                 if o.order_type == OrderType.MEDICATION and o.status == OrderStatus.PLACED:
                     if has_drug([o], "metformin"):
                         o.status = OrderStatus.CANCELLED
+
+
+def _start_complication_antibiotic(
+    stay: _Stay, run: _Run, day: int, comp_name: str, action: str, onset_dt: datetime
+) -> None:
+    """Order the empirical antibiotic of an infectious complication on its
+    onset day (Issue #3543) and chart its doses of the rest of the day.
+
+    The regimen is the first-line antibiotic of the protocol the reference data
+    names for the complication (``complication_actions``); it goes through the
+    drug-safety gate (allergy, interaction, disease rules) like every daily-loop
+    order. When the gate rules the whole first line out (a penicillin
+    allergy), the protocol's own ``alternative_penicillin_allergy`` agent is
+    ordered instead. Nothing is ordered when no regimen is named or the drug
+    already runs. The staff draw of the doses uses an own sub-RNG, so no draw
+    of the stay's stream is added."""
+    from clinosim.modules.document.narrative.template_generator import _localize_complication
+    from clinosim.modules.order.engine import protocol_medication_orders
+    from clinosim.simulator.medication_pipeline import apply_drug_safety_gate_to_orders
+
+    protocol_id = regimen_protocol_id(action, comp_name)
+    if protocol_id is None:
+        return
+    drugs = load_disease_protocol(protocol_id).drugs
+    when = onset_dt.replace(hour=complication_action_rules().order_hour)
+    accepted = [
+        o.display_name
+        for o in run.orders
+        if o.order_type == OrderType.MEDICATION
+        and o.display_name
+        and not o.display_name.startswith("DISCONTINUE:")
+        and _running_order(run.orders, o.drug_id or o.display_name) is not None
+    ]
+    gated: list[Order] = []
+    for block in ("first_line", "alternative_penicillin_allergy"):
+        entries = first_line_antibiotics(drugs.get(block), stay.country_key)
+        if any(_running_drug(run.orders, protocol_drug_name(e)) for e in entries):
+            return
+        candidates: list[Order] = []
+        for idx, entry in enumerate(entries):
+            for order in protocol_medication_orders(
+                entry,
+                order_id=f"ORD-{stay.encounter_id}-COMPABX-D{day}-{sanitize_id_token(comp_name, 12)}-{idx}",
+                encounter_id=stay.encounter_id,
+                patient_id=stay.patient.patient_id,
+                country=stay.country_key,
+                ordered_datetime=when,
+                ordered_by=stay.attending_id,
+                urgency="urgent",
+                order_set="",
+            ):
+                complication = {lang: _localize_complication(comp_name, lang) or comp_name for lang in ("en", "ja")}
+                order.clinical_intent = t(
+                    "order_intent.complication_antibiotic", "en", day=day, complication=complication["en"]
+                )
+                order.clinical_intent_ja = t(
+                    "order_intent.complication_antibiotic", "ja", day=day, complication=complication["ja"]
+                )
+                candidates.append(order)
+        if not candidates:
+            continue
+        gated = apply_drug_safety_gate_to_orders(
+            candidates,
+            patient=stay.patient,
+            encounter_id=stay.encounter_id,
+            ordered_datetime=when,
+            attending_id=stay.attending_id,
+            protocol=stay.protocol,
+            country=stay.country_key,
+            already_accepted_meds=[
+                *(m.drug_name for m in stay.patient.current_medications or [] if m.drug_name),
+                *accepted,
+            ],
+        )
+        if gated:
+            break
+    if not gated:
+        return
+    run.orders.extend(gated)
+    run.mars.extend(
+        _generate_mar(
+            stay.patient,
+            gated,
+            day,
+            stay.admission_time,
+            department=stay.department,
+            roster=stay.roster,
+            rng=determinism.default_rng(complication_antibiotic_seed(stay.encounter_id, day, comp_name)),
+            child=stay.child,
+        )
+    )
 
 
 def _start_ventilation(stay: _Stay, run: _Run, day: int, intubated_at: datetime) -> None:

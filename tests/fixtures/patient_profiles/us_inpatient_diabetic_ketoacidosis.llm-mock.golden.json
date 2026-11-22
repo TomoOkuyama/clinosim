@@ -475,7 +475,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 113/72, HR 101, SpO2 96%, T 36.7°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids, Enoxaparin.\nabdominal pain reported, NRS 1.\nPrevious day (6/16) fluid balance: intake 2451 mL, output 2439 mL (urine 1798 mL), net +12 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Regular diet, feeding independent, oral intake the previous day 1107 mL.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - evening shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 113/72, HR 101, SpO2 96%, T 36.7°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids, Ampicillin/Sulbactam, Enoxaparin.\nabdominal pain reported, NRS 1.\nPrevious day (6/16) fluid balance: intake 2451 mL, output 2439 mL (urine 1798 mL), net +12 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Regular diet, feeding independent, oral intake the previous day 1107 mL.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-15": {
@@ -503,7 +503,7 @@
       "sections": {
         "admission_status": "Hospital stay: 3 days. Admission reason: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Complications: aspiration pneumonia, DVT. Discharge criteria met.",
         "discharge_readiness": "Discharge readiness: Discharge Barthel 80/100.",
-        "nursing_interventions_provided": "Medication administration: 45 doses (4 drugs); Vital-sign monitoring: 24 sets; Procedures: Central venous catheter insertion; Cumulative IN 6605 mL / OUT 5785 mL (net +820 mL); Education: Explain hypo- and hyperglycemia symptoms and ask the patient to report feeling unwell early.",
+        "nursing_interventions_provided": "Medication administration: 46 doses (5 drugs); Vital-sign monitoring: 24 sets; Procedures: Central venous catheter insertion; Cumulative IN 6605 mL / OUT 5785 mL (net +820 mL); Education: Explain hypo- and hyperglycemia symptoms and ask the patient to report feeling unwell early.",
         "patient_education": "Patient education: sick-day rules (insulin dose + when to seek care during illness); self blood-glucose monitoring + urine-ketone strips; hypoglycemia recognition + rescue (glucose tabs / glucagon); importance of routine follow-up + insulin adherence."
       },
       "text": ""
