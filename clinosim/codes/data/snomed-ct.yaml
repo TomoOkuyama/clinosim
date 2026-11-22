@@ -1043,3 +1043,10 @@ codes:
   '160266009':
     en: No significant family history
     ja: 特記家族歴なし
+  # === Issue #3598: stage-scale Observation codes (verified via tx.fhir.org $lookup) ===
+  '716138005':
+    en: Hoehn and Yahr Scale score
+    ja: Hoehn-Yahr重症度スコア
+  '273554001':
+    en: Kurtzke multiple sclerosis rating scale
+    ja: Kurtzke多発性硬化症評価尺度 (EDSS)

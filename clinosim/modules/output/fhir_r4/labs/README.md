@@ -24,7 +24,8 @@ effective at the specimen collection and `issued` at the report;
   [`../lib/inline_bb.py`](../lib/inline_bb.py)), `_bb_anthropometrics`
   (height / weight / BMI / head circumference, Issue #946),
   `_bb_stage_scale_observations` (mRS / H&Y / EDSS / CDR stage
-  scales), `_bb_checkup_questionnaire` (JP health-checkup questionnaire
+  scales; every one coded, LOINC or SNOMED CT; scores are UCUM `{score}`
+  `valueQuantity`, the EDSS band a `valueRange`, Issue #3598), `_bb_checkup_questionnaire` (JP health-checkup questionnaire
   answers as JP-eCheckup Observations, Issue #3163), `_bb_diagnostic_reports`,
   `_bb_service_requests` (with the `SR_ID_PREFIX` +
   `PLACER_ORDER_NUMBER_SYSTEM` + `LAB_CATEGORY_SNOMED` +

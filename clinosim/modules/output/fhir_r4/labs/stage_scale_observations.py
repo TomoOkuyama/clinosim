@@ -20,18 +20,18 @@ coverage audit).
 
 - ``category = survey`` (per HL7 v3-ObservationCategory) — these are
   clinician-administered rating scales, not laboratory results.
-- ``code.coding[0].system = LOINC`` where a well-known LOINC exists:
-  mRS = 75859-9, CDR = 72088-8 (verified on tx.fhir.org, Issue #2260).
-  EDSS and Hoehn & Yahr have no
-  authoritative LOINC in common clinical use at the time of writing;
-  the H&Y Observation emits a display-only ``code.text`` so it round-
-  trips cleanly without fabricating a code.
-- ``value`` type varies by scale:
+- ``code.coding[0]`` is always present: LOINC where one exists (mRS =
+  75859-9, CDR = 72088-8; verified on tx.fhir.org, Issue #2260), else
+  SNOMED CT (Hoehn and Yahr Scale score = 716138005, Kurtzke multiple
+  sclerosis rating scale = 273554001; verified on tx.fhir.org, Issue
+  #3598). No LOINC observation code exists for the EDSS, and the only LOINC
+  H&Y concept (77714-4) is the *modified* H&Y item of the UPDRS.
+- ``value`` type varies by scale (R4 has no ``valueDecimal``):
     - mRS → ``valueInteger`` (0-5)
-    - CDR → ``valueDecimal`` (0.5 / 1 / 2 / 3)
-    - EDSS / H&Y → ``valueString`` (banded label — the EDSS CIF stage
-      is a range like "EDSS 5.5-7", not a point score, so a quantity
-      value would misrepresent the data).
+    - CDR / H&Y → ``valueQuantity`` in UCUM ``{score}`` (0.5 / 1 / 2 / 3)
+    - EDSS → ``valueRange`` in ``{score}``: the CIF stage is a band such as
+      "EDSS 5.5-7", not a point score, so the band is emitted as a range
+      rather than inventing a score.
 - ``subject`` → Patient reference. ``encounter`` is populated with the
   patient's snapshot-anchored last outpatient followup (or admission
   index encounter when no followup exists) so chart viewers can anchor
@@ -55,12 +55,13 @@ from dataclasses import dataclass
 from typing import Any
 
 from clinosim.codes.loinc import loinc_coding
+from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
 from clinosim.locale.loader import narrative_label
 from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
-from clinosim.modules.output.fhir_r4.lib.common import survey_category
+from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, survey_category
 from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
@@ -76,12 +77,13 @@ class _ScaleSpec:
 
     ``icd_base`` is matched against ``code.split('.')[0]``. ``prefix`` is
     the stage-string tag written by ``patient.activator._generate_stage``.
-    ``loinc`` is ``None`` for scales with no authoritative LOINC in
-    common clinical use (H&Y); the Observation then emits display-only.
+    ``loinc`` is ``None`` for scales without a LOINC observation code; then
+    ``snomed`` names the SNOMED CT concept (every scale has one of the two).
     ``value_key`` is the FHIR value[x] slot name (``valueInteger`` /
-    ``valueDecimal`` / ``valueString``); ``value_parser`` converts the
-    raw stage string to that slot's value, returning ``None`` on parse
-    failure (unparseable stages fall out of the emit — no fabrication).
+    ``valueQuantity`` / ``valueRange``); ``value_parser`` converts the
+    raw stage string to a number (or a ``(low, high)`` band for
+    ``valueRange``), returning ``None`` on parse failure (unparseable
+    stages fall out of the emit — no fabrication).
     """
 
     icd_base: str
@@ -91,6 +93,7 @@ class _ScaleSpec:
     display: str
     value_key: str
     value_parser: Callable[[str], Any]
+    snomed: str | None = None
 
 
 def _parse_mrs(stage: str) -> int | None:
@@ -107,9 +110,32 @@ def _parse_cdr(stage: str) -> float | None:
         return None
 
 
-def _parse_identity(stage: str) -> str:
-    """EDSS / H&Y are banded labels — emit the stage string verbatim."""
-    return stage
+def _parse_score(stage: str) -> float | None:
+    """``"H&Y 3"`` → ``3.0`` (fractional stages such as 2.5 are kept)."""
+    return _parse_cdr(stage)
+
+
+def _parse_band(stage: str) -> tuple[float, float] | None:
+    """``"EDSS 2.5-5"`` → ``(2.5, 5.0)``; ``None`` when not a ``lo-hi`` band."""
+    try:
+        low, high = stage.split()[1].split("-")
+        return float(low), float(high)
+    except (ValueError, IndexError):
+        return None
+
+
+def _score_quantity(value: float) -> dict[str, Any]:
+    """A rating-scale score as a UCUM ``{score}`` Quantity (whole numbers
+    are written as integers, ``0.5`` stays ``0.5``)."""
+    return ucum_quantity(int(value) if float(value).is_integer() else value, "{score}")
+
+
+def _value_element(spec: _ScaleSpec, value: Any) -> Any:
+    if spec.value_key == "valueQuantity":
+        return _score_quantity(value)
+    if spec.value_key == "valueRange":
+        return {"low": _score_quantity(value[0]), "high": _score_quantity(value[1])}
+    return value
 
 
 # (icd_base, scale_key) → spec. One row per emitted scale.
@@ -127,19 +153,21 @@ _SCALE_SPECS: dict[str, _ScaleSpec] = {
         icd_base="G20",
         prefix="H&Y ",
         suffix="hy",
-        loinc=None,  # No authoritative LOINC — display-only (see module docstring).
+        loinc=None,  # LOINC has only the *modified* H&Y UPDRS item (77714-4).
+        snomed="716138005",  # Hoehn and Yahr Scale score
         display="Hoehn and Yahr stage",
-        value_key="valueString",
-        value_parser=_parse_identity,
+        value_key="valueQuantity",
+        value_parser=_parse_score,
     ),
     "edss": _ScaleSpec(
         icd_base="G35",
         prefix="EDSS ",
         suffix="edss",
-        loinc=None,  # No LOINC exists (77691-7 is not a LOINC code) — display-only.
+        loinc=None,  # No LOINC EDSS observation code exists (77691-7 is not a LOINC code).
+        snomed="273554001",  # Kurtzke multiple sclerosis rating scale (the EDSS)
         display="Expanded Disability Status Scale score",
-        value_key="valueString",
-        value_parser=_parse_identity,
+        value_key="valueRange",
+        value_parser=_parse_band,
     ),
     "cdr": _ScaleSpec(
         icd_base="F00",
@@ -147,7 +175,7 @@ _SCALE_SPECS: dict[str, _ScaleSpec] = {
         suffix="cdr",
         loinc="72088-8",  # Clinical Dementia Rating scale [CDR] (was 72172-0, the MoCA total)
         display="Clinical Dementia Rating Global score",
-        value_key="valueDecimal",
+        value_key="valueQuantity",
         value_parser=_parse_cdr,
     ),
 }
@@ -253,6 +281,8 @@ def _build_one_observation(
     code_block: dict[str, Any] = {"text": narrative_label("stage_scale", spec.suffix, lang, fallback=spec.display)}
     if spec.loinc is not None:
         code_block["coding"] = [loinc_coding(spec.loinc, "en")]
+    elif spec.snomed is not None:
+        code_block["coding"] = dual_slot_concept("snomed-ct", spec.snomed, lang)["coding"]
 
     obs: dict[str, Any] = {
         "resourceType": "Observation",
@@ -262,7 +292,7 @@ def _build_one_observation(
         "category": survey_category(lang),
         "code": code_block,
         "subject": patient_ref(patient_id),
-        spec.value_key: value,
+        spec.value_key: _value_element(spec, value),
     }
     if effective_dt:
         obs["effectiveDateTime"] = effective_dt
