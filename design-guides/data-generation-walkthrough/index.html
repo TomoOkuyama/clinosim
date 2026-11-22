@@ -2982,7 +2982,11 @@ medications, allergies, baseline vitals.</p>
    protocol.complications, …, severity=…)</code> evaluates the disease
    YAML's <code>complications</code> (incidence, risk factors, state_impact,
    actions). A complication whose <code>actions</code> include
-   <code>["icu_transfer"]</code> fires and triggers ICU transfer.</li>
+   <code>["icu_transfer"]</code> fires and triggers ICU transfer, and one that
+   declares <code>start_antibiotic</code> (or <code>start_broad_spectrum_antibiotic</code>)
+   gets the first-line antibiotic of its empirical-regimen protocol at
+   onset (<code>simulator/reference_data/complication_actions.yaml</code>); the
+   other action strings are not executed.</li>
 <li><strong>Orders / labs / vitals / meds</strong>: physiology state drives
    <code>derive_lab_values</code> (30+ analytes) for lab values, vitals, and
    <code>place_admission_orders</code> / <code>place_daily_lab_orders</code>

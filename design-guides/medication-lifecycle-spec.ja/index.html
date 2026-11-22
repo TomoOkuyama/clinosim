@@ -2554,6 +2554,11 @@
 <td><code>tests/unit/simulator/test_vasopressor_from_hypotension_3332.py</code></td>
 </tr>
 <tr>
+<td>疾患 YAML で <code>start_antibiotic</code> / <code>start_broad_spectrum_antibiotic</code> (正規の表記。<code>start_antibiotics</code>、<code>antibiotics</code>、<code>broad_spectrum_antibiotic(s)</code> は別名で、YAML では使わない) を宣言する感染性合併症には、発症日に抗菌薬を投与する。<code>complication_actions.yaml</code> が合併症ごとに指定する疾患プロトコル (誤嚥性肺炎・尿路感染症・皮膚軟部組織感染・術後創部感染・二次性細菌性肺炎はその感染症自身のプロトコル、敗血症・腹膜炎・胆管炎・壊死性感染・院内肺炎は敗血症プロトコル) の、当該国の第一選択抗菌薬 (薬剤カタログの抗菌薬クラス、抽選による追加薬は除く) を、発症日 13:00 に薬剤安全性ゲート (アレルギー・相互作用・疾患ルール) を通して発注する。ゲートが第一選択をすべて除外した場合は、プロトコルの <code>alternative_penicillin_allergy</code> の薬を発注する。同じ薬が実行中の場合、および指定できるレジメンがない場合 (腹腔内膿瘍、虫垂断端炎) は発注しない。発症日の投与記録は、受診・病日・合併症から種を決めた副乱数で作る (入院の乱数列から抽選しない)。</td>
+<td><code>simulator/complication_actions.py</code>, <code>daily_loop.py</code> (<code>_start_complication_antibiotic</code>); データ <code>simulator/reference_data/complication_actions.yaml</code></td>
+<td><code>tests/unit/simulator/test_complication_antibiotic_3543.py</code></td>
+</tr>
+<tr>
 <td>昇圧薬・強心薬の持続投与は、直前 24 時間に記録した血圧がすべて平均動脈圧 65 mmHg 以上(2 回以上の記録)、その間に新たな昇圧薬・強心薬の開始がなく、ショックを脱している(日次ループの <code>in_shock</code>)とき、その病日の開始時点で中止する。持続投与中の昇圧薬・強心薬はまとめて中止し(status stopped、終了時刻はその病日の開始)、以後は投与しない。最終病日に持続投与があった患者は退院可能とも自宅退院可能とも判定せず、そのために入院期間をプロトコルの最大在院日数から最大 <code>max_extension_days</code> 日まで延長する。</td>
 <td><code>simulator/vasoactive_support.py</code>(<code>stop_weaned_vasoactive_infusions</code>, <code>vasoactive_support_after</code>)、<code>medication_pipeline.py::is_vasoactive_infusion</code>。データ <code>simulator/reference_data/vasoactive_weaning.yaml</code>。<code>daily_loop.py</code>(<code>_wean_vasoactive_support</code>, <code>_on_vasoactive_support</code>)と <code>discharge_gate.py</code> で適用</td>
 <td><code>tests/unit/simulator/test_vasoactive_weaning_3270.py</code></td>

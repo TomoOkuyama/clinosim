@@ -2704,7 +2704,11 @@ Layer 1 → Layer 2 <code>PatientProfile</code> に厚くなる:身長/体重、
    <code>trajectory</code>(状態変数ごとの日次デルタ)を補間して状態を更新。</li>
 <li><strong>合併症</strong>: <code>evaluate_complications(day, state, patient, protocol.complications, …, severity=…)</code>
    が疾患 YAML の <code>complications</code>(発生率・リスク因子・state_impact・actions)を評価。
-   <code>actions: ["icu_transfer"]</code> を含む合併症が発火すると ICU 転送。</li>
+   <code>actions: ["icu_transfer"]</code> を含む合併症が発火すると ICU 転送。
+   <code>start_antibiotic</code> (または <code>start_broad_spectrum_antibiotic</code>) を宣言する
+   合併症は、発症時に経験的治療プロトコルの第一選択抗菌薬を発注する
+   (<code>simulator/reference_data/complication_actions.yaml</code>)。その他のアクション
+   文字列は実行されない。</li>
 <li><strong>オーダ/検査/バイタル/投薬</strong>: physiology 状態から <code>derive_lab_values</code>(30+ analyte)で検査値、
    vitals、<code>place_admission_orders</code> / <code>place_daily_lab_orders</code>(panel-aware)/ 画像
    (<code>place_imaging_orders</code>)/ MAR を生成。</li>
