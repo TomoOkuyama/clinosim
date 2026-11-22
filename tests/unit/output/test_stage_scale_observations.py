@@ -5,8 +5,8 @@ Covers:
   corresponding ``chronic_conditions[].stage`` is populated.
 - No emit when stage string is empty, unparseable, or the ICD base
   code is outside the four tracked scales.
-- Value type per scale: mRS → valueInteger, CDR → valueDecimal, EDSS
-  and H&Y → valueString.
+- Value type per scale: mRS → valueInteger, CDR / H&Y → valueQuantity
+  ({score}), EDSS band → valueRange ({score}); every scale is coded.
 - Anchor encounter: latest outpatient-followup at or before snapshot,
   falling back to any encounter at or before snapshot, then to the
   last encounter in the record.
@@ -79,29 +79,50 @@ def test_i69_1_also_emits_mrs():
     assert LOINC_MRS in _codings(obs[0])
 
 
-def test_g20_emits_hy_string_no_loinc():
+SNOMED_HY = "716138005"
+SNOMED_EDSS = "273554001"
+
+
+def _score(value: float) -> dict:
+    return {"value": value, "unit": "{score}", "system": "http://unitsofmeasure.org", "code": "{score}"}
+
+
+def test_g20_emits_hy_coded_quantity():
     obs = build_stage_scale_observations(
         _patient([{"code": "G20", "stage": "H&Y 3"}]),
         [_enc("enc-1", "2025-01-10T09:00:00")],
         "2025-12-31",
     )
     assert len(obs) == 1
-    assert obs[0]["valueString"] == "H&Y 3"
-    assert _codings(obs[0]) == []  # H&Y: display-only, no authoritative LOINC
-    assert (obs[0].get("code") or {}).get("text") == "Hoehn and Yahr stage"
+    assert obs[0]["valueQuantity"] == _score(3)
+    assert "valueString" not in obs[0]
+    assert obs[0]["code"]["coding"][0]["system"] == "http://snomed.info/sct"
+    assert _codings(obs[0]) == [SNOMED_HY]
+    assert obs[0]["code"]["coding"][0]["display"] == "Hoehn and Yahr Scale score"
+    assert obs[0]["code"]["text"] == "Hoehn and Yahr stage"
 
 
-def test_g35_emits_edss_banded_string():
+def test_g35_emits_edss_band_as_range():
     obs = build_stage_scale_observations(
         _patient([{"code": "G35", "stage": "EDSS 2.5-5"}]),
         [_enc("enc-1", "2025-02-20T11:00:00")],
         "2025-12-31",
     )
     assert len(obs) == 1
-    assert obs[0]["valueString"] == "EDSS 2.5-5"
-    # No LOINC code exists for EDSS (Issue #2260): display-only, like H&Y.
-    assert "coding" not in obs[0]["code"]
+    assert obs[0]["valueRange"] == {"low": _score(2.5), "high": _score(5)}
+    assert "valueString" not in obs[0]
+    assert _codings(obs[0]) == [SNOMED_EDSS]
     assert obs[0]["code"]["text"]
+
+
+def test_cdr_emits_quantity_not_decimal():
+    obs = build_stage_scale_observations(
+        _patient([{"code": "F00", "stage": "CDR 0.5"}]),
+        [_enc("enc-1", "2025-02-20T11:00:00")],
+        "2025-12-31",
+    )
+    assert obs[0]["valueQuantity"] == _score(0.5)
+    assert "valueDecimal" not in obs[0]
 
 
 def test_f00_emits_cdr_decimal():
@@ -111,7 +132,7 @@ def test_f00_emits_cdr_decimal():
         "2025-12-31",
     )
     assert len(obs) == 1
-    assert obs[0]["valueDecimal"] == pytest.approx(0.5)
+    assert obs[0]["valueQuantity"]["value"] == pytest.approx(0.5)
     assert LOINC_CDR in _codings(obs[0])
 
 
@@ -229,7 +250,7 @@ def test_bundle_builder_wires_ctx_fields():
     )
     out = _bb_stage_scale_observations(ctx)  # type: ignore[arg-type]
     assert len(out) == 1
-    assert out[0]["valueString"] == "H&Y 2"
+    assert out[0]["valueQuantity"]["value"] == 2
     assert out[0]["encounter"]["reference"] == _enc_ref("enc-ctx")
 
 

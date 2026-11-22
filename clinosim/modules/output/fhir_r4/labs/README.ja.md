@@ -20,7 +20,8 @@ dispatcher (`coding_strategy`)。
   (vitals。registry wrapper `_bb_vitals` は
   [`../lib/inline_bb.py`](../lib/inline_bb.py))、`_bb_anthropometrics`
   (身長 / 体重 / BMI / 頭囲、Issue #946)、
-  `_bb_stage_scale_observations` (mRS / H&Y / EDSS / CDR stage scale)、
+  `_bb_stage_scale_observations` (mRS / H&Y / EDSS / CDR stage scale。全て LOINC または SNOMED CT でコード化、
+  スコアは UCUM `{score}` の `valueQuantity`、EDSS の帯は `valueRange`、Issue #3598)、
   `_bb_checkup_questionnaire` (JP 健診の問診回答を JP-eCheckup Observation
   として、Issue #3163)、
   `_bb_diagnostic_reports`、`_bb_service_requests` (canonical 定数

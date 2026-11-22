@@ -5,7 +5,7 @@
     "source_file": "https://tx.fhir.org/r4/CodeSystem/$lookup (preferred term, synonyms, FSN)",
     "extracted_at": "2026-11-10",
     "edition_version": "http://snomed.info/sct/900000000000207008/version/20250201",
-    "clinosim_codes_total": 270,
+    "clinosim_codes_total": 272,
     "clinosim_codes_missing_from_source": [
       "303408005"
     ],
@@ -1549,6 +1549,32 @@
         {
           "use": "900000000000003001",
           "value": "History of pregnancy (situation)"
+        }
+      ]
+    },
+    {
+      "code": "273554001",
+      "display": "Kurtzke multiple sclerosis rating scale",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Kurtzke multiple sclerosis rating scale"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Expanded disability status scale"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Kurtzke multiple sclerosis scale"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "EDSS - Expanded disability status scale"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Kurtzke multiple sclerosis rating scale (assessment scale)"
         }
       ]
     },
@@ -4205,6 +4231,20 @@
         {
           "use": "900000000000013009",
           "value": "Structure of femur"
+        }
+      ]
+    },
+    {
+      "code": "716138005",
+      "display": "Hoehn and Yahr Scale score",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Hoehn and Yahr Scale score"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Hoehn and Yahr Scale score (observable entity)"
         }
       ]
     },
