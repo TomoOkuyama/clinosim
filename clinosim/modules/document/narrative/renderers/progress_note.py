@@ -24,6 +24,7 @@ from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules.document.narrative._progress_exam import (
     agreeing_clauses,
+    coma_avpu,
     period_states,
     progress_exam_findings,
     unchanged_systems,
@@ -34,6 +35,7 @@ from clinosim.modules.document.narrative._template_helpers import (
 )
 from clinosim.modules.document.narrative.registry import DocumentTypeSpec
 from clinosim.modules.document.narrative.renderers._composers import (
+    _complications_known_on_day,
     _note_period_vitals,
     apply_cc_pe_consistency,
     pe_vitals_reading,
@@ -186,7 +188,16 @@ def render_progress_note(
                 if prev_phys
                 else {}
             )
-            unchanged = unchanged_systems(findings, prev_findings, worst_avpu(readings) != worst_avpu(prev_readings))
+            # Issue #3544: nothing is "unchanged" in a period with a new
+            # complication, and a comatose patient's neurological exam is stated.
+            new_comps, _ongoing = _complications_known_on_day(ctx, getattr(ctx, "authored_datetime", None))
+            unchanged = unchanged_systems(
+                findings,
+                prev_findings,
+                worst_avpu(readings) != worst_avpu(prev_readings),
+                new_in_period=bool(new_comps),
+                coma=bool(coma_avpu(readings)),
+            )
         phys_summary = generator._format_physical_exam(
             {k: v for k, v in findings.items() if k not in unchanged}, ctx.severity, lang
         )
