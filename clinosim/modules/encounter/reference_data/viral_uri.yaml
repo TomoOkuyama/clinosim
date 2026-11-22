@@ -63,7 +63,10 @@ follow_up: {en: "primary care physician if not improving within 1 week", ja: "1é
 
 discharge_prescriptions:
   - {drug: "Acetaminophen 500mg", route: "PO", frequency: "q6h PRN", duration_days: 5, probability: 0.5}
-  - {drug: "Dextromethorphan/Guaifenesin", locale_name: {jp: "Dextromethorphan 15mg"}, route: "PO", frequency: "q6h PRN", duration_days: 5, probability: 0.3}
+  # Dose: the adult OTC syrup label (20 mg dextromethorphan / 200 mg guaifenesin per 10 mL,
+  # adults and children 12 years and over: 10 mL every 4 hours, not for children under 12;
+  # Geri-Tussin DM, DailyMed / openFDA label). The product is not written for under 12 years.
+  - {drug: "Dextromethorphan/Guaifenesin", locale_name: {jp: "Dextromethorphan 15mg"}, dose: "10mL", locale_dose: {jp: "15mg"}, min_age_years: 12, route: "PO", frequency: "q6h PRN", duration_days: 5, probability: 0.3}
 
 scenarios:
   simple_viral:

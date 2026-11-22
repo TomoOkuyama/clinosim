@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
 from datetime import datetime
 from functools import lru_cache
@@ -336,6 +337,24 @@ class _DiagnosisVariant(BaseModel):
         return value
 
 
+# A strength written in a drug name ("Ibuprofen 400mg", "Amoxicillin/clavulanate
+# 875/125mg"); a discharge prescription item carries it as its dose unless the
+# entry declares one.
+DOSE_IN_NAME = re.compile(r"\d[\d.]*(?:/\d[\d.]*)*\s*(?:mg|mcg|g|mL|%)", re.IGNORECASE)
+
+
+def prescription_dose(spec: Mapping[str, Any], name: str, country_key: str | None) -> str:
+    """Dose of a take-home prescription entry (Issue #3594): the country's
+    ``locale_dose``, else the declared ``dose``, else the strength written in
+    ``name``. Empty when the entry gives the amount per administration
+    nowhere (a dose quantity or, for drops and creams, a sig text)."""
+    declared = (spec.get("locale_dose") or {}).get(country_key or "") or spec.get("dose")
+    if declared:
+        return str(declared)
+    m = DOSE_IN_NAME.search(name)
+    return m.group(0) if m else ""
+
+
 class _Prescription(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -352,6 +371,12 @@ class _Prescription(BaseModel):
     # three doses a day), keyed like ``locale_name``.
     locale_frequency: dict[str, str] = Field(default_factory=dict)
     locale_exclude: list[str] = Field(default_factory=list)
+    # Country-specific dose (Issue #3594), keyed like ``locale_name``: a dose
+    # quantity ("10mL") or a sig text ("1 drop in the affected eye").
+    locale_dose: dict[str, str] = Field(default_factory=dict)
+    # Youngest age (years) the product is labelled for (Issue #3594); a
+    # younger patient is not prescribed it.
+    min_age_years: int | None = Field(default=None, ge=0)
 
 
 class _ScenarioOrder(BaseModel):
@@ -672,6 +697,19 @@ class EncounterConditionProtocol(BaseModel):
                 raise ValueError(f"{self.condition_id}: discharge instruction {item!r} needs en and ja text")
         if self.discharge_instructions and not {"en", "ja"} <= self.follow_up.keys():
             raise ValueError(f"{self.condition_id}: follow_up needs en and ja text")
+        return self
+
+    @model_validator(mode="after")
+    def _discharge_prescriptions_carry_a_dose(self) -> EncounterConditionProtocol:
+        # Issue #3594: every take-home prescription states the amount per
+        # administration in every country it can be written for.
+        for rx in self.discharge_prescriptions:
+            spec = rx.model_dump()
+            for key in [None, *spec["locale_name"], *spec["locale_dose"]]:
+                name = spec["locale_name"].get(key or "") or spec["drug"]
+                if not prescription_dose(spec, name, key):
+                    where = f" ({key})" if key else ""
+                    raise ValueError(f"{self.condition_id}: discharge prescription {name!r}{where} has no dose or sig")
         return self
 
     @model_validator(mode="after")

@@ -36,3 +36,4 @@ aliases:
   unit: U
   mEq: meq                # milliequivalent (UCUM arbitrary unit)
   mmHg: 'mm[Hg]'          # base FHIR canonical for pressure
+  puff: '{puff}'          # metered-dose inhaler actuation (UCUM annotation, Issue #3594)

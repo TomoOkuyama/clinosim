@@ -107,7 +107,7 @@ def _protocol_drugs() -> list[tuple[str, str, str]]:
 
 @pytest.mark.parametrize(("country", "drug", "route"), _protocol_drugs())
 def test_every_protocol_prescription_is_coded(country: str, drug: str, route: str) -> None:
-    from clinosim.simulator.emergency import _DOSE_IN_NAME
+    from clinosim.modules.encounter.protocol import DOSE_IN_NAME as _DOSE_IN_NAME
 
     item_name = " ".join(_DOSE_IN_NAME.sub("", drug).split())
     for name in (drug, item_name):

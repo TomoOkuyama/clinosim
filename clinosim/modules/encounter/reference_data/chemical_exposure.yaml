@@ -49,7 +49,7 @@ follow_up: {en: "recheck in 3-5 days", ja: "3〜5日後に経過観察"}
 
 discharge_prescriptions:
   - {drug: "Acetaminophen 500mg", route: "PO", frequency: "q6h PRN", duration_days: 5, probability: 0.6}
-  - {drug: "Silver sulfadiazine cream", route: "topical", frequency: "bid", duration_days: 7, probability: 0.3}
+  - {drug: "Silver sulfadiazine cream", dose: "apply a thin layer to the affected area", route: "topical", frequency: "bid", duration_days: 7, probability: 0.3}
 
 incidence_modifier: 1.0
 probability: 0.025
