@@ -36,6 +36,7 @@ from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import (
     _localize_imaging,
     _localize_lab_flag,
+    lab_value_text,
 )
 from clinosim.modules.document.narrative._medication_plan import cap_names
 from clinosim.modules.document.narrative._narrative_utils import _age_months_at
@@ -413,7 +414,8 @@ def _order_result_text(order: Any, lang: str, cutoff: str) -> str:
     disp_name = lab_display(name, lang)
     if unit_disp and unit_disp.lower() == str(disp_name).lower():
         unit_disp = ""
-    text = f"{disp_name} {value}" + (f" {unit_disp}" if unit_disp else "")
+    shown = lab_value_text(str(name), value, "", lang) if isinstance(value, str) else value
+    text = f"{disp_name} {shown}" + (f" {unit_disp}" if unit_disp else "")
     flag = _o(result, "flag", None)
     return f"{text} [{_localize_lab_flag(flag, lang)}]" if flag else text
 

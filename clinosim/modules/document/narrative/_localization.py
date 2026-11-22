@@ -16,6 +16,8 @@ because they are a cohesive unit; the cache's lazy-import of
 
 from __future__ import annotations
 
+from typing import Any
+
 
 def _localize_complication(name: str, lang: str) -> str:
     """Return the localized display for a complication token from
@@ -66,6 +68,20 @@ def _localize_lab_flag(flag: str, lang: str) -> str:
         lang,
         fallback=str(flag),
     )
+
+
+def lab_value_text(raw_name: str, value: Any, unit: str, lang: str) -> str:
+    """A lab result value as narrative text (Issue #3561): a number at the
+    analyte's reported precision, a qualitative result ("2+ leukocytes, trace
+    blood", "Positive: opiates") in ``lang`` through the same
+    ``lab_result_display`` table the FHIR output uses (English keeps the
+    stored wording)."""
+    from clinosim.locale.loader import lab_result_display
+    from clinosim.modules.observation.engine import format_lab_value
+
+    if isinstance(value, str):
+        return str(lab_result_display(value, lang))
+    return format_lab_value(raw_name, value, unit)
 
 
 # Phase 1c-6 (2026-09-23): procedure_type → localized display for the

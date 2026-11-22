@@ -16,7 +16,7 @@ from clinosim.codes.ucum import ucum_prose
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import lab_display
 from clinosim.modules._shared import get_attr_or_key as _get
-from clinosim.modules.document.narrative._localization import _localize_lab_flag
+from clinosim.modules.document.narrative._localization import _localize_lab_flag, lab_value_text
 from clinosim.modules.document.narrative.lab_timeseries import NotableLab, select_notable_labs
 
 __all__ = ["lab_unit_text", "notable_lab_entries", "notable_lab_entry"]
@@ -33,18 +33,16 @@ def lab_unit_text(raw_name: str, unit: str, lang: str) -> str:
 
 
 def notable_lab_entry(item: NotableLab, lang: str) -> str:
-    from clinosim.modules.observation.engine import format_lab_value
-
     lab = item.lab
     raw_name = str(_get(lab, "lab_name") or _get(lab, "name") or "")
     unit = str(_get(lab, "unit") or "")
     name = lab_display(raw_name, lang)
     unit_part = lab_unit_text(raw_name, unit, lang)
     flag = _localize_lab_flag(str(_get(lab, "flag") or ""), lang)
-    text = f"{name} {format_lab_value(raw_name, _get(lab, 'value'), unit)}{unit_part} [{flag}]"
+    text = f"{name} {lab_value_text(raw_name, _get(lab, 'value'), unit, lang)}{unit_part} [{flag}]"
     details: list[str] = []
     if item.prior_value is not None:
-        details.append(f"{t('list_sep.prior_word', lang)} {format_lab_value(raw_name, item.prior_value, unit)}")
+        details.append(f"{t('list_sep.prior_word', lang)} {lab_value_text(raw_name, item.prior_value, unit, lang)}")
     if item.finding:
         details.append(t(f"lab_finding.{item.finding}", lang))
     if details:

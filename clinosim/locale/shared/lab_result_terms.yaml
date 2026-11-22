@@ -25,6 +25,8 @@ results:
   positive: {ja: 陽性}
   no growth: {ja: 発育なし}
   mixed flora (contaminated): {ja: 混合菌 (汚染)}
+  e. coli >100,000 cfu/ml: {ja: 大腸菌 >100,000 CFU/mL}
+  klebsiella >100,000 cfu/ml: {ja: クレブシエラ >100,000 CFU/mL}
   up to date: {ja: 接種済み (最新)}
   unknown: {ja: 不明}
   last >10 years ago: {ja: 最終接種 10年以上前}
