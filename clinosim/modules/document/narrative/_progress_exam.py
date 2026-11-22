@@ -39,6 +39,7 @@ __all__ = [
     "period_states",
     "progress_exam_findings",
     "progress_exam_rules",
+    "coma_avpu",
     "unchanged_systems",
     "worst_avpu",
 ]
@@ -113,11 +114,25 @@ class _CourseItem(BaseModel):
     min_change: float | None = Field(default=None, gt=0)
 
 
+class _Coma(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    work_up: Annotated[dict[str, list[str]], AfterValidator(_has_english)]
+    # The neurological finding of each coma AVPU level; the keys are the levels.
+    neurological: dict[str, _Localized] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _levels(self) -> _Coma:
+        if set(self.neurological) - {"P", "U"}:
+            raise ValueError("progress_exam.yaml: coma levels must be P or U")
+        return self
+
+
 class _ConsciousnessCourse(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     min_days: int = Field(ge=1)
     delirium_complications: list[str] = Field(min_length=1)
     work_up: Annotated[dict[str, list[str]], AfterValidator(_has_english)]
+    coma: _Coma
 
 
 class _CourseState(BaseModel):
@@ -432,6 +447,9 @@ def progress_exam_findings(
     states = period_states(ctx, readings, before)
     now = current_states(ctx, readings, before)
     code = normalize_lang(lang)
+    coma = progress_exam_rules().consciousness_course.coma
+    coma_level = coma_avpu(readings)
+    sep_coma = progress_exam_rules().clause_separators.get(code, ["", "", ""])[1]
     findings: dict[str, str] = {}
     for system in PHYSICAL_EXAM_SYSTEMS:
         text = agreeing_clauses(select_exam_text(phys_exam.get(system), severity), states, lang)
@@ -447,6 +465,10 @@ def progress_exam_findings(
         ]
         if added:
             text = sep.join([text, *added]) if text else sep.join(added)
+        if system == "neurological" and coma_level:
+            coma_text = coma.neurological[coma_level]
+            coma_text = coma_text.get(code) or coma_text["en"]
+            text = sep_coma.join([text, coma_text]) if text else coma_text
         if text:
             findings[system] = text
     return findings
@@ -533,6 +555,9 @@ def consciousness_assessment_line(daily: list[list], complications: list[str], l
     if len(levels) < rules.min_days:
         return ""
     code = normalize_lang(lang)
+    if levels[0] in rules.coma.neurological:
+        coma_causes = t("list_sep.serial", lang).join(rules.coma.work_up.get(code) or rules.coma.work_up["en"])
+        return t("progress.consciousness_coma_workup", lang, a=levels[0], n=len(levels), causes=coma_causes)
     causes = t("list_sep.serial", lang).join(rules.work_up.get(code) or rules.work_up["en"])
     recorded = [c for c in complications if "_".join(c.strip().lower().split()) in rules.delirium_complications]
     if recorded:
@@ -562,13 +587,35 @@ def worst_avpu(readings: list) -> str:
     return max(levels, key=order.__getitem__) if levels else ""
 
 
-def unchanged_systems(findings: dict[str, str], previous: dict[str, str], consciousness_changed: bool) -> list[str]:
+def coma_avpu(readings: list) -> str:
+    """The worst AVPU level of ``readings`` when it is a coma level (Pain or
+    Unresponsive, Issue #3544), else ``""``."""
+    worst = worst_avpu(readings)
+    return worst if worst in progress_exam_rules().consciousness_course.coma.neurological else ""
+
+
+def unchanged_systems(
+    findings: dict[str, str],
+    previous: dict[str, str],
+    consciousness_changed: bool,
+    *,
+    new_in_period: bool = False,
+    coma: bool = False,
+) -> list[str]:
     """The body systems whose exam text is identical to the previous day's
     (Issue #3235), in exam order. The general system, which carries the
     consciousness clause, counts as changed when the day's worst AVPU
-    changed. A system without text is never "unchanged"."""
+    changed. A system without text is never "unchanged". Nothing is
+    "unchanged" when something new happened in the period (``new_in_period``,
+    a complication since the previous note), and a comatose patient's
+    neurological exam is always stated (Issue #3544)."""
+    if new_in_period:
+        return []
     return [
         system
         for system, text in findings.items()
-        if text and previous.get(system) == text and not (system == "general" and consciousness_changed)
+        if text
+        and previous.get(system) == text
+        and not (system == "general" and consciousness_changed)
+        and not (system == "neurological" and coma)
     ]

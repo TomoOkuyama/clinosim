@@ -202,3 +202,22 @@ consciousness_course:
   work_up:
     ja: [薬剤, 感染, 電解質, 低酸素]
     en: [medication, infection, electrolyte disturbance, hypoxia]
+  # A level of consciousness of Pain or Unresponsive (Issue #3544) is a coma
+  # state, not delirium: its cause work-up lists the neurological and
+  # structural causes first, and the neurological exam states the response of
+  # the level instead of "unchanged from the previous day". The keys of
+  # ``neurological`` are the AVPU levels that count as coma. The causes and the
+  # wording are clinosim conventions (the usual differential of a reduced
+  # level of consciousness, and the AVPU definitions of the response); no
+  # guideline text was verified against a source.
+  coma:
+    work_up:
+      ja: [頭蓋内病変, 低血糖, 痙攣, 薬剤, 感染, 電解質, 低酸素]
+      en: [intracranial lesion, hypoglycemia, seizure, medication, infection, electrolyte disturbance, hypoxia]
+    neurological:
+      P:
+        ja: 痛み刺激でのみ反応、従命不可
+        en: responds to pain only, does not follow commands
+      U:
+        ja: 刺激に覚醒せず、従命不可
+        en: does not rouse to stimulation, does not follow commands

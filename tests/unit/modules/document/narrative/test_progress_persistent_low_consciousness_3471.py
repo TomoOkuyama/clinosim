@@ -45,15 +45,15 @@ def _ctx(levels: list[str], *, lang: str = "ja", events=None) -> SimpleNamespace
 
 
 def test_three_days_below_alert_names_the_differential_not_a_diagnosis_ja() -> None:
-    text = compose_progress_assessment_from_state(_ctx(["V", "P", "P"]))
-    assert "意識レベル低下が持続 (AVPU P、3日間)" in text
+    text = compose_progress_assessment_from_state(_ctx(["V", "V", "V"]))
+    assert "意識レベル低下が持続 (AVPU V、3日間)" in text
     assert "せん妄を含む鑑別" in text and "薬剤" in text and "低酸素" in text
     assert "せん妄と診断" not in text and "せん妄を合併" not in text
 
 
 def test_en_wording() -> None:
-    text = compose_progress_assessment_from_state(_ctx(["P", "P"], lang="en"))
-    assert "AVPU P, 2 days" in text and "including delirium" in text and "hypoxia" in text
+    text = compose_progress_assessment_from_state(_ctx(["V", "V"], lang="en"))
+    assert "AVPU V, 2 days" in text and "including delirium" in text and "hypoxia" in text
     assert "意識" not in text
 
 
