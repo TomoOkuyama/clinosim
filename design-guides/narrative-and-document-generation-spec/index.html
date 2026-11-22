@@ -2610,6 +2610,11 @@
 <td><code>tests/unit/modules/document/narrative/test_outpatient_soap_results_as_of_3396.py</code></td>
 </tr>
 <tr>
+<td>An outpatient SOAP also quotes only the other data recorded by its authored time (Issue #3548): an imaging read is quoted only when the study's report was issued at or before the note, otherwise the Objective says the study was ordered and the read is pending (never a canned normal read); the vital signs quoted are the latest set measured at or before the note (none: the vitals sentence is omitted); the observation after a vaccine dose is written only when the dose is timed at or before the note (an immunization record holds a date only, so it is not written for a note with an authored time). A note with no authored time quotes everything.</td>
+<td><code>narrative/_as_of.py::latest_recorded_by</code>, <code>narrative/_visit_reason.py::_imaging_values</code> / <code>_dose_timed_by_authored</code>, <code>renderers/section_builders/outpatient_soap.py::_visit_vital</code>, <code>reference_data/visit_reason_soap.yaml</code> (<code>phrases.imaging_pending</code>, <code>vaccination_country_lines</code>)</td>
+<td><code>tests/unit/modules/document/narrative/test_outpatient_soap_imaging_as_of_3548.py</code></td>
+</tr>
+<tr>
 <td>An outpatient SOAP states the admissions and emergency visits since the patient's previous outpatient visit (Issue #3407): the patient's other encounters (<code>NarrativeContext.interval_encounters</code>, read from the other structural records) between the previous visit's end (the <code>lookback_days_without_prior_visit</code> of <code>interval_events.yaml</code> when there is none) and this visit give a subjective sentence with the date, diagnosis, length of stay and operations (at most <code>max_events</code> events, <code>max_procedures</code> operations); an emergency visit inside a stay, or the one that led to it, is part of the stay. The chronic SOAP template states "no exacerbation since the last visit" (<code>no_interval_event</code>) only when there is no such event.</td>
 <td><code>narrative/_interval_events.py</code>, <code>renderers/section_builders/outpatient_soap.py::build_outpatient_subjective</code></td>
 <td><code>tests/unit/modules/document/narrative/test_interval_events_3407.py</code></td>

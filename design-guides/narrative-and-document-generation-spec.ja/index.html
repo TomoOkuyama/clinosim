@@ -2610,6 +2610,11 @@
 <td><code>tests/unit/modules/document/narrative/test_outpatient_soap_results_as_of_3396.py</code></td>
 </tr>
 <tr>
+<td>外来 SOAP は記載時点までに記録されたその他のデータだけを引用する (Issue #3548): 画像の読影所見は報告時刻が記載時刻以前の検査のみ引用し、それ以外は Objective に「画像検査を施行・読影結果待ち」と書く (定型の正常所見は書かない)。引用するバイタルは記載時刻以前に測定された直近の 1 セットで、無ければバイタルの文は省く。ワクチン接種後の観察の文は接種が記載時刻以前に時刻付きで記録されている場合のみ書く (予防接種記録は日付のみのため、記載時刻のある記録では書かない)。記載時刻のない記録は全て引用する。</td>
+<td><code>narrative/_as_of.py::latest_recorded_by</code>, <code>narrative/_visit_reason.py::_imaging_values</code> / <code>_dose_timed_by_authored</code>, <code>renderers/section_builders/outpatient_soap.py::_visit_vital</code>, <code>reference_data/visit_reason_soap.yaml</code> (<code>phrases.imaging_pending</code>, <code>vaccination_country_lines</code>)</td>
+<td><code>tests/unit/modules/document/narrative/test_outpatient_soap_imaging_as_of_3548.py</code></td>
+</tr>
+<tr>
 <td>外来 SOAP は前回外来受診以降の入院・救急受診を記載する (Issue #3407): 患者の他の受診 (<code>NarrativeContext.interval_encounters</code>、他の structural 記録から読む) のうち前回受診の終了後 (前回受診がなければ <code>interval_events.yaml</code> の <code>lookback_days_without_prior_visit</code> 日以内) から今回受診までのものを、日付・診断・在院日数・手術 (<code>max_events</code> 件、手術は <code>max_procedures</code> 件まで) として Subjective に書く。入院中の救急受診と入院に至った救急受診は入院に含める。慢性疾患 SOAP テンプレートの「前回受診以降の増悪エピソードなし」(<code>no_interval_event</code>) は、こうした事象がないときだけ書く。</td>
 <td><code>narrative/_interval_events.py</code>, <code>renderers/section_builders/outpatient_soap.py::build_outpatient_subjective</code></td>
 <td><code>tests/unit/modules/document/narrative/test_interval_events_3407.py</code></td>
