@@ -11,7 +11,7 @@ machine-readable リストは `clinosim simulate --help` を実行。
 | `--country {US,JP}` | `US` | Locale — 氏名 / 住所 / 保険 / コードシステムを制御 |
 | `--population N` | hospital config の catchment デフォルト | 集団サイズ (人) |
 | `--seed N` | `42` | 決定的 seed (AD-16 不変条件) |
-| `--start YYYY-MM-DD` / `--end YYYY-MM-DD` | 今日終了の過去 1 年 | シミュレーションウィンドウ |
+| `--start YYYY-MM-DD` / `--end YYYY-MM-DD` | 前日終了の過去 1 年 | シミュレーションウィンドウ |
 | `--output PATH` | `./output` | 出力ディレクトリ |
 | `--format {cif,fhir-r4,csv}` | `cif` | 1 つ以上の出力形式 (`fhir` は `fhir-r4` の alias)。形式ごとにサブディレクトリ (`cif/` / `fhir_r4/` / `csv/`) に出力 |
 | `--hospital-config PATH` | `clinosim/config/hospital_operations.yaml` | 病院形状 override YAML |

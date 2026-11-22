@@ -37,7 +37,7 @@ FHIR bundle. `clinosim generate` accepts the same options.
 | `-p, --population N` | hospital config's `recommended_population` | Catchment population |
 | `--country CODE` | `US` | `US` or `JP` |
 | `--start YYYY-MM-DD` | `--end` minus 1 year | Simulation start date |
-| `--end YYYY-MM-DD` | today | Simulation end date = snapshot date |
+| `--end YYYY-MM-DD` | yesterday | Simulation end date = snapshot date |
 | `--hospital-config PATH` | `clinosim/config/hospital_operations.yaml` (50-bed) | Hospital config YAML |
 | `--format ...` | `cif` | One or more of `cif`, `csv`, `fhir-r4` (alias: `fhir`). Add more by registering an `OutputAdapter` (AD-58). |
 | `-s, --seed N` | `42` | Random seed |

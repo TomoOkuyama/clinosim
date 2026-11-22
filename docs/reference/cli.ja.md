@@ -36,7 +36,7 @@ template Stage 2 narrative pass を自動実行するので
 | `-p, --population N` | hospital config の `recommended_population` | Catchment population |
 | `--country CODE` | `US` | `US` または `JP` |
 | `--start YYYY-MM-DD` | `--end` の 1 年前 | シミュレーション開始日 |
-| `--end YYYY-MM-DD` | 今日 | シミュレーション終了日 = snapshot 日 |
+| `--end YYYY-MM-DD` | 前日 | シミュレーション終了日 = snapshot 日 |
 | `--hospital-config PATH` | `clinosim/config/hospital_operations.yaml` (50 床) | Hospital config YAML |
 | `--format ...` | `cif` | `cif` / `csv` / `fhir-r4` (alias: `fhir`) から 1 個以上。`OutputAdapter` (AD-58) を register することで追加可能。 |
 | `-s, --seed N` | `42` | ランダム seed |
