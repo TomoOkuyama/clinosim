@@ -63,6 +63,7 @@ from clinosim.simulator.aki_response import (
     holds_for_lactate,
 )
 from clinosim.simulator.helpers import _determine_route
+from clinosim.simulator.permissive_hypertension import permissive_hold_reason, permissive_windows
 from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.encounter import (
     MedicationAdministration,
@@ -198,19 +199,28 @@ def latest_vitals_at(vitals: Iterable[VitalSignRecord], at: datetime, baseline: 
 
 
 def apply_vital_holds(
-    mars: Iterable[MedicationAdministration], vitals: Iterable[VitalSignRecord], baseline: Any
+    mars: Iterable[MedicationAdministration],
+    vitals: Iterable[VitalSignRecord],
+    baseline: Any,
+    orders: Iterable[Order] = (),
 ) -> None:
     """Hold the given doses in ``mars`` that a vital-sign hold parameter
     (``mar_vital_hold_reason``) stops, judged on the latest vital signs
     recorded before each dose (``latest_vitals_at``; Issue #3233 — formerly
     the pre-admission baseline, which never changes during the stay). A
     refused dose, or one already held for another reason, is left as it is.
-    Draws nothing."""
+    ``orders``: a dose of an antihypertensive is also held while a
+    permissive-hypertension order of ``orders`` is in its window and the
+    latest systolic pressure is below its limit (Issue #3557). Draws nothing."""
     records = list(vitals)
+    windows = permissive_windows(orders)
     for mar in mars:
         if mar.status != "given":
             continue
-        reason = mar_vital_hold_reason(mar.drug_name, latest_vitals_at(records, mar.scheduled_datetime, baseline))
+        latest = latest_vitals_at(records, mar.scheduled_datetime, baseline)
+        reason = mar_vital_hold_reason(mar.drug_name, latest) or permissive_hold_reason(
+            mar.drug_name, mar.scheduled_datetime, latest.systolic_bp, windows
+        )
         if reason:
             mar.status, mar.hold_reason, mar.actual_datetime = "held", reason, None
 

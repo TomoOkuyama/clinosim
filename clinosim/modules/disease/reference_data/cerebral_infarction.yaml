@@ -185,7 +185,7 @@ order_protocols:
       - {type: "IV_fluid", detail: "NS 80 mL/h (avoid hypotonic fluids)"}
       - {type: "NPO", detail: "NPO until swallowing assessment completed"}
       - {type: "DVT_prophylaxis", detail: "Sequential compression devices (avoid anticoagulant DVT prophylaxis first 24h)"}
-      - {type: "BP_management", detail: "Permissive hypertension: allow SBP < 220 (or < 185 if tPA given)"}
+      - {type: "BP_management", detail: "Permissive hypertension: allow SBP < 220 (or < 185 if tPA given)", permissive_hypertension: {sbp_limit_mmhg: 220, sbp_limit_thrombolysed_mmhg: 185, window_hours: 48}}
       - {type: "neuro_checks", detail: "NIHSS q2h for first 24h, then q4h"}
       - {type: "continuous_telemetry", detail: "Cardiac monitoring for AF detection x48h minimum"}
       - {type: "HOB_elevation", detail: "Head of bed 30 degrees per protocol"}

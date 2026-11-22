@@ -970,6 +970,13 @@ def place_admission_orders(
                 else ORDER_SET_ADMISSION_INITIAL
             ),
         )
+        if sup.get("permissive_hypertension"):
+            # Issue #3557: the structured limits (not parsed from the text).
+            from clinosim.simulator.permissive_hypertension import PermissiveHypertension
+
+            order.permissive_hypertension = PermissiveHypertension.model_validate(
+                sup["permissive_hypertension"]
+            ).model_dump()
         # P1-3: Enrich MEDICATION orders with dose from detail_raw
         # so dose_quantity / dose_unit are correctly set (not display_name).
         if order_type == OrderType.MEDICATION:
