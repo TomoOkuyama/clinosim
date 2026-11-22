@@ -283,13 +283,13 @@ def build_outpatient_subjective(generator: TemplateNarrativeGenerator, ctx: Narr
     soap = _get_soap_template(ctx)
     template_prose = ""
     if soap is not None:
-        template_prose = _pick_localized(soap, "subjective", lang, ctx)
-        if template_prose == fallback:
-            template_prose = ""
-        if template_prose and not interval_events(ctx) and _o(soap, "no_interval_event", None):
-            template_prose = join_sentences(
-                [template_prose, _pick_localized(soap, "no_interval_event", lang, ctx)], lang
-            )
+        if _o(soap, "subjective", None):
+            template_prose = _pick_localized(soap, "subjective", lang, ctx)
+            if template_prose == fallback:
+                template_prose = ""
+        if not interval_events(ctx) and _o(soap, "no_interval_event", None):
+            no_event = _pick_localized(soap, "no_interval_event", lang, ctx)
+            template_prose = join_sentences([template_prose, no_event], lang) if template_prose else no_event
     if composed and template_prose:
         facts.extend(
             [
@@ -426,12 +426,13 @@ def build_outpatient_objective(generator: TemplateNarrativeGenerator, ctx: Narra
     template_prose = ""
     soap = _get_soap_template(ctx)
     if soap is not None:
-        template_prose = _pick_localized(soap, "objective", lang, ctx)
-        if template_prose == fallback:
-            # _fill_template_placeholders returned the fallback marker
-            # (unresolvable placeholder); treat as empty so vitals alone
-            # supply the section.
-            template_prose = ""
+        if _o(soap, "objective", None):
+            template_prose = _pick_localized(soap, "objective", lang, ctx)
+            if template_prose == fallback:
+                # _fill_template_placeholders returned the fallback marker
+                # (unresolvable placeholder); treat as empty so vitals alone
+                # supply the section.
+                template_prose = ""
 
     prose = template_prose.strip()
     if vital_line and prose:

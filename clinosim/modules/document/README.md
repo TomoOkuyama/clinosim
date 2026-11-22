@@ -203,7 +203,7 @@ clinosim/modules/document/
     cc-pe-consistency-keywords.yaml  chief-complaint ↔ physical-exam consistency rails (narrative/_narrative_utils.py)
     asthma-control-instruments.yaml  asthma control instrument by age: ACT 12+, Childhood ACT 4-11, caregiver symptom review under 4 (Issue #3264, GINA 2024)
     chronic-med-class-hints.yaml     chronic-assessment medication-class hints (narrative/renderers/section_builders/outpatient_soap.py)
-    chronic_soap_templates.yaml      chronic-condition SOAP note templates (the visit diagnosis's entry; findings, not instructions)
+    chronic_soap_templates.yaml      chronic-condition SOAP note templates (the visit diagnosis's entry; findings, not instructions; no home log, symptom denial or examination finding the record does not hold)
     visit_reason_soap.yaml           outpatient SOAP by visit reason: visit kinds, per-kind S/O/A/P lines, vital-sign findings with plan lines, vaccine record, well-child development and guidance (narrative/_visit_reason.py)
     interval_events.yaml             admissions / emergency visits an outpatient note states since the previous visit (narrative/_interval_events.py)
     (the plan's next visit is read by narrative/_next_visit.py)

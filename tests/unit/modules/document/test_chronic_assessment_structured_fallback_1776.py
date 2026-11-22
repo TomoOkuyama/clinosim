@@ -12,8 +12,8 @@ Fix: replace the ``obs_bits + followup_deferred`` fallback branch with
 a structured-data fallback that reads the chronic condition's
 ``stage`` (populated by the longitudinal engine):
 
-  * ``c.stage`` non-empty → ``"{label} ({stage}); management continued, no acute change this visit."``
-  * ``c.stage`` empty      → ``"{label}: noted on problem list; no acute change this visit."``
+  * ``c.stage`` non-empty → ``"{label} ({stage}); management continued."``
+  * ``c.stage`` empty      → ``"{label}: on the problem list."``
 
 Neither phrase re-quotes the vitals (which already live in Objective),
 and neither tells the reader to defer the clinical judgement.

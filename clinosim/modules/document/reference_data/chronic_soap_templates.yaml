@@ -37,6 +37,12 @@
 #     would reach the note in the middle of a sentence.
 #   - Additional chronic ICDs beyond the ones listed here fall through
 #     to the engine fallback (still adequate post-v9 P1b).
+#   - A seed asserts only what the record holds (Issue #3547). The record has
+#     no home blood-pressure or self-monitored glucose log, no symptom history
+#     and no examination findings for these visits, so a seed carries no
+#     「記録を持参」「訴えなし」「所見なし」「コントロール良好」 text. A section with
+#     nothing the record backs is omitted; the visit's vitals, labs and
+#     medications supply the rest.
 
 # ── I10: Essential hypertension ───────────────────────────────────
 metadata:
@@ -45,21 +51,13 @@ metadata:
   source: clinosim
 
 I10:
-  subjective:
-    ja: "家庭血圧の記録を持参。降圧薬の副作用の訴えなし、頭痛・めまいなど自覚症状なし。"
-  objective:
-    ja: "診察室血圧は家庭血圧の記録と概ね一致。"
   assessment:
     ja: "本態性高血圧のフォローアップ。"
   plan:
-    ja: "降圧薬継続、家庭血圧測定の継続を指導。減塩・適度な運動・体重管理を再指導。"
+    ja: "降圧薬継続、家庭血圧測定を指導。減塩・適度な運動・体重管理を再指導。"
 
 # ── E11: Type 2 diabetes mellitus ─────────────────────────────────
 E11:
-  subjective:
-    ja: "血糖自己測定 (SMBG) の記録を持参。低血糖エピソードなし、多尿・口渇の訴えなし。食事・運動療法は概ね継続できている。"
-  objective:
-    ja: "下肢浮腫なし。"
   assessment:
     ja: "2 型糖尿病のフォローアップ (HbA1c 目標 7.0% 未満)。合併症 (網膜症・腎症・神経障害) のスクリーニングを継続。"
   plan:
@@ -67,10 +65,6 @@ E11:
 
 # ── E78: Dyslipidemia ─────────────────────────────────────────────
 E78:
-  subjective:
-    ja: "スタチン内服に伴う筋痛の訴えなし。食事・運動習慣に大きな変化なし。"
-  objective:
-    ja: "特記すべき身体所見なし。"
   assessment:
     ja: "脂質異常症のフォローアップ (LDL 目標は心血管リスク層別による)。"
   plan:
@@ -78,10 +72,6 @@ E78:
 
 # ── N18: Chronic kidney disease ───────────────────────────────────
 N18:
-  subjective:
-    ja: "浮腫・倦怠感・食欲不振の訴えなし。塩分・蛋白制限は概ね守れている。"
-  objective:
-    ja: "下肢浮腫なし。"
   assessment:
     ja: "慢性腎臓病のフォローアップ。腎機能の推移と合併症 (貧血・電解質異常・二次性副甲状腺機能亢進症) を継続観察。"
   plan:
@@ -89,59 +79,39 @@ N18:
 
 # ── I50 / I11.0: Chronic heart failure ────────────────────────────
 I50:
-  subjective:
-    ja: "労作時息切れ・下肢浮腫・体重増加の訴えなし。水分・塩分制限と毎日の体重測定を継続。"
-  objective:
-    ja: "下肢浮腫なし、頸静脈怒張なし、肺野にラ音聴取せず。"
   assessment:
-    ja: "慢性心不全のフォローアップ、増悪徴候なし。"
+    ja: "慢性心不全のフォローアップ。"
   plan:
     ja: "利尿薬・β遮断薬・RAS 阻害薬継続。塩分制限 (6 g/日未満)・水分制限・毎日の体重測定を再指導。"
 
 # ── I25: Chronic ischemic heart disease ───────────────────────────
 I25:
-  subjective:
-    ja: "胸痛・労作時息切れ・動悸の訴えなし。ニトログリセリンの使用なし。"
-  objective:
-    ja: "心音整、雑音なし。肺音清、下肢浮腫なし。"
   assessment:
-    ja: "慢性虚血性心疾患のフォローアップ、症状増悪なし。抗血小板薬・スタチン療法を継続。"
+    ja: "慢性虚血性心疾患のフォローアップ。"
   plan:
     ja: "アスピリン・スタチン継続。過度な労作を避けるよう生活指導。次回外来時に脂質パネル・心電図を予定。"
 
-# ── J44: COPD (stable) ────────────────────────────────────────────
+# ── J44: COPD ─────────────────────────────────────────────────────
 J44:
-  subjective:
-    ja: "咳嗽・喀痰の増加なし、労作時息切れは従来と同程度。"
   # Stated only when no admission or emergency visit lies between the previous
-  # visit and this one (Issue #3407).
+  # visit and this one (Issue #3407): the encounter record backs it.
   no_interval_event:
     ja: "前回受診以降の増悪エピソードなし。"
-  objective:
-    ja: "呼吸音に喘鳴なし。"
   assessment:
-    ja: "COPD (安定期) のフォローアップ、増悪なし。"
+    ja: "COPD のフォローアップ。"
   plan:
     ja: "現行治療を継続。増悪時 (喀痰の増加・膿性化、息切れの増悪) は早期受診するよう説明。インフルエンザ・肺炎球菌ワクチンを勧奨。スパイロメトリは年 1 回。"
 
-# ── J45: Asthma (stable follow-up) ────────────────────────────────
+# ── J45: Asthma ───────────────────────────────────────────────────
 J45:
-  subjective:
-    ja: "喘鳴・咳嗽・夜間覚醒の訴えなし、発作治療薬の使用はまれ。"
-  objective:
-    ja: "肺音清、喘鳴なし。吸入手技は良好。"
   assessment:
-    ja: "気管支喘息のフォローアップ、コントロール良好。"
+    ja: "気管支喘息のフォローアップ。"
   plan:
     ja: "長期管理薬を継続。アレルゲン回避の生活指導。"
 
 # ── K21: GERD / functional GI disorders ───────────────────────────
 K21:
-  subjective:
-    ja: "胸やけ・呑酸の訴えは軽減。就寝前の食事を控え、就寝時の頭部挙上を継続。"
-  objective:
-    ja: "上腹部圧痛なし。"
   assessment:
-    ja: "GERD のフォローアップ、PPI で症状コントロール良好。"
+    ja: "GERD のフォローアップ。"
   plan:
     ja: "PPI 継続、症状増悪時は用量調整。生活指導 (少量頻回の食事、就寝 2 時間前までに食事を終える、頭部挙上)。"

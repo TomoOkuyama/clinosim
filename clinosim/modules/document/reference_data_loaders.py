@@ -64,11 +64,13 @@ _LangPhrases = dict[str, list[str]]
 class _ChronicSoapTemplate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    subjective: _LangText
+    # subjective and objective are omitted when the record backs no seed text
+    # (Issue #3547).
+    subjective: _LangText | None = None
     # Stated after the subjective when no admission or emergency visit lies
     # between the previous visit and this one (Issue #3407).
     no_interval_event: _LangText | None = None
-    objective: _LangText
+    objective: _LangText | None = None
     assessment: _LangText
     plan: _LangText
 
