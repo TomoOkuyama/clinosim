@@ -106,7 +106,11 @@ NDJSON by id.
   `attach_ecs_institutional_extensions`.
 - `clinosim.modules.output.fhir_r4.conditions.primary_ref` —
   `primary_condition_ref` for `Encounter.reasonReference` +
-  `Encounter.diagnosis[].condition`.
+  `Encounter.diagnosis[].condition`; `encounter_diagnosis_condition_ids`
+  lists the `encounter-diagnosis` Conditions the Condition builder emitted for
+  an encounter, and `Encounter.diagnosis[]` references every one of them
+  (secondary / in-stay complication / external-cause Conditions as `CM`,
+  ranked after the principal diagnosis; Issue #3597).
 - `clinosim.modules.output.fhir_r4.demographics.smoking_alcohol` —
   `_sdoh_effective_datetime` (care_level reuses the SDOH anchor).
 - `clinosim.codes` — LOINC + SNOMED display lookup.

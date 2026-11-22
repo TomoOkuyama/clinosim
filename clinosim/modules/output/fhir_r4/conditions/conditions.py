@@ -336,7 +336,17 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
     admission = _admission_condition(ctx, dx, chronic_list)
     if admission is not None:
         conditions.append(admission)
-    conditions.extend(_secondary_conditions(ctx, dx, seen_codes))
+    # Issue #3597: a secondary diagnosis never repeats a code the encounter
+    # already carries (the principal, the admission dx or a problem-list
+    # entry), whether or not that Condition is emitted as its own resource.
+    reserved = set(seen_codes)
+    if admission is not None:
+        reserved.add(admission["code"]["coding"][0].get("code", ""))
+    reserved.update(ctx.mapped(code) for code in (_chronic_fields(c)[0] for c in chronic_list) if code)
+    primary_raw = dx.get("discharge_diagnosis_code") or dx.get("admission_diagnosis_code", "")
+    if primary_raw and not is_visit_reason_zcode(primary_raw):
+        reserved.add(ctx.mapped(primary_raw))
+    conditions.extend(_secondary_conditions(ctx, dx, seen_codes, reserved))
     conditions.extend(_chronic_conditions(ctx, chronic_list, seen_codes))
     conditions.extend(_past_birth_conditions(ctx, record, seen_codes))
     return conditions
@@ -506,7 +516,9 @@ def _admission_condition(ctx: _ConditionContext, dx: dict, chronic_list: list) -
     return cond
 
 
-def _secondary_conditions(ctx: _ConditionContext, dx: dict, seen_codes: set[str]) -> list[dict]:
+def _secondary_conditions(
+    ctx: _ConditionContext, dx: dict, seen_codes: set[str], reserved: set[str] | None = None
+) -> list[dict]:
     """Issue #1307: one encounter-diagnosis Condition per
     ``clinical_diagnosis.working_diagnoses`` entry — pregnancy complications
     carried onto the delivery encounter (``simulator/perinatal.py``) and
@@ -527,9 +539,11 @@ def _secondary_conditions(ctx: _ConditionContext, dx: dict, seen_codes: set[str]
         if not mapped:
             continue
         # The primary / a chronic Condition already owns this exact code.
-        if mapped in seen_codes:
+        if mapped in seen_codes or mapped in (reserved or ()):
             continue
         seen_codes.add(mapped)
+        if reserved is not None:
+            reserved.add(mapped)
         onset_dt = str(wd.get("onset_datetime") or "") if isinstance(wd, dict) else ""
         source = str(wd.get("source") or "") if isinstance(wd, dict) else ""
         cond = _condition_skeleton(

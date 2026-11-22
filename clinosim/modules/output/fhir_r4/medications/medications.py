@@ -29,6 +29,7 @@ from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_code_mapping, map_diagnosis_code
 from clinosim.locale.localized import localized
 from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER, get_attr_or_key
+from clinosim.modules.diagnosis.nonspecific_codes import is_visit_reason_zcode
 from clinosim.modules.order.absolute_dose import is_continuous_infusion
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -1107,7 +1108,8 @@ def _build_medication_request(
     # encounters resolve to the patient-scoped chronic Condition; acute
     # ones keep the encounter-scoped id.
     reason = order.get("reason_condition", "") or primary_dx_code
-    if reason:
+    # Issue #916 / #3597: no Condition exists for a visit-reason Z-code primary.
+    if reason and not (primary_dx_code and is_visit_reason_zcode(primary_dx_code)):
         from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
             primary_condition_ref_from_codes,
         )
@@ -1790,7 +1792,11 @@ def _build_medication_admin(
         patient_sex,
     )
     if reason_pair is not None:
-        resource["reasonReference"], resource["reasonCode"] = reason_pair
+        # Issue #916 / #3597: a visit-reason Z-code (screening, follow-up) has
+        # no Condition to reference; its coded reason stays in reasonCode.
+        if not is_visit_reason_zcode(primary_dx_code):
+            resource["reasonReference"] = reason_pair[0]
+        resource["reasonCode"] = reason_pair[1]
 
     # Device reference — composed by _build_ma_device_block for
     # continuous-IV administrations (CY8-20). Gates on canonical route
