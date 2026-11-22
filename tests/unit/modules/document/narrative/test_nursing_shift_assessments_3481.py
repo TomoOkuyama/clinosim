@@ -138,8 +138,43 @@ def test_wound_post_operative_day_and_window() -> None:
     assert "創部" not in _note(_ctx("ja", 0, "night", authored_datetime=datetime(2026, 8, 31, 5), procedures=proc))[0]
     assert "創部" not in _note(_ctx("ja", 2, procedures=[{**proc[0], "encounter_id": "E2"}]))[0]
     assert "創部" not in _note(_ctx("ja", 2, procedures=[{**proc[0], "category_code": "1"}]))[0]
-    limit = nursing_shift_items_config().wound_observation_max_post_op_days
+    limit = nursing_shift_items_config().site_observation["surgical_wound"].max_days
     assert "創部" not in _note(_ctx("ja", limit + 1, procedures=proc))[0]
+
+
+def _catheter(ptype: str, start: str = "2026-08-31T13:00:00") -> dict:
+    return {**_surgery(start), "procedure_type": ptype}
+
+
+def test_percutaneous_procedure_gets_access_site_line_not_post_operative_day_3556() -> None:
+    pci = [_catheter("coronary_pci")]
+    cfg = nursing_shift_items_config().site_observation
+    limit = cfg["vascular_access"].max_days
+    for day in range(0, limit + 1):
+        ja = _note(_ctx("ja", day, procedures=pci))[0]
+        en = _note(_ctx("en", day, procedures=pci))[0]
+        assert "穿刺部" in ja and "末梢動脈" in ja
+        assert "puncture-site" in en.lower() and "distal pulses" in en
+        for text in (ja, en):
+            assert "術後" not in text and "手術当日" not in text and "創部" not in text
+            assert "Post-operative" not in text and "Surgical-site" not in text
+    for day in (limit + 1, 5, 12):
+        ja = _note(_ctx("ja", day, procedures=pci))[0]
+        assert "穿刺部" not in ja and "創部" not in ja and "術後" not in ja
+
+
+def test_device_implant_gets_pocket_line_with_its_own_limit_3556() -> None:
+    pm = [_catheter("pacemaker_implant")]
+    limit = nursing_shift_items_config().site_observation["device_pocket"].max_days
+    ja = _note(_ctx("ja", 1, procedures=pm))[0]
+    assert "ポケット" in ja and "術後" not in ja and "創部 (出血" not in ja
+    assert "pocket" in _note(_ctx("en", 1, procedures=pm))[0].lower()
+    assert "ポケット" not in _note(_ctx("ja", limit + 1, procedures=pm))[0]
+
+
+def test_open_surgery_keeps_wound_line_to_its_limit_3556() -> None:
+    surg = [_surgery("2026-08-31T13:00:00")]
+    assert "術後5日目" in _note(_ctx("ja", 5, procedures=surg))[0]
 
 
 def test_fall_risk_is_an_item_last_with_morse_and_no_invented_bed_rails() -> None:
