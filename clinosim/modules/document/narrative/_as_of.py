@@ -18,6 +18,7 @@ __all__ = [
     "in_force_at",
     "procedures_after",
     "procedures_started_by",
+    "latest_recorded_by",
     "recorded_by",
     "results_after",
     "results_known_at",
@@ -60,6 +61,23 @@ def recorded_by(records: list[Any], as_of: datetime | None, key: str = "timestam
         if at is None or at <= as_of:
             kept.append(row)
     return kept
+
+
+def latest_recorded_by(records: list[Any], as_of: datetime | None, key: str = "timestamp") -> Any | None:
+    """The latest record whose ``key`` time is at or before ``as_of`` (Issue
+    #3548): the reading a note written at ``as_of`` can quote. A record without
+    a parseable time counts as known (the first such one is used when no timed
+    record qualifies); ``None`` when nothing was recorded by ``as_of``."""
+    best: Any | None = None
+    best_at: datetime | None = None
+    untimed: Any | None = None
+    for row in recorded_by(records, as_of, key):
+        at = parse_iso_datetime(get_attr_or_key(row, key, None), lenient=True)
+        if at is None:
+            untimed = row if untimed is None else untimed
+        elif best_at is None or at >= best_at:
+            best, best_at = row, at
+    return best if best is not None else untimed
 
 
 def _naive(when: datetime | None) -> datetime | None:

@@ -109,6 +109,8 @@ kinds:
         ja: "フォローアップ採血: {labs}。"
       - en: "{imaging}"
         ja: "{imaging}"
+      - en: "{imaging_pending}"
+        ja: "{imaging_pending}"
     assessment:
       - en: "{index}: post-discharge review{lab_status}."
         ja: "{index}: 退院後経過観察{lab_status}。"
@@ -146,6 +148,8 @@ kinds:
         ja: "本日の検査: {items}。"
       - en: "{imaging}"
         ja: "{imaging}"
+      - en: "{imaging_pending}"
+        ja: "{imaging_pending}"
     assessment:
       - en: "Screening: {screening_labs}."
         ja: "検診: {screening_labs}。"
@@ -284,14 +288,19 @@ vaccine_sites:
 # Plan lines after the vaccines given, per country (the record a country's law
 # or guidance asks for): US — the Vaccine Information Statement given before
 # each dose (42 U.S.C. 300aa-26); JP — the pre-vaccination questionnaire
-# (予診票) and the observation after the dose.
+# (予診票) and the observation after the dose (written only when the dose is
+# timed at or before the note, Issue #3548).
 vaccination_country_lines:
   US:
-    - en: "Vaccine Information Statements given before vaccination; observed after vaccination with no immediate reaction."
-      ja: "接種前にワクチン情報説明書 (VIS) を交付、接種後の観察で即時型反応なし。"
+    - en: "Vaccine Information Statements given before vaccination."
+      ja: "接種前にワクチン情報説明書 (VIS) を交付。"
+    - en: "Observed after vaccination with no immediate reaction{vaccine_observed}."
+      ja: "接種後の観察で即時型反応なし{vaccine_observed}。"
   JP:
-    - en: "Fit for vaccination on the pre-vaccination questionnaire and examination; observed after vaccination with no immediate reaction."
-      ja: "予診票と診察で接種可能と判断、接種後の観察で即時型反応なし。"
+    - en: "Fit for vaccination on the pre-vaccination questionnaire and examination."
+      ja: "予診票と診察で接種可能と判断。"
+    - en: "Observed after vaccination with no immediate reaction{vaccine_observed}."
+      ja: "接種後の観察で即時型反応なし{vaccine_observed}。"
 
 # Abnormal vital signs of the visit: an assessment finding and a plan line,
 # linked to the diagnosis already known (Issue #3251). Variants by context:
@@ -421,6 +430,11 @@ phrases:
   screening_labs_abnormal:
     en: "abnormal laboratory results: {list}"
     ja: "血液検査の異常値: {list}"
+  # The imaging studies of the visit with no report by the note's authored time
+  # (Issue #3548): ordered, the read is not yet known.
+  imaging_pending:
+    en: "Imaging ordered today ({list}): read pending."
+    ja: "本日の画像検査 ({list}): 読影結果待ち。"
   percentile:
     en: "({pct}th percentile)"
     ja: "({pct} パーセンタイル)"

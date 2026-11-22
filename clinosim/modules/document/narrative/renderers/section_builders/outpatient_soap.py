@@ -48,6 +48,7 @@ from clinosim.locale.loader import chronic_followup_interval_months, load_chroni
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import drug_spec_in_age_band
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules.document.narrative._as_of import latest_recorded_by
 from clinosim.modules.document.narrative._drug_names import administered_drug_key, administered_drug_label
 from clinosim.modules.document.narrative._interval_events import interval_event_line, interval_events
 from clinosim.modules.document.narrative._localization import _localize_complication, _localize_stage
@@ -85,6 +86,7 @@ from clinosim.modules.document.narrative._visit_reason import (
     visit_kind,
     vital_findings,
 )
+from clinosim.modules.document.narrative._vitals_line import PROGRESS_OBJECTIVE, format_vitals_line
 from clinosim.modules.document.narrative.renderers._shared_helpers import (
     chronic_condition_label,
     ordered_chronic_conditions,
@@ -384,6 +386,13 @@ def _compose_outpatient_subjective_from_state(ctx: NarrativeContext) -> str:
 # ─────────────────────────────────────────────────────────────────────
 
 
+def _visit_vital(ctx: NarrativeContext) -> Any | None:
+    """The latest vital-sign set of the visit recorded at or before the note's
+    authored time (Issue #3548), None when none was: a note does not quote a
+    reading taken after it was written."""
+    return latest_recorded_by(list(ctx.vitals or []), getattr(ctx, "authored_datetime", None))
+
+
 @section("objective")
 def build_outpatient_objective(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build SOAP objective — CIF vitals ALWAYS appear; template is a seed.
@@ -406,7 +415,9 @@ def build_outpatient_objective(generator: TemplateNarrativeGenerator, ctx: Narra
     lang = ctx.target_lang
     fallback = t("fallback.generic_fallback", lang)
 
-    vital_line = generator._compose_vital_signs_line(ctx)
+    # Issue #3548: only a reading taken by the note's authored time is quoted.
+    vital = _visit_vital(ctx)
+    vital_line = format_vitals_line(vital, PROGRESS_OBJECTIVE, lang) if vital is not None else ""
     kind = visit_kind(ctx)
     values = kind_values(ctx, kind)
     reason_lines = kind_lines(ctx, kind, "objective", values)
@@ -730,9 +741,8 @@ def _chronic_assessment(ctx: NarrativeContext, skip_code: str = "") -> _ChronicA
     # abnormal-vital lines for patients with no chronic conditions.
     # Continue into the loop with an empty condition list; the
     # vital-abnormal pass at the end still fires.
-    vitals = list(ctx.vitals or [])
     labs = known_labs(ctx)
-    v0 = vitals[0] if vitals else None
+    v0 = _visit_vital(ctx)
     sbp = _o(v0, "systolic_bp", None) if v0 else None
     dbp = _o(v0, "diastolic_bp", None) if v0 else None
 
@@ -1192,8 +1202,7 @@ def _visit_vital_findings(ctx: NarrativeContext) -> list[tuple[str, str]]:
     """``(assessment item, plan line)`` of each abnormal vital sign of the
     visit's first vital set (``_visit_reason.vital_findings``). Issue #2986:
     a child's heart rate is judged against the normal range for the age."""
-    vitals = list(ctx.vitals or [])
-    v0 = vitals[0] if vitals else None
+    v0 = _visit_vital(ctx)
     if v0 is None or ctx.patient is None:
         return []
 
