@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING, Any
 from clinosim.locale.i18n import t
 from clinosim.locale.localized import localized, normalize_lang
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules.disease.laterality import stroke_weakness_side
 from clinosim.modules.document.narrative._narrative_utils import is_neonate
 from clinosim.modules.document.narrative.renderers._exam_agreement import agreeing_clauses
 from clinosim.modules.document.reference_data_loaders import load_disease_exam
@@ -145,7 +146,8 @@ def stroke_deficit(ctx: NarrativeContext, *, with_nihss: bool) -> str:
     severity = str(ctx.severity or "")
     if severity not in rule.nihss:
         severity = "moderate"
-    side = rule.right if _stable_int(ctx, "stroke_side", 2) == 0 else rule.left
+    enc_id = str(_o(ctx.encounter, "encounter_id", "") or "") if ctx.encounter is not None else ""
+    side = rule.right if stroke_weakness_side(enc_id) == "right" else rule.left
     deficit = localized(side[severity], ctx.target_lang)
     if not with_nihss:
         return deficit

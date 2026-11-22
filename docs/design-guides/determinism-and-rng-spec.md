@@ -35,7 +35,7 @@ Japanese counterpart: [`determinism-and-rng-spec.ja.md`](determinism-and-rng-spe
 
 A new feature, field, module or fix must not move the draws of anything it does not change. In order of preference:
 
-1. **Draw nothing.** Derive the value from data already generated, or from a hash (§2 last row). Examples: the side of a paired imaging study (`imaging_laterality`), the nurse giving a placed-order dose (`placed_order_mar.stable_nurse`), the Morse fall-history item.
+1. **Draw nothing.** Derive the value from data already generated, or from a hash (§2 last row). Examples: the side of a paired imaging study (`imaging_laterality`), the side of a stroke (`disease.laterality.stroke_weakness_side`; the lesion side `stroke_lesion_side` is its opposite, one value per stay shared by the admission exam and the head imaging reports), the nurse giving a placed-order dose (`placed_order_mar.stable_nurse`), the Morse fall-history item.
 2. **Draw from a new local stream.** Key a sub-seed by the entity (`derive_sub_seed(seed, offset, f"{encounter_id}:{specimen}:{n}")`). Register a new offset for a new module.
 3. **Never insert a draw into an existing stream**, reorder its draws, or make a draw conditional on new data. All three shift every later draw of that stream. They also shift every patient cached behind it (F4 memoization of the person cache).
 

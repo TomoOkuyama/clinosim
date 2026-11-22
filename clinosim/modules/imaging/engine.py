@@ -607,6 +607,40 @@ def imaging_laterality(encounter_id: str, body_site: str) -> str:
     return "left" if digest[0] % 2 == 0 else "right"
 
 
+def stroke_head_laterality(disease_id: str, encounter_id: str, body_site: str) -> str:
+    """The side of the lesion a head study of a stroke stay images, else ""
+    (Issue #3557). The head is not a paired site, so ``imaging_laterality`` has
+    no side for it; a stroke's lesion side is the stay's canonical one
+    (``clinosim.modules.disease.laterality``), contralateral to the weakness
+    the admission exam writes."""
+    if body_site != "head":
+        return ""
+    from clinosim.modules.disease.laterality import stroke_lesion_side
+    from clinosim.modules.document.reference_data_loaders import load_disease_exam
+
+    if disease_id not in load_disease_exam().stroke.disease_ids:
+        return ""
+    return stroke_lesion_side(encounter_id)
+
+
+def workup_abnormal_rate(disease_id: str, modality: str, body_site: str) -> dict[str, float]:
+    """The abnormal-read rate of a free-text workup imaging order, taken from
+    the disease protocol's ``imaging_orders`` entry of the same modality and
+    body site (Issue #3557); ``{}`` when the protocol has no such entry."""
+    if not disease_id:
+        return {}
+    from clinosim.modules.disease.protocol import load_disease_protocol
+
+    try:
+        protocol = load_disease_protocol(disease_id)
+    except FileNotFoundError:
+        return {}
+    for spec in protocol.imaging_orders:
+        if spec.modality == modality and spec.body_site == body_site and spec.abnormal_rate_by_severity:
+            return dict(spec.abnormal_rate_by_severity)
+    return {}
+
+
 def imaging_procedure_loinc(modality: str, body_site: str, views: list[str], contrast: bool) -> str:
     """The procedure LOINC of a study, or "" when the combination has none
     (Issue #2699: shared by the ServiceRequest, ImagingStudy and report)."""
@@ -1062,7 +1096,13 @@ def imaging_enricher(ctx: Any) -> None:
             # combination — e.g. the ED / unknown_condition path), emit
             # the study only (``report=None``); that preserves meaning
             # better than a silent drop.
-            _laterality = imaging_laterality(_o(order, "encounter_id", "") or "", body_site_key)
+            _laterality = imaging_laterality(
+                _o(order, "encounter_id", "") or "", body_site_key
+            ) or stroke_head_laterality(disease_id, _o(order, "encounter_id", "") or "", body_site_key)
+            # Issue #3557: a free-text workup order has no rate of its own; it
+            # reads at the protocol's rate for the same modality and body site.
+            if not abnormal_rate:
+                abnormal_rate = workup_abnormal_rate(disease_id, modality, body_site_key)
             try:
                 _variant, template = _select_report_template(
                     disease_id,
