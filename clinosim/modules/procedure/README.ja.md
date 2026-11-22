@@ -145,6 +145,16 @@ catalog の麻酔と、呼び出し側の `performer_id` (encounter の担当医
 - 例外: `generate_bedside_procedures` 内の `_ISSUE939_PROCEDURE_RULES`
   loop は `determinism.default_rng(seeding.issue939_procedure_seed(encounter_id,
   proc_type))` から draw し、caller の stream を動かさない。
+- 部位の詳細 (Issue #3549、`details.procedure_details`) も caller の
+  stream から draw しない。対の部位の手術の側、PCI のアクセス部位と
+  標的血管、中心静脈カテーテルの挿入静脈は、滞在に正準の側がある場合は
+  それを使い (脳卒中の開頭は `disease.laterality.stroke_lesion_side`、
+  股・膝・手関節の手術は `imaging.engine.imaging_laterality`。手術側 =
+  撮像側)、無い場合は `determinism.default_rng(seeding.procedure_detail_seed(
+  encounter_id, proc_type))` から引く。
+- ベッドサイド処置の所要時間 (Issue #3550) は従来どおり処置ごとに
+  `rng.normal` 1 回。カタログの `duration_minutes: {mean, sd, min, max}` は
+  値だけを変え、stream 位置は従来の単一既定値のときと同じ。
 - 合併症サンプリングは `_surgery_thresholds` の確率で gate された
   `rng.random()`。outcome 導出は合併症リストからの決定論的 mapping
   (無し → success、有り → partial)。
@@ -191,6 +201,19 @@ catalog の麻酔と、呼び出し側の `performer_id` (encounter の担当医
   が load し、`_ProcedureRulesConfig` / `_Rule` Pydantic model で検証
   (既知の疾患 / ED condition id、既知の処置 type、確率は `[0, 1]`)。
   rule 順序は draw 順なので load-bearing。
+- **処置の詳細** ([`reference_data/procedure_details.yaml`](reference_data/procedure_details.yaml)、
+  Issue #3549): どの処置種別が側を持つか (とその出所)、PCI の標的血管・
+  アクセス部位、中心静脈の挿入静脈の重み。`details.py` が読込時に検証する
+  (キーは `snomed-maps.yaml` の `coronary_vessel` / `arterial_access_site` /
+  `central_vein` に存在すること)。重みは clinosim のモデリング上の選択で、
+  公表された数値ではない。`ProcedureRecord` に `laterality`、
+  `access_site`、`target_vessel` を追加し、中心静脈の静脈は
+  `body_site_code` に入る。FHIR `Procedure.bodySite` に血管と SNOMED の
+  側 (laterality) 修飾概念を、アクセス部位は `note` に出す。
+- **ベッドサイド処置の所要時間** (Issue #3550):
+  `codes/data/clinosim-procedure-catalog.yaml` の処置別 `duration_minutes`
+  (公表値ではなくモデリング上の選択)。無い種別は `_bedside_thresholds`
+  の既定値のまま。
 - 本モジュールは他に、渡された disease protocol と
   `clinosim/codes/data/` の SNOMED metadata yaml・処置 catalog を読む。
 

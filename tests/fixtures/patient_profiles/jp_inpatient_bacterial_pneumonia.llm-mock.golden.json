@@ -2598,7 +2598,7 @@
         "ctx.procedures.outcome_code",
         "ctx.procedures.procedure_type"
       ],
-      "generated_at": "2024-06-15T17:29:38.724512+09:00",
+      "generated_at": "2024-06-15T17:23:38.724512+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
         "generator": "llm",

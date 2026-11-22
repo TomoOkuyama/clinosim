@@ -14,11 +14,11 @@ from clinosim.codes import (
     system_key_for,
 )
 from clinosim.codes.procedures import catalog_procedure_types, procedure_type_display
-from clinosim.codes.snomed import snomed_for_phrase
+from clinosim.codes.snomed import snomed_for, snomed_for_phrase
 from clinosim.countries import lang_for
 from clinosim.locale.free_text import localize_procedure_name
 from clinosim.locale.i18n import t
-from clinosim.locale.loader import map_diagnosis_code
+from clinosim.locale.loader import map_diagnosis_code, narrative_label
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, system_coding
@@ -341,6 +341,22 @@ def _build_procedure(
     # doesn't carry a SNOMED site code (bedside procedures often don't).
     if not resource.get("bodySite"):
         resource["bodySite"] = [{"text": t("fhir_text.body_site_unspecified", lang_for(country))}]
+
+    # Issue #3549: the treated vessel and the side are further bodySite
+    # entries (the side as the SNOMED CT laterality qualifier concept), and
+    # the arterial access site, which Procedure has no element for, a note.
+    if proc.get("target_vessel"):
+        resource["bodySite"].append(dual_slot_concept("snomed-ct", str(proc["target_vessel"]), lang))
+    side_code = snomed_for("laterality", str(proc.get("laterality", "") or ""))
+    if side_code:
+        resource["bodySite"].append(dual_slot_concept("snomed-ct", side_code, lang))
+    access_code = str(proc.get("access_site", "") or "")
+    if access_code:
+        access = narrative_label(
+            "procedure_site_name", access_code, lang, fallback=registry_display("snomed-ct", access_code, lang) or ""
+        )
+        if access:
+            resource["note"] = [{"text": t("fhir_text.access_site", lang, access=access)}]
 
     # location (OR etc.)
     location_id = proc.get("location_id", "")

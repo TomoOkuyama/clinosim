@@ -176,6 +176,25 @@ def _prior_same_procedure_text(ctx: NarrativeContext, proc: Any, lang: str) -> s
     return t("op_note.findings_prior_procedure", lang, name=resolve_procedure_display(cand, lang), date=date)
 
 
+def _site_label(code: str, lang: str) -> str:
+    """Name of a recorded site (SNOMED CT code) in ``lang``: the clinician
+    wording of ``procedure_site_name``, else the registry display; "" when
+    neither resolves (never the raw code; Issue #3549)."""
+    if not code:
+        return ""
+    named = _label("procedure_site_name", code, lang, fallback="")
+    if named:
+        return str(named)
+    shown = code_lookup("snomed-ct", code, lang)
+    return shown if shown and shown != code else ""
+
+
+def _side_label(proc: Any, lang: str) -> str:
+    """The recorded side of a paired-site procedure in ``lang``, "" when none."""
+    side = str(_o(proc, "laterality", "") or "")
+    return str(_label("procedure_side", side, lang, fallback="")) if side else ""
+
+
 def _urgency_key(ctx: NarrativeContext) -> str:
     """``emergency`` / ``urgent`` / ``elective`` from the encounter's priority
     (Issue #3549), "" when it records none (routine or unset)."""
@@ -221,6 +240,20 @@ def build_op_findings(generator: TemplateNarrativeGenerator, ctx: NarrativeConte
     parts = []
     if body_site:
         parts.append(t("op_note.findings_line", lang, body_site=body_site))
+    # Issue #3549: the side, and for a PCI the treated vessel and access site,
+    # are stated only when the record has them.
+    side = _side_label(proc, lang)
+    if side:
+        parts.append(t("op_note.findings_laterality", lang, side=side))
+        facts.append("ctx.procedures.laterality")
+    vessel = _site_label(str(_o(proc, "target_vessel", "") or ""), lang)
+    if vessel:
+        parts.append(t("op_note.findings_target_vessel", lang, vessel=vessel))
+        facts.append("ctx.procedures.target_vessel")
+    access = _site_label(str(_o(proc, "access_site", "") or ""), lang)
+    if access:
+        parts.append(t("op_note.findings_access_site", lang, access=access))
+        facts.append("ctx.procedures.access_site")
     prior = _prior_same_procedure_text(ctx, proc, lang)
     if prior:
         parts.append(prior)
@@ -479,8 +512,12 @@ def build_pn_procedure_name(generator: TemplateNarrativeGenerator, ctx: Narrativ
     # insertion site, so a central line without a recorded vein names none.
     site_code = str(_o(proc, "body_site_code", "") or "")
     if site_code and site_code != procedure_default_body_site(proc_type):
-        site = code_lookup("snomed-ct", site_code, lang)
-        if site and site != site_code:
+        site = _site_label(site_code, lang)
+        if site:
+            side = _side_label(proc, lang)
+            if side:
+                site = t("proc_note.site_with_side", lang, site=site, side=side)
+                facts.append("ctx.procedures.laterality")
             core += t("proc_note.site_suffix", lang, site=site)
             facts.append("ctx.procedures.body_site_code")
     return core + t("list_sep.period", lang), facts

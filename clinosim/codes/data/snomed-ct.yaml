@@ -798,6 +798,32 @@ codes:
   '818982008':
     en: Abdominopelvic cross-sectional segment
     ja: 腹部・骨盤
+  # Issue #3549: target vessel / access site of a PCI and insertion vein of a
+  # central line (tx.fhir.org $lookup 2026-11-22).
+  '59438005':
+    en: Structure of left anterior descending artery
+    ja: 左前下行枝
+  '13647002':
+    en: Right coronary artery structure
+    ja: 右冠動脈
+  '57396003':
+    en: Structure of circumflex coronary artery
+    ja: 左回旋枝
+  '3227004':
+    en: Structure of left main coronary artery
+    ja: 左主幹部
+  '7657000':
+    en: Structure of femoral artery
+    ja: 大腿動脈
+  '12123001':
+    en: Internal jugular vein structure
+    ja: 内頸静脈
+  '9454009':
+    en: Structure of subclavian vein
+    ja: 鎖骨下静脈
+  '83419000':
+    en: Femoral vein structure
+    ja: 大腿静脈
   # Issue #2657: spine regions and laterality (tx.fhir.org 2026-11-06).
   '122494005':
     en: Structure of cervical vertebral column

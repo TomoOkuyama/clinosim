@@ -19,6 +19,17 @@
 # consent as emergency / implied consent. Read through
 # clinosim.codes.procedures.procedure_is_emergent.
 #
+# `duration_minutes: {mean, sd, min, max}` (Issue #3550) is the duration
+# distribution of a procedure type: one normal draw (mean, sd) clipped to
+# [min, max] minutes, read through clinosim.codes.procedures.procedure_duration.
+# A type without it keeps the engine's default (30 +/- 10 min, floor 10).
+# SOURCES: none of the values is taken from a published series; they are
+# clinosim modelling choices (a few minutes for a urinary catheter, nasogastric
+# tube, intravenous line or intubation; tens of minutes for a central line,
+# puncture or tube; hours for a transfusion, dialysis or operation) so that a
+# note does not give every procedure the same half hour. Replace a value only
+# with a figure read from its source and cite it here.
+#
 # `aftercare` (Issue #3257) is the category of care after the procedure; it
 # selects the post-procedure plan the operative / procedure note writes (text
 # per category: `procedure_aftercare.<category>` in
@@ -59,32 +70,32 @@ implants:
   ORIF with volar locking plate: [volar locking plate]
 
 bedside:
-  - {type: urinary_catheter, cpt: "51702", k_code: "J063", name: {en: "Urinary catheter insertion", ja: "尿道カテーテル挿入"}, anesthesia: none, aftercare: urinary_catheter}
-  - {type: central_line, cpt: "36556", k_code: "G005-2", name: {en: "Central venous catheter insertion", ja: "中心静脈カテーテル挿入"}, anesthesia: local, aftercare: central_line}
-  - {type: arterial_line, cpt: "36620", k_code: "D225", name: {en: "Arterial line insertion", ja: "動脈ライン挿入"}, anesthesia: local, aftercare: arterial_line}
-  - {type: lumbar_puncture, cpt: "62270", k_code: "D403", name: {en: "Lumbar puncture", ja: "腰椎穿刺"}, anesthesia: local, aftercare: lumbar_puncture}
-  - {type: thoracentesis, cpt: "32555", k_code: "J008", name: {en: "Thoracentesis", ja: "胸腔穿刺"}, anesthesia: local, aftercare: thoracentesis}
-  - {type: paracentesis, cpt: "49083", k_code: "J010", name: {en: "Paracentesis", ja: "腹腔穿刺"}, anesthesia: local, aftercare: paracentesis}
-  - {type: intubation, cpt: "31500", k_code: "J044", name: {en: "Endotracheal intubation", ja: "気管挿管"}, anesthesia: sedation, aftercare: intubation, emergent: true}
-  - {type: nasogastric_tube, cpt: "43752", k_code: "J034-2", name: {en: "Nasogastric tube insertion", ja: "経鼻胃管挿入"}, anesthesia: none, aftercare: gastric_tube}
-  - {type: chest_tube, cpt: "32551", k_code: "J019", name: {en: "Chest tube insertion", ja: "胸腔ドレーン挿入"}, anesthesia: local, aftercare: chest_tube}
+  - {type: urinary_catheter, cpt: "51702", k_code: "J063", name: {en: "Urinary catheter insertion", ja: "尿道カテーテル挿入"}, anesthesia: none, aftercare: urinary_catheter, duration_minutes: {mean: 7, sd: 2.5, min: 3, max: 14}}
+  - {type: central_line, cpt: "36556", k_code: "G005-2", name: {en: "Central venous catheter insertion", ja: "中心静脈カテーテル挿入"}, anesthesia: local, aftercare: central_line, duration_minutes: {mean: 25, sd: 8, min: 10, max: 50}}
+  - {type: arterial_line, cpt: "36620", k_code: "D225", name: {en: "Arterial line insertion", ja: "動脈ライン挿入"}, anesthesia: local, aftercare: arterial_line, duration_minutes: {mean: 15, sd: 5, min: 5, max: 30}}
+  - {type: lumbar_puncture, cpt: "62270", k_code: "D403", name: {en: "Lumbar puncture", ja: "腰椎穿刺"}, anesthesia: local, aftercare: lumbar_puncture, duration_minutes: {mean: 25, sd: 8, min: 10, max: 50}}
+  - {type: thoracentesis, cpt: "32555", k_code: "J008", name: {en: "Thoracentesis", ja: "胸腔穿刺"}, anesthesia: local, aftercare: thoracentesis, duration_minutes: {mean: 25, sd: 8, min: 10, max: 50}}
+  - {type: paracentesis, cpt: "49083", k_code: "J010", name: {en: "Paracentesis", ja: "腹腔穿刺"}, anesthesia: local, aftercare: paracentesis, duration_minutes: {mean: 25, sd: 8, min: 10, max: 50}}
+  - {type: intubation, cpt: "31500", k_code: "J044", name: {en: "Endotracheal intubation", ja: "気管挿管"}, anesthesia: sedation, aftercare: intubation, emergent: true, duration_minutes: {mean: 5, sd: 2, min: 2, max: 12}}
+  - {type: nasogastric_tube, cpt: "43752", k_code: "J034-2", name: {en: "Nasogastric tube insertion", ja: "経鼻胃管挿入"}, anesthesia: none, aftercare: gastric_tube, duration_minutes: {mean: 8, sd: 3, min: 3, max: 14}}
+  - {type: chest_tube, cpt: "32551", k_code: "J019", name: {en: "Chest tube insertion", ja: "胸腔ドレーン挿入"}, anesthesia: local, aftercare: chest_tube, duration_minutes: {mean: 25, sd: 8, min: 10, max: 50}}
   - {type: wound_debridement, cpt: "97597", k_code: "K002", name: {en: "Wound debridement", ja: "創傷デブリードマン"}, anesthesia: local}
-  - {type: cardioversion, cpt: "92960", k_code: "J047", name: {en: "Electrical cardioversion", ja: "電気的カルジオバージョン"}, anesthesia: sedation, aftercare: cardioversion}
-  - {type: blood_transfusion, cpt: "36430", k_code: "K920", name: {en: "Blood transfusion", ja: "輸血"}, anesthesia: none, aftercare: blood_transfusion}
-  - {type: dialysis_acute, cpt: "90935", k_code: "J038", name: {en: "Acute hemodialysis", ja: "急性血液透析"}, anesthesia: none, aftercare: dialysis}
-  - {type: bronchoscopy, cpt: "31622", k_code: "D302", name: {en: "Bronchoscopy", ja: "気管支鏡検査"}, anesthesia: sedation, aftercare: bronchoscopy}
-  - {type: echocardiography, cpt: "93306", k_code: "D215", name: {en: "Transthoracic echocardiography", ja: "経胸壁心エコー"}, anesthesia: none}
-  - {type: ecg_12lead, cpt: "93000", k_code: "D208", name: {en: "12-lead ECG", ja: "12誘導心電図"}, anesthesia: none}
-  - {type: iv_line, cpt: "36000", k_code: "", name: {en: "IV line placement", ja: "末梢静脈路確保"}, anesthesia: local}
-  - {type: wound_care, cpt: "12001", k_code: "K0004", name: {en: "Simple wound repair", ja: "創傷処理"}, anesthesia: local}
-  - {type: short_arm_splint, cpt: "29125", k_code: "J122", name: {en: "Short arm splint", ja: "短腕シーネ固定"}, anesthesia: none}
-  - {type: reduction_closed, cpt: "25605", k_code: "K0444", name: {en: "Closed reduction of wrist fracture", ja: "手関節骨折徒手整復"}, anesthesia: local}
+  - {type: cardioversion, cpt: "92960", k_code: "J047", name: {en: "Electrical cardioversion", ja: "電気的カルジオバージョン"}, anesthesia: sedation, aftercare: cardioversion, duration_minutes: {mean: 10, sd: 3, min: 5, max: 20}}
+  - {type: blood_transfusion, cpt: "36430", k_code: "K920", name: {en: "Blood transfusion", ja: "輸血"}, anesthesia: none, aftercare: blood_transfusion, duration_minutes: {mean: 120, sd: 30, min: 60, max: 240}}
+  - {type: dialysis_acute, cpt: "90935", k_code: "J038", name: {en: "Acute hemodialysis", ja: "急性血液透析"}, anesthesia: none, aftercare: dialysis, duration_minutes: {mean: 210, sd: 30, min: 120, max: 300}}
+  - {type: bronchoscopy, cpt: "31622", k_code: "D302", name: {en: "Bronchoscopy", ja: "気管支鏡検査"}, anesthesia: sedation, aftercare: bronchoscopy, duration_minutes: {mean: 25, sd: 8, min: 10, max: 45}}
+  - {type: echocardiography, cpt: "93306", k_code: "D215", name: {en: "Transthoracic echocardiography", ja: "経胸壁心エコー"}, anesthesia: none, duration_minutes: {mean: 30, sd: 8, min: 15, max: 60}}
+  - {type: ecg_12lead, cpt: "93000", k_code: "D208", name: {en: "12-lead ECG", ja: "12誘導心電図"}, anesthesia: none, duration_minutes: {mean: 10, sd: 3, min: 5, max: 20}}
+  - {type: iv_line, cpt: "36000", k_code: "", name: {en: "IV line placement", ja: "末梢静脈路確保"}, anesthesia: local, duration_minutes: {mean: 5, sd: 2, min: 2, max: 12}}
+  - {type: wound_care, cpt: "12001", k_code: "K0004", name: {en: "Simple wound repair", ja: "創傷処理"}, anesthesia: local, duration_minutes: {mean: 15, sd: 5, min: 5, max: 30}}
+  - {type: short_arm_splint, cpt: "29125", k_code: "J122", name: {en: "Short arm splint", ja: "短腕シーネ固定"}, anesthesia: none, duration_minutes: {mean: 15, sd: 5, min: 5, max: 30}}
+  - {type: reduction_closed, cpt: "25605", k_code: "K0444", name: {en: "Closed reduction of wrist fracture", ja: "手関節骨折徒手整復"}, anesthesia: local, duration_minutes: {mean: 20, sd: 6, min: 10, max: 40}}
   - {type: oxygen_therapy, cpt: "", k_code: "J024", name: {en: "Oxygen therapy", ja: "酸素療法"}, anesthesia: none}
-  - {type: coronary_pci, cpt: "92920", k_code: "K546", name: {en: "Percutaneous coronary intervention (PCI)", ja: "経皮的冠動脈形成術"}, anesthesia: local, aftercare: vascular_access}
-  - {type: pacemaker_implant, cpt: "33208", k_code: "K597", name: {en: "Permanent pacemaker implantation", ja: "ペースメーカー移植術"}, anesthesia: local, aftercare: device_pocket}
-  - {type: craniotomy_hematoma_evacuation, cpt: "61313", k_code: "K1643", name: {en: "Craniotomy for intracranial hematoma evacuation", ja: "頭蓋内血腫除去術（開頭）"}, anesthesia: general, aftercare: neurosurgical}
-  - {type: ileus_tube_placement, cpt: "44500", k_code: "J034", name: {en: "Long tube (ileus tube) placement for bowel obstruction", ja: "イレウス用ロングチューブ挿入法"}, anesthesia: none, aftercare: ileus_tube}
-  - {type: bowel_resection, cpt: "44140", k_code: "K719", name: {en: "Colectomy (bowel resection)", ja: "結腸切除術"}, anesthesia: general, aftercare: surgical_wound}
+  - {type: coronary_pci, cpt: "92920", k_code: "K546", name: {en: "Percutaneous coronary intervention (PCI)", ja: "経皮的冠動脈形成術"}, anesthesia: local, aftercare: vascular_access, duration_minutes: {mean: 60, sd: 20, min: 25, max: 120}}
+  - {type: pacemaker_implant, cpt: "33208", k_code: "K597", name: {en: "Permanent pacemaker implantation", ja: "ペースメーカー移植術"}, anesthesia: local, aftercare: device_pocket, duration_minutes: {mean: 75, sd: 20, min: 40, max: 150}}
+  - {type: craniotomy_hematoma_evacuation, cpt: "61313", k_code: "K1643", name: {en: "Craniotomy for intracranial hematoma evacuation", ja: "頭蓋内血腫除去術（開頭）"}, anesthesia: general, aftercare: neurosurgical, duration_minutes: {mean: 150, sd: 40, min: 60, max: 300}}
+  - {type: ileus_tube_placement, cpt: "44500", k_code: "J034", name: {en: "Long tube (ileus tube) placement for bowel obstruction", ja: "イレウス用ロングチューブ挿入法"}, anesthesia: none, aftercare: ileus_tube, duration_minutes: {mean: 30, sd: 10, min: 10, max: 60}}
+  - {type: bowel_resection, cpt: "44140", k_code: "K719", name: {en: "Colectomy (bowel resection)", ja: "結腸切除術"}, anesthesia: general, aftercare: surgical_wound, duration_minutes: {mean: 120, sd: 40, min: 60, max: 240}}
 
 # Procedure types the generator records outside the bedside dispatch, named
 # here so Procedure.code.text reads in the output language instead of the

@@ -2047,6 +2047,8 @@
         "ctx.procedures",
         "ctx.procedures",
         "ctx.diagnoses",
+        "ctx.procedures.target_vessel",
+        "ctx.procedures.access_site",
         "ctx.procedures",
         "ctx.procedures",
         "ctx.procedures",
@@ -2054,7 +2056,7 @@
         "ctx.procedures",
         "ctx.icu_transferred_day"
       ],
-      "generated_at": "2024-06-15T14:57:32.188248Z",
+      "generated_at": "2024-06-15T15:21:32.188248Z",
       "generator": "llm-mock",
       "generator_metadata": {
         "generator": "llm",
@@ -2067,7 +2069,7 @@
         "op_equipment": "Implants / devices used: Drug-eluting stent",
         "op_findings": "[Mock LLM response #18 — op_findings]",
         "op_postop_plan": "[Mock LLM response #18 — op_postop_plan]",
-        "op_procedure_name": "Procedure: Percutaneous transluminal coronary angioplasty (PCI); single major coronary artery (code 92920); operative time 24 min",
+        "op_procedure_name": "Procedure: Percutaneous transluminal coronary angioplasty (PCI); single major coronary artery (code 92920); operative time 48 min",
         "op_specimens": "Specimens sent to pathology: none",
         "op_surgeon": "Primary surgeon: Clara Pittman"
       },

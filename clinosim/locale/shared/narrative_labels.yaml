@@ -155,6 +155,25 @@ sex_label:
   m: {en: male, ja: 男性}
   f: {en: female, ja: 女性}
 
+# Side of a paired-site procedure (Issue #3549), ProcedureRecord.laterality.
+procedure_side:
+  left: {en: left, ja: 左}
+  right: {en: right, ja: 右}
+
+# Site a procedure note names (Issue #3549), keyed by SNOMED CT code: the
+# target vessel and access site of a PCI and the insertion vein of a central
+# line, in the wording a clinician writes (the registry display is the fallback).
+procedure_site_name:
+  '59438005': {en: left anterior descending artery (LAD), ja: 左前下行枝（LAD）}
+  '13647002': {en: right coronary artery (RCA), ja: 右冠動脈（RCA）}
+  '57396003': {en: left circumflex artery (LCx), ja: 左回旋枝（LCx）}
+  '3227004': {en: left main coronary artery, ja: 左主幹部}
+  '45631007': {en: radial artery, ja: 橈骨動脈}
+  '7657000': {en: femoral artery, ja: 大腿動脈}
+  '12123001': {en: internal jugular vein, ja: 内頸静脈}
+  '9454009': {en: subclavian vein, ja: 鎖骨下静脈}
+  '83419000': {en: femoral vein, ja: 大腿静脈}
+
 # Op-note anesthesia_type dictionary (Phase 1d-24). Was module-level
 # ``_OP_ANESTHESIA_JA`` / ``_OP_ANESTHESIA_EN`` in template_generator.py.
 op_anesthesia_type:

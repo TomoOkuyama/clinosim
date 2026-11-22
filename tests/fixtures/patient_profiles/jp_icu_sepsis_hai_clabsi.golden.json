@@ -2203,7 +2203,7 @@
         "ctx.procedures.outcome_code",
         "ctx.procedures.procedure_type"
       ],
-      "generated_at": "2024-06-15T04:42:31.801622+09:00",
+      "generated_at": "2024-06-15T04:19:31.801622+09:00",
       "generator": "template",
       "generator_metadata": {
         "generator": "template",
@@ -2213,7 +2213,7 @@
         "pn_analgesia": "麻酔・鎮静: なし（麻酔なしで施行）。",
         "pn_complications": "合併症の有無: 特記すべき手技合併症なし。",
         "pn_consent": "インフォームド・コンセント: 緊急処置のため、同意書の取得に先立ち推定同意（緊急避難）のもとに施行した。",
-        "pn_course": "処置経過: 所要時間29分にて実施。手技は完遂した。",
+        "pn_course": "処置経過: 所要時間6分にて実施。手技は完遂した。",
         "pn_performer": "実施者: 石山 ミツ医師。",
         "pn_postop_plan": "術後方針: 尿量・尿の性状を観察し、カテーテルの屈曲・閉塞や尿路感染徴候に注意する。不要となれば速やかに抜去する。",
         "pn_procedure_name": "処置名: 留置カテーテル設置（J063）／術式区分: 尿道カテーテル挿入。",
@@ -2229,6 +2229,8 @@
       "facts_used": [
         "ctx.procedures[PROC-FORCED-0001-003]",
         "ctx.procedures.procedure_code",
+        "ctx.procedures.laterality",
+        "ctx.procedures.body_site_code",
         "ctx.procedures[PROC-FORCED-0001-003]",
         "ctx.vitals.consciousness_level",
         "ctx.procedures[PROC-FORCED-0001-003]",
@@ -2259,7 +2261,7 @@
         "pn_course": "処置経過: 所要時間10分にて実施。手技は完遂した。",
         "pn_performer": "実施者: 石山 ミツ医師。",
         "pn_postop_plan": "術後方針: 胸部X線でカテーテル先端位置と気胸の有無を確認し、刺入部の出血・感染徴候を観察する。",
-        "pn_procedure_name": "処置名: 中心静脈注射用カテーテル挿入（G005-2）／術式区分: 中心静脈カテーテル挿入。",
+        "pn_procedure_name": "処置名: 中心静脈注射用カテーテル挿入（G005-2）／術式区分: 中心静脈カテーテル挿入／穿刺部位: 内頸静脈（右）。",
         "pn_specimens": "検体の有無: 検体採取なし。"
       },
       "text": ""
@@ -2289,7 +2291,7 @@
         "ctx.procedures.outcome_code",
         "ctx.procedures.procedure_type"
       ],
-      "generated_at": "2024-06-15T13:36:46.728214+09:00",
+      "generated_at": "2024-06-15T13:16:46.728214+09:00",
       "generator": "template",
       "generator_metadata": {
         "generator": "template",
@@ -2299,7 +2301,7 @@
         "pn_analgesia": "麻酔・鎮静: 局所麻酔下に施行。",
         "pn_complications": "合併症の有無: 特記すべき手技合併症なし。",
         "pn_consent": "インフォームド・コンセント: 緊急処置のため、同意書の取得に先立ち推定同意（緊急避難）のもとに施行した。",
-        "pn_course": "処置経過: 所要時間39分にて実施。手技は完遂した。",
+        "pn_course": "処置経過: 所要時間19分にて実施。手技は完遂した。",
         "pn_performer": "実施者: 石山 ミツ医師。",
         "pn_postop_plan": "術後方針: 動脈圧波形を確認し、刺入部の出血・血腫と末梢循環を観察する。",
         "pn_procedure_name": "処置名: 観血的動脈圧測定（D225）／術式区分: 動脈ライン挿入。",
