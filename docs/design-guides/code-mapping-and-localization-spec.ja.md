@@ -271,7 +271,7 @@ lab リストの各要素 (`labs`、`add_labs`、`additional_labs`、薬剤モ�
 |---|---|---|
 | `localize_drug_name(name, lang)` | 薬カタログの名前と別名、剤形の変種 (`load_drug_display_dict`) | `lang` の名称。`lang` のエントリが無ければ入力のまま。訳語が既に文字列中にある名前はそのまま残す (一般名を併記した商品名) |
 | `localize_procedure_name(name, lang)` | 処置の語句と画像検査 (`load_procedure_display_dict`)。オーダ文字列全体を先に試し (支持療法オーダの `type: detail` キー。語句が種別の名称と詳細のパラメータを持つ。Issue #3398)、次にコロン以降の詳細、種別が名称を持つオーダ分類の複合文字列では分類名のみ、それ以外は自由文字列の翻訳を使う。疾患プロトコルの `admission_orders.supportive` は全項目に `clinosim-procedure-phrase.yaml` の語句が必要 (ガード `tests/unit/locale/test_supportive_order_phrases_3398.py`) | 同上 |
-| `localize_dose_text(text, lang)` | `clinosim-procedure-phrase.yaml` の `dose_phrases` (`load_dose_phrase_dict`)。用量文字列全体を先に試し (`localize_drug_name` では「薬剤 用量」オーダ文字列の末尾でも)、速度変更のスラッグ (`increase_rate_by_20%`) は指示文として、それ以外は用量・経路・頻度の用語 (`med_terms.yaml`)。疾患プロトコルの `dose` 文字列は英単語なしで描画されること (ガード `tests/unit/locale/test_dose_phrases_3428.py`、Issue #3428) | `lang` の用量文。英語は入力のまま |
+| `localize_dose_text(text, lang)` | `clinosim-procedure-phrase.yaml` の `dose_phrases` (`load_dose_phrase_dict`)。用量文字列全体を先に試し (`localize_drug_name` では「薬剤 用量」オーダ文字列の末尾でも)、速度変更のスラッグ (`increase_rate_by_20%`) は指示文として、それ以外は用量・経路・頻度の用語 (`med_terms.yaml`)。疾患プロトコルの `dose` 文字列は英単語なしで描画されること (ガード `tests/unit/locale/test_dose_phrases_3428.py`、Issue #3428)。外来・救急プロトコルの用量・頻度文字列も同様 (ガード `tests/unit/locale/test_jp_sig_terms_3562.py`、Issue #3562)。用語キーは大文字小文字を区別せず照合する (3 文字以下の全大文字キー `PRN` `PO` `IV` を除く。保存値 `weekly` が `WEEKLY` に一致する) | `lang` の用量文。英語は入力のまま |
 | `localize_allergen_name(name, lang)` | アレルゲン・物質名 (`load_allergen_display_dict`) | 同上 |
 | `localize_free_text(text, lang)` | すべての表 (`load_narrative_display_dict`) と用量・経路・頻度の用語 (`med_terms.yaml`) | 同上 |
 

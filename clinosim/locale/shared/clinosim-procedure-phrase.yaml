@@ -240,6 +240,20 @@ medication_orders:
 # substitution, so a Japanese record reads as a prescription, not as a mixture.
 # Keyed as the CIF carries the string; matching is case-insensitive.
 dose_phrases:
+  # Issue #3562: schedules of take-home prescriptions with an as-needed condition or a
+  # daily maximum, and infusion steps through a central line.
+  "TID PRN": {ja: "頓用（1日3回まで）"}
+  "BID PRN": {ja: "頓用（1日2回まで）"}
+  "QID PRN": {ja: "頓用（1日4回まで）"}
+  "prn": {ja: "頓用"}
+  "TID with meals": {ja: "1日3回 食事時"}
+  "once PRN overdose (may repeat)": {ja: "過量時に1回頓用（反復可）"}
+  "PRN (max 2/day)": {ja: "頓用（1日最大2回）"}
+  "PRN after each loose stool (max 4/day)": {ja: "下痢のたびに頓用（1日最大4回）"}
+  "PRN emergency (max 2/day)": {ja: "アナフィラキシー時 頓用（1日最大2回）"}
+  "30mL IV over 15min via central line": {ja: "30mL 中心静脈ラインから15分かけて静注"}
+  "23.4% 30mL IV over 15min via central line": {ja: "30mL 中心静脈ラインから15分かけて静注"}
+  "1 vial (81mg TICE / 27mg Connaught)": {ja: "1バイアル（TICE株 81mg または Connaught株 27mg）"}
   "2g IV (single preoperative dose)": {ja: "2g 静注 (術前単回投与)"}
   "50mg suppository PRN": {ja: "50mg 坐剤 頓用"}
   "200-500 mL/h IV (if prerenal, fluid-responsive)": {ja: "200-500 mL/h 静注 (腎前性で輸液反応性がある場合)"}

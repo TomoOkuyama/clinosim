@@ -7,8 +7,10 @@
 #
 # Consumers: ``clinosim.locale.free_text._localize_dosage_terms(text, lang)`` applies these as
 # case-insensitive word-boundary substitutions (categories first,
-# longest-key-first per section, all-uppercase keys stay case-sensitive
-# to avoid tail-of-word collisions like ``po`` inside ``clopidogrel``).
+# longest-key-first per section, all-uppercase keys of at most 3
+# letters (PRN, PO, IV, ...) stay case-sensitive to avoid tail-of-word collisions
+# like ``po`` inside ``clopidogrel``; a longer upper-case key such as ``WEEKLY`` is
+# a word and also matches ``weekly``, Issue #3562).
 #
 # EN slots are omitted for ordinary English terms: the source language for
 # dosage / route / category text is English, so ``lang=en`` output is a
@@ -161,6 +163,7 @@ terms:
   MONTHLY: {ja: 4週毎}
   NIGHTLY: {ja: 就寝前}
   topical: {ja: 外用}
+  intravesical: {ja: 膀胱内注入}  # Issue #3562: BCG instillation route
   Q6H_PRN: {en: Q6H PRN, ja: 6時間毎 頓用}  # Issue #3025
   PRN: {ja: 頓用}
   PO: {ja: 経口}
@@ -252,6 +255,8 @@ terms:
   contralateral: {ja: 反対側}
   limb: {ja: 肢}
   NPO: {ja: 絶食}
+  ODT: {ja: 口腔内崩壊錠}  # Issue #3562
+  auto-injector: {ja: 自己注射薬}
   local: {ja: 局所}
   q3h: {ja: 3時間毎}
   q2h: {ja: 2時間毎}
