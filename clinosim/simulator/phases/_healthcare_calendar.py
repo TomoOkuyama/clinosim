@@ -245,7 +245,9 @@ def dispatch_calendar_event(event: LifeEvent, ctx: ForwardContext, visit_day: da
             chronic_code=event.disease_id or "pediatric_visit",
             followup_spec={
                 "labs": [],
-                "visit_reason": _pediatric_visit_reason(event.disease_id),
+                "visit_reason": _pediatric_visit_reason(
+                    event.disease_id, str(event.protocol_source or "").removeprefix("pediatric:")
+                ),
             },
             country=ctx.config.country,
             config=ctx.config,
