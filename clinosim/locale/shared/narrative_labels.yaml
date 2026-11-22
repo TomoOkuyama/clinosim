@@ -184,10 +184,10 @@ pn_analgesia_type:
 
 # Procedure-note SNOMED outcome-code narrative phrases (Phase 1d-25).
 # Different wording than op_outcome_code — this is the "手技は…した"
-# sentence-style narrative used inside build_pn_course. Fallback
-# is 手技は概ね予定通りに完遂した / The procedure was completed as planned.
+# sentence-style narrative used inside build_pn_course. With no outcome code
+# recorded the course states no outcome (Issue #3550).
 pn_outcome_code:
-  '385669000': {en: The procedure was completed without issue, ja: 手技は問題なく完遂した}
+  '385669000': {en: The procedure was completed, ja: 手技は完遂した}
   '385670004': {en: The procedure was partially completed, ja: 手技は部分的に完遂した}
   '385671000': {en: The procedure could not be completed, ja: 手技は完遂できなかった}
 

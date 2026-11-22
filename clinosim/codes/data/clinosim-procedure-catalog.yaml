@@ -14,6 +14,11 @@
 # `named` (end of file) names further procedure types that are not bedside
 # procedures. Read through clinosim.codes.procedures.
 #
+# `emergent: true` (Issue #3550) marks a procedure that is a life-saving
+# emergency by nature (an endotracheal intubation); its procedure note words the
+# consent as emergency / implied consent. Read through
+# clinosim.codes.procedures.procedure_is_emergent.
+#
 # `aftercare` (Issue #3257) is the category of care after the procedure; it
 # selects the post-procedure plan the operative / procedure note writes (text
 # per category: `procedure_aftercare.<category>` in
@@ -60,7 +65,7 @@ bedside:
   - {type: lumbar_puncture, cpt: "62270", k_code: "D403", name: {en: "Lumbar puncture", ja: "腰椎穿刺"}, anesthesia: local, aftercare: lumbar_puncture}
   - {type: thoracentesis, cpt: "32555", k_code: "J008", name: {en: "Thoracentesis", ja: "胸腔穿刺"}, anesthesia: local, aftercare: thoracentesis}
   - {type: paracentesis, cpt: "49083", k_code: "J010", name: {en: "Paracentesis", ja: "腹腔穿刺"}, anesthesia: local, aftercare: paracentesis}
-  - {type: intubation, cpt: "31500", k_code: "J044", name: {en: "Endotracheal intubation", ja: "気管挿管"}, anesthesia: sedation, aftercare: intubation}
+  - {type: intubation, cpt: "31500", k_code: "J044", name: {en: "Endotracheal intubation", ja: "気管挿管"}, anesthesia: sedation, aftercare: intubation, emergent: true}
   - {type: nasogastric_tube, cpt: "43752", k_code: "J034-2", name: {en: "Nasogastric tube insertion", ja: "経鼻胃管挿入"}, anesthesia: none, aftercare: gastric_tube}
   - {type: chest_tube, cpt: "32551", k_code: "J019", name: {en: "Chest tube insertion", ja: "胸腔ドレーン挿入"}, anesthesia: local, aftercare: chest_tube}
   - {type: wound_debridement, cpt: "97597", k_code: "K002", name: {en: "Wound debridement", ja: "創傷デブリードマン"}, anesthesia: local}

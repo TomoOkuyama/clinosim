@@ -23,7 +23,12 @@ from typing import TYPE_CHECKING, Any
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
-from clinosim.codes.procedures import procedure_aftercare, specimen_label
+from clinosim.codes.procedures import (
+    procedure_aftercare,
+    procedure_default_body_site,
+    procedure_is_emergent,
+    specimen_label,
+)
 from clinosim.codes.snomed_concepts import PROCEDURE_UNSUCCESSFUL
 from clinosim.countries import country_code
 from clinosim.locale.i18n import t
@@ -469,22 +474,64 @@ def build_pn_procedure_name(generator: TemplateNarrativeGenerator, ctx: Narrativ
         core += t("proc_note.procedure_code_paren", lang, code=primary_code)
     if proc_type_display:
         core += t("proc_note.procedure_type_suffix", lang, ptype=proc_type_display)
+    # The site is named only when the record holds one: the type-level body
+    # site (an organ system such as the cardiovascular system) is not an
+    # insertion site, so a central line without a recorded vein names none.
+    site_code = str(_o(proc, "body_site_code", "") or "")
+    if site_code and site_code != procedure_default_body_site(proc_type):
+        site = code_lookup("snomed-ct", site_code, lang)
+        if site and site != site_code:
+            core += t("proc_note.site_suffix", lang, site=site)
+            facts.append("ctx.procedures.body_site_code")
     return core + t("list_sep.period", lang), facts
+
+
+def _consciousness_at(ctx: NarrativeContext, when: Any) -> str:
+    """AVPU level of the last vital reading at or before ``when`` ("" when the
+    record has none, or no start time)."""
+    start = parse_iso_datetime(when) if when else None
+    if start is None:
+        return ""
+    best: tuple[datetime, str] | None = None
+    for v in ctx.vitals or []:
+        ts = parse_iso_datetime(_o(v, "timestamp", None))
+        level = str(_o(v, "consciousness_level", "") or "")
+        if ts is None or ts > start or not level:
+            continue
+        if best is None or ts >= best[0]:
+            best = (ts, level)
+    return best[1] if best else ""
 
 
 @section("pn_consent")
 def build_pn_consent(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
-    """インフォームド・コンセント / Consent — boilerplate.
+    """インフォームド・コンセント / Consent, worded from the record (Issue #3550).
 
-    clinosim does not model per-Procedure consent artefacts. The
-    template emits the standard "consent obtained" phrase every real
-    JP electronic-chart procedure note carries; sites that need a
-    richer consent trail should record it upstream (Order /
-    Procedure.note) and extend this builder.
+    clinosim does not model per-Procedure consent artefacts, so the standard
+    written-consent line is kept only for an alert patient in a non-emergency
+    procedure. An emergency (the encounter priority, or a procedure the catalog
+    marks emergent such as intubation) is stated as implied consent, and a
+    patient whose last charted consciousness before the procedure was reduced
+    (V / P / U) is stated as unable to consent.
     """
-    _proc, facts = _pn_resolve_procedure(ctx)
+    proc, facts = _pn_resolve_procedure(ctx)
     lang = ctx.target_lang
-    return t("proc_note.consent_line", lang), facts
+    emergent = _urgency_key(ctx) == "emergency" or (
+        proc is not None and procedure_is_emergent(str(_o(proc, "procedure_type", "") or ""))
+    )
+    level = _consciousness_at(ctx, _o(proc, "start_datetime", None)) if proc is not None else ""
+    reduced = level in ("V", "P", "U")
+    if level:
+        facts.append("ctx.vitals.consciousness_level")
+    if emergent and reduced:
+        key = "consent_emergency_reduced"
+    elif emergent:
+        key = "consent_emergency"
+    elif reduced:
+        key = "consent_reduced"
+    else:
+        key = "consent_line"
+    return t(f"proc_note.{key}", lang), facts
 
 
 @section("pn_performer")
@@ -558,15 +605,15 @@ def build_pn_course(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
     # to ``narrative_labels.yaml::pn_outcome_code`` (Phase 1d-25).
     # Missing / unknown code falls back to the "planned completion"
     # phrase (still language-agnostic via the same YAML).
-    outcome_default = t("proc_note.course_outcome_default", lang)
-    outcome = (
-        _label("pn_outcome_code", outcome_code, lang, fallback=outcome_default) if outcome_code else outcome_default
-    )
+    # No outcome recorded: state none (nothing is claimed about completion).
+    outcome = _label("pn_outcome_code", outcome_code, lang, fallback="") if outcome_code else ""
     facts.extend(["ctx.procedures.duration_minutes", "ctx.procedures.outcome_code"])
     core = t("proc_note.course_duration_head", lang, duration=duration)
     if approach:
         core += t("proc_note.course_approach_part", lang, approach=approach)
-    return core + t("proc_note.course_outcome_suffix", lang, outcome=outcome), facts
+    if outcome:
+        core += t("proc_note.course_outcome_suffix", lang, outcome=outcome)
+    return core, facts
 
 
 @section("pn_complications")

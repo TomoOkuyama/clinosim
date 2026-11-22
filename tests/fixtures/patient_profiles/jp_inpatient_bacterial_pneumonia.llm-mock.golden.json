@@ -2586,6 +2586,7 @@
         "ctx.procedures[PROC-FORCED-0001-002]",
         "ctx.procedures.procedure_code",
         "ctx.procedures[PROC-FORCED-0001-002]",
+        "ctx.vitals.consciousness_level",
         "ctx.procedures[PROC-FORCED-0001-002]",
         "ctx.procedures.primary_surgeon_id",
         "ctx.procedures[PROC-FORCED-0001-002]",
