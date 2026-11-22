@@ -2107,6 +2107,22 @@ proc_note:
   consent_line:
     ja: "インフォームド・コンセント: 患者本人（または家族）に手技の目的・方法・予想される合併症について文書で説明し、同意を得た。"
     en: "Informed consent: risks, benefits, and alternatives were explained to the patient (or surrogate) and written consent was obtained prior to the procedure."
+  # Issue #3550: consent worded from urgency and the patient's consciousness at
+  # the procedure time (the standard line above applies to an alert patient in a
+  # non-emergency procedure).
+  consent_emergency_reduced:
+    ja: "インフォームド・コンセント: 緊急処置であり、意識レベルが低下していたため本人から同意を得ることができず、推定同意（緊急避難）のもとに施行した。"
+    en: "Consent: emergency procedure; the patient's level of consciousness was reduced and consent could not be obtained from the patient, so the procedure was performed under implied consent."
+  consent_emergency:
+    ja: "インフォームド・コンセント: 緊急処置のため、同意書の取得に先立ち推定同意（緊急避難）のもとに施行した。"
+    en: "Consent: emergency procedure, performed under implied consent before written consent could be obtained."
+  consent_reduced:
+    ja: "インフォームド・コンセント: 意識レベルが低下していたため、本人から同意を得ることができなかった。"
+    en: "Consent: the patient's level of consciousness was reduced and consent could not be obtained from the patient."
+  # Insertion site, named only when the record has one (Issue #3550).
+  site_suffix:
+    ja: "／穿刺部位: {site}"
+    en: " / site: {site}"
   # Performer + assistants + anesthesiologist compound line (Phase 1d-25).
   # build_pn_performer localises staff-ids with the ", MD" / 医師 role suffix
   # inline, then joins per-role lines with "。" / ". " (locale-specific glue).
@@ -2139,9 +2155,6 @@ proc_note:
   course_outcome_suffix:
     ja: "{outcome}。"
     en: " {outcome}."
-  course_outcome_default:
-    ja: "手技は概ね予定通りに完遂した"
-    en: "The procedure was completed as planned"
 
 # Autopsy status + findings (Phase 1d-22).
 # From section_builders.mortality.build_dc_autopsy_status +

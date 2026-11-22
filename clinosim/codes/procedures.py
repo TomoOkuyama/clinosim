@@ -66,6 +66,22 @@ def procedure_anesthesia(proc_type: str) -> str:
     return str((_entries().get(proc_type) or {}).get("anesthesia") or "")
 
 
+def procedure_is_emergent(proc_type: str) -> bool:
+    """True when the catalog marks a procedure type as an emergency by nature
+    (``emergent: true``; Issue #3550), so its consent is emergency / implied."""
+    return bool((_entries().get(proc_type) or {}).get("emergent"))
+
+
+def procedure_default_body_site(proc_type: str) -> str:
+    """The SNOMED body-site code the procedure metadata gives a procedure type
+    (``procedure-snomed-metadata.yaml``): the organ or system the type works on,
+    which is not a recorded insertion site (Issue #3550); ``""`` when none."""
+    from clinosim.codes import data_table
+
+    row = (data_table("procedure-snomed-metadata").get("procedures") or {}).get(proc_type) or {}
+    return str(row.get("body_site") or "") if isinstance(row, dict) else ""
+
+
 def procedure_aftercare(proc_type: str) -> str:
     """Aftercare category of a procedure type (``urinary_catheter``,
     ``vascular_access``, ``surgical_wound`` ...), which selects the plan the
