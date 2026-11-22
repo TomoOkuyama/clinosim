@@ -1799,14 +1799,14 @@
       },
       "sections": {
         "op_anesthesia": "Anesthesia: General anesthesia",
-        "op_blood_loss": "Estimated blood loss: not recorded; no intraoperative transfusion",
-        "op_course": "Operative course: planned procedure performed, operative time 32 min. Outcome: successful",
+        "op_blood_loss": "Estimated blood loss: not recorded",
+        "op_course": "Operative course: emergency procedure performed, operative time 32 min. Outcome: successful",
         "op_equipment": "Implants / devices: none",
         "op_findings": "Body site: Brain structure / Pre-operative diagnosis / indication: Nontraumatic intracerebral hemorrhage, unspecified (I61.9) / No intraoperative complications",
         "op_postop_plan": "Postoperative plan: ward-level monitoring. Level of consciousness, pupils, limb movement, vital signs, and the wound will be checked at frequent intervals to detect rebleeding and other postoperative complications early.",
         "op_procedure_name": "Procedure: Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral (code 61313); operative time 32 min",
         "op_specimens": "Specimens sent to pathology: none",
-        "op_surgeon": "Primary surgeon: Clara Pittman / Assistants: none"
+        "op_surgeon": "Primary surgeon: Clara Pittman"
       },
       "text": ""
     }

@@ -56,6 +56,7 @@ logger = logging.getLogger(__name__)
 
 # Documents that cite the latest earlier lab of a chronic problem (Issue #3273).
 _PRIOR_LAB_DOCUMENTS = frozenset({"outpatient_soap", "admission_hp"})
+_PRIOR_PROCEDURE_DOCUMENTS = frozenset({"operative_note"})
 
 
 def _naive(value: Any) -> datetime | None:
@@ -332,6 +333,19 @@ class NarrativePass(ABC):
                     prior_labs.append(self._patient_prior_labs(structural_dir, pf))
                 return prior_labs[0]
 
+            prior_procedures: list[list[Any]] = []
+
+            def _prior_procedures() -> list[Any]:
+                # Issue #3549: the procedures of the patient's other records
+                # and of the other encounters of this one, read once per
+                # patient and only for the operative note.
+                if not prior_procedures:
+                    found = list(patient_dict.get("procedures") or [])
+                    for other in self._patient_record_files(structural_dir, pf):
+                        found.extend(other.get("procedures") or [])
+                    prior_procedures.append(found)
+                return prior_procedures[0]
+
             interval_encounters: list[list[dict[str, Any]]] = []
 
             def _interval_encounters() -> list[dict[str, Any]]:
@@ -358,6 +372,8 @@ class NarrativePass(ABC):
                         _cached = self._build_context(patient_dict, enc, _spec, _lang)
                         if _spec.type_key in _PRIOR_LAB_DOCUMENTS:
                             _cached.prior_lab_results = _prior_labs()
+                        if _spec.type_key in _PRIOR_PROCEDURE_DOCUMENTS:
+                            _cached.prior_procedures = _prior_procedures()
                         if _spec.type_key == "outpatient_soap":
                             _cached.interval_encounters = _interval_encounters()
                         ctx_cache[cache_key] = _cached

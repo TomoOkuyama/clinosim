@@ -250,6 +250,10 @@ class NarrativeContext:
     # the country's reporting unit). A note cites the latest result before it
     # (``narrative/_outpatient_results.py``) instead of a stored stage.
     prior_lab_results: list[Any] = field(default_factory=list)
+    # Issue #3549: the procedures of the patient's other encounters, from which an
+    # operative note refers to an earlier procedure of the same type (a repeat PCI
+    # names the stent placed before).
+    prior_procedures: list[Any] = field(default_factory=list)
     # Issue #3250: the drugs held for a safety reason during the patient's earlier
     # encounters (``patient.safety_skip_log`` entries of event type ``hold``
     # of other encounters), as ``{drug, drug_ja, reason, reason_ja, held_on}``.
