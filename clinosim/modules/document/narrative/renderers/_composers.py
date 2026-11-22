@@ -496,7 +496,19 @@ def compose_progress_assessment_from_state(ctx: NarrativeContext) -> str:
         ]
 
     if new_comps:
-        parts.append(t("progress.complication_new", lang, list=sep.join(with_onset(new_comps))))
+        # Issue #3542: "management started" only with an order for it.
+        from clinosim.modules.document.narrative._progress_course import complication_order_exists
+
+        onsets = {
+            str(_o(e, "name", "") or ""): parse_iso_datetime(_o(e, "onset_datetime", None), lenient=True)
+            for e in list(getattr(ctx, "complications_events", []) or [])
+        }
+        managed = [c for c in new_comps if complication_order_exists(ctx, c[1], onsets.get(c[0]), as_of)]
+        unmanaged = [c for c in new_comps if c not in managed]
+        if managed:
+            parts.append(t("progress.complication_new", lang, list=sep.join(with_onset(managed))))
+        if unmanaged:
+            parts.append(t("progress.complication_new_unmanaged", lang, list=sep.join(with_onset(unmanaged))))
     if ongoing_comps:
         parts.append(t("progress.complications_noted", lang, list=sep.join(with_onset(ongoing_comps))))
     from clinosim.modules.document.narrative._progress_exam import course_line

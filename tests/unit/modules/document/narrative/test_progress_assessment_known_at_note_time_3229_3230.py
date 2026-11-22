@@ -19,7 +19,7 @@ pytestmark = pytest.mark.unit
 ADMIT = "2026-02-24T18:00:00"
 
 
-def _ctx(lang="en", *, day=0, labs=(), events=(), authored=None, names=None):
+def _ctx(lang="en", *, day=0, labs=(), events=(), authored=None, names=None, orders=()):
     return SimpleNamespace(
         target_lang=lang,
         day_index=day,
@@ -28,6 +28,7 @@ def _ctx(lang="en", *, day=0, labs=(), events=(), authored=None, names=None):
         complications_occurred=list(names if names is not None else [e["name"] for e in events]),
         encounter={"admission_datetime": ADMIT},
         authored_datetime=authored,
+        orders=list(orders),
     )
 
 
@@ -72,7 +73,7 @@ def test_complication_after_one_note_is_new_in_the_next() -> None:
 def test_ja_complication_new_and_ongoing() -> None:
     onset = compose_progress_assessment_from_state(_ctx("ja", day=3, events=[_CEREBRAL_EDEMA]))
     later = compose_progress_assessment_from_state(_ctx("ja", day=5, events=[_CEREBRAL_EDEMA]))
-    assert "新たに 脳浮腫 (入院4日目発症) を合併" in onset
+    assert "新たに 脳浮腫 (入院4日目発症) を認める。" in onset
     assert "合併症" in later and "対応継続中" in later
 
 
@@ -198,3 +199,46 @@ def test_llm_context_uses_the_same_selection_and_cut_off() -> None:
         "creatinine 4.21 mg/dL [H] (prior 1.72; AKI by KDIGO criteria); "
         "glucose 172 mg/dL [H] (prior 171)"
     )
+
+
+# --- Issue #3542: "management started" only with an order -------------------
+
+
+def _order(kind, at):
+    return {"order_type": kind, "ordered_datetime": at, "display_name": "x"}
+
+
+def _new_comp_note(lang, orders, authored=datetime(2026, 2, 27, 20, 0)):
+    return compose_progress_assessment_from_state(
+        _ctx(lang, day=3, events=[_CEREBRAL_EDEMA], authored=authored, orders=orders)
+    )
+
+
+@pytest.mark.parametrize("lang,claim", [("en", "management started"), ("ja", "対応開始")])
+def test_new_complication_without_order_claims_no_management(lang: str, claim: str) -> None:
+    out = _new_comp_note(lang, [])
+    assert claim not in out
+    assert ("recognised" in out) if lang == "en" else ("を認める" in out)
+
+
+@pytest.mark.parametrize("lang,claim", [("en", "management started"), ("ja", "対応開始")])
+def test_new_complication_with_medication_order_says_management_started(lang: str, claim: str) -> None:
+    assert claim in _new_comp_note(lang, [_order("medication", "2026-02-27T13:00:00")])
+
+
+def test_order_before_onset_day_or_in_window_counts_by_day_start() -> None:
+    assert "management started" in _new_comp_note("en", [_order("imaging", "2026-02-27T03:00:00")])
+
+
+@pytest.mark.parametrize("kind", ["lab", "diet", "OrderType.LAB"])
+def test_lab_or_diet_order_is_not_management(kind: str) -> None:
+    assert "management started" not in _new_comp_note("en", [_order(kind, "2026-02-27T13:00:00")])
+
+
+def test_order_placed_after_the_note_is_not_seen() -> None:
+    assert "management started" not in _new_comp_note("en", [_order("medication", "2026-02-27T22:00:00")])
+
+
+def test_order_after_the_window_does_not_count() -> None:
+    late = _new_comp_note("en", [_order("medication", "2026-03-02T13:00:00")], authored=datetime(2026, 3, 3, 9, 0))
+    assert "management started" not in late
