@@ -2513,7 +2513,8 @@
         "ctx.diagnoses",
         "ctx.encounter.chief_complaint_ja",
         "chief_complaint_variants.bacterial_pneumonia[1]",
-        "disease_protocol.target_los"
+        "disease_protocol.target_los",
+        "patient.bmi"
       ],
       "generated_at": "2024-06-15T12:01:00+09:00",
       "generator": "llm-mock",
@@ -2543,9 +2544,14 @@
       "facts_used": [
         "encounter.ward_id",
         "encounter.attending_physician_id",
+        "ctx.roster_map",
         "patient.bmi",
         "patient.bmi",
+        "patient.bmi",
+        "ctx.orders.diet",
         "patient.weight_kg",
+        "ctx.orders.diet",
+        "patient.bmi",
         "ctx.orders.diet",
         "ctx.orders.diet"
       ],
@@ -2557,14 +2563,14 @@
       },
       "sections": {
         "dietary_content": "食事内容：絶食（経過をみて食上げを検討）",
-        "dietitian": "担当なし",
+        "dietitian": "担当管理栄養士：本間 マサ",
         "discharge_evaluation": "退院時及び終了時の総合的評価：退院時に評価予定",
-        "dysphagia_diet": "嚥下調整食の必要性：なし",
+        "dysphagia_diet": "嚥下調整食の必要性：未評価（絶食中）",
         "nutrition_assessment": "栄養状態評価: BMI 22.0 (普通)。",
         "nutrition_counseling": "栄養食事相談：必要に応じて実施",
-        "nutrition_goals": "栄養管理計画の目標：現在の栄養状態を維持",
+        "nutrition_goals": "栄養管理計画の目標：絶食中の栄養状態の維持と、経口摂取再開時の食上げ",
         "nutrition_risk": "低栄養リスク：低（BMI 22.0、リスクなし）",
-        "nutrition_supply": "エネルギー：1298kcal／日　たんぱく質：51.9g／日　補給方法：絶食中のため経口摂取なし",
+        "nutrition_supply": "エネルギー：算定せず　たんぱく質：算定せず　補給方法：絶食中のため経口摂取なし（静脈栄養・経管栄養の指示は記録なし）",
         "other_issues": "その他栄養管理上の課題：特記事項なし",
         "reassessment_timing": "栄養状態の再評価：入院後1週間を目安に実施",
         "ward_and_physician": "病棟：4E　担当医師：若林 淳"

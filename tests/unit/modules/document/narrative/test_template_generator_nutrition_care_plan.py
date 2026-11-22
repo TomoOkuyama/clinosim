@@ -165,7 +165,7 @@ def test_nutrition_supply_computes_energy_and_protein_from_weight() -> None:
     assert "経口" in out.sections["nutrition_supply"]
 
 
-def test_dysphagia_diet_fixed_none() -> None:
+def test_dysphagia_diet_none_without_a_swallowing_finding() -> None:
     spec = _make_spec()
     ctx = _make_ctx()
     gen = TemplateNarrativeGenerator()

@@ -1,0 +1,35 @@
+# nutrition_care_plan.yaml — which record findings feed the fields of the JP
+# nutrition care plan (栄養管理計画書, MHLW form 別紙23) and of the admission
+# care plan's 特別な栄養管理の必要性 (Issue #3553). Read by
+# clinosim/modules/document/narrative/renderers/section_builders/care_plans.py
+# through clinosim.modules.document.reference_data_loaders.load_nutrition_care_plan.
+#
+# Both forms read one nutrition state derived from the record, so they agree:
+# special nutrition management is 有 when the malnutrition risk is high
+# (underweight BMI band), the patient has a chronic condition that carries a
+# diet restriction, the active diet is nil by mouth, or a swallowing-related
+# diagnosis is on record. These are clinosim modelling choices for which
+# findings the form reflects; no guideline threshold is claimed (the BMI band
+# itself is the narrative band of _narrative_interpretation_thresholds.py).
+#
+# restriction_conditions: ICD-10 3-character category -> the narrative phrase
+#   key (narrative_phrases.yaml) naming the diet restriction. The same four
+#   conditions the nutrition assessment section already lists.
+# dysphagia_risk_categories: ICD-10 3-character categories of diagnoses after
+#   which a swallowing evaluation precedes the choice of the texture-modified
+#   diet: stroke (I60-I64) and the sequelae of aspiration (J69) and dysphagia
+#   itself (R13). The CIF holds no swallowing evaluation, so the form then
+#   says the need is not yet evaluated instead of asserting none.
+
+metadata:
+  kind: reference
+  name: nutrition_care_plan
+  source: clinosim
+
+restriction_conditions:
+  E11: diet_plan.diabetic
+  N18: diet_plan.ckd_protein_restriction
+  I50: diet_plan.hf_fluid_salt_restriction
+  K70: diet_plan.hepatic
+
+dysphagia_risk_categories: [I60, I61, I62, I63, I64, J69, R13]

@@ -18,6 +18,7 @@ File ownership:
 
 from __future__ import annotations
 
+import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Annotated, Any, Literal, NamedTuple
@@ -1083,6 +1084,48 @@ class DeathCauseChain(BaseModel):
 def load_death_cause_chain() -> DeathCauseChain:
     """Load and validate death_cause_chain.yaml. Cached singleton."""
     return DeathCauseChain.model_validate(load_validated_yaml(_REF_DIR / "death_cause_chain.yaml", DeathCauseChain))
+
+
+# ─────────────────────────────────────────────────────────────────
+# nutrition_care_plan.yaml (Issue #3553)
+# ─────────────────────────────────────────────────────────────────
+
+
+_ICD10_CATEGORY = re.compile(r"[A-Z]\d\d")
+
+
+class NutritionCarePlan(BaseModel):
+    """Shape of nutrition_care_plan.yaml: the conditions the nutrition care
+    plan and the admission care plan's special-nutrition-management field
+    read from the record."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    restriction_conditions: dict[str, str]
+    dysphagia_risk_categories: tuple[str, ...]
+
+    @field_validator("restriction_conditions")
+    @classmethod
+    def _three_char_categories(cls, v: dict[str, str]) -> dict[str, str]:
+        bad = [k for k in v if not _ICD10_CATEGORY.fullmatch(k)]
+        if bad:
+            raise ValueError(f"nutrition_care_plan.yaml: {bad} are not ICD-10 3-character categories")
+        return v
+
+    @field_validator("dysphagia_risk_categories")
+    @classmethod
+    def _three_char_list(cls, v: tuple[str, ...]) -> tuple[str, ...]:
+        bad = [k for k in v if not _ICD10_CATEGORY.fullmatch(k)]
+        if bad:
+            raise ValueError(f"nutrition_care_plan.yaml: {bad} are not ICD-10 3-character categories")
+        return v
+
+
+@lru_cache(maxsize=1)
+def load_nutrition_care_plan() -> NutritionCarePlan:
+    """Load and validate nutrition_care_plan.yaml. Cached singleton."""
+    return NutritionCarePlan.model_validate(
+        load_validated_yaml(_REF_DIR / "nutrition_care_plan.yaml", NutritionCarePlan)
+    )
 
 
 # ─────────────────────────────────────────────────────────────────
