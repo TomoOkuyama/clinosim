@@ -446,6 +446,53 @@ def _procedures_by(ctx: NarrativeContext, cutoff: str) -> list[Any]:
     return [p for p in rows if not (when := _iso(_o(p, "start_datetime", ""))) or when <= cutoff]
 
 
+def _med_key(name: str) -> str:
+    """Identity of the drug an order string names (protocol prefix and dose
+    stripped, ``drug_key``; Issue #3559)."""
+    from clinosim.codes.drugs import drug_key
+    from clinosim.modules._shared import strip_protocol_prefix
+
+    return drug_key(strip_protocol_prefix(name)[0])
+
+
+def _richness(name: str) -> int:
+    from clinosim.modules._shared import strip_protocol_prefix
+
+    return len(strip_protocol_prefix(name)[0])
+
+
+def _dedupe_drugs(meds: list[str], procs: list[str]) -> tuple[list[str], list[str]]:
+    """Each drug once across the medication and procedure-order lists, keeping
+    the most specific entry (the one carrying dose and sig) in the place of its
+    first appearance; a drug the procedure list names more fully than the
+    medication list leaves the medication list (Issue #3559)."""
+    from clinosim.codes.drugs import drug_ref
+    from clinosim.modules._shared import strip_protocol_prefix
+
+    best: dict[str, str] = {}
+    for name in meds:
+        key = _med_key(name)
+        if key not in best or _richness(name) > _richness(best[key]):
+            best[key] = name
+    kept_procs: list[str] = []
+    for name in procs:
+        ref = drug_ref(strip_protocol_prefix(name)[0])
+        if ref and ref in best:
+            if _richness(name) > _richness(best[ref]):
+                del best[ref]
+                kept_procs.append(name)
+            continue
+        kept_procs.append(name)
+    out: list[str] = []
+    seen: set[str] = set()
+    for name in meds:
+        key = _med_key(name)
+        if key in best and key not in seen:
+            seen.add(key)
+            out.append(best[key])
+    return out, kept_procs
+
+
 @section("ed_workup")
 def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build ed_workup from ed_note_template.ed_workup_summary_<lang>.
@@ -555,21 +602,22 @@ def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
                 seen_proc_orders.add(str(display_raw))
                 proc_order_names.append(str(display_raw))
     if admitted:
-        from clinosim.codes.drugs import drug_ref
-
-        listed = {drug_ref(m) for m in med_names} | {m.casefold() for m in med_names}
+        listed = {_med_key(m) for m in med_names}
         for drug_id, name in _ed_window_drugs(ctx):
-            if (drug_id or drug_ref(name)) in listed or name.casefold() in listed:
+            key = drug_id or _med_key(name)
+            if key in listed or _med_key(name) in listed:
                 continue
-            listed.update({drug_id, name.casefold()})
+            listed.update({key, _med_key(name)})
             med_names.append(name)
+    med_names, proc_order_names = _dedupe_drugs(med_names, proc_order_names)
     parts: list[str] = []
     if lab_names:
         # Phase 1c-4 (2026-09-23): localise lab / panel tokens
         # ("Creatinine" / "CBC" / "Urinalysis" / "Total_bilirubin"
         # etc.) via ``lab_display``. Pre-fix, the JA emission
         # embedded English tokens verbatim under 「検査:」.
-        lab_names_disp = [lab_values.get(n) or lab_display(n, ctx.target_lang) for n in lab_names[:8]]
+        pending = t("ed_workup.lab_pending", lang) if admitted else ""
+        lab_names_disp = [lab_values.get(n) or (lab_display(n, ctx.target_lang) + pending) for n in lab_names[:8]]
         parts.append(t("ed_workup.labs_head", lang) + t("list_sep.serial", lang).join(lab_names_disp))
     if imaging_names:
         # Phase 1c-4 (2026-09-23): localise imaging codes
