@@ -45,6 +45,7 @@ __all__ = [
     "NARRATIVE_LDL_ELEVATED_THRESHOLD",
     "NARRATIVE_LDL_HIGH_THRESHOLD",
     "NARRATIVE_ADULT_TACHYCARDIA_HR",
+    "is_tachycardic_hr",
     "NARRATIVE_FEVER_C",
     "NARRATIVE_HYPOXEMIA_SPO2",
     "NARRATIVE_SEVERE_HYPOXEMIA_SPO2",
@@ -328,10 +329,20 @@ mild-elevation boundary (120-139)."""
 # ---------------------------------------------------------------------------
 
 NARRATIVE_ADULT_TACHYCARDIA_HR: int = 100
-"""Heart rate (/min) at or above which an adult's SOAP Assessment notes
-tachycardia (the conventional adult definition, > 100 /min resting;
-AHA/ACC). A child's limit is the upper end of the normal range for the
-age in ``observation.pediatric_ranges`` (Issue #2986)."""
+"""Heart rate (/min) above which (strictly: > 100, never = 100) an adult's
+SOAP Assessment notes tachycardia (the conventional adult definition,
+> 100 /min resting; AHA/ACC). A child's limit is the upper end of the
+normal range for the age in ``observation.pediatric_ranges`` (Issue #2986).
+Compare through ``is_tachycardic_hr`` so every consumer uses the same
+strict test (Issue #3570)."""
+
+
+def is_tachycardic_hr(hr: float, upper_limit: float | None = None) -> bool:
+    """Whether ``hr`` is strictly above the upper limit: ``upper_limit`` (a
+    child's age-banded high) when given, else ``NARRATIVE_ADULT_TACHYCARDIA_HR``.
+    A rate equal to the limit is within the normal range."""
+    return hr > (NARRATIVE_ADULT_TACHYCARDIA_HR if upper_limit is None else upper_limit)
+
 
 NARRATIVE_FEVER_C: float = 38.0
 """Body temperature (°C) at or above which the outpatient SOAP Assessment
