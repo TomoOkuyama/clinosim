@@ -27,6 +27,12 @@
 #     names the prescribed drugs that matched.
 #   aki_at_discharge: true — the stay's final creatinine still meets the KDIGO
 #     AKI definition (simulator/aki_response.py; Issue #3281).
+#   setting: home | facility - where the patient goes (Issue #3554); a facility
+#     discharge is one whose disposition is in `facility_dispositions`. An
+#     unrecorded disposition counts as home.
+#   drug_course: chronic - only discharge drugs on a continuing prescription
+#     match (Issue #3554); a prescription of at most `fixed_course_max_days`
+#     days is a fixed course ("do not stop" does not fit it).
 # Write one patient-specific statement per entry (smoking, alcohol, sex-
 # specific care, a named drug) so each can be gated on its own.
 #
@@ -40,11 +46,52 @@ metadata:
   name: clinosim-discharge-instruction
   source: clinosim
 
+# Issue #3554: the HL7 discharge dispositions (types.encounter
+# discharge_disposition) after which the patient is not at home.
+facility_dispositions: [snf, other-hcf, hosp]
+
+# A discharge prescription of at most this many days is a fixed course, not a
+# drug taken indefinitely. Same bound as the simulator's acute course
+# (simulator/_stay_thresholds.py ACUTE_COURSE_MAX_DAYS); a clinosim modelling
+# choice, not a guideline figure.
+fixed_course_max_days: 14
+
+# Issue #3554: slots filled by one entry. The disease-specific layer and the
+# disease protocol each carry an emergency and a diet sentence under different
+# keys (warning_signs / emergency, diet / diet_lifestyle), which both showed.
+# The resolver shows the first entry of `precedence` that applies. The disease
+# entry comes before the protocol's, whose emergency text is often the generic
+# "return if symptoms worsen". `home_only` entries address a patient at home
+# (call 911, resume a normal diet) and are replaced by the facility-addressed
+# entries for a facility discharge.
+slots:
+  emergency:
+    precedence:
+      - baseline.emergency_facility
+      - disease_specific.warning_signs
+      - protocol.emergency
+      - baseline.emergency
+    home_only:
+      - disease_specific.warning_signs
+      - protocol.emergency
+      - baseline.emergency
+  diet:
+    precedence:
+      - disease_specific.diet
+      - protocol.diet_lifestyle
+      - baseline.diet_facility
+      - baseline.diet
+    home_only:
+      - baseline.diet
+
 baseline:
   hydrate:
     en: "Drink plenty of fluids."
     ja: "十分な水分摂取を心がけてください。"
-    applies_when: {exclude_conditions: [heart_failure]}
+    # No "drink plenty" for a condition whose care limits or does not call for
+    # extra fluid: heart failure (below), acute myocardial infarction and
+    # decompensated cirrhosis (sodium and water retention).
+    applies_when: {exclude_conditions: [heart_failure, acute_myocardial_infarction, liver_cirrhosis]}
   # Heart failure: no "drink plenty"; daily weights and the fluid / salt
   # limits the physician sets. 2022 AHA/ACC/HFSA Guideline for the
   # Management of Heart Failure (Circulation 2022;145:e895-e1032): §9.6,
@@ -79,9 +126,18 @@ baseline:
   emergency:
     en: "Return to the emergency department if symptoms worsen significantly."
     ja: "症状が著しく悪化した場合は速やかに救急受診してください。"
+  # Facility discharge: the instruction is for the facility staff.
+  emergency_facility:
+    en: "Facility staff: contact the physician or call emergency services if the patient's symptoms worsen significantly."
+    ja: "施設スタッフへ: 症状が著しく悪化した場合は、速やかに医師へ連絡するか救急要請してください。"
+    applies_when: {setting: facility}
   diet:
     en: "Resume a normal diet gradually as tolerated."
     ja: "食事は体調に合わせて徐々に通常食に戻してください。"
+  diet_facility:
+    en: "Facility staff: provide the diet ordered in the discharge orders."
+    ja: "施設スタッフへ: 退院時指示の食事内容で提供してください。"
+    applies_when: {setting: facility}
 
 # Newborn set (Issue #3260): replaces `baseline` for a patient in the neonatal
 # period (renderers/_resolvers.baseline_instruction_set), written to the parents.
@@ -139,10 +195,10 @@ disease_specific:
       en: "Complete the full prescribed antibiotic course even if you feel better."
       ja: "症状が改善しても処方された抗菌薬を最後まで内服してください。"
     warning_signs:
-      # Fever and dyspnea return precautions are the disease protocol's
-      # `emergency` entry; repeating them here gave two fever thresholds.
-      en: "Return to ER for chest pain or increasing purulent sputum."
-      ja: "胸痛や膿性痰の増加があれば救急受診してください。"
+      # Fills the `emergency` slot alone (Issue #3554), so it carries the
+      # protocol's fever and dyspnea precautions too, with its one fever threshold.
+      en: "Return to ER if fever >38.5C persists, shortness of breath worsens, SpO2 drops, chest pain develops, or purulent sputum increases."
+      ja: "発熱（38.5℃超）の持続、呼吸困難の増悪、SpO2 低下、胸痛、膿性痰の増加があれば速やかに救急受診してください。"
     smoking:
       en: "Smoking significantly delays recovery. Strongly consider cessation."
       ja: "喫煙は回復を著しく遅らせます。禁煙を強くお勧めします。"
@@ -186,7 +242,7 @@ disease_specific:
     medications:
       en: "Take your heart medications ({drugs}) every day as prescribed. Do NOT stop them without consulting your cardiologist."
       ja: "心臓の薬 ({drugs}) は毎日指示通りに内服し、循環器科医に相談せずに中断しないでください。"
-      applies_when: {discharge_drugs: [antiplatelet, anticoagulant, statin, beta_blocker, acei, arb, nitrate]}
+      applies_when: {discharge_drugs: [antiplatelet, anticoagulant, statin, beta_blocker, acei, arb, nitrate], drug_course: chronic}
     smoking:
       en: "Smoking cessation is mandatory."
       ja: "禁煙は必須です。"
