@@ -94,10 +94,14 @@ class _WellChild(BaseModel):
 
     development: dict[str, _LangText] = Field(min_length=1)
     guidance: dict[str, _LangText] = Field(min_length=1)
+    # Infant (under 12 months) feeding and examination statements by age band
+    # (Issue #3566); generic age-appropriate observations, no findings.
+    feeding: dict[str, _LangText] = Field(min_length=1)
+    exam: dict[str, _LangText] = Field(min_length=1)
 
     @model_validator(mode="after")
     def _bands(self) -> _WellChild:
-        for table in (self.development, self.guidance):
+        for table in (self.development, self.guidance, self.feeding, self.exam):
             for key in table:
                 parse_age_band(key)
         return self
@@ -443,6 +447,23 @@ def _well_child_values(ctx: Any, values: dict[str, Any]) -> None:
     if band is not None:
         values["guidance"] = localized(data.guidance[band], lang)
     _growth_values(ctx, values)
+    _infant_values(ctx, values, months)
+
+
+def _infant_values(ctx: Any, values: dict[str, Any], months: int) -> None:
+    """``feeding``, ``exam`` and, for a visit that is not a well-child check,
+    ``infant_development`` of an infant visit (Issue #3566): age-banded
+    statements from ``well_child.feeding`` / ``exam`` / ``development``; the
+    feeding and examination tables cover infants only, so an older child gets
+    none of them."""
+    lang = ctx.target_lang
+    data = load_visit_reason_soap().well_child
+    if find_age_band(data.feeding, months) is None:
+        return
+    for key, table in (("feeding", data.feeding), ("exam", data.exam), ("infant_development", data.development)):
+        band = find_age_band(table, months)
+        if band is not None:
+            values[key] = localized(table[band], lang)
 
 
 def _growth_values(ctx: Any, values: dict[str, Any]) -> None:
@@ -488,6 +509,16 @@ def _is_child_visit(ctx: Any) -> bool:
     return months is not None and months < PEDIATRIC_UPPER_AGE_MONTHS
 
 
+def _visit_age_months(ctx: Any) -> int | None:
+    from clinosim.modules.observation.pediatric_ranges import age_in_completed_months
+
+    if ctx.patient is None or ctx.encounter is None:
+        return None
+    return age_in_completed_months(
+        _o(ctx.patient, "date_of_birth", None), _o(ctx.encounter, "admission_datetime", None)
+    )
+
+
 def kind_values(ctx: Any, kind: str) -> dict[str, Any]:
     """The placeholder values of ``kind``'s lines for the visit."""
     values: dict[str, Any] = {}
@@ -524,6 +555,11 @@ def kind_values(ctx: Any, kind: str) -> dict[str, Any]:
         # Issue #3464: a child's vaccination visit records growth (the visit
         # may be an appended encounter with no visit kind).
         _growth_values(ctx, values)
+        # Issue #3566: an infant's vaccination visit also states feeding,
+        # development and an examination, as a well-child check does.
+        months = _visit_age_months(ctx)
+        if months is not None:
+            _infant_values(ctx, values, months)
     _retinopathy_values(ctx, values)
     return values
 
@@ -569,7 +605,9 @@ def kind_lines(ctx: Any, kind: str, section: str, values: dict[str, Any] | None 
             entries.extend(getattr(condition, section))
     if kind != "vaccination" and "vaccine_names" in values:
         entries.extend(getattr(data.kinds["vaccination"], section))
-    lines = _render(entries, lang, values)
+    # A line shared by two kinds of one visit (the growth line of a vaccination
+    # and a well-child check) is written once (Issue #3566).
+    lines = list(dict.fromkeys(_render(entries, lang, values)))
     if section == "plan" and "vaccine_names" in values:
         country_lines = data.vaccination_country_lines.get(country_code(ctx.locale).upper(), [])
         lines.extend(_render(country_lines, lang, values))

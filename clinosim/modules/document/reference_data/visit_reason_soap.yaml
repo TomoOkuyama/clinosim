@@ -19,6 +19,12 @@
 # (Issue #3251): no "assess ...", "evaluate for ...", 「…を確認。」, 「…を聴取。」,
 # 「…評価要」 (guard: tests/unit/modules/document/narrative/test_visit_reason_soap_3249.py).
 #
+# Infant feeding and examination (``well_child.feeding`` / ``exam``, Issue
+# #3566): clinosim modelling wording, not sourced to a guideline. The record
+# holds no feeding history or examination finding, so each entry is the
+# generic observation of a well infant of that age band and never an abnormal
+# finding; the lines are written for infants only (the bands stop at 11 months).
+#
 # Developmental milestones (``well_child.development``): CDC "Learn the Signs.
 # Act Early." milestone checklists (https://www.cdc.gov/act-early/milestones/,
 # pages for 2 months to 5 years, read 2026-11-16) — milestones most children
@@ -153,21 +159,35 @@ kinds:
       - en: "Results to be explained to the patient once reported{labs_pending}."
         ja: "結果は報告後に説明{labs_pending}。"
 
+  # {feeding}, {exam}, {infant_development} are written for an infant only
+  # (``well_child.feeding`` / ``exam``, Issue #3566).
   vaccination:
+    subjective:
+      - en: "Feeding: {feeding}."
+        ja: "栄養: {feeding}。"
     objective:
       - en: "Growth: {growth}."
         ja: "身体計測: {growth}。"
+      - en: "Examination: {exam}."
+        ja: "診察: {exam}。"
     assessment:
       - en: "Immunization: {vaccine_names} given today."
         ja: "予防接種: 本日 {vaccine_names} を接種。"
+      - en: "Infant development appropriate for age — {infant_development}."
+        ja: "乳児の発達は年齢相応 — {infant_development}。"
     plan:
       - en: "Vaccines given: {vaccine_details}."
         ja: "接種内容: {vaccine_details}。"
 
   well_child:
+    subjective:
+      - en: "Feeding: {feeding}."
+        ja: "栄養: {feeding}。"
     objective:
       - en: "Growth: {growth}."
         ja: "身体計測: {growth}。"
+      - en: "Examination: {exam}."
+        ja: "診察: {exam}。"
     assessment:
       - en: "Well child: development appropriate for age — {development}."
         ja: "健診: 年齢相応の発達 — {development}。"
@@ -448,3 +468,17 @@ well_child:
     "144+":
       en: "sleep, physical activity, screen time, substance use and road safety"
       ja: "睡眠、運動習慣、メディアの使用時間、喫煙・飲酒の防止、交通安全"
+  feeding:
+    "0-5":
+      en: "milk feeding (breast milk or formula) at this age"
+      ja: "この時期は母乳またはミルクによる栄養"
+    "6-11":
+      en: "milk feeding with complementary foods at this age"
+      ja: "この時期は母乳またはミルクに加えて離乳食を進める時期"
+  exam:
+    "0-5":
+      en: "anterior fontanelle open and flat, regular heart sounds, hips abduct symmetrically"
+      ja: "大泉門は開大・平坦、心音は整、股関節の開排は左右対称"
+    "6-11":
+      en: "anterior fontanelle open and flat, regular heart sounds, moves all limbs symmetrically"
+      ja: "大泉門は開大・平坦、心音は整、四肢の動きは左右対称"
