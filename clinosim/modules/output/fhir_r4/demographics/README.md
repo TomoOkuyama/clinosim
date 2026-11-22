@@ -148,7 +148,10 @@ facade sorts NDJSON by id post-write.
   `codes/data/hl7-v2-0131.yaml` / `hl7-v3-rolecode.yaml` (English
   coding display, output-language label in `text`). The JP Core
   `JP_RelatedPerson` / US Core `us-core-relatedperson` profile is
-  declared from `codes/data/fhir-profiles-{jp,us}-core.yaml`.
+  declared from `codes/data/fhir-profiles-{jp,us}-core.yaml`. The
+  RelatedPerson also carries `gender` and `name.family` / `name.given`
+  from the CIF contact sex and name parts, and the specific role code
+  (FTH/MTH, BRO/SIS, SON/DAU, HUSB/WIFE; Issue #3599).
 - **Family-history relationship coding** — HL7 v3-RoleCode (see the
   Issue #369 v23 regression rule documented in the
   [`family_history` module README](../../../family_history/README.md)

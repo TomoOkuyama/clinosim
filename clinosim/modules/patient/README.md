@@ -17,7 +17,11 @@ every record of the person names the same contact) and a marital status
 (drawn once per person from the census table in
 `locale/<cc>/marital_status.yaml` and kept on the `PersonRecord`; the
 contact relationship is drawn conditional on it, so a never-married,
-divorced or widowed person names no spouse). The
+divorced or widowed person names no spouse). The contact keeps its sex,
+a specific v3-RoleCode (FTH/MTH, BRO/SIS, SON/DAU, HUSB/WIFE, from the
+relationship slug and the sex) and the family/given name parts (Issue
+#3599); the sex is the one the already-drawn given name was chosen for, so
+no draw is added. The
 simulator activates each person once per `(person_id, as_of_year)`
 cache key — the returned profile is what every downstream encounter
 simulator consumes.

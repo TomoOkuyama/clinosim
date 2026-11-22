@@ -69,12 +69,21 @@ class PersonRecord:
     guardian_contact_name: str = ""
     guardian_contact_phone: str = ""
     guardian_contact_relationship: str = ""
+    guardian_contact_sex: str = ""
+    guardian_contact_role: str = ""
+    guardian_contact_family_name: str = ""
+    guardian_contact_given_name: str = ""
     # Issue #3186: the adult emergency contact, chosen at the person's first
     # adult activation and reused by every later one, so all records of the
     # person name the same contact. The phone is not kept: it is the
     # household phone at each activation.
     emergency_contact_name: str = ""
     emergency_contact_relationship: str = ""
+    # Issue #3599: the contact's sex, specific v3-RoleCode and name parts.
+    emergency_contact_sex: str = ""
+    emergency_contact_role: str = ""
+    emergency_contact_family_name: str = ""
+    emergency_contact_given_name: str = ""
     # Issue #3189: the marital status (HL7 v3-MaritalStatus code), drawn at
     # the first adult activation from the locale's census table and kept, so
     # every record of the person carries it; the emergency contact above is

@@ -251,6 +251,10 @@ def register_newborn(
         guardian_contact_name=contact.emergency_contact_name,
         guardian_contact_phone=contact.emergency_contact_phone,
         guardian_contact_relationship=contact.emergency_contact_relationship,
+        guardian_contact_sex=contact.emergency_contact_sex,
+        guardian_contact_role=contact.emergency_contact_role,
+        guardian_contact_family_name=contact.emergency_contact_family_name,
+        guardian_contact_given_name=contact.emergency_contact_given_name,
         # Perinatal conditions sampled in `simulator/perinatal.py`
         # (`_sample_newborn_conditions`) land on `newborn.chronic_conditions`
         # as `ChronicCondition` objects; mirror their ICD codes here so

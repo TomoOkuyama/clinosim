@@ -130,8 +130,16 @@ class PersonRecord:
     guardian_contact_name: str = ""        # newborn: the mother as guardian contact
     guardian_contact_phone: str = ""
     guardian_contact_relationship: str = ""
+    guardian_contact_sex: str = ""         # newborn: the mother's sex / v3-RoleCode / name parts (Issue #3599)
+    guardian_contact_role: str = ""
+    guardian_contact_family_name: str = ""
+    guardian_contact_given_name: str = ""
     emergency_contact_name: str = ""       # adult: chosen at the first adult activation, reused after
     emergency_contact_relationship: str = ""
+    emergency_contact_sex: str = ""        # the contact's sex, specific v3-RoleCode and name parts (Issue #3599)
+    emergency_contact_role: str = ""
+    emergency_contact_family_name: str = ""
+    emergency_contact_given_name: str = ""
     marital_status: str = ""               # adult: drawn at the first adult activation from locale marital_status.yaml, reused after
     # Health summary
     chronic_conditions: list[str]          # ICD codes only

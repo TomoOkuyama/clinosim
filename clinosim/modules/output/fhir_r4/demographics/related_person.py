@@ -40,6 +40,9 @@ RELATED_PERSON_ID_PREFIX = "rp-"
 RELATED_PERSON_KEY_SYSTEM = structural_key_system("related-person-key")
 _EMERGENCY_CONTACT_KEY_SUFFIX = "emergency-contact"
 
+# CIF sex → FHIR administrative gender of the contact (Issue #3599).
+_GENDER_BY_SEX = {"M": "male", "F": "female"}
+
 # v2-0131 Contact Role code of an emergency contact.
 _EMERGENCY_CONTACT_ROLE = "C"
 
@@ -64,7 +67,9 @@ def _build_emergency_contact_related_person(p: dict, country: str) -> dict[str, 
     lang = lang_for(country)
     structural_key = f"{pid}-{_EMERGENCY_CONTACT_KEY_SUFFIX}"
     relationship = [english_display_concept("hl7-v2-0131", _EMERGENCY_CONTACT_ROLE, lang)]
-    role_code = _role_code_by_slug().get(str(contact.get("emergency_contact_relationship") or ""))
+    role_code = str(contact.get("emergency_contact_role") or "") or _role_code_by_slug().get(
+        str(contact.get("emergency_contact_relationship") or "")
+    )
     if role_code:
         relationship.append(english_display_concept("hl7-v3-rolecode", role_code, lang))
     resource: dict[str, Any] = {
@@ -76,7 +81,17 @@ def _build_emergency_contact_related_person(p: dict, country: str) -> dict[str, 
         "relationship": relationship,
     }
     if name:
-        resource["name"] = [{"text": name}]
+        human_name: dict[str, Any] = {"text": name}
+        family = str(contact.get("emergency_contact_family_name") or "")
+        given = str(contact.get("emergency_contact_given_name") or "")
+        if family:
+            human_name["family"] = family
+        if given:
+            human_name["given"] = [given]
+        resource["name"] = [human_name]
+    gender = _GENDER_BY_SEX.get(str(contact.get("emergency_contact_sex") or ""))
+    if gender:
+        resource["gender"] = gender
     if phone:
         resource["telecom"] = [{"system": "phone", "value": phone, "use": "mobile"}]
     return resource

@@ -120,6 +120,13 @@ class ContactInfo:
     emergency_contact_name: str = ""
     emergency_contact_phone: str = ""
     emergency_contact_relationship: str = ""
+    # Issue #3599: the contact's sex ("M"/"F"), the specific v3-RoleCode of the
+    # relationship (MTH/FTH/BRO/SIS/SON/DAU/HUSB/WIFE) and the name parts, so
+    # the FHIR RelatedPerson carries gender, the role and family/given.
+    emergency_contact_sex: str = ""
+    emergency_contact_role: str = ""
+    emergency_contact_family_name: str = ""
+    emergency_contact_given_name: str = ""
 
 
 @dataclass

@@ -396,6 +396,18 @@ def slug_to_code(system_key: str) -> dict[str, str]:
     return dict(load_data_yaml(path).get("slug_to_code", {}) or {})
 
 
+def slug_sex_to_code(system_key: str) -> dict[str, dict[str, str]]:
+    """Return the slug → {sex → code} map of a code system yaml's optional
+    ``slug_sex_to_code:`` block (a generic relationship slug resolved to the
+    specific code by the person's sex, Issue #3599); empty when absent."""
+    data_key = _SYSTEM_DATA_ALIASES.get(system_key, system_key)
+    path = _DATA_DIR / f"{data_key}.yaml"
+    if not path.exists():
+        return {}
+    block = load_data_yaml(path).get("slug_sex_to_code", {}) or {}
+    return {str(slug): {str(s): str(c) for s, c in by_sex.items()} for slug, by_sex in block.items()}
+
+
 @cache
 def _data_table(name: str) -> dict[str, Any]:
     return load_data_yaml(_DATA_DIR / f"{name}.yaml")

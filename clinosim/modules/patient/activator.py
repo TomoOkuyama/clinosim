@@ -525,32 +525,38 @@ def _draw_emergency_contact(
     family_name: str,
     country: str,
     rng: np.random.Generator,
-) -> tuple[str, str]:
-    """Draw an adult's emergency contact: ``(relationship, name)``.
+) -> tuple[str, str, str, str, str]:
+    """Draw an adult's emergency contact: ``(relationship, name, sex,
+    family_name, given_name)`` (Issue #3599: the sex and the name parts are
+    the ones the name was built from and are kept on the record).
 
     The relationship comes from ``relationships`` (labels, probabilities: the
     row of the person's marital status and age band, Issue #3189); a spouse
     is of the opposite sex, any other relative's sex is drawn. The contact
-    shares the patient's family name.
+    shares the patient's family name (a spouse by the household convention,
+    a child, parent or sibling by the patient's birth family name).
     """
     labels, probs = relationships
     rel = str(rng.choice(labels, p=probs))
+    # The draw order is the one the contact had before its sex was kept, so
+    # the name of an existing cohort is unchanged.
+    if rel == "spouse":
+        contact_sex = "F" if sex == "M" else "M"
+    else:
+        contact_sex = str(rng.choice(["M", "F"]))
     try:
         name_data = load_names(country)
-        if rel == "spouse":
-            contact_sex = "F" if sex == "M" else "M"
-        else:
-            contact_sex = str(rng.choice(["M", "F"]))
         given = _sample_given_name(name_data, contact_sex, rng)
         # JP uses 'kanji' key, US uses 'name' key
         given_name = given.get("kanji") or given.get("name", "")
         if not given_name:
             raise ValueError("empty given name")
-        return rel, " ".join(country_profile(country).formats.name_parts(family_name, given_name))
+        text = " ".join(country_profile(country).formats.name_parts(family_name, given_name))
+        return rel, text, contact_sex, family_name, given_name
     except Exception:
         # Fallback if name data unavailable: the catalog's family-contact
         # label in the country's output language (FP-UNIFY-4 sibling class).
-        return rel, t("module_text.family_contact", lang_for(country), family=family_name)
+        return rel, t("module_text.family_contact", lang_for(country), family=family_name), contact_sex, family_name, ""
 
 
 def activate_patient(
@@ -821,6 +827,7 @@ def activate_patient(
     emergency_name = ""
     emergency_phone = ""
     emergency_rel = ""
+    emergency_sex = emergency_role = emergency_family = emergency_given = ""
     guardian_name = str(getattr(person, "guardian_contact_name", "") or "")
     guardian_phone = str(getattr(person, "guardian_contact_phone", "") or "")
     # Marital status (HL7 v3-MaritalStatus code). Issue #3189: drawn once per
@@ -838,6 +845,10 @@ def activate_patient(
         emergency_name = guardian_name
         emergency_phone = guardian_phone
         emergency_rel = str(getattr(person, "guardian_contact_relationship", "") or "")
+        emergency_sex = str(getattr(person, "guardian_contact_sex", "") or "")
+        emergency_role = str(getattr(person, "guardian_contact_role", "") or "")
+        emergency_family = str(getattr(person, "guardian_contact_family_name", "") or "")
+        emergency_given = str(getattr(person, "guardian_contact_given_name", "") or "")
     elif age >= adult_age:
         # Reuse home phone as a household contact for spouse/family
         emergency_phone = phone_home or phone_mobile
@@ -851,6 +862,10 @@ def activate_patient(
             _draw_emergency_contact(_burn_rels, person.sex, name.family_name, country, rng)
         emergency_rel = str(getattr(person, "emergency_contact_relationship", "") or "")
         emergency_name = str(getattr(person, "emergency_contact_name", "") or "")
+        emergency_sex = str(getattr(person, "emergency_contact_sex", "") or "")
+        emergency_role = str(getattr(person, "emergency_contact_role", "") or "")
+        emergency_family = str(getattr(person, "emergency_contact_family_name", "") or "")
+        emergency_given = str(getattr(person, "emergency_contact_given_name", "") or "")
         # Issue #3189: the relationship is drawn conditional on the marital
         # status (no spouse for a never-married, divorced or widowed person).
         _rels = _marital.contact_relationships(marital_status, age, country)
@@ -858,11 +873,16 @@ def activate_patient(
             from clinosim.seeding import emergency_contact_seed
 
             _contact_rng = determinism.default_rng(emergency_contact_seed(person.person_id, str(person.date_of_birth)))
-            emergency_rel, emergency_name = _draw_emergency_contact(
+            emergency_rel, emergency_name, emergency_sex, emergency_family, emergency_given = _draw_emergency_contact(
                 _rels, person.sex, name.family_name, country, _contact_rng
             )
+            emergency_role = _marital.contact_role_code(emergency_rel, emergency_sex)
             person.emergency_contact_relationship = emergency_rel
             person.emergency_contact_name = emergency_name
+            person.emergency_contact_sex = emergency_sex
+            person.emergency_contact_role = emergency_role
+            person.emergency_contact_family_name = emergency_family
+            person.emergency_contact_given_name = emergency_given
 
     contact = ContactInfo(
         phone_home=phone_home,
@@ -871,6 +891,10 @@ def activate_patient(
         emergency_contact_name=emergency_name,
         emergency_contact_phone=emergency_phone,
         emergency_contact_relationship=emergency_rel,
+        emergency_contact_sex=emergency_sex,
+        emergency_contact_role=emergency_role,
+        emergency_contact_family_name=emergency_family,
+        emergency_contact_given_name=emergency_given,
     )
 
     # Issue #3189: the activation stream made one weighted marital-status

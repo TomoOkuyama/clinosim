@@ -144,6 +144,9 @@ NDJSON を id で sort する。
   (coding.display は英語、出力言語のラベルは `text`)。JP Core
   `JP_RelatedPerson` / US Core `us-core-relatedperson` profile は
   `codes/data/fhir-profiles-{jp,us}-core.yaml` から宣言する。
+  RelatedPerson は CIF の連絡先の性別・姓名の分割から `gender` と
+  `name.family` / `name.given` を、具体的な続柄コード
+  (FTH/MTH, BRO/SIS, SON/DAU, HUSB/WIFE) とともに出力する (Issue #3599)。
 - **Family-history relationship coding** — HL7 v3-RoleCode
   ([`family_history` module README](../../../family_history/README.ja.md)
   に記載の Issue #369 v23 regression ルール — per-code JA 表示は
