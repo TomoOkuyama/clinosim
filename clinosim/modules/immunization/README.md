@@ -167,7 +167,10 @@ their records, then binds each dose (deterministic, no rng):
    snapped onto a day that holds another dose of the same vaccine, out of
    series order, or closer to a neighbouring dose than the series'
    `min_interval_days` (Issue #3001); with no allowed encounter it keeps
-   its own date.
+   its own date. A series dose is never snapped outside its schedule
+   window (`age_days_min`..`age_days_max`), and doses the engine gave one
+   date (the infant series co-due at one well-child visit) move together to
+   one visit — all of them or none (Issue #3567).
 
 A dose still unbound and dated before the simulation window start
 (`config.time_range[0]`) is marked `primary_source=False` and left

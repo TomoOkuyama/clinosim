@@ -20,6 +20,7 @@ from clinosim.modules._shared import set_attr_or_key as _set
 from clinosim.modules.immunization.engine import (
     DoseInterval,
     dose_intervals_by_cvx,
+    dose_windows_by_cvx,
     flu_season_of,
     generate_immunizations,
     generate_pregnancy_tdap,
@@ -132,6 +133,8 @@ def _align_to_encounters(
     earliest_by_cvx: dict[str, date] | None = None,
     min_interval_by_cvx: dict[str, dict[int, DoseInterval]] | None = None,
     lot_cvx: dict[str, str] | None = None,
+    dob: date | None = None,
+    dose_windows: dict[str, dict[int, tuple[int, int]]] | None = None,
 ) -> list:
     """Snap each immunization's occurrence_date to a nearby pediatric_visit
     encounter and stamp the encounter_id.
@@ -158,6 +161,10 @@ def _align_to_encounters(
         the series' minimum interval (``min_interval_by_cvx``,
         ``dose_intervals_by_cvx``; Issues #3001 / #3006). With no allowed visit
         the dose keeps its own date.
+      * A series dose is not snapped outside its schedule age window
+        (``dose_windows`` = ``dose_windows_by_cvx``, measured from ``dob``;
+        Issue #3567), and doses the engine gave one date move together to
+        one visit (all of them, or none).
       * A snapped dose's lot is regenerated for its new date (Issue #3282;
         ``lot_cvx`` = ``lot_cvx_by_cvx``, the CVX the lot is keyed by).
 
@@ -186,10 +193,23 @@ def _align_to_encounters(
         _enc_days.append((_adm.date(), _eid))
     if not _enc_days:
         return imm_recs
+    # Issue #3567: doses the engine scheduled for one date (the infant series
+    # co-due at one well-child visit) move together to one visit, so a
+    # shared dose date is never split over several visits.
+    _by_date: dict[date, list] = {}
     for imm in imm_recs:
         occ = _get(imm, "occurrence_date", None)
-        if not isinstance(occ, date) or _get(imm, "encounter_id", ""):
+        if isinstance(occ, date) and not _get(imm, "encounter_id", "") and _get(imm, "dose_number", None) is not None:
+            _by_date.setdefault(occ, []).append(imm)
+    _done: set[int] = set()
+    for imm in imm_recs:
+        occ = _get(imm, "occurrence_date", None)
+        if not isinstance(occ, date) or _get(imm, "encounter_id", "") or id(imm) in _done:
             continue
+        group = _by_date.get(occ, [imm]) if _get(imm, "dose_number", None) is not None else [imm]
+        if len(group) < 2:
+            group = [imm]
+        _done.update(id(g) for g in group)
         # Nearest outpatient encounter within ±60 days. The window is
         # 60 rather than 14 to cover annual flu shots — the flu
         # scheduler picks a fixed month per year (Oct-Dec) that may not
@@ -201,32 +221,54 @@ def _align_to_encounters(
         best_delta: int | None = None
         best_day: date | None = None
         best_eid: str = ""
-        # Issue #2868: a flu dose stays inside its own season's vaccination
-        # months (not snapped onto a July or March visit).
-        _months = (season_months or {}).get(str(_get(imm, "vaccine_cvx", "") or ""))
-        _earliest = (earliest_by_cvx or {}).get(str(_get(imm, "vaccine_cvx", "") or ""))
-        _intervals = (min_interval_by_cvx or {}).get(str(_get(imm, "vaccine_cvx", "") or ""))
         for _day, _eid in _enc_days:
             _delta = abs((_day - occ).days)
             if _delta > 60:
                 continue
-            if _earliest is not None and _day < _earliest:
-                continue
-            if _months is not None and (_day.month not in _months or flu_season_of(_day) != flu_season_of(occ)):
-                continue
             if best_delta is not None and _delta >= best_delta:
                 continue
-            if not series_allows(imm, _day, imm_recs, _intervals):
+            if not all(
+                _may_snap(
+                    g, _day, occ, imm_recs, season_months, earliest_by_cvx, min_interval_by_cvx, dob, dose_windows
+                )
+                for g in group
+            ):
                 continue
-            if best_delta is None or _delta < best_delta:
-                best_delta = _delta
-                best_day = _day
-                best_eid = _eid
+            best_delta = _delta
+            best_day = _day
+            best_eid = _eid
         if best_day is not None and best_eid:
-            _cvx = str(_get(imm, "vaccine_cvx", "") or "")
-            redate(imm, best_day, (lot_cvx or {}).get(_cvx, _cvx))
-            _set(imm, "encounter_id", best_eid)
+            for g in group:
+                _cvx = str(_get(g, "vaccine_cvx", "") or "")
+                redate(g, best_day, (lot_cvx or {}).get(_cvx, _cvx))
+                _set(g, "encounter_id", best_eid)
     return imm_recs
+
+
+def _may_snap(
+    imm: object,
+    day: date,
+    occ: date,
+    imm_recs: list,
+    season_months: dict[str, frozenset[int]] | None,
+    earliest_by_cvx: dict[str, date] | None,
+    min_interval_by_cvx: dict[str, dict[int, DoseInterval]] | None,
+    dob: date | None,
+    dose_windows: dict[str, dict[int, tuple[int, int]]] | None,
+) -> bool:
+    """Whether ``imm`` (dated ``occ``) may be given on the visit day ``day``."""
+    cvx = str(_get(imm, "vaccine_cvx", "") or "")
+    earliest = (earliest_by_cvx or {}).get(cvx)
+    if earliest is not None and day < earliest:
+        return False
+    months = (season_months or {}).get(cvx)
+    if months is not None and (day.month not in months or flu_season_of(day) != flu_season_of(occ)):
+        return False
+    number = _get(imm, "dose_number", None)
+    window = ((dose_windows or {}).get(cvx) or {}).get(int(number)) if number is not None else None
+    if window is not None and dob is not None and not window[0] <= (day - dob).days <= window[1]:
+        return False
+    return series_allows(imm, day, imm_recs, (min_interval_by_cvx or {}).get(cvx))
 
 
 def _clinic_day_within(day: date, country: str, first: date | None, last: date) -> date | None:
@@ -527,6 +569,8 @@ def enrich_immunizations(ctx) -> None:
             licensed_from_by_cvx(schedule, _get(patient, "date_of_birth", None)),
             _min_intervals,
             _lot_cvx,
+            _get(patient, "date_of_birth", None),
+            dose_windows_by_cvx(schedule),
         )
         if roster is not None and hasattr(roster, "members"):
             _give_stay_doses_by_ward_nurse(recs, pool, roster, pid)

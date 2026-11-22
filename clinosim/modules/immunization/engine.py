@@ -462,6 +462,23 @@ def dose_intervals_by_cvx(schedule: dict) -> dict[str, dict[int, DoseInterval]]:
     return out
 
 
+def dose_windows_by_cvx(schedule: dict) -> dict[str, dict[int, tuple[int, int]]]:
+    """CVX (the entry's and its products') → ``{dose_number: (age_days_min,
+    age_days_max)}`` of each pediatric series dose (Issue #3567)."""
+    out: dict[str, dict[int, tuple[int, int]]] = {}
+    for v in schedule.values():
+        if v.get("frequency") != "pediatric_series":
+            continue
+        windows = {
+            int(d["dose_number"]): (int(d["age_days_min"]), int(d["age_days_max"]))
+            for d in v.get("doses") or []
+            if d.get("dose_number") is not None
+        }
+        for cvx in {str(v["cvx"])} | {str(p["cvx"]) for p in v.get("products") or []}:
+            out.setdefault(cvx, {}).update(windows)
+    return out
+
+
 def _dose_interval(dose: dict) -> DoseInterval | None:
     if dose.get("min_interval_days") is None:
         return None
