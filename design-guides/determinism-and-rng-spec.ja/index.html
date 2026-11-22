@@ -2515,7 +2515,7 @@
 <h2 id="4-変更で乱数をずらさない">4. 変更で乱数をずらさない<a class="headerlink" href="#4-変更で乱数をずらさない" title="Permanent link">&para;</a></h2>
 <p>新しい機能・項目・モジュール・修正は、変えないものの乱数を動かしてはならない。優先順:</p>
 <ol>
-<li><strong>乱数を引かない。</strong> 生成済みのデータかハッシュ(§2 最終行)から値を導く。例: 左右のある画像検査の側(<code>imaging_laterality</code>)、配置オーダーの投与看護師(<code>placed_order_mar.stable_nurse</code>)、Morse 転倒歴項目。</li>
+<li><strong>乱数を引かない。</strong> 生成済みのデータかハッシュ(§2 最終行)から値を導く。例: 左右のある画像検査の側(<code>imaging_laterality</code>)、脳卒中の側(<code>disease.laterality.stroke_weakness_side</code>。病巣側 <code>stroke_lesion_side</code> はその反対側で、入院時診察と頭部画像レポートが共有する滞在ごとの 1 値)、配置オーダーの投与看護師(<code>placed_order_mar.stable_nurse</code>)、Morse 転倒歴項目。</li>
 <li><strong>新しい局所ストリームから引く。</strong> 対象をキーにサブシードを作る(<code>derive_sub_seed(seed, offset, f"{encounter_id}:{specimen}:{n}")</code>)。新モジュールなら新しいオフセットを登録する。</li>
 <li><strong>既存ストリームに引きを挿入しない。</strong> 引きの順序を入れ替えない。新しいデータで引くかどうかを分岐させない。いずれもそのストリームの以降の引きをすべてずらし、背後にキャッシュされた患者(人物キャッシュの F4 メモ化)もずらす。</li>
 </ol>

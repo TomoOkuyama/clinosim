@@ -2515,7 +2515,7 @@
 <h2 id="4-keeping-changes-rng-neutral">4. Keeping changes RNG-neutral<a class="headerlink" href="#4-keeping-changes-rng-neutral" title="Permanent link">&para;</a></h2>
 <p>A new feature, field, module or fix must not move the draws of anything it does not change. In order of preference:</p>
 <ol>
-<li><strong>Draw nothing.</strong> Derive the value from data already generated, or from a hash (§2 last row). Examples: the side of a paired imaging study (<code>imaging_laterality</code>), the nurse giving a placed-order dose (<code>placed_order_mar.stable_nurse</code>), the Morse fall-history item.</li>
+<li><strong>Draw nothing.</strong> Derive the value from data already generated, or from a hash (§2 last row). Examples: the side of a paired imaging study (<code>imaging_laterality</code>), the side of a stroke (<code>disease.laterality.stroke_weakness_side</code>; the lesion side <code>stroke_lesion_side</code> is its opposite, one value per stay shared by the admission exam and the head imaging reports), the nurse giving a placed-order dose (<code>placed_order_mar.stable_nurse</code>), the Morse fall-history item.</li>
 <li><strong>Draw from a new local stream.</strong> Key a sub-seed by the entity (<code>derive_sub_seed(seed, offset, f"{encounter_id}:{specimen}:{n}")</code>). Register a new offset for a new module.</li>
 <li><strong>Never insert a draw into an existing stream</strong>, reorder its draws, or make a draw conditional on new data. All three shift every later draw of that stream. They also shift every patient cached behind it (F4 memoization of the person cache).</li>
 </ol>
