@@ -115,6 +115,11 @@ def compose_progress_subjective_from_state(ctx: NarrativeContext) -> str:
         else t("progress.period_today", lang)
     )
     cur_t, cur_spo2 = _latest(picks, "temperature_celsius"), _latest(picks, "spo2")
+    # Issue #3541: new / persistent is the finding's one state, the same the
+    # Assessment's course line reads.
+    from clinosim.modules.document.narrative._progress_state import finding_states
+
+    states = finding_states(ctx, picks, prev) if picks else {}
     spo2_floor = spo2_low_override(ctx)
     spo2_below = trend.spo2_desaturation_below if spo2_floor is None else spo2_floor
     spo2_recovered = trend.spo2_recovered_at_least if spo2_floor is None else spo2_floor
@@ -125,7 +130,7 @@ def compose_progress_subjective_from_state(ctx: NarrativeContext) -> str:
             parts.append(t("progress.fever_peak_resolved", lang, tmax=tmax, t=now_t, when=when))
         else:
             peak = t("progress.fever_peak", lang, tmax=tmax, when=when) if round(tmax, 1) != round(now_t, 1) else ""
-            if prev_tmax is not None and prev_tmax < trend.fever_c:
+            if states.get(("temperature_celsius", "high")) == "new":
                 parts.append(t("progress.fever_new_onset", lang, t=now_t, peak=peak))
             elif prev_tmax is not None and now_t > prev_tmax + trend.fever_rise_c:
                 parts.append(t("progress.fever_worsening", lang, t=now_t, peak=peak))
@@ -170,7 +175,7 @@ def compose_progress_subjective_from_state(ctx: NarrativeContext) -> str:
         parts.append(t("progress.spo2_recovering", lang, ps=prev_spo2, s=spo2_min))
         abnormal_added = True
 
-    symptom_parts = _progress_symptom_phrases(ctx, picks, prev, lang, when)
+    symptom_parts = _progress_symptom_phrases(ctx, picks, prev, lang, when, states)
     parts.extend(symptom_parts)
     abnormal_added = abnormal_added or bool(symptom_parts)
 
@@ -255,12 +260,21 @@ _SUBJ_PAIN_CHANGE = 2
 _SUBJ_WITHDRAWAL_HR = 100
 
 
-def _progress_symptom_phrases(ctx: NarrativeContext, today: list, prev: list, lang: str, when: str) -> list[str]:
+def _progress_symptom_phrases(
+    ctx: NarrativeContext,
+    today: list,
+    prev: list,
+    lang: str,
+    when: str,
+    states: dict[tuple[str, str], str] | None = None,
+) -> list[str]:
     """Pain trend, consciousness change and withdrawal symptoms from the
     recorded vitals of today vs the previous day (Issue #2095). Consciousness
     is stated on the latest AVPU of each period, the one the Assessment's
     course line judges, with a worse level earlier in the period
-    time-qualified (Issue #3455)."""
+    time-qualified (Issue #3455); new vs persistent is the finding's state
+    shared with the Assessment (Issue #3541), and the pain score quoted is the
+    latest charted one, the reading the nursing record of the period carries."""
     out: list[str] = []
 
     def _max(rows: list, key: str) -> int | None:
@@ -291,7 +305,9 @@ def _progress_symptom_phrases(ctx: NarrativeContext, today: list, prev: list, la
     worst = _worst_avpu(today)
     # Issue #3235: a self-reported score only while the patient can give one
     # (no behavioural pain scale is recorded), named by the disease's pain.
-    pain, prev_pain = _max(today, "pain_score"), _max(prev, "pain_score")
+    cur_pain, before_pain = _latest(today, "pain_score"), _latest(prev, "pain_score")
+    pain = None if cur_pain is None else int(cur_pain)
+    prev_pain = None if before_pain is None else int(before_pain)
     # Issue #3454: a pain score is stated only for a pain with a source (the
     # disease's pain site, a site the chief complaint names, or an operation /
     # procedure done by the note's time), never as a bare "pain".
@@ -313,7 +329,9 @@ def _progress_symptom_phrases(ctx: NarrativeContext, today: list, prev: list, la
             out.append(t("progress.pain_not_self_reportable", lang, pain=label))
 
     if avpu and avpu != "A":
-        key = "progress.confusion_persistent" if prev_avpu and prev_avpu != "A" else "progress.confusion_new"
+        state = (states or {}).get(("consciousness", "high"))
+        persistent = state == "persisting" if state else bool(prev_avpu and prev_avpu != "A")
+        key = "progress.confusion_persistent" if persistent else "progress.confusion_new"
         peak = t("progress.consciousness_peak", lang, w=worst, when=when) if worst != avpu else ""
         out.append(t(key, lang, a=avpu, peak=peak))
     elif avpu == "A" and prev_avpu and prev_avpu != "A":

@@ -268,6 +268,7 @@ clinosim/modules/document/narrative/
   _medication_plan.py                      note_medications / ranked_medication_names / cap_names — the drugs a daily note's plan names, by tier (Issue #3247)
   _nursing_shift_items.py                  nursing_shift_item_lines — the ordered registry of nursing-shift-note items (Issues #3478 and after)
   _progress_course.py                      post_procedure_line / lab_course_lines / diet_line / rehab_line / discharge_planning_line — the hospital course in the daily note
+  _progress_state.py                       finding_states — one state per vital finding of a daily note
   _progress_exam.py                        progress_exam_findings / course_line / consciousness_assessment_line / agreeing_clauses — the daily note's exam and course against the period's vitals
   _progress_symptoms.py                    respiratory_symptom_line — the breathing course in the daily note's Subjective
   _outpatient_results.py                   known_labs / latest_lab_stage / note_time — the results and chronic stages known at an outpatient note
