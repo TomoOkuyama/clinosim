@@ -180,17 +180,17 @@ def test_newborn_replaces_adult_items() -> None:
             nursing_risk_assessments=[_RISK],
         )
     )
-    assert "日齢1。哺乳状況、排尿・排便の回数と性状、臍帯の状態" in ja
+    assert "日齢1。哺乳、排尿・排便、臍帯の所見は記録なし。" in ja
     assert "出生体重 3.2 kg。" in ja
     # Only the bilirubin measured by the shift's end (day 1, 10:00; the day-2 value is after 17:00 of day 1).
-    assert "経皮ビリルビン 7.8 mg/dL" in ja and "10.0" not in ja
+    assert "日齢1の経皮ビリルビン測定値 7.8 mg/dL" in ja and "10.0" not in ja
     for adult in ("食事:", "絶食", "ADL:", "褥瘡", "転倒リスク"):
         assert adult not in ja
     for tag in ("ctx.newborn.care", "ctx.newborn.birth_weight", "ctx.newborn.bilirubin"):
         assert tag in facts
     en, _ = _note(_baby("en", 2, newborn_workup=_BILI))
-    assert "Day of life 2. Observation of feeding, voiding and stooling" in en
-    assert "transcutaneous bilirubin 10.0 mg/dL on day of life 2" in en
+    assert "Day of life 2. Feeding, voiding and stooling, and umbilical-cord findings not recorded." in en
+    assert "Transcutaneous bilirubin on day of life 2: 10.0 mg/dL." in en
     # Adult notes never get the newborn items.
     assert "日齢" not in _note(_ctx("ja", 1))[0]
 

@@ -389,7 +389,7 @@ system: |
     - newborn_workup_summary    admission_hp のみ (Issue #1404)。新生児
                               admission_hp variant 用の one-line anchor:
                               Apgar 1/5 分、AABR / タンデム MS / CCHD
-                              スクリーン flag、総ビリルビン最高値、
+                              スクリーン flag、経皮ビリルビン最終測定値 (日齢つき)、
                               ビタミン K + 眼科的予防投与 flag。存在
                               が「出生入院である」signal — per-doc-type
                               の新生児 admission_hp block を参照。
@@ -779,8 +779,8 @@ system: |
       * assessment_and_plan: `newborn_workup_summary` に列挙された全
         workup 要素を cite する — ビタミン K 予防投与、AABR 聴覚
         スクリーン結果 (合格 / refer / pending)、タンデム MS 代謝
-        異常症スクリーン提出 (結果は 5-7 日で判明)、総ビリルビン
-        最高値と光線療法閾値 (AAP 2022) の対応、CCHD SpO2 の
+        異常症スクリーン提出 (結果は 5-7 日で判明)、経皮ビリルビン
+        の値と光線療法閾値 (AAP 2022) の対応、CCHD SpO2 の
         pre/post-ductal 読み値 (両側 ≥ 95 % かつ差 < 3 % で合格)、
         眼科的予防投与。成人向けの「予定入院期間」等の見出しを
         verbatim で emit しない — 新生児 LOS は新生児室クリニカルパス

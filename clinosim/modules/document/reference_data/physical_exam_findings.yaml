@@ -130,6 +130,16 @@ neonatal:
     neurological:
       en: "Normal tone; suck, rooting, grasp and Moro reflexes present"
       ja: "筋緊張良好、吸啜反射・探索反射・把握反射・モロー反射あり"
+  # Birth-weight bands named in the newborn H&P impression (Issue #3565): the
+  # band applies below ``below_kg`` (ascending); a weight at or above the last
+  # bound has no band. ICD-10 (WHO, 2019 version) P07.0 "Extremely low birth
+  # weight: birth weight 999 g or less" and P07.1 "Other low birth weight: birth
+  # weight 1000-2499 g" (read at icd.who.int/browse10/2019/en, 2026-11-22).
+  birth_weight_bands:
+    - below_kg: 1.0
+      text: {en: "extremely low birth weight", ja: "超低出生体重児"}
+    - below_kg: 2.5
+      text: {en: "low birth weight", ja: "低出生体重児"}
   jaundice:
     - min_mg_dl: 0
       text: {en: "No jaundice", ja: "黄疸なし"}

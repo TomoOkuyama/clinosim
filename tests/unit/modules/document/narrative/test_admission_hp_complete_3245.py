@@ -164,7 +164,9 @@ def test_newborn_screening_is_cited_by_the_notes_after_it_resulted() -> None:
     assert newborn_screening_to_date(ctx) == ""
     ctx.authored_datetime = datetime(2025, 12, 24, 12, 0)
     text = newborn_screening_to_date(ctx)
-    assert "AABR hearing screen: pass" in text and "peak total bilirubin 6.2" in text and "Apgar" not in text, text
+    assert "AABR hearing screen: pass" in text and "bilirubin" not in text and "Apgar" not in text, text
+    with_bili = newborn_screening_to_date(ctx, with_bilirubin=True)
+    assert "last transcutaneous bilirubin 6.2 mg/dL (day of life 1)" in with_bili, with_bili
     assert newborn_workup_known_at(ctx.newborn_workup, ctx.authored_datetime)["has_aabr"]
     assert newborn_screening_to_date(_ctx("acute_mi", "en")) == ""
 

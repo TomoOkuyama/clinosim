@@ -97,7 +97,7 @@ items:
     skip_neonate: true
   - id: newborn_care
     source: patient.date_of_birth
-    rule: a newborn; the day of life, and the routine feeding, voiding / stooling and umbilical-cord observation (no intake, count or finding is stated, as the record holds none)
+    rule: a newborn; the day of life, and that the feeding, voiding / stooling and umbilical-cord findings are not recorded (the record holds none; no intake, count or finding is stated)
     fact: ctx.newborn.care
     skip_neonate: false
     only_neonate: true
@@ -109,7 +109,7 @@ items:
     only_neonate: true
   - id: newborn_jaundice
     source: extensions.newborn.bilirubin[]
-    rule: a transcutaneous bilirubin was measured by the shift's end; the latest value with its day of life, and observation of jaundice
+    rule: a transcutaneous bilirubin was measured within the shift; that value with its day of life, stated once (a later shift with no new reading says nothing)
     fact: ctx.newborn.bilirubin
     skip_neonate: false
     only_neonate: true

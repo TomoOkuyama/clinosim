@@ -232,7 +232,7 @@ def test_render_summary_en_full() -> None:
     assert "Apgar 8(1 min) / 9(5 min)" in out
     assert "AABR hearing screen performed" in out
     assert "tandem-MS metabolic screen submitted" in out
-    assert "peak total bilirubin 11.4 mg/dL" in out
+    assert "peak transcutaneous bilirubin 11.4 mg/dL" in out
     assert "CCHD SpO2 RU 98% / LE 97%" in out
     assert "Vitamin K administered" in out
     assert "ophthalmic prophylaxis administered" in out
@@ -244,7 +244,7 @@ def test_render_summary_ja_full() -> None:
     assert "AABR 聴覚スクリーン実施" in out
     assert "提出" not in out.split("タンデム")[0]
     assert "タンデム MS 代謝異常症スクリーン提出済" in out
-    assert "総ビリルビン最高値 11.4 mg/dL" in out
+    assert "経皮ビリルビン最高値 11.4 mg/dL" in out
     assert "CCHD SpO2 右上肢 98% / 下肢 97%" in out
     assert "ビタミン K 投与済" in out
     assert "眼科的予防投与済" in out
