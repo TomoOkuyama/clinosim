@@ -236,8 +236,7 @@ def _phrase(key: str, lang: str, **kwargs: Any) -> str:
 def _lab_entry(lab: Any, lang: str) -> str:
     from clinosim.codes.ucum import ucum_prose
     from clinosim.locale.loader import lab_display
-    from clinosim.modules.document.narrative._localization import _localize_lab_flag
-    from clinosim.modules.observation.engine import format_lab_value
+    from clinosim.modules.document.narrative._localization import _localize_lab_flag, lab_value_text
 
     raw = str(_o(lab, "lab_name", "") or "")
     unit = str(_o(lab, "unit", "") or "")
@@ -245,7 +244,7 @@ def _lab_entry(lab: Any, lang: str) -> str:
     name = lab_display(raw, lang)
     if unit_disp and unit_disp.lower() == str(name).lower():
         unit_disp = ""
-    text = f"{name} {format_lab_value(raw, _o(lab, 'value', None), unit)}" + (f" {unit_disp}" if unit_disp else "")
+    text = f"{name} {lab_value_text(raw, _o(lab, 'value', None), unit, lang)}" + (f" {unit_disp}" if unit_disp else "")
     flag = str(_o(lab, "flag", "") or "")
     return f"{text} [{_localize_lab_flag(flag, lang)}]" if _abnormal(lab) else text
 

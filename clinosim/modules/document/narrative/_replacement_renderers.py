@@ -25,6 +25,7 @@ from clinosim.locale.free_text import localize_free_text
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import lab_display
 from clinosim.modules._shared import get_attr_or_key as _get
+from clinosim.modules.document.narrative._localization import lab_value_text
 from clinosim.modules.document.narrative._replacement_localization import (
     localize_oxygen_device,
     localize_token,
@@ -423,7 +424,7 @@ def _render_lab_carry_forward(
         display_name = lab_display(str(name), lang)
         # Day is 0-indexed; caller-facing convention is 1-indexed hospital day.
         display_day = (d + 1) if d is not None else "?"
-        val_str = f"{val}"
+        val_str = lab_value_text(str(name), val, "", lang) if isinstance(val, str) else f"{val}"
         piece = f"{display_name} {val_str}"
         if unit:
             # Phase 1d-79: strip UCUM brackets / annotations for LLM context
