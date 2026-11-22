@@ -2396,6 +2396,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
+<li><code>clinosim simulate</code> without <code>--end</code> ends the simulation window on the previous day instead of today, so the snapshot day is complete and no generated record (a result, dose, note or discharge scheduled later that day) is dated after the moment the cohort is generated; <code>--start</code> still defaults to one year before the end (#3618).</li>
 <li>JP output: the antibody-screen Observation of a type-and-screen order no longer declares the JP-CLINS eCS lab-result profile, which it cannot satisfy (it carries LOINC and SNOMED CT codings only, like the ABO and RhD Observations already excluded); a cohort that resulted an antibody screen failed the JP-CLINS lab compliance gate. FHIR-output only.</li>
 <li>After an intubation the stay is now ventilated until an extubation rule is met (<code>reference_data/oxygen_course.yaml</code>, <code>ventilation</code>) or until death: the vital signs carry the ventilator device, the diet is NPO, no discharge happens on a ventilated day, the ventilator device record ends at the extubation, and the progress and nursing shift notes state the mechanical ventilation instead of room air or no oxygen. The final vital signs before a death keep the oxygen device in force. CIF drift, a MINOR-class change.</li>
 </ul>

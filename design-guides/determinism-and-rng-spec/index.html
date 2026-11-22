@@ -2536,7 +2536,7 @@
 <td><code>tests/unit/test_wallclock_sentinel_defaults.py</code>, <code>tests/unit/test_fhir_bundle_no_wallclock.py</code></td>
 </tr>
 <tr>
-<td>The wall clock is read only for run metadata: the Bulk Data manifest <code>transactionTime</code>, <code>_generator_metadata.json</code>, the CIF metadata <code>generation_timestamp</code>, the narrative version's <code>generated_at</code>, CLI defaults (<code>--end</code> defaults to today) and reports. These values are not part of the byte-diff.</td>
+<td>The wall clock is read only for run metadata: the Bulk Data manifest <code>transactionTime</code>, <code>_generator_metadata.json</code>, the CIF metadata <code>generation_timestamp</code>, the narrative version's <code>generated_at</code>, CLI defaults (<code>--end</code> defaults to yesterday) and reports. These values are not part of the byte-diff.</td>
 <td>the files allowed in the guard</td>
 <td><code>tests/unit/test_determinism_spec_guards.py::test_wall_clock_only_in_run_metadata</code></td>
 </tr>

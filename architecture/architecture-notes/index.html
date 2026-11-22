@@ -3242,7 +3242,7 @@ systems for currently admitted patients), this was a significant gap.</p>
 <h3 id="decision-ad-32">Decision (AD-32)<a class="headerlink" href="#decision-ad-32" title="Permanent link">&para;</a></h3>
 <p>Introduce <strong>snapshot date</strong> semantics:</p>
 <ul>
-<li><code>--end YYYY-MM-DD</code> flag = the snapshot date (defaults to today)</li>
+<li><code>--end YYYY-MM-DD</code> flag = the snapshot date (defaults to yesterday, so the snapshot day is complete)</li>
 <li><code>--start YYYY-MM-DD</code> defaults to <code>--end - 1 year</code></li>
 <li>No life events generated past the snapshot date</li>
 <li>Inpatients whose <code>discharge_datetime</code> would fall after the snapshot date are

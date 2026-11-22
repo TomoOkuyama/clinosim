@@ -3252,7 +3252,7 @@ system) にとってこれは大きなギャップだった。</p>
 <h3 id="決定-ad-32">決定 (AD-32)<a class="headerlink" href="#決定-ad-32" title="Permanent link">&para;</a></h3>
 <p><strong>snapshot 日付</strong> セマンティクスを導入:</p>
 <ul>
-<li><code>--end YYYY-MM-DD</code> フラグ = snapshot 日付 (デフォルトは今日)</li>
+<li><code>--end YYYY-MM-DD</code> フラグ = snapshot 日付 (デフォルトは前日。snapshot 日を 1 日分そろえるため)</li>
 <li><code>--start YYYY-MM-DD</code> デフォルトは <code>--end - 1 年</code></li>
 <li>snapshot 日付以降のライフイベント生成なし</li>
 <li><code>discharge_datetime</code> が snapshot 日付以降になる入院患者は切り
