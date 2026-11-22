@@ -619,7 +619,7 @@ complications:
     detection:
       test: "clinical_exam_and_CT"
       finding: "crepitus_or_gas_on_imaging"
-    actions: ["emergent_surgical_debridement", "icu_transfer", "broad_spectrum_antibiotics"]
+    actions: ["emergent_surgical_debridement", "icu_transfer", "start_broad_spectrum_antibiotic"]
 
   - name: "sepsis"
     description: "Systemic inflammatory response from cellulitis"

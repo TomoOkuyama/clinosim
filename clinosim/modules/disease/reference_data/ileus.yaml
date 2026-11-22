@@ -584,7 +584,7 @@ complications:
     detection:
       test: "ct_abdomen"
       finding: "free_air_or_extraluminal_contrast"
-    actions: ["emergent_laparotomy", "broad_spectrum_antibiotics"]
+    actions: ["emergent_laparotomy", "start_broad_spectrum_antibiotic"]
     cascade: ["peritonitis"]
 
   - name: "peritonitis"
@@ -596,7 +596,7 @@ complications:
       inflammation_level: 0.25
       perfusion_status: -0.15
       renal_function: -0.10
-    actions: ["emergent_surgery", "broad_spectrum_antibiotics", "icu_transfer"]
+    actions: ["emergent_surgery", "start_broad_spectrum_antibiotic", "icu_transfer"]
 
   - name: "aspiration_pneumonia"
     description: "Aspiration from vomiting"
@@ -612,7 +612,7 @@ complications:
     detection:
       test: "chest_xray"
       finding: "aspiration_infiltrate"
-    actions: ["antibiotics", "respiratory_support"]
+    actions: ["start_antibiotic", "respiratory_support"]
 
   - name: "acute_kidney_injury"
     description: "Pre-renal AKI from dehydration and third-spacing"

@@ -858,7 +858,7 @@ complications:
     detection:
       test: "chest_xray"
       finding: "new_infiltrate"
-    actions: ["start_antibiotics", "NPO", "speech_therapy_reassessment"]
+    actions: ["start_antibiotic", "NPO", "speech_therapy_reassessment"]
 
   - name: "dvt"
     description: "Deep vein thrombosis from immobility and paresis"
@@ -950,7 +950,7 @@ complications:
     detection:
       test: "urinalysis_and_culture"
       finding: "pyuria_and_bacteriuria"
-    actions: ["remove_catheter_if_possible", "start_antibiotics"]
+    actions: ["remove_catheter_if_possible", "start_antibiotic"]
 
   - name: "delirium"
     description: "Acute confusion, especially in elderly stroke patients"

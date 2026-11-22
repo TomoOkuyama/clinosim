@@ -866,7 +866,7 @@ complications:
     detection:
       test: "chest_xray"
       finding: "new_infiltrate"
-    actions: ["start_antibiotics", "supplemental_O2", "consider_intubation_if_severe"]
+    actions: ["start_antibiotic", "supplemental_O2", "consider_intubation_if_severe"]
 
   - name: "cardiac_arrhythmia"
     description: "Arrhythmia from K/Mg shifts or severe acidosis"

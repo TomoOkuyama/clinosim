@@ -226,7 +226,7 @@ complications:
     detection:
       test: "CRP"
       finding: "rising_crp"
-    actions: ["order_wound_culture", "start_antibiotics"]
+    actions: ["order_wound_culture", "start_antibiotic"]
 
 order_protocols:
   admission_orders:

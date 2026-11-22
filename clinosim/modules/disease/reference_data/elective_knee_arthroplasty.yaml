@@ -120,7 +120,7 @@ complications:
     detection:
       test: "CRP"
       finding: "rising_inflammatory_markers"
-    actions: ["order_wound_culture", "start_antibiotics"]
+    actions: ["order_wound_culture", "start_antibiotic"]
 
   - name: "postoperative_hemorrhage"
     description: "Post-operative blood loss with symptomatic anaemia"

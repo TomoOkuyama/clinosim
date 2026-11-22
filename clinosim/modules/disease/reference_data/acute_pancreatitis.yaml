@@ -576,7 +576,7 @@ course_archetypes:
     triggers:
       - day: 7
         condition: "persistent_fever_and_elevated_WBC"
-        actions: ["ct_guided_fna", "start_antibiotics"]
+        actions: ["ct_guided_fna", "start_antibiotic"]
 
   gradual_deterioration:
     probability: 0.07

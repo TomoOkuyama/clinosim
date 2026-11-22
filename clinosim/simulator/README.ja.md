@@ -158,6 +158,9 @@ clinosim/simulator/
   delirium.py            せん妄リスク (delirium_susceptibility) が高い患者の意識レベル低下
                          (AVPU) が数日続いた場合にせん妄を導出: 合併症エントリ (発症・
                          持続・回復) と副診断 ICD-10-CM / ICD-10 F05。乱数なし (Issue #3519)
+  complication_actions.py  合併症に疾患 YAML が宣言する抗菌薬 `actions`: 表記を 1 つの正規
+                         キーに統一し、合併症ごとに指定したプロトコルの第一選択抗菌薬を
+                         発症時に薬剤安全性ゲート経由で発注。乱数なし (Issue #3543)
   vasopressor_initiation.py  記録された平均血圧が輸液後も低い場合に昇圧薬を開始する
                          (固定病日ではなく生理状態駆動, Issue #3332)
   aki_response.py        急性腎障害 (KDIGO のクレアチニン基準): 活動期間中の薬剤保留
@@ -279,6 +282,7 @@ CLI サブコマンドハンドラ (11 ファイル):
   reference_data/renal_medication_rules.yaml  腎機能別投与規則 (medication_pipeline.py, discharge_rx.py)
   reference_data/statin_monitoring.yaml       脂質モニタリング / スタチン調整 (statin_monitoring.py)
   reference_data/vasoactive_hold.yaml         昇圧薬・強心薬の持続投与中に保留する薬 (medication_pipeline.py)
+  reference_data/complication_actions.yaml    合併症アクションの正規キーと、感染性合併症ごとの経験的治療プロトコル (complication_actions.py)
   reference_data/vasopressor_initiation.yaml  低血圧と輸液後の昇圧薬開始条件 (vasopressor_initiation.py)
   reference_data/vasoactive_weaning.yaml      昇圧薬・強心薬の離脱条件と離脱後の退院判定 (vasoactive_support.py)
   reference_data/oxygen_course.yaml           入院中の補助酸素を中止する条件と人工呼吸の抜管条件 (oxygen_course.py)

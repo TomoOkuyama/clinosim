@@ -148,7 +148,7 @@ complications:
     detection:
       test: "CRP"
       finding: "wound_infection"
-    actions: ["order_wound_culture", "start_antibiotics"]
+    actions: ["order_wound_culture", "start_antibiotic"]
 
   - name: "wound_dehiscence"
     description: "Wound breakdown requiring reoperation / repeat closure"

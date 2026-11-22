@@ -688,7 +688,7 @@ complications:
     detection:
       test: "clinical_and_labs"
       finding: "Charcot_triad_fever_jaundice_rlq_pain"
-    actions: ["emergent_ercp", "broad_spectrum_antibiotics"]
+    actions: ["emergent_ercp", "start_broad_spectrum_antibiotic"]
     cascade: ["sepsis"]
 
   - name: "wound_infection"

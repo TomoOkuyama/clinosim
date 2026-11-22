@@ -196,7 +196,7 @@ complications:
     detection:
       test: "wound_culture"
       finding: "wound_infection"
-    actions: ["wound_culture", "start_antibiotics"]
+    actions: ["wound_culture", "start_antibiotic"]
 
 order_protocols:
   admission_orders:

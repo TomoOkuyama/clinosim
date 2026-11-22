@@ -605,7 +605,7 @@ complications:
     detection:
       test: "ct_abdomen_pelvis"
       finding: "rim_enhancing_fluid_collection"
-    actions: ["percutaneous_drainage", "antibiotics", "repeat_imaging"]
+    actions: ["percutaneous_drainage", "start_antibiotic", "repeat_imaging"]
 
   - name: "postoperative_ileus"
     description: "Paralytic ileus after surgery"
@@ -633,7 +633,7 @@ complications:
     detection:
       test: "ct_abdomen"
       finding: "inflammation_at_cecal_base"
-    actions: ["antibiotics", "completion_appendectomy"]
+    actions: ["start_antibiotic", "completion_appendectomy"]
 
   - name: "dvt"
     description: "Deep vein thrombosis"

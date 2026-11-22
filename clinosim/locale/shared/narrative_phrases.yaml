@@ -3715,6 +3715,9 @@ order_intent:
   vasopressor_for_hypotension:
     ja: "第{day}病日 輸液後も平均血圧が{target}mmHg未満のため昇圧薬を開始"
     en: "Day {day}: vasopressor started for mean arterial pressure below {target} mmHg despite fluids"
+  complication_antibiotic:
+    ja: "第{day}病日 {complication}の発症に対し抗菌薬を開始"
+    en: "Day {day}: antibiotic started for {complication}"
   escalation:
     ja: "治療エスカレーション第{day}病日: {drug} ({indication})"
     en: "Escalation day {day}: {drug} ({indication})"

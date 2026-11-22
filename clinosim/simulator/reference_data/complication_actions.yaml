@@ -1,0 +1,89 @@
+# What the `actions` a disease YAML declares on a complication do (Issue #3543).
+#
+# Read by clinosim/simulator/complication_actions.py and applied in the
+# inpatient daily loop (simulator/daily_loop.py `_apply_complications`).
+#
+# Only `icu_transfer` and the antibiotic actions below are executed; every
+# other action string of a complication is a clinical note that the loop does
+# not act on (that is a known limit, not a statement that the care is absent).
+#
+#   - `aliases`: one canonical spelling per action. The disease YAMLs are
+#     written with the canonical key; an alias is still read as its canonical
+#     key (a guard test keeps aliases out of the YAMLs).
+#   - `antibiotic_actions`: the executed antibiotic actions. Each maps a
+#     complication to the disease protocol whose `drugs.first_line` is its
+#     empirical regimen. The regimen is not authored here: it is the first
+#     antibiotic entry (catalog class `antibiotic`) of that protocol's
+#     first-line block for the stay's country, with the dose, route and source
+#     that protocol documents. One agent is ordered: the later entries of a
+#     block are alternatives or add-ons (a second first-line drug, atypical
+#     coverage), and an entry with a `probability` (an add-on chosen by a draw)
+#     is skipped, so the choice is deterministic. The drug-safety gate
+#     (allergy, interaction, disease rules) gives an alternative when the agent
+#     is ruled out.
+#       start_antibiotic                 the infection's own first-line agent
+#                                        (pneumonia, urinary tract, skin and
+#                                        soft tissue).
+#       start_broad_spectrum_antibiotic  an infection of an unknown or mixed
+#                                        source (sepsis, peritonitis,
+#                                        cholangitis, necrotising infection,
+#                                        hospital-acquired pneumonia): the
+#                                        empirical broad-spectrum agent of the
+#                                        sepsis protocol (first-line, source
+#                                        and renal adjustments documented
+#                                        there).
+#   - `order_hour`: the hour of the onset day the order is written (the onset
+#     is stamped at noon).
+#   - `no_regimen`: complications that declare an executed antibiotic action
+#     but have no regimen in the protocols; they get no order (an abscess or a
+#     stump appendicitis needs a source-specific plan the protocols do not
+#     carry).
+#   - `not_executed_antibiotic_actions`: antibiotic-related actions that are
+#     not a first antibiotic order (a change of a running antibiotic, a stop,
+#     a course length, a test) and so are not executed.
+
+metadata:
+  kind: reference
+  name: complication_actions
+  source: clinosim
+
+order_hour: 13
+
+aliases:
+  start_antibiotics: start_antibiotic
+  antibiotics: start_antibiotic
+  broad_spectrum_antibiotics: start_broad_spectrum_antibiotic
+  broad_spectrum_antibiotic: start_broad_spectrum_antibiotic
+
+antibiotic_actions:
+  start_antibiotic:
+    aspiration_pneumonia: aspiration_pneumonia
+    urinary_tract_infection: urinary_tract_infection
+    surgical_site_infection: cellulitis
+    wound_infection: cellulitis
+    bacterial_superinfection: bacterial_pneumonia
+  start_broad_spectrum_antibiotic:
+    hospital_acquired_pneumonia: sepsis
+    sepsis: sepsis
+    peritonitis: sepsis
+    bowel_perforation: sepsis
+    cholangitis: sepsis
+    necrotizing_fasciitis: sepsis
+
+no_regimen:
+  - intra_abdominal_abscess
+  - stump_appendicitis
+
+not_executed_antibiotic_actions:
+  - add_antibiotic
+  - adjust_antibiotic_dose
+  - antibiotics_carbapenem
+  - antibiotics_if_cellulitis
+  - confirm_antibiotic_sensitivity
+  - escalate_antibiotic
+  - escalate_antibiotics
+  - prolonged_antibiotics_4_6_weeks
+  - prophylactic_antibiotic_discussion
+  - stop_offending_antibiotic
+  - stop_offending_antibiotic_if_possible
+  - targeted_antibiotic
