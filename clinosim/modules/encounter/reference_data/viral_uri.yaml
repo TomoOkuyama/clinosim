@@ -109,15 +109,15 @@ narrative:
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}, temperature {temp}C'
-        cardiovascular: Normal to mildly tachycardic, regular heart sounds
+        cardiovascular: "{cardiac_rate_en}, regular heart sounds"
         respiratory: Respiratory rate normal, lungs clear (no findings of pneumonia)
-        abdominal: Flat, soft, non-tender
+        abdominal: 'Abdomen: flat, soft, non-tender'
         neurological: No paralysis, no meningeal signs
       ja:
         general: '意識清明、{appearance_ja}、体温{temp}℃'
-        cardiovascular: 心拍数正常〜軽度頻脈、心音整
+        cardiovascular: "{cardiac_rate_ja}、心音整"
         respiratory: 呼吸数正常、肺野清明（肺炎所見なし）
-        abdominal: 平坦、軟、圧痛なし
+        abdominal: 腹部：平坦、軟、圧痛なし
         neurological: 麻痺なし、髄膜刺激徴候なし
     ed_workup_summary:
       en: 'Rapid strep test: {strep_result_en}. {lab_summary_en}. Chest X-ray (if cough prominent): {cxr_result_en}.'

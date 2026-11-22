@@ -161,6 +161,7 @@ _KNOWN_PLACEHOLDERS = frozenset({"chief_complaint_ja", "chief_complaint_en"})
 # appearance by triage level).
 _ONSET_PREFIX = "onset_"
 _APPEARANCE_PREFIX = "appearance_"
+_CARDIAC_RATE_PREFIX = "cardiac_rate_"
 
 
 def symptom_onset(ctx: NarrativeContext) -> tuple[str, int]:
@@ -195,6 +196,18 @@ def _appearance_phrase(ctx: NarrativeContext, lang: str) -> str:
     from clinosim.modules.document.narrative.renderers._ed_helpers import ed_triage_level
 
     return t(f"ed_appearance.level_{ed_triage_level(ctx)}", lang)
+
+
+def _cardiac_rate_phrase(ctx: NarrativeContext, lang: str) -> str:
+    """Heart-rate statement of the ED exam, from the arrival reading's state
+    against the same age-banded range the exam-agreement check uses, or ``""``
+    when no heart rate is recorded."""
+    from clinosim.modules.document.narrative.renderers._exam_agreement import arrival_vital_states
+
+    if not ctx.vitals:
+        return ""
+    state = arrival_vital_states(ctx.vitals[0], ctx).get("heart_rate")
+    return t(f"ed_heart_rate.{state}", lang) if state else ""
 
 
 def _variant_placeholders(fields: set[str], ctx: NarrativeContext) -> dict[str, str]:
@@ -262,6 +275,10 @@ def _language_placeholders(fields: set[str], ctx: NarrativeContext) -> dict[str,
         elif name.startswith(_ONSET_PREFIX):
             onset = onset or symptom_onset(ctx)
             resolved[name] = _onset_phrase(onset[0], onset[1], name.removeprefix(_ONSET_PREFIX))
+        elif name.startswith(_CARDIAC_RATE_PREFIX):
+            phrase = _cardiac_rate_phrase(ctx, name.removeprefix(_CARDIAC_RATE_PREFIX))
+            if phrase:
+                resolved[name] = phrase
         elif name.startswith(_APPEARANCE_PREFIX):
             phrase = _appearance_phrase(ctx, name.removeprefix(_APPEARANCE_PREFIX))
             if phrase:

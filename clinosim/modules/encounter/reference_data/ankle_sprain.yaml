@@ -76,16 +76,14 @@ narrative:
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
-        cardiovascular: Heart rate normal
+        cardiovascular: "{cardiac_rate_en}"
         respiratory: Respiratory rate normal
-        abdominal: 'Abdomen: assessment not indicated'
         musculoskeletal: '{ankle__side_en} ankle: swelling (+), ecchymosis ({ankle__ecchymosis_en}), tenderness over anterior talofibular ligament (+), malleolar/calcaneal tenderness ({ankle__bone_pain_en}). Limited ROM.'
         neurological: Distal neurovascular status intact
       ja:
         general: '意識清明、{appearance_ja}'
-        cardiovascular: 心拍数正常
+        cardiovascular: "{cardiac_rate_ja}"
         respiratory: 呼吸数正常
-        abdominal: 腹部：評価不要
         musculoskeletal: '{ankle__side_ja}足関節：腫脹（+）、皮下出血（{ankle__ecchymosis_ja}）、前距腓靭帯部圧痛（+）、踵骨・内外くるぶし圧痛（{ankle__bone_pain_ja}）。ROM制限あり。'
         neurological: 遠位神経・血管正常
     variants:

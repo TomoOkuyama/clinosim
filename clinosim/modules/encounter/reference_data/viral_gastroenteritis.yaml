@@ -79,10 +79,10 @@ narrative:
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
-        abdominal: "Soft abdomen with mild diffuse tenderness and hyperactive bowel sounds; no guarding or rebound"
+        abdominal: "Abdomen: soft abdomen with mild diffuse tenderness and hyperactive bowel sounds; no guarding or rebound"
       ja:
         general: '意識清明、{appearance_ja}'
-        abdominal: "腹部は軟、びまん性の軽度圧痛と腸音亢進あり、筋性防御・反跳痛なし"
+        abdominal: "腹部：腹部は軟、びまん性の軽度圧痛と腸音亢進あり、筋性防御・反跳痛なし"
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

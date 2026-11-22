@@ -472,6 +472,20 @@ ed_appearance:
     ja: "苦痛様顔貌なし"
     en: "in no acute distress"
 
+# `{cardiac_rate_<lang>}` placeholder of the ED physical exam: the heart-rate
+# statement follows the arrival reading's state (low / normal / high against the
+# age-banded range of the ED note), never a fixed range phrase.
+ed_heart_rate:
+  normal:
+    ja: "心拍数正常"
+    en: "heart rate normal"
+  high:
+    ja: "頻脈"
+    en: "tachycardic"
+  low:
+    ja: "徐脈"
+    en: "bradycardic"
+
 # ED-note physical-exam vitals prepend (Phase 1d-37, Issue #979).
 # Prepends a vitals prose line before the body-system findings; only the
 # ED note of both locales (Issue #3244). Every phrase carries English (Issue #2395).
@@ -1032,7 +1046,7 @@ nursing_shift:
     ja: "記録者: {name}"
     en: "Recorded by: {name}"
   o2_device_with_flow:
-    ja: "酸素投与: {device} {flow} L/min"
+    ja: "酸素投与: {device} {flow} L/分"
     en: "{device} {flow} L/min"
   on_ventilator:
     ja: "気管挿管、人工呼吸器管理中"
