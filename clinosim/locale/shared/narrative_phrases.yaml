@@ -1051,6 +1051,9 @@ nursing_shift_items:
     generic:
       ja: "疼痛"
       en: "Pain"
+    observed:
+      ja: "意識レベル低下のため疼痛の自己申告は得られず、表情・体動の観察で評価。"
+      en: "Pain not self-reportable at the decreased level of consciousness; assessed by observation of expression and movement."
     none:
       ja: "疼痛の訴えなし (NRS 0)。"
       en: "No pain reported (NRS 0)."
@@ -1119,6 +1122,12 @@ nursing_shift_items:
     refused_reason:
       ja: "{drug}{act}を拒否 ({reason})。"
       en: "Patient refused {drug} {act} ({reason})."
+    unable_oral:
+      ja: "{drug}{act}は意識レベル低下のため内服できず未実施。"
+      en: "{drug} {act} not given: unable to take oral medication at the decreased level of consciousness."
+    unable_other:
+      ja: "{drug}{act}は意識レベル低下のため未実施。"
+      en: "{drug} {act} not given at the decreased level of consciousness."
     unavailable:
       ja: "{drug}{act}は薬剤の準備ができず未実施。"
       en: "{drug} {act} not given: drug not available."
@@ -1191,6 +1200,9 @@ nursing_shift_items:
     line:
       ja: "ADL: Barthel 指数 {score}/100 ({band})、{detail}。必要な介助を実施。"
       en: "ADL: Barthel Index {score}/100 ({band}); {detail}. Assistance provided as needed."
+    impaired:
+      ja: "ADL: 意識レベル低下のため移動・排泄とも全介助。"
+      en: "ADL: fully dependent on help for mobility and toileting at the decreased level of consciousness."
     line_plain:
       ja: "ADL: Barthel 指数 {score}/100 ({band})。必要な介助を実施。"
       en: "ADL: Barthel Index {score}/100 ({band}). Assistance provided as needed."

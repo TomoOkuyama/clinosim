@@ -60,7 +60,9 @@ trend:
 # AVPU level of the period is one of these (Issue #3455: the same reading the
 # consciousness line and the Assessment's course use). A patient who responds only to
 # pain or not at all cannot self-report; clinosim records no behavioural pain
-# scale (CPOT / BPS / PAINAD), so no pain score is quoted then.
+# scale (CPOT / BPS / PAINAD), so no pain score is quoted then. The nursing shift
+# note reads the same gate (Issue #3536): below it, no NRS, no refusal of a dose,
+# and feeding / mobility are stated as full assistance, not independence.
 self_report_avpu: [A, V]
 
 # Extreme values of the period printed after the latest values, when beyond

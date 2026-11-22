@@ -236,3 +236,65 @@ def test_every_item_has_a_function_and_phrases_in_ja_and_en() -> None:
         assert t(f"barthel_band.{band}", "ja") != f"barthel_band.{band}"
     for _, band in cfg.braden_bands:
         assert t(f"morse_band.{band}", "ja") != f"morse_band.{band}"
+
+
+# Issue #3536: the self-report and independence items follow the shift's consciousness.
+def _vit(hour: int, avpu: str, pain: int | None = 2, day: int = 0) -> dict:
+    return {
+        "timestamp": (datetime(2026, 8, 31) + timedelta(days=day, hours=hour)).isoformat(),
+        "consciousness_level": avpu,
+        "pain_score": pain,
+    }
+
+
+_ADL_IND = {"date": "2026-08-31", "barthel_score": 95, "feeding": 10, "mobility": 15, "toilet_use": 10}
+
+
+def _gate_ctx(lang: str, avpu: str, **kw) -> SimpleNamespace:
+    refused = {
+        "status": "refused",
+        "drug_name": "amlodipine 5mg",
+        "route": "PO",
+        "scheduled_datetime": "2026-08-31T14:00:00",
+        "refusal_reason": "",
+    }
+    return _ctx(
+        lang,
+        0,
+        vitals=[_vit(11, avpu), _vit(13, avpu)],
+        orders=[_diet("regular", "2026-08-31T07:00:00")],
+        adl_assessments=[_ADL_IND],
+        medications=[refused],
+        **kw,
+    )
+
+
+@pytest.mark.parametrize("avpu", ["P", "U"])
+def test_unresponsive_shift_has_no_self_report_or_independence_ja(avpu: str) -> None:
+    text, _ = _note(_gate_ctx("ja", avpu))
+    for bad in ("NRS", "拒否", "自立", "Barthel"):
+        assert bad not in text, (bad, text)
+    assert "全介助" in text and "観察" in text and "内服できず" in text
+
+
+@pytest.mark.parametrize("avpu", ["P", "U"])
+def test_unresponsive_shift_has_no_self_report_or_independence_en(avpu: str) -> None:
+    text, _ = _note(_gate_ctx("en", avpu))
+    for bad in ("NRS", "refused", "independent", "Barthel"):
+        assert bad not in text, (bad, text)
+    assert "dependent on help" in text and "unable to take oral medication" in text
+
+
+@pytest.mark.parametrize("avpu", ["A", "V"])
+def test_responsive_shift_keeps_self_report_and_adl(avpu: str) -> None:
+    text, _ = _note(_gate_ctx("en", avpu))
+    assert "NRS 2" in text and "Patient refused" in text and "Barthel Index 95/100" in text
+    assert "feeding independent" in text
+
+
+def test_refusal_judged_at_its_own_time() -> None:
+    """Alert at the dose time, unresponsive later: the refusal stands."""
+    ctx = _gate_ctx("en", "A")
+    ctx.vitals = [_vit(11, "A"), _vit(16, "U")]
+    text, _ = _note(ctx)
+    assert "Patient refused" in text

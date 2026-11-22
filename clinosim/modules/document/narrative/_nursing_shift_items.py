@@ -119,6 +119,40 @@ class ShiftData:
     not_given: list[Any] = field(default_factory=list)  # MAR rows of the shift held / refused / not available
 
 
+def _avpu_of(v: Any) -> str:
+    level = str(_o(v, "consciousness_level", "") or "")
+    return level if level in _AVPU_ORDER else ""
+
+
+def _cannot_self_report(level: str) -> bool:
+    """True when ``level`` is a charted AVPU level at which the patient cannot
+    give a report of their own or act for themselves: any level outside the
+    progress note's ``self_report_avpu`` (``progress_vitals.yaml``, one gate for
+    both notes). A blank level is not a finding (Issue #3536)."""
+    return bool(level) and level not in progress_vitals_rules().self_report_avpu
+
+
+def _impaired(d: ShiftData) -> bool:
+    """The shift's latest charted consciousness (else the latest before the
+    window) is below the self-report gate."""
+    for v in reversed(d.readings):
+        if _avpu_of(v):
+            return _cannot_self_report(_avpu_of(v))
+    return d.prior is not None and _cannot_self_report(_avpu_of(d.prior))
+
+
+def _impaired_at(d: ShiftData, when: datetime) -> bool:
+    """The same at a time: the latest charted level at or before ``when``."""
+    level = ""
+    for v in d.readings:
+        w = _when(v)
+        if w is not None and w <= when and _avpu_of(v):
+            level = _avpu_of(v)
+    if not level and d.prior is not None:
+        level = _avpu_of(d.prior)
+    return _cannot_self_report(level)
+
+
 def _when(v: Any) -> datetime | None:
     return parse_iso_datetime(_o(v, "timestamp", None), lenient=True)
 
@@ -134,6 +168,10 @@ def _item_pain(d: ShiftData) -> str | None:
     scores = [(i, int(s)) for i, v in enumerate(d.readings) if (s := _o(v, "pain_score", None)) is not None]
     if not scores:
         return None
+    if _impaired(d):
+        # No self-reported NRS from a patient who cannot give one (#3536); the
+        # observed equivalent is stated, without inventing findings.
+        return t("nursing_shift_items.pain.observed", d.lang)
     peak = max(s for _, s in scores)
     last = scores[-1][1]
     if peak == 0:
@@ -245,6 +283,9 @@ def _item_doses_not_given(d: ShiftData) -> str | None:
     sentences: list[str] = []
     for m in d.not_given:
         status = str(_o(m, "status", "") or "")
+        sched = parse_iso_datetime(_o(m, "scheduled_datetime", None) or _o(m, "actual_datetime", None), lenient=True)
+        if status == "refused" and sched is not None and _impaired_at(d, sched):
+            status = "unable"  # a patient who cannot respond does not refuse (#3536)
         name = _o(m, "drug_name", None) or _o(m, "medication", None)
         bare, _ = strip_protocol_prefix(str(name))
         key = drug_key(bare)
@@ -256,7 +297,9 @@ def _item_doses_not_given(d: ShiftData) -> str | None:
         act = t("nursing_shift_items.not_given.act_oral" if oral else "nursing_shift_items.not_given.act_other", d.lang)
         raw = str((_o(m, "hold_reason", None) if status == "held" else _o(m, "refusal_reason", None)) or "")
         reason = _reason_text(raw, d.lang) if raw else ""
-        if status == "held":
+        if status == "unable":
+            phrase = "unable_oral" if oral else "unable_other"
+        elif status == "held":
             phrase = "held" if reason else "held_plain"
         elif status == "refused":
             phrase = "refused_reason" if reason else "refused"
@@ -376,6 +419,10 @@ def _item_meal(d: ShiftData) -> str | None:
     pieces = [t("nursing_shift_items.meal.diet", lang, diet=diet_display(slug, lang))]
     adl = in_force_at(list(getattr(d.ctx, "adl_assessments", None) or []), d.window[1])
     level = _level("feeding", _o(adl, "feeding", None), lang) if adl is not None else None
+    if level and _impaired(d):
+        # The weekly ADL score can predate the impairment; feeding is stated as
+        # full assistance (#3536).
+        level = t("nursing_shift_items.adl_level.dependent", lang)
     if level:
         pieces.append(t("nursing_shift_items.meal.feeding", lang, level=level))
     prev = d.window[0].date() - timedelta(days=1)
@@ -407,6 +454,10 @@ def _item_mobility(d: ShiftData) -> str | None:
     if barthel is None:
         return None
     lang = d.lang
+    if _impaired(d):
+        # The stored score can predate the impairment; neither it nor its band
+        # is quoted for a patient who cannot act for themselves (#3536).
+        return t("nursing_shift_items.mobility.impaired", lang)
     band = t(f"barthel_band.{_band(int(barthel), cfg.barthel_bands)}", lang)
     details = []
     for item, label in (("mobility", "mobility"), ("toilet_use", "toilet")):
