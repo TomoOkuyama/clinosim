@@ -245,7 +245,7 @@ def test_hpi_pertinent_negatives_fall_back_to_english() -> None:
     from clinosim.modules.document.reference_data_loaders import hpi_pertinent_negatives
 
     assert hpi_pertinent_negatives("acute_mi", "fr") == hpi_pertinent_negatives("acute_mi", "en")
-    assert hpi_pertinent_negatives("acute_mi", "ja")[0].text == "労作時以外の胸痛エピソードなし"
+    assert hpi_pertinent_negatives("acute_mi", "ja")[0].text == "失神なし"
     assert hpi_pertinent_negatives("no_such_disease", "ja") == []
 
 

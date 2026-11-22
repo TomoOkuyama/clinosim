@@ -36,6 +36,7 @@ from clinosim.modules.document.narrative._template_helpers import (
 from clinosim.modules.document.narrative.context import newborn_workup_known_at
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
 from clinosim.modules.document.narrative.renderers.section_builders.chief_complaint import (
+    chief_complaint_states_onset,
     chief_complaint_texts,
     displayed_chief_complaint,
 )
@@ -184,13 +185,18 @@ def _disease_hpi(ctx: NarrativeContext, fallback: str, presented: str, facts: li
     :func:`_build_hpi_core`), in the document language."""
     lang = ctx.target_lang
     proto = ctx.disease_protocol
+    if proto is None:
+        # An admission for several diseases has no single protocol (Issue
+        # #3245); its principal disease's onset stands for the present illness
+        # (Issue #3558).
+        proto = _principal_protocol(ctx)
     narrative = _o(proto, "narrative", None) if proto is not None else None
     hpi_tmpl = _o(narrative, "hpi_template", None) if narrative is not None else None
     if hpi_tmpl is None:
         # v9 (2026-08-17) density: still append CIF-derived context
         # so HPI carries real patient data even for chronic-follow-up
         # encounters whose disease YAML has no narrative section.
-        return _with_extras(ctx, fallback, presented, facts)
+        return _with_extras(ctx, "", presented, facts, seed=fallback)
 
     if not has_authored_narrative(lang):
         # `hpi_template.onset_pattern` and `trigger_options` are authored in
@@ -205,7 +211,21 @@ def _disease_hpi(ctx: NarrativeContext, fallback: str, presented: str, facts: li
         return _with_extras(ctx, onset, presented, facts)
 
     onset = _onset_sentence(hpi_tmpl, ctx, facts)
-    return _with_extras(ctx, onset or fallback, presented, facts)
+    return _with_extras(ctx, onset, presented, facts, seed=fallback)
+
+
+def _principal_protocol(ctx: NarrativeContext) -> object | None:
+    """The disease protocol of ``ctx.principal_disease_id`` (the admitting
+    disease of a multi-disease admission), ``None`` without one."""
+    disease_id = str(getattr(ctx, "principal_disease_id", "") or "")
+    if not disease_id:
+        return None
+    from clinosim.modules.disease.protocol import load_disease_protocol
+
+    try:
+        return load_disease_protocol(disease_id)
+    except FileNotFoundError:
+        return None
 
 
 def _onset_sentence(hpi_tmpl: object, ctx: NarrativeContext, facts: list[str]) -> str:
@@ -214,6 +234,10 @@ def _onset_sentence(hpi_tmpl: object, ctx: NarrativeContext, facts: list[str]) -
     ``onset_type`` (``narrative_phrases.yaml::hpi.onset_by_type``), followed by
     the first trigger clause as its own sentence. ``""`` when neither exists."""
     lang = ctx.target_lang
+    if chief_complaint_states_onset(ctx):
+        # The complaint already says when it began; a second onset would
+        # disagree with it ("1週間前より…" then "数日前より出現", Issue #3558).
+        return ""
     severity = str(ctx.severity or "")
     onset_pattern = _o(hpi_tmpl, "onset_pattern", {})
     onset_text = ""
@@ -248,11 +272,17 @@ def _typed_onset(hpi_tmpl: object, ctx: NarrativeContext, facts: list[str]) -> s
     return str(text or "")
 
 
-def _with_extras(ctx: NarrativeContext, onset: str, presented: str, facts: list[str]) -> tuple[str, list[str]]:
+def _with_extras(
+    ctx: NarrativeContext, onset: str, presented: str, facts: list[str], *, seed: str = ""
+) -> tuple[str, list[str]]:
     """Demographics + chief complaint, the onset sentence, then history,
-    home medications and the ROS line (Issue #3228 order). ``presented``
-    (``受診となった。``) stands in only when the HPI would otherwise be empty."""
+    home medications and the ROS line (Issue #3228 order). ``seed`` (the
+    severity sentence) stands in for a missing onset only when the HPI has no
+    chief complaint to state (Issue #3558); ``presented`` (``受診となった。``)
+    stands in only when the HPI would otherwise be empty."""
     parts = _hpi_parts(ctx)
+    if not onset and not parts.chief_complaint:
+        onset = seed
     # Issue #3268: a referral letter's present illness leaves out the
     # admission ROS.
     ros = "" if ctx.document_type == DocumentType.REFERRAL_NOTE else _ros_line(ctx, f"{parts.chief_complaint}{onset}")

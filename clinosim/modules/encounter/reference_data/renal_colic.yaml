@@ -106,8 +106,8 @@ narrative:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: "Sudden severe colicky flank pain radiating to the groin began {onset_en}, with nausea and hematuria. No fever."
-      ja: "{onset_ja}より突然の激しい疝痛性側腹部痛が出現し、鼠径部へ放散。嘔気・血尿を伴う。発熱なし。"
+      en: "Sudden severe colicky flank pain radiating to the groin began {onset_en}, with nausea and hematuria."
+      ja: "{onset_ja}より突然の激しい疝痛性側腹部痛が出現し、鼠径部へ放散。嘔気・血尿を伴う。"
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
