@@ -326,6 +326,7 @@ def _newborn_contact_from_mother(mother: PatientProfile, country: str):
 
     m_contact = getattr(mother, "contact", None) or ContactInfo()
     m_name = getattr(mother, "name", None)
+    _family = _given = ""
     if m_name is not None:
         _family = str(getattr(m_name, "family_name", "") or "")
         _given = str(getattr(m_name, "given_name", "") or "")
@@ -346,6 +347,11 @@ def _newborn_contact_from_mother(mother: PatientProfile, country: str):
         emergency_contact_name=mother_name_text,
         emergency_contact_phone=emergency_phone,
         emergency_contact_relationship="MTH" if (mother_name_text or emergency_phone) else "",
+        # Issue #3599: the mother is a woman and the contact's name parts are hers.
+        emergency_contact_sex="F" if (mother_name_text or emergency_phone) else "",
+        emergency_contact_role="MTH" if (mother_name_text or emergency_phone) else "",
+        emergency_contact_family_name=_family,
+        emergency_contact_given_name=_given,
     )
 
 

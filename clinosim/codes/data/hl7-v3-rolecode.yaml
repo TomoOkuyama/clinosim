@@ -4,7 +4,9 @@
 # (http://terminology.hl7.org/CodeSystem/v3-RoleCode). English displays
 # verified with tx.fhir.org $lookup, 2026-11-06 (MTH / FTH / NSIB), and
 # against the hl7.terminology.r4 7.3.0 package CodeSystem-v3-RoleCode.json,
-# 2026-11-10 (CHILD / PRN / SIB / SPS). The code system publishes English
+# 2026-11-10 (CHILD / PRN / SIB / SPS), and against the hl7.terminology.r4
+# 7.2.0 package, 2026-11-22 (BRO / SIS / SON / DAU / HUSB / WIFE; SON and DAU
+# display "natural son" / "natural daughter"). The code system publishes English
 # only; `ja` is the clinosim label carried in `text`.
 metadata:
   kind: code-system
@@ -12,13 +14,19 @@ metadata:
   uri: http://terminology.hl7.org/CodeSystem/v3-RoleCode
   source: "HL7 Terminology (THO)"
 codes:
+  BRO: {en: "brother", ja: "兄弟"}
   CHILD: {en: "child", ja: "子"}
+  DAU: {en: "natural daughter", ja: "娘"}
   FTH: {en: "father", ja: "父"}
+  HUSB: {en: "husband", ja: "夫"}
   MTH: {en: "mother", ja: "母"}
   NSIB: {en: "natural sibling", ja: "兄弟姉妹"}
   PRN: {en: "parent", ja: "親"}
   SIB: {en: "sibling", ja: "兄弟姉妹"}
+  SIS: {en: "sister", ja: "姉妹"}
+  SON: {en: "natural son", ja: "息子"}
   SPS: {en: "spouse", ja: "配偶者"}
+  WIFE: {en: "wife", ja: "妻"}
 
 # Emergency-contact relationship slug (CIF
 # ``ContactInfo.emergency_contact_relationship``, sampled by
@@ -30,3 +38,13 @@ slug_to_code:
   parent: "PRN"
   sibling: "SIB"
   spouse: "SPS"
+
+# The specific code of a generic relationship slug by the contact's sex
+# (Issue #3599): the emergency contact is a father or a mother, a brother or
+# a sister, a son or a daughter, a husband or a wife. The generic
+# ``slug_to_code`` above stays the fallback when the sex is not recorded.
+slug_sex_to_code:
+  child: {M: "SON", F: "DAU"}
+  parent: {M: "FTH", F: "MTH"}
+  sibling: {M: "BRO", F: "SIS"}
+  spouse: {M: "HUSB", F: "WIFE"}

@@ -14,7 +14,10 @@ severity score 付きの慢性疾患活性化、disease profile 由来の常用�
 `PersonRecord` に保持するため、同一人物の全 record で同じ連絡先になる)
 と配偶関係 (`locale/<cc>/marital_status.yaml` の国勢調査の表から person 単位で
 1 回だけ選び `PersonRecord` に保持する。緊急連絡先の続柄はこれに条件付けて
-選ぶため、未婚・離別・死別の人は配偶者を連絡先にしない)。simulator は `(person_id, as_of_year)` cache key ごとに
+選ぶため、未婚・離別・死別の人は配偶者を連絡先にしない)。連絡先は性別、具体的な
+v3-RoleCode (FTH/MTH, BRO/SIS, SON/DAU, HUSB/WIFE。続柄 slug と性別から決定) と
+姓・名の分割を保持する (Issue #3599)。性別は既に引いていた名の選択に使った値で、
+乱数の消費は増えない。simulator は `(person_id, as_of_year)` cache key ごとに
 1 回これを呼び、返却 profile が全 encounter simulator の入力になる。
 
 ## Scope

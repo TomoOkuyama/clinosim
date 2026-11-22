@@ -23,6 +23,7 @@ __all__ = [
     "activation_stream_relationships",
     "adult_age_min",
     "contact_relationships",
+    "contact_role_code",
     "draw_marital_status",
     "minor_marital_status",
     "person_marital_status",
@@ -87,6 +88,17 @@ def contact_relationships(marital_status: str, age: int, country: str) -> tuple[
     row = _row(rels[marital_status], age)
     labels = list(row)
     return labels, list(normalize_probabilities([float(row[k]) for k in labels], fallback="raise"))
+
+
+def contact_role_code(relationship: str, contact_sex: str) -> str:
+    """The specific v3-RoleCode of an emergency contact (Issue #3599): the
+    relationship slug resolved by the contact's sex (father or mother, brother
+    or sister, son or daughter, husband or wife), the generic code when the
+    sex is not recorded, ``""`` for an unknown slug."""
+    from clinosim.codes import slug_sex_to_code, slug_to_code
+
+    specific = slug_sex_to_code("hl7-v3-rolecode").get(relationship, {}).get(contact_sex)
+    return str(specific or slug_to_code("hl7-v3-rolecode").get(relationship, ""))
 
 
 def activation_stream_relationships(age: int, country: str) -> tuple[list[str], list[float]]:
