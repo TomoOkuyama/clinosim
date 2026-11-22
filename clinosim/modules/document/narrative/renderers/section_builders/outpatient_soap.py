@@ -51,11 +51,11 @@ from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._interval_events import interval_event_line, interval_events
 from clinosim.modules.document.narrative._localization import _localize_complication, _localize_stage
 from clinosim.modules.document.narrative._narrative_interpretation_thresholds import (
-    NARRATIVE_ADULT_TACHYCARDIA_HR,
     NARRATIVE_HBA1C_DIABETES_THRESHOLD,
     bp_control,
     bp_target,
     chronic_control_targets,
+    is_tachycardic_hr,
 )
 from clinosim.modules.document.narrative._narrative_utils import _age_at
 from clinosim.modules.document.narrative._next_visit import next_visit_days
@@ -1211,7 +1211,7 @@ def _is_tachycardic(hr: float, patient: Any, vital: Any, ctx: NarrativeContext) 
     if when is None:
         when = _o(ctx.encounter, "admission_datetime", None) if ctx.encounter is not None else None
     rng = pediatric_vital_range("heart_rate", age_in_completed_months(_o(patient, "date_of_birth", None), when))
-    return hr > rng.high if rng is not None else hr >= NARRATIVE_ADULT_TACHYCARDIA_HR
+    return is_tachycardic_hr(hr, rng.high if rng is not None else None)
 
 
 def _doac_monitoring_values(

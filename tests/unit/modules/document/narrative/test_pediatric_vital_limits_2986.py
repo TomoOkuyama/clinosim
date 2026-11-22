@@ -71,3 +71,21 @@ def test_hr_above_the_age_range_gives_a_tachycardia_line() -> None:
     high = pediatric_vital_range("heart_rate", age_in_completed_months(dob, _VISIT)).high
     assert "Tachycardia" not in _assessment(dob, high)
     assert f"Tachycardia: HR {int(high) + 5}" in _assessment(dob, high + 5)
+
+
+@pytest.mark.parametrize("lang", ["en", "ja"])
+def test_adult_hr_100_is_not_tachycardia_101_is_3570(lang: str) -> None:
+    "Adult tachycardia is strictly above 100 /min (Issue #3570)."
+    adult = date(1970, 1, 1)
+    marker = "Tachycardia" if lang == "en" else "頻脈"
+    assert marker not in _assessment(adult, 100, lang)
+    assert marker in _assessment(adult, 101, lang)
+
+
+def test_is_tachycardic_hr_strict_3570() -> None:
+    from clinosim.modules.document.narrative._narrative_interpretation_thresholds import is_tachycardic_hr
+
+    assert not is_tachycardic_hr(100)
+    assert is_tachycardic_hr(101)
+    assert not is_tachycardic_hr(140, 140)
+    assert is_tachycardic_hr(141, 140)
