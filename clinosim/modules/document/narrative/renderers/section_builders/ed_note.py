@@ -450,15 +450,15 @@ def _med_key(name: str) -> str:
     """Identity of the drug an order string names (protocol prefix and dose
     stripped, ``drug_key``; Issue #3559)."""
     from clinosim.codes.drugs import drug_key
-    from clinosim.modules._shared import strip_protocol_prefix
+    from clinosim.modules.document.narrative._drug_names import order_drug_text
 
-    return drug_key(strip_protocol_prefix(name)[0])
+    return drug_key(order_drug_text(name))
 
 
 def _richness(name: str) -> int:
-    from clinosim.modules._shared import strip_protocol_prefix
+    from clinosim.modules.document.narrative._drug_names import order_drug_text
 
-    return len(strip_protocol_prefix(name)[0])
+    return len(order_drug_text(name))
 
 
 def _dedupe_drugs(meds: list[str], procs: list[str]) -> tuple[list[str], list[str]]:
@@ -467,7 +467,7 @@ def _dedupe_drugs(meds: list[str], procs: list[str]) -> tuple[list[str], list[st
     first appearance; a drug the procedure list names more fully than the
     medication list leaves the medication list (Issue #3559)."""
     from clinosim.codes.drugs import drug_ref
-    from clinosim.modules._shared import strip_protocol_prefix
+    from clinosim.modules.document.narrative._drug_names import order_drug_text
 
     best: dict[str, str] = {}
     for name in meds:
@@ -476,7 +476,7 @@ def _dedupe_drugs(meds: list[str], procs: list[str]) -> tuple[list[str], list[st
             best[key] = name
     kept_procs: list[str] = []
     for name in procs:
-        ref = drug_ref(strip_protocol_prefix(name)[0])
+        ref = drug_ref(order_drug_text(name))
         if ref and ref in best:
             if _richness(name) > _richness(best[ref]):
                 del best[ref]

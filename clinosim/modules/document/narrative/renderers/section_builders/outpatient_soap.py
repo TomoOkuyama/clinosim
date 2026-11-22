@@ -46,8 +46,9 @@ from clinosim.countries import country_code, has_authored_narrative
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import chronic_followup_interval_months, load_chronic_followup
 from clinosim.locale.loader import narrative_label as _label
-from clinosim.modules._shared import drug_spec_in_age_band, strip_protocol_prefix
+from clinosim.modules._shared import drug_spec_in_age_band
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules.document.narrative._drug_names import administered_drug_key, administered_drug_label
 from clinosim.modules.document.narrative._interval_events import interval_event_line, interval_events
 from clinosim.modules.document.narrative._localization import _localize_complication, _localize_stage
 from clinosim.modules.document.narrative._narrative_interpretation_thresholds import (
@@ -1402,14 +1403,9 @@ def _compose_today_prescription_line(ctx: NarrativeContext) -> str:
     lang = ctx.target_lang
     parts: list[str] = []
     for m in rx:
-        drug = _o(m, "drug_name", "") or ""
-        if not drug:
+        if not _o(m, "drug_name", ""):
             continue
-        drug, _cat = strip_protocol_prefix(drug)
-        # Drug-name katakana lookup via lang-aware wrapper.
-        from clinosim.locale.free_text import localize_drug_name
-
-        drug = localize_drug_name(drug, lang)
+        drug = administered_drug_label(m, lang)
         bits: list[str] = [str(drug), *prescription_bits(m, lang, drug_name=str(drug))]
         parts.append(" ".join(bits))
     if not parts:
@@ -1479,8 +1475,7 @@ def _compose_follow_up_line(ctx: NarrativeContext) -> str:
 def _med_key(med: Any) -> str:
     """Identity of a medication across the home list and the prescription: the
     catalog drug id (of the id, else of the name), else the folded name."""
-    name, _cat = strip_protocol_prefix(str(_o(med, "drug_name", "") or ""))
-    return drug_key(str(_o(med, "drug_id", "") or name))
+    return administered_drug_key(med)
 
 
 def _compose_safety_hold_lines(ctx: NarrativeContext) -> list[str]:
@@ -1532,7 +1527,6 @@ def _compose_medication_changes_line(ctx: NarrativeContext) -> str:
     the visit (Issue #3250): drugs started, drugs whose dose changed, and home
     drugs not on the prescription ("not renewed", the prescription does not
     say they were stopped). An identical list says so."""
-    from clinosim.locale.free_text import localize_drug_name
 
     lang = ctx.target_lang
     rx = [m for m in (getattr(ctx, "discharge_medications", None) or []) if _o(m, "drug_name", "")]
@@ -1542,7 +1536,7 @@ def _compose_medication_changes_line(ctx: NarrativeContext) -> str:
     today = {_med_key(m): m for m in rx}
 
     def _name(m: Any) -> str:
-        return str(localize_drug_name(strip_protocol_prefix(str(_o(m, "drug_name", "")))[0], lang))
+        return administered_drug_label(m, lang)
 
     def _dose(m: Any) -> str:
         return str(_o(m, "dose", "") or "").replace(" ", "").lower()

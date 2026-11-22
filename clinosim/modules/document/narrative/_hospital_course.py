@@ -140,21 +140,15 @@ def _known_at(ctx: NarrativeContext, when: datetime | None) -> bool:
 
 
 def _drug_ref(m: Any) -> str:
-    from clinosim.codes.drugs import drug_key
-    from clinosim.modules._shared import strip_protocol_prefix
+    from clinosim.modules.document.narrative._drug_names import administered_drug_key
 
-    name, _ = strip_protocol_prefix(str(_o(m, "drug_name", "") or ""))
-    return str(_o(m, "drug_id", "") or "") or drug_key(name)
+    return administered_drug_key(m)
 
 
 def _drug_name(m: Any, lang: str) -> str:
-    from clinosim.codes.drugs import drug_display
-    from clinosim.locale.free_text import localize_drug_name
-    from clinosim.modules._shared import strip_protocol_prefix
+    from clinosim.modules.document.narrative._drug_names import administered_drug_name
 
-    ref = str(_o(m, "drug_id", "") or "")
-    name, _ = strip_protocol_prefix(str(_o(m, "drug_name", "") or ""))
-    return (drug_display(ref, lang) if ref else None) or drug_display(name, lang) or localize_drug_name(name, lang)
+    return administered_drug_name(m, lang)
 
 
 def _given(ctx: NarrativeContext) -> list[tuple[datetime | None, Any]]:
@@ -373,9 +367,7 @@ def medication_changes_sentence(ctx: NarrativeContext) -> tuple[str, str]:
     drugs started, stopped and with a changed strength. Written only when
     the record has both the admission snapshot and a discharge prescription
     (else a change cannot be told from a missing list)."""
-    from clinosim.codes.drugs import drug_key
-    from clinosim.locale.free_text import localize_drug_name
-    from clinosim.modules._shared import strip_protocol_prefix
+    from clinosim.modules.document.narrative._drug_names import administered_drug_key, administered_drug_label
     from clinosim.modules.document.narrative._template_helpers import _render_home_med_name
 
     lang = ctx.target_lang
@@ -384,17 +376,11 @@ def medication_changes_sentence(ctx: NarrativeContext) -> tuple[str, str]:
     if home is None or not discharge:
         return "", ""
 
-    def key(m: Any) -> str:
-        name, _ = strip_protocol_prefix(str(_o(m, "drug_name", "") or ""))
-        return str(_o(m, "drug_id", "") or "") or drug_key(name)
+    key = administered_drug_key
 
     before = {key(m): m for m in home if key(m)}
     after = {key(m): m for m in discharge if key(m)}
-    started = [
-        localize_drug_name(strip_protocol_prefix(str(_o(m, "drug_name", "") or ""))[0], lang)
-        for k, m in after.items()
-        if k not in before
-    ]
+    started = [administered_drug_label(m, lang) for k, m in after.items() if k not in before]
     stopped = [_render_home_med_name(m, lang=lang) for k, m in before.items() if k not in after]
     changed: list[str] = []
     for k, m in before.items():

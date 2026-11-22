@@ -16,13 +16,11 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from typing import Any
 
-from clinosim.codes.drugs import drug_key
-from clinosim.locale.free_text import localize_drug_name
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import strip_protocol_prefix
 from clinosim.modules.document.engine import SHIFT_HOURS, SHIFT_SCHEDULE
+from clinosim.modules.document.narrative._drug_names import administered_drug_key, administered_drug_label
 from clinosim.modules.document.narrative._narrative_utils import _filter_vitals_for_day
 from clinosim.modules.document.narrative._nursing_shift_items import nursing_shift_item_lines
 from clinosim.modules.document.narrative._template_helpers import _resolve_staff_name
@@ -186,18 +184,12 @@ def render_nursing_shift_note(ctx: NarrativeContext, spec: DocumentTypeSpec) -> 
         when = parse_iso_datetime(_o(m, "actual_datetime", None) or _o(m, "scheduled_datetime", None), lenient=True)
         if window is None or when is None or not (window[0] <= when < window[1]):
             continue
-        n = _o(m, "drug_name", None) or _o(m, "medication", None)
-        if not n:
-            continue
-        # Dedupe on the bare drug, so two spellings of one drug appear once.
-        bare, _ = strip_protocol_prefix(str(n))
-        key = drug_key(bare)
-        if not bare or key in seen:
+        # Dedupe on the drug, so two spellings of one drug appear once.
+        key = administered_drug_key(m)
+        if not key or key in seen:
             continue
         seen.add(key)
-        # Drug-name katakana lookup via lang-aware wrapper —
-        # no-op for lang without a lookup table.
-        med_names.append(localize_drug_name(bare, lang))
+        med_names.append(administered_drug_label(m, lang))
 
     title = (
         t("nursing_shift.title_with_shift", lang, shift=shift_label)

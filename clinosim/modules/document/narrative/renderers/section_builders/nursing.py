@@ -21,14 +21,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from clinosim.codes.drugs import drug_key
 from clinosim.codes.hl7_encounter import DischargeDisposition
 from clinosim.countries import country_code
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import strip_protocol_prefix
 from clinosim.modules.document.narrative._as_of import in_force_at
+from clinosim.modules.document.narrative._drug_names import administered_drug_key, administered_drug_label
 from clinosim.modules.document.narrative._localization import _localize_complication
 from clinosim.modules.document.narrative._narrative_utils import (
     _lookup_nursing_content,
@@ -501,16 +500,13 @@ _MAX_LISTED_PROCEDURES = 5
 def _distinct_drug_names(administrations: list[Any], lang: str) -> list[str]:
     """The distinct drugs of ``administrations`` in first-given order, named
     in ``lang`` without protocol prefixes."""
-    from clinosim.locale.free_text import localize_drug_name
-
     names: list[str] = []
     seen: set[str] = set()
     for m in administrations:
-        name, _ = strip_protocol_prefix(str(_o(m, "drug_name", "") or ""))
-        key = drug_key(name)
-        if name and key not in seen:
+        key = administered_drug_key(m)
+        if key and key not in seen:
             seen.add(key)
-            names.append(localize_drug_name(name, lang))
+            names.append(administered_drug_label(m, lang))
     return names
 
 

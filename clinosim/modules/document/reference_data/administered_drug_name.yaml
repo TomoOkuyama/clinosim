@@ -1,0 +1,17 @@
+# How an administered-drug label is read from an order string (Issue #3560).
+#
+# Supportive orders are stored as "<type>: <detail>". The type is a category
+# label for most ("antipyretic: Acetaminophen 500mg ...", "IV_fluid: NS ...")
+# and the drug itself for some ("lactulose: 30mL PO TID if encephalopathy");
+# the helper in narrative/_drug_names.py tells them apart over the drug catalog.
+
+metadata:
+  kind: reference
+  name: administered_drug_name
+  source: clinosim
+
+# A clause of the order text that is a monitoring goal, not part of the drug
+# and its dose: cut from the text where it matches (regex, case-insensitive).
+# "NS 150-200 mL/h, target UOP > 1-1.5 mL/kg/h" is the fluid "NS 150-200 mL/h".
+order_detail_cuts:
+  - ',?\s*\btarget\b.*$'

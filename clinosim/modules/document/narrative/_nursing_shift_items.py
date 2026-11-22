@@ -20,13 +20,12 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from clinosim.codes.drugs import drug_display, drug_key
 from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
 from clinosim.datafiles import load_validated_yaml
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import strip_protocol_prefix
 from clinosim.modules.document.narrative._as_of import in_force_at
+from clinosim.modules.document.narrative._drug_names import administered_drug_key, administered_drug_name
 from clinosim.modules.document.narrative._narrative_interpretation_thresholds import progress_vitals_rules
 from clinosim.modules.document.narrative._narrative_utils import is_neonate
 from clinosim.modules.document.narrative._progress_course import diet_display, diet_order_at
@@ -288,13 +287,11 @@ def _item_doses_not_given(d: ShiftData) -> str | None:
         sched = parse_iso_datetime(_o(m, "scheduled_datetime", None) or _o(m, "actual_datetime", None), lenient=True)
         if status == "refused" and sched is not None and _impaired_at(d, sched):
             status = "unable"  # a patient who cannot respond does not refuse (#3536)
-        name = _o(m, "drug_name", None) or _o(m, "medication", None)
-        bare, _ = strip_protocol_prefix(str(name))
-        key = drug_key(bare)
+        key = administered_drug_key(m)
         if (key, status) in seen:
             continue
         seen.add((key, status))
-        drug = drug_display(key, d.lang) or bare
+        drug = administered_drug_name(m, d.lang)
         oral = str(_o(m, "route", "") or "").upper() in cfg.oral_routes
         act = t("nursing_shift_items.not_given.act_oral" if oral else "nursing_shift_items.not_given.act_other", d.lang)
         raw = str((_o(m, "hold_reason", None) if status == "held" else _o(m, "refusal_reason", None)) or "")
@@ -593,13 +590,11 @@ def _shift_doses(
         if str(_o(m, "status", "given") or "given") != "given":
             continue
         when = parse_iso_datetime(_o(m, "actual_datetime", None) or _o(m, "scheduled_datetime", None), lenient=True)
-        name = _o(m, "drug_name", None) or _o(m, "medication", None)
-        if when is None or not name or not (window[0] <= when < window[1]):
+        key = administered_drug_key(m)
+        if when is None or not key or not (window[0] <= when < window[1]):
             continue
-        bare, _ = strip_protocol_prefix(str(name))
-        key = drug_key(bare)
-        if bare and key in antipyretics:
-            out.append((when, key, drug_display(key, lang) or bare))
+        if key in antipyretics:
+            out.append((when, key, administered_drug_name(m, lang)))
     out.sort(key=lambda x: x[0])
     return out
 
