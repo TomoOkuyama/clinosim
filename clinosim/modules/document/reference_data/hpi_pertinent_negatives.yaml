@@ -16,7 +16,10 @@
 #             when one holds for the encounter -- ``head_imaging_abnormal``
 #             (a head CT/MRI whose impression is an abnormal read) and
 #             ``consciousness_impaired`` (arrival AVPU below Alert or GCS
-#             below 15) (Issue #3391).
+#             below 15) (Issue #3391) and ``fever_present`` (the first
+#             recorded temperature is at or above the fever line of
+#             ``progress_vitals.yaml``, 37.5 °C; every "no fever" negative
+#             lists it, Issue #3558).
 #             Entries without ``symptoms`` (e.g. "外傷の既往確認",
 #             "他部位外傷精査中") deny nothing the patient presents with and are
 #             never filtered. Matching ignores letter case.
@@ -41,13 +44,13 @@ metadata:
 diabetic_ketoacidosis:
   - text: {ja: "発熱なし", en: "no fever"}
     symptoms: {ja: ["発熱", "高熱", "微熱", "熱発"], en: ["fever"]}
+    contradicted_by: [fever_present]
   - text: {ja: "下痢なし", en: "no diarrhea"}
     symptoms: {ja: ["下痢"], en: ["diarrhea"]}
   - text: {ja: "胸痛なし", en: "no chest pain"}
     symptoms: {ja: ["胸痛", "胸部痛", "胸部圧迫", "前胸部"], en: ["chest pain", "chest pressure", "chest tightness"]}
 
 acute_mi:
-  - text: {ja: "労作時以外の胸痛エピソードなし", en: "no chest pain episodes other than on exertion"}
   - text: {ja: "失神なし", en: "no syncope"}
     symptoms: {ja: ["失神", "意識消失"], en: ["syncope", "faint", "loss of consciousness"]}
   - text: {ja: "動悸持続なし", en: "no sustained palpitations"}
@@ -58,6 +61,7 @@ heart_failure_exacerbation:
     symptoms: {ja: ["胸痛", "胸部痛", "胸部圧迫", "前胸部"], en: ["chest pain", "chest pressure", "chest tightness"]}
   - text: {ja: "発熱なし", en: "no fever"}
     symptoms: {ja: ["発熱", "高熱", "微熱", "熱発"], en: ["fever"]}
+    contradicted_by: [fever_present]
   - text: {ja: "喀血なし", en: "no hemoptysis"}
     symptoms: {ja: ["喀血", "血痰"], en: ["hemoptysis", "coughing up blood"]}
 
@@ -90,6 +94,7 @@ asthma_exacerbation:
     symptoms: {ja: ["胸痛", "胸部痛", "胸部圧迫", "前胸部"], en: ["chest pain", "chest pressure", "chest tightness"]}
   - text: {ja: "発熱なし", en: "no fever"}
     symptoms: {ja: ["発熱", "高熱", "微熱", "熱発"], en: ["fever"]}
+    contradicted_by: [fever_present]
   - text: {ja: "喀血なし", en: "no hemoptysis"}
     symptoms: {ja: ["喀血", "血痰"], en: ["hemoptysis", "coughing up blood"]}
 
@@ -132,6 +137,7 @@ hemorrhagic_stroke:
     symptoms: {ja: ["痙攣", "けいれん"], en: ["seizure", "convulsion"]}
   - text: {ja: "発熱なし", en: "no fever"}
     symptoms: {ja: ["発熱", "高熱", "微熱", "熱発"], en: ["fever"]}
+    contradicted_by: [fever_present]
 
 subdural_hematoma:
   - text: {ja: "痙攣なし", en: "no seizures"}
@@ -140,6 +146,7 @@ subdural_hematoma:
     symptoms: {ja: ["嘔吐"], en: ["vomiting"]}
   - text: {ja: "発熱なし", en: "no fever"}
     symptoms: {ja: ["発熱", "高熱", "微熱", "熱発"], en: ["fever"]}
+    contradicted_by: [fever_present]
 
 sepsis:
   - text: {ja: "頭痛なし", en: "no headache"}
@@ -161,6 +168,7 @@ cellulitis:
   - text: {ja: "外傷の既往確認", en: "history of trauma asked"}
   - text: {ja: "発熱なし", en: "no fever"}
     symptoms: {ja: ["発熱", "高熱", "微熱", "熱発"], en: ["fever"]}
+    contradicted_by: [fever_present]
   - text: {ja: "リンパ節腫脹なし", en: "no lymphadenopathy"}
     symptoms: {ja: ["リンパ節"], en: ["lymph"]}
 
@@ -203,12 +211,14 @@ acute_kidney_injury:
     symptoms: {ja: ["浮腫", "むくみ"], en: ["edema", "swelling"]}
   - text: {ja: "発熱なし", en: "no fever"}
     symptoms: {ja: ["発熱", "高熱", "微熱", "熱発"], en: ["fever"]}
+    contradicted_by: [fever_present]
 
 liver_cirrhosis_decompensated:
   - text: {ja: "胸痛なし", en: "no chest pain"}
     symptoms: {ja: ["胸痛", "胸部痛", "胸部圧迫", "前胸部"], en: ["chest pain", "chest pressure", "chest tightness"]}
   - text: {ja: "発熱なし", en: "no fever"}
     symptoms: {ja: ["発熱", "高熱", "微熱", "熱発"], en: ["fever"]}
+    contradicted_by: [fever_present]
   - text: {ja: "皮疹なし", en: "no rash"}
     symptoms: {ja: ["皮疹", "発疹"], en: ["rash"]}
 
@@ -217,6 +227,7 @@ ileus:
     symptoms: {ja: ["血便", "下血", "タール便", "黒色便"], en: ["bloody stool", "melena", "rectal bleeding", "black stool"]}
   - text: {ja: "発熱なし", en: "no fever"}
     symptoms: {ja: ["発熱", "高熱", "微熱", "熱発"], en: ["fever"]}
+    contradicted_by: [fever_present]
   - text: {ja: "尿路症状なし", en: "no urinary symptoms"}
     symptoms: {ja: ["排尿", "頻尿", "尿路"], en: ["urinary", "dysuria"]}
 
@@ -307,3 +318,4 @@ subarachnoid_hemorrhage:
     symptoms: {ja: ["痙攣", "けいれん"], en: ["seizure", "convulsion"]}
   - text: {ja: "発熱なし", en: "no fever"}
     symptoms: {ja: ["発熱", "高熱", "微熱", "熱発"], en: ["fever"]}
+    contradicted_by: [fever_present]

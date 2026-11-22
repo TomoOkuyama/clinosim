@@ -179,6 +179,27 @@ def displayed_chief_complaint(cc: str, ctx: NarrativeContext) -> str:
     return swapped
 
 
+def chief_complaint_states_onset(ctx: NarrativeContext) -> bool:
+    """Whether the displayed chief complaint is a variant that gives the
+    onset itself ("1週間前より…", Issue #3558), so the HPI does not write a
+    second, different onset after it."""
+    raw = raw_encounter_chief_complaint(ctx)
+    if not raw:
+        return False
+    disease_protocol = getattr(ctx, "disease_protocol", None)
+    encounter_protocol = getattr(ctx, "encounter_protocol", None)
+    variant, _ = _select_cc_variant(
+        raw,
+        _o(disease_protocol, "disease_id", None) if disease_protocol is not None else None,
+        _disease_canonical_cc(disease_protocol, ctx.target_lang),
+        ctx.target_lang,
+        ctx,
+        encounter_condition_id=_o(encounter_protocol, "condition_id", None) if encounter_protocol is not None else None,
+        canonical_encounter_cc=_disease_canonical_cc(encounter_protocol, ctx.target_lang),
+    )
+    return variant is not None and variant.onset_stated
+
+
 def raw_encounter_chief_complaint(ctx: NarrativeContext, *, localized_only: bool = False) -> str:
     """The encounter's own chief complaint as recorded (localized slot first,
     then the base slot unless ``localized_only``), before any variant swap;
@@ -262,32 +283,53 @@ def _maybe_swap_cc_variant(
          path; a swap here breaks the pre-#983 uniform-per-condition
          concentration.
     """
+    variant, fact = _select_cc_variant(
+        text,
+        disease_id,
+        canonical_cc,
+        lang,
+        ctx,
+        encounter_condition_id=encounter_condition_id,
+        canonical_encounter_cc=canonical_encounter_cc,
+    )
+    return (variant.text, fact) if variant is not None else (text, None)
+
+
+def _select_cc_variant(
+    text: str,
+    disease_id: str | None,
+    canonical_cc: str | None,
+    lang: str,
+    ctx: NarrativeContext,
+    *,
+    encounter_condition_id: str | None = None,
+    canonical_encounter_cc: str | None = None,
+) -> tuple[ChiefComplaintVariant | None, str | None]:
+    """The variant (and its fact) that :func:`_maybe_swap_cc_variant` swaps in
+    for ``text``, ``(None, None)`` when ``text`` is kept."""
     if not has_authored_narrative(lang) or not text:
-        return text, None
+        return None, None
     try:
         variants = load_chief_complaint_variant_rules()
     except (OSError, ValueError):
         # Loader errors are non-fatal — narrative must never raise.
-        return text, None
+        return None, None
 
     # Priority 1 — disease_protocol
     if disease_id and canonical_cc and text == canonical_cc:
         pool = _compatible_pool(variants.get(disease_id) or [], ctx)
         if len(pool) > 1:
             idx = _cc_variant_index(disease_id, ctx, len(pool))
-            return pool[idx].text, f"chief_complaint_variants.{disease_id}[{idx}]"
+            return pool[idx], f"chief_complaint_variants.{disease_id}[{idx}]"
 
     # Priority 2 — encounter_protocol
     if encounter_condition_id and canonical_encounter_cc and text == canonical_encounter_cc:
         pool = _compatible_pool(variants.get(encounter_condition_id) or [], ctx)
         if len(pool) > 1:
             idx = _cc_variant_index(encounter_condition_id, ctx, len(pool))
-            return (
-                pool[idx].text,
-                f"chief_complaint_variants.{encounter_condition_id}[{idx}]",
-            )
+            return pool[idx], f"chief_complaint_variants.{encounter_condition_id}[{idx}]"
 
-    return text, None
+    return None, None
 
 
 def _compatible_pool(pool: list[ChiefComplaintVariant], ctx: NarrativeContext) -> list[ChiefComplaintVariant]:

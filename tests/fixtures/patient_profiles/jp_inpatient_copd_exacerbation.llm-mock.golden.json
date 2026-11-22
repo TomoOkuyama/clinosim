@@ -6,7 +6,6 @@
       "facts_used": [
         "ctx.encounter.chief_complaint_ja",
         "chief_complaint_variants.copd_exacerbation[1]",
-        "disease_protocol.narrative.hpi_template.onset_type.subacute",
         "ctx.patient.demographics",
         "ctx.encounter.chief_complaint",
         "ctx.patient.chronic_conditions",
@@ -817,7 +816,6 @@
         "ctx.diagnoses",
         "ctx.encounter.chief_complaint_ja",
         "chief_complaint_variants.copd_exacerbation[1]",
-        "disease_protocol.narrative.hpi_template.onset_type.subacute",
         "ctx.patient.demographics",
         "ctx.encounter.chief_complaint",
         "ctx.patient.chronic_conditions",
@@ -2261,7 +2259,6 @@
       "facts_used": [
         "ctx.encounter.chief_complaint_ja",
         "chief_complaint_variants.copd_exacerbation[1]",
-        "disease_protocol.narrative.hpi_template.onset_type.subacute",
         "ctx.patient.demographics",
         "ctx.encounter.chief_complaint",
         "ctx.patient.chronic_conditions",

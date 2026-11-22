@@ -408,7 +408,9 @@ def _has_english(entry: dict[str, str]) -> dict[str, str]:
 #: The record rules a negative can be ``contradicted_by`` (Issue #3391); the
 #: evaluators are ``narrative/_ros_contradictions.RULES`` (a unit test keeps
 #: the two in step).
-ROS_CONTRADICTION_RULES: frozenset[str] = frozenset({"head_imaging_abnormal", "consciousness_impaired"})
+ROS_CONTRADICTION_RULES: frozenset[str] = frozenset(
+    {"head_imaging_abnormal", "consciousness_impaired", "fever_present"}
+)
 
 
 def _known_rules(rules: list[str]) -> list[str]:
@@ -723,7 +725,8 @@ class ChiefComplaintVariant(BaseModel):
     ``min_age`` / ``max_age`` bound the patient's age at the visit;
     ``onset_types`` lists the disease ``hpi_template.onset_type`` values the
     phrasing fits (a "today" phrasing fits ``acute``, an "N days ago" one
-    ``subacute``); ``encounter_types`` lists the encounter types it fits. An
+    ``subacute``); ``encounter_types`` lists the encounter types it fits;
+    ``onset_stated`` marks a phrasing that gives the onset itself. An
     empty field is no constraint, and a constraint whose visit value is
     unknown does not exclude the variant.
     """
@@ -735,6 +738,9 @@ class ChiefComplaintVariant(BaseModel):
     max_age: int | None = Field(default=None, ge=0)
     onset_types: list[_Text] = Field(default_factory=list)
     encounter_types: list[_Text] = Field(default_factory=list)
+    # The phrasing states when the complaint began ("1週間前より…"), so the
+    # HPI writes no onset sentence of its own after it (Issue #3558).
+    onset_stated: bool = False
 
 
 class ChiefComplaintVariants(BaseModel):

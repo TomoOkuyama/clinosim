@@ -61,9 +61,25 @@ def consciousness_impaired(ctx: Any) -> bool:
     return (avpu not in ("", "A")) or (isinstance(gcs, int) and gcs < _GCS_ALERT)
 
 
+def fever_present(ctx: Any) -> bool:
+    """The first recorded temperature of the encounter (the arrival or
+    admission reading) is a fever: at or above the temperature below which a
+    fever counts as resolved (``progress_vitals.yaml``; 37.5 °C), so "no
+    fever" is not written next to "T 38.5°C" (Issue #3558)."""
+    from clinosim.modules.document.narrative._narrative_interpretation_thresholds import progress_vitals_rules
+
+    limit = progress_vitals_rules().trend.fever_resolved_below_c
+    for vital in getattr(ctx, "vitals", None) or []:
+        temp = _o(vital, "temperature_celsius", None)
+        if isinstance(temp, (int, float)):
+            return float(temp) >= limit
+    return False
+
+
 RULES: dict[str, Callable[[Any], bool]] = {
     "head_imaging_abnormal": head_imaging_abnormal,
     "consciousness_impaired": consciousness_impaired,
+    "fever_present": fever_present,
 }
 
 

@@ -87,8 +87,8 @@ narrative:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: "Dysuria, urinary frequency, and suprapubic discomfort began {onset_en}. No fever, flank pain, or vomiting."
-      ja: "{onset_ja}より排尿時痛・頻尿・恥骨上部不快感が出現。発熱・側腹部痛・嘔吐なし。"
+      en: "Dysuria, urinary frequency, and suprapubic discomfort began {onset_en}. No flank pain or vomiting."
+      ja: "{onset_ja}より排尿時痛・頻尿・恥骨上部不快感が出現。側腹部痛・嘔吐なし。"
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'

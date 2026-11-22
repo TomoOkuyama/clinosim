@@ -6,8 +6,6 @@
       "facts_used": [
         "ctx.encounter.chief_complaint_ja",
         "chief_complaint_variants.bacterial_pneumonia[1]",
-        "disease_protocol.narrative.hpi_template.onset_pattern.moderate",
-        "disease_protocol.narrative.hpi_template.trigger_options[0]",
         "ctx.patient.demographics",
         "ctx.encounter.chief_complaint",
         "ctx.patient.chronic_conditions",
@@ -32,7 +30,7 @@
         "assessment_and_plan": "【評価】主訴「3日前より発熱・湿性咳嗽・胸痛」で入院。病態: 細菌性肺炎 (中等度)。併存疾患: COPD（慢性閉塞性肺疾患）。\n【方針】予定入院期間: 約14日。薬物療法: アンピシリン/スルバクタム、ヘパリン、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、輸液: 生理食塩液 125 mL/h。予定処置: 気管支鏡検査。入院時検査: CBC (全血球算定)、LFT (肝機能パネル)、CRP、PCT、クレアチニン、BUN、Na、K、胸部単純X線撮影 PA・側面。支持療法・モニタリング: 酸素投与: 鼻カニューラ SpO2 >= 94%。",
         "chief_complaint": "3日前より発熱・湿性咳嗽・胸痛",
         "family_history": "特記家族歴なし",
-        "hpi": "68歳女性患者。主訴: 3日前より発熱・湿性咳嗽・胸痛。発熱・咳嗽・喀痰が出現し、SpO2 低下を認め緊急受診。上気道感染後に発症。既往: COPD（慢性閉塞性肺疾患）。ROS: 喀血なし、夜間発汗なし。",
+        "hpi": "68歳女性患者。主訴: 3日前より発熱・湿性咳嗽・胸痛。既往: COPD（慢性閉塞性肺疾患）。ROS: 喀血なし、夜間発汗なし。",
         "medications_at_home": "常用薬なし",
         "past_medical_history": "COPD（慢性閉塞性肺疾患） [J44.9]",
         "physical_examination": "バイタルサイン: BP 118/71 mmHg, HR 103/min, T 38.2°C, SpO2 95%, RR 19/min。一般状態: 意識清明、中等度の苦痛様。呼吸器: 患側肺野で断続性ラ音と気管支呼吸音を聴取",
@@ -915,8 +913,6 @@
         "ctx.diagnoses",
         "ctx.encounter.chief_complaint_ja",
         "chief_complaint_variants.bacterial_pneumonia[1]",
-        "disease_protocol.narrative.hpi_template.onset_pattern.moderate",
-        "disease_protocol.narrative.hpi_template.trigger_options[0]",
         "ctx.patient.demographics",
         "ctx.encounter.chief_complaint",
         "ctx.patient.chronic_conditions",
@@ -949,7 +945,7 @@
         "discharge_instructions": "十分な水分摂取を心がけてください。 十分な休息をとり、無理な活動は控えてください。 退院後 7-10 日以内に呼吸器科または内科外来を受診してください。6-8 週後に胸部 X 線再撮影予定。 処方された抗菌薬は症状が改善しても最後まで内服してください。 覚醒時は 1 時間ごとに深呼吸・咳嗽訓練を実施してください。 徐々に活動を再開してください。2 週間は激しい運動を避けてください。 発熱（38.5℃超）の持続、呼吸困難の増悪、SpO2 低下、胸痛、膿性痰の増加があれば速やかに救急受診してください。 バランスの良い食事を心がけてください。",
         "discharge_medications": "アモキシシリン 250mg 経口 1日3回 5日分",
         "hospital_course": "入院期間 18 日間（主病名/主訴: 3日前より発熱・湿性咳嗽・胸痛）。主な治療: 抗微生物薬（アンピシリン/スルバクタム、メロペネム）／抗血栓療法（ヘパリン）／鎮痛薬（アセトアミノフェン）。主な処置・手技: 気管支鏡検査（2024-06-15）。経過中の合併症: せん妄（入院第6日目発症）。入院時からの薬剤変更: 開始 アモキシシリン。退院時の状態: 自宅退院、Barthel 指数 95/100。",
-        "present_illness": "68歳女性患者。主訴: 3日前より発熱・湿性咳嗽・胸痛。発熱・咳嗽・喀痰が出現し、SpO2 低下を認め緊急受診。上気道感染後に発症。既往: COPD（慢性閉塞性肺疾患）。ROS: 喀血なし、夜間発汗なし。"
+        "present_illness": "68歳女性患者。主訴: 3日前より発熱・湿性咳嗽・胸痛。既往: COPD（慢性閉塞性肺疾患）。ROS: 喀血なし、夜間発汗なし。"
       },
       "text": ""
     }
@@ -2628,8 +2624,6 @@
       "facts_used": [
         "ctx.encounter.chief_complaint_ja",
         "chief_complaint_variants.bacterial_pneumonia[1]",
-        "disease_protocol.narrative.hpi_template.onset_pattern.moderate",
-        "disease_protocol.narrative.hpi_template.trigger_options[0]",
         "ctx.patient.demographics",
         "ctx.encounter.chief_complaint",
         "ctx.patient.chronic_conditions",
@@ -2654,7 +2648,7 @@
         "chief_complaint": "3日前より発熱・湿性咳嗽・胸痛",
         "disposition": "入院適応（3日前より発熱・湿性咳嗽・胸痛）",
         "ed_workup": "検査: WBC 12275.0 /uL [H]、アルブミン 3.5 g/dL [L]、CRP 89.2 mg/L [H]、PCT 1.84 ng/mL [H]、クレアチニン 0.86 mg/dL [H]、BUN 18.3 mg/dL、Na 136.0 mmol/L [L]、K 4.8 mmol/L。画像: 胸部レントゲン (正面・側面)（右下葉肺炎像）。投薬: アンピシリン/スルバクタム、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）。処置指示: 酸素投与: 鼻カニューラ SpO2 >= 94%。異常値: AST 31.0 U/L [H]、CRP 8.92 mg/dL [H]",
-        "hpi": "68歳女性患者。主訴: 3日前より発熱・湿性咳嗽・胸痛。発熱・咳嗽・喀痰が出現し、SpO2 低下を認め緊急受診。上気道感染後に発症。既往: COPD（慢性閉塞性肺疾患）。ROS: 喀血なし、夜間発汗なし。",
+        "hpi": "68歳女性患者。主訴: 3日前より発熱・湿性咳嗽・胸痛。既往: COPD（慢性閉塞性肺疾患）。ROS: 喀血なし、夜間発汗なし。",
         "physical_exam": "来院時所見: BP 120/71 mmHg, HR 104 回/分, RR 25 回/分, SpO2 87%, T 38.2°C。一般状態: 意識清明、中等度の苦痛様。呼吸器: 患側肺野で断続性ラ音と気管支呼吸音を聴取、呼吸数増加。",
         "triage_details": "トリアージレベル: JTAS レベル2。来院形態: 独歩来院。アレルギー: 薬物アレルギーなし（NKDA）。"
       },

@@ -90,8 +90,8 @@ narrative:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: "Severe throbbing headache with nausea and photophobia began {onset_en}, unrelieved by oral analgesics. No thunderclap onset, fever, or neck stiffness."
-      ja: "{onset_ja}より拍動性の激しい頭痛が出現し、嘔気・光過敏を伴う。内服鎮痛薬で改善せず。雷鳴様の突然発症・発熱・項部硬直なし。"
+      en: "Severe throbbing headache with nausea and photophobia began {onset_en}, unrelieved by oral analgesics. No thunderclap onset or neck stiffness."
+      ja: "{onset_ja}より拍動性の激しい頭痛が出現し、嘔気・光過敏を伴う。内服鎮痛薬で改善せず。雷鳴様の突然発症・項部硬直なし。"
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
