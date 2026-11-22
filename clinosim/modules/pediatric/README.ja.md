@@ -103,6 +103,7 @@ condition_type="pediatric", protocol_source="pediatric:<key>")` を
 | `vaccination` | 任意、既定 `false`。接種のための受診 (理由 Z23)。国が渡されると `generate_pediatric_events` は、その国の予防接種スケジュールのうちその年に始まり年齢帯と重なる定期接種の接種期間内 (引いた日に最も近い日) に受診を移し、該当する期間がなければ受診を入れない。受診には必ず接種対象がある (`place_vaccination_visit`、Issue #2974)。乱数の引き方は変わらない。 |
 | `catch_up` | 任意、既定 `false`。`vaccination: true` が必要。接種が遅れている系列のキャッチアップも行う受診: 予防接種モジュールがその系列の次の回を、系列の `catch_up_max_age_days` 以内でこの受診に接種する (Issue #3282)。就学前と思春期の受診に設定。これらの `visit_reason` はワクチン名を挙げない (接種したワクチンは受診の Immunization 記録にある)。`catch_up_visit_reasons()` はこれらの受診の全言語のラベルを返し、予防接種モジュールが主訴と照合する。 |
 | `min_age_days` | 任意、既定 `0`。受診時の最低日齢。これより前に引かれた受診は入れない (乱数の引き方は変わらない)。乳児が対象になる急性疾患の受診 (上気道感染・中耳炎・細気管支炎) は `29`: 日齢 28 以下の発熱児は外来の感冒ではなく入院のうえ敗血症精査を行う (AAP 2021 発熱乳児ガイドライン、Issue #2978)。 |
+| `fixed_age_days` | 任意 `{min, max}` (日齢、両端含む)。`vaccination` / `min_age_days` とは併用不可。年間 `visits_per_year` 回の均等配置の代わりに、窓内のいずれかの日に 1 回だけ受診する (Issue #3566)。受診日と受診するかどうか (世帯の `care_seeking_threshold` が非受診率) は人物とエントリーから作るハッシュ副シードで決めるため、カレンダーの乱数ストリームは消費せず、他の受診の日は変わらない。`well_child_one_month` エントリー (日齢 21-45、1か月健診: 日本は 1か月健診、米国は 1 か月の well visit) が使う。窓は clinosim のモデル上の選択。固定日齢エントリーは定期エントリーと `disease_id` を共有するが、受診ラベルはそのエントリー自身 (`LifeEvent.protocol_source`) から読む。 |
 
 `presentations:` の各 entry は `encounters:` の `disease_id` をキーとする
 (未知のキーは load 時に失敗):

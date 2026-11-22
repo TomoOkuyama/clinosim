@@ -39,6 +39,21 @@ _YAML_PATH = Path(__file__).parent / "reference_data" / "pediatric_schedule.yaml
 VitalField = Literal["temp", "hr", "bp", "rr", "spo2"]
 
 
+class FixedAgeWindow(BaseModel):
+    """Window of days of life, inclusive, in which a fixed-age visit is held."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    min: int = Field(ge=0)
+    max: int = Field(ge=0)
+
+    @model_validator(mode="after")
+    def _window_ordered(self) -> FixedAgeWindow:
+        if self.min > self.max:
+            raise ValueError("fixed_age_days.min > max")
+        return self
+
+
 class _Visit(BaseModel):
     """One scheduled pediatric visit type."""
 
@@ -61,6 +76,11 @@ class _Visit(BaseModel):
     # is not held in the first 28 days of life, when a febrile infant is
     # admitted for a sepsis workup rather than seen as an outpatient.
     min_age_days: int = Field(default=0, ge=0)
+    # A visit held once, at an age inside this window of days of life (Issue
+    # #3566: the 1-month check). ``visits_per_year`` is not used for it; the
+    # day and whether the family attends come from a dedicated hash sub-seed,
+    # so no calendar stream moves.
+    fixed_age_days: FixedAgeWindow | None = None
 
     @field_validator("visits_per_year")
     @classmethod
@@ -82,6 +102,8 @@ class _Visit(BaseModel):
             raise ValueError("age_min > age_max")
         if self.catch_up and not self.vaccination:
             raise ValueError("catch_up needs vaccination: true")
+        if self.fixed_age_days is not None and (self.vaccination or self.min_age_days):
+            raise ValueError("fixed_age_days cannot combine with vaccination or min_age_days")
         return self
 
 
@@ -278,6 +300,22 @@ def _years_after(dob: date, years: int) -> date:
         return dob.replace(year=dob.year + years, day=28)
 
 
+def _fixed_age_visit_day(person: Any, key: str, window: dict[str, Any], dob: date) -> date | None:
+    """The day of the once-only fixed-age visit ``key`` (Issue #3566), or None
+    when the family does not attend. The day in the window and the attendance
+    both come from hash sub-seeds of the person and the entry, so no calendar
+    stream is drawn from. Attendance follows the household's care-seeking
+    motivation, the same rate that skips a year's routine visits."""
+    from clinosim.determinism import sha_index, sha_quantile
+
+    salt = f"pediatric-fixed-age|{key}|{person.person_id}"
+    threshold = float(getattr(person, "care_seeking_threshold", 0.20) or 0.20)
+    if sha_quantile(f"{salt}|attend") < threshold:
+        return None
+    lo, hi = int(window["min"]), int(window["max"])
+    return dob + timedelta(days=lo + sha_index(f"{salt}|day", hi - lo + 1))
+
+
 def pediatric_presentation(visit_id: str) -> Presentation | None:
     """The clinical picture of the acute pediatric visit ``visit_id`` (a
     schedule ``disease_id``), or None for a preventive visit."""
@@ -343,6 +381,31 @@ def generate_pediatric_events(
     if age < 0:
         return []
 
+    # Fixed-age visits (Issue #3566, the 1-month check) are placed by hash
+    # sub-seeds and emitted in the year their day falls in; they come before
+    # the care-seeking gate below, which draws from ``prng`` and must stay
+    # the first draw of the calendar's stream.
+    events: list[Any] = []
+    if dob is not None and hasattr(dob, "year"):
+        for key, entry in schedule.items():
+            window = entry.get("fixed_age_days")
+            if not window or not int(entry["age_min"]) <= age <= int(entry["age_max"]):
+                continue
+            fixed_day = _fixed_age_visit_day(person, key, window, dob)
+            if fixed_day is not None and fixed_day.year == year:
+                events.append(
+                    LifeEvent(
+                        person_id=person.person_id,
+                        event_type="pediatric_visit",
+                        timestamp=fixed_day,
+                        severity=0.0,
+                        condition_type="pediatric",
+                        disease_id=entry["disease_id"],
+                        encounter_type=entry.get("encounter_type", "outpatient"),
+                        protocol_source=f"pediatric:{key}",
+                    )
+                )
+
     # Issue #922 — care-seeking participation gate.
     #
     # Well-child + immunization visits have severity=0.0, so they bypass
@@ -363,12 +426,13 @@ def generate_pediatric_events(
     # not the master RNG.
     threshold = float(getattr(person, "care_seeking_threshold", 0.20) or 0.20)
     if prng.random() < threshold:
-        return []
+        return events
 
-    events: list[Any] = []
     for key, entry in schedule.items():
         if age < int(entry["age_min"]) or age > int(entry["age_max"]):
             continue
+        if entry.get("fixed_age_days"):
+            continue  # placed above
         # Uniform sample from the `visits_per_year` list (a list of allowed
         # counts, e.g. [6, 7, 8] for infants — accommodates the AAP well-child
         # schedule's per-year variance rather than a single fixed count).

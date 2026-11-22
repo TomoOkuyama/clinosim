@@ -44,7 +44,7 @@ def _load_health_screening_visit_reason() -> tuple[dict[str, dict[str, str]], di
 _HEALTH_SCREENING_VISIT_REASON, _HEALTH_SCREENING_VISIT_REASON_FALLBACK = _load_health_screening_visit_reason()
 
 
-def _pediatric_visit_reason(disease_id: str) -> str | dict[str, str]:
+def _pediatric_visit_reason(disease_id: str, entry_key: str = "") -> str | dict[str, str]:
     """Look up the visit_reason for a `pediatric_visit` LifeEvent from the schedule YAML.
 
     The schedule is keyed by encounter-key (e.g., ``well_child_infant``,
@@ -68,6 +68,12 @@ def _pediatric_visit_reason(disease_id: str) -> str | dict[str, str]:
     from clinosim.modules.pediatric.calendar import load_pediatric_schedule
 
     schedule = load_pediatric_schedule()
+    # A fixed-age visit has its own label although it shares the disease id of
+    # a routine entry (Issue #3566: the 1-month check and the infant
+    # well-child visit). Other entries keep the first-match label below.
+    keyed = schedule.get(entry_key) if entry_key else None
+    if keyed and keyed.get("fixed_age_days") and keyed.get("disease_id") == disease_id and keyed.get("visit_reason"):
+        return keyed["visit_reason"]
     entry = schedule.get(disease_id)
     if entry and entry.get("visit_reason"):
         return entry["visit_reason"]

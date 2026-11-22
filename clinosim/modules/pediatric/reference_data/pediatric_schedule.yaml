@@ -45,6 +45,27 @@ encounters:
       en: "Well-child visit — infant"
       ja: "乳児健診"
 
+  # The 1-month check (Issue #3566): newborn discharge instructions send the
+  # family to a check at about one month (JP 1か月健診, US the 1-month well
+  # visit), yet the evenly spaced visits above have no fixed ages, so most
+  # infants had none in the window. One visit per infant, on a day 21-45 of
+  # life (`fixed_age_days`), is added; the day and the family's attendance are
+  # drawn from a hash sub-seed (no calendar stream moves), attendance
+  # following the household's care-seeking motivation. The 21-45 day window
+  # is a clinosim modelling choice, not a figure from a guideline read for
+  # this change. It carries the infant well-child clinical content (the
+  # `well_child_infant` disease id).
+  well_child_one_month:
+    age_min: 0
+    age_max: 1
+    visits_per_year: [1]
+    fixed_age_days: {min: 21, max: 45}
+    encounter_type: outpatient
+    disease_id: well_child_infant
+    visit_reason:
+      en: "Well-child visit — 1-month check"
+      ja: "1か月健診"
+
   # Ages 2-4 (early childhood): MHLW mandates 1歳半 (18mo) + 3歳児健診
   # (~2 visits over the 2-4 age span, i.e. ~1/yr average). AAP recommends
   # more (18mo, 24mo, 30mo, 3yr, 4yr — 2-3/yr) but many are optional in
