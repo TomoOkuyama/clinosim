@@ -150,6 +150,23 @@ course_items:
   - {vital: consciousness, state: high, name: {ja: 意識レベル低下, en: reduced consciousness}}
   - {vital: on_oxygen, state: high, name: {ja: 酸素投与, en: oxygen therapy}}
 
+# The state of each course item at the note's time (Issue #3541), computed once
+# per note and used by the Subjective sentences and the Assessment course line:
+# new (present now, absent over the previous period), persisting (present now
+# and in the previous period), improving (absent now but present in the
+# previous period, not yet sustained), resolved (absent over
+# the sustained window), judged only on the readings up to the note's authored
+# time (a note cannot see later readings).
+#   resolved_window_hours: the window before the note in which no reading may
+#     be abnormal for "resolved"; a clinosim modelling choice (not a guideline
+#     cut-off; none was verified against a source).
+#   resolved_min_readings: the readings of the item's vital the window must
+#     hold, so one normal reading is never "resolved"; likewise a modelling
+#     choice.
+course_state:
+  resolved_window_hours: 24
+  resolved_min_readings: 2
+
 # The Assessment of a note names the problem when the level of consciousness
 # stays below Alert (Issue #3471). AVPU comes from the physiology, not from a
 # diagnosis, so a persistent decrease is stated as a problem with its cause

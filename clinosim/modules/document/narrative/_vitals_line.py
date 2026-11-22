@@ -230,13 +230,15 @@ def vitals_in_window(vitals: list[Any], start: datetime, end: datetime) -> list[
 def latest_vitals_set(readings: list[Any]) -> dict[str, Any]:
     """The latest recorded value of each vital over ``readings`` (oldest
     first), as one record :func:`format_vitals_line` reads (with the latest
-    AVPU level). A reading often carries only some vitals; the oxygen fields
+    AVPU level; a blank AVPU is skipped). A reading often carries only some vitals; the oxygen fields
     come from the reading that gave the SpO2."""
     merged: dict[str, Any] = {}
     for attr in (*_FIELDS.values(), "consciousness_level"):
         for v in reversed(readings):
             value = get_attr_or_key(v, attr, None)
-            if value is not None:
+            # A blank string is "not recorded" (a monitor-only reading carries
+            # an empty AVPU), never a value (Issue #3541).
+            if value is not None and value != "":
                 merged[attr] = value
                 if attr == "spo2":
                     for o2 in _OXYGEN_FIELDS:

@@ -132,12 +132,12 @@
         }
       },
       "sections": {
-        "assessment": "Post-operative day 1 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new fever, tachycardia, oxygen therapy). Level of consciousness remains decreased (AVPU V, 2 days); work-up for the cause, including delirium, continues (medication, infection, electrolyte disturbance, hypoxia).",
+        "assessment": "Post-operative day 1 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (low SpO2 improved, not yet sustained). Vital signs worsening compared with the previous day (new fever, tachycardia, oxygen therapy). Abnormal vital signs persisting (reduced consciousness); no improvement yet. Level of consciousness remains decreased (AVPU V, 2 days); work-up for the cause, including delirium, continues (medication, infection, electrolyte disturbance, hypoxia).",
         "objective": "BP 132/81 mmHg, HR 101 bpm, RR 15 /min, SpO2 96% (nasal cannula 3.7 L/min), T 38.2°C (past 24 h: Tmax 38.9°C, HR max 105 bpm, SpO2 min 94%)",
         "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet changed to NPO (nothing by mouth).",
-        "subjective": "Hospital day 2. New-onset fever 38.2°C (peak 38.9°C in the past 24 h). Worsening headache (NRS 4 → 6). Level of consciousness remains decreased (AVPU V)."
+        "subjective": "Hospital day 2. New-onset fever 38.2°C (peak 38.9°C in the past 24 h). Persistent headache (NRS 5). Level of consciousness remains decreased (AVPU V)."
       },
-      "text": "S: Hospital day 2. New-onset fever 38.2°C (peak 38.9°C in the past 24 h). Worsening headache (NRS 4 → 6). Level of consciousness remains decreased (AVPU V).\nO: BP 132/81 mmHg, HR 101 bpm, RR 15 /min, SpO2 96% (nasal cannula 3.7 L/min), T 38.2°C (past 24 h: Tmax 38.9°C, HR max 105 bpm, SpO2 min 94%)\nA: Post-operative day 1 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new fever, tachycardia, oxygen therapy). Level of consciousness remains decreased (AVPU V, 2 days); work-up for the cause, including delirium, continues (medication, infection, electrolyte disturbance, hypoxia).\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet changed to NPO (nothing by mouth)."
+      "text": "S: Hospital day 2. New-onset fever 38.2°C (peak 38.9°C in the past 24 h). Persistent headache (NRS 5). Level of consciousness remains decreased (AVPU V).\nO: BP 132/81 mmHg, HR 101 bpm, RR 15 /min, SpO2 96% (nasal cannula 3.7 L/min), T 38.2°C (past 24 h: Tmax 38.9°C, HR max 105 bpm, SpO2 min 94%)\nA: Post-operative day 1 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (low SpO2 improved, not yet sustained). Vital signs worsening compared with the previous day (new fever, tachycardia, oxygen therapy). Abnormal vital signs persisting (reduced consciousness); no improvement yet. Level of consciousness remains decreased (AVPU V, 2 days); work-up for the cause, including delirium, continues (medication, infection, electrolyte disturbance, hypoxia).\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet changed to NPO (nothing by mouth)."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-04": {
@@ -182,12 +182,12 @@
         }
       },
       "sections": {
-        "assessment": "Post-operative day 2 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (fever resolved). Level of consciousness remains decreased (AVPU V, 3 days); work-up for the cause, including delirium, continues (medication, infection, electrolyte disturbance, hypoxia). Notable labs (past 24 h): glucose 131 mg/dL [H] (prior 119).",
+        "assessment": "Post-operative day 2 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (low SpO2 resolved). Vital signs improving compared with the previous day (fever improved, not yet sustained). Abnormal vital signs persisting (tachycardia, reduced consciousness, oxygen therapy); no improvement yet. Level of consciousness remains decreased (AVPU V, 3 days); work-up for the cause, including delirium, continues (medication, infection, electrolyte disturbance, hypoxia). Notable labs (past 24 h): glucose 131 mg/dL [H] (prior 119).",
         "objective": "BP 134/81 mmHg, HR 103 bpm, RR 19 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.9°C (past 24 h: Tmax 39.1°C, HR max 106 bpm, RR max 24 /min)",
         "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet changed to Clear liquids.",
-        "subjective": "Hospital day 3. Fever up to 39.1°C in the past 24 h; now 37.9°C, below the fever threshold. Persistent headache (NRS 6). Level of consciousness remains decreased (AVPU V)."
+        "subjective": "Hospital day 3. Fever up to 39.1°C in the past 24 h; now 37.9°C, below the fever threshold. Persistent headache (NRS 4). Level of consciousness remains decreased (AVPU V)."
       },
-      "text": "S: Hospital day 3. Fever up to 39.1°C in the past 24 h; now 37.9°C, below the fever threshold. Persistent headache (NRS 6). Level of consciousness remains decreased (AVPU V).\nO: BP 134/81 mmHg, HR 103 bpm, RR 19 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.9°C (past 24 h: Tmax 39.1°C, HR max 106 bpm, RR max 24 /min)\nA: Post-operative day 2 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (fever resolved). Level of consciousness remains decreased (AVPU V, 3 days); work-up for the cause, including delirium, continues (medication, infection, electrolyte disturbance, hypoxia). Notable labs (past 24 h): glucose 131 mg/dL [H] (prior 119).\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet changed to Clear liquids."
+      "text": "S: Hospital day 3. Fever up to 39.1°C in the past 24 h; now 37.9°C, below the fever threshold. Persistent headache (NRS 4). Level of consciousness remains decreased (AVPU V).\nO: BP 134/81 mmHg, HR 103 bpm, RR 19 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.9°C (past 24 h: Tmax 39.1°C, HR max 106 bpm, RR max 24 /min)\nA: Post-operative day 2 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (low SpO2 resolved). Vital signs improving compared with the previous day (fever improved, not yet sustained). Abnormal vital signs persisting (tachycardia, reduced consciousness, oxygen therapy); no improvement yet. Level of consciousness remains decreased (AVPU V, 3 days); work-up for the cause, including delirium, continues (medication, infection, electrolyte disturbance, hypoxia). Notable labs (past 24 h): glucose 131 mg/dL [H] (prior 119).\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet changed to Clear liquids."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-05": {
@@ -232,12 +232,12 @@
         }
       },
       "sections": {
-        "assessment": "Post-operative day 3 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (tachycardia, reduced consciousness resolved). Level of consciousness remains decreased (AVPU V, 4 days); work-up for the cause, including delirium, continues (medication, infection, electrolyte disturbance, hypoxia). Notable labs (past 24 h): WBC 13374 /uL [H] (prior 11275), glucose 115 mg/dL [H] (prior 131).",
+        "assessment": "Post-operative day 3 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (fever, tachycardia, tachypnea improved, not yet sustained). Abnormal vital signs persisting (reduced consciousness, oxygen therapy); no improvement yet. Level of consciousness remains decreased (AVPU V, 4 days); work-up for the cause, including delirium, continues (medication, infection, electrolyte disturbance, hypoxia). Notable labs (past 24 h): WBC 13374 /uL [H] (prior 11275), glucose 115 mg/dL [H] (prior 131).",
         "objective": "BP 133/78 mmHg, HR 99 bpm, RR 19 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.6°C (past 24 h: Tmax 38.7°C, HR max 107 bpm, RR max 21 /min)",
         "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet changed to Soft diet.",
-        "subjective": "Hospital day 4. Fever up to 38.7°C in the past 24 h; now 37.6°C, below the fever threshold. Persistent headache (NRS 7). Level of consciousness remains decreased (AVPU V)."
+        "subjective": "Hospital day 4. Fever up to 38.7°C in the past 24 h; now 37.6°C, below the fever threshold. Well-controlled headache (NRS 4 → 2). Level of consciousness remains decreased (AVPU V)."
       },
-      "text": "S: Hospital day 4. Fever up to 38.7°C in the past 24 h; now 37.6°C, below the fever threshold. Persistent headache (NRS 7). Level of consciousness remains decreased (AVPU V).\nO: BP 133/78 mmHg, HR 99 bpm, RR 19 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.6°C (past 24 h: Tmax 38.7°C, HR max 107 bpm, RR max 21 /min)\nA: Post-operative day 3 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (tachycardia, reduced consciousness resolved). Level of consciousness remains decreased (AVPU V, 4 days); work-up for the cause, including delirium, continues (medication, infection, electrolyte disturbance, hypoxia). Notable labs (past 24 h): WBC 13374 /uL [H] (prior 11275), glucose 115 mg/dL [H] (prior 131).\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet changed to Soft diet."
+      "text": "S: Hospital day 4. Fever up to 38.7°C in the past 24 h; now 37.6°C, below the fever threshold. Well-controlled headache (NRS 4 → 2). Level of consciousness remains decreased (AVPU V).\nO: BP 133/78 mmHg, HR 99 bpm, RR 19 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.6°C (past 24 h: Tmax 38.7°C, HR max 107 bpm, RR max 21 /min)\nA: Post-operative day 3 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (fever, tachycardia, tachypnea improved, not yet sustained). Abnormal vital signs persisting (reduced consciousness, oxygen therapy); no improvement yet. Level of consciousness remains decreased (AVPU V, 4 days); work-up for the cause, including delirium, continues (medication, infection, electrolyte disturbance, hypoxia). Notable labs (past 24 h): WBC 13374 /uL [H] (prior 11275), glucose 115 mg/dL [H] (prior 131).\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet changed to Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-06": {
@@ -282,12 +282,12 @@
         }
       },
       "sections": {
-        "assessment": "Post-operative day 4 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new fever). Notable labs (past 24 h): WBC 11445 /uL [H] (prior 13374), glucose 127 mg/dL [H] (prior 115).",
+        "assessment": "Post-operative day 4 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (tachypnea resolved). Vital signs improving compared with the previous day (tachycardia, reduced consciousness improved, not yet sustained). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Abnormal vital signs persisting and worsening (fever 37.6 → 38.2). Notable labs (past 24 h): WBC 11445 /uL [H] (prior 13374), glucose 127 mg/dL [H] (prior 115).",
         "objective": "BP 132/82 mmHg, HR 96 bpm, RR 19 /min, SpO2 98% (simple face mask 7.7 L/min), T 38.2°C (past 24 h: Tmax 38.5°C, HR max 108 bpm)",
         "plan": "Continue current medications: Nicardipine, Labetalol. Given once: Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line. Stopped: IV fluids: NS 80 mL/h. Diet: Soft diet.",
-        "subjective": "Hospital day 5. Persistent fever 38.2°C (peak 38.5°C in the past 24 h). Improving headache (NRS 7 → 4). Level of consciousness improved, now alert (prev AVPU V)."
+        "subjective": "Hospital day 5. Persistent fever 38.2°C (peak 38.5°C in the past 24 h). Level of consciousness improved, now alert (prev AVPU V)."
       },
-      "text": "S: Hospital day 5. Persistent fever 38.2°C (peak 38.5°C in the past 24 h). Improving headache (NRS 7 → 4). Level of consciousness improved, now alert (prev AVPU V).\nO: BP 132/82 mmHg, HR 96 bpm, RR 19 /min, SpO2 98% (simple face mask 7.7 L/min), T 38.2°C (past 24 h: Tmax 38.5°C, HR max 108 bpm)\nA: Post-operative day 4 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new fever). Notable labs (past 24 h): WBC 11445 /uL [H] (prior 13374), glucose 127 mg/dL [H] (prior 115).\nP: Continue current medications: Nicardipine, Labetalol. Given once: Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line. Stopped: IV fluids: NS 80 mL/h. Diet: Soft diet."
+      "text": "S: Hospital day 5. Persistent fever 38.2°C (peak 38.5°C in the past 24 h). Level of consciousness improved, now alert (prev AVPU V).\nO: BP 132/82 mmHg, HR 96 bpm, RR 19 /min, SpO2 98% (simple face mask 7.7 L/min), T 38.2°C (past 24 h: Tmax 38.5°C, HR max 108 bpm)\nA: Post-operative day 4 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (tachypnea resolved). Vital signs improving compared with the previous day (tachycardia, reduced consciousness improved, not yet sustained). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Abnormal vital signs persisting and worsening (fever 37.6 → 38.2). Notable labs (past 24 h): WBC 11445 /uL [H] (prior 13374), glucose 127 mg/dL [H] (prior 115).\nP: Continue current medications: Nicardipine, Labetalol. Given once: Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line. Stopped: IV fluids: NS 80 mL/h. Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-07": {
@@ -332,12 +332,12 @@
         }
       },
       "sections": {
-        "assessment": "Post-operative day 5 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (fever resolved). Notable labs (past 24 h): WBC 12528 /uL [H] (prior 11445), glucose 118 mg/dL [H] (prior 127).",
+        "assessment": "Post-operative day 5 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (reduced consciousness resolved). Vital signs improving compared with the previous day (fever, tachycardia improved, not yet sustained). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): WBC 12528 /uL [H] (prior 11445), glucose 118 mg/dL [H] (prior 127).",
         "objective": "BP 134/78 mmHg, HR 98 bpm, RR 19 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.6°C (past 24 h: Tmax 38.7°C, HR max 105 bpm, RR max 21 /min)",
         "plan": "Continue current medications: Nicardipine, Labetalol. Diet: Soft diet.",
-        "subjective": "Hospital day 6. Fever up to 38.7°C in the past 24 h; now 37.6°C, below the fever threshold. Worsening headache (NRS 4 → 6)."
+        "subjective": "Hospital day 6. Fever up to 38.7°C in the past 24 h; now 37.6°C, below the fever threshold."
       },
-      "text": "S: Hospital day 6. Fever up to 38.7°C in the past 24 h; now 37.6°C, below the fever threshold. Worsening headache (NRS 4 → 6).\nO: BP 134/78 mmHg, HR 98 bpm, RR 19 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.6°C (past 24 h: Tmax 38.7°C, HR max 105 bpm, RR max 21 /min)\nA: Post-operative day 5 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (fever resolved). Notable labs (past 24 h): WBC 12528 /uL [H] (prior 11445), glucose 118 mg/dL [H] (prior 127).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet."
+      "text": "S: Hospital day 6. Fever up to 38.7°C in the past 24 h; now 37.6°C, below the fever threshold.\nO: BP 134/78 mmHg, HR 98 bpm, RR 19 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.6°C (past 24 h: Tmax 38.7°C, HR max 105 bpm, RR max 21 /min)\nA: Post-operative day 5 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (reduced consciousness resolved). Vital signs improving compared with the previous day (fever, tachycardia improved, not yet sustained). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): WBC 12528 /uL [H] (prior 11445), glucose 118 mg/dL [H] (prior 127).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-08": {
@@ -382,12 +382,12 @@
         }
       },
       "sections": {
-        "assessment": "Post-operative day 6 (Craniotomy for intracranial hematoma evacuation). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): WBC 11395 /uL [H] (prior 12528), glucose 119 mg/dL [H] (prior 118).",
+        "assessment": "Post-operative day 6 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (fever, tachycardia, tachypnea improved, not yet sustained). Vital signs worsening compared with the previous day (new reduced consciousness). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): WBC 11395 /uL [H] (prior 12528), glucose 119 mg/dL [H] (prior 118).",
         "objective": "BP 134/78 mmHg, HR 96 bpm, RR 20 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.3°C (past 24 h: Tmax 38.5°C, HR max 105 bpm, RR max 21 /min)",
         "plan": "Continue current medications: Nicardipine, Labetalol. Diet: Soft diet.",
-        "subjective": "Hospital day 7. Fever up to 38.5°C in the past 24 h; now 37.3°C, below the fever threshold. Improving headache (NRS 6 → 4). New decrease in level of consciousness (AVPU V); orientation being monitored."
+        "subjective": "Hospital day 7. Fever up to 38.5°C in the past 24 h; now 37.3°C, below the fever threshold. New decrease in level of consciousness (AVPU V); orientation being monitored."
       },
-      "text": "S: Hospital day 7. Fever up to 38.5°C in the past 24 h; now 37.3°C, below the fever threshold. Improving headache (NRS 6 → 4). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 134/78 mmHg, HR 96 bpm, RR 20 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.3°C (past 24 h: Tmax 38.5°C, HR max 105 bpm, RR max 21 /min)\nA: Post-operative day 6 (Craniotomy for intracranial hematoma evacuation). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): WBC 11395 /uL [H] (prior 12528), glucose 119 mg/dL [H] (prior 118).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet."
+      "text": "S: Hospital day 7. Fever up to 38.5°C in the past 24 h; now 37.3°C, below the fever threshold. New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 134/78 mmHg, HR 96 bpm, RR 20 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.3°C (past 24 h: Tmax 38.5°C, HR max 105 bpm, RR max 21 /min)\nA: Post-operative day 6 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (fever, tachycardia, tachypnea improved, not yet sustained). Vital signs worsening compared with the previous day (new reduced consciousness). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): WBC 11395 /uL [H] (prior 12528), glucose 119 mg/dL [H] (prior 118).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-09": {
@@ -432,12 +432,12 @@
         }
       },
       "sections": {
-        "assessment": "Post-operative day 7 (Craniotomy for intracranial hematoma evacuation). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): glucose 133 mg/dL [H] (prior 119), WBC 11893 /uL [H] (prior 11395).",
+        "assessment": "Post-operative day 7 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (fever, tachycardia, tachypnea, reduced consciousness improved, not yet sustained). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): glucose 133 mg/dL [H] (prior 119), WBC 11893 /uL [H] (prior 11395).",
         "objective": "BP 134/81 mmHg, HR 96 bpm, RR 17 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.3°C (past 24 h: Tmax 39.0°C, HR max 103 bpm, RR max 21 /min)",
         "plan": "Continue current medications: Nicardipine, Labetalol. Diet: Soft diet.",
-        "subjective": "Hospital day 8. Fever up to 39.0°C in the past 24 h; now 37.3°C, below the fever threshold. Well-controlled headache (NRS 4 → 3). Level of consciousness improved, now alert (prev AVPU V)."
+        "subjective": "Hospital day 8. Fever up to 39.0°C in the past 24 h; now 37.3°C, below the fever threshold. Level of consciousness improved, now alert (prev AVPU V)."
       },
-      "text": "S: Hospital day 8. Fever up to 39.0°C in the past 24 h; now 37.3°C, below the fever threshold. Well-controlled headache (NRS 4 → 3). Level of consciousness improved, now alert (prev AVPU V).\nO: BP 134/81 mmHg, HR 96 bpm, RR 17 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.3°C (past 24 h: Tmax 39.0°C, HR max 103 bpm, RR max 21 /min)\nA: Post-operative day 7 (Craniotomy for intracranial hematoma evacuation). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): glucose 133 mg/dL [H] (prior 119), WBC 11893 /uL [H] (prior 11395).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet."
+      "text": "S: Hospital day 8. Fever up to 39.0°C in the past 24 h; now 37.3°C, below the fever threshold. Level of consciousness improved, now alert (prev AVPU V).\nO: BP 134/81 mmHg, HR 96 bpm, RR 17 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.3°C (past 24 h: Tmax 39.0°C, HR max 103 bpm, RR max 21 /min)\nA: Post-operative day 7 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (fever, tachycardia, tachypnea, reduced consciousness improved, not yet sustained). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): glucose 133 mg/dL [H] (prior 119), WBC 11893 /uL [H] (prior 11395).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-10": {
@@ -482,12 +482,12 @@
         }
       },
       "sections": {
-        "assessment": "Post-operative day 8 (Craniotomy for intracranial hematoma evacuation). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): glucose 124 mg/dL [H] (prior 133), WBC 11258 /uL [H] (prior 11893).",
+        "assessment": "Post-operative day 8 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (reduced consciousness resolved). Vital signs improving compared with the previous day (fever, tachycardia, tachypnea improved, not yet sustained). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): glucose 124 mg/dL [H] (prior 133), WBC 11258 /uL [H] (prior 11893).",
         "objective": "BP 135/82 mmHg, HR 98 bpm, RR 15 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.4°C (past 24 h: Tmax 38.4°C, HR max 107 bpm, RR max 21 /min)",
         "plan": "Continue current medications: Nicardipine, Labetalol. Diet: Soft diet.",
         "subjective": "Hospital day 9. Fever up to 38.4°C in the past 24 h; now 37.4°C, below the fever threshold."
       },
-      "text": "S: Hospital day 9. Fever up to 38.4°C in the past 24 h; now 37.4°C, below the fever threshold.\nO: BP 135/82 mmHg, HR 98 bpm, RR 15 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.4°C (past 24 h: Tmax 38.4°C, HR max 107 bpm, RR max 21 /min)\nA: Post-operative day 8 (Craniotomy for intracranial hematoma evacuation). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): glucose 124 mg/dL [H] (prior 133), WBC 11258 /uL [H] (prior 11893).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet."
+      "text": "S: Hospital day 9. Fever up to 38.4°C in the past 24 h; now 37.4°C, below the fever threshold.\nO: BP 135/82 mmHg, HR 98 bpm, RR 15 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.4°C (past 24 h: Tmax 38.4°C, HR max 107 bpm, RR max 21 /min)\nA: Post-operative day 8 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (reduced consciousness resolved). Vital signs improving compared with the previous day (fever, tachycardia, tachypnea improved, not yet sustained). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): glucose 124 mg/dL [H] (prior 133), WBC 11258 /uL [H] (prior 11893).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-11": {
@@ -532,12 +532,12 @@
         }
       },
       "sections": {
-        "assessment": "Post-operative day 9 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (oxygen therapy resolved). Notable labs (past 24 h): WBC 13163 /uL [H] (prior 11258).",
+        "assessment": "Post-operative day 9 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (tachypnea resolved). Vital signs improving compared with the previous day (fever, tachycardia, oxygen therapy improved, not yet sustained). Notable labs (past 24 h): WBC 13163 /uL [H] (prior 11258).",
         "objective": "BP 134/82 mmHg, HR 96 bpm, RR 20 /min, SpO2 96% (RA), T 37.2°C, weaned off supplemental O2 (past 24 h: Tmax 38.8°C, HR max 101 bpm, SpO2 min 93%)",
         "plan": "Continue current medications: Nicardipine, Labetalol. Diet: Soft diet.",
         "subjective": "Hospital day 10. Fever up to 38.8°C in the past 24 h; now 37.2°C, below the fever threshold."
       },
-      "text": "S: Hospital day 10. Fever up to 38.8°C in the past 24 h; now 37.2°C, below the fever threshold.\nO: BP 134/82 mmHg, HR 96 bpm, RR 20 /min, SpO2 96% (RA), T 37.2°C, weaned off supplemental O2 (past 24 h: Tmax 38.8°C, HR max 101 bpm, SpO2 min 93%)\nA: Post-operative day 9 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (oxygen therapy resolved). Notable labs (past 24 h): WBC 13163 /uL [H] (prior 11258).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet."
+      "text": "S: Hospital day 10. Fever up to 38.8°C in the past 24 h; now 37.2°C, below the fever threshold.\nO: BP 134/82 mmHg, HR 96 bpm, RR 20 /min, SpO2 96% (RA), T 37.2°C, weaned off supplemental O2 (past 24 h: Tmax 38.8°C, HR max 101 bpm, SpO2 min 93%)\nA: Post-operative day 9 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (tachypnea resolved). Vital signs improving compared with the previous day (fever, tachycardia, oxygen therapy improved, not yet sustained). Notable labs (past 24 h): WBC 13163 /uL [H] (prior 11258).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-12": {
@@ -582,12 +582,12 @@
         }
       },
       "sections": {
-        "assessment": "Post-operative day 10 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new reduced consciousness). Level of consciousness remains decreased (AVPU V, 2 days); work-up for the cause, including delirium, continues (medication, infection, electrolyte disturbance, hypoxia). Notable labs (past 24 h): WBC 12649 /uL [H] (prior 13163), glucose 118 mg/dL [H] (prior 124).",
+        "assessment": "Post-operative day 10 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (low SpO2, oxygen therapy resolved). Vital signs improving compared with the previous day (fever, tachycardia improved, not yet sustained). Vital signs worsening compared with the previous day (new reduced consciousness). Level of consciousness remains decreased (AVPU V, 2 days); work-up for the cause, including delirium, continues (medication, infection, electrolyte disturbance, hypoxia). Notable labs (past 24 h): WBC 12649 /uL [H] (prior 13163), glucose 118 mg/dL [H] (prior 124).",
         "objective": "BP 134/79 mmHg, HR 98 bpm, RR 17 /min, SpO2 94% (RA), T 37.0°C (past 24 h: Tmax 38.6°C, HR max 103 bpm, RR max 21 /min)",
         "plan": "Continue current medications: Nicardipine, Labetalol. Diet: Soft diet. Discharge planning in progress (home).",
-        "subjective": "Hospital day 11. Fever up to 38.6°C in the past 24 h; now 37.0°C, below the fever threshold. Worsening headache (NRS 2 → 4). New decrease in level of consciousness (AVPU V); orientation being monitored."
+        "subjective": "Hospital day 11. Fever up to 38.6°C in the past 24 h; now 37.0°C, below the fever threshold. New decrease in level of consciousness (AVPU V); orientation being monitored."
       },
-      "text": "S: Hospital day 11. Fever up to 38.6°C in the past 24 h; now 37.0°C, below the fever threshold. Worsening headache (NRS 2 → 4). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 134/79 mmHg, HR 98 bpm, RR 17 /min, SpO2 94% (RA), T 37.0°C (past 24 h: Tmax 38.6°C, HR max 103 bpm, RR max 21 /min)\nA: Post-operative day 10 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new reduced consciousness). Level of consciousness remains decreased (AVPU V, 2 days); work-up for the cause, including delirium, continues (medication, infection, electrolyte disturbance, hypoxia). Notable labs (past 24 h): WBC 12649 /uL [H] (prior 13163), glucose 118 mg/dL [H] (prior 124).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet. Discharge planning in progress (home)."
+      "text": "S: Hospital day 11. Fever up to 38.6°C in the past 24 h; now 37.0°C, below the fever threshold. New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 134/79 mmHg, HR 98 bpm, RR 17 /min, SpO2 94% (RA), T 37.0°C (past 24 h: Tmax 38.6°C, HR max 103 bpm, RR max 21 /min)\nA: Post-operative day 10 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (low SpO2, oxygen therapy resolved). Vital signs improving compared with the previous day (fever, tachycardia improved, not yet sustained). Vital signs worsening compared with the previous day (new reduced consciousness). Level of consciousness remains decreased (AVPU V, 2 days); work-up for the cause, including delirium, continues (medication, infection, electrolyte disturbance, hypoxia). Notable labs (past 24 h): WBC 12649 /uL [H] (prior 13163), glucose 118 mg/dL [H] (prior 124).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet. Discharge planning in progress (home)."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-13": {
@@ -632,12 +632,12 @@
         }
       },
       "sections": {
-        "assessment": "Post-operative day 11 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new fever, low SpO2). Notable labs (past 24 h): glucose 120 mg/dL [H] (prior 118).",
+        "assessment": "Post-operative day 11 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (tachycardia, tachypnea, reduced consciousness resolved). Vital signs worsening compared with the previous day (new low SpO2). Abnormal vital signs persisting and worsening (fever 37.0 → 38.2). Notable labs (past 24 h): glucose 120 mg/dL [H] (prior 118).",
         "objective": "BP 131/76 mmHg, HR 94 bpm, RR 17 /min, SpO2 93% (RA), T 38.2°C",
         "plan": "Continue current medications: Nicardipine, Labetalol. Diet: Soft diet. Discharge planning in progress (home).",
-        "subjective": "Hospital day 12. Persistent fever 38.2°C. Well-controlled headache (NRS 4 → 3). Level of consciousness improved, now alert (prev AVPU V)."
+        "subjective": "Hospital day 12. Persistent fever 38.2°C. Level of consciousness improved, now alert (prev AVPU V)."
       },
-      "text": "S: Hospital day 12. Persistent fever 38.2°C. Well-controlled headache (NRS 4 → 3). Level of consciousness improved, now alert (prev AVPU V).\nO: BP 131/76 mmHg, HR 94 bpm, RR 17 /min, SpO2 93% (RA), T 38.2°C\nA: Post-operative day 11 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new fever, low SpO2). Notable labs (past 24 h): glucose 120 mg/dL [H] (prior 118).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet. Discharge planning in progress (home)."
+      "text": "S: Hospital day 12. Persistent fever 38.2°C. Level of consciousness improved, now alert (prev AVPU V).\nO: BP 131/76 mmHg, HR 94 bpm, RR 17 /min, SpO2 93% (RA), T 38.2°C\nA: Post-operative day 11 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (tachycardia, tachypnea, reduced consciousness resolved). Vital signs worsening compared with the previous day (new low SpO2). Abnormal vital signs persisting and worsening (fever 37.0 → 38.2). Notable labs (past 24 h): glucose 120 mg/dL [H] (prior 118).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet. Discharge planning in progress (home)."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-14": {

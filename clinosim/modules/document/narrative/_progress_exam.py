@@ -120,6 +120,12 @@ class _ConsciousnessCourse(BaseModel):
     work_up: Annotated[dict[str, list[str]], AfterValidator(_has_english)]
 
 
+class _CourseState(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    resolved_window_hours: float = Field(gt=0)
+    resolved_min_readings: int = Field(ge=2)
+
+
 class ProgressExamRules(BaseModel):
     """``progress_exam.yaml`` (Issue #3235)."""
 
@@ -131,6 +137,7 @@ class ProgressExamRules(BaseModel):
     extra_terms: list[_ExtraTerm]
     state_findings: list[_StateFinding]
     course_items: list[_CourseItem]
+    course_state: _CourseState
     consciousness_course: _ConsciousnessCourse
 
     @model_validator(mode="after")
@@ -367,25 +374,20 @@ def course_line(ctx: NarrativeContext, readings: list, previous: list, lang: str
     (fever, tachycardia, tachypnea, low SpO2, hypotension, reduced
     consciousness, oxygen therapy), judged on the latest reading of each
     period, against those at the end of the previous period (Issue #3401).
-    ``""`` without readings in both periods or without any abnormal state in
-    either."""
+    ``""`` without readings in both periods or without any finding to state.
+    Each finding is stated in the one state :func:`finding_states` gives it
+    (Issue #3541), so the line and the Subjective never disagree."""
     if not readings or not previous:
         return ""
+    from clinosim.modules.document.narrative._progress_state import finding_states
+
     code = normalize_lang(lang)
     items = progress_exam_rules().course_items
-
-    def named(rows: list) -> list[str]:
-        states = current_states(ctx, rows)
-        return [i.name.get(code) or i.name["en"] for i in items if i.state in states.get(i.vital, set())]
-
-    now, before = named(readings), named(previous)
-    if not now and not before:
-        return ""
+    states = finding_states(ctx, readings, previous)
     sep = t("list_sep.serial", lang)
-    if len(now) < len(before):
-        return t("progress.course_improving", lang, list=sep.join(n for n in before if n not in now))
-    if len(now) > len(before):
-        return t("progress.course_worsening", lang, list=sep.join(n for n in now if n not in before))
+    resolved: list[str] = []
+    easing: list[str] = []
+    new: list[str] = []
     # Issue #3455: a state present in both periods is persisting unless the
     # vital's latest value moved by its ``min_change`` between them.
     cur, prev = latest_vitals_set(readings), latest_vitals_set(previous)
@@ -394,17 +396,26 @@ def course_line(ctx: NarrativeContext, readings: list, previous: list, lang: str
     worsening: list[str] = []
     for i in items:
         label = i.name.get(code) or i.name["en"]
-        if label not in now or label not in before:
-            continue
-        a, b = _o(prev, i.vital, None), _o(cur, i.vital, None)
-        if i.min_change is None or a is None or b is None or abs(float(b) - float(a)) < i.min_change:
-            persisting.append(label)
-            continue
-        moved_down = float(b) < float(a)
-        detail = f"{label} {_fmt(float(a), i.min_change)} → {_fmt(float(b), i.min_change)}"
-        (improving if moved_down == (i.state == "high") else worsening).append(detail)
+        state = states.get((i.vital, i.state), "unknown")
+        if state == "resolved":
+            resolved.append(label)
+        elif state == "improving":
+            easing.append(label)
+        elif state == "new":
+            new.append(label)
+        elif state == "persisting":
+            a, b = _o(prev, i.vital, None), _o(cur, i.vital, None)
+            if i.min_change is None or a is None or b is None or abs(float(b) - float(a)) < i.min_change:
+                persisting.append(label)
+                continue
+            moved_down = float(b) < float(a)
+            detail = f"{label} {_fmt(float(a), i.min_change)} → {_fmt(float(b), i.min_change)}"
+            (improving if moved_down == (i.state == "high") else worsening).append(detail)
     lines = []
     for key, group in (
+        ("progress.course_improving", resolved),
+        ("progress.course_easing", easing),
+        ("progress.course_worsening", new),
         ("progress.course_persisting", persisting),
         ("progress.course_persisting_improving", improving),
         ("progress.course_persisting_worsening", worsening),

@@ -252,6 +252,7 @@ clinosim/modules/document/narrative/
   _medication_plan.py                      note_medications / ranked_medication_names / cap_names — 日々の記録の計画が挙げる薬剤を階層別に選ぶ (Issue #3247)
   _nursing_shift_items.py                  nursing_shift_item_lines — 看護勤務帯記録の項目を順序付きレジストリから作る (Issues #3478 以降)
   _progress_course.py                      post_procedure_line / lab_course_lines / diet_line / rehab_line / discharge_planning_line — 日々の記録の入院経過
+  _progress_state.py                       finding_states — 日々の記録の各バイタル所見を 1 つの状態 (新規/持続/改善/消失) にする
   _progress_exam.py                        progress_exam_findings / course_line / consciousness_assessment_line / agreeing_clauses — 日々の記録の身体所見と経過を、その期間のバイタルに合わせる
   _progress_symptoms.py                    respiratory_symptom_line — 日々の記録の S に書く呼吸の経過
   _outpatient_results.py                   known_labs / latest_lab_stage / note_time — 外来ノートの時点で判明している検査結果と慢性疾患の病期

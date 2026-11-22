@@ -330,6 +330,9 @@ progress:
   course_worsening:
     ja: "バイタルサインは前日より増悪傾向 (新たに {list})。"
     en: "Vital signs worsening compared with the previous day (new {list})."
+  course_easing:
+    ja: "バイタルサインは前日より改善傾向 ({list}は改善したが持続は未確認)。"
+    en: "Vital signs improving compared with the previous day ({list} improved, not yet sustained)."
   course_persisting:
     ja: "バイタルサインは{list}が持続、改善に乏しい。"
     en: "Abnormal vital signs persisting ({list}); no improvement yet."

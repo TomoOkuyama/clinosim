@@ -85,9 +85,9 @@
         "assessment": "Notable labs (past 24 h): troponin I 97.881 ng/mL [H] (troponin elevation), glucose 119 mg/dL [H], CK-MB 58.5 ng/mL [H], BNP 104.5 pg/mL [H], +1 other abnormal.",
         "objective": "BP 115/71 mmHg, HR 110 bpm, RR 18 /min, SpO2 95% (RA), T 38.0°C (past 24 h: HR max 112 bpm, RR max 22 /min)",
         "plan": "Continue current medications: Heparin, Nitroglycerin. Given once: Aspirin, Ticagrelor. Procedures today: Arterial line insertion, Transthoracic echocardiography. Planned later today: Urinary catheter insertion, Percutaneous coronary intervention (PCI).",
-        "subjective": "Hospital day 1. Persistent fever 38.0°C. Persistent chest pain (NRS 7). New decrease in level of consciousness (AVPU V); orientation being monitored."
+        "subjective": "Hospital day 1. Persistent fever 38.0°C. Persistent chest pain (NRS 6). New decrease in level of consciousness (AVPU V); orientation being monitored."
       },
-      "text": "S: Hospital day 1. Persistent fever 38.0°C. Persistent chest pain (NRS 7). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 115/71 mmHg, HR 110 bpm, RR 18 /min, SpO2 95% (RA), T 38.0°C (past 24 h: HR max 112 bpm, RR max 22 /min)\nA: Notable labs (past 24 h): troponin I 97.881 ng/mL [H] (troponin elevation), glucose 119 mg/dL [H], CK-MB 58.5 ng/mL [H], BNP 104.5 pg/mL [H], +1 other abnormal.\nP: Continue current medications: Heparin, Nitroglycerin. Given once: Aspirin, Ticagrelor. Procedures today: Arterial line insertion, Transthoracic echocardiography. Planned later today: Urinary catheter insertion, Percutaneous coronary intervention (PCI)."
+      "text": "S: Hospital day 1. Persistent fever 38.0°C. Persistent chest pain (NRS 6). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 115/71 mmHg, HR 110 bpm, RR 18 /min, SpO2 95% (RA), T 38.0°C (past 24 h: HR max 112 bpm, RR max 22 /min)\nA: Notable labs (past 24 h): troponin I 97.881 ng/mL [H] (troponin elevation), glucose 119 mg/dL [H], CK-MB 58.5 ng/mL [H], BNP 104.5 pg/mL [H], +1 other abnormal.\nP: Continue current medications: Heparin, Nitroglycerin. Given once: Aspirin, Ticagrelor. Procedures today: Arterial line insertion, Transthoracic echocardiography. Planned later today: Urinary catheter insertion, Percutaneous coronary intervention (PCI)."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-03": {
@@ -132,12 +132,12 @@
         }
       },
       "sections": {
-        "assessment": "Post-procedure day 1 (Percutaneous coronary intervention (PCI)). Abnormal vital signs persisting (tachycardia, tachypnea); no improvement yet. Notable labs (past 24 h): HDL 31 mg/dL [L], TG 218 mg/dL [H], LDL 191 mg/dL [H], TC 295 mg/dL [H].",
+        "assessment": "Post-procedure day 1 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (reduced consciousness improved, not yet sustained). Vital signs worsening compared with the previous day (new oxygen therapy). Abnormal vital signs persisting (tachycardia, tachypnea); no improvement yet. Notable labs (past 24 h): HDL 31 mg/dL [L], TG 218 mg/dL [H], LDL 191 mg/dL [H], TC 295 mg/dL [H].",
         "objective": "BP 117/73 mmHg, HR 107 bpm, RR 22 /min, SpO2 99% (nasal cannula 3.2 L/min), T 37.7°C (past 24 h: Tmax 39.2°C, HR max 117 bpm, SpO2 min 92%)",
         "plan": "Continue current medications: Heparin, Nitroglycerin. Diet changed to NPO (nothing by mouth).",
-        "subjective": "Hospital day 2. Fever up to 39.2°C in the past 24 h; now 37.7°C, below the fever threshold. Persistent chest pain (NRS 6). Level of consciousness improved, now alert (prev AVPU V)."
+        "subjective": "Hospital day 2. Fever up to 39.2°C in the past 24 h; now 37.7°C, below the fever threshold. Improving chest pain (NRS 7 → 5). Level of consciousness improved, now alert (prev AVPU V)."
       },
-      "text": "S: Hospital day 2. Fever up to 39.2°C in the past 24 h; now 37.7°C, below the fever threshold. Persistent chest pain (NRS 6). Level of consciousness improved, now alert (prev AVPU V).\nO: BP 117/73 mmHg, HR 107 bpm, RR 22 /min, SpO2 99% (nasal cannula 3.2 L/min), T 37.7°C (past 24 h: Tmax 39.2°C, HR max 117 bpm, SpO2 min 92%)\nA: Post-procedure day 1 (Percutaneous coronary intervention (PCI)). Abnormal vital signs persisting (tachycardia, tachypnea); no improvement yet. Notable labs (past 24 h): HDL 31 mg/dL [L], TG 218 mg/dL [H], LDL 191 mg/dL [H], TC 295 mg/dL [H].\nP: Continue current medications: Heparin, Nitroglycerin. Diet changed to NPO (nothing by mouth)."
+      "text": "S: Hospital day 2. Fever up to 39.2°C in the past 24 h; now 37.7°C, below the fever threshold. Improving chest pain (NRS 7 → 5). Level of consciousness improved, now alert (prev AVPU V).\nO: BP 117/73 mmHg, HR 107 bpm, RR 22 /min, SpO2 99% (nasal cannula 3.2 L/min), T 37.7°C (past 24 h: Tmax 39.2°C, HR max 117 bpm, SpO2 min 92%)\nA: Post-procedure day 1 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (reduced consciousness improved, not yet sustained). Vital signs worsening compared with the previous day (new oxygen therapy). Abnormal vital signs persisting (tachycardia, tachypnea); no improvement yet. Notable labs (past 24 h): HDL 31 mg/dL [L], TG 218 mg/dL [H], LDL 191 mg/dL [H], TC 295 mg/dL [H].\nP: Continue current medications: Heparin, Nitroglycerin. Diet changed to NPO (nothing by mouth)."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-04": {
@@ -182,12 +182,12 @@
         }
       },
       "sections": {
-        "assessment": "Post-procedure day 2 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (tachypnea resolved). Notable labs (past 24 h): troponin I 82.518 ng/mL [H] (prior 97.881; troponin elevation), glucose 118 mg/dL [H] (prior 119), CK-MB 42.4 ng/mL [H] (prior 58.5), BNP 107.4 pg/mL [H] (prior 104.5).",
+        "assessment": "Post-procedure day 2 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (low SpO2, reduced consciousness resolved). Vital signs improving compared with the previous day (fever, tachypnea improved, not yet sustained). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 82.518 ng/mL [H] (prior 97.881; troponin elevation), glucose 118 mg/dL [H] (prior 119), CK-MB 42.4 ng/mL [H] (prior 58.5), BNP 107.4 pg/mL [H] (prior 104.5).",
         "objective": "BP 113/68 mmHg, HR 106 bpm, RR 17 /min, SpO2 98% (nasal cannula 3.2 L/min), T 37.0°C (past 24 h: Tmax 39.1°C, HR max 119 bpm, RR max 23 /min)",
         "plan": "Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet changed to Clear liquids.",
-        "subjective": "Hospital day 3. Fever up to 39.1°C in the past 24 h; now 37.0°C, below the fever threshold. Persistent chest pain (NRS 5)."
+        "subjective": "Hospital day 3. Fever up to 39.1°C in the past 24 h; now 37.0°C, below the fever threshold. Persistent chest pain (NRS 4)."
       },
-      "text": "S: Hospital day 3. Fever up to 39.1°C in the past 24 h; now 37.0°C, below the fever threshold. Persistent chest pain (NRS 5).\nO: BP 113/68 mmHg, HR 106 bpm, RR 17 /min, SpO2 98% (nasal cannula 3.2 L/min), T 37.0°C (past 24 h: Tmax 39.1°C, HR max 119 bpm, RR max 23 /min)\nA: Post-procedure day 2 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (tachypnea resolved). Notable labs (past 24 h): troponin I 82.518 ng/mL [H] (prior 97.881; troponin elevation), glucose 118 mg/dL [H] (prior 119), CK-MB 42.4 ng/mL [H] (prior 58.5), BNP 107.4 pg/mL [H] (prior 104.5).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet changed to Clear liquids."
+      "text": "S: Hospital day 3. Fever up to 39.1°C in the past 24 h; now 37.0°C, below the fever threshold. Persistent chest pain (NRS 4).\nO: BP 113/68 mmHg, HR 106 bpm, RR 17 /min, SpO2 98% (nasal cannula 3.2 L/min), T 37.0°C (past 24 h: Tmax 39.1°C, HR max 119 bpm, RR max 23 /min)\nA: Post-procedure day 2 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (low SpO2, reduced consciousness resolved). Vital signs improving compared with the previous day (fever, tachypnea improved, not yet sustained). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 82.518 ng/mL [H] (prior 97.881; troponin elevation), glucose 118 mg/dL [H] (prior 119), CK-MB 42.4 ng/mL [H] (prior 58.5), BNP 107.4 pg/mL [H] (prior 104.5).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet changed to Clear liquids."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-05": {
@@ -232,12 +232,12 @@
         }
       },
       "sections": {
-        "assessment": "Post-procedure day 3 (Percutaneous coronary intervention (PCI)). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 75.911 ng/mL [H] (prior 82.518; troponin elevation), CK-MB 35.1 ng/mL [H] (prior 42.4), glucose 116 mg/dL [H] (prior 118).",
+        "assessment": "Post-procedure day 3 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (tachypnea resolved). Vital signs improving compared with the previous day (fever improved, not yet sustained). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 75.911 ng/mL [H] (prior 82.518; troponin elevation), CK-MB 35.1 ng/mL [H] (prior 42.4), glucose 116 mg/dL [H] (prior 118).",
         "objective": "BP 113/71 mmHg, HR 103 bpm, RR 20 /min, SpO2 98% (nasal cannula 3.2 L/min), T 37.5°C (past 24 h: Tmax 38.8°C, HR max 114 bpm)",
         "plan": "Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet changed to Soft diet.",
-        "subjective": "Hospital day 4. Fever up to 38.8°C in the past 24 h; now 37.5°C, below the fever threshold. Persistent chest pain (NRS 4)."
+        "subjective": "Hospital day 4. Fever up to 38.8°C in the past 24 h; now 37.5°C, below the fever threshold. Well-controlled chest pain (NRS 4 → 3)."
       },
-      "text": "S: Hospital day 4. Fever up to 38.8°C in the past 24 h; now 37.5°C, below the fever threshold. Persistent chest pain (NRS 4).\nO: BP 113/71 mmHg, HR 103 bpm, RR 20 /min, SpO2 98% (nasal cannula 3.2 L/min), T 37.5°C (past 24 h: Tmax 38.8°C, HR max 114 bpm)\nA: Post-procedure day 3 (Percutaneous coronary intervention (PCI)). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 75.911 ng/mL [H] (prior 82.518; troponin elevation), CK-MB 35.1 ng/mL [H] (prior 42.4), glucose 116 mg/dL [H] (prior 118).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet changed to Soft diet."
+      "text": "S: Hospital day 4. Fever up to 38.8°C in the past 24 h; now 37.5°C, below the fever threshold. Well-controlled chest pain (NRS 4 → 3).\nO: BP 113/71 mmHg, HR 103 bpm, RR 20 /min, SpO2 98% (nasal cannula 3.2 L/min), T 37.5°C (past 24 h: Tmax 38.8°C, HR max 114 bpm)\nA: Post-procedure day 3 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (tachypnea resolved). Vital signs improving compared with the previous day (fever improved, not yet sustained). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 75.911 ng/mL [H] (prior 82.518; troponin elevation), CK-MB 35.1 ng/mL [H] (prior 42.4), glucose 116 mg/dL [H] (prior 118).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet changed to Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-06": {
@@ -282,12 +282,12 @@
         }
       },
       "sections": {
-        "assessment": "Post-procedure day 4 (Percutaneous coronary intervention (PCI)). Abnormal vital signs persisting (tachycardia); no improvement yet. Notable labs (past 24 h): troponin I 82.477 ng/mL [H] (prior 75.911; troponin elevation), glucose 109 mg/dL [H] (prior 116), CK-MB 43.5 ng/mL [H] (prior 35.1).",
+        "assessment": "Post-procedure day 4 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, oxygen therapy improved, not yet sustained). Vital signs worsening compared with the previous day (new low SpO2). Abnormal vital signs persisting (tachycardia); no improvement yet. Notable labs (past 24 h): troponin I 82.477 ng/mL [H] (prior 75.911; troponin elevation), glucose 109 mg/dL [H] (prior 116), CK-MB 43.5 ng/mL [H] (prior 35.1).",
         "objective": "BP 115/68 mmHg, HR 106 bpm, RR 19 /min, SpO2 94% (RA), T 36.6°C, weaned off supplemental O2 (past 24 h: Tmax 38.1°C, HR max 114 bpm, SpO2 min 93%)",
         "plan": "Started: Dobutamine 2ug/kg/min IV drip. Continue current medications: Aspirin, Ticagrelor, Heparin. Held: Nitroglycerin (on vasopressor or inotrope infusion). Diet: Soft diet.",
-        "subjective": "Hospital day 5. Fever up to 38.1°C in the past 24 h; now 36.6°C, below the fever threshold. Well-controlled chest pain (NRS 4 → 3)."
+        "subjective": "Hospital day 5. Fever up to 38.1°C in the past 24 h; now 36.6°C, below the fever threshold."
       },
-      "text": "S: Hospital day 5. Fever up to 38.1°C in the past 24 h; now 36.6°C, below the fever threshold. Well-controlled chest pain (NRS 4 → 3).\nO: BP 115/68 mmHg, HR 106 bpm, RR 19 /min, SpO2 94% (RA), T 36.6°C, weaned off supplemental O2 (past 24 h: Tmax 38.1°C, HR max 114 bpm, SpO2 min 93%)\nA: Post-procedure day 4 (Percutaneous coronary intervention (PCI)). Abnormal vital signs persisting (tachycardia); no improvement yet. Notable labs (past 24 h): troponin I 82.477 ng/mL [H] (prior 75.911; troponin elevation), glucose 109 mg/dL [H] (prior 116), CK-MB 43.5 ng/mL [H] (prior 35.1).\nP: Started: Dobutamine 2ug/kg/min IV drip. Continue current medications: Aspirin, Ticagrelor, Heparin. Held: Nitroglycerin (on vasopressor or inotrope infusion). Diet: Soft diet."
+      "text": "S: Hospital day 5. Fever up to 38.1°C in the past 24 h; now 36.6°C, below the fever threshold.\nO: BP 115/68 mmHg, HR 106 bpm, RR 19 /min, SpO2 94% (RA), T 36.6°C, weaned off supplemental O2 (past 24 h: Tmax 38.1°C, HR max 114 bpm, SpO2 min 93%)\nA: Post-procedure day 4 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, oxygen therapy improved, not yet sustained). Vital signs worsening compared with the previous day (new low SpO2). Abnormal vital signs persisting (tachycardia); no improvement yet. Notable labs (past 24 h): troponin I 82.477 ng/mL [H] (prior 75.911; troponin elevation), glucose 109 mg/dL [H] (prior 116), CK-MB 43.5 ng/mL [H] (prior 35.1).\nP: Started: Dobutamine 2ug/kg/min IV drip. Continue current medications: Aspirin, Ticagrelor, Heparin. Held: Nitroglycerin (on vasopressor or inotrope infusion). Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-07": {
@@ -332,12 +332,12 @@
         }
       },
       "sections": {
-        "assessment": "Post-procedure day 5 (Percutaneous coronary intervention (PCI)). Abnormal vital signs persisting (tachycardia); no improvement yet. Notable labs (past 24 h): troponin I 76.188 ng/mL [H] (prior 82.477; troponin elevation), CK-MB 45.6 ng/mL [H] (prior 43.5), glucose 107 mg/dL [H] (prior 109).",
+        "assessment": "Post-procedure day 5 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 76.188 ng/mL [H] (prior 82.477; troponin elevation), CK-MB 45.6 ng/mL [H] (prior 43.5), glucose 107 mg/dL [H] (prior 109).",
         "objective": "BP 113/70 mmHg, HR 104 bpm, RR 15 /min, SpO2 98% (nasal cannula 3.5 L/min), T 36.5°C (past 24 h: Tmax 38.1°C, HR max 113 bpm, SpO2 min 93%)",
         "plan": "Continue current medications: Dobutamine 2ug/kg/min IV drip, Aspirin, Ticagrelor, Heparin. Held: Nitroglycerin (on vasopressor or inotrope infusion). Diet: Soft diet.",
         "subjective": "Hospital day 6. Fever up to 38.1°C in the past 24 h; now 36.5°C, below the fever threshold."
       },
-      "text": "S: Hospital day 6. Fever up to 38.1°C in the past 24 h; now 36.5°C, below the fever threshold.\nO: BP 113/70 mmHg, HR 104 bpm, RR 15 /min, SpO2 98% (nasal cannula 3.5 L/min), T 36.5°C (past 24 h: Tmax 38.1°C, HR max 113 bpm, SpO2 min 93%)\nA: Post-procedure day 5 (Percutaneous coronary intervention (PCI)). Abnormal vital signs persisting (tachycardia); no improvement yet. Notable labs (past 24 h): troponin I 76.188 ng/mL [H] (prior 82.477; troponin elevation), CK-MB 45.6 ng/mL [H] (prior 43.5), glucose 107 mg/dL [H] (prior 109).\nP: Continue current medications: Dobutamine 2ug/kg/min IV drip, Aspirin, Ticagrelor, Heparin. Held: Nitroglycerin (on vasopressor or inotrope infusion). Diet: Soft diet."
+      "text": "S: Hospital day 6. Fever up to 38.1°C in the past 24 h; now 36.5°C, below the fever threshold.\nO: BP 113/70 mmHg, HR 104 bpm, RR 15 /min, SpO2 98% (nasal cannula 3.5 L/min), T 36.5°C (past 24 h: Tmax 38.1°C, HR max 113 bpm, SpO2 min 93%)\nA: Post-procedure day 5 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 76.188 ng/mL [H] (prior 82.477; troponin elevation), CK-MB 45.6 ng/mL [H] (prior 43.5), glucose 107 mg/dL [H] (prior 109).\nP: Continue current medications: Dobutamine 2ug/kg/min IV drip, Aspirin, Ticagrelor, Heparin. Held: Nitroglycerin (on vasopressor or inotrope infusion). Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-08": {
@@ -382,12 +382,12 @@
         }
       },
       "sections": {
-        "assessment": "Post-procedure day 6 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (oxygen therapy resolved). Notable labs (past 24 h): troponin I 87.121 ng/mL [H] (prior 78.817; troponin elevation), CK-MB 37.5 ng/mL [H] (prior 45.6), glucose 119 mg/dL [H] (prior 107).",
+        "assessment": "Post-procedure day 6 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, low SpO2, oxygen therapy improved, not yet sustained). Abnormal vital signs persisting (tachycardia); no improvement yet. Notable labs (past 24 h): troponin I 87.121 ng/mL [H] (prior 78.817; troponin elevation), CK-MB 37.5 ng/mL [H] (prior 45.6), glucose 119 mg/dL [H] (prior 107).",
         "objective": "BP 118/70 mmHg, HR 104 bpm, RR 16 /min, SpO2 98% (RA), T 37.9°C, weaned off supplemental O2 (past 24 h: Tmax 38.9°C, HR max 113 bpm, SpO2 min 93%)",
         "plan": "Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Stopped: Dobutamine 2ug/kg/min IV drip. Diet: Soft diet.",
         "subjective": "Hospital day 7. Fever up to 38.9°C in the past 24 h; now 37.9°C, below the fever threshold."
       },
-      "text": "S: Hospital day 7. Fever up to 38.9°C in the past 24 h; now 37.9°C, below the fever threshold.\nO: BP 118/70 mmHg, HR 104 bpm, RR 16 /min, SpO2 98% (RA), T 37.9°C, weaned off supplemental O2 (past 24 h: Tmax 38.9°C, HR max 113 bpm, SpO2 min 93%)\nA: Post-procedure day 6 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (oxygen therapy resolved). Notable labs (past 24 h): troponin I 87.121 ng/mL [H] (prior 78.817; troponin elevation), CK-MB 37.5 ng/mL [H] (prior 45.6), glucose 119 mg/dL [H] (prior 107).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Stopped: Dobutamine 2ug/kg/min IV drip. Diet: Soft diet."
+      "text": "S: Hospital day 7. Fever up to 38.9°C in the past 24 h; now 37.9°C, below the fever threshold.\nO: BP 118/70 mmHg, HR 104 bpm, RR 16 /min, SpO2 98% (RA), T 37.9°C, weaned off supplemental O2 (past 24 h: Tmax 38.9°C, HR max 113 bpm, SpO2 min 93%)\nA: Post-procedure day 6 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, low SpO2, oxygen therapy improved, not yet sustained). Abnormal vital signs persisting (tachycardia); no improvement yet. Notable labs (past 24 h): troponin I 87.121 ng/mL [H] (prior 78.817; troponin elevation), CK-MB 37.5 ng/mL [H] (prior 45.6), glucose 119 mg/dL [H] (prior 107).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Stopped: Dobutamine 2ug/kg/min IV drip. Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-09": {
@@ -432,12 +432,12 @@
         }
       },
       "sections": {
-        "assessment": "Post-procedure day 7 (Percutaneous coronary intervention (PCI)). Vital signs worsening compared with the previous day (new oxygen therapy). Notable labs (past 24 h): troponin I 83.290 ng/mL [H] (prior 87.121; troponin elevation), CK-MB 33.8 ng/mL [H] (prior 37.5), glucose 106 mg/dL [H] (prior 119).",
+        "assessment": "Post-procedure day 7 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 83.290 ng/mL [H] (prior 87.121; troponin elevation), CK-MB 33.8 ng/mL [H] (prior 37.5), glucose 106 mg/dL [H] (prior 119).",
         "objective": "BP 113/69 mmHg, HR 104 bpm, RR 19 /min, SpO2 98% (nasal cannula 2 L/min), T 36.7°C (past 24 h: Tmax 38.2°C, HR max 114 bpm, SpO2 min 92%)",
         "plan": "Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet.",
         "subjective": "Hospital day 8. Fever up to 38.2°C in the past 24 h; now 36.7°C, below the fever threshold."
       },
-      "text": "S: Hospital day 8. Fever up to 38.2°C in the past 24 h; now 36.7°C, below the fever threshold.\nO: BP 113/69 mmHg, HR 104 bpm, RR 19 /min, SpO2 98% (nasal cannula 2 L/min), T 36.7°C (past 24 h: Tmax 38.2°C, HR max 114 bpm, SpO2 min 92%)\nA: Post-procedure day 7 (Percutaneous coronary intervention (PCI)). Vital signs worsening compared with the previous day (new oxygen therapy). Notable labs (past 24 h): troponin I 83.290 ng/mL [H] (prior 87.121; troponin elevation), CK-MB 33.8 ng/mL [H] (prior 37.5), glucose 106 mg/dL [H] (prior 119).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet."
+      "text": "S: Hospital day 8. Fever up to 38.2°C in the past 24 h; now 36.7°C, below the fever threshold.\nO: BP 113/69 mmHg, HR 104 bpm, RR 19 /min, SpO2 98% (nasal cannula 2 L/min), T 36.7°C (past 24 h: Tmax 38.2°C, HR max 114 bpm, SpO2 min 92%)\nA: Post-procedure day 7 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 83.290 ng/mL [H] (prior 87.121; troponin elevation), CK-MB 33.8 ng/mL [H] (prior 37.5), glucose 106 mg/dL [H] (prior 119).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-10": {
@@ -482,12 +482,12 @@
         }
       },
       "sections": {
-        "assessment": "Post-procedure day 8 (Percutaneous coronary intervention (PCI)). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 61.209 ng/mL [H] (prior 83.290; troponin elevation), BNP 106.8 pg/mL [H] (prior 71.8), CK-MB 30.8 ng/mL [H] (prior 33.8), glucose 118 mg/dL [H] (prior 106).",
+        "assessment": "Post-procedure day 8 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 61.209 ng/mL [H] (prior 83.290; troponin elevation), BNP 106.8 pg/mL [H] (prior 71.8), CK-MB 30.8 ng/mL [H] (prior 33.8), glucose 118 mg/dL [H] (prior 106).",
         "objective": "BP 111/71 mmHg, HR 101 bpm, RR 18 /min, SpO2 98% (nasal cannula 3 L/min), T 36.9°C (past 24 h: Tmax 38.0°C, HR max 110 bpm, SpO2 min 94%)",
         "plan": "Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet.",
         "subjective": "Hospital day 9. Fever up to 38.0°C in the past 24 h; now 36.9°C, below the fever threshold."
       },
-      "text": "S: Hospital day 9. Fever up to 38.0°C in the past 24 h; now 36.9°C, below the fever threshold.\nO: BP 111/71 mmHg, HR 101 bpm, RR 18 /min, SpO2 98% (nasal cannula 3 L/min), T 36.9°C (past 24 h: Tmax 38.0°C, HR max 110 bpm, SpO2 min 94%)\nA: Post-procedure day 8 (Percutaneous coronary intervention (PCI)). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 61.209 ng/mL [H] (prior 83.290; troponin elevation), BNP 106.8 pg/mL [H] (prior 71.8), CK-MB 30.8 ng/mL [H] (prior 33.8), glucose 118 mg/dL [H] (prior 106).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet."
+      "text": "S: Hospital day 9. Fever up to 38.0°C in the past 24 h; now 36.9°C, below the fever threshold.\nO: BP 111/71 mmHg, HR 101 bpm, RR 18 /min, SpO2 98% (nasal cannula 3 L/min), T 36.9°C (past 24 h: Tmax 38.0°C, HR max 110 bpm, SpO2 min 94%)\nA: Post-procedure day 8 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 61.209 ng/mL [H] (prior 83.290; troponin elevation), BNP 106.8 pg/mL [H] (prior 71.8), CK-MB 30.8 ng/mL [H] (prior 33.8), glucose 118 mg/dL [H] (prior 106).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-11": {
@@ -532,12 +532,12 @@
         }
       },
       "sections": {
-        "assessment": "Post-procedure day 9 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (tachycardia, oxygen therapy resolved). Notable labs (past 24 h): troponin I 65.592 ng/mL [H] (prior 61.209; troponin elevation), glucose 108 mg/dL [H] (prior 118), CK-MB 29.7 ng/mL [H] (prior 30.8).",
+        "assessment": "Post-procedure day 9 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, low SpO2 resolved). Vital signs improving compared with the previous day (tachycardia, oxygen therapy improved, not yet sustained). Notable labs (past 24 h): troponin I 65.592 ng/mL [H] (prior 61.209; troponin elevation), glucose 108 mg/dL [H] (prior 118), CK-MB 29.7 ng/mL [H] (prior 30.8).",
         "objective": "BP 119/68 mmHg, HR 100 bpm, RR 20 /min, SpO2 94% (RA), T 35.8°C, weaned off supplemental O2 (past 24 h: HR max 109 bpm, RR max 21 /min)",
         "plan": "Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet.",
         "subjective": "Hospital day 10. Fever trending down (prev 38.0°C → today 37.4°C)."
       },
-      "text": "S: Hospital day 10. Fever trending down (prev 38.0°C → today 37.4°C).\nO: BP 119/68 mmHg, HR 100 bpm, RR 20 /min, SpO2 94% (RA), T 35.8°C, weaned off supplemental O2 (past 24 h: HR max 109 bpm, RR max 21 /min)\nA: Post-procedure day 9 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (tachycardia, oxygen therapy resolved). Notable labs (past 24 h): troponin I 65.592 ng/mL [H] (prior 61.209; troponin elevation), glucose 108 mg/dL [H] (prior 118), CK-MB 29.7 ng/mL [H] (prior 30.8).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet."
+      "text": "S: Hospital day 10. Fever trending down (prev 38.0°C → today 37.4°C).\nO: BP 119/68 mmHg, HR 100 bpm, RR 20 /min, SpO2 94% (RA), T 35.8°C, weaned off supplemental O2 (past 24 h: HR max 109 bpm, RR max 21 /min)\nA: Post-procedure day 9 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, low SpO2 resolved). Vital signs improving compared with the previous day (tachycardia, oxygen therapy improved, not yet sustained). Notable labs (past 24 h): troponin I 65.592 ng/mL [H] (prior 61.209; troponin elevation), glucose 108 mg/dL [H] (prior 118), CK-MB 29.7 ng/mL [H] (prior 30.8).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-12": {
@@ -582,12 +582,12 @@
         }
       },
       "sections": {
-        "assessment": "Post-procedure day 10 (Percutaneous coronary intervention (PCI)). Vital signs worsening compared with the previous day (new tachycardia, tachypnea). Notable labs (past 24 h): troponin I 94.221 ng/mL [H] (prior 65.592; troponin elevation), glucose 112 mg/dL [H] (prior 108), CK-MB 42.1 ng/mL [H] (prior 29.7).",
+        "assessment": "Post-procedure day 10 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (oxygen therapy resolved). Abnormal vital signs persisting (tachycardia); no improvement yet. Abnormal vital signs persisting and worsening (tachypnea 20 → 23). Notable labs (past 24 h): troponin I 94.221 ng/mL [H] (prior 65.592; troponin elevation), glucose 112 mg/dL [H] (prior 108), CK-MB 42.1 ng/mL [H] (prior 29.7).",
         "objective": "BP 117/70 mmHg, HR 101 bpm, RR 23 /min, SpO2 96% (RA), T 36.0°C (past 24 h: Tmax 38.7°C, HR max 106 bpm, SpO2 min 94%)",
         "plan": "Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet.",
         "subjective": "Hospital day 11. Fever up to 38.7°C in the past 24 h; now 36.0°C, below the fever threshold."
       },
-      "text": "S: Hospital day 11. Fever up to 38.7°C in the past 24 h; now 36.0°C, below the fever threshold.\nO: BP 117/70 mmHg, HR 101 bpm, RR 23 /min, SpO2 96% (RA), T 36.0°C (past 24 h: Tmax 38.7°C, HR max 106 bpm, SpO2 min 94%)\nA: Post-procedure day 10 (Percutaneous coronary intervention (PCI)). Vital signs worsening compared with the previous day (new tachycardia, tachypnea). Notable labs (past 24 h): troponin I 94.221 ng/mL [H] (prior 65.592; troponin elevation), glucose 112 mg/dL [H] (prior 108), CK-MB 42.1 ng/mL [H] (prior 29.7).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet."
+      "text": "S: Hospital day 11. Fever up to 38.7°C in the past 24 h; now 36.0°C, below the fever threshold.\nO: BP 117/70 mmHg, HR 101 bpm, RR 23 /min, SpO2 96% (RA), T 36.0°C (past 24 h: Tmax 38.7°C, HR max 106 bpm, SpO2 min 94%)\nA: Post-procedure day 10 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (oxygen therapy resolved). Abnormal vital signs persisting (tachycardia); no improvement yet. Abnormal vital signs persisting and worsening (tachypnea 20 → 23). Notable labs (past 24 h): troponin I 94.221 ng/mL [H] (prior 65.592; troponin elevation), glucose 112 mg/dL [H] (prior 108), CK-MB 42.1 ng/mL [H] (prior 29.7).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-13": {
@@ -632,12 +632,12 @@
         }
       },
       "sections": {
-        "assessment": "Post-procedure day 11 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (tachycardia, tachypnea resolved). Notable labs (past 24 h): troponin I 58.283 ng/mL [H] (prior 94.221; troponin elevation), BNP 107.5 pg/mL [H] (prior 81.8), glucose 117 mg/dL [H] (prior 112), CK-MB 30.9 ng/mL [H] (prior 42.1).",
+        "assessment": "Post-procedure day 11 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever resolved). Vital signs improving compared with the previous day (tachycardia, tachypnea improved, not yet sustained). Abnormal vital signs persisting and worsening (low SpO2 96 → 94). Notable labs (past 24 h): troponin I 58.283 ng/mL [H] (prior 94.221; troponin elevation), BNP 107.5 pg/mL [H] (prior 81.8), glucose 117 mg/dL [H] (prior 112), CK-MB 30.9 ng/mL [H] (prior 42.1).",
         "objective": "BP 112/69 mmHg, HR 99 bpm, RR 17 /min, SpO2 94% (RA), T 36.4°C (past 24 h: HR max 109 bpm, RR max 23 /min)",
         "plan": "Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet.",
         "subjective": "Hospital day 12. Overall clinical status stable; observation continues."
       },
-      "text": "S: Hospital day 12. Overall clinical status stable; observation continues.\nO: BP 112/69 mmHg, HR 99 bpm, RR 17 /min, SpO2 94% (RA), T 36.4°C (past 24 h: HR max 109 bpm, RR max 23 /min)\nA: Post-procedure day 11 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (tachycardia, tachypnea resolved). Notable labs (past 24 h): troponin I 58.283 ng/mL [H] (prior 94.221; troponin elevation), BNP 107.5 pg/mL [H] (prior 81.8), glucose 117 mg/dL [H] (prior 112), CK-MB 30.9 ng/mL [H] (prior 42.1).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet."
+      "text": "S: Hospital day 12. Overall clinical status stable; observation continues.\nO: BP 112/69 mmHg, HR 99 bpm, RR 17 /min, SpO2 94% (RA), T 36.4°C (past 24 h: HR max 109 bpm, RR max 23 /min)\nA: Post-procedure day 11 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever resolved). Vital signs improving compared with the previous day (tachycardia, tachypnea improved, not yet sustained). Abnormal vital signs persisting and worsening (low SpO2 96 → 94). Notable labs (past 24 h): troponin I 58.283 ng/mL [H] (prior 94.221; troponin elevation), BNP 107.5 pg/mL [H] (prior 81.8), glucose 117 mg/dL [H] (prior 112), CK-MB 30.9 ng/mL [H] (prior 42.1).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-14": {
@@ -682,12 +682,12 @@
         }
       },
       "sections": {
-        "assessment": "Post-procedure day 12 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (low SpO2 resolved). Notable labs (past 24 h): troponin I 67.307 ng/mL [H] (prior 58.283; troponin elevation), glucose 106 mg/dL [H] (prior 117), CK-MB 35.7 ng/mL [H] (prior 30.9).",
+        "assessment": "Post-procedure day 12 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (tachypnea resolved). Vital signs improving compared with the previous day (tachycardia, low SpO2 improved, not yet sustained). Notable labs (past 24 h): troponin I 67.307 ng/mL [H] (prior 58.283; troponin elevation), glucose 106 mg/dL [H] (prior 117), CK-MB 35.7 ng/mL [H] (prior 30.9).",
         "objective": "BP 116/72 mmHg, HR 99 bpm, RR 16 /min, SpO2 98% (RA), T 36.9°C (past 24 h: Tmax 38.2°C, HR max 104 bpm, SpO2 min 93%)",
         "plan": "Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet. Arranging transfer or facility discharge.",
         "subjective": "Hospital day 13. Fever up to 38.2°C in the past 24 h; now 36.9°C, below the fever threshold."
       },
-      "text": "S: Hospital day 13. Fever up to 38.2°C in the past 24 h; now 36.9°C, below the fever threshold.\nO: BP 116/72 mmHg, HR 99 bpm, RR 16 /min, SpO2 98% (RA), T 36.9°C (past 24 h: Tmax 38.2°C, HR max 104 bpm, SpO2 min 93%)\nA: Post-procedure day 12 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (low SpO2 resolved). Notable labs (past 24 h): troponin I 67.307 ng/mL [H] (prior 58.283; troponin elevation), glucose 106 mg/dL [H] (prior 117), CK-MB 35.7 ng/mL [H] (prior 30.9).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet. Arranging transfer or facility discharge."
+      "text": "S: Hospital day 13. Fever up to 38.2°C in the past 24 h; now 36.9°C, below the fever threshold.\nO: BP 116/72 mmHg, HR 99 bpm, RR 16 /min, SpO2 98% (RA), T 36.9°C (past 24 h: Tmax 38.2°C, HR max 104 bpm, SpO2 min 93%)\nA: Post-procedure day 12 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (tachypnea resolved). Vital signs improving compared with the previous day (tachycardia, low SpO2 improved, not yet sustained). Notable labs (past 24 h): troponin I 67.307 ng/mL [H] (prior 58.283; troponin elevation), glucose 106 mg/dL [H] (prior 117), CK-MB 35.7 ng/mL [H] (prior 30.9).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet. Arranging transfer or facility discharge."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-15": {
@@ -732,12 +732,12 @@
         }
       },
       "sections": {
-        "assessment": "Post-procedure day 13 (Percutaneous coronary intervention (PCI)). Vital signs worsening compared with the previous day (new oxygen therapy). Notable labs (past 24 h): troponin I 54.511 ng/mL [H] (prior 67.307; troponin elevation), CK-MB 38.3 ng/mL [H] (prior 35.7), glucose 106 mg/dL [H] (prior 106).",
+        "assessment": "Post-procedure day 13 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, low SpO2 resolved). Vital signs improving compared with the previous day (tachycardia improved, not yet sustained). Vital signs worsening compared with the previous day (new oxygen therapy). Notable labs (past 24 h): troponin I 54.511 ng/mL [H] (prior 67.307; troponin elevation), CK-MB 38.3 ng/mL [H] (prior 35.7), glucose 106 mg/dL [H] (prior 106).",
         "objective": "BP 119/74 mmHg, HR 95 bpm, RR 16 /min, SpO2 98% (simple face mask 4.4 L/min), T 36.4°C (past 24 h: HR max 103 bpm)",
         "plan": "Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet. Arranging transfer or facility discharge.",
         "subjective": "Hospital day 14. Fever trending down (prev 38.2°C → today 37.4°C)."
       },
-      "text": "S: Hospital day 14. Fever trending down (prev 38.2°C → today 37.4°C).\nO: BP 119/74 mmHg, HR 95 bpm, RR 16 /min, SpO2 98% (simple face mask 4.4 L/min), T 36.4°C (past 24 h: HR max 103 bpm)\nA: Post-procedure day 13 (Percutaneous coronary intervention (PCI)). Vital signs worsening compared with the previous day (new oxygen therapy). Notable labs (past 24 h): troponin I 54.511 ng/mL [H] (prior 67.307; troponin elevation), CK-MB 38.3 ng/mL [H] (prior 35.7), glucose 106 mg/dL [H] (prior 106).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet. Arranging transfer or facility discharge."
+      "text": "S: Hospital day 14. Fever trending down (prev 38.2°C → today 37.4°C).\nO: BP 119/74 mmHg, HR 95 bpm, RR 16 /min, SpO2 98% (simple face mask 4.4 L/min), T 36.4°C (past 24 h: HR max 103 bpm)\nA: Post-procedure day 13 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, low SpO2 resolved). Vital signs improving compared with the previous day (tachycardia improved, not yet sustained). Vital signs worsening compared with the previous day (new oxygen therapy). Notable labs (past 24 h): troponin I 54.511 ng/mL [H] (prior 67.307; troponin elevation), CK-MB 38.3 ng/mL [H] (prior 35.7), glucose 106 mg/dL [H] (prior 106).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet. Arranging transfer or facility discharge."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-16": {
