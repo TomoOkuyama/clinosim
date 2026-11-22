@@ -176,8 +176,10 @@ def _add_orders_for_administrations(record: Any, mars: list[Any]) -> None:
     """Add the standing order behind each newborn prophylaxis MAR (Issue #2608).
 
     One order per ``order_id``, placed at the birth admission by the birth
-    encounter's attending, with the MAR's dose and route. No RNG.
+    encounter's attending, with the MAR's dose (structured, or the instruction text when it
+    has no numeric amount) and route. No RNG.
     """
+    from clinosim.modules.order.engine import parse_dose_string
     from clinosim.types.encounter import Order, OrderStatus, OrderType
 
     encs = _get(record, "encounters", None) or []
@@ -196,6 +198,12 @@ def _add_orders_for_administrations(record: Any, mars: list[Any]) -> None:
         have.add(oid)
         admitted = _get(enc, "admission_datetime", None)
         given = _get(mar, "actual_datetime", None) or _get(mar, "scheduled_datetime", None)
+        # Issue #3595: the protocol dose goes through the order dose parser; a
+        # dose with no numeric amount ("1 cm ribbon each eye") is kept as the
+        # order's dose instruction text.
+        dose_str = str(_get(mar, "dose", "") or "")
+        parsed = parse_dose_string(dose_str)
+        qty = parsed.get("dose_quantity")
         orders.append(
             Order(
                 order_id=oid,
@@ -210,6 +218,9 @@ def _add_orders_for_administrations(record: Any, mars: list[Any]) -> None:
                 frequency="once",
                 frequency_per_day=1,
                 route=str(_get(mar, "route", "") or ""),
+                dose_quantity=qty,
+                dose_unit=str(parsed.get("dose_unit") or "") if qty is not None else "",
+                dose_text_en=dose_str if qty is None else "",
                 end_datetime=given,
             )
         )

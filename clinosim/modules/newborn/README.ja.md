@@ -88,6 +88,9 @@ Issue #3358) を持つ。結果は採血の数日後で、`metabolic_screen.resu
   が `clinosim.modules.order.placed_order_mar.stable_nurse` 経由で選ぶ —
   出生 encounter の病棟 (無ければ診療科) の看護師を order id から RNG
   なしで安定に選択 (Issue #2824)。
+  各投与の元となる標準オーダーはプロトコルの用量をオーダー用量パーサ経由で保持する
+  (`dose_quantity` / `dose_unit`。眼軟膏の「1 cm」のように数値量のない用量は
+  `dose_text_en`)。`MedicationRequest` に用量が出る (Issue #3595)。
 - `vital_signs` — 勤務帯ごとのバイタル。
 - `procedures` — 聴覚 + 代謝スクリーニングの `ProcedureRecord`。
 - `extensions["newborn"]` — `apgar`、`bilirubin`、`cchd_pulse_ox`、

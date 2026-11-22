@@ -1079,17 +1079,8 @@ drugs:
     codes:
       rxnorm: "8308"
     classes: []
-  vitamin_k1_injection:
-    # SBD-level pointer for the newborn Vit K1 injection workup (#1252).
-    # Distinct from the ingredient-level `phytonadione` (RxCUI 8308) —
-    # the CIF `"Vitamin K1 (phytonadione) 1 mg IM"` text matches the
-    # longest-prefix form "Vitamin K1 (phytonadione)" via
-    # `locale/us/code_mapping_drug.yaml` to this SBD RxCUI.
-    names: {en: "Vitamin K1 (phytonadione)", ja: "ビタミンK1注 (0.5 mL / 2 mg/mL)"}
-    codes:
-      rxnorm: "312424"                 # SBD: 0.5 ML vitamin K1 2 MG/ML Injection
-    classes: ["vitamin"]
-    aliases: ["Vitamin K1 injection"]
+    # The newborn IM injection (the 1 mg SCD 312424 is chosen from its dose; #3595).
+    aliases: ["Vitamin K1 (phytonadione)", "Vitamin K1 injection"]
   aztreonam:
     names: {en: "Aztreonam", ja: "アズトレオナム"}
     codes:

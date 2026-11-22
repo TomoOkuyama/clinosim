@@ -108,6 +108,10 @@ class TestDrugMapping:
                 "Buscopan 10mg",
                 "Buscopan 20mg",
             },
+            "8308": {  # Phytonadione ingredient — + the newborn IM injection name (Issue #3595)
+                "Phytonadione",
+                "Vitamin K1 (phytonadione)",
+            },
             "730781": {  # 3 % sodium chloride injection — unspecified + 3 % hypertonic saline (Issue #2152)
                 "Hypertonic Saline",
                 "Hypertonic saline",

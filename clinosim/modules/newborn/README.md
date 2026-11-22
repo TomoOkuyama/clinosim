@@ -87,6 +87,10 @@ written before that time says the result is pending. Every document reads the sc
   `clinosim.modules.order.placed_order_mar.stable_nurse` — a nurse of
   the birth encounter's ward (else department) chosen stably by the
   order id, no RNG (Issue #2824).
+  The standing order behind each dose carries the protocol dose through the
+  order dose parser (`dose_quantity` / `dose_unit`; a dose with no numeric
+  amount, such as the ophthalmic ribbon, is kept in `dose_text_en`), so the
+  `MedicationRequest` states it (Issue #3595).
 - `vital_signs` — shift vitals.
 - `procedures` — hearing + metabolic screen `ProcedureRecord`s.
 - `extensions["newborn"]` — `apgar`, `bilirubin`, `cchd_pulse_ox`,
