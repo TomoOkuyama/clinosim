@@ -53,6 +53,23 @@ limits:
   systolic_bp: {low: 90, child_low: critical_low}
   pain_score: {high: 3}
 
+# A low reading of a newborn is stated (an added exam finding, the course line)
+# only when it is sustained (Issue #3563). A newborn's baseline systolic
+# pressure (about 68 mmHg) lies a few mmHg above the PALS hypotension cut-off
+# (60 mmHg), so one reading of 56-59 is an ordinary fluctuation, not a new
+# hypotension or a deterioration. For a patient up to ``max_age_months`` old, a
+# low reading of the vital counts when it is part of a run of ``min_readings``
+# consecutive readings of the vital below the limit (the readings before the
+# note's period included), or when another vital of ``accompanying_vitals`` is
+# abnormal at the same reading. The persistence rule is a clinosim modelling
+# choice (not a guideline criterion; none was verified against a source).
+# Adults and older children are judged on a single reading as before.
+sustained_low:
+  systolic_bp:
+    max_age_months: 0
+    min_readings: 2
+    accompanying_vitals: [heart_rate, respiratory_rate, spo2, temperature_celsius]
+
 # A patient's own target range replaces the adult ``low`` of the vital
 # (Issue #3401): a patient with COPD is titrated to an SpO2 of 88-92 % to
 # avoid hypercapnia (GOLD / BTS, as cited by the oxygen-start target of

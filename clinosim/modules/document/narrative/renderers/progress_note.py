@@ -143,7 +143,8 @@ def render_progress_note(
         # Issue #3235: the objective text, the general state and the exam follow
         # the readings of the note's period.
         readings = _note_period_vitals(ctx)
-        states = period_states(ctx, readings)
+        prev_period = _note_period_vitals(ctx, previous=True)
+        states = period_states(ctx, readings, prev_period)
         objective = agreeing_clauses(objective, states, lang)
         if today_vitals_line:
             facts.append("ctx.vitals.today")
@@ -161,14 +162,18 @@ def render_progress_note(
         )
         if exam_source:
             facts.append(exam_source)
-        findings = progress_exam_findings(ctx, readings, phys_exam, str(ctx.severity or ""), lang) if phys_exam else {}
+        findings = (
+            progress_exam_findings(ctx, readings, phys_exam, str(ctx.severity or ""), lang, prev_period)
+            if phys_exam
+            else {}
+        )
         # Issue #3235: a system whose exam is the previous day's word for word
         # is stated as unchanged instead of repeated.
         unchanged: list[str] = []
         if findings and ctx.day_index >= 1:
             prev_ctx = copy(ctx)
             prev_ctx.day_index = ctx.day_index - 1
-            prev_readings = _note_period_vitals(ctx, previous=True)
+            prev_readings = prev_period
             prev_reading = pe_vitals_reading(prev_ctx)
             prev_phys, _ = exam_findings(
                 generator,

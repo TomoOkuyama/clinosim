@@ -207,7 +207,7 @@ clinosim/modules/document/
     hedging_phrases.yaml             narrative hedging phrase pool
     drug_plan_priority.yaml          経過記録の計画の薬剤の優先順位・単回投与の頻度・一覧の上限 (narrative/_medication_plan.py)
     progress_vitals.yaml             経過記録のバイタル要約: 経過の閾値・自己申告可能な AVPU・表示する極値・疼痛部位 (narrative/renderers/_composers.py)
-    progress_exam.yaml               経過記録の身体所見をバイタルに合わせる: 意識レベル低下の持続の規則 (評価に問題と原因検索を記載)・バイタルの判定範囲 (小児の収縮期血圧の下限は PALS の低血圧閾値)・バイタルを述べる語・異常値に加える所見・経過の項目・後句を落とした文の文末形 (terminal_forms)・患者別の下限の上書き (COPD の SpO2 下限 88 %)・「現在」の記述は最新値で判定 (narrative/_progress_exam.py)
+    progress_exam.yaml               経過記録の身体所見をバイタルに合わせる: 意識レベル低下の持続の規則 (評価に問題と原因検索を記載)・バイタルの判定範囲 (小児の収縮期血圧の下限は PALS の低血圧閾値)・バイタルを述べる語・異常値に加える所見・経過の項目・後句を落とした文の文末形 (terminal_forms)・患者別の下限の上書き (COPD の SpO2 下限 88 %)・「現在」の記述は最新値で判定 (narrative/_progress_exam.py)。新生児の低値は `sustained_low` (基準すれすれの 1 回の収縮期血圧は血圧低下・増悪としない) で持続時のみ記載
     nursing_shift_items.yaml         看護 shift 記録の看護項目 (疼痛・発熱・SpO2 低下・意識・NEWS2・保留/拒否された投薬・前日の水分出納・留置 device・食事・皮膚・移動/ADL・創部・転倒リスク・新生児ケア) の順序付き一覧と CIF 出典・規則 (narrative/_nursing_shift_items.py)
     progress_course.yaml             経過記録の経過: 処置後の処置種別・主要検査の件数・退院調整の期間・合併症対応オーダーの時間窓 (narrative/_progress_course.py)
     progress_symptoms.yaml           経過記録 S の呼吸器疾患群: 呼吸状態の経過を書く疾患 (narrative/_progress_symptoms.py)
