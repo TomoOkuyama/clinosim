@@ -15,7 +15,6 @@ def test_returns_none_for_empty_conditions():
 def test_matches_i10_hypertension():
     tmpl = resolve_chronic_soap([SimpleNamespace(code="I10")])
     assert tmpl is not None
-    assert "血圧" in tmpl["subjective"]["ja"]
     assert "本態性高血圧" in tmpl["assessment"]["ja"]
 
 
@@ -23,7 +22,7 @@ def test_matches_by_prefix_i10_9():
     """Sub-codes (I10.9 etc.) resolve to the I10 base entry."""
     tmpl = resolve_chronic_soap([SimpleNamespace(code="I10.9")])
     assert tmpl is not None
-    assert "血圧" in tmpl["subjective"]["ja"]
+    assert "本態性高血圧" in tmpl["assessment"]["ja"]
 
 
 def test_first_matching_condition_wins():
@@ -36,7 +35,6 @@ def test_first_matching_condition_wins():
     )
     assert tmpl is not None
     assert "糖尿病" in tmpl["assessment"]["ja"]
-    assert "血糖" in tmpl["subjective"]["ja"]
 
 
 def test_falls_through_when_no_prefix_matches():
@@ -65,7 +63,9 @@ def test_all_registry_entries_have_four_slots():
 
     reg = load_document_data_yaml("chronic_soap_templates.yaml")
     # Each slot is a language map with the authored Japanese text (Issue #2506).
-    required = {"subjective", "objective", "assessment", "plan"}
+    # subjective / objective are omitted when the record backs no seed text
+    # (Issue #3547).
+    required = {"assessment", "plan"}
     for code, entry in reg.items():
         missing = required - set(entry.keys())
         assert not missing, f"registry entry {code} missing: {missing}"

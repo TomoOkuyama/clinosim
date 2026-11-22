@@ -355,7 +355,7 @@ def test_a_chronic_visit_with_a_vaccine_keeps_its_problem_and_records_the_vaccin
     )
     soap = _soap(record, "JP")
     assert "予防接種" in soap["A"] and "高血圧: BP" in soap["A"]
-    assert "家庭血圧の記録を持参" in soap["S"]
+    assert "家庭血圧" not in soap["S"]
     assert "L976-202602-644" in soap["P"] and "降圧薬継続" in soap["P"]
 
 

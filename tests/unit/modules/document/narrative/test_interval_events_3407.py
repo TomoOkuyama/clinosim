@@ -144,5 +144,5 @@ def test_other_encounters_reads_structural_records() -> None:
 def test_the_phrase_is_carried_by_no_interval_event_only() -> None:
     reg = load_document_data_yaml("chronic_soap_templates.yaml")
     for code, entry in reg.items():
-        assert "前回受診以降" not in entry["subjective"]["ja"], code
+        assert "前回受診以降" not in (entry.get("subjective") or {}).get("ja", ""), code
     assert reg["J44"]["no_interval_event"]["ja"] == "前回受診以降の増悪エピソードなし。"

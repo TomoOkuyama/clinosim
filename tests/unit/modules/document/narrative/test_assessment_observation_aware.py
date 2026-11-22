@@ -129,7 +129,8 @@ def test_condition_without_specific_dispatch_english_fallback() -> None:
     assert "no measurement today" not in text
     assert "not condition-specific" not in text
     assert "focused review" not in text.lower()
-    assert "noted on problem list" in text.lower() or "no acute change" in text.lower()
+    assert "on the problem list" in text.lower()
+    assert "no acute change" not in text.lower()
 
 
 def test_hypertension_i10_dispatch_still_wins() -> None:

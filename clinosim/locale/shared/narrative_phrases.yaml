@@ -1684,8 +1684,8 @@ outpatient_results:
     ja: "C-SSRS 陽性: 自殺リスクの評価と安全計画の作成を行い、危機相談窓口の情報を提供する。"
     en: "Positive C-SSRS screen: complete a suicide risk assessment and a safety plan, and provide crisis resources."
   plan_bp_above_target:
-    ja: "血圧が目標を上回る: 家庭血圧を確認し、高値が続く場合は降圧薬の調整を検討する。"
-    en: "Blood pressure above target: review home readings and adjust antihypertensive therapy if it stays above target."
+    ja: "血圧が目標を上回る: 次回受診時に血圧を再測定し、高値が続く場合は降圧薬の調整を検討する。"
+    en: "Blood pressure above target: recheck at the next visit and adjust antihypertensive therapy if it stays above target."
   plan_doac_renal_check:
     ja: "DOAC 用量確認のため、血清クレアチニン・eGFR と血算を測定する。"
     en: "Check serum creatinine, eGFR and blood count for DOAC dosing."
@@ -1761,11 +1761,11 @@ chronic_assessment:
   # phrase at the per-chronic Assessment fallback site: the staged form
   # cites the condition's chronic_conditions[].stage directly instead of
   # re-quoting Objective-section vitals, and the stageless form just
-  # acknowledges the problem-list entry with no acute change. Neither
+  # lists the problem-list entry (Issue #3547: no claim about today's findings). Neither
   # phrase defers the clinical judgement.
   chronic_stage_stable:
-    ja: "{label}（{stage}）、本日は増悪所見なく、現行管理継続。"
-    en: "{label} ({stage}); management continued, no acute change this visit."
+    ja: "{label}（{stage}）、現行管理継続。"
+    en: "{label} ({stage}); management continued."
   # Issue #3273: a stored stage that is an HbA1c above target is not "no
   # acute change".
   chronic_stage_above_target:
@@ -1777,8 +1777,8 @@ chronic_assessment:
     ja: "{label}（{stage}）、薬物療法なし、非薬物療法と経過観察を継続。"
     en: "{label} ({stage}); no pharmacotherapy, non-drug management and monitoring continued."
   chronic_noted:
-    ja: "{label}: 問題リスト登録、本日の増悪所見なし。"
-    en: "{label}: noted on problem list; no acute change this visit."
+    ja: "{label}: 問題リスト登録済み。"
+    en: "{label}: on the problem list."
   # The abnormal vital-sign items (tachycardia, hypoxemia, fever) and their
   # plan lines are in document/reference_data/visit_reason_soap.yaml
   # (``vital_findings``, Issue #3251).
