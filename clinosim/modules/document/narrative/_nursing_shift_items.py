@@ -76,6 +76,17 @@ class DeviceKind(BaseModel):
         return self
 
 
+class SiteObservation(BaseModel):
+    """How long, and with which wording, the site of a procedure is observed."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    kind: str
+    max_days: int = Field(ge=0)
+
+
+_SITE_KINDS = ("wound", "access_site", "pocket")
+
+
 class NursingShiftItems(BaseModel):
     model_config = ConfigDict(extra="forbid")
     items: list[NursingShiftItem] = Field(min_length=1)
@@ -88,7 +99,18 @@ class NursingShiftItems(BaseModel):
     braden_report_at_or_below: int
     braden_prevention_at_or_below: int
     adl_levels: dict[str, dict[int, str]]
-    wound_observation_max_post_op_days: int = Field(ge=0)
+    site_observation: dict[str, SiteObservation]
+
+    @model_validator(mode="after")
+    def _site_observation_valid(self) -> NursingShiftItems:
+        if "surgical_wound" not in self.site_observation:
+            raise ValueError("nursing_shift_items.yaml: site_observation needs the surgical_wound default")
+        for cat, so in self.site_observation.items():
+            if so.kind not in _SITE_KINDS:
+                raise ValueError(
+                    f"nursing_shift_items.yaml: site_observation.{cat}.kind {so.kind!r} not in {_SITE_KINDS}"
+                )
+        return self
 
     @model_validator(mode="after")
     def _unique_ids(self) -> NursingShiftItems:
@@ -477,31 +499,38 @@ def _item_mobility(d: ShiftData) -> str | None:
 
 
 def _item_wound(d: ShiftData) -> str | None:
-    """The post-operative day after the encounter's latest surgical procedure
-    started by the shift's end, with the routine surgical-site observation."""
+    """The observation of the site of the encounter's latest surgical-category
+    procedure started by the shift's end: the post-operative day with the
+    surgical-site observation for a wound, the puncture-site observation for a
+    vascular access, the pocket observation for a device implant. The kind and
+    the number of days come from the procedure catalog's ``aftercare`` through
+    the YAML ``site_observation``; a procedure past its limit states nothing
+    (Issue #3556)."""
     if d.window is None:
         return None
+    from clinosim.codes.procedures import procedure_aftercare
+
+    cfg = nursing_shift_items_config().site_observation
     enc_id = _o(d.ctx.encounter, "encounter_id", "") or ""
-    started: list[tuple[datetime, Any]] = []
+    due: list[tuple[datetime, Any, int, str]] = []
     for p in getattr(d.ctx, "procedures", None) or []:
         if str(_o(p, "category_code", "") or "") != SURGICAL_PROCEDURE or (_o(p, "encounter_id", "") or "") != enc_id:
             continue
         when = parse_iso_datetime(_o(p, "start_datetime", None), lenient=True)
-        if when is not None and when < d.window[1]:
-            started.append((when, p))
-    if not started:
+        if when is None or when >= d.window[1]:
+            continue
+        rule = cfg.get(procedure_aftercare(str(_o(p, "procedure_type", "") or ""))) or cfg["surgical_wound"]
+        pod = max((d.window[0].date() - when.date()).days, 0)
+        if pod <= rule.max_days:
+            due.append((when, p, pod, rule.kind))
+    if not due:
         return None
-    when, proc = max(started, key=lambda x: x[0])
-    pod = (d.window[0].date() - when.date()).days
-    pod = max(pod, 0)
-    if pod > nursing_shift_items_config().wound_observation_max_post_op_days:
-        return None
+    _when, proc, pod, kind = max(due, key=lambda x: x[0])
     from clinosim.modules.document.narrative.renderers._shared_helpers import resolve_procedure_display
 
     name = resolve_procedure_display(proc, d.lang)
-    return t(
-        "nursing_shift_items.wound.day0" if pod == 0 else "nursing_shift_items.wound.pod", d.lang, name=name, n=pod
-    )
+    base = "nursing_shift_items.wound" if kind == "wound" else f"nursing_shift_items.site.{kind}"
+    return t(f"{base}.day0" if pod == 0 else f"{base}.pod", d.lang, name=name, n=pod)
 
 
 def _item_fall_risk(d: ShiftData) -> str | None:

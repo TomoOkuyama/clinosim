@@ -1261,6 +1261,21 @@ nursing_shift_items:
     pod:
       ja: "術後{n}日目 ({name})。創部 (出血・滲出液・発赤・腫脹) の観察を継続。"
       en: "Post-operative day {n} ({name}). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+  site:
+    access_site:
+      day0:
+        ja: "{name}当日。穿刺部 (出血・血腫) と末梢動脈の触知の観察を継続。"
+        en: "Day of the procedure ({name}). Puncture-site observation (bleeding, hematoma) and distal pulses continued."
+      pod:
+        ja: "{name}から{n}日目。穿刺部 (出血・血腫) と末梢動脈の触知の観察を継続。"
+        en: "Day {n} after {name}. Puncture-site observation (bleeding, hematoma) and distal pulses continued."
+    pocket:
+      day0:
+        ja: "{name}当日。ポケット部 (血腫・発赤・腫脹) の観察を継続。"
+        en: "Day of the procedure ({name}). Device-pocket observation (hematoma, redness, swelling) continued."
+      pod:
+        ja: "{name}から{n}日目。ポケット部 (血腫・発赤・腫脹) の観察を継続。"
+        en: "Day {n} after {name}. Device-pocket observation (hematoma, redness, swelling) continued."
   fall_risk:
     with_score:
       ja: "転倒リスク: {level} (Morse {morse})、転倒予防策を継続。"

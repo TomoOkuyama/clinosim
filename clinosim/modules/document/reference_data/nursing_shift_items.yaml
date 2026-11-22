@@ -87,7 +87,7 @@ items:
     skip_neonate: true
   - id: wound
     source: procedures[] (surgical procedures of the encounter)
-    rule: a surgical procedure of the encounter started before the shift's end, within the post-operative window below; the post-operative day and the routine surgical-site observation (no finding is stated)
+    rule: a surgical procedure of the encounter started before the shift's end, within the site-observation window of `site_observation` below; the post-operative day and the routine surgical-site observation, or the access-site / pocket observation for a catheter procedure or device implant (no finding is stated)
     fact: ctx.procedures.surgical_site
     skip_neonate: true
   - id: fall_risk
@@ -147,10 +147,20 @@ adl_levels:
   mobility: {15: independent, 10: assisted, 5: wheelchair, 0: bedbound}
   toilet_use: {10: independent, 5: partial, 0: dependent}
 
-# Post-operative days (the day of the procedure is day 0) up to which the
-# surgical-site observation is written. A routine limit chosen for the notes,
-# not a guideline value.
-wound_observation_max_post_op_days: 14
+# Site observation of a procedure of the surgical category, by the procedure
+# catalog's `aftercare` category (clinosim/codes/data/clinosim-procedure-catalog.yaml;
+# an aftercare not listed takes `surgical_wound`). `kind` selects the wording
+# (wound: post-operative day and surgical-site observation; access_site:
+# puncture-site bleeding / haematoma and distal pulses; pocket: generator-pocket
+# haematoma and infection signs, as in `procedure_aftercare.<category>`).
+# `max_days` is the last day (the day of the procedure is day 0) on which it is
+# written. All limits are modelling choices for the notes, not guideline values:
+# a catheter puncture is checked for a day or two (Issue #3556), a device pocket
+# for a few days, an open wound for two weeks.
+site_observation:
+  surgical_wound: {kind: wound, max_days: 14}
+  vascular_access: {kind: access_site, max_days: 1}
+  device_pocket: {kind: pocket, max_days: 3}
 
 # MAR routes written as an oral dose (内服); any other route is a plain dose.
 oral_routes:
