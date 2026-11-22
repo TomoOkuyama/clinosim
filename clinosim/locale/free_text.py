@@ -70,6 +70,11 @@ _DOSAGE_PATTERNS_CACHE: dict[tuple[int, str], tuple[object, tuple[tuple[re.Patte
 _DRUG_PATTERNS_CACHE: dict[int, tuple[dict[str, str], tuple[tuple[re.Pattern[str], str], ...]]] = {}
 
 
+# An all-upper-case term of at most this many letters is an abbreviation (PRN,
+# PO, IV, SC, IM, SL, NPO) matched case-sensitively; a longer one (WEEKLY) is a word.
+_CASE_SENSITIVE_MAX_LEN = 3
+
+
 def _dosage_term_patterns(lang: str = "ja") -> tuple[tuple[re.Pattern[str], str], ...]:
     """Pre-compile med-term (category + term) regex patterns once per process.
 
@@ -97,14 +102,15 @@ def _dosage_term_patterns(lang: str = "ja") -> tuple[tuple[re.Pattern[str], str]
         display = resolve_localized_display(entry, lang, fallback="")
         if display and display != cat:
             patterns.append((re.compile(r"(?i)\b" + re.escape(cat) + r"\b"), display))
-    # Dose/route/frequency terms: case-sensitive for all-caps abbreviations
-    # (PRN, PO, IV) so the terminal-lower-case token "po" in "clopidogrel"
-    # does not collide, case-insensitive otherwise.
+    # Dose/route/frequency terms: case-sensitive for the short all-caps
+    # abbreviations (PRN, PO, IV, SC, ...) so the terminal-lower-case token "po"
+    # in "clopidogrel" does not collide, case-insensitive otherwise (Issue #3562:
+    # a stored "weekly" matches the table key WEEKLY).
     for term, entry in sorted(tables["terms"].items(), key=lambda x: -len(x[0])):
         display = resolve_localized_display(entry, lang, fallback="")
         if not display or display == term:
             continue
-        if term.isupper():
+        if term.isupper() and len(term) <= _CASE_SENSITIVE_MAX_LEN:
             patterns.append((re.compile(r"\b" + re.escape(term) + r"\b"), display))
         else:
             patterns.append((re.compile(r"(?i)\b" + re.escape(term) + r"\b"), display))

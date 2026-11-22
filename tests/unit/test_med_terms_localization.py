@@ -68,5 +68,5 @@ def test_med_terms_tables_loaded():
     # q4-6h, the IV DRIP route + cadence term, ...); `once` reads 1回.
     # Issue #3266: 214 → 208 — seven words that cannot be translated out of
     # context (avoid, under, may, not, tolerate, volume, JP) removed; nasal drops added.
-    assert len(tables["terms"]) == 214  # Issue #3025 / #3033 / #3034 / #3106 / #3266 / #3428
+    assert len(tables["terms"]) == 217  # Issue #3025 / #3033 / #3034 / #3106 / #3266 / #3428 / #3562
     assert tables["terms"]["once"] == "1回"
