@@ -295,20 +295,39 @@ vaccination_country_lines:
 
 # Abnormal vital signs of the visit: an assessment finding and a plan line,
 # linked to the diagnosis already known (Issue #3251). Variants by context:
-#   tachycardia: af (atrial fibrillation on the problem list), febrile (fever
+#   tachycardia: af_* (atrial fibrillation on the problem list, by the
+#                rate-control drug on the medication list), febrile (fever
 #                at the visit), default
 #   fever:       infection (the visit diagnosis is an infection; {dx}), default
 #   hypoxemia / hypoxemia_severe: known (a chronic lung or heart condition on
 #                the problem list; {condition}), default
 vital_findings:
   tachycardia:
-    af:
+    # Issue #3546: a plan line states an action only when the record holds
+    # it. af_no_rate_control: no rate-control drug on the medication list;
+    # af_on_rate_control: one on the list and the prescription changed at this
+    # visit; af_unchanged: one on the list and the prescription unchanged.
+    af_no_rate_control:
+      assessment:
+        en: "Tachycardia: HR {hr} /min in known atrial fibrillation, no rate-control drug on the medication list."
+        ja: "頻脈: HR {hr} 回/分、既知の心房細動で内服薬にレートコントロール薬なし。"
+      plan:
+        en: "Atrial fibrillation: starting a rate-control drug to be considered; heart rate rechecked at the next visit."
+        ja: "心房細動: レートコントロール薬の開始を検討、次回受診時に心拍数を再評価。"
+    af_on_rate_control:
       assessment:
         en: "Tachycardia: HR {hr} /min in known atrial fibrillation, resting rate above the rate-control target."
         ja: "頻脈: HR {hr} 回/分、既知の心房細動で安静時心拍数がレートコントロール目標を上回る。"
       plan:
-        en: "Atrial fibrillation: rate-control therapy to be stepped up; heart rate rechecked at the next visit."
+        en: "Atrial fibrillation: step-up of the rate-control therapy to be considered; heart rate rechecked at the next visit."
         ja: "心房細動: レートコントロール薬の増量を検討、次回受診時に心拍数を再評価。"
+    af_unchanged:
+      assessment:
+        en: "Tachycardia: HR {hr} /min in known atrial fibrillation, resting rate above the rate-control target."
+        ja: "頻脈: HR {hr} 回/分、既知の心房細動で安静時心拍数がレートコントロール目標を上回る。"
+      plan:
+        en: "Atrial fibrillation: current rate-control regimen continued; heart rate reassessed at the next visit."
+        ja: "心房細動: 現行のレートコントロール薬を継続、次回受診時に心拍数を再評価。"
     febrile:
       assessment:
         en: "Tachycardia: HR {hr} /min with fever."

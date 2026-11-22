@@ -98,6 +98,7 @@ from clinosim.modules.observation.pediatric_ranges import age_in_completed_month
 from clinosim.reference_data import load_reference_yaml
 from clinosim.simulator.statin_monitoring import ldl_risk_threshold as statin_ldl_risk_threshold
 from clinosim.simulator.statin_monitoring import ldl_target as statin_ldl_target
+from clinosim.simulator.statin_monitoring import on_maximal_statin, statin_monitoring_rules
 from clinosim.types.document import DocumentType, NarrativeContext
 
 if TYPE_CHECKING:
@@ -926,8 +927,11 @@ def _chronic_assessment(ctx: NarrativeContext, skip_code: str = "") -> _ChronicA
                     vf = float(v)
                     if _target is None and _threshold is not None:
                         _side = "above" if vf >= _threshold[0] else "below"
+                        _variant = _ldl_threshold_variant(ctx, cur_meds) if _side == "above" else ""
                         ctrl = t(
-                            f"chronic_assessment.ldl_threshold_{_side}_{_threshold[1]}", lang, ldl=f"{_threshold[0]:g}"
+                            f"chronic_assessment.ldl_threshold_{_side}_{_threshold[1]}{_variant}",
+                            lang,
+                            ldl=f"{_threshold[0]:g}",
                         )
                     elif vf >= _ldl.high:
                         ctrl = t("control_status.high_ldl_statin_underresponse", lang)
@@ -1201,7 +1205,55 @@ def _visit_vital_findings(ctx: NarrativeContext) -> list[tuple[str, str]]:
 
     hr = _float("heart_rate")
     tachycardic = hr is not None and _is_tachycardic(hr, ctx.patient, v0, ctx)
-    return vital_findings(ctx, hr, _float("temperature_celsius"), _float("spo2"), tachycardic)
+    # Issue #3546: the medications of the visit (the list at its start and
+    # today's prescription) decide whether the plan may speak of a rate-control
+    # step-up.
+    meds = [*home_medications_at_admission(ctx)[0], *(getattr(ctx, "discharge_medications", None) or [])]
+    return vital_findings(
+        ctx,
+        hr,
+        _float("temperature_celsius"),
+        _float("spo2"),
+        tachycardic,
+        medications=meds,
+        rx_unchanged=_prescription_unchanged(ctx),
+    )
+
+
+def _prescription_unchanged(ctx: NarrativeContext) -> bool:
+    """Whether the visit leaves the medications as they were at its start (no
+    prescription issued, or one without a difference)."""
+    line = _compose_medication_changes_line(ctx)
+    return not line or line == t("outpatient_results.med_unchanged", ctx.target_lang)
+
+
+def _statin_action_recorded(ctx: NarrativeContext) -> bool:
+    """Whether the visit records a lipid-lowering step: the statin stepped up
+    (Issue #2877) or the non-statin add-on started (Issue #2942)."""
+    if _compose_statin_titration_line(ctx):
+        return True
+    add_on = statin_monitoring_rules().add_on
+    at_start = {_med_key(m) for m in home_medications_at_admission(ctx)[0]}
+    return any(
+        medication_matches(m, drugs=(add_on,)) and _med_key(m) not in at_start
+        for m in (getattr(ctx, "discharge_medications", None) or [])
+    )
+
+
+def _ldl_threshold_variant(ctx: NarrativeContext, cur_meds: list[Any]) -> str:
+    """Suffix of the ``ldl_threshold_above_<basis>`` phrase (Issue #3546): the
+    advice follows the statin the patient is on (maximal statin: a non-statin
+    add-on, not "intensification"; already on the add-on: further review) and
+    words an advice the visit does not act on as a recommendation for review."""
+    patient = SimpleNamespace(
+        current_medications=[SimpleNamespace(**m) if isinstance(m, dict) else m for m in cur_meds]
+    )
+    acted = _statin_action_recorded(ctx)
+    if on_maximal_statin(patient, ctx.locale):
+        if any(medication_matches(m, drugs=(statin_monitoring_rules().add_on,)) for m in cur_meds):
+            return "_maximal_on_add_on"
+        return "_maximal" if acted else "_maximal_review"
+    return "" if acted else "_review"
 
 
 def _is_tachycardic(hr: float, patient: Any, vital: Any, ctx: NarrativeContext) -> bool:

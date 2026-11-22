@@ -1813,15 +1813,43 @@ chronic_assessment:
     en: "target < {ldl} mg/dL (primary prevention)"
   # Issue #3272: the LDL against the risk-based decision threshold of a
   # country whose guideline sets no LDL target (statin_monitoring.yaml `basis`).
+  # Variants by the advice the visit can stand behind (Issue #3546): bare =
+  # a lipid-lowering step is recorded at the visit; _review = none is, so the
+  # advice is a recommendation for review; _maximal* = already on maximal
+  # statin therapy, so the advice is a non-statin add-on, not intensification.
   ldl_threshold_above_clinical_ascvd:
     ja: "臨床的 ASCVD の閾値 {ldl} mg/dL 以上、スタチン強化または非スタチン併用の適応"
     en: "above the {ldl} mg/dL threshold for clinical ASCVD; statin intensification or a non-statin add-on indicated"
+  ldl_threshold_above_clinical_ascvd_review:
+    ja: "臨床的 ASCVD の閾値 {ldl} mg/dL 以上、スタチン強化または非スタチン併用を要検討 (本日の処方に反映なし)"
+    en: "above the {ldl} mg/dL threshold for clinical ASCVD; statin intensification or a non-statin add-on recommended for review, no change on today's prescription"
+  ldl_threshold_above_clinical_ascvd_maximal:
+    ja: "臨床的 ASCVD の閾値 {ldl} mg/dL 以上、最大強度のスタチン投与下で非スタチン併用の適応"
+    en: "above the {ldl} mg/dL threshold for clinical ASCVD on maximal statin therapy; non-statin add-on indicated"
+  ldl_threshold_above_clinical_ascvd_maximal_review:
+    ja: "臨床的 ASCVD の閾値 {ldl} mg/dL 以上、最大強度のスタチン投与下で非スタチン併用を要検討 (本日の処方に反映なし)"
+    en: "above the {ldl} mg/dL threshold for clinical ASCVD on maximal statin therapy; non-statin add-on recommended for review, no change on today's prescription"
+  ldl_threshold_above_clinical_ascvd_maximal_on_add_on:
+    ja: "臨床的 ASCVD の閾値 {ldl} mg/dL 以上、最大強度のスタチンと非スタチン併用下でも未達、治療内容を要再検討"
+    en: "above the {ldl} mg/dL threshold for clinical ASCVD despite maximal statin plus a non-statin add-on; therapy to be reviewed"
   ldl_threshold_below_clinical_ascvd:
     ja: "臨床的 ASCVD の閾値 {ldl} mg/dL 未満"
     en: "below the {ldl} mg/dL threshold for clinical ASCVD"
   ldl_threshold_above_severe_hypercholesterolemia:
     ja: "高度高コレステロール血症の閾値 {ldl} mg/dL 以上、高強度スタチンの適応"
     en: "above the {ldl} mg/dL threshold for severe hypercholesterolemia; high-intensity statin indicated"
+  ldl_threshold_above_severe_hypercholesterolemia_review:
+    ja: "高度高コレステロール血症の閾値 {ldl} mg/dL 以上、高強度スタチンを要検討 (本日の処方に反映なし)"
+    en: "above the {ldl} mg/dL threshold for severe hypercholesterolemia; high-intensity statin recommended for review, no change on today's prescription"
+  ldl_threshold_above_severe_hypercholesterolemia_maximal:
+    ja: "高度高コレステロール血症の閾値 {ldl} mg/dL 以上、最大強度のスタチン投与下で非スタチン併用の適応"
+    en: "above the {ldl} mg/dL threshold for severe hypercholesterolemia on maximal statin therapy; non-statin add-on indicated"
+  ldl_threshold_above_severe_hypercholesterolemia_maximal_review:
+    ja: "高度高コレステロール血症の閾値 {ldl} mg/dL 以上、最大強度のスタチン投与下で非スタチン併用を要検討 (本日の処方に反映なし)"
+    en: "above the {ldl} mg/dL threshold for severe hypercholesterolemia on maximal statin therapy; non-statin add-on recommended for review, no change on today's prescription"
+  ldl_threshold_above_severe_hypercholesterolemia_maximal_on_add_on:
+    ja: "高度高コレステロール血症の閾値 {ldl} mg/dL 以上、最大強度のスタチンと非スタチン併用下でも未達、治療内容を要再検討"
+    en: "above the {ldl} mg/dL threshold for severe hypercholesterolemia despite maximal statin plus a non-statin add-on; therapy to be reviewed"
   ldl_threshold_below_severe_hypercholesterolemia:
     ja: "高度高コレステロール血症の閾値 {ldl} mg/dL 未満"
     en: "below the {ldl} mg/dL threshold for severe hypercholesterolemia"
