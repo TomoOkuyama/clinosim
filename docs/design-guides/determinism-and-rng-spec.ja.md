@@ -46,7 +46,7 @@
 | 規則 | 正準コード | ガード |
 |---|---|---|
 | 生成は実時間を読まない。シミュレーション時刻は `--start` / `--end` と事象から決まる。必須時刻のデータクラス既定値は番兵 `_UNSET_DATETIME`(1970-01-01)で、`datetime.now()` ではない。 | `clinosim/types/clinical.py`, `clinosim/types/encounter.py`(`_UNSET_DATETIME`) | `tests/unit/test_wallclock_sentinel_defaults.py`, `tests/unit/test_fhir_bundle_no_wallclock.py` |
-| 実時間は実行メタデータにだけ使う: Bulk Data マニフェストの `transactionTime`、`_generator_metadata.json`、CIF メタデータの `generation_timestamp`、ナラティブ版の `generated_at`、CLI の既定値(`--end` の既定は当日)、レポート。これらはバイト差分の対象外。 | ガードで許可したファイル | `tests/unit/test_determinism_spec_guards.py::test_wall_clock_only_in_run_metadata` |
+| 実時間は実行メタデータにだけ使う: Bulk Data マニフェストの `transactionTime`、`_generator_metadata.json`、CIF メタデータの `generation_timestamp`、ナラティブ版の `generated_at`、CLI の既定値(`--end` の既定は前日)、レポート。これらはバイト差分の対象外。 | ガードで許可したファイル | `tests/unit/test_determinism_spec_guards.py::test_wall_clock_only_in_run_metadata` |
 
 ## 6. 検証
 

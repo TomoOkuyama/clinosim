@@ -225,7 +225,7 @@ systems for currently admitted patients), this was a significant gap.
 
 Introduce **snapshot date** semantics:
 
-- `--end YYYY-MM-DD` flag = the snapshot date (defaults to today)
+- `--end YYYY-MM-DD` flag = the snapshot date (defaults to yesterday, so the snapshot day is complete)
 - `--start YYYY-MM-DD` defaults to `--end - 1 year`
 - No life events generated past the snapshot date
 - Inpatients whose `discharge_datetime` would fall after the snapshot date are

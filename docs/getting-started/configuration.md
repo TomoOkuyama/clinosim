@@ -9,7 +9,7 @@ Runtime configuration is loaded from `clinosim/config/*.yaml`. The tables below 
 | `--country {US,JP}` | `US` | Locale — controls names / addresses / insurance / code systems |
 | `--population N` | catchment default from hospital config | Population size (persons) |
 | `--seed N` | `42` | Deterministic seed (AD-16 invariant) |
-| `--start YYYY-MM-DD` / `--end YYYY-MM-DD` | past 1 year ending today | Simulation window |
+| `--start YYYY-MM-DD` / `--end YYYY-MM-DD` | past 1 year ending yesterday | Simulation window |
 | `--output PATH` | `./output` | Output directory |
 | `--format {cif,fhir-r4,csv}` | `cif` | One or more output formats (`fhir` is an alias of `fhir-r4`); each lands in its own subdirectory (`cif/`, `fhir_r4/`, `csv/`) |
 | `--hospital-config PATH` | `clinosim/config/hospital_operations.yaml` | Hospital-shape override YAML |

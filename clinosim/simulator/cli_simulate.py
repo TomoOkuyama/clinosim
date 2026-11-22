@@ -6,7 +6,7 @@ from __future__ import annotations
 import argparse
 import os
 import sys
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from typing import Any
 
 from clinosim.modules._shared import is_jp
@@ -62,6 +62,19 @@ def _enforce_jp_clins_pkg_gate(allow_legacy: bool) -> None:
     )
 
 
+def simulation_window(start: str | None, end: str | None, *, today: date) -> tuple[date, date]:
+    """The (start, end) dates of a run (Issue #3618).
+
+    Without ``--end`` the window ends on the day before ``today``: the snapshot
+    day is then complete, so no generated timestamp (a result, dose, note or
+    discharge scheduled later in the day) lies after the moment the cohort is
+    generated. Without ``--start`` it begins one year before the end.
+    """
+    end_date = datetime.strptime(end, "%Y-%m-%d").date() if end else today - timedelta(days=1)
+    start_date = datetime.strptime(start, "%Y-%m-%d").date() if start else end_date - timedelta(days=365)
+    return start_date, end_date
+
+
 def register(sub: argparse._SubParsersAction) -> None:
     # === simulate: population-driven simulation ===
     # The original command name was "generate"; the canonical command is
@@ -92,7 +105,7 @@ def register(sub: argparse._SubParsersAction) -> None:
     gen.add_argument(
         "--end",
         default=None,
-        help="Simulation end date / snapshot date YYYY-MM-DD (default: today). Inpatients still admitted on this date have no discharge.",  # noqa: E501
+        help="Simulation end date / snapshot date YYYY-MM-DD (default: yesterday, so the snapshot day is complete). Inpatients still admitted on this date have no discharge.",  # noqa: E501
     )
     gen.add_argument(
         "--format",
@@ -161,12 +174,7 @@ def run(args: Any, parser: argparse.ArgumentParser) -> None:
             file=_sys.stderr,
         )
     _validate_formats(args.format, parser)  # fail fast on bad --format (AD-58)
-    from datetime import date
-    from datetime import timedelta as _td
-
-    # Default end = today, default start = end - 1 year
-    end_date = datetime.strptime(args.end, "%Y-%m-%d").date() if args.end else date.today()
-    start_date = datetime.strptime(args.start, "%Y-%m-%d").date() if args.start else end_date - _td(days=365)
+    start_date, end_date = simulation_window(args.start, args.end, today=date.today())
     end = end_date.strftime("%Y-%m-%d")
     start = start_date.strftime("%Y-%m-%d")
     # Bug D fix: -p uses argparse.SUPPRESS as default, so args.population is only

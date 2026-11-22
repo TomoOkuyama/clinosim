@@ -46,7 +46,7 @@ When a change must alter outcomes (a model change), the PR states which streams 
 | Rule | Canonical code | Guard |
 |---|---|---|
 | Generation reads no wall clock. Simulated times come from `--start` / `--end` and the events. A dataclass default for a required time is the sentinel `_UNSET_DATETIME` (1970-01-01), never `datetime.now()`. | `clinosim/types/clinical.py`, `clinosim/types/encounter.py` (`_UNSET_DATETIME`) | `tests/unit/test_wallclock_sentinel_defaults.py`, `tests/unit/test_fhir_bundle_no_wallclock.py` |
-| The wall clock is read only for run metadata: the Bulk Data manifest `transactionTime`, `_generator_metadata.json`, the CIF metadata `generation_timestamp`, the narrative version's `generated_at`, CLI defaults (`--end` defaults to today) and reports. These values are not part of the byte-diff. | the files allowed in the guard | `tests/unit/test_determinism_spec_guards.py::test_wall_clock_only_in_run_metadata` |
+| The wall clock is read only for run metadata: the Bulk Data manifest `transactionTime`, `_generator_metadata.json`, the CIF metadata `generation_timestamp`, the narrative version's `generated_at`, CLI defaults (`--end` defaults to yesterday) and reports. These values are not part of the byte-diff. | the files allowed in the guard | `tests/unit/test_determinism_spec_guards.py::test_wall_clock_only_in_run_metadata` |
 
 ## 6. Verifying
 

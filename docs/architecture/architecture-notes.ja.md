@@ -235,7 +235,7 @@ system) にとってこれは大きなギャップだった。
 
 **snapshot 日付** セマンティクスを導入:
 
-- `--end YYYY-MM-DD` フラグ = snapshot 日付 (デフォルトは今日)
+- `--end YYYY-MM-DD` フラグ = snapshot 日付 (デフォルトは前日。snapshot 日を 1 日分そろえるため)
 - `--start YYYY-MM-DD` デフォルトは `--end - 1 年`
 - snapshot 日付以降のライフイベント生成なし
 - `discharge_datetime` が snapshot 日付以降になる入院患者は切り
