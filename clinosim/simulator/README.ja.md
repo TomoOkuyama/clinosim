@@ -159,8 +159,9 @@ clinosim/simulator/
                          持続・回復) と副診断 ICD-10-CM / ICD-10 F05。乱数なし (Issue #3519)
   vasopressor_initiation.py  記録された平均血圧が輸液後も低い場合に昇圧薬を開始する
                          (固定病日ではなく生理状態駆動, Issue #3332)
-  aki_response.py        急性腎障害 (KDIGO のクレアチニン基準): 活動期間中の薬剤保留と
-                         退院判定 (Issue #3281)
+  aki_response.py        急性腎障害 (KDIGO のクレアチニン基準): 活動期間中の薬剤保留
+                         (最初に定義を満たしてからピークの 10% 低下まで継続, #3538)、
+                         乳酸高値中のメトホルミン保留 (#3539)、退院判定 (Issue #3281)
   device_removal.py      尿道・中心静脈カテーテルの留置契機と、適応が終了して
                          抜去する日 (Issue #3516)
   discharge_rx.py        退院時処方ビルダー

@@ -51,6 +51,22 @@
 #   - KDIGO AKI 2012, Recommendation 3.8.1: aminoglycosides are not used
 #     "unless no suitable, less nephrotoxic, therapeutic alternatives are
 #     available" (the drug catalog has no aminoglycoside, so no rule applies).
+#   - Lactate hold (`lactate_hold`, Issue #3539). A metformin-containing US
+#     label read on 2026-11-22 (sitagliptin/metformin, openFDA drug label
+#     endpoint, effective 2026-08-12), boxed warning and section 5.1:
+#     metformin-associated lactic acidosis "was characterized by elevated
+#     blood lactate levels (>5 mmol/Liter)"; "If a patient ... develops
+#     elevated lactic acid levels ... discontinue". The label gives no hold
+#     threshold: 4 mmol/L (below the 5 mmol/L that characterises
+#     metformin-associated lactic acidosis, so the dose is held before it) is a
+#     clinosim modelling choice. The hold lasts from the first lactate at or
+#     above the threshold until a later lactate is below it.
+# Sticky injury (Issue #3538): the injury is active from the first result that
+# meets the definition until a result falls by `recovery_fall_fraction` from
+# the peak since then (the discharge gate's rule), and is active again when a
+# later result is back within that fraction of the peak, so a creatinine
+# plateau does not end it and the held drugs do not return mid-plateau. A
+# pre-admission baseline is not modelled.
 # Not covered: vancomycin renal dose adjustment (no vancomycin level model
 # exists). Enoxaparin: the prophylactic dose follows the Cockcroft-Gault
 # creatinine clearance (modules/prophylaxis, Issue #3449); renal_medication_rules.yaml
@@ -75,3 +91,11 @@ reason: "Acute kidney injury: nephrotoxic or renally cleared drug held (KDIGO 20
 fever_celsius: 38.0
 fever_window_hours: 24
 max_extension_days: 5
+# Metformin is also held while the latest lactate is at or above the threshold
+# (mmol/L; see the lactate source note above). Only the lab name, the
+# threshold, the drugs and the reason are configurable here.
+lactate_hold:
+  lab: Lactate
+  hold_at_or_above_mmol_l: 4.0
+  hold_drugs: [metformin]
+  reason: "Lactate at or above the threshold: metformin held (lactic acidosis risk)"

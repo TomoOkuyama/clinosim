@@ -32,6 +32,11 @@ reasons:
   "Acute kidney injury: nephrotoxic or renally cleared drug held (KDIGO 2012)":
     en: "acute kidney injury (nephrotoxic or renally cleared drug held, KDIGO 2012)"
     ja: "急性腎障害 (腎毒性または腎排泄性の薬剤のため保留、KDIGO 2012)"
+  # Issue #3539: metformin held while the latest lactate is high
+  # (simulator/reference_data/aki_response.yaml `lactate_hold`).
+  "Lactate at or above the threshold: metformin held (lactic acidosis risk)":
+    en: "elevated lactate (metformin held, lactic acidosis risk)"
+    ja: "乳酸値上昇 (乳酸アシドーシスのリスクのためメトホルミンを保留)"
   "Active intracranial hemorrhage — anticoagulation contraindicated":
     en: "active intracranial hemorrhage (anticoagulant contraindicated)"
     ja: "頭蓋内出血の活動性 (抗凝固薬は禁忌のため保留)"
