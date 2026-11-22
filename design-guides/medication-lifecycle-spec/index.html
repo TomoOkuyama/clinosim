@@ -2569,6 +2569,11 @@
 <td><code>tests/unit/simulator/test_mechanical_ventilation_3535.py</code></td>
 </tr>
 <tr>
+<td>A complication whose state impact raises consciousness impairment (brain herniation, cerebral edema, hepatic encephalopathy, ...) takes effect on the readings from its onset (noon of its onset day), although the day's vital signs were charted before it fired: the AVPU of every reading at or after the onset is re-derived from the state that now carries the impact, one day-stable level on a sub-RNG seeded by the patient, day and complication (the stay's stream is not read), and a reading is only made more impaired, never raised. Readings before the onset are unchanged. No RNG draw is added to an existing stream.</td>
+<td><code>daily_loop.py</code> (<code>_apply_complications</code>), <code>vitals_pipeline.py</code> (<code>lower_consciousness_from</code>), <code>seeding.py</code> (<code>complication_avpu_seed</code>)</td>
+<td><code>tests/unit/simulator/test_complication_consciousness_3540.py</code></td>
+</tr>
+<tr>
 <td>The admission maintenance IV-fluid order (supportive <code>IV_fluid</code>, not a bolus or a titrated / resuscitation regimen) is stopped at the start of the hospital day <code>grace_days</code> after the diet first reaches an oral diet (soft or regular), or at hospital day <code>max_days</code> when it has not; status stopped, end time the start of the day, no dose is given after, and the day's I/O record carries no maintenance IV intake and an oral intake mean of at least <code>oral_intake_mean_ml_after_stop</code> (the patient drinks to cover it) (the IV draw is still made, so the stay's random stream is unchanged). The values are model choices, not guideline figures.</td>
 <td><code>simulator/maintenance_iv_fluid.py</code> (<code>stop_maintenance_iv_fluid</code>, <code>maintenance_iv_fluid_stopped</code>); data <code>simulator/reference_data/maintenance_iv_fluid.yaml</code>; applied in <code>daily_loop.py</code> and <code>vitals_pipeline.py::_generate_daily_io</code></td>
 <td><code>tests/unit/simulator/test_maintenance_iv_fluid_stop_3409.py</code></td>
