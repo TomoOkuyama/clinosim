@@ -140,10 +140,12 @@ def test_integer_analyte_prints_without_trailing_zero() -> None:
 
 
 def test_more_than_the_cap_counts_the_rest() -> None:
-    names = ["AST", "ALT", "ALP", "GGT", "LDH", "CK"]
+    from clinosim.modules.document.narrative._narrative_interpretation_thresholds import notable_lab_rules
+
+    names = ["AST", "ALT", "ALP", "GGT", "LDH", "CK", "Amylase", "Lipase"]
     labs = [_lab(n, 500.0, "H", f"2026-02-26T0{i}:00:00", "U/L") for i, n in enumerate(names)]
     out = compose_progress_assessment_from_state(_ctx(day=2, labs=labs))
-    assert out.endswith("+2 other abnormal.")
+    assert out.endswith(f"+{len(names) - notable_lab_rules().max_items.note} other abnormal.")
 
 
 def test_finding_named_only_beyond_its_definition() -> None:

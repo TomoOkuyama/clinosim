@@ -27,7 +27,7 @@
         "lang": "ja"
       },
       "sections": {
-        "admission_results": "検査（異常値）: AST 31 U/L [H]、血糖 115 mg/dL [H]、Na 136 mmol/L [L]、PCT 1.84 ng/mL [H]、ほか異常値 5 項目。画像・生理検査: 胸部単純X線撮影 PA・側面（右下葉肺炎像）",
+        "admission_results": "検査（異常値）: PCT 1.84 ng/mL [H]、CRP 8.92 mg/dL [H]、乳酸 3.3 mmol/L [H]、WBC 12275 /uL [H]、AST 31 U/L [H]、Na 136 mmol/L [L]、ほか異常値 3 項目。画像・生理検査: 胸部単純X線撮影 PA・側面（右下葉肺炎像）",
         "allergies": "薬物アレルギーなし（NKDA）",
         "assessment_and_plan": "[Mock LLM response #1 — assessment_and_plan]",
         "chief_complaint": "3日前より発熱・湿性咳嗽・胸痛",

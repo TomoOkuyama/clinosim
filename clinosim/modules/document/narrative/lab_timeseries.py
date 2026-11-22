@@ -380,7 +380,10 @@ def select_notable_labs(
     H / L; the latest among equals) with the previous value of that analyte. Order: panic results;
     results naming an abnormality (``notable_labs.yaml`` findings, KDIGO AKI,
     hemolysed specimen); results newly abnormal against the previous value;
-    persisting abnormalities; within a tier, by first report time. A result
+    persisting abnormalities. Except for a panic result, which leads, the
+    analyte's clinical class (``notable_labs.yaml`` relevance: acute-phase,
+    organ injury, other, chronic) comes before the tier (Issue #3545); within
+    a tier, by first report time. A result
     without a day or a time is kept (it cannot be placed after the note).
     """
     from clinosim.modules.document.narrative._narrative_interpretation_thresholds import notable_lab_rules
@@ -424,7 +427,7 @@ def select_notable_labs(
         if current is None or severity >= current[0]:
             shown[canon] = (severity, at, lab)
 
-    ranked: list[tuple[int, int, NotableLab]] = []
+    ranked: list[tuple[int, int, int, NotableLab]] = []
     for canon, (_, at, lab) in shown.items():
         flag = str(_get(lab, "flag") or "")
         # The previous value is the last result of an EARLIER draw, never a
@@ -453,6 +456,12 @@ def select_notable_labs(
         else:
             tier = 3
         prior_value = _get(prior, "value") if prior is not None else None
-        ranked.append((tier, first_seen[canon], NotableLab(lab=lab, prior_value=prior_value, finding=finding)))
-    ranked.sort(key=lambda row: (row[0], row[1]))
-    return [row[2] for row in ranked]
+        # Issue #3545: a panic result leads; then the clinical class of the
+        # analyte (acute-phase, organ injury, other, chronic), so a chronic
+        # marker never takes the place of an acute one; then the tier.
+        relevance = 0 if tier == 0 else 1 + rules.relevance_rank(canon)
+        ranked.append(
+            (relevance, tier, first_seen[canon], NotableLab(lab=lab, prior_value=prior_value, finding=finding))
+        )
+    ranked.sort(key=lambda row: row[:3])
+    return [row[3] for row in ranked]
