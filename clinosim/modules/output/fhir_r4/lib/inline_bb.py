@@ -28,6 +28,7 @@ from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.immunization.visits import IMMUNIZATION_VISIT_DX, vaccination_visit_reason_codes
 from clinosim.modules.output.fhir_r4.conditions.conditions import _build_conditions
+from clinosim.modules.output.fhir_r4.conditions.primary_ref import encounter_diagnosis_condition_ids
 from clinosim.modules.output.fhir_r4.demographics.patient import (
     _build_coverage_resources,
     _build_occupation_observation,
@@ -192,7 +193,11 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
     # the ED encounter does NOT appear in CIF nor generate additional
     # doc stubs / orders — avoiding downstream contract breakage.
     _resources = []
+    # Issue #3597: the Condition builder decides which encounter-diagnosis
+    # Conditions exist; every one of them is referenced from its Encounter.
+    _emitted_conditions = _build_conditions(ctx.record, ctx.patient_id, ctx.country)
     for enc in ctx.record.get("encounters", []) or []:
+        _enc_key = enc.get("encounter_id", "") if isinstance(enc, dict) else getattr(enc, "encounter_id", "")
         _partof_id = (
             enc.get("admit_source_encounter_id", "")
             if isinstance(enc, dict)
@@ -243,6 +248,11 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
             chronic_condition_codes=_chronic_codes,
             record_orders=ctx.record.get("orders", []),
             patient_sex=str((ctx.patient_data or {}).get("sex", "") or ""),
+            diagnosis_condition_ids=encounter_diagnosis_condition_ids(
+                _emitted_conditions, encounter_ref(_enc_key)["reference"]
+            )
+            if _enc_key
+            else None,
         )
         # ED bridge Encounter emit (CY7-05 + N-3 refinement):
         # - Always emit the synth `-ED` companion Encounter when the IMP

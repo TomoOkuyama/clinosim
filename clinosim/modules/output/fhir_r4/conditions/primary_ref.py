@@ -298,3 +298,26 @@ def is_chronic_primary(record: dict) -> bool:
     dx = record.get("clinical_diagnosis", {}) or {}
     dx_code = dx.get("discharge_diagnosis_code") or dx.get("admission_diagnosis_code", "") or ""
     return _chronic_index_for_primary(record, str(dx_code)) is not None
+
+
+def encounter_diagnosis_condition_ids(conditions: list[dict], encounter_reference: str) -> list[str]:
+    """Ids of the ``encounter-diagnosis`` Conditions pointing at one Encounter,
+    in emission order (Issue #3597).
+
+    The Condition builder (``_build_conditions``) is the single source of which
+    encounter-diagnosis Conditions exist; ``Encounter.diagnosis[]`` is built from
+    this list so every one of them is referenced from its Encounter and the two
+    sides cannot drift (secondary, complication and external-cause Conditions
+    included).
+    """
+    ids: list[str] = []
+    for cond in conditions:
+        if (cond.get("encounter") or {}).get("reference") != encounter_reference:
+            continue
+        if any(
+            coding.get("code") == "encounter-diagnosis"
+            for cat in cond.get("category") or []
+            for coding in cat.get("coding") or []
+        ):
+            ids.append(str(cond["id"]))
+    return ids

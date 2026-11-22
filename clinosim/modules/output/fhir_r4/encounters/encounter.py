@@ -409,8 +409,10 @@ def _set_diagnoses(
     encounter_id: str,
     country: str,
     patient_sex: str,
+    diagnosis_condition_ids: list[str] | None = None,
 ) -> None:
-    """Encounter.diagnosis: the primary dx, comorbidities and the admission dx."""
+    """Encounter.diagnosis: the primary dx, comorbidities, the admission dx and
+    every other encounter-diagnosis Condition of the encounter."""
     # Diagnosis reference (link to Condition)
     # Issue #916: when the primary dx is a Z-chapter visit-reason code,
     # conditions.py does not emit a Condition for it — so ``diagnosis[]``
@@ -418,9 +420,10 @@ def _set_diagnoses(
     # remain populated when other chronic Conditions exist. The
     # ``reasonCode`` slot above already carries the Z-code semantic.
     _primary_dx_is_visit_reason = bool(primary_dx_code) and is_visit_reason_zcode(primary_dx_code)
+    diagnosis_list: list[dict[str, Any]] = []
     if primary_dx_code and not _primary_dx_is_visit_reason:
         _dd_ref = primary_condition_ref_from_codes(primary_dx_code, chronic_condition_codes, patient_id, encounter_id)
-        diagnosis_list: list[dict[str, Any]] = [
+        diagnosis_list = [
             {
                 "condition": {"reference": f"Condition/{_dd_ref}"},
                 "use": dual_slot_concept("hl7-diagnosis-role", "DD", lang_for(country)),
@@ -518,6 +521,23 @@ def _set_diagnoses(
                 diagnosis_list.insert(0, diagnosis_list.pop())
                 for _r, _entry in enumerate(diagnosis_list, start=1):
                     _entry["rank"] = _r
+    # Issue #3597: every other encounter-diagnosis Condition the builder emitted
+    # for this encounter (secondary diagnoses, in-stay complications, the
+    # external cause) is a comorbidity / complication entry ranked after the
+    # principal diagnosis; the HL7 diagnosis-role set has no closer code.
+    _listed = {_e["condition"]["reference"] for _e in diagnosis_list}
+    for _cond_id in diagnosis_condition_ids or []:
+        if f"Condition/{_cond_id}" in _listed:
+            continue
+        _listed.add(f"Condition/{_cond_id}")
+        diagnosis_list.append(
+            {
+                "condition": {"reference": f"Condition/{_cond_id}"},
+                "use": dual_slot_concept("hl7-diagnosis-role", "CM", lang_for(country)),
+                "rank": len(diagnosis_list) + 1,
+            }
+        )
+    if diagnosis_list:
         resource["diagnosis"] = diagnosis_list
 
 
@@ -705,6 +725,7 @@ def _build_encounter(
     record_orders: list | None = None,  # CY8-03: DIET Order source for dietPreference
     patient_sex: str = "",  # Issue #957: threads sex to sex-conditional ICD-10-CM mapping (C50)
     visit_reason_codes: list[str] | None = None,  # Issue #3008: vaccination-visit reason codes
+    diagnosis_condition_ids: list[str] | None = None,  # Issue #3597: emitted encounter-diagnosis Condition ids
 ) -> dict:
     """Build FHIR Encounter resource."""
     encounter_id = enc.get("encounter_id", str(uuid.uuid4()))
@@ -770,6 +791,7 @@ def _build_encounter(
         encounter_id,
         country,
         patient_sex,
+        diagnosis_condition_ids,
     )
     # Issue #3150: the discharge outcome reads the stay's admission diagnosis,
     # which the CIF records on the clinical diagnosis rather than the encounter.
