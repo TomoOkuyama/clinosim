@@ -941,7 +941,7 @@ system: |
     禁止）。ICD コードと疾患名は verbatim コピー。
   - Reference-only sections (構造化フィールド — 改変禁止):
     immediate_cause_of_death / underlying_cause_of_death /
-    manner_of_death / autopsy_status。ICD コード選択と death-bucket
+    manner_of_death / surgery_performed / autopsy_status。ICD コード選択と death-bucket
     分類はテンプレート出力を verbatim 保持し、LLM は上記 2 セクション
     のみ整文する。日付・ICD コード・疾患名・患者/医師氏名・数値は
     全て verbatim。

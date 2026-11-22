@@ -72,9 +72,21 @@ treatment_course:
   max_named_drugs: 6
   max_named_procedures: 6
   max_named_diagnoses: 4
+  # The summary's chronic-condition, secondary-diagnosis and complication
+  # lists name at most this many, then "and N others" (Issue #3537), so a cut
+  # list says how many it leaves out. The certificate's contributing
+  # conditions are not cut: every contributing chronic condition is listed.
+  max_named_comorbidities: 5
 
-# Time to death on the death certificate: written in days below
+# Time to death on the death certificate: written in hours when the stay from
+# admission to death is shorter than `hours_below` hours (Issue #3537: a death
+# 23 h after arrival reads "23 h", not "1 day"), in days below
 # `days_below_weeks` days, in weeks from there ("approximately 11 days", not
-# "approximately 2 week(s) (11 d)").
+# "approximately 2 week(s) (11 d)"). `onset_known_types` are the disease
+# `hpi_template.onset_type` values whose presentation gives the onset (a
+# sudden event, an injury): the certificate does not add "date of onset
+# unknown" after them.
 duration:
+  hours_below: 48
   days_below_weeks: 28
+  onset_known_types: [acute, injury]

@@ -541,7 +541,8 @@ def test_dc_duration_uses_bucket_for_multi_day_stay_ja() -> None:
     gen = TemplateNarrativeGenerator()
     text, _ = build_dc_duration_of_immediate_cause(gen, ctx)
     assert "3日" in text
-    assert "発症時期は不詳" in text and "範囲外" not in text
+    # An acute disease (acute MI) has a known onset (Issue #3537).
+    assert "発症時期は不詳" not in text and "範囲外" not in text
 
 
 def test_dc_contributing_conditions_includes_chronic_and_complication_ja() -> None:

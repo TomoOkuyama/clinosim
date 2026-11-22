@@ -867,7 +867,7 @@ system: |
     names verbatim.
   - Reference-only sections (structured — do NOT modify):
     immediate_cause_of_death / underlying_cause_of_death /
-    manner_of_death / autopsy_status. The LLM MUST NOT alter the ICD
+    manner_of_death / surgery_performed / autopsy_status. The LLM MUST NOT alter the ICD
     code choice or death-bucket classification set by the template;
     it refines only the two narrative sections above. Preserve
     verbatim: dates, ICD codes, disease names, patient / physician
