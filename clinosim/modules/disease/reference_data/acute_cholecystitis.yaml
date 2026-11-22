@@ -171,7 +171,7 @@ order_protocols:
       - {type: "NPO", detail: "Nothing by mouth for surgery"}
       - {type: "IV_fluid", detail: "Lactated Ringer 125 mL/h"}
       - {type: "pain_management", detail: "Acetaminophen 1000mg IV + NSAIDs or opioid PRN"}
-      - {type: "antibiotic", detail: "Cefmetazole or Ceftriaxone + Metronidazole (see drugs section)"}
+      - {type: "antibiotic", detail: "Antibiotic therapy per the country first-line regimen (see drugs section)"}
 
   daily_monitoring:
     labs:

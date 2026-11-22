@@ -853,6 +853,11 @@ def _stop_archetype_medications(stay: _Stay, run: _Run, day: int, mod: dict) -> 
 
     encounter_id = stay.encounter_id
     for stop_idx, drug_name in enumerate(mod.get("stop", [])):
+        # Issue #3596: ``stop`` is not keyed by country, so it can name a drug
+        # this stay never ordered (cefmetazole in a US stay); only a drug
+        # actually running is stopped. No random draw.
+        if _running_order(run.orders, drug_name) is None:
+            continue
         run.orders.append(
             Order(
                 order_id=(

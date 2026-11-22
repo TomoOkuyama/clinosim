@@ -17,7 +17,7 @@ import pytest
 import yaml
 
 from clinosim.locale.free_text import localize_drug_name, localize_procedure_name, lookup_procedure_phrase
-from clinosim.modules.order.engine import supportive_detail_raw
+from clinosim.modules.order.engine import is_drugs_section_pointer, supportive_detail_raw
 from clinosim.modules.order.treatment_classifier import classify_inpatient_supportive
 from clinosim.types.encounter import OrderType
 from tests.unit.modules.document.narrative.test_jp_no_english_words_3034 import _english_words
@@ -56,6 +56,8 @@ def _order_strings() -> dict[str, bool]:
     for entry in _supportive_entries():
         for country in ("JP", "US"):
             detail = supportive_detail_raw(entry, country)
+            if is_drugs_section_pointer(detail):
+                continue  # not an order (Issue #3596)
             kind = classify_inpatient_supportive(detail, entry.get("type", ""))
             out[f"{entry['type']}: {detail}"] = kind == OrderType.MEDICATION
     return out
