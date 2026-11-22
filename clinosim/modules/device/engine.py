@@ -173,6 +173,7 @@ def place_devices_for_encounter(
         return []
     from clinosim.simulator.device_removal import (
         device_removal_rules,
+        extubation_date,
         placing_date,
         removal_date,
         surgery_dates,
@@ -191,6 +192,10 @@ def place_devices_for_encounter(
         removed, basis = removal_date(
             rule, placed=placed, admitted=admitted, discharged=discharged, states=states, operations=operations
         )
+        if device_type == "mechanical_ventilator" and (ext := extubation_date(record, encounter)) is not None:
+            # Issue #3535: the ventilator comes off at the extubation, not at discharge.
+            if removed is None or ext < removed:
+                removed, basis = ext, "extubation"
         if removed is not None and removed < placed:
             removed = placed
         # feedback FB-F2: FHIR id 型は英数字+'-'+'.' のみ許可、_ 禁止。

@@ -42,6 +42,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 ### Fixed
 
 - JP output: the antibody-screen Observation of a type-and-screen order no longer declares the JP-CLINS eCS lab-result profile, which it cannot satisfy (it carries LOINC and SNOMED CT codings only, like the ABO and RhD Observations already excluded); a cohort that resulted an antibody screen failed the JP-CLINS lab compliance gate. FHIR-output only.
+- After an intubation the stay is now ventilated until an extubation rule is met (`reference_data/oxygen_course.yaml`, `ventilation`) or until death: the vital signs carry the ventilator device, the diet is NPO, no discharge happens on a ventilated day, the ventilator device record ends at the extubation, and the progress and nursing shift notes state the mechanical ventilation instead of room air or no oxygen. The final vital signs before a death keep the oxygen device in force. CIF drift, a MINOR-class change.
 
 ## [0.7.2] - 2026-11-22
 
