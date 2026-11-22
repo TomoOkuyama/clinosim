@@ -243,6 +243,7 @@ def build_discharge_rx(
     ordered_drugs: Iterable[str] = (),
     severity: str = "",
     aki_active: bool = False,
+    lactate_high: bool = False,
     discharge_time: datetime | None = None,
 ) -> PrescriptionRecord:
     """Build discharge prescription from protocol.
@@ -256,6 +257,10 @@ def build_discharge_rx(
     definition — the nephrotoxic and renally cleared drugs of
     ``reference_data/aki_response.yaml`` are held and logged; once it no longer
     does they continue (restart).
+
+    ``lactate_high`` (Issue #3539): the final lactate is at or above the metformin
+    hold threshold (``aki_response.yaml`` ``lactate_hold``) — metformin is held
+    and logged until a later lactate is below it.
 
     ``discharge_time`` (Issue #3441): the discharge datetime, the timestamp of the
     discharge holds logged on ``patient.safety_skip_log`` (the admission time when
@@ -347,11 +352,14 @@ def build_discharge_rx(
         meets the AKI definition and ``drug_name`` is nephrotoxic or renally
         cleared (``aki_response.yaml``); it continues once AKI has resolved."""
         from clinosim.locale.loader import hold_reason_display
-        from clinosim.simulator.aki_response import aki_response_rules, holds_for_aki
+        from clinosim.simulator.aki_response import aki_response_rules, holds_for_aki, holds_for_lactate
 
-        if not aki_active or not holds_for_aki(drug_name):
+        if lactate_high and holds_for_lactate(drug_name):
+            reason = aki_response_rules().lactate_hold.reason
+        elif aki_active and holds_for_aki(drug_name):
+            reason = aki_response_rules().reason
+        else:
             return False
-        reason = aki_response_rules().reason
         _record_hold(
             encounter_id=encounter_id,
             held_drug_name=drug_name,

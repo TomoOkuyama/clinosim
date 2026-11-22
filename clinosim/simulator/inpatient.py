@@ -428,6 +428,7 @@ def _finalize_discharge(
     symptom_floor: dict[str, float] | None = None,
     on_vasoactive_support: bool = False,
     aki_at_discharge: bool = False,
+    lactate_high_at_discharge: bool = False,
     discharge_time: datetime | None = None,
 ) -> Any:
     """Build the discharge prescription + populate discharge-related
@@ -464,6 +465,7 @@ def _finalize_discharge(
             country_key=country_key,
             final_renal_function=final_renal,
             aki_active=aki_at_discharge,
+            lactate_high=lactate_high_at_discharge,
             discharge_time=discharge_time,
             # Issue #2992: a discharge hold names only a drug the patient took.
             ordered_drugs=[o.display_name for o in all_orders if o.order_type == OrderType.MEDICATION],
@@ -1098,6 +1100,7 @@ def _simulate_patient(
         symptom_floor=symptom_floor,
         on_vasoactive_support=loop_result.on_vasoactive_support,
         aki_at_discharge=loop_result.aki_at_discharge,
+        lactate_high_at_discharge=loop_result.lactate_high_at_discharge,
         discharge_time=planned_discharge,
     )
 

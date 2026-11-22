@@ -55,7 +55,13 @@ from clinosim.simulator._mar_thresholds import (
     MAR_STAT_FIRST_DOSE_DELAY_MAX_EXCLUSIVE,
     MAR_STAT_FIRST_DOSE_DELAY_MIN,
 )
-from clinosim.simulator.aki_response import AkiCourse, aki_response_rules, holds_for_aki
+from clinosim.simulator.aki_response import (
+    AkiCourse,
+    LactateCourse,
+    aki_response_rules,
+    holds_for_aki,
+    holds_for_lactate,
+)
 from clinosim.simulator.helpers import _determine_route
 from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.encounter import (
@@ -877,8 +883,13 @@ def _generate_mar(
     child: ChildDosing | None = None,
     aki: AkiCourse | None = None,
     dose_floor: datetime | None = None,
+    lactate: LactateCourse | None = None,
 ) -> list[MedicationAdministration]:
     """Generate MAR entries for medication orders on this day.
+
+    ``lactate`` (Issue #3539): metformin doses are held while the latest lactate
+    resulted before the dose is at or above the hold threshold, with their own
+    reason (it takes precedence over the AKI reason when both apply).
 
     ``dose_floor`` (Issue #3434): the earliest time a dose can be given, the
     ED arrival of a patient admitted through the ED, whose work-up drugs are
@@ -946,6 +957,7 @@ def _generate_mar(
         k_held = potassium_hold is not None and holds_for_hyperkalemia(order.drug_id or drug_name)
         k_held_while_high = potassium_hold is not None and holds_while_hyperkalemic(order.drug_id or drug_name)
         aki_held = aki is not None and holds_for_aki(order.drug_id or drug_name)
+        lactate_held = lactate is not None and holds_for_lactate(order.drug_id or drug_name)
         # Determine administration times based on drug and route
         route = order.route or _determine_route(drug_name, order.clinical_intent, order.drug_id)
 
@@ -1129,6 +1141,9 @@ def _generate_mar(
             # Issue #3281: held while the creatinine meets the AKI definition.
             if aki_held and aki is not None and aki.active_at(scheduled):
                 status, hold_reason = "held", aki_response_rules().reason
+            # Issue #3539: metformin held while the latest lactate is high.
+            if lactate_held and lactate is not None and lactate.active_at(scheduled):
+                status, hold_reason = "held", aki_response_rules().lactate_hold.reason
 
             # The early side of the jitter does not move a dose before its order.
             actual = (

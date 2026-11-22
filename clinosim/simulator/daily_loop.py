@@ -105,9 +105,11 @@ from clinosim.simulator._daily_loop_thresholds import (
 )
 from clinosim.simulator.aki_response import (
     AkiCourse,
+    LactateCourse,
     aki_course,
     aki_response_rules,
     discharge_findings_unresolved,
+    lactate_course,
 )
 from clinosim.simulator.complications import build_complication
 from clinosim.simulator.diagnosis_rules import day1_imaging_findings, lab_finding_rules
@@ -295,6 +297,8 @@ class DailyLoopResult:
     on_vasoactive_support: bool = False
     # Issue #3281: the final creatinine meets the AKI definition.
     aki_at_discharge: bool = False
+    # Issue #3539: the final lactate is at or above the metformin hold threshold.
+    lactate_high_at_discharge: bool = False
 
 
 @dataclass
@@ -371,6 +375,7 @@ class _Run:
     lab_time: datetime | None = None  # the most recent morning lab draw (none before day 1)
     potassium_hold: PotassiumHold | None = None  # Issue #2981: hyperkalemia hold, from the first K >= threshold
     hyperkalemia_last_day: int | None = None  # Issue #2981: last day with K >= threshold
+    lactate: LactateCourse = field(default_factory=LactateCourse)  # Issue #3539: lactate course
     aki: AkiCourse = field(default_factory=AkiCourse)  # Issue #3281: creatinine course, KDIGO AKI per result
     oxygen: OxygenCourse = field(default_factory=OxygenCourse)  # Issue #3469: supplemental-oxygen state
 
@@ -1665,6 +1670,7 @@ def _run_daily_loop(
         day_results_start = _result_labs(stay, run, day, lab_state_pre_update)
         _respond_to_hyperkalemia(stay, run, day, day_results_start)
         run.aki = aki_course(run.lab_results)
+        run.lactate = lactate_course(run.lab_results)
         if day >= 1:
             _update_diagnosis(stay, run, day, day_results_start)
         _apply_archetype_modifications(stay, run, day)
@@ -1688,6 +1694,7 @@ def _run_daily_loop(
             potassium_hold=run.potassium_hold,
             child=stay.child,
             aki=run.aki,
+            lactate=run.lactate,
             dose_floor=stay.ed_start,
         )
         run.mars.extend(mars_today)
@@ -1766,6 +1773,9 @@ def _run_daily_loop(
         actual_los=actual_los,
         on_vasoactive_support=on_support and not run.death_occurred,
         aki_at_discharge=run.aki.active and not run.death_occurred,
+        lactate_high_at_discharge=bool(run.lactate.points)
+        and run.lactate.active_at(run.lactate.points[-1][0])
+        and not run.death_occurred,
     )
 
 

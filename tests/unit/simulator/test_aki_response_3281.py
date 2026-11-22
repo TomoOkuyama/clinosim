@@ -18,6 +18,8 @@ from clinosim.simulator.aki_response import (
     discharge_findings_unresolved,
     fever_persists,
     holds_for_aki,
+    holds_for_lactate,
+    lactate_course,
 )
 from clinosim.simulator.discharge_gate import _check_discharge_ready, discharge_disposition_for
 from clinosim.simulator.discharge_rx import build_discharge_rx
@@ -204,3 +206,59 @@ def test_discharge_instructions_add_a_creatinine_recheck_after_aki_only() -> Non
     assert "再検査" in entry["ja"] and "再開しないで" in entry["ja"]
     assert "aki_recheck" not in resolve_discharge_instructions(_instruction_ctx([0.8, 0.9], "en"))
     assert "aki_recheck" not in resolve_discharge_instructions(_instruction_ctx([], "en"))
+
+
+# Issue #3538: a creatinine plateau does not end the injury.
+def test_aki_is_sticky_on_a_plateau_after_the_peak() -> None:
+    course = aki_course([_cr(0, 1.57), _cr(2, 2.46), _cr(5, 2.3), _cr(6, 2.34)])
+    assert course.active  # 2.3 and 2.34 are within 10% of the 2.46 peak
+    assert course.active_at(_T0 + timedelta(days=5))
+    # the plateau is also active when the stay minimum keeps it above 1.5 x
+    assert aki_course([_cr(0, 1.0), _cr(1, 1.6), _cr(5, 1.6), _cr(9, 1.6)]).active
+    # a real recovery (10% fall from the peak) ends it
+    assert not aki_course([_cr(0, 1.57), _cr(2, 2.46), _cr(5, 2.1)]).active
+
+
+def test_discharge_keeps_a_held_arb_off_on_a_plateau(patient_factory) -> None:
+    course = aki_course([_cr(0, 1.57), _cr(2, 2.46), _cr(5, 2.3)])
+    on_rx, held = _discharge(patient_factory(current_meds=["Candesartan", "Amlodipine"]), course.active)
+    assert "candesartan" not in on_rx and "candesartan" in held
+    assert "amlodipine" in on_rx
+
+
+# Issue #3539: metformin is held while the latest lactate is high.
+def _lac(hours: float, value: float) -> OrderResult:
+    return OrderResult(result_datetime=_T0 + timedelta(hours=hours), lab_name="Lactate", value=value)
+
+
+def test_lactate_hold_is_sticky_until_a_lower_lactate() -> None:
+    course = lactate_course([_lac(10, 6.0), _lac(60, 2.0)])
+    assert not course.active_at(_T0 + timedelta(hours=5))
+    assert course.active_at(_T0 + timedelta(hours=40))  # no later lactate yet
+    assert not course.active_at(_T0 + timedelta(hours=70))
+    assert lactate_course([_lac(1, 3.9)]).points and not lactate_course([_lac(1, 3.9)]).active_at(
+        _T0 + timedelta(days=1)
+    )
+    assert holds_for_lactate("Metformin 500mg") and not holds_for_lactate("Candesartan")
+
+
+def test_mar_holds_metformin_on_lactate_and_not_alternating_on_a_creatinine_plateau() -> None:
+    orders = [_order("O-MET", "Metformin 500mg PO daily")]
+    aki = aki_course([_cr(0, 1.57), _cr(2, 2.46), _cr(4, 2.07), _cr(5, 2.34), _cr(6, 2.3), _cr(7, 2.3)])
+    lactate = lactate_course([_lac(30, 6.0)])
+    reason = aki_response_rules().lactate_hold.reason
+    statuses = []
+    for day in range(1, 9):
+        for m in _generate_mar(
+            PatientProfile(patient_id="POP-3539"),
+            orders,
+            day,
+            _T0,
+            roster=_Roster(),  # type: ignore[arg-type]
+            rng=np.random.default_rng(0),
+            aki=aki,
+            lactate=lactate,
+        ):
+            statuses.append((day, m.status, m.hold_reason))
+    assert all(st == "held" for d, st, _ in statuses if d >= 3), statuses
+    assert any(r == reason for d, st, r in statuses if d == 3)

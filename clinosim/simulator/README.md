@@ -171,7 +171,9 @@ clinosim/simulator/
                          pressure (low despite fluids) instead of a fixed day
                          (Issue #3332)
   aki_response.py        acute kidney injury (KDIGO creatinine definition): drugs held
-                         while it is active and the discharge gate (Issue #3281)
+                         while it is active (sticky from the first result meeting the definition until
+                         a 10% fall from the peak, #3538), metformin held while lactate
+                         is high (#3539), and the discharge gate (Issue #3281)
   device_removal.py      urinary / central venous catheter placement and removal:
                          the event that placed it and the day its indication
                          ended (Issue #3516)
