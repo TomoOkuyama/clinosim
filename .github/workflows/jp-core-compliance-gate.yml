@@ -72,10 +72,14 @@ jobs:
           # data without a JP-CLINS pkg install, which is out of scope
           # for this JP Core gate — the JP-CLINS eCS lab surface has
           # its own dedicated gate (`jp-clins-lab-compliance-gate.yml`).
+          # A fixed --end keeps the gate cohort the same from day to day; without it the
+          # window ends today and the gate can fail on a date change alone. Move it
+          # forward deliberately (and re-run the gate) when the cohort should change.
           clinosim simulate \
             --country JP \
             -p 300 \
             -s 300 \
+            --end 2026-11-22 \
             --format fhir-r4 \
             --allow-legacy \
             -o cohort
