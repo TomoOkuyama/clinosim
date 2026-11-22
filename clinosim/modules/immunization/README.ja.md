@@ -144,7 +144,10 @@ in-progress snapshot でのバックデート出力を防ぐ。
    encounter に限る。ワクチンの `min_age_days` 下限より前の encounter には
    snap しない。同じワクチンの別の回がある日、系列の順序を崩す日、隣の回との
    間隔が `min_interval_days` 未満になる日にも snap せず、該当する encounter が
-   無ければ元の接種日のまま残す (Issue #3001)。
+   無ければ元の接種日のまま残す (Issue #3001)。系列の回は schedule の
+   窓 (`age_days_min`〜`age_days_max`) の外へは snap しない。engine が同じ日に
+   した回 (同じ well-child 受診で同時期の乳児系列) は全て同じ受診へまとめて
+   動かし、動かせなければ全て元の日のまま残す (Issue #3567)。
 
 紐付かず simulation window 開始 (`config.time_range[0]`) より前の接種は
 `primary_source=False` とし未紐付けのまま残す。window 内の orphan には
