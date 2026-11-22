@@ -2565,6 +2565,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="4.5 Output helpers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#administered-drug-label-narrative" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Administered drug label (narrative)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -3441,6 +3458,31 @@
 </tbody>
 </table>
 <p>The output language of a country is <code>countries.lang_for(country)</code>; CIF <code>&lt;base&gt;_&lt;lang&gt;</code> fields are read with <code>localized_field</code>.</p>
+<h4 id="administered-drug-label-narrative">Administered drug label (narrative)<a class="headerlink" href="#administered-drug-label-narrative" title="Permanent link">&para;</a></h4>
+<p>A supportive order is stored as <code>"&lt;type&gt;: &lt;detail&gt;"</code>. The <code>&lt;type&gt;</code> is a category label for most orders (<code>antipyretic</code>, <code>IV_fluid</code>) and the drug itself for some (<code>lactulose: 30mL PO TID if encephalopathy</code>). Narratives never strip the prefix themselves: every drug named from a medication row (MAR administration or prescription) goes through <code>modules.document.narrative._drug_names</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>administered_drug_key(row)</code></td>
+<td>identity of the drug: <code>drug_id</code>, else the catalog id of the order text</td>
+</tr>
+<tr>
+<td><code>administered_drug_label(row, lang)</code></td>
+<td>drug and dose in <code>lang</code>; a category prefix is dropped, a drug prefix kept as the name, a monitoring-target clause cut (<code>order_detail_cuts</code> in <code>document/reference_data/administered_drug_name.yaml</code>); the catalog name of <code>drug_id</code> when the text does not name the drug</td>
+</tr>
+<tr>
+<td><code>administered_drug_name(row, lang)</code></td>
+<td>the bare catalog drug name in <code>lang</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>tests/unit/modules/document/narrative/test_administered_drug_name_3560.py</code> fails when a module under <code>modules/document</code> other than <code>_drug_names.py</code> calls <code>strip_protocol_prefix</code>.</p>
 <h2 id="5-localization">5. Localization<a class="headerlink" href="#5-localization" title="Permanent link">&para;</a></h2>
 <h3 id="51-output-language">5.1 Output language<a class="headerlink" href="#51-output-language" title="Permanent link">&para;</a></h3>
 <ul>

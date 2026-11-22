@@ -2565,6 +2565,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="4.5 出力の補助関数">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#投与薬の表示名-叙述文書" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        投与薬の表示名 (叙述文書)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -3430,6 +3447,31 @@
 </tbody>
 </table>
 <p>国の出力言語は <code>countries.lang_for(country)</code>、CIF の <code>&lt;base&gt;_&lt;lang&gt;</code> フィールドは <code>localized_field</code> で読む。</p>
+<h4 id="投与薬の表示名-叙述文書">投与薬の表示名 (叙述文書)<a class="headerlink" href="#投与薬の表示名-叙述文書" title="Permanent link">&para;</a></h4>
+<p>支持療法オーダーは <code>"&lt;type&gt;: &lt;detail&gt;"</code> で保存される。<code>&lt;type&gt;</code> は多くの場合カテゴリ名 (<code>antipyretic</code>、<code>IV_fluid</code>) だが、薬剤そのもの (<code>lactulose: 30mL PO TID if encephalopathy</code>) のこともある。叙述文書は接頭辞を自前で除去せず、投薬行 (MAR 投与・処方) から薬剤名を出す箇所はすべて <code>modules.document.narrative._drug_names</code> を通す。</p>
+<table>
+<thead>
+<tr>
+<th>関数</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>administered_drug_key(row)</code></td>
+<td>薬剤の識別子。<code>drug_id</code>、なければオーダー文の catalog id</td>
+</tr>
+<tr>
+<td><code>administered_drug_label(row, lang)</code></td>
+<td><code>lang</code> での薬剤名と用量。カテゴリ接頭辞は落とし、薬剤の接頭辞は名前として残し、モニタリング目標の節は除く (<code>document/reference_data/administered_drug_name.yaml</code> の <code>order_detail_cuts</code>)。文が薬剤を示さない場合は <code>drug_id</code> の catalog 名</td>
+</tr>
+<tr>
+<td><code>administered_drug_name(row, lang)</code></td>
+<td><code>lang</code> での薬剤名のみ (用量なし)</td>
+</tr>
+</tbody>
+</table>
+<p><code>tests/unit/modules/document/narrative/test_administered_drug_name_3560.py</code> が、<code>modules/document</code> 配下で <code>_drug_names.py</code> 以外が <code>strip_protocol_prefix</code> を呼ぶと失敗する。</p>
 <h2 id="5-多言語対応">5. 多言語対応<a class="headerlink" href="#5-多言語対応" title="Permanent link">&para;</a></h2>
 <h3 id="51-出力言語">5.1 出力言語<a class="headerlink" href="#51-出力言語" title="Permanent link">&para;</a></h3>
 <ul>
