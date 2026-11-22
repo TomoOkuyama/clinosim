@@ -451,6 +451,13 @@ def avpu_day_seed(patient_id: str, day: int) -> int:
     return _digest_int(f"avpu:{patient_id}:{day}", 8)
 
 
+def complication_avpu_seed(patient_id: str, day: int, complication: str) -> int:
+    """Per-(patient, hospital day, complication) seed of the AVPU level a
+    consciousness-lowering complication sets on the readings from its onset
+    (Issue #3540, 64-bit); the stay's own RNG is not read."""
+    return _digest_int(f"complication-avpu:{patient_id}:{day}:{complication}", 8)
+
+
 def terminal_course_seed(patient_id: str, encounter_id: str) -> int:
     """Per-stay seed of the measurement noise of the vitals charted in the
     final hours before an in-hospital death (Issue #2985, 64-bit)."""

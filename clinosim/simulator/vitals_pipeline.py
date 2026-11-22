@@ -80,7 +80,7 @@ from clinosim.modules.physiology._vital_signs_thresholds import (
     PAIN_SCORE_SCALE,
 )
 from clinosim.modules.physiology.engine import derive_observed_vitals
-from clinosim.seeding import avpu_day_seed, daily_output_seed
+from clinosim.seeding import avpu_day_seed, complication_avpu_seed, daily_output_seed
 from clinosim.simulator._adl_thresholds import (
     ADL_ASSESSMENT_INTERVAL_DAYS,
     ADL_BARTHEL_MAX,
@@ -462,6 +462,35 @@ def put_on_ventilator(vitals: list[VitalSignRecord], since: datetime, state, dis
             oxygen_flow_rate_lpm=None,
             oxygen_delivery_device=vent.device,
         )
+
+
+_AVPU_SEVERITY = {"A": 0, "V": 1, "P": 2, "U": 3}
+
+
+def lower_consciousness_from(
+    vitals: list[VitalSignRecord],
+    since: datetime,
+    state,
+    disease_id: str,
+    patient_id: str,
+    day: int,
+    complication: str,
+) -> None:
+    """Rewrite, in place, the AVPU of the readings charted at or after
+    ``since`` (the onset of a complication that lowers consciousness, applied
+    after the day's vital signs were generated, Issue #3540) from the state
+    that now carries the complication's impact. One day-stable level is
+    derived on a sub-RNG seeded by the patient, day and complication (the
+    stay's stream is not read), and a reading is only ever made more
+    impaired, never raised. Readings without an AVPU are left alone."""
+    new_level = _loc_for(
+        state, disease_id, day, determinism.default_rng(complication_avpu_seed(patient_id, day, complication))
+    )
+    for i, v in enumerate(vitals):
+        if v.timestamp < since or not v.consciousness_level:
+            continue
+        if _AVPU_SEVERITY.get(new_level, 0) > _AVPU_SEVERITY.get(v.consciousness_level, 0):
+            vitals[i] = replace(v, consciousness_level=new_level)
 
 
 def _o2_for(spo2, disease_id, rng):
