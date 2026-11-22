@@ -270,7 +270,7 @@ def build_outpatient_subjective(generator: TemplateNarrativeGenerator, ctx: Narr
     composed = _compose_outpatient_subjective_from_state(ctx)
     # Issue #3249: the visit reason's own subjective lines.
     kind = visit_kind(ctx)
-    reason_lines = kind_lines(ctx, kind, "subjective") if kind else []
+    reason_lines = kind_lines(ctx, kind, "subjective")
     if composed and reason_lines:
         composed = join_sentences([composed, *reason_lines], lang)
         facts.append("composed:visit_reason.subjective")
