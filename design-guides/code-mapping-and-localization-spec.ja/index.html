@@ -3377,7 +3377,7 @@
 </tr>
 <tr>
 <td><code>localize_dose_text(text, lang)</code></td>
-<td><code>clinosim-procedure-phrase.yaml</code> の <code>dose_phrases</code> (<code>load_dose_phrase_dict</code>)。用量文字列全体を先に試し (<code>localize_drug_name</code> では「薬剤 用量」オーダ文字列の末尾でも)、速度変更のスラッグ (<code>increase_rate_by_20%</code>) は指示文として、それ以外は用量・経路・頻度の用語 (<code>med_terms.yaml</code>)。疾患プロトコルの <code>dose</code> 文字列は英単語なしで描画されること (ガード <code>tests/unit/locale/test_dose_phrases_3428.py</code>、Issue #3428)</td>
+<td><code>clinosim-procedure-phrase.yaml</code> の <code>dose_phrases</code> (<code>load_dose_phrase_dict</code>)。用量文字列全体を先に試し (<code>localize_drug_name</code> では「薬剤 用量」オーダ文字列の末尾でも)、速度変更のスラッグ (<code>increase_rate_by_20%</code>) は指示文として、それ以外は用量・経路・頻度の用語 (<code>med_terms.yaml</code>)。疾患プロトコルの <code>dose</code> 文字列は英単語なしで描画されること (ガード <code>tests/unit/locale/test_dose_phrases_3428.py</code>、Issue #3428)。外来・救急プロトコルの用量・頻度文字列も同様 (ガード <code>tests/unit/locale/test_jp_sig_terms_3562.py</code>、Issue #3562)。用語キーは大文字小文字を区別せず照合する (3 文字以下の全大文字キー <code>PRN</code> <code>PO</code> <code>IV</code> を除く。保存値 <code>weekly</code> が <code>WEEKLY</code> に一致する)</td>
 <td><code>lang</code> の用量文。英語は入力のまま</td>
 </tr>
 <tr>
