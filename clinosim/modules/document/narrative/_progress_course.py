@@ -24,6 +24,7 @@ if TYPE_CHECKING:
 
 __all__ = [
     "ProgressCourseRules",
+    "complication_order_exists",
     "diet_display",
     "diet_line",
     "diet_order_at",
@@ -65,6 +66,21 @@ class _DischargePlanning(BaseModel):
     groups: dict[str, str]
 
 
+class _ComplicationManagement(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    hours_after_onset: int = Field(gt=0)
+    order_types: list[str] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _known_order_types(self) -> _ComplicationManagement:
+        from clinosim.types.encounter import OrderType
+
+        unknown = sorted(set(self.order_types) - {o.value for o in OrderType})
+        if unknown:
+            raise ValueError(f"progress_course.yaml: unknown order types {unknown}")
+        return self
+
+
 class ProgressCourseRules(BaseModel):
     """``progress_course.yaml`` (Issues #3235, #3247)."""
 
@@ -72,6 +88,7 @@ class ProgressCourseRules(BaseModel):
     post_procedure_types: list[str]
     lab_course: _LabCourse
     discharge_planning: _DischargePlanning
+    complication_management: _ComplicationManagement
 
 
 @lru_cache(maxsize=1)
@@ -122,6 +139,35 @@ def post_procedure_line(ctx: NarrativeContext, as_of: Any) -> str:
     if days == 0:
         return t(f"progress.{kind}_day", lang, proc=names[0])
     return t(f"progress.post_{kind}_day", lang, n=days, proc=names[0])
+
+
+def complication_order_exists(ctx: NarrativeContext, onset_day: int, onset_at: Any, as_of: Any) -> bool:
+    """Whether the stay holds an order that answers a complication: one of
+    ``complication_management.order_types`` placed from the start of the onset
+    day to ``hours_after_onset`` hours after the onset time (the end of the
+    onset day when the time is unknown), and by ``as_of`` (no order the note's
+    writer could not yet see). Issue #3542."""
+    rules = progress_course_rules().complication_management
+    admitted = parse_iso_datetime(_o(getattr(ctx, "encounter", None), "admission_datetime", None), lenient=True)
+    if onset_at is not None:
+        day_start = datetime.combine(onset_at.date(), datetime.min.time(), tzinfo=onset_at.tzinfo)
+    elif admitted is not None:
+        day_start = datetime.combine(
+            admitted.date() + timedelta(days=onset_day), datetime.min.time(), tzinfo=admitted.tzinfo
+        )
+    else:
+        return False
+    end = (onset_at or day_start + timedelta(days=1)) + timedelta(hours=rules.hours_after_onset)
+    kinds = set(rules.order_types)
+    for order in getattr(ctx, "orders", None) or []:
+        if str(_o(order, "order_type", "") or "").lower().rsplit(".", 1)[-1] not in kinds:
+            continue
+        placed = parse_iso_datetime(_o(order, "ordered_datetime", None), lenient=True)
+        if placed is None or (as_of is not None and placed > as_of):
+            continue
+        if day_start <= placed <= end:
+            return True
+    return False
 
 
 def _meaningful_lab_change(name: str, unit: str, prior: Any, current: Any) -> bool:

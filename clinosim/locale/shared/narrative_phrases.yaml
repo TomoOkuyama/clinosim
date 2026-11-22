@@ -54,6 +54,11 @@ progress:
   complication_new:
     ja: "新たに {list} を合併、対応開始。"
     en: "New complication ({list}); management started."
+  # The same without a management claim, when the record holds no order for it
+  # (Issue #3542; progress_course.yaml complication_management).
+  complication_new_unmanaged:
+    ja: "新たに {list} を認める。"
+    en: "New complication ({list}) recognised."
   notable_labs:
     ja: "本日の検査所見: {list}。"
     en: "Notable labs today: {list}."

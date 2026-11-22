@@ -56,3 +56,21 @@ discharge_planning:
     hosp: transfer
     other-hcf: transfer
     snf: transfer
+
+# "New complication ...; management started" is written only when the record
+# holds an order of a management type (``order_types``; laboratory and diet
+# orders are monitoring or supportive, not a response to the complication)
+# placed from the start of the complication's onset day to ``hours_after_onset``
+# hours after its onset time (and by the note's authored time). Otherwise the
+# note states the complication without claiming a response (Issue #3542).
+# The 48 h window and the type list are clinosim modelling choices: no source
+# was read for them.
+complication_management:
+  hours_after_onset: 48
+  order_types:
+    - medication
+    - therapy
+    - imaging
+    - procedure
+    - consultation
+    - infection_control
