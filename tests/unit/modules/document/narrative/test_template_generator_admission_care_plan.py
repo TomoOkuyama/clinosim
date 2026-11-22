@@ -256,8 +256,8 @@ def test_estimated_los_is_undetermined_when_severity_not_in_target_los() -> None
     assert "未定" in out.sections["estimated_los"]
 
 
-def test_special_nutrition_management_is_always_no() -> None:
-    """MVP decision (spec §3b): hardcoded 無 pending a future nutrition subsystem."""
+def test_special_nutrition_management_is_no_without_nutrition_findings() -> None:
+    """No BMI, restricted-diet condition, fasting or swallowing diagnosis: 無 (Issue #3553)."""
     spec = _make_spec()
     ctx = _make_ctx()
     gen = TemplateNarrativeGenerator()

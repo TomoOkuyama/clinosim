@@ -819,6 +819,9 @@ allergy:
 
 # ACP composite phrases.
 acp:
+  special_nutrition_yes:
+    ja: "特別な栄養管理の必要性：有（{reasons}）"
+    en: "Special nutritional management required: Yes ({reasons})"
   assigned_nurse_line:
     ja: "担当看護師：{name}"
     en: "Assigned nurse: {name}"
@@ -2206,6 +2209,48 @@ hpi_core:
 
 # NCP composite lines (Phase 1d-29).
 ncp:
+  special_reason_high_risk:
+    ja: 低栄養リスク高
+    en: high malnutrition risk
+  special_reason_npo:
+    ja: 絶食中
+    en: nil by mouth
+  special_reason_dysphagia:
+    ja: 嚥下機能の評価が必要
+    en: swallowing evaluation needed
+  goal_high_risk:
+    ja: "栄養管理計画の目標：低栄養状態の改善に向けた栄養補給"
+    en: "Nutrition management goal: nutrition support to correct the malnutrition risk"
+  goal_npo:
+    ja: "栄養管理計画の目標：絶食中の栄養状態の維持と、経口摂取再開時の食上げ"
+    en: "Nutrition management goal: maintain nutritional status while fasting and advance the diet when oral intake resumes"
+  goal_restriction:
+    ja: "栄養管理計画の目標：{conditions}を行いながら現在の栄養状態を維持"
+    en: "Nutrition management goal: maintain current nutritional status with {conditions}"
+  goal_overnutrition:
+    ja: "栄養管理計画の目標：適正体重に向けた栄養管理"
+    en: "Nutrition management goal: nutrition management toward a healthy weight"
+  dysphagia_pending:
+    ja: "嚥下調整食の必要性：未評価（{reason}）"
+    en: "Dysphagia diet required: not yet evaluated ({reason})"
+  dysphagia_reason_npo:
+    ja: 絶食中
+    en: nil by mouth
+  dysphagia_reason_swallowing:
+    ja: 嚥下機能の評価後に決定
+    en: to be decided after the swallowing evaluation
+  dietitian_named:
+    ja: "担当管理栄養士：{name}"
+    en: "Dietitian in charge: {name}"
+  dietitian_unassigned:
+    ja: "担当管理栄養士：未定"
+    en: "Dietitian in charge: not yet assigned"
+  discharge_eval_death:
+    ja: "退院時及び終了時の総合的評価：死亡退院のため実施せず"
+    en: "Comprehensive evaluation at discharge: not performed because the patient died"
+  supply_not_calculated_line:
+    ja: "エネルギー：算定せず　たんぱく質：算定せず　補給方法：{route}（静脈栄養・経管栄養の指示は記録なし）"
+    en: "Energy: not calculated, Protein: not calculated, Route: {route} (no parenteral or enteral nutrition order recorded)"
   ward_and_physician_line:
     ja: "病棟：{ward}　担当医師：{physician}"
     en: "Ward: {ward}, Attending physician: {physician}"
@@ -3148,7 +3193,6 @@ fallback:
   interventions_fallback: {en: 'Nursing interventions provided: no significant findings', ja: 実施した看護介入：特記事項なし}
   ncp_assessment_fallback: {en: 'Nutrition status assessment: no significant findings', ja: 栄養状態の評価と課題：特記事項なし}
   ncp_counseling_fallback: {en: 'Nutrition counseling: to be provided as needed', ja: 栄養食事相談：必要に応じて実施}
-  ncp_dietitian_fallback: {en: No dietitian assigned, ja: 担当なし}
   ncp_discharge_eval_fallback: {en: 'Comprehensive evaluation at discharge: pending, to be assessed at discharge', ja: 退院時及び終了時の総合的評価：退院時に評価予定}
   ncp_dysphagia_none: {en: 'Dysphagia diet required: No', ja: 嚥下調整食の必要性：なし}
   ncp_goals_fallback: {en: 'Nutrition management goal: maintain current nutritional status', ja: 栄養管理計画の目標：現在の栄養状態を維持}

@@ -195,6 +195,8 @@ clinosim/modules/document/
     bedside_procedure_codes.yaml     bedside procedure code (load_bedside_procedure_codes)
     death_cause_chain.yaml           死亡診断書の死因の連鎖: 直接死因になりうる合併症・終末期経過の機序・検査値で定義する発症時刻・続発コード・影響を及ぼした傷病名の区分 (load_death_cause_chain)
     death_course.yaml                死亡退院サマリーの死亡時状況と経過: 蘇生処置を行わない方針のコード・死亡時の生命維持・心肺蘇生の判定・列挙数・時間/日/週の境界・発症時期が既知の疾患型 (load_death_course)
+    nutrition_care_plan.yaml         栄養管理計画書・入院診療計画書の栄養欄: 帳票が参照する食事制限を要する疾患と嚥下に関わる診断のカテゴリ (load_nutrition_care_plan)
+    death_course.yaml                死亡退院サマリーの死亡時状況と経過: 蘇生処置を行わない方針のコード・死亡時の生命維持・心肺蘇生の判定・列挙数・日/週の境界 (load_death_course)
     narrative_extras_whitelists.yaml narrative extra-context whitelist (narrative/_extra_context_builder.py)
     ja_only_fallback_sections.yaml   US H&P の JA 文字 audit 対象外 section (audit.py)
     chronic_soap_templates.yaml      慢性疾患 SOAP note template (受診の診断コードの項目、指示ではなく所見を記載)

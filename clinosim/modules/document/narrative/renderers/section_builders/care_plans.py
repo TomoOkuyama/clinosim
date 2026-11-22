@@ -18,6 +18,7 @@ Shared helpers accessed via ``generator``:
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
@@ -28,6 +29,7 @@ from clinosim.locale.loader import narrative_label as _label
 from clinosim.locale.loader import vocab_display
 from clinosim.locale.loaders.medical_display import load_diet_supply_route
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules._shared import pick_allied_staff_id
 from clinosim.modules.document.narrative._as_of import in_force_at
 from clinosim.modules.document.narrative._localization import _localize_proc_type
 from clinosim.modules.document.narrative._narrative_interpretation_thresholds import (
@@ -35,6 +37,7 @@ from clinosim.modules.document.narrative._narrative_interpretation_thresholds im
     NUTRITION_PROTEIN_G_PER_KG_MIDPOINT,
     bmi_band,
 )
+from clinosim.modules.document.narrative._narrative_utils import encounter_died
 from clinosim.modules.document.narrative._progress_course import diet_display, diet_order_at
 from clinosim.modules.document.narrative._template_helpers import _resolve_staff_name, allergen_display
 from clinosim.modules.document.narrative.renderers._shared_helpers import diagnosis_coded
@@ -43,12 +46,85 @@ from clinosim.modules.document.narrative.renderers.section_builders._registry im
     section,
     section_builder,
 )
+from clinosim.modules.document.reference_data_loaders import load_nutrition_care_plan
 from clinosim.types.document import NarrativeContext
 
 if TYPE_CHECKING:
     from clinosim.modules.document.narrative.template_generator import (
         TemplateNarrativeGenerator,
     )
+
+
+def _category(code: Any) -> str:
+    """ICD-10 3-character category of a condition code (``E11.9`` -> ``E11``)."""
+    return str(code or "").split(".")[0].upper()
+
+
+def _chronic_categories(patient: Any) -> set[str]:
+    conds = _o(patient, "chronic_conditions", []) or []
+    return {_category(_o(c, "code", "") or (c if isinstance(c, str) else "")) for c in conds}
+
+
+@dataclass(frozen=True)
+class _NutritionState:
+    """What the record says about the patient's nutrition, read once for the
+    nutrition care plan and the admission care plan's special-nutrition
+    field so both forms agree (Issue #3553)."""
+
+    high_risk: bool
+    overnutrition: bool
+    npo: bool
+    restriction_keys: tuple[str, ...]
+    dysphagia_risk: bool
+    facts: tuple[str, ...]
+
+    @property
+    def special(self) -> bool:
+        return self.high_risk or self.npo or self.dysphagia_risk or bool(self.restriction_keys)
+
+
+def _nutrition_state(ctx: NarrativeContext) -> _NutritionState:
+    """Malnutrition risk (BMI band), restricted-diet conditions, nil-by-mouth
+    (the diet active when the plan is written) and swallowing-related
+    diagnoses from the record."""
+    spec = load_nutrition_care_plan()
+    facts: list[str] = []
+    bmi = _o(ctx.patient, "bmi", None)
+    band = bmi_band(round(float(bmi), 1)) if bmi is not None else "normal"
+    if bmi is not None:
+        facts.append("patient.bmi")
+    chronic = _chronic_categories(ctx.patient)
+    restriction = tuple(key for cat, key in spec.restriction_conditions.items() if cat in chronic)
+    if restriction:
+        facts.append("ctx.patient.chronic_conditions")
+    active = diet_order_at(ctx, ctx.authored_datetime)
+    npo = active is not None and load_diet_supply_route().get(active[1]) == "none"
+    if active is not None:
+        facts.append("ctx.orders.diet")
+    dx_categories = set(chronic)
+    for dx in ctx.diagnoses or []:
+        for code in (
+            _o(dx, "admission_diagnosis_code", ""),
+            _o(dx, "discharge_diagnosis_code", ""),
+            *(_o(dx, "secondary_diagnosis_codes", []) or []),
+        ):
+            if code:
+                dx_categories.add(_category(code))
+    dysphagia = bool(dx_categories & set(spec.dysphagia_risk_categories))
+    if dysphagia:
+        facts.append("ctx.diagnoses")
+    return _NutritionState(
+        high_risk=band == "underweight",
+        overnutrition=band not in ("underweight", "normal"),
+        npo=npo,
+        restriction_keys=restriction,
+        dysphagia_risk=dysphagia,
+        facts=tuple(facts),
+    )
+
+
+def _restriction_text(state: _NutritionState, lang: str) -> str:
+    return t("list_sep.serial", lang).join(t(k, lang) for k in state.restriction_keys)
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -320,14 +396,16 @@ def build_ncp_nutrition_supply(generator: TemplateNarrativeGenerator, ctx: Narra
         fallback = t("section_none.nutrition_supply_no_data", lang)
         return fallback, facts
     facts.append("patient.weight_kg")
-    energy = round(float(weight) * NUTRITION_ENERGY_KCAL_PER_KG_MIDPOINT)
-    protein = round(float(weight) * NUTRITION_PROTEIN_G_PER_KG_MIDPOINT, 1)
-    route_key = "ncp.supply_route_oral"
     active = diet_order_at(ctx, ctx.authored_datetime)
     if active is not None and load_diet_supply_route().get(active[1]) == "none":
-        route_key = "ncp.supply_route_none"
+        # Nil by mouth: the CIF holds no parenteral or enteral order, so no
+        # energy target is stated against a supply route that gives none
+        # (Issue #3553).
         facts.append("ctx.orders.diet")
-    route = t(route_key, lang)
+        return t("ncp.supply_not_calculated_line", lang, route=t("ncp.supply_route_none", lang)), facts
+    energy = round(float(weight) * NUTRITION_ENERGY_KCAL_PER_KG_MIDPOINT)
+    protein = round(float(weight) * NUTRITION_PROTEIN_G_PER_KG_MIDPOINT, 1)
+    route = t("ncp.supply_route_oral", lang)
     return t("ncp.nutrition_supply_line", lang, energy=energy, protein=protein, route=route), facts
 
 
@@ -534,16 +612,94 @@ def build_rp_discharge_estimate(generator: TemplateNarrativeGenerator, ctx: Narr
     return t("rp_note.discharge_estimate_line", lang, days=los_days), facts
 
 
-# Sections whose text is one fixed phrase (no patient data feeds them yet).
+@section("special_nutrition_management")
+def build_acp_special_nutrition_management(
+    generator: TemplateNarrativeGenerator, ctx: NarrativeContext
+) -> tuple[str, list[str]]:
+    """特別な栄養管理の必要性 — 有 (with the reasons) when the record shows a
+    high malnutrition risk, a restricted-diet condition, nil by mouth or a
+    swallowing-related diagnosis, else 無 (Issue #3553)."""
+    lang = ctx.target_lang
+    state = _nutrition_state(ctx)
+    if not state.special:
+        return t("fallback.acp_nutrition_no", lang), list(state.facts)
+    reasons: list[str] = []
+    if state.high_risk:
+        reasons.append(t("ncp.special_reason_high_risk", lang))
+    if state.restriction_keys:
+        reasons.append(_restriction_text(state, lang))
+    if state.npo:
+        reasons.append(t("ncp.special_reason_npo", lang))
+    if state.dysphagia_risk:
+        reasons.append(t("ncp.special_reason_dysphagia", lang))
+    return t("acp.special_nutrition_yes", lang, reasons=t("list_sep.serial", lang).join(reasons)), list(state.facts)
+
+
+@section("dietitian")
+def build_ncp_dietitian(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
+    """担当管理栄養士名 — the roster dietitian assigned to the stay (the one the
+    encounter's CareTeam lists, ``pick_allied_staff_id``), else not yet
+    assigned; no name is invented (Issue #3553)."""
+    lang = ctx.target_lang
+    pool = [sid for sid, staff in (ctx.roster_map or {}).items() if (staff or {}).get("role") == "dietitian"]
+    staff_id = pick_allied_staff_id(pool, "dietitian", str(_o(ctx.encounter, "encounter_id", "") or ""))
+    name = _resolve_staff_name(staff_id, ctx.roster_map) if staff_id else ""
+    if not name:
+        return t("ncp.dietitian_unassigned", lang), []
+    return t("ncp.dietitian_named", lang, name=name), ["ctx.roster_map"]
+
+
+@section("nutrition_goals")
+def build_ncp_nutrition_goals(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
+    """栄養管理計画の目標 — keyed by the nutrition state: high malnutrition risk,
+    nil by mouth, a restricted diet, overnutrition, else maintain (Issue #3553)."""
+    lang = ctx.target_lang
+    state = _nutrition_state(ctx)
+    facts = list(state.facts)
+    if state.high_risk:
+        return t("ncp.goal_high_risk", lang), facts
+    if state.npo:
+        return t("ncp.goal_npo", lang), facts
+    if state.restriction_keys:
+        return t("ncp.goal_restriction", lang, conditions=_restriction_text(state, lang)), facts
+    if state.overnutrition:
+        return t("ncp.goal_overnutrition", lang), facts
+    return t("fallback.ncp_goals_fallback", lang), facts
+
+
+@section("dysphagia_diet")
+def build_ncp_dysphagia_diet(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
+    """嚥下調整食の必要性 — なし only with an oral diet and no swallowing-related
+    diagnosis; the CIF holds no swallowing evaluation, so otherwise the need
+    is stated as not yet evaluated (Issue #3553)."""
+    lang = ctx.target_lang
+    state = _nutrition_state(ctx)
+    if state.dysphagia_risk:
+        return t("ncp.dysphagia_pending", lang, reason=t("ncp.dysphagia_reason_swallowing", lang)), list(state.facts)
+    if state.npo:
+        return t("ncp.dysphagia_pending", lang, reason=t("ncp.dysphagia_reason_npo", lang)), list(state.facts)
+    return t("fallback.ncp_dysphagia_none", lang), list(state.facts)
+
+
+@section("discharge_evaluation")
+def build_ncp_discharge_evaluation(
+    generator: TemplateNarrativeGenerator, ctx: NarrativeContext
+) -> tuple[str, list[str]]:
+    """退院時及び終了時の総合的評価 — to be assessed at discharge, except for a
+    stay that ended in death, where no evaluation is made (Issue #3553)."""
+    lang = ctx.target_lang
+    if encounter_died(ctx.encounter):
+        return t("ncp.discharge_eval_death", lang), ["encounter.discharge_disposition"]
+    return t("fallback.ncp_discharge_eval_fallback", lang), []
+
+
+# Sections whose text is one fixed phrase (no patient data feeds them yet). The
+# nutrition fields of the two care plans are derived from the record instead
+# (``_nutrition_state``, Issue #3553).
 _FIXED_PHRASE_SECTIONS: dict[str, str] = {
-    "special_nutrition_management": "fallback.acp_nutrition_no",  # 特別な栄養管理の必要性
     "other_plans": "fallback.acp_other_plans",  # その他（看護計画・リハビリテーション等の計画）— fixed cross-reference
-    "dietitian": "fallback.ncp_dietitian_fallback",  # 担当管理栄養士名
-    "nutrition_goals": "fallback.ncp_goals_fallback",  # 栄養管理計画 目標
-    "dysphagia_diet": "fallback.ncp_dysphagia_none",  # 嚥下調整食の必要性
     "nutrition_counseling": "fallback.ncp_counseling_fallback",  # 栄養食事相談に関する事項
     "reassessment_timing": "fallback.ncp_reassessment_fallback",  # 栄養状態の再評価の時期
-    "discharge_evaluation": "fallback.ncp_discharge_eval_fallback",  # 退院時及び終了時の総合的評価
     "goals": "fallback.rp_goals_fallback",  # 本人の希望・家族の希望
     "policy": "fallback.rp_policy_fallback",  # リハビリテーション治療方針
 }
