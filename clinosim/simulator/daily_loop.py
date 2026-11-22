@@ -160,6 +160,7 @@ from clinosim.simulator.vitals_pipeline import (
     _generate_adl_assessment,
     _generate_daily_io,
     _generate_vitals,
+    lower_consciousness_from,
     put_on_ventilator,
 )
 from clinosim.types.clinical import PhysiologicalState
@@ -1376,6 +1377,12 @@ def _apply_complications(stay: _Stay, run: _Run, day: int, comp_list: list) -> N
                 source="daily_loop",
             )
         )
+        # Issue #3540: the day's vitals were charted before this impact was
+        # applied; the readings from the onset carry the lowered level.
+        if comp.get("state_impact", {}).get("consciousness_impairment", 0.0) > 0:
+            lower_consciousness_from(
+                run.vitals, onset_dt, run.state, stay.disease_id, patient.patient_id, day, comp_name
+            )
         if "icu_transfer" in comp.get("actions", []):
             if not run.icu_transferred:
                 # C5-22: capture day of transfer for
