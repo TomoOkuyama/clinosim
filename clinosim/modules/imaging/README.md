@@ -44,6 +44,13 @@ multi-series expansion logic MUST live in
   text, or `normal` when the injury is at another site), and `{side}` in a
   text is the study's laterality (`imaging_report.side_left` / `side_right`
   in `narrative_phrases.yaml`). The single normal/abnormal draw is unchanged.
+  A head study of a stroke stay (`cerebral_infarction`, `hemorrhagic_stroke`)
+  takes its `{side}` from `stroke_lesion_side` (Issue #3557), the one lesion
+  side of the stay, opposite to the weakness side the admission exam writes
+  (`clinosim/modules/disease/laterality.py`). A free-text workup order
+  (`MRI_brain_DWI`) has no `abnormal_rate_by_severity` of its own and reads at
+  the rate of the protocol's `imaging_orders` entry with the same modality and
+  body site (`workup_abnormal_rate`); it reads normal when there is none.
   `body_sites.yaml` `covers_other_sites` marks a whole-body study, which the
   order module's `drop_legacy_duplicate_imaging` treats as covering every
   region.

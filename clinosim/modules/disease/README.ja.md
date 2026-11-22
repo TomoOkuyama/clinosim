@@ -293,4 +293,6 @@ pytest tests/unit -k disease -q
 
 疾患 YAML の `implied_chronic_codes` は、入院の問題リストと person レコードの両方に加えられ、以後の受診にも引き継がれる。一部の患者だけが持つコードは `simulator/reference_data/implied_chronic_prevalence.yaml` に割合を持つ (脳梗塞前の既知の心房細動 22%、心房細動患者の心不全 33%)。割合は ID のハッシュから患者ごとに 1 回だけ引く。`SPEC.md` を参照。
 
+急性期脳卒中 (`cerebral_infarction`、`hemorrhagic_stroke`) の側は、滞在ごとに 1 つで、encounter id のハッシュから乱数を引かずに導く (`laterality.py`、Issue #3557)。`stroke_weakness_side` は入院時診察が書く麻痺側、`stroke_lesion_side` は反対側の大脳半球 (右麻痺と左方への共同偏視は左中大脳動脈領域の病変) で、頭部画像レポートの `{side}` になる。
+
 記録の完成後、`simulator/chronic_reconcile.py` が、同一患者の先行する受診で未記載だった慢性疾患の発症日を、その受診の翌日 (後から初めて記録) に移す。どの受診も発症日と矛盾しない。

@@ -264,4 +264,6 @@ def test_side_placeholder_only_on_paired_sites_and_in_both_languages() -> None:
             for entry in texts(variant):
                 if "{side}" in entry["en"] or "{side}" in entry["ja"]:
                     assert "{side}" in entry["en"] and "{side}" in entry["ja"], (disease, key)
-                    assert (body_sites.get(site) or {}).get("paired"), (disease, key)
+                    # Issue #3557: a stroke's head study names the lesion side.
+                    stroke_head = site == "head" and disease in ("cerebral_infarction", "hemorrhagic_stroke")
+                    assert (body_sites.get(site) or {}).get("paired") or stroke_head, (disease, key)

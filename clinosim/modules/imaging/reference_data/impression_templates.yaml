@@ -83,11 +83,11 @@ templates:
           ja: "急性頭蓋内疾患を示唆する所見なし。"
       abnormal:
         findings:
-          en: "Acute parenchymal hemorrhage in the right basal ganglia with surrounding edema and 5mm midline shift."
-          ja: "右側基底核に急性期実質出血を認め、周囲浮腫および5mmの正中偏位を伴う。"
+          en: "Acute parenchymal hemorrhage in the {side} basal ganglia with surrounding edema and 5mm midline shift."
+          ja: "{side}側基底核に急性期実質出血を認め、周囲浮腫および5mmの正中偏位を伴う。"
         impression:
-          en: "Acute right basal ganglia intracerebral hemorrhage with mass effect."
-          ja: "右側基底核急性脳出血、周囲への圧排を伴う。"
+          en: "Acute {side} basal ganglia intracerebral hemorrhage with mass effect."
+          ja: "{side}側基底核急性脳出血、周囲への圧排を伴う。"
 
   # RM-5 (session 42, cycle-3 tail / CO-1 expansion): sepsis / heart failure /
   # acute MI — all commonly workup with CXR to evaluate for pulmonary source
@@ -305,11 +305,11 @@ templates:
           ja: '急性頭蓋内異常を認めず。'
       abnormal:
         findings:
-          en: 'Hypodense area in the right MCA territory, suggestive of ischemic infarct.'
-          ja: '右中大脳動脈領域の低吸収域、虚血性梗塞を疑う。'
+          en: 'Hypodense area in the {side} MCA territory, suggestive of ischemic infarct.'
+          ja: '{side}中大脳動脈領域の低吸収域、虚血性梗塞を疑う。'
         impression:
-          en: 'Hypodense area in the right MCA territory, suggestive of ischemic infarct.'
-          ja: '右中大脳動脈領域の低吸収域、虚血性梗塞を疑う。'
+          en: 'Hypodense area in the {side} MCA territory, suggestive of ischemic infarct.'
+          ja: '{side}中大脳動脈領域の低吸収域、虚血性梗塞を疑う。'
     MR_head:
       normal:
         findings:
@@ -320,11 +320,11 @@ templates:
           ja: '急性頭蓋内所見なし。'
       abnormal:
         findings:
-          en: 'Diffusion restriction in the right MCA territory, consistent with acute infarct.'
-          ja: '右中大脳動脈領域拡散制限、急性梗塞と矛盾せず。'
+          en: 'Diffusion restriction in the {side} MCA territory, consistent with acute infarct.'
+          ja: '{side}中大脳動脈領域拡散制限、急性梗塞と矛盾せず。'
         impression:
-          en: 'Diffusion restriction in the right MCA territory, consistent with acute infarct.'
-          ja: '右中大脳動脈領域拡散制限、急性梗塞と矛盾せず。'
+          en: 'Diffusion restriction in the {side} MCA territory, consistent with acute infarct.'
+          ja: '{side}中大脳動脈領域拡散制限、急性梗塞と矛盾せず。'
 
   copd_exacerbation:
     CR_chest:

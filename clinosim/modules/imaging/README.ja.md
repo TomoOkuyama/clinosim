@@ -41,7 +41,14 @@ multi-series 展開ロジックは必ず `engine._expand_views_to_series` に
   (`abnormal_by_code`: ICD-10 prefix -> 文、または他部位の外傷なら
   `normal`) を取り、文中の `{side}` は study の laterality
   (`narrative_phrases.yaml` の `imaging_report.side_left` / `side_right`)。
-  正常/異常の乱数 draw は 1 回のまま不変。`body_sites.yaml` の
+  正常/異常の乱数 draw は 1 回のまま不変。
+  脳卒中の滞在 (`cerebral_infarction`、`hemorrhagic_stroke`) の頭部 study の
+  `{side}` は `stroke_lesion_side` (Issue #3557) から取る。滞在で 1 つの病巣側で、
+  入院時診察が書く麻痺側の反対側
+  (`clinosim/modules/disease/laterality.py`)。自由記載の workup オーダー
+  (`MRI_brain_DWI`) は自前の `abnormal_rate_by_severity` を持たず、同じ modality と
+  部位のプロトコル `imaging_orders` の率で読む (`workup_abnormal_rate`)。
+  該当が無ければ正常読影。`body_sites.yaml` の
   `covers_other_sites` は全身 study を示し、order module の
   `drop_legacy_duplicate_imaging` は全部位を覆うものとして扱う。
 - **In scope (audit)**: [`audit.py`](audit.py) — 4 番目の per-module

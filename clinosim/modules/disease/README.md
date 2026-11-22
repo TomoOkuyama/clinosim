@@ -304,4 +304,6 @@ Japanese counterpart: [`README.ja.md`](README.ja.md).
 
 A disease YAML's `implied_chronic_codes` are added to the admission's problem list and to the person record, so later encounters keep them. A code only some patients carry has a share in `simulator/reference_data/implied_chronic_prevalence.yaml` (known atrial fibrillation before an ischemic stroke, 22%; heart failure among atrial fibrillation patients, 33%), drawn once per patient from a hash of the ids. See `SPEC.md`.
 
+The side of an acute stroke (`cerebral_infarction`, `hemorrhagic_stroke`) is one value per stay, derived from a hash of the encounter id without a random draw (`laterality.py`, Issue #3557). `stroke_weakness_side` is the side of the focal weakness written by the admission exam; `stroke_lesion_side` is the opposite hemisphere (right weakness with left gaze deviation is a left MCA territory lesion) and is the `{side}` of the head imaging reports.
+
 Once the records are complete, `simulator/chronic_reconcile.py` moves the onset of a chronic condition that an earlier encounter of the same patient did not list to the day after that encounter (first documented later), so no encounter contradicts an onset.
