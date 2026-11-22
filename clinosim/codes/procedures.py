@@ -8,6 +8,7 @@ name. Displays of a coded procedure come from the CPT / K-code registries.
 from __future__ import annotations
 
 from collections.abc import Iterable
+from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
 from typing import Any
@@ -70,6 +71,28 @@ def procedure_is_emergent(proc_type: str) -> bool:
     """True when the catalog marks a procedure type as an emergency by nature
     (``emergent: true``; Issue #3550), so its consent is emergency / implied."""
     return bool((_entries().get(proc_type) or {}).get("emergent"))
+
+
+@dataclass(frozen=True)
+class DurationSpec:
+    """Duration distribution of a procedure type, in minutes: a normal draw
+    (``mean``, ``sd``) clipped to [``min``, ``max``]; ``max`` is None when
+    unbounded."""
+
+    mean: float
+    sd: float
+    min: int
+    max: int | None = None
+
+
+def procedure_duration(proc_type: str) -> DurationSpec | None:
+    """The catalog's ``duration_minutes`` of a procedure type (Issue #3550);
+    None when the catalog gives none, so the caller uses its default."""
+    raw = (_entries().get(proc_type) or {}).get("duration_minutes")
+    if not raw:
+        return None
+    mx = raw.get("max")
+    return DurationSpec(float(raw["mean"]), float(raw["sd"]), int(raw["min"]), int(mx) if mx is not None else None)
 
 
 def procedure_default_body_site(proc_type: str) -> str:

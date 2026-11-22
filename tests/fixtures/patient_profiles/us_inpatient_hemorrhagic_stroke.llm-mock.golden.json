@@ -1784,6 +1784,7 @@
         "ctx.procedures",
         "ctx.procedures",
         "ctx.diagnoses",
+        "ctx.procedures.laterality",
         "ctx.procedures",
         "ctx.procedures",
         "ctx.procedures",
@@ -1791,7 +1792,7 @@
         "ctx.procedures",
         "ctx.icu_transferred_day"
       ],
-      "generated_at": "2024-06-15T11:26:33.768897Z",
+      "generated_at": "2024-06-15T13:34:33.768897Z",
       "generator": "llm-mock",
       "generator_metadata": {
         "generator": "llm",
@@ -1804,7 +1805,7 @@
         "op_equipment": "Implants / devices: none",
         "op_findings": "[Mock LLM response #16 — op_findings]",
         "op_postop_plan": "[Mock LLM response #16 — op_postop_plan]",
-        "op_procedure_name": "Procedure: Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral (code 61313); operative time 32 min",
+        "op_procedure_name": "Procedure: Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral (code 61313); operative time 160 min",
         "op_specimens": "Specimens sent to pathology: none",
         "op_surgeon": "Primary surgeon: Clara Pittman"
       },

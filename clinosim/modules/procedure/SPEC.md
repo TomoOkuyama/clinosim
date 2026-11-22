@@ -114,6 +114,10 @@ procedure_ordered → consent → preparation → execution → documentation �
 
 - Anesthesia record: vitals q5min, medications, fluid balance, blood loss
 - Surgical note: procedure performed, findings, implants used, specimens sent
+- Site details (Issue #3549): side of a paired-site operation (craniotomy,
+  arthroplasty, fracture fixation), arterial access site and target vessel of
+  a PCI, insertion vein (and side) of a central line, recorded on the procedure
+  record and stated in the operative / procedure note
 - Instrument/sponge count
 - Estimated blood loss (EBL)
 - Complications: bleeding, nerve injury, anesthesia-related

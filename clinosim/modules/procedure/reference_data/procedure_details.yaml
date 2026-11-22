@@ -1,0 +1,59 @@
+# Site details of a procedure (Issue #3549): the side of a paired-site
+# operation, the access site and target vessel of a PCI, the insertion vein of
+# a central line. Read by modules/procedure/details.py, drawn per
+# (encounter, procedure type) from a dedicated sub-seed
+# (seeding.procedure_detail_seed), so no shared RNG stream moves.
+#
+# SOURCES: none of the probabilities below is taken from a published series.
+# They are clinosim modelling choices that keep each option plausible and the
+# shares round; they set how the synthetic cohort is spread over the options,
+# not an epidemiological claim. The sides are equally likely (a fracture, a
+# worn knee or a hematoma has no side preference in the model). Replace a
+# value only with a figure read from its source and cite it here.
+#
+# `weights` are relative (normalised at load); keys of `target_vessel`,
+# `access_site` and `central_vein` are the keys of the same-named maps in
+# codes/data/snomed-maps.yaml (the SNOMED CT concept is recorded in the CIF).
+
+metadata:
+  kind: reference
+  name: procedure_details
+  source: clinosim
+
+# Side of a paired-site procedure, by procedure type.
+# `source` is how the side is chosen:
+#   lesion   - the stay's stroke lesion side (modules/disease/laterality.py)
+#              when the stay is a stroke, else drawn;
+#   imaging  - the side the stay's imaging of `imaging_site` uses
+#              (modules/imaging/engine.py imaging_laterality), so the operated
+#              side is the imaged side; `imaging_diseases`, when given, limits
+#              this to those diseases (otherwise drawn);
+#   draw     - drawn from `sides`.
+laterality:
+  sides: {left: 1, right: 1}
+  types:
+    craniotomy_hematoma_evacuation: {source: lesion}
+    Craniotomy: {source: lesion}
+    hemiarthroplasty: {source: imaging, imaging_site: hip}
+    ORIF: {source: imaging, imaging_site: hip, imaging_diseases: [hip_fracture]}
+    Total knee arthroplasty: {source: imaging, imaging_site: knee}
+    ORIF with volar locking plate: {source: imaging, imaging_site: wrist}
+    orthopedic fracture fixation: {source: draw}
+    central_line: {source: draw}
+
+# Per procedure type: the options the type draws, each a map slug -> weight.
+details:
+  coronary_pci:
+    target_vessel:
+      left_anterior_descending: 45
+      right_coronary_artery: 30
+      left_circumflex: 20
+      left_main: 5
+    access_site:
+      radial_artery: 70
+      femoral_artery: 30
+  central_line:
+    central_vein:
+      internal_jugular: 50
+      subclavian: 20
+      femoral: 30

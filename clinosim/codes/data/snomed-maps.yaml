@@ -154,3 +154,21 @@ laterality:
   left: '7771000'
   right: '24028007'
 
+# Target coronary artery of a PCI (Issue #3549); displays verified on tx.fhir.org
+# $lookup (2026-11-22).
+coronary_vessel:
+  left_anterior_descending: '59438005'
+  right_coronary_artery: '13647002'
+  left_circumflex: '57396003'
+  left_main: '3227004'
+
+# Arterial access site of a PCI (Issue #3549).
+arterial_access_site:
+  radial_artery: '45631007'
+  femoral_artery: '7657000'
+
+# Insertion vein of a central venous catheter (Issue #3549).
+central_vein:
+  internal_jugular: '12123001'
+  subclavian: '9454009'
+  femoral: '83419000'

@@ -157,6 +157,19 @@ plan; a type without one gets the `general` plan.
   `generate_bedside_procedures` draws from
   `determinism.default_rng(seeding.issue939_procedure_seed(encounter_id,
   proc_type))`, so those procedures never shift the caller's stream.
+- Site details (Issue #3549, `details.procedure_details`) never draw from
+  the caller's stream either: the side of a paired-site operation, the
+  access site and target vessel of a PCI and the insertion vein of a
+  central line come from the stay's canonical side where one exists
+  (`disease.laterality.stroke_lesion_side` for a stroke craniotomy,
+  `imaging.engine.imaging_laterality` for hip / knee / wrist operations,
+  so the operated side is the imaged side) and otherwise from
+  `determinism.default_rng(seeding.procedure_detail_seed(encounter_id,
+  proc_type))`.
+- Bedside durations (Issue #3550) are still one `rng.normal` draw per
+  procedure; the catalog's `duration_minutes: {mean, sd, min, max}` only
+  changes the value, so the stream position is the same as with the old
+  single default.
 - Complication sampling uses `rng.random()` gated by
   `_surgery_thresholds` probabilities; outcome derivation is a
   deterministic mapping from the sampled complication list (none →
@@ -209,6 +222,20 @@ plan; a type without one gets the `general` plan.
   `_Rule` Pydantic models (known disease / ED-condition ids, known
   procedure types, probabilities in `[0, 1]`). Rule order is
   load-bearing (draw order).
+- **Procedure details** ([`reference_data/procedure_details.yaml`](reference_data/procedure_details.yaml),
+  Issue #3549): which procedure types carry a side (and where it comes
+  from) and the weights of the PCI target vessel / access site and of the
+  central-line vein; validated at load by `details.py` (keys must exist in
+  the `snomed-maps.yaml` maps `coronary_vessel`, `arterial_access_site`,
+  `central_vein`). The weights are clinosim modelling choices, not figures
+  from a published series. `ProcedureRecord` gains `laterality`,
+  `access_site` and `target_vessel`; a central line's vein is its
+  `body_site_code`. FHIR `Procedure.bodySite` carries the vessel and the
+  SNOMED laterality qualifier; the access site is a `note`.
+- **Bedside durations** (Issue #3550): per-type `duration_minutes` in
+  `codes/data/clinosim-procedure-catalog.yaml` (modelling choices, not
+  published figures); a type without one keeps the `_bedside_thresholds`
+  defaults.
 - The module also reads the disease protocol passed in, the SNOMED
   metadata yaml and the procedure catalog under `clinosim/codes/data/`.
 

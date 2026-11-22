@@ -153,6 +153,21 @@ def issue939_procedure_seed(encounter_id: str, proc_type: str) -> int:
     return int.from_bytes(digest, "big") % (2**32)
 
 
+def procedure_detail_seed(encounter_id: str, proc_type: str) -> int:
+    """Per-(encounter, procedure_type) sub-seed for the site details of a
+    procedure (Issue #3549): the side of a paired-site operation, the access
+    site and target vessel of a PCI, the insertion vein of a central line.
+
+    A separate stream from ``issue939_procedure_seed`` (own salt) and from the
+    encounter's shared RNG, so recording a site moves no other draw: every
+    downstream consumer (labs, imaging, discharge Rx) keeps its stream
+    position and the same procedure keeps the same site across runs.
+    """
+    salt = "clinosim:procedure-detail:v1"
+    digest = hashlib.sha256(f"{salt}|{encounter_id}|{proc_type}".encode()).digest()[:6]
+    return int.from_bytes(digest, "big") % (2**32)
+
+
 def chronic_augment_sex_seed(patient_id: str, code: str) -> int:
     """Per-(patient, code) deterministic sub-seed for opposite-sex
     chronic-condition augmentation sampling (Issue #957).

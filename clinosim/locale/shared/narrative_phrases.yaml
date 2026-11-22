@@ -2040,6 +2040,16 @@ op_note:
   findings_line:
     ja: "手術部位：{body_site}"
     en: "Body site: {body_site}"
+  # Issue #3549: side, target vessel and access site, from the procedure record.
+  findings_laterality:
+    ja: "側：{side}"
+    en: "Side: {side}"
+  findings_target_vessel:
+    ja: "治療対象血管：{vessel}"
+    en: "Target vessel: {vessel}"
+  findings_access_site:
+    ja: "アクセス部位：{access}"
+    en: "Access site: {access}"
   findings_preop:
     ja: "術前診断・適応：{dx}"
     en: "Pre-operative diagnosis / indication: {dx}"
@@ -2257,6 +2267,10 @@ proc_note:
   site_suffix:
     ja: "／穿刺部位: {site}"
     en: " / site: {site}"
+  # The insertion vein with its side (Issue #3549).
+  site_with_side:
+    ja: "{site}（{side}）"
+    en: "{side} {site}"
   # Performer + assistants + anesthesiologist compound line (Phase 1d-25).
   # build_pn_performer localises staff-ids with the ", MD" / 医師 role suffix
   # inline, then joins per-role lines with "。" / ". " (locale-specific glue).
@@ -4226,6 +4240,10 @@ fhir_text:
   body_site_unspecified:
     ja: "処置部位不明"
     en: "Body site not specified"
+  # Arterial access site of a PCI (Issue #3549); Procedure has no element for it.
+  access_site:
+    ja: "アクセス部位: {access}"
+    en: "Access site: {access}"
 
 # Labels, displays and notes written by the FHIR emitters (Issue #2404).
 fhir_emit_text:

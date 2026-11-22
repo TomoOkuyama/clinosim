@@ -2201,7 +2201,7 @@
         "ctx.procedures.outcome_code",
         "ctx.procedures.procedure_type"
       ],
-      "generated_at": "2024-06-15T04:42:31.801622+09:00",
+      "generated_at": "2024-06-15T04:19:31.801622+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
         "generator": "llm",
@@ -2227,6 +2227,8 @@
       "facts_used": [
         "ctx.procedures[PROC-FORCED-0001-003]",
         "ctx.procedures.procedure_code",
+        "ctx.procedures.laterality",
+        "ctx.procedures.body_site_code",
         "ctx.procedures[PROC-FORCED-0001-003]",
         "ctx.vitals.consciousness_level",
         "ctx.procedures[PROC-FORCED-0001-003]",
@@ -2257,7 +2259,7 @@
         "pn_course": "[Mock LLM response #41 — pn_course]",
         "pn_performer": "実施者: 石山 ミツ医師。",
         "pn_postop_plan": "[Mock LLM response #41 — pn_postop_plan]",
-        "pn_procedure_name": "処置名: 中心静脈注射用カテーテル挿入（G005-2）／術式区分: 中心静脈カテーテル挿入。",
+        "pn_procedure_name": "処置名: 中心静脈注射用カテーテル挿入（G005-2）／術式区分: 中心静脈カテーテル挿入／穿刺部位: 内頸静脈（右）。",
         "pn_specimens": "検体の有無: 検体採取なし。"
       },
       "text": ""
@@ -2287,7 +2289,7 @@
         "ctx.procedures.outcome_code",
         "ctx.procedures.procedure_type"
       ],
-      "generated_at": "2024-06-15T13:36:46.728214+09:00",
+      "generated_at": "2024-06-15T13:16:46.728214+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
         "generator": "llm",

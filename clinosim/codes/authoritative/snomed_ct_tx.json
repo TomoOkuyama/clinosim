@@ -5,7 +5,7 @@
     "source_file": "https://tx.fhir.org/r4/CodeSystem/$lookup (preferred term, synonyms, FSN)",
     "extracted_at": "2026-11-10",
     "edition_version": "http://snomed.info/sct/900000000000207008/version/20250201",
-    "clinosim_codes_total": 272,
+    "clinosim_codes_total": 280,
     "clinosim_codes_missing_from_source": [
       "303408005"
     ],
@@ -305,6 +305,24 @@
         {
           "use": "900000000000013009",
           "value": "Sputum sample"
+        }
+      ]
+    },
+    {
+      "code": "12123001",
+      "display": "Internal jugular vein structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Internal jugular vein structure"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Internal jugular vein"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Internal jugular vein structure (body structure)"
         }
       ]
     },
@@ -623,6 +641,28 @@
         {
           "use": "900000000000003001",
           "value": "Silver nitrate cautery (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "13647002",
+      "display": "Right coronary artery structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Right coronary artery structure"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Right coronary artery"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Right coronary artery, NOS"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Right coronary artery structure (body structure)"
         }
       ]
     },
@@ -1983,6 +2023,36 @@
         {
           "use": "900000000000003001",
           "value": "Severe chronic obstructive pulmonary disease (disorder)"
+        }
+      ]
+    },
+    {
+      "code": "3227004",
+      "display": "Structure of left main coronary artery",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Structure of left main coronary artery"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Left coronary artery main stem"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Left coronary artery main stem (body structure)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Structure of left coronary artery main stem (body structure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Structure of left coronary artery main stem"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "LMCA - left main coronary artery"
         }
       ]
     },
@@ -3717,6 +3787,32 @@
       ]
     },
     {
+      "code": "57396003",
+      "display": "Structure of circumflex coronary artery",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Structure of circumflex coronary artery"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Circumflex branch of left coronary artery"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Circumflex artery"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Structure of circumflex branch of left coronary artery"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Structure of circumflex branch of left coronary artery (body structure)"
+        }
+      ]
+    },
+    {
       "code": "57485005",
       "display": "Oxygen therapy",
       "designation": [
@@ -3753,6 +3849,36 @@
         {
           "use": "900000000000003001",
           "value": "Blood group O (finding)"
+        }
+      ]
+    },
+    {
+      "code": "59438005",
+      "display": "Structure of left anterior descending artery",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Structure of left anterior descending artery"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Anterior descending branch of left coronary artery"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Left anterior descending artery"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Structure of anterior descending branch of left coronary artery"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Structure of anterior descending branch of left coronary artery (body structure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Structure of LAD (left anterior descending) artery"
         }
       ]
     },
@@ -4525,6 +4651,28 @@
       ]
     },
     {
+      "code": "7657000",
+      "display": "Structure of femoral artery",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Structure of femoral artery"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Femoral artery"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Femoral artery, NOS"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Structure of femoral artery (body structure)"
+        }
+      ]
+    },
+    {
       "code": "76752008",
       "display": "Breast structure",
       "designation": [
@@ -4837,6 +4985,28 @@
       ]
     },
     {
+      "code": "83419000",
+      "display": "Femoral vein structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Femoral vein structure"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Femoral vein"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Femoral vein, NOS"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Femoral vein structure (body structure)"
+        }
+      ]
+    },
+    {
       "code": "84478008",
       "display": "Occupational therapy",
       "designation": [
@@ -5103,6 +5273,24 @@
         {
           "use": "900000000000003001",
           "value": "Application of elastic bandage (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "9454009",
+      "display": "Structure of subclavian vein",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Structure of subclavian vein"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Subclavian vein"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Structure of subclavian vein (body structure)"
         }
       ]
     },

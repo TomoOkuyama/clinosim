@@ -20,6 +20,7 @@ from clinosim.codes import data_table
 from clinosim.codes.procedures import (
     bedside_procedures,
     country_procedure_code,
+    procedure_duration,
     procedure_implants,
     procedure_specimens,
 )
@@ -79,6 +80,7 @@ from clinosim.modules.procedure._surgery_thresholds import (
     SURGERY_INFLAMMATION_LIFT,
     SURGERY_VOLUME_LIFT,
 )
+from clinosim.modules.procedure.details import procedure_details
 from clinosim.seeding import issue939_procedure_seed
 from clinosim.types.procedure import ProcedureRecord, RehabSession
 
@@ -220,6 +222,8 @@ def simulate_surgery(
     meta = _PROCEDURE_METADATA.get(proc_type) or _PROCEDURE_METADATA["surgery"]
     or_number = int(rng.integers(1, max(2, operating_rooms + 1)))
     location_id = f"loc-or-{or_number}"
+    # Issue #3549: the side of a paired-site operation, from a dedicated sub-seed.
+    site = procedure_details(str(proc_type), encounter_id, disease_id)
 
     record = ProcedureRecord(
         procedure_id=f"PROC-{patient.patient_id}-001",
@@ -246,10 +250,13 @@ def simulate_surgery(
         # no draw).
         specimens_sent=list(procedure_specimens(proc_type)),
         category_code=meta.category_code,
-        body_site_code=meta.body_site_code,
         outcome_code=_derive_outcome(intraop_comps),
         complication_codes=_map_complications(intraop_comps),
         location_id=location_id,
+        body_site_code=site.body_site_code or meta.body_site_code,
+        laterality=site.laterality,
+        access_site=site.access_site,
+        target_vessel=site.target_vessel,
     )
 
     # State impacts from surgery
@@ -446,6 +453,28 @@ _ISSUE939_PROCEDURE_TYPES: frozenset[str] = frozenset(
 )
 
 
+def _bedside_mean_duration(proc_type: str) -> int:
+    """The mean duration (minutes) of a bedside procedure type: the catalog's
+    (Issue #3550), else the default. No random draw."""
+    spec = procedure_duration(proc_type)
+    return int(spec.mean) if spec else int(BEDSIDE_DURATION_MEAN_MIN)
+
+
+def _bedside_duration(proc_type: str, rng: np.random.Generator) -> int:
+    """Duration (minutes) of one bedside procedure: one normal draw from the
+    type's catalog distribution (Issue #3550), else the default one, clipped to
+    its bounds. The draw count is the same for every type, so the stream
+    position does not depend on the catalog values."""
+    spec = procedure_duration(proc_type)
+    mean, sd, floor, cap = (
+        (spec.mean, spec.sd, spec.min, spec.max)
+        if spec
+        else (BEDSIDE_DURATION_MEAN_MIN, BEDSIDE_DURATION_STD_MIN, BEDSIDE_DURATION_MIN_MIN, None)
+    )
+    value = max(floor, rng.normal(mean, sd))
+    return int(min(cap, value) if cap is not None else value)
+
+
 def build_intubation_procedure(
     patient_id: str,
     encounter_id: str,
@@ -470,8 +499,8 @@ def build_intubation_procedure(
         procedure_code_jp=kcode,
         procedure_code_us=cpt,
         start_datetime=start,
-        end_datetime=start + timedelta(minutes=int(BEDSIDE_DURATION_MEAN_MIN)),
-        duration_minutes=int(BEDSIDE_DURATION_MEAN_MIN),
+        end_datetime=start + timedelta(minutes=_bedside_mean_duration("intubation")),
+        duration_minutes=_bedside_mean_duration("intubation"),
         primary_surgeon_id=performer_id,
         anesthesia_type=anesthesia,
         category_code=meta.category_code if meta else _SCT_CATEGORY_THERAPEUTIC,
@@ -493,6 +522,7 @@ def _bedside_record(
     proc_idx: int,
     fallback_category: str,
     performer_id: str,
+    disease_id: str = "",
 ) -> ProcedureRecord:
     """One bedside procedure of the catalogue ``spec`` (names resolved downstream, AD-30),
     performed by ``performer_id`` under the catalogue's anesthesia. Blood loss and
@@ -500,6 +530,8 @@ def _bedside_record(
     (Issue #3257)."""
     _, cpt, kcode, _name_en, _name_ja, anesthesia = spec
     meta = _PROCEDURE_METADATA.get(proc_type)
+    # Issue #3549: the side / access / vessel / vein, from a dedicated sub-seed.
+    site = procedure_details(proc_type, encounter_id, disease_id)
     return ProcedureRecord(
         procedure_id=f"PROC-{patient_id}-{proc_idx + 2:03d}",
         patient_id=patient_id,
@@ -516,10 +548,14 @@ def _bedside_record(
         specimens_sent=list(procedure_specimens(proc_type)),
         implants_used=list(procedure_implants(proc_type)),
         category_code=meta.category_code if meta else fallback_category,
-        body_site_code=meta.body_site_code if meta else "",
         outcome_code=_SCT_OUTCOME_SUCCESS,
         complication_codes=[],
         location_id="",
+        # A recorded insertion vein replaces the type-level body site.
+        body_site_code=site.body_site_code or (meta.body_site_code if meta else ""),
+        laterality=site.laterality,
+        access_site=site.access_site,
+        target_vessel=site.target_vessel,
     )
 
 
@@ -554,7 +590,7 @@ def age_gated_procedures(
                 spec,
                 code,
                 start,
-                int(BEDSIDE_DURATION_MEAN_MIN),
+                _bedside_mean_duration(proc_type),
                 first_index + len(results),
                 _SCT_CATEGORY_THERAPEUTIC,
                 performer_id,
@@ -617,7 +653,7 @@ def generate_bedside_procedures(
         # Timing: most bedside procedures happen within first 24h
         hours_offset = max(BEDSIDE_HOURS_OFFSET_MIN, float(rng.exponential(BEDSIDE_HOURS_OFFSET_EXPONENTIAL_MEAN)))
         proc_time = admission_time + timedelta(hours=hours_offset)
-        duration = int(max(BEDSIDE_DURATION_MIN_MIN, rng.normal(BEDSIDE_DURATION_MEAN_MIN, BEDSIDE_DURATION_STD_MIN)))
+        duration = _bedside_duration(proc_type, rng)
 
         results.append(
             _bedside_record(
@@ -631,6 +667,7 @@ def generate_bedside_procedures(
                 proc_idx,
                 _SCT_CATEGORY_THERAPEUTIC,
                 performer_id,
+                disease_id,
             )
         )
         proc_idx += 1
@@ -664,12 +701,7 @@ def generate_bedside_procedures(
                 float(sub_rng.exponential(BEDSIDE_HOURS_OFFSET_EXPONENTIAL_MEAN)),
             )
             proc_time = admission_time + timedelta(hours=hours_offset)
-            duration = int(
-                max(
-                    BEDSIDE_DURATION_MIN_MIN,
-                    sub_rng.normal(BEDSIDE_DURATION_MEAN_MIN, BEDSIDE_DURATION_STD_MIN),
-                )
-            )
+            duration = _bedside_duration(proc_type, sub_rng)
 
             results.append(
                 _bedside_record(
@@ -683,6 +715,7 @@ def generate_bedside_procedures(
                     proc_idx,
                     _SCT_CATEGORY_SURGICAL,
                     performer_id,
+                    disease_id,
                 )
             )
             proc_idx += 1

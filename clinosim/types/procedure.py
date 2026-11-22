@@ -74,6 +74,13 @@ class ProcedureRecord:
     # category_code: 387713003 surgical / 103693007 diagnostic / 277132007 therapeutic
     category_code: str = ""
     body_site_code: str = ""  # SNOMED body site (empty if not applicable)
+    # Site details (Issue #3549); empty = not applicable / not recorded.
+    # ``laterality`` of a paired-site operation ("left" | "right"); for a PCI the
+    # SNOMED CT concepts of the arterial ``access_site`` and the treated
+    # ``target_vessel``. A central line's insertion vein is ``body_site_code``.
+    laterality: str = ""
+    access_site: str = ""
+    target_vessel: str = ""
     # outcome_code: 385669000 successful / 385670004 partial / 385671000 unsuccessful
     outcome_code: str = ""
     complication_codes: list[str] = field(default_factory=list)  # SNOMED complication codes
