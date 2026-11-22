@@ -204,6 +204,29 @@ def procedure_names(
     return names
 
 
+def secondary_diagnosis_codes(diagnoses: Any) -> list[str]:
+    """The stay's secondary diagnosis codes (the co-disease of a mixed
+    admission, Issue #3392), which the FHIR output codes as secondary
+    Conditions: in record order, without a code whose ICD-10 category (the
+    part before the dot) is the final diagnosis's (discharge code, else
+    admission code) or an earlier secondary code's. One walk shared by the
+    discharge summary, the death certificate and the death summary."""
+    seen: set[str] = set()
+    for dx in diagnoses or []:
+        code = str(_o(dx, "discharge_diagnosis_code", "") or "") or str(_o(dx, "admission_diagnosis_code", "") or "")
+        if code:
+            seen.add(code.split(".")[0])
+    codes: list[str] = []
+    for dx in diagnoses or []:
+        for code in _o(dx, "secondary_diagnosis_codes", []) or []:
+            code = str(code or "")
+            if not code or code.split(".")[0] in seen:
+                continue
+            seen.add(code.split(".")[0])
+            codes.append(code)
+    return codes
+
+
 def chronic_condition_code(code: str, country: str, sex: str = "") -> str:
     """The code the output emits for a patient's chronic condition stored
     under the internal key ``code`` (``map_diagnosis_code``: US ``F00`` →

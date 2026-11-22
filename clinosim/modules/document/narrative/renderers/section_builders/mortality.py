@@ -34,9 +34,18 @@ from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.disease.protocol import working_diagnosis_code
 from clinosim.modules.document.narrative._localization import _localize_complication
 from clinosim.modules.document.narrative._narrative_utils import _autopsy_performed_sha256
-from clinosim.modules.document.narrative.renderers._shared_helpers import diagnosis_coded, procedure_names
+from clinosim.modules.document.narrative.renderers._shared_helpers import (
+    diagnosis_coded,
+    procedure_names,
+    procedure_prose_name,
+    secondary_diagnosis_codes,
+)
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
-from clinosim.modules.document.reference_data_loaders import load_death_cause_chain, load_death_course
+from clinosim.modules.document.reference_data_loaders import (
+    load_bedside_procedure_codes,
+    load_death_cause_chain,
+    load_death_course,
+)
 from clinosim.types.document import NarrativeContext
 
 if TYPE_CHECKING:
@@ -163,6 +172,8 @@ class _CauseChain:
     due_to: _Cause | None
     underlying: _Cause
     used_complications: frozenset[str]
+    contributing: tuple[_Cause, ...] = ()
+    """The stay's secondary diagnoses that sit on no cause line (Issue #3537)."""
 
 
 def _complication_key(name: object) -> str:
@@ -268,8 +279,12 @@ def _dc_cause_chain(ctx: NarrativeContext) -> _CauseChain | None:
       so the admission diagnosis (the infection) is, and the sequel sits
       between them;
     - immediate cause: the latest in-hospital complication that can cause
-      death, else the sequel, else the underlying cause itself (a single
-      condition is the whole sequence).
+      death, else the sequel, else the stay's first secondary acute diagnosis
+      (pneumonia after a cerebral infarction; Issue #3537), else the
+      underlying cause itself (a single condition is the whole sequence). A
+      secondary acute diagnosis under a complication or a sequel is the
+      "due to" line when that is free; every other secondary diagnosis is a
+      contributing condition (``_CauseChain.contributing``).
 
     ``None`` when the record has no diagnosis code."""
     diagnoses = ctx.diagnoses or []
@@ -295,14 +310,26 @@ def _dc_cause_chain(ctx: NarrativeContext) -> _CauseChain | None:
     found = _terminal_complication(ctx, death)
     if found is not None and found[0].code and found[0].code in {underlying.code, sequel.code if sequel else ""}:
         found = None
+    placed = [underlying, sequel, found[0] if found is not None else None]
+    categories = {c.code[:3] for c in placed if c is not None and c.code}
+    secondary = [
+        _coded_cause(code, ctx, "ctx.diagnoses[0].secondary_diagnosis_codes")
+        for code in secondary_diagnosis_codes(diagnoses)
+        if code[:3] not in categories
+    ]
+    acute = next((c for c in secondary if _dc_disease_pattern(c.internal) == "acute"), None)
     if found is None:
-        immediate = sequel or underlying
-        return _CauseChain(immediate, None, underlying, frozenset())
+        if sequel is None and acute is not None:
+            rest = tuple(c for c in secondary if c is not acute)
+            return _CauseChain(acute, None, underlying, frozenset(), rest)
+        return _CauseChain(sequel or underlying, None, underlying, frozenset(), tuple(secondary))
     terminal, key = found
     table = chain.immediate_cause_complications
     # Every token naming the same condition (``aki`` / ``acute_kidney_injury``).
     used = frozenset(k for k in table if k == key or (table[key] and table[k] == table[key]))
-    return _CauseChain(terminal, sequel, underlying, used)
+    if sequel is None and acute is not None:
+        return _CauseChain(terminal, acute, underlying, used, tuple(c for c in secondary if c is not acute))
+    return _CauseChain(terminal, sequel, underlying, used, tuple(secondary))
 
 
 def _cause_text(cause: _Cause, lang: str) -> str:
@@ -386,6 +413,30 @@ def _dc_admission_to_discharge_hours(ctx: NarrativeContext) -> float | None:
         return None
 
 
+def _hours_in_window(ctx: NarrativeContext) -> int | None:
+    """The whole hours from admission to death when that stay is shorter than
+    the hours window of ``death_course.yaml`` (Issue #3537), else ``None``.
+    The one rule of the certificate's time to death and the summary's length
+    of stay: a 23 h stay is "23 hours", never "1 days"."""
+    hours = _dc_admission_to_discharge_hours(ctx)
+    if hours is None or not 0 < hours < load_death_course().duration.hours_below:
+        return None
+    return max(1, round(hours))
+
+
+def _onset_is_known(ctx: NarrativeContext, pattern: str) -> bool:
+    """Whether the presentation gives the onset: the disease's
+    ``hpi_template.onset_type`` is one of ``onset_known_types``
+    (``death_course.yaml``), or, without a disease protocol, the cause is an
+    acute disease (``_dc_disease_pattern``)."""
+    from clinosim.modules.document.narrative.renderers.section_builders.chief_complaint import _visit_onset_type
+
+    onset_type = _visit_onset_type(ctx)
+    if onset_type is None:
+        return pattern == "acute"
+    return onset_type in load_death_course().duration.onset_known_types
+
+
 def _dc_duration_phrase(
     bucket: str,
     los: int,
@@ -393,6 +444,7 @@ def _dc_duration_phrase(
     pattern: str,
     disease_label: str,
     lang: str,
+    onset_known: bool = False,
 ) -> str:
     """Compose the JP-CLINS 直接死因までの期間 phrase from bucket +
     pattern + disease-label. Phase 1d-36: unified the previously
@@ -405,25 +457,30 @@ def _dc_duration_phrase(
     chronic_lead = t("dc_duration.chronic_lead", lang) if pattern == "chronic" else ""
     suffix = t("dc_duration.disease_suffix", lang, disease=disease_label) if disease_label else ""
     if bucket == "hours":
-        body = t("dc_duration.body_hours", lang, hours=hours, suffix=suffix)
+        body = t(
+            "dc_duration.body_hours_one" if hours == 1 else "dc_duration.body_hours", lang, hours=hours, suffix=suffix
+        )
     elif bucket == "same_day":
         body = t("dc_duration.body_same_day", lang, suffix=suffix)
     elif bucket == "days":
-        body = t("dc_duration.body_days", lang, los=los, suffix=suffix)
+        body = t("dc_duration.body_days_one" if los == 1 else "dc_duration.body_days", lang, los=los, suffix=suffix)
     else:  # "long"
         weeks = max(4, round(los / 7))
         body = t("dc_duration.body_long", lang, weeks=weeks, suffix=suffix)
-    tail = t("dc_duration.tail", lang)
+    # An acute onset is not "unknown" (Issue #3537).
+    tail = t("dc_duration.onset_tail" if onset_known else "dc_duration.tail", lang)
     return f"{prefix}{chronic_lead}{body}{tail}"
 
 
 def _dc_duration_bucket(days: int, hours: float | None) -> str:
-    """The granularity of a time-to-death phrase: ``hours`` below a day (when
-    the hours are known), ``same_day``, ``days`` below the week boundary of
-    ``death_course.yaml`` (Issue #3256: "11 days", not "2 week(s) (11 d)"),
-    then ``long`` (weeks)."""
+    """The granularity of a time-to-death phrase: ``hours`` below the hours
+    window of ``death_course.yaml`` (Issue #3537; ``hours`` is the whole
+    interval, when known), ``same_day``, ``days`` below the week boundary
+    (Issue #3256: "11 days", not "2 week(s) (11 d)"), then ``long`` (weeks)."""
+    if hours is not None and 0 < hours < load_death_course().duration.hours_below:
+        return "hours"
     if days <= 0:
-        return "hours" if hours is not None and 0 < hours < 24 else "same_day"
+        return "same_day"
     if days < load_death_course().duration.days_below_weeks:
         return "days"
     return "long"
@@ -434,13 +491,17 @@ def _dc_onset_duration(cause: _Cause, onset: datetime, death: datetime, lang: st
     onset: the onset-to-death interval with the buckets of
     ``_dc_duration_bucket``."""
     seconds = max(0.0, (death - onset).total_seconds())
-    whole_days, rest = divmod(seconds, 86400.0)
-    bucket = _dc_duration_bucket(int(whole_days), rest / 3600.0)
+    bucket = _dc_duration_bucket(int(seconds // 86400.0), seconds / 3600.0)
     days = max(1, round(seconds / 86400.0))
     if bucket in ("hours", "same_day"):
-        body = t("dc_duration.onset_body_hours", lang, hours=max(1, round(rest / 3600.0)), disease=cause.display)
+        body = t("dc_duration.onset_body_hours", lang, hours=max(1, round(seconds / 3600.0)), disease=cause.display)
     elif bucket == "days":
-        body = t("dc_duration.onset_body_days", lang, days=days, disease=cause.display)
+        body = t(
+            "dc_duration.onset_body_days_one" if days == 1 else "dc_duration.onset_body_days",
+            lang,
+            days=days,
+            disease=cause.display,
+        )
     else:
         body = t("dc_duration.onset_body_long", lang, weeks=round(days / 7), disease=cause.display)
     return f"{t('dc_duration.prefix', lang)}{body}{t('dc_duration.onset_tail', lang)}"
@@ -520,11 +581,12 @@ def build_dc_duration_of_immediate_cause(
     if chain is not None:
         facts.extend(_chain_facts(chain))
 
-    hours = _dc_admission_to_discharge_hours(ctx) if los <= 0 else None
+    hours = _dc_admission_to_discharge_hours(ctx)
     bucket = _dc_duration_bucket(los, hours)
-    bucket_hours = max(1, int(round(hours))) if bucket == "hours" and hours is not None else 0
+    bucket_hours = _hours_in_window(ctx) or 0 if bucket == "hours" else 0
+    onset_known = _onset_is_known(ctx, pattern)
 
-    return _dc_duration_phrase(bucket, los, bucket_hours, pattern, display or "", lang), facts
+    return _dc_duration_phrase(bucket, los, bucket_hours, pattern, display or "", lang, onset_known), facts
 
 
 @section("underlying_cause_of_death")
@@ -583,6 +645,18 @@ def build_dc_contributing_conditions(
     )
     conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
     parts: list[str] = []
+    # Issue #3537: the stay's secondary diagnoses that sit on no cause line.
+    secondary = chain.contributing if chain is not None else ()
+    for cause in secondary:
+        parts.append(
+            t("list_item.inline_dx_with_code", lang, display=cause.display, code=cause.code)
+            if cause.code
+            else cause.display
+        )
+        cause_categories.add(cause.code[:3])
+    if parts:
+        facts.append("ctx.diagnoses[0].secondary_diagnosis_codes")
+    chronic_start = len(parts)
     for c in list(conds):
         code_val = _o(c, "code", "") or (c if isinstance(c, str) else "")
         if not code_val or not relevance.is_contributing(code_val):
@@ -593,7 +667,7 @@ def build_dc_contributing_conditions(
         if emit[:3] in cause_categories:
             continue
         parts.append(t("list_item.inline_dx_with_code", lang, display=display, code=emit))
-    if parts:
+    if len(parts) > chronic_start:
         facts.append("ctx.patient.chronic_conditions")
 
     # In-hospital complications add concrete detail beyond baseline
@@ -648,6 +722,40 @@ def build_dc_contributing_conditions(
     # No list_part → prefix + comp_part only, without the comp_part's own
     # leading separator (the English phrase starts with a space).
     return f"{prefix}{comp_part.strip()}", facts
+
+
+@section("surgery_performed")
+def build_dc_surgery_performed(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
+    """手術 / Surgery (Issue #3537): the operative procedures of the stay
+    (the codes of ``operative_note_codes``, bedside_procedure_codes.yaml,
+    the set that gets an operative note) with their names and dates, in
+    start order; none performed reads as no surgery. Template-only, a
+    structured field of the legal form."""
+    lang = ctx.target_lang
+    operative = load_bedside_procedure_codes()["operative_note"]
+    rows: list[tuple[datetime, str]] = []
+    for proc in ctx.procedures or []:
+        if str(_o(proc, "procedure_code", "") or "").strip() not in operative:
+            continue
+        start = _as_datetime(_o(proc, "start_datetime", None))
+        name = procedure_prose_name(proc, lang)
+        if start is not None and name:
+            rows.append((start, name))
+    if not rows:
+        return t("death_cert_surgery.not_performed", lang), ["ctx.procedures"]
+    items = [
+        t(
+            "death_cert_surgery.item",
+            lang,
+            name=name,
+            year=at.year,
+            month=at.month,
+            day=at.day,
+            date=at.date().isoformat(),
+        )
+        for at, name in sorted(rows)
+    ]
+    return t("death_cert_surgery.performed", lang, items=t("list_sep.semicolon", lang).join(items)), ["ctx.procedures"]
 
 
 @section("manner_of_death")
@@ -939,11 +1047,29 @@ def build_dds_treatment_course(generator: TemplateNarrativeGenerator, ctx: Narra
     facts: list[str] = ["ctx.los_days"]
     caps = load_death_course().treatment_course
     los = ctx.los_days or 0
-    parts = [
-        t("dds_treatment_course.los_part_with_days", lang, los=los)
-        if los > 0
-        else t("dds_treatment_course.los_part_admission", lang)
-    ]
+    hours = _hours_in_window(ctx)
+    if hours is not None:
+        # Issue #3537: a stay under the hours window is told in hours.
+        facts.append("ctx.encounter.admission_datetime")
+        parts = [
+            t(
+                "dds_treatment_course.los_part_hours_one" if hours == 1 else "dds_treatment_course.los_part_hours",
+                lang,
+                hours=hours,
+            )
+        ]
+    elif los > 0:
+        parts = [
+            t(
+                "dds_treatment_course.los_part_with_days_one"
+                if los == 1
+                else "dds_treatment_course.los_part_with_days",
+                lang,
+                los=los,
+            )
+        ]
+    else:
+        parts = [t("dds_treatment_course.los_part_admission", lang)]
     drugs = _drugs_given(ctx, lang)
     if drugs:
         facts.append("ctx.medications")
@@ -1098,34 +1224,55 @@ def build_dds_complications_and_comorbidities(
     """
     lang = ctx.target_lang
     facts: list[str] = []
+    cap = load_death_course().treatment_course.max_named_comorbidities
+    country = country_code(ctx.locale)
     conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
     cond_labels: list[str] = []
-    for c in list(conds)[:5]:
+    for c in conds:
         code_val = _o(c, "code", "") or (c if isinstance(c, str) else "")
         if not code_val:
             continue
-        emit, disp = diagnosis_coded(code_val, country_code(ctx.locale), lang, _sex(ctx))
+        emit, disp = diagnosis_coded(code_val, country, lang, _sex(ctx))
         cond_labels.append(t("list_item.inline_dx_with_code", lang, display=disp, code=emit))
     if cond_labels:
         facts.append("ctx.patient.chronic_conditions")
 
-    comp_tokens = list(getattr(ctx, "complications_occurred", []) or [])[:5]
+    # Issue #3537: the secondary diagnoses recorded for the stay.
+    secondary_labels: list[str] = []
+    for code in secondary_diagnosis_codes(ctx.diagnoses):
+        emit, disp = diagnosis_coded(code, country, lang, _sex(ctx))
+        secondary_labels.append(t("list_item.inline_dx_with_code", lang, display=disp, code=emit))
+    if secondary_labels:
+        facts.append("ctx.diagnoses[0].secondary_diagnosis_codes")
+
+    comp_tokens = list(getattr(ctx, "complications_occurred", []) or [])
     if comp_tokens:
         facts.append("ctx.complications_occurred")
 
-    if not cond_labels and not comp_tokens:
+    if not cond_labels and not comp_tokens and not secondary_labels:
         return t("death_cert.comorbidities_none", lang), facts
 
-    cond_sep = t("list_sep.serial", lang)
     parts: list[str] = []
     if cond_labels:
-        parts.append(t("dds_complications_and_comorbidities.chronic_part", lang, list=cond_sep.join(cond_labels)))
+        parts.append(
+            t("dds_complications_and_comorbidities.chronic_part", lang, list=_capped_list(cond_labels, cap, lang))
+        )
+    if secondary_labels:
+        parts.append(
+            t(
+                "dds_complications_and_comorbidities.secondary_part",
+                lang,
+                list=_capped_list(secondary_labels, cap, lang),
+            )
+        )
     if comp_tokens:
         # Phase 1d-72: route through _localize_complication so JA
         # resolves ``hypokalemia`` → 低カリウム血症 etc. and EN keeps
         # canonical casing. Sibling fix to build_dc_contributing_conditions.
-        comp_labels_str = cond_sep.join(_localize_complication(str(tok), lang) for tok in comp_tokens)
-        parts.append(t("dds_complications_and_comorbidities.in_hospital_part", lang, list=comp_labels_str))
+        comp_labels = [_localize_complication(str(tok), lang) for tok in comp_tokens]
+        parts.append(
+            t("dds_complications_and_comorbidities.in_hospital_part", lang, list=_capped_list(comp_labels, cap, lang))
+        )
     # JA joins parts with "。" (list_sep.period) + trailing period;
     # EN joins with ". " (list_sep.period_space) + trailing period.
     body = t("list_sep.period_space", lang).join(parts) + t("list_sep.period", lang)

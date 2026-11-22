@@ -401,6 +401,7 @@ specs:
       - duration_of_immediate_cause
       - underlying_cause_of_death
       - contributing_conditions
+      - surgery_performed
       - manner_of_death
       - time_of_death
       - autopsy_status

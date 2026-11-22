@@ -102,6 +102,7 @@ _REVIEWED = {
     "time_of_death": "",
     "circumstances_of_death": "",
     "cause_of_death": "69453-9",
+    "surgery_performed": "",
     "autopsy_status": "85699-7",
     "autopsy_status_and_findings": "85699-7",
     "treatment_course": "8648-8",

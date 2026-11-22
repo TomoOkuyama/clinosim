@@ -2656,12 +2656,18 @@ dc_duration:
   body_hours:
     ja: "入院より約{hours}時間で死亡{suffix}"
     en: "died approximately {hours} h after admission{suffix}"
+  body_hours_one:
+    ja: "入院より約1時間で死亡{suffix}"
+    en: "died approximately 1 h after admission{suffix}"
   body_same_day:
     ja: "入院同日、数時間以内に死亡{suffix}"
     en: "died the same day of admission, within hours{suffix}"
   body_days:
     ja: "入院より約{los}日の経過で死亡{suffix}"
     en: "died approximately {los} days into the admission{suffix}"
+  body_days_one:
+    ja: "入院より約1日の経過で死亡{suffix}"
+    en: "died approximately 1 day into the admission{suffix}"
   body_long:
     ja: "入院より約{weeks}週間の長期経過で死亡{suffix}"
     en: "died after a prolonged {weeks}-week course during this admission{suffix}"
@@ -2676,6 +2682,9 @@ dc_duration:
   onset_body_days:
     ja: "{disease}の発症から死亡まで約{days}日"
     en: "approximately {days} days from onset of {disease} to death"
+  onset_body_days_one:
+    ja: "{disease}の発症から死亡まで約1日"
+    en: "approximately 1 day from onset of {disease} to death"
   # Issue #3256: four weeks or more read in weeks; shorter in days.
   onset_body_long:
     ja: "{disease}の発症から死亡まで約{weeks}週間"
@@ -2689,6 +2698,19 @@ dc_duration:
 # tail, EN places tail before comp_part) so compound_line has
 # lang-specific slot ORDER — but every slot phrase is language-
 # agnostic.
+# Issue #3537: 手術 field of the death certificate, from the operative
+# procedures of the stay.
+death_cert_surgery:
+  performed:
+    ja: "手術: 有（{items}）"
+    en: "Surgery: {items}."
+  item:
+    ja: "{name} {year}年{month}月{day}日"
+    en: "{name} on {date}"
+  not_performed:
+    ja: "手術: 無"
+    en: "Surgery: none during this admission."
+
 dc_contributing:
   prefix:
     ja: "影響を及ぼした傷病名: "
@@ -2825,6 +2847,16 @@ dds_treatment_course:
   los_part_with_days:
     ja: "入院期間{los}日間。"
     en: "Length of stay: {los} days."
+  los_part_with_days_one:
+    ja: "入院期間1日間。"
+    en: "Length of stay: 1 day."
+  # Issue #3537: a stay shorter than the hours window of death_course.yaml.
+  los_part_hours:
+    ja: "入院から死亡まで約{hours}時間。"
+    en: "Length of stay: about {hours} hours."
+  los_part_hours_one:
+    ja: "入院から死亡まで約1時間。"
+    en: "Length of stay: about 1 hour."
   los_part_admission:
     ja: "入院当日の経過。"
     en: "Course on the day of admission."
@@ -2986,6 +3018,10 @@ dds_complications_and_comorbidities:
   in_hospital_part:
     ja: "入院中に{list}の合併を認めた"
     en: "During admission the following complication(s) developed: {list}"
+  # Issue #3537: the secondary diagnoses recorded for the stay.
+  secondary_part:
+    ja: "入院中の診断として{list}があった"
+    en: "Other diagnoses recorded for the stay: {list}"
   head:
     ja: "合併症・併存症: {body}"
     en: "Complications and comorbidities: {body}"

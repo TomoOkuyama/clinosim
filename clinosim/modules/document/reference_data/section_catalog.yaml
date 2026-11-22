@@ -588,6 +588,14 @@ cause_of_death:
     ja: "死因"
   loinc: "69453-9"
 
+# Issue #3537: 手術 field of the death certificate (no LOINC section code
+# means "surgery performed").
+surgery_performed:
+  title:
+    en: "Surgery"
+    ja: "手術"
+  loinc: ""
+
 autopsy_status:
   title:
     en: "Autopsy performed"

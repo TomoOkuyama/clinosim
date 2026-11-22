@@ -1097,12 +1097,15 @@ class _TreatmentCourse(BaseModel):
     max_named_drugs: int = Field(ge=1)
     max_named_procedures: int = Field(ge=1)
     max_named_diagnoses: int = Field(ge=1)
+    max_named_comorbidities: int = Field(ge=1)
 
 
 class _Duration(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
+    hours_below: int = Field(ge=24)
     days_below_weeks: int = Field(gt=7)
+    onset_known_types: list[Literal["injury", "acute", "subacute", "gradual", "elective"]] = Field(min_length=1)
 
 
 class DeathCourse(BaseModel):

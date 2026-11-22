@@ -27,7 +27,7 @@ from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import strip_protocol_prefix
 from clinosim.modules.document.narrative._localization import _localize_complication
 from clinosim.modules.document.narrative._prescription_line import prescription_bits
-from clinosim.modules.document.narrative.renderers._shared_helpers import diagnosis_coded
+from clinosim.modules.document.narrative.renderers._shared_helpers import diagnosis_coded, secondary_diagnosis_codes
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section, section_builder
 from clinosim.simulator.delirium import delirium_token_code
 from clinosim.types.document import NarrativeContext
@@ -203,18 +203,12 @@ def _secondary_diagnoses(ctx: NarrativeContext, diagnoses: list) -> list[str]:
     items: list[str] = []
     # Issue #3392: the secondary diagnosis codes of the stay (the co-disease of
     # a mixed admission), which the FHIR output codes as secondary Conditions.
-    for dx in diagnoses:
-        for code in _o(dx, "secondary_diagnosis_codes", []) or []:
-            code = str(code or "")
-            if not code or code.split(".")[0] in seen:
-                continue
-            seen.add(code.split(".")[0])
-            emitted, display = diagnosis_coded(code, country, lang, sex)
-            items.append(
-                t("list_item.inline_dx_with_code", lang, display=display, code=emitted)
-                if display != emitted
-                else emitted
-            )
+    for code in secondary_diagnosis_codes(diagnoses):
+        seen.add(code.split(".")[0])
+        emitted, display = diagnosis_coded(code, country, lang, sex)
+        items.append(
+            t("list_item.inline_dx_with_code", lang, display=display, code=emitted) if display != emitted else emitted
+        )
     for wd in ctx.working_diagnoses or []:
         code = working_diagnosis_code(str(_o(wd, "disease_id", "") or ""))
         if not code or code.split(".")[0] in seen:
