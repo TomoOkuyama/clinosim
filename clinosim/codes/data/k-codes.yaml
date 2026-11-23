@@ -115,6 +115,12 @@ codes:
     en: Magnetic resonance imaging (MRI)
     ja: 磁気共鳴コンピューター断層撮影（ＭＲＩ撮影）
   # --- G: Injections (注射) ---
+  G000:
+    en: Intradermal, subcutaneous and intramuscular injection
+    ja: 皮内、皮下及び筋肉内注射
+  "G003-2":
+    en: Intravesical instillation of a drug solution
+    ja: 薬液膀胱内注入
   G004:
     en: Intravenous drip infusion
     ja: 点滴注射

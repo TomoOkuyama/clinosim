@@ -510,13 +510,17 @@ def _plan_encounter_once(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
     # Issue #957: oncology encounters get LOINC 34133-9.
     # Issue #3397: a spec with ``authored_at: period_end`` (the ED physician
     # note, which records the disposition) is authored at the end of the visit.
-    authored = f.end_dt if getattr(spec, "authored_at", "admission") == "period_end" else f.admission_dt
+    loinc = _effective_outpatient_loinc(spec.loinc_code, f.encounter)
+    # Issue #3568: an oncology visit's note records the therapy given and the
+    # pre-treatment results, so it is authored at the end of the visit.
+    at_end = getattr(spec, "authored_at", "admission") == "period_end" or loinc == _ONCOLOGY_OUTPATIENT_SOAP_LOINC
+    authored = f.end_dt if at_end else f.admission_dt
     return [
         _DocPlan(
             authored.isoformat(),
             f.admission_dt.isoformat(),
             f.end_dt.isoformat(),
-            loinc_code=_effective_outpatient_loinc(spec.loinc_code, f.encounter),
+            loinc_code=loinc,
         )
     ]
 

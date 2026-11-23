@@ -71,7 +71,13 @@
   から。Encounter は分娩 / 化学療法 Procedure と、([`order`](../order/README.ja.md)
   経由の) regimen `cycle_orders` 各 Day-1 薬剤に対する per-cycle
   MedicationRequest + MedicationAdministration を持つ。放射線治療
-  encounter も同様。
+  encounter も同様。visit は regimen の `administration` 経路 (`iv` /
+  `oral` / `subcutaneous` / `intravesical`) に従い、受診理由と投与
+  Procedure (点滴・注射・膀胱内注入。経口 regimen は処方のみで Procedure
+  も MedicationAdministration も無い) は `chemo_regimens.yaml::administration`
+  から決まる。細胞傷害性 regimen の `pretreatment_labs` (CBC) は当日採血し、
+  visit は自コースの何コース目か (`ConditionEvent.chemo_cycle`) を記録する
+  (Issue #3568)。
 
 ## Public API
 

@@ -412,6 +412,9 @@ class NarrativeContext:
     # encounter (``record.extensions["imaging"]``).
     visit_type: str = ""
     visit_condition_id: str = ""
+    # Issue #3568: the cycle of the regimen's course a chemotherapy visit gives
+    # (``condition_event.chemo_cycle``, 0 when not stated).
+    chemo_cycle: int = 0
     immunizations: list[Any] = field(default_factory=list)
     imaging_studies: list[Any] = field(default_factory=list)
     # === Issue #3480: the devices of the stay (nursing shift note) ===

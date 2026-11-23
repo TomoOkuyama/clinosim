@@ -158,6 +158,31 @@ def newborn_calendar_events(person: Any, year: int, ctx: ForwardContext) -> list
     return [e for e in events if e.timestamp and person.in_population_at(e.timestamp)]
 
 
+def chemo_visit_spec(protocol_source: str, cycle: int) -> dict:
+    """The follow-up spec of a ``chemo_visit`` of regimen ``protocol_source``
+    (``chemo_regimens:<name>``) giving cycle ``cycle`` of its course (Issue #3568):
+    the visit follows the regimen's route (oral review, injection, bladder
+    instillation, infusion), and a cytotoxic cycle starts with its pre-treatment
+    blood count."""
+    from clinosim.locale.loader import load_chemo_regimens
+
+    regimen_name = protocol_source.split(":", 1)[1] if ":" in protocol_source else ""
+    chemo_data = load_chemo_regimens()
+    regimen = (chemo_data.get("regimens") or {}).get(regimen_name) or {}
+    route = (chemo_data.get("administration") or {}).get(str(regimen.get("administration") or "iv")) or {}
+    spec: dict = {
+        "labs": list(regimen.get("pretreatment_labs") or []),
+        "visit_reason": route.get("visit_reason") or {"en": "Chemotherapy infusion"},
+        "chemo_regimen_name": regimen_name,
+        "chemo_regimen": regimen,
+        "chemo_procedure": route.get("procedure") or {},
+        "chemo_cycle": cycle,
+    }
+    if spec["labs"]:
+        spec["pretreatment"] = dict(chemo_data.get("pretreatment") or {})
+    return spec
+
+
 def dispatch_calendar_event(event: LifeEvent, ctx: ForwardContext, visit_day: date | None = None) -> datetime | None:
     """Simulate one calendar event on its date (``visit_day`` when it was
     postponed), appending its record(s).
@@ -297,18 +322,7 @@ def dispatch_calendar_event(event: LifeEvent, ctx: ForwardContext, visit_day: da
                 ctx.patient_records.append(_r)
         return None
     elif event.event_type == "chemo_visit":
-        regimen_name = event.protocol_source.split(":", 1)[1] if ":" in event.protocol_source else ""
-        from clinosim.locale.loader import load_chemo_regimens
-
-        chemo_data = load_chemo_regimens()
-        regimen = (chemo_data.get("regimens") or {}).get(regimen_name) or {}
-        chemo_spec: dict = {
-            "labs": [],
-            "visit_reason": (chemo_data.get("encounter") or {}).get("visit_reason") or "Chemotherapy infusion",
-            "chemo_regimen_name": regimen_name,
-            "chemo_regimen": regimen,
-            "chemo_procedure": chemo_data.get("procedure") or {},
-        }
+        chemo_spec = chemo_visit_spec(event.protocol_source, int(getattr(event, "chemo_cycle", 0) or 0))
         chemo_dept = resolve_outpatient_department("chemo_visit", event.disease_id, None, ctx.hospital_ops)
         opd_record = _simulate_outpatient_visit(
             patient,

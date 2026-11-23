@@ -343,3 +343,6 @@ class LifeEvent:
     prior_encounter_id: str | None = None
     readmission_number: int = 0
     protocol_source: str = ""  # YAML file that defines this encounter's protocol
+    # ``chemo_visit`` (Issue #3568): the 1-based cycle of the regimen's course
+    # that the visit gives (0 = not a chemotherapy cycle visit).
+    chemo_cycle: int = 0

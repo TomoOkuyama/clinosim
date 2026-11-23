@@ -158,6 +158,12 @@ codes:
   '96413':
     en: Chemotherapy administration, intravenous infusion technique; up to 1 hour, single or initial substance/drug
     ja: 化学療法薬の静脈内点滴投与（1時間以内、初回薬剤）
+  '96402':
+    en: Chemotherapy administration, subcutaneous or intramuscular; hormonal anti-neoplastic
+    ja: 化学療法薬の皮下・筋肉内投与（ホルモン性抗悪性腫瘍薬）
+  '51720':
+    en: Bladder instillation of anticarcinogenic agent
+    ja: 抗がん剤の膀胱内注入
   # Issue #2390: imaging (body_sites.yaml) and chronic follow-up codes.
   '43235':
     en: Esophagogastroduodenoscopy, flexible, transoral; diagnostic

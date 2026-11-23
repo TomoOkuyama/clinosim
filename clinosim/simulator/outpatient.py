@@ -479,6 +479,14 @@ def _record_visit_vitals(
     return vital, _state, opd_nurse_id
 
 
+def _lab_result_offset(spec: dict) -> timedelta:
+    """When the visit's labs are reported after the arrival: hours later, or (a
+    cytotoxic chemotherapy cycle, whose blood count comes before the drugs,
+    Issue #3568) the regimen's ``pretreatment.result_minutes``."""
+    minutes = (spec.get("pretreatment") or {}).get("result_minutes")
+    return timedelta(minutes=float(minutes)) if minutes else timedelta(hours=OUTPATIENT_LAB_RESULT_OFFSET_HOURS)
+
+
 def _result_followup_labs(
     patient: PatientProfile,
     spec: dict,
@@ -580,7 +588,7 @@ def _result_followup_labs(
             canon, observed, sex=patient.sex, country=country, medications=patient.current_medications, age=patient.age
         )
         result = OrderResult(
-            result_datetime=visit_date + timedelta(hours=OUTPATIENT_LAB_RESULT_OFFSET_HOURS),
+            result_datetime=visit_date + _lab_result_offset(spec),
             performed_by=lab_tech_id,
             lab_name=canon,
             value=observed,
@@ -978,27 +986,38 @@ def _chemo_cycle(
         from clinosim.types.encounter import MedicationAdministration
         from clinosim.types.procedure import ProcedureRecord
 
+        # Issue #3568: the administration procedure follows the regimen's route
+        # (``chemo_regimens.yaml`` ``administration``); an oral regimen has none,
+        # the patient takes the drug at home.
         _chemo_proc = spec.get("chemo_procedure") or {}
-        _chemo_code_jp = str(_chemo_proc.get("jp_code") or "")
-        _chemo_code_us = str(_chemo_proc.get("us_code") or "")
-        _chemo_dur_min = int(_chemo_proc.get("duration_minutes") or 60)
-        _chemo_code = country_procedure_code(country, {"k-codes": _chemo_code_jp, "cpt": _chemo_code_us})
         _chemo_start = visit_date + timedelta(minutes=OUTPATIENT_LAB_ORDER_OFFSET_MIN)
-        procedures_list.append(
-            ProcedureRecord(
-                procedure_id=f"PROC-{patient.patient_id}-CHEMO-{encounter.encounter_id[:8]}",
-                patient_id=patient.patient_id,
-                encounter_id=encounter.encounter_id,
-                procedure_type="chemotherapy_administration",
-                procedure_code=_chemo_code,
-                procedure_code_jp=_chemo_code_jp,
-                procedure_code_us=_chemo_code_us,
-                start_datetime=_chemo_start,
-                end_datetime=_chemo_start + timedelta(minutes=_chemo_dur_min),
-                primary_surgeon_id=encounter.attending_physician_id,
-                anesthesia_type=str(_chemo_proc.get("anesthesia") or ""),
+        _pretreatment = spec.get("pretreatment") or {}
+        if _pretreatment.get("result_minutes"):
+            # Dosing waits for the pre-treatment blood count.
+            _chemo_start = visit_date + timedelta(
+                minutes=float(_pretreatment["result_minutes"])
+                + float(_pretreatment.get("dosing_after_result_minutes") or 0)
             )
-        )
+        if _chemo_proc:
+            _chemo_code_jp = str(_chemo_proc.get("jp_code") or "")
+            _chemo_code_us = str(_chemo_proc.get("us_code") or "")
+            _chemo_dur_min = int(_chemo_proc.get("duration_minutes") or 60)
+            _chemo_code = country_procedure_code(country, {"k-codes": _chemo_code_jp, "cpt": _chemo_code_us})
+            procedures_list.append(
+                ProcedureRecord(
+                    procedure_id=f"PROC-{patient.patient_id}-CHEMO-{encounter.encounter_id[:8]}",
+                    patient_id=patient.patient_id,
+                    encounter_id=encounter.encounter_id,
+                    procedure_type=str(_chemo_proc.get("procedure_type") or "chemotherapy_administration"),
+                    procedure_code=_chemo_code,
+                    procedure_code_jp=_chemo_code_jp,
+                    procedure_code_us=_chemo_code_us,
+                    start_datetime=_chemo_start,
+                    end_datetime=_chemo_start + timedelta(minutes=_chemo_dur_min),
+                    primary_surgeon_id=encounter.attending_physician_id,
+                    anesthesia_type=str(_chemo_proc.get("anesthesia") or ""),
+                )
+            )
 
         # Per-cycle drug Order (MedicationRequest) + MedicationAdministration.
         # Each drug on the regimen's ``cycle_orders`` list produces one Order
@@ -1009,6 +1028,7 @@ def _chemo_cycle(
             "administering_nurse", opd_nurse_id
         )
         _cycle_orders = spec.get("chemo_regimen", {}).get("cycle_orders") or []
+        _oral_at_home = spec.get("chemo_regimen", {}).get("administration") == "oral"
         for _i, _drug in enumerate(_cycle_orders):
             if not isinstance(_drug, dict):
                 continue
@@ -1077,6 +1097,10 @@ def _chemo_cycle(
             _given = absolute_dose(
                 _order.dose_quantity, _order.dose_unit, patient.height_cm, patient.weight_kg, text=_dose
             )
+            if _oral_at_home:
+                # An oral regimen is dispensed at the visit and taken at home:
+                # the order is the record, there is no administration to chart.
+                continue
             chemo_mars.append(
                 MedicationAdministration(
                     order_id=_order_id,
@@ -1331,6 +1355,7 @@ def _simulate_outpatient_visit(
         ground_truth_diseases=[dx_code] if dx_code else [],
         visit_type=visit_type,
         visit_condition_id=chronic_code or post_discharge_disease,
+        chemo_cycle=int(spec.get("chemo_cycle") or 0) if visit_type == "chemo_visit" else 0,
     )
     clinical_diagnosis = encounter_diagnosis(dx_code, country)
 

@@ -6,7 +6,8 @@
   "key": "点数表区分番号 (column 117) or 区分番号-枝番 (columns 85, 92, 93)",
   "note": "Names of the master rows for each code registered in codes/data/k-codes.yaml (additions excluded); at most 8 per code.",
   "note_d206": "D206 rows (Issue #2655) taken from s_ALL20261102.csv, retrieved 2026-11-06.",
-  "note_j046": "J046 row (Issue #3483) taken from s_ALL20261102.csv (レセプト電算コード 140010210), retrieved 2026-11-21."
+  "note_j046": "J046 row (Issue #3483) taken from s_ALL20261102.csv (レセプト電算コード 140010210), retrieved 2026-11-21.",
+  "note_g000_g003_2": "G000 and G003-2 rows (Issue #3568) taken from s_ALL20261102.csv (レセプト電算コード 130000510, 130902310), retrieved 2026-11-23."
  },
  "codes": {
   "K0004": [
@@ -249,6 +250,12 @@
   "D206": [
    "心カテ（右心）",
    "心カテ（左心）"
+  ],
+  "G000": [
+   "皮内、皮下及び筋肉内注射（１回につき）"
+  ],
+  "G003-2": [
+   "薬液膀胱内注入（１日につき）"
   ]
  }
 }
