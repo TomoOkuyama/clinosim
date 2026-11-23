@@ -24,6 +24,7 @@ from clinosim.simulator.ketoacidosis_resolution import KetoacidosisResolutionRul
 from clinosim.simulator.maintenance_iv_fluid import MaintenanceIVFluidRules
 from clinosim.simulator.medication_pipeline import RenalMedicationRules, VasoactiveHoldRules
 from clinosim.simulator.mixed_condition import MixedConditionRules
+from clinosim.simulator.oral_intake import OralIntakeRules
 from clinosim.simulator.oxygen_course import OxygenCourseRules
 from clinosim.simulator.permissive_hypertension import PermissiveHypertensionRules
 from clinosim.simulator.sex_gating import SexRestrictionRules
@@ -49,6 +50,7 @@ _MODELS: dict[str, type[BaseModel]] = {
     "ketoacidosis_resolution.yaml": KetoacidosisResolutionRules,
     "maintenance_iv_fluid.yaml": MaintenanceIVFluidRules,
     "mixed_condition.yaml": MixedConditionRules,
+    "oral_intake.yaml": OralIntakeRules,
     "oxygen_course.yaml": OxygenCourseRules,
     "permissive_hypertension_hold.yaml": PermissiveHypertensionRules,
     "renal_medication_rules.yaml": RenalMedicationRules,
@@ -103,6 +105,7 @@ _NESTED: dict[str, Callable[[dict[str, Any]], None]] = {
     "ketoacidosis_resolution.yaml": lambda d: d.update(ph_min="acidic"),
     "maintenance_iv_fluid.yaml": lambda d: d.update(grace_days={"days": 1}),
     "mixed_condition.yaml": lambda d: d.update(recovery_days={"days": 1}),
+    "oral_intake.yaml": lambda d: d.update(npo_consciousness_levels=["X"]),
     "oxygen_course.yaml": lambda d: d.update(wean_hours={"hours": 12}),
     "permissive_hypertension_hold.yaml": lambda d: d["held_classes"].append("antihypertensives"),
     "renal_medication_rules.yaml": lambda d: d["renal_drugs"].update(metformin="hld"),

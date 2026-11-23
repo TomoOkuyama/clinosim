@@ -1,0 +1,35 @@
+# Oral intake of a patient who cannot swallow safely (Issue #3552).
+#
+# Read by clinosim/simulator/oral_intake.py (`oral_intake_rules`) and applied
+# in clinosim/simulator/daily_loop.py (`_order_diet`, `_hold_oral_intake`).
+# A patient whose latest recorded AVPU level is one of `npo_consciousness_levels`
+# (P = responds to pain, U = unresponsive) is made nil by mouth: the diet order
+# is `npo_diet` from that reading until the first diet order of a later hospital
+# day that follows a reading at a better level, and every oral-route
+# (`oral_route`) dose scheduled while the patient is in that state, or while
+# on the ventilator (`npo_while_ventilated`), is held with the matching
+# reason. The reasons are keys of locale/shared/medication_hold_reasons.yaml,
+# which gives their English and Japanese display. A dose under a nil-by-mouth
+# diet order alone (the first hospital day) is still given: the nursing note
+# states that the medication is taken with sips of water.
+#
+# Source status: no guideline was read in the session that wrote this file.
+# The rule is a clinosim modelling choice from the general nursing principle
+# that a patient who does not respond to voice cannot be fed or given tablets
+# by mouth without aspiration risk; `npo_consciousness_levels` reuses the AVPU
+# levels the vital-sign pipeline already records (a reading at P or U is the
+# "reduced level of consciousness" of NEWS2). No list of "essential drugs
+# given with sips" is applied to an unresponsive patient, because a sip is not
+# safe for one; a clinician would convert the drug to an intravenous or
+# enteral route, which this model does not do (the dose is recorded as held).
+metadata:
+  kind: reference
+  name: oral_intake
+  source: clinosim
+
+npo_consciousness_levels: [P, U]
+npo_while_ventilated: true
+npo_diet: NPO
+oral_route: PO
+hold_reason_consciousness: "Nil by mouth: level of consciousness reduced (oral dose held)"
+hold_reason_ventilated: "Nil by mouth: on mechanical ventilation (oral dose held)"

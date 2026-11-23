@@ -1248,6 +1248,9 @@ nursing_shift_items:
     npo_continued:
       ja: "絶食継続。"
       en: "NPO continued."
+    npo_sips:
+      ja: "内服薬は少量の水で投与。"
+      en: " Oral medications given with sips of water."
     diet:
       ja: "食事: {diet}"
       en: "Diet: {diet}"

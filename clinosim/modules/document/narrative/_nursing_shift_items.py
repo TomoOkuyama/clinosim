@@ -449,12 +449,16 @@ def _item_meal(d: ShiftData) -> str | None:
     placed, slug = active
     lang = d.lang
     if load_diet_supply_route().get(slug) == "none":
-        return t(
+        npo = t(
             "nursing_shift_items.meal.npo_continued"
             if placed.date() < d.window[0].date()
             else "nursing_shift_items.meal.npo",
             lang,
         )
+        # Issue #3552: an oral dose given under the nil-by-mouth order is taken with sips.
+        if _oral_dose_given_in(d.ctx, d.window):
+            npo += t("nursing_shift_items.meal.npo_sips", lang)
+        return npo
     pieces = [t("nursing_shift_items.meal.diet", lang, diet=diet_display(slug, lang))]
     adl = in_force_at(list(getattr(d.ctx, "adl_assessments", None) or []), d.window[1])
     level = _level("feeding", _o(adl, "feeding", None), lang) if adl is not None else None
@@ -473,6 +477,17 @@ def _item_meal(d: ShiftData) -> str | None:
     if oral > 0:
         pieces.append(t("nursing_shift_items.meal.oral_intake", lang, ml=oral))
     return t("list_sep.serial", lang).join(pieces) + t("list_sep.period", lang)
+
+
+def _oral_dose_given_in(ctx: NarrativeContext, window: tuple[datetime, datetime]) -> bool:
+    """True when an oral (``PO``) dose was given in ``window``."""
+    for m in ctx.medications or []:
+        if str(_o(m, "status", "given") or "given") != "given" or str(_o(m, "route", "") or "") != "PO":
+            continue
+        when = parse_iso_datetime(_o(m, "actual_datetime", None) or _o(m, "scheduled_datetime", None), lenient=True)
+        if when is not None and window[0] <= when < window[1]:
+            return True
+    return False
 
 
 def _item_skin(d: ShiftData) -> str | None:
