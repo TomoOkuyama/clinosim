@@ -286,6 +286,8 @@ CLI サブコマンドハンドラ (11 ファイル):
   reference_data/vasopressor_initiation.yaml  低血圧と輸液後の昇圧薬開始条件 (vasopressor_initiation.py)
   reference_data/vasoactive_weaning.yaml      昇圧薬・強心薬の離脱条件と離脱後の退院判定 (vasoactive_support.py)
   reference_data/oxygen_course.yaml           入院中の補助酸素を中止する条件、人工呼吸の抜管条件、記録する流量の刻み (oxygen_course.py)
+  reference_data/oxygen_course.yaml           入院中の補助酸素を中止する条件と人工呼吸の抜管条件 (oxygen_course.py)
+  reference_data/oral_intake.yaml             AVPU が P / U の間と人工呼吸管理中の絶飲食と、その間に保留する経口投与 (oral_intake.py)
   reference_data/maintenance_iv_fluid.yaml    維持輸液オーダーの終了条件 (maintenance_iv_fluid.py)
   reference_data/ketoacidosis_resolution.yaml DKA の改善基準と静注から皮下インスリンへの移行 (ketoacidosis_resolution.py)
   reference_data/mixed_condition.yaml         混合入院の併存疾患の遅れた認識・回復・オーダー統合 (mixed_condition.py)

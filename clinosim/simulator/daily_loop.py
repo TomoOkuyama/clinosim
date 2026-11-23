@@ -149,6 +149,12 @@ from clinosim.simulator.medication_pipeline import (
     generate_prn_administrations,
 )
 from clinosim.simulator.mixed_condition import CoDiseaseCourse
+from clinosim.simulator.oral_intake import (
+    apply_oral_intake_holds,
+    first_npo_readings,
+    npo_reason_at,
+    oral_intake_rules,
+)
 from clinosim.simulator.oxygen_course import OxygenCourse, oxygen_course_rules
 from clinosim.simulator.vasoactive_support import (
     hospital_day_start,
@@ -1262,6 +1268,9 @@ def _order_diet(stay: _Stay, run: _Run, day: int) -> None:
     order_time = stay.admission_time + timedelta(days=day, hours=7)
     if run.oxygen.ventilated_at(order_time):
         diet = oxygen_course_rules().ventilation.diet
+    elif npo_reason_at(run.vitals, order_time, run.oxygen.ventilated_at):
+        # Issue #3552: the latest reading is P / U, the patient cannot swallow.
+        diet = oral_intake_rules().npo_diet
     elif day == 0:
         diet = "NPO"
     elif day == 1 and run.state.inflammation_level > DIET_CLEAR_LIQUID_INFLAMMATION_THRESHOLD:
@@ -1276,6 +1285,32 @@ def _order_diet(stay: _Stay, run: _Run, day: int) -> None:
         run.oral_diet_since_day = None
     elif run.oral_diet_since_day is None:
         run.oral_diet_since_day = day
+
+
+def _hold_oral_intake(stay: _Stay, run: _Run, day: int) -> None:
+    """Issue #3552: at each reading of the day at a level that makes the
+    patient nil by mouth (P / U) while the diet in force is oral, an NPO diet
+    is ordered (a later day's diet order re-advances it once the level
+    recovers), and every oral dose of the day scheduled while the patient is
+    nil by mouth (P / U reading, ventilator) is held. Runs after the day's
+    readings are final (complications, the airway escalation and the terminal
+    course can change them). Draws nothing."""
+    day_start = hospital_day_start(stay.admission_time, day)
+    npo = oral_intake_rules().npo_diet
+    diets = [o for o in run.orders if o.order_type == OrderType.DIET]
+    for at in sorted(first_npo_readings(run.vitals, day_start)):
+        in_force = max((o for o in diets if o.ordered_datetime <= at), key=lambda o: o.ordered_datetime, default=None)
+        if in_force is not None and in_force.display_name == npo:
+            continue
+        run.prev_diet = in_force.display_name if in_force is not None else ""
+        _append_diet_order(stay, run, day, npo, at, suffix=f"-LOC{at:%H%M}")
+        diets = [o for o in run.orders if o.order_type == OrderType.DIET]
+        run.oral_diet_since_day = None
+    if diets:
+        run.prev_diet = max(diets, key=lambda o: o.ordered_datetime).display_name
+    day_end = day_start + timedelta(days=1)
+    todays = [m for m in run.mars if day_start <= m.scheduled_datetime < day_end]
+    apply_oral_intake_holds(todays, run.vitals, run.oxygen.ventilated_at)
 
 
 def _ventricular_rate_course(stay: _Stay, run: _Run) -> VentricularRateCourse | None:
@@ -1879,10 +1914,12 @@ def _run_daily_loop(
         if comp_list and day >= 1:
             _apply_complications(stay, run, day, comp_list)
         _escalate_airway_and_icu(stay, run, day)
+        _hold_oral_intake(stay, run, day)
 
         if _dies_today(stay, run, day, expected_mortality_multiplier):
             run.death_occurred = True
             _record_terminal_course(stay, run, day)
+            _hold_oral_intake(stay, run, day)
             # Issue #3332: the terminal hypotension is treated like any other.
             day_start = hospital_day_start(stay.admission_time, day)
             _start_vasopressor_for_hypotension(

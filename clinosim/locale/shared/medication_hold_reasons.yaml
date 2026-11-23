@@ -83,3 +83,11 @@ reasons:
   "Stroke: PO bisphosphonates held (aspiration risk)":
     en: "acute stroke (PO bisphosphonate aspiration risk)"
     ja: "急性期脳卒中 (経口ビスホスホネートの誤嚥リスク)"
+  # Issue #3552: the MAR reasons of an oral dose held while the patient cannot
+  # swallow (simulator/reference_data/oral_intake.yaml).
+  "Nil by mouth: level of consciousness reduced (oral dose held)":
+    en: "nil by mouth, level of consciousness reduced (oral dose held)"
+    ja: "意識レベル低下のため絶飲食 (経口投与を保留)"
+  "Nil by mouth: on mechanical ventilation (oral dose held)":
+    en: "nil by mouth, on mechanical ventilation (oral dose held)"
+    ja: "人工呼吸管理中のため絶飲食 (経口投与を保留)"
