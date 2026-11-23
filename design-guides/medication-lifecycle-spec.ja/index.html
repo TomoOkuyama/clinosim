@@ -2574,6 +2574,11 @@
 <td><code>tests/unit/simulator/test_mechanical_ventilation_3535.py</code></td>
 </tr>
 <tr>
+<td>最新の AVPU 測定が P または U の患者、および人工呼吸管理中の患者は絶飲食とする。そのような測定の時点で経口の食事が出ている場合は NPO の食事オーダーを出し(翌日の食事オーダーで、最新の測定が改善していれば再開する)、その状態の間に予定された経口(PO)投与はすべて「意識レベル低下のため絶飲食」または「人工呼吸管理中のため絶飲食」を理由に保留する(他の投与経路への変換はせず、意識のない患者に「必須薬は少量の水で」の例外は適用しない)。入院初日の NPO オーダーだけの場合は投与を続け、看護の勤務記録に内服薬を少量の水で投与した旨を書く。モデル上の選択(ガイドライン出典なし)で、乱数は消費しない。</td>
+<td><code>simulator/oral_intake.py</code>(<code>npo_reason_at</code>, <code>apply_oral_intake_holds</code>)、<code>daily_loop.py</code>(<code>_order_diet</code>, <code>_hold_oral_intake</code>)、<code>_nursing_shift_items.py</code>(<code>_item_meal</code>)。データ <code>simulator/reference_data/oral_intake.yaml</code>, <code>locale/shared/medication_hold_reasons.yaml</code></td>
+<td><code>tests/unit/simulator/test_oral_intake_3552.py</code></td>
+</tr>
+<tr>
 <td>意識障害を強める状態変化をもつ合併症 (脳ヘルニア、脳浮腫、肝性脳症など) は、その日のバイタルが合併症の発生前に記録済みであっても、発症時刻 (発症日の正午) 以降の測定に反映する。発症時刻以降の各測定の AVPU を、状態変化を反映した後の状態から導き直す。水準は患者・日・合併症で seed した別 RNG による 1 日一定の 1 値で (入院の乱数列は読まない)、測定を重くする方向にのみ書き換え、軽くはしない。発症前の測定は変えない。既存の乱数列に draw を足さない。</td>
 <td><code>daily_loop.py</code> (<code>_apply_complications</code>)、<code>vitals_pipeline.py</code> (<code>lower_consciousness_from</code>)、<code>seeding.py</code> (<code>complication_avpu_seed</code>)</td>
 <td><code>tests/unit/simulator/test_complication_consciousness_3540.py</code></td>

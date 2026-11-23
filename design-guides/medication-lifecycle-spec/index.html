@@ -2574,6 +2574,11 @@
 <td><code>tests/unit/simulator/test_mechanical_ventilation_3535.py</code></td>
 </tr>
 <tr>
+<td>A patient whose latest AVPU reading is P or U, or who is on the ventilator, is nil by mouth: at each such reading while an oral diet is in force an NPO diet order is placed (the next day's diet order re-advances it once the latest reading is better), and every oral (PO) dose scheduled while the patient is in that state is held with the reason "nil by mouth, level of consciousness reduced" or "... on mechanical ventilation" (the dose is not converted to another route, and no "essential drug with sips" exception is applied to an unresponsive patient). A dose under the NPO order of the first hospital day alone is still given and the nursing shift note says the oral medication is given with sips of water. The rule is a modelling choice (no guideline source) and draws nothing.</td>
+<td><code>simulator/oral_intake.py</code> (<code>npo_reason_at</code>, <code>apply_oral_intake_holds</code>), <code>daily_loop.py</code> (<code>_order_diet</code>, <code>_hold_oral_intake</code>), <code>_nursing_shift_items.py</code> (<code>_item_meal</code>); data <code>simulator/reference_data/oral_intake.yaml</code>, <code>locale/shared/medication_hold_reasons.yaml</code></td>
+<td><code>tests/unit/simulator/test_oral_intake_3552.py</code></td>
+</tr>
+<tr>
 <td>A complication whose state impact raises consciousness impairment (brain herniation, cerebral edema, hepatic encephalopathy, ...) takes effect on the readings from its onset (noon of its onset day), although the day's vital signs were charted before it fired: the AVPU of every reading at or after the onset is re-derived from the state that now carries the impact, one day-stable level on a sub-RNG seeded by the patient, day and complication (the stay's stream is not read), and a reading is only made more impaired, never raised. Readings before the onset are unchanged. No RNG draw is added to an existing stream.</td>
 <td><code>daily_loop.py</code> (<code>_apply_complications</code>), <code>vitals_pipeline.py</code> (<code>lower_consciousness_from</code>), <code>seeding.py</code> (<code>complication_avpu_seed</code>)</td>
 <td><code>tests/unit/simulator/test_complication_consciousness_3540.py</code></td>
