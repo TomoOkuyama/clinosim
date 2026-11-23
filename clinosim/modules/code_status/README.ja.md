@@ -22,6 +22,17 @@
   - それ以外の encounter → 付与なし (`code_status = ""`)。
 - **context 決定**: 死亡 → `terminal`、ICU 転棟あり → `icu`、それ以外 →
   `routine`。年齢帯が高く重症 context ほど DNR / Comfort に偏る。
+- **気道の意思決定 (Issue #3551)**: enricher は入院経過の後に動くため、
+  日次ループが先に「患者が挿管を拒否しているか」を決める。
+  `airway_declined(age, country, encounter_id)` は encounter id のみから
+  作る sub-RNG (`seeding.airway_declined_seed`) の 1 回の抽選で、確率は
+  `declines_intubation` が付いた tier (`dnr_dni` と `comfort`) の ICU 文脈
+  重みの合計。拒否した患者は気道閾値を越えても挿管されず
+  (`CIFPatientRecord.airway_declined`)、enricher は拒否 tier のみから抽選する
+  (`airway="declined"`)。挿管のあった入院は拒否 tier 以外のみから抽選する
+  (`airway="intubated"`)。いずれも抽選は 1 回のままで、どちらでもない入院は
+  従来どおり。DNAR 患者の挿管の手技記録には、蘇生方針と、人工呼吸が期間を
+  区切った試み (タイムリミテッド・トライアル) であることを記載する。
 - **Out of scope**: DNR による治療計画の変化 (該当時は
   [`clinosim.modules.clinical_course`](../clinical_course/README.ja.md))、
   FHIR `Consent` serialization や multi-slot な事前指示書ドキュメント
@@ -33,7 +44,9 @@
 
 ```python
 from clinosim.modules.code_status.engine import (
-    assign_code_status,   # (age, context, country, rng) -> SNOMED code str
+    assign_code_status,   # (age, context, country, rng, *, airway="") -> SNOMED code str
+    assign_tier,          # 同上、tier dict (key, snomed, en, ja, declines_intubation) を返す
+    airway_declined,      # (age, country, encounter_id) -> bool (Issue #3551)
     load_reference,       # -> {observable_snomed, age_bands, tiers}
     load_rates,           # (country) -> {context: {age_band: [w_full, w_dnr, w_dnr_dni, w_comfort]}}
 )
@@ -72,7 +85,7 @@ from clinosim.modules.code_status.enricher import enrich_code_status
   - `observable_snomed: "304251008"` — SNOMED CT observable
     「Resuscitation status」。
   - `age_bands: ["0-49", "50-69", "70-84", "85-120"]`。
-  - 4 つの `tiers` (`{key, snomed, en, ja}`):
+  - 4 つの `tiers` (`{key, snomed, en, ja, declines_intubation}`、`dnr_dni` と `comfort` は `declines_intubation: true`):
     - `full_code` — 304252001 (「蘇生処置を行う」)
     - `dnr` — 304253006 (「蘇生処置を行わない」/ DNAR)
     - `dnr_dni` — **同じく 304253006**。SNOMED CT International には

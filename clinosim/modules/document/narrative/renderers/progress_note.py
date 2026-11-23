@@ -221,6 +221,15 @@ def render_progress_note(
         # section; it is not written before or beside a finding.
         objective = objective or _generic_s
 
+    # Issue #3551: the first note after an intubation of a not-for-resuscitation
+    # patient states the status and the time-limited trial.
+    from clinosim.modules.document.narrative.renderers._composers import compose_progress_intubation_status_line
+
+    status_line = compose_progress_intubation_status_line(ctx)
+    if status_line:
+        plan = f"{plan}\n{status_line}" if plan else status_line
+        facts.append("ctx.code_status")
+
     # Issue #1066 (drug_safety): append avoidance-and-substitution
     # reasoning to plan when this encounter carries safety_skip_log
     # entries. Same content flows into the LLM prompt via Task 10/11.

@@ -302,6 +302,10 @@ progress:
   meds_given_once:
     ja: "単回投与: {list}。"
     en: "Given once: {list}."
+  # Issue #3551: the first note after an intubation of a not-for-resuscitation patient.
+  intubation_code_status:
+    ja: "蘇生方針: DNAR（蘇生処置を行わない）の方針は継続。挿管は拒否されていないため、期間を区切った人工呼吸管理（タイムリミテッド・トライアル）として管理する。"
+    en: "Code status: not for resuscitation, order unchanged. Intubation was not declined; ventilation continues as a time-limited trial."
   # Issue #2981: drugs whose doses were held today, with the hold reason.
   meds_held:
     ja: "休薬: {list}。"
@@ -2295,6 +2299,11 @@ proc_note:
   consent_reduced:
     ja: "インフォームド・コンセント: 意識レベルが低下していたため、本人から同意を得ることができなかった。"
     en: "Consent: the patient's level of consciousness was reduced and consent could not be obtained from the patient."
+  # Issue #3551: an intubation of a patient whose resuscitation status is "not for
+  # resuscitation" (the status does not decline intubation).
+  consent_code_status:
+    ja: "蘇生方針: DNAR（蘇生処置を行わない）の方針は継続とした。挿管は拒否されていないため、期間を区切った人工呼吸管理（タイムリミテッド・トライアル）として実施した。"
+    en: " Code status: the not-for-resuscitation order remains in place; intubation and ventilation were undertaken as a time-limited trial, as the patient has not declined intubation."
   # Insertion site, named only when the record has one (Issue #3550).
   site_suffix:
     ja: "／穿刺部位: {site}"

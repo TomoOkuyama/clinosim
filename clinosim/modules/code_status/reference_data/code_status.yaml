@@ -8,13 +8,17 @@ metadata:
 
 observable_snomed: "304251008"   # Resuscitation status (observable entity)
 age_bands: ["0-49", "50-69", "70-84", "85-120"]
+# declines_intubation (Issue #3551): the tier is a decision not to be intubated. The
+# daily loop never intubates a stay whose airway decision (sub-seeded from the
+# encounter id, weighted by these tiers' ICU-context rates) is "declined", and the
+# enricher then assigns one of these tiers; an intubated stay never gets one.
 tiers:
   - {key: "full_code", snomed: "304252001", en: "For resuscitation", ja: "蘇生処置を行う"}
   - {key: "dnr",       snomed: "304253006", en: "Not for resuscitation", ja: "蘇生処置を行わない（DNAR）"}
   # SNOMED CT International has no single active concept for "DNR + DNI"; 304253006
   # (Not for resuscitation) is reused intentionally, with the DNI distinction carried
   # only in the clinosim tier label/text (verified: no distinct active DNI finding).
-  - {key: "dnr_dni",   snomed: "304253006", en: "Not for resuscitation, not for intubation", ja: "蘇生・挿管を行わない"}
+  - {key: "dnr_dni",   snomed: "304253006", en: "Not for resuscitation, not for intubation", ja: "蘇生・挿管を行わない", declines_intubation: true}
   # Issue #2649: comfort care is a not-for-resuscitation status; 103735009
   # Palliative care is a procedure, not a resuscitation status value.
-  - {key: "comfort",   snomed: "304253006", en: "Comfort care (palliative)", ja: "緩和ケア（コンフォート）"}
+  - {key: "comfort",   snomed: "304253006", en: "Comfort care (palliative)", ja: "緩和ケア（コンフォート）", declines_intubation: true}

@@ -46,6 +46,7 @@ from clinosim.modules.document.narrative._localization import (
 from clinosim.modules.document.narrative._template_helpers import _resolve_staff_name
 from clinosim.modules.document.narrative.renderers._shared_helpers import resolve_procedure_display
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
+from clinosim.modules.document.reference_data_loaders import load_death_course
 from clinosim.timeutil import parse_iso_datetime
 from clinosim.types.document import NarrativeContext
 
@@ -568,7 +569,17 @@ def build_pn_consent(generator: TemplateNarrativeGenerator, ctx: NarrativeContex
         key = "consent_reduced"
     else:
         key = "consent_line"
-    return t(f"proc_note.{key}", lang), facts
+    text = t(f"proc_note.{key}", lang)
+    # Issue #3551: an intubation of a not-for-resuscitation patient states the status
+    # and that the ventilation is a time-limited trial (the status does not decline it).
+    if (
+        proc is not None
+        and str(_o(proc, "procedure_type", "") or "") == "intubation"
+        and ctx.code_status in load_death_course().not_for_resuscitation_codes
+    ):
+        text = f"{text}{t('proc_note.consent_code_status', lang)}"
+        facts.append("ctx.code_status")
+    return text, facts
 
 
 @section("pn_performer")

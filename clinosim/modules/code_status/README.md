@@ -24,6 +24,19 @@ row respectively.
 - **Context resolution**: `terminal` if the patient died, otherwise
   `icu` if the encounter escalated to ICU, otherwise `routine`. Older
   age bands and higher-severity contexts skew toward DNR / Comfort.
+- **Airway decision (Issue #3551)**: the enricher runs after the stay, so
+  the daily loop decides first whether the patient has declined
+  intubation: `airway_declined(age, country, encounter_id)` is a draw from
+  a sub-RNG seeded by the encounter id alone (`seeding.airway_declined_seed`,
+  probability = the share of the ICU-context weights of the tiers flagged
+  `declines_intubation`, i.e. `dnr_dni` and `comfort`). A declining patient
+  is not intubated when the airway threshold is crossed
+  (`CIFPatientRecord.airway_declined`), and the enricher then samples only
+  the declining tiers (`airway="declined"`); a stay with an intubation
+  samples only the other tiers (`airway="intubated"`). Both are still one
+  draw, and a stay with neither is sampled exactly as before. The
+  intubation procedure note of a not-for-resuscitation patient states the
+  status and that ventilation is a time-limited trial.
 - **Out of scope**: DNR-driven changes to the care plan (would live in
   [`clinosim.modules.clinical_course`](../clinical_course/README.md)),
   FHIR `Consent` serialisation and multi-slot advance-directive
@@ -36,7 +49,9 @@ building blocks directly:
 
 ```python
 from clinosim.modules.code_status.engine import (
-    assign_code_status,   # (age, context, country, rng) -> SNOMED code str
+    assign_code_status,   # (age, context, country, rng, *, airway="") -> SNOMED code str
+    assign_tier,          # same, returns the tier dict (key, snomed, en, ja, declines_intubation)
+    airway_declined,      # (age, country, encounter_id) -> bool (Issue #3551)
     load_reference,       # -> {observable_snomed, age_bands, tiers}
     load_rates,           # (country) -> {context: {age_band: [w_full, w_dnr, w_dnr_dni, w_comfort]}}
 )
@@ -76,7 +91,8 @@ wraps it with the gate + sub-seed derivation described below.
   - `observable_snomed: "304251008"` — SNOMED CT observable
     "Resuscitation status".
   - `age_bands: ["0-49", "50-69", "70-84", "85-120"]`.
-  - Four `tiers` with `{key, snomed, en, ja}`:
+  - Four `tiers` with `{key, snomed, en, ja, declines_intubation}`
+    (`declines_intubation: true` on `dnr_dni` and `comfort`):
     - `full_code` — 304252001 ("For resuscitation")
     - `dnr` — 304253006 ("Not for resuscitation" / DNAR)
     - `dnr_dni` — **also 304253006**; SNOMED CT International has no
