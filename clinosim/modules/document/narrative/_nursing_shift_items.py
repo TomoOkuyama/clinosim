@@ -185,12 +185,19 @@ def _hhmm(v: Any) -> str:
 
 def _item_icu(d: ShiftData) -> str | None:
     """The unit of an ICU stay: the transfer in the shift it happened, the
-    ICU stay since the transfer day in the shifts after it (Issue #3555)."""
-    from clinosim.modules.document.narrative._icu_stay import icu_hospital_day, icu_transfer_at
+    ICU stay since the transfer day in the shifts after it, the return to the
+    ward in the shift of the step-down and no unit after it (Issue #3555)."""
+    from clinosim.modules.document.narrative._icu_stay import icu_hospital_day, icu_step_down_at, icu_transfer_at
 
     at = icu_transfer_at(d.ctx)
     if at is None or d.window is None:
         return None
+    out_at = icu_step_down_at(d.ctx)
+    if out_at is not None:
+        if d.window[0] <= out_at < d.window[1]:
+            return t("nursing_shift_items.icu.step_down", d.lang)
+        if out_at < d.window[0]:
+            return None
     if d.window[0] <= at < d.window[1]:
         return t("nursing_shift_items.icu.transfer", d.lang)
     if at < d.window[0]:

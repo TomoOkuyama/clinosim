@@ -93,8 +93,8 @@ def test_stay_without_transfer_has_no_icu_text() -> None:
         assert "ICU" not in text
 
 
-def _shift(lang: str, day: int, shift: str, hour: int) -> tuple[str, list[str]]:
-    ctx = _ctx(lang, day, hour=hour, shift=shift)
+def _shift(lang: str, day: int, shift: str, hour: int, **kw) -> tuple[str, list[str]]:
+    ctx = _ctx(lang, day, hour=hour, shift=shift, **kw)
     out = render_nursing_shift_note(ctx, SimpleNamespace())
     return out.raw_text, out.facts_used
 

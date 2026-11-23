@@ -712,6 +712,7 @@ class NarrativePass(ABC):
             code_status=str(patient_dict.get("code_status", "") or ""),
             icu_transferred=bool(patient_dict.get("icu_transferred", False)),
             icu_transferred_day=icu_transfer_day(patient_dict.get("icu_transferred_day")),
+            icu_discharge_day=icu_transfer_day(patient_dict.get("icu_discharge_day")),
             # Issues #3249 / #3252: the visit kind, the vaccines given and the
             # imaging studies of this encounter (outpatient SOAP).
             **visit_reason_fields(patient_dict, encounter_dict),

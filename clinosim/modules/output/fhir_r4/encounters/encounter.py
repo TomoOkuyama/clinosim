@@ -223,8 +223,15 @@ def _set_period(resource: dict[str, Any], enc: dict) -> None:
                 resource["length"] = length
 
 
-def _set_inpatient_histories(resource: dict[str, Any], enc: dict, icu_transferred_day: int, country: str) -> None:
-    """Encounter.classHistory (ward → ICU) and statusHistory of an inpatient stay."""
+def _set_inpatient_histories(
+    resource: dict[str, Any],
+    enc: dict,
+    icu_transferred_day: int,
+    country: str,
+    icu_discharge_day: int | None = None,
+) -> None:
+    """Encounter.classHistory (ward → ICU, and back to the ward after the
+    step-down, Issue #3555) and statusHistory of an inpatient stay."""
     from datetime import datetime as _dt
     from datetime import timedelta as _td
 
@@ -241,6 +248,11 @@ def _set_inpatient_histories(resource: dict[str, Any], enc: dict, icu_transferre
     # classHistory: ward IMP → ICU IMP transition
     if icu_transferred_day is not None and icu_transferred_day >= 0 and _adm:
         _icu_transfer_dt = _adm + _td(days=icu_transferred_day)
+        _icu_end_dt = (
+            _adm + _td(days=icu_discharge_day)
+            if isinstance(icu_discharge_day, int) and icu_discharge_day > icu_transferred_day
+            else None
+        )
         class_history: list[dict[str, Any]] = [
             {
                 "class": system_coding("hl7-v3-actcode", "IMP", lang_for(country)),
@@ -253,10 +265,26 @@ def _set_inpatient_histories(resource: dict[str, Any], enc: dict, icu_transferre
                 "class": system_coding("hl7-v3-actcode", "ACUTE", lang_for(country)),
                 "period": {
                     "start": _icu_transfer_dt.isoformat(),
-                    **({"end": enc["discharge_datetime"]} if enc.get("discharge_datetime") else {}),
+                    **(
+                        {"end": _icu_end_dt.isoformat()}
+                        if _icu_end_dt is not None
+                        else {"end": enc["discharge_datetime"]}
+                        if enc.get("discharge_datetime")
+                        else {}
+                    ),
                 },
             },
         ]
+        if _icu_end_dt is not None:
+            class_history.append(
+                {
+                    "class": system_coding("hl7-v3-actcode", "IMP", lang_for(country)),
+                    "period": {
+                        "start": _icu_end_dt.isoformat(),
+                        **({"end": enc["discharge_datetime"]} if enc.get("discharge_datetime") else {}),
+                    },
+                }
+            )
         resource["classHistory"] = class_history
     # statusHistory: planned → in-progress → finished (deterministic
     # timeline: planned = admission-1h, in-progress = admission,
@@ -720,6 +748,7 @@ def _build_encounter(
     admit_dx_code: str = "",
     admit_dx_system: str = "icd-10-cm",
     icu_transferred_day: int = -1,
+    icu_discharge_day: int | None = None,
     deceased: bool = False,
     chronic_condition_codes: list[str] | None = None,
     record_orders: list | None = None,  # CY8-03: DIET Order source for dietPreference
@@ -767,7 +796,7 @@ def _build_encounter(
     _set_period(resource, enc)
     # C5-22: classHistory / statusHistory for inpatient stays.
     if class_code == "IMP" and enc.get("admission_datetime"):
-        _set_inpatient_histories(resource, enc, icu_transferred_day, country)
+        _set_inpatient_histories(resource, enc, icu_transferred_day, country, icu_discharge_day)
     if enc.get("chief_complaint"):
         _set_reason(
             resource,

@@ -1103,9 +1103,18 @@ nursing_shift:
     ja: "観察・ケア継続、特記事項なし。"
     en: "Observation and care ongoing, no significant findings."
 
-# Issue #3555: the ICU stay in the notes. The record has the transfer day and no
-# step-down day, so no text states a return to the ward.
+# Issue #3555: the ICU stay in the notes. A return to the ward is stated only
+# for a stay whose record has a step-down day.
 icu_stay:
+  progress_step_down:
+    ja: "入院{day}日目、ICUから一般病棟へ転棟。"
+    en: "Transferred back to the general ward from the ICU on hospital day {day}."
+  course_range:
+    ja: "入院{day}日目（{date}）から{end_day}日目（{end_date}）まで集中治療室（ICU）で管理し、一般病棟へ転棟した。"
+    en: "Intensive care unit (ICU) stay from {date} (hospital day {day}) to {end_date} (hospital day {end_day}), then transferred back to the general ward."
+  course_range_with_reason:
+    ja: "{reason}を認め、入院{day}日目（{date}）から{end_day}日目（{end_date}）まで集中治療室（ICU）で管理し、一般病棟へ転棟した。"
+    en: "Intensive care unit (ICU) stay from {date} (hospital day {day}) to {end_date} (hospital day {end_day}) in the setting of {reason}, then transferred back to the general ward."
   progress_transfer:
     ja: "入院{day}日目、集中治療室（ICU）へ転棟。"
     en: "Transferred to the intensive care unit (ICU) on hospital day {day}."
@@ -1138,6 +1147,9 @@ nursing_shift_items:
     in_icu:
       ja: "ICU管理中（入院{day}日目にICUへ転棟）。"
       en: "In the ICU (transferred on hospital day {day})."
+    step_down:
+      ja: "当シフト中にICUから一般病棟へ転棟。"
+      en: "Transferred back to the general ward from the ICU during this shift."
   pain:
     generic:
       ja: "疼痛"

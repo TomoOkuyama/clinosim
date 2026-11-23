@@ -105,6 +105,11 @@ class CIFPatientRecord:
     # by `_fhir_encounter._build_class_history` to emit FHIR
     # Encounter.classHistory segments (ward → ICU transition point).
     icu_transferred_day: int = -1
+    # Issue #3555: the hospital day (0-based) the patient moved back to the ward
+    # from the ICU (the same clock-time convention as ``icu_transferred_day``).
+    # None while the patient was still in the ICU at discharge or death, and
+    # for a stay with no ICU transfer.
+    icu_discharge_day: int | None = None
     deceased: bool = False
     death_day: int | None = None
 

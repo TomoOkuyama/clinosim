@@ -1,0 +1,58 @@
+# When an ICU stay ends (Issue #3555).
+#
+# Read by clinosim/simulator/icu_step_down.py (`icu_step_down_rules`) and applied
+# after the inpatient daily loop (simulator/daily_loop.py): the CIF carries
+# `icu_discharge_day` (the hospital day, 0-based, the patient moved back to the
+# ward; None while the patient was in the ICU at discharge or death). Nothing
+# here draws: the day is derived from what the loop recorded.
+#
+# A hospital day has ICU-level support when any of these holds:
+#   - the end-of-day physiology still needs ICU care (`icu_escalation_needed`:
+#     airway escalation, shock-level perfusion, distributive shock, high-flow
+#     oxygen requirement);
+#   - the patient was on the ventilator at any time that day;
+#   - a vasopressor / inotrope infusion was running at any time that day;
+#   - a vital sign recorded that day shows a level of consciousness outside
+#     `ward_consciousness_levels` (AVPU), or an oxygen flow of at
+#     least `icu_min_oxygen_flow_lpm`;
+#   - a complication that sends the patient to the ICU began that day.
+#
+# Step-down day. The first hospital day after the transfer day on which every
+# criterion is absent and stays absent for the rest of the stay (so the record
+# never shows ICU-level support on the ward), provided at least `min_icu_days`
+# full days passed since the transfer. The step-down is always before the
+# discharge day (patients are rarely discharged home straight from the ICU), so
+# the last day it can fall on is the day before the discharge day. A survivor
+# whose criteria are not met by then steps down on that day (the day before the
+# discharge day) when the stay allows it; when the transfer day is the last or
+# second-to-last day of the stay there is no step-down day (None). A patient who
+# dies keeps the ICU to the end (None). There is no re-admission to the ICU
+# after a step-down: `icu_transferred` stays true (the stay included an ICU
+# period) and the transfer day is not overwritten.
+#
+# Source status: the criteria and the margins below are clinosim modelling
+# choices. They follow the idea in the Society of Critical Care Medicine's ICU
+# admission, discharge and triage guideline (Nates et al., Crit Care Med 2016;
+# 44:1553-1602) that a patient leaves the ICU when physiological status is
+# stable and active life-supportive interventions are no longer needed, but that
+# guideline was not read in the session that wrote this file, so none of its
+# wording or numbers is taken from it.
+metadata:
+  kind: reference
+  name: icu_step_down
+  source: clinosim
+
+min_icu_days: 1
+
+# AVPU levels (A alert, V responds to voice) a ward patient may show.
+ward_consciousness_levels: [A, V]
+
+# Oxygen flow (L/min) from which the oxygen counts as ICU-level: the flow at
+# which the simulator delivers oxygen by non-rebreather mask rather than simple
+# mask (simulator/_oxygen_therapy_thresholds.py O2_NON_REBREATHER_FLOW_MIN_LPM).
+# A clinosim modelling choice. The recorded flow is held until the oxygen is
+# weaned (simulator/oxygen_course.py), so it can stay at this level for days
+# after the oxygenation state has recovered; such days keep the patient in the
+# ICU by this criterion and the stay then steps down by the day-before-
+# discharge rule.
+icu_min_oxygen_flow_lpm: 8.0

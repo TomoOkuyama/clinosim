@@ -132,3 +132,18 @@ def vasoactive_support_after(orders: Iterable[Order], cutoff: datetime) -> bool:
         if o.status == OrderStatus.STOPPED and o.end_datetime is not None and o.end_datetime > cutoff:
             return True
     return False
+
+
+def vasoactive_infusion_during(orders: Iterable[Order], start: datetime, end: datetime) -> bool:
+    """True when a vasopressor / inotrope infusion ran at any time in
+    ``[start, end)``: placed before ``end`` and still running, or ended after
+    ``start`` (Issue #3555)."""
+    for o in orders:
+        if not is_vasoactive_infusion(o) or o.status not in (OrderStatus.PLACED, OrderStatus.STOPPED):
+            continue
+        began = max(o.ordered_datetime, o.administer_from) if o.administer_from else o.ordered_datetime
+        if began >= end:
+            continue
+        if o.status == OrderStatus.PLACED or (o.end_datetime is not None and o.end_datetime > start):
+            return True
+    return False
