@@ -534,6 +534,12 @@ def compose_progress_assessment_from_state(ctx: NarrativeContext) -> str:
     post_op = post_procedure_line(ctx, as_of)
     if post_op:
         parts.append(post_op)
+    # Issue #3555: the ICU transfer, and the stay in the ICU after it.
+    from clinosim.modules.document.narrative._icu_stay import icu_progress_line
+
+    icu_line = icu_progress_line(ctx, as_of)
+    if icu_line:
+        parts.append(icu_line)
     new_comps, ongoing_comps = _complications_known_on_day(ctx, as_of)
 
     def with_onset(comps: list[tuple[str, int]]) -> list[str]:

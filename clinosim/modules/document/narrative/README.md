@@ -247,6 +247,7 @@ clinosim/modules/document/narrative/
   lab_timeseries.py                        lab time-series helpers for narrative rendering; group_draws (rows of one analyte close in time are one draw, Issue #3457); select_notable_labs (the abnormal labs a note cites, Issue #3230)
   _notable_labs.py                         notable_lab_entries: wording of those labs for the template Assessment and the LLM context
   _hospital_course.py                      sentences of the discharge-summary hospital course (treatments, procedures, complications, significant results, medication changes, condition at discharge, readmission; Issue #3246)
+  _icu_stay.py                             ICU-stay statements of the progress note, nursing shift note and discharge summary course (Issue #3555)
   _localization.py                         JA/EN narrative-token localization helpers (META #1633 P6 slice 1)
   _template_helpers.py                     Template-rendering primitives (_label / _resolve_staff_name / _render_home_med_name / _pick_localized / _fill_template_placeholders / vital-placeholder resolution / fallback constants — META #1633 P6 slice 2)
   _narrative_utils.py                      Miscellaneous narrative helpers (nursing-content lookup / vitals-for-day / SHA-driven autopsy gate / age-at / ISO-datetime parse / chief-complaint keyword / encounter-salted pool pickers / PE clause rewrite — META #1633 P6 slice 3)

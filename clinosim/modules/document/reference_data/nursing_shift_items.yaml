@@ -30,6 +30,11 @@ metadata:
   source: clinosim
 
 items:
+  - id: icu
+    source: encounter.admission_datetime; icu_transferred, icu_transferred_day
+    rule: the stay was transferred to the ICU, at the admission time plus the transfer day (the time of the Encounter classHistory ICU segment); the shift of the transfer says so, the shifts after it name the unit with the transfer day (Issue #3555; no step-down is recorded)
+    fact: ctx.icu_transferred_day
+    skip_neonate: false
   - id: pain
     source: vital_signs[].pain_score
     rule: a pain score (NRS 0-10) is recorded in the shift; the highest and the latest score, the pain named by the disease's pain site

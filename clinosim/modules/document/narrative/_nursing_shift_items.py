@@ -183,6 +183,21 @@ def _hhmm(v: Any) -> str:
     return w.strftime("%H:%M") if w is not None else ""
 
 
+def _item_icu(d: ShiftData) -> str | None:
+    """The unit of an ICU stay: the transfer in the shift it happened, the
+    ICU stay since the transfer day in the shifts after it (Issue #3555)."""
+    from clinosim.modules.document.narrative._icu_stay import icu_hospital_day, icu_transfer_at
+
+    at = icu_transfer_at(d.ctx)
+    if at is None or d.window is None:
+        return None
+    if d.window[0] <= at < d.window[1]:
+        return t("nursing_shift_items.icu.transfer", d.lang)
+    if at < d.window[0]:
+        return t("nursing_shift_items.icu.in_icu", d.lang, day=icu_hospital_day(d.ctx))
+    return None
+
+
 def _item_pain(d: ShiftData) -> str | None:
     from clinosim.modules.document.narrative.renderers._composers import _pain_label
 
@@ -589,6 +604,7 @@ def _item_newborn_jaundice(d: ShiftData) -> str | None:
 
 
 ITEM_FUNCTIONS: dict[str, Callable[[ShiftData], str | None]] = {
+    "icu": _item_icu,
     "pain": _item_pain,
     "fever": _item_fever,
     "desaturation": _item_desaturation,
