@@ -19,6 +19,7 @@ from clinosim.simulator.delirium import DeliriumRules
 from clinosim.simulator.device_removal import DeviceRemovalRules
 from clinosim.simulator.diagnosis_rules import DiagnosisRulesFile
 from clinosim.simulator.helpers import ChronicPropagationRules
+from clinosim.simulator.icu_step_down import IcuStepDownRules
 from clinosim.simulator.implied_chronic import ImpliedChronicPrevalence
 from clinosim.simulator.ketoacidosis_resolution import KetoacidosisResolutionRules
 from clinosim.simulator.maintenance_iv_fluid import MaintenanceIVFluidRules
@@ -45,6 +46,7 @@ _MODELS: dict[str, type[BaseModel]] = {
     "device_removal.yaml": DeviceRemovalRules,
     "diagnosis_rules.yaml": DiagnosisRulesFile,
     "icd10_sex_restrictions.yaml": SexRestrictionRules,
+    "icu_step_down.yaml": IcuStepDownRules,
     "implied_chronic_prevalence.yaml": ImpliedChronicPrevalence,
     "aki_response.yaml": AkiResponseRules,
     "ketoacidosis_resolution.yaml": KetoacidosisResolutionRules,
@@ -100,6 +102,7 @@ _NESTED: dict[str, Callable[[dict[str, Any]], None]] = {
     ),
     "diagnosis_rules.yaml": lambda d: _rename(d["unknown_condition_codes"]["default"], "admission", "admision"),
     "icd10_sex_restrictions.yaml": lambda d: d["male_only"].append({"code": "N40"}),
+    "icu_step_down.yaml": lambda d: d.update(min_icu_days={"days": 1}),
     "implied_chronic_prevalence.yaml": lambda d: d["prevalence"]["cerebral_infarction"].update(I48=1.5),
     "aki_response.yaml": lambda d: d.update(fever_celsius="hot"),
     "ketoacidosis_resolution.yaml": lambda d: d.update(ph_min="acidic"),

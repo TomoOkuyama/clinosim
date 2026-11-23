@@ -114,6 +114,7 @@ def build_narrative_context(
         code_status=str(_o(record, "code_status", "") or ""),
         icu_transferred=bool(_o(record, "icu_transferred", False)),
         icu_transferred_day=icu_transfer_day(_o(record, "icu_transferred_day", None)),
+        icu_discharge_day=icu_transfer_day(_o(record, "icu_discharge_day", None)),
         **visit_reason_fields(record, encounter),
         # Issue #3268: the encounter's culture results.
         microbiology=encounter_microbiology(record, encounter),
@@ -226,7 +227,8 @@ def build_devices(record: Any, encounter: Any) -> list[dict[str, Any]]:
 
 
 def icu_transfer_day(value: Any) -> int:
-    """``record.icu_transferred_day`` as an int, -1 when the record has none."""
+    """``record.icu_transferred_day`` (or ``icu_discharge_day``) as an int, -1
+    when the record has none."""
     return int(value) if isinstance(value, int) else -1
 
 

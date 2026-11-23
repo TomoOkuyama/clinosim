@@ -127,6 +127,7 @@ from clinosim.simulator.discharge_gate import (
     extend_stay_for_symptoms,
     mortality_state_multiplier,
 )
+from clinosim.simulator.icu_step_down import day_has_icu_support, step_down_day
 from clinosim.simulator.ketoacidosis_resolution import (
     basal_regimen_entry,
     ketoacidosis_resolution_rules,
@@ -159,6 +160,7 @@ from clinosim.simulator.oxygen_course import OxygenCourse, oxygen_course_rules
 from clinosim.simulator.vasoactive_support import (
     hospital_day_start,
     stop_weaned_vasoactive_infusions,
+    vasoactive_infusion_during,
     vasoactive_support_after,
     vasoactive_weaning_rules,
 )
@@ -317,6 +319,10 @@ class DailyLoopResult:
     # Issue #3551: the patient decided against intubation, so the airway escalation
     # did not intubate (the code-status enricher assigns a tier that declines it).
     airway_declined: bool = False
+    # Issue #3555: the hospital day (0-based) the patient moved back to the ward
+    # from the ICU; None while in the ICU at discharge or death, or without a
+    # transfer.
+    icu_discharge_day: int | None = None
 
 
 @dataclass
@@ -382,6 +388,8 @@ class _Run:
     death_occurred: bool = False
     icu_transferred: bool = False
     icu_transferred_day: int = -1  # C5-22: day of ICU transfer
+    icu_support: list[bool] = field(default_factory=list)  # Issue #3555: per hospital day, ICU-level support
+    icu_trigger_days: set[int] = field(default_factory=set)  # Issue #3555: days an ICU-transfer complication began
     intubated: bool = False
     intubated_day: int | None = None  # Issue #2101: complication context
     airway_declined: bool = False  # Issue #3551: the airway threshold was crossed, the patient declined intubation
@@ -1445,6 +1453,7 @@ def _apply_complications(stay: _Stay, run: _Run, day: int, comp_list: list) -> N
         for antibiotic_action in antibiotic_actions_of(comp):
             _start_complication_antibiotic(stay, run, day, comp_name, antibiotic_action, onset_dt)
         if "icu_transfer" in comp.get("actions", []):
+            run.icu_trigger_days.add(day)
             if not run.icu_transferred:
                 # C5-22: capture day of transfer for
                 # Encounter.classHistory. First trigger wins;
@@ -1578,6 +1587,24 @@ def _update_ventilation(stay: _Stay, run: _Run, day: int, *, last_day: bool) -> 
         force=last_day,
     ):
         oxygen.end_ventilation(hospital_day_start(stay.admission_time, day + 1))
+
+
+def _record_icu_support(stay: _Stay, run: _Run, day: int) -> None:
+    """End of day: whether the day had ICU-level support (Issue #3555,
+    ``reference_data/icu_step_down.yaml``), kept for the step-down derivation
+    after the loop. Draws nothing."""
+    start = hospital_day_start(stay.admission_time, day)
+    today = [v for v in run.vitals if start <= v.timestamp < start + timedelta(days=1)]
+    run.icu_support.append(
+        day_has_icu_support(
+            physiology_needs_icu=icu_escalation_needed(run.state),
+            ventilated=run.oxygen.ventilated_during(start),
+            vasoactive_infusion=vasoactive_infusion_during(run.orders, start, start + timedelta(days=1)),
+            consciousness_levels=[v.consciousness_level for v in today],
+            oxygen_flows_lpm=[v.oxygen_flow_rate_lpm for v in today if v.oxygen_flow_rate_lpm],
+            icu_complication=day in run.icu_trigger_days,
+        )
+    )
 
 
 def _escalate_airway_and_icu(stay: _Stay, run: _Run, day: int) -> None:
@@ -1929,6 +1956,7 @@ def _run_daily_loop(
             break
         # Issue #3535: extubation at the start of tomorrow when the rule is
         # met; no discharge on a day the patient was ventilated.
+        _record_icu_support(stay, run, day)
         _update_ventilation(stay, run, day, last_day=day + 1 >= loop_days)
         ventilated = run.oxygen.ventilated_during(hospital_day_start(stay.admission_time, day))
         # Issue #3270: no discharge on or within the observation day after
@@ -1975,6 +2003,11 @@ def _run_daily_loop(
         # Issue #3450: the discharge day starts like any day, so a resolved
         # ketoacidosis goes home on subcutaneous insulin, not on the infusion.
         _transition_ketoacidosis_to_subcutaneous(stay, run, day + 1)
+    icu_discharge_day = None
+    if run.icu_transferred:
+        icu_discharge_day, _basis = step_down_day(
+            run.icu_transferred_day, run.icu_support, actual_los, died=run.death_occurred
+        )
     orders = _gate_new_medication_orders(stay, admission_orders, run.orders, run.admission_order_ids)
     # Orders placed after the last day's administrations (and substitutes of
     # the gate) are a minor's weight-based doses too (Issue #3004).
@@ -1991,6 +2024,7 @@ def _run_daily_loop(
         death_occurred=run.death_occurred,
         icu_transferred=run.icu_transferred,
         icu_transferred_day=run.icu_transferred_day,
+        icu_discharge_day=icu_discharge_day,
         escalation_procedures=run.escalation_procedures,
         differential=run.differential,
         actual_los=actual_los,

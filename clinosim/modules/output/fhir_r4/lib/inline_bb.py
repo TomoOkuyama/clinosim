@@ -173,6 +173,11 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
         if isinstance(_record, dict)
         else getattr(_record, "icu_transferred_day", -1)
     )
+    _icu_out = (
+        _record.get("icu_discharge_day", None)
+        if isinstance(_record, dict)
+        else getattr(_record, "icu_discharge_day", None)
+    )
     _deceased = _record.get("deceased", False) if isinstance(_record, dict) else getattr(_record, "deceased", False)
     # C5-12 (history chain): extract chronic condition codes
     # from record.patient.chronic_conditions for secondary diagnosis emit.
@@ -244,6 +249,7 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
             admit_dx_code=_enc_admit_code or ctx.admit_dx_code,
             admit_dx_system=_enc_admit_system or ctx.admit_dx_system,
             icu_transferred_day=_icu_day,
+            icu_discharge_day=_icu_out,
             deceased=_deceased,
             chronic_condition_codes=_chronic_codes,
             record_orders=ctx.record.get("orders", []),

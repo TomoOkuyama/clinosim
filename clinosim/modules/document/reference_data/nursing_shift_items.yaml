@@ -31,8 +31,8 @@ metadata:
 
 items:
   - id: icu
-    source: encounter.admission_datetime; icu_transferred, icu_transferred_day
-    rule: the stay was transferred to the ICU, at the admission time plus the transfer day (the time of the Encounter classHistory ICU segment); the shift of the transfer says so, the shifts after it name the unit with the transfer day (Issue #3555; no step-down is recorded)
+    source: encounter.admission_datetime; icu_transferred, icu_transferred_day, icu_discharge_day
+    rule: the stay was transferred to the ICU, at the admission time plus the transfer day (the time of the Encounter classHistory ICU segment); the shift of the transfer says so, the shifts after it name the unit with the transfer day until the step-down; the shift of the step-down (admission time plus icu_discharge_day, when recorded) says the patient returned to the ward and the shifts after it name no unit (Issue #3555)
     fact: ctx.icu_transferred_day
     skip_neonate: false
   - id: pain

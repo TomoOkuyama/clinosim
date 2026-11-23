@@ -209,6 +209,9 @@ clinosim/simulator/
   implied_chronic.py     chronic conditions a stay implies; one rule for the encounter profile and the person record (Issue #3263;
                          reference_data/implied_chronic_prevalence.yaml)
   injury_coding.py       coding of an injury admission from the disease YAML: diagnosis, operation, external cause (Issue #3258)
+  icu_step_down.py       the step-down of an ICU stay to the ward: the first day after which no ICU-level support is recorded, else
+                         the day before discharge; none for a death or a stay too short (Issue #3555;
+                         reference_data/icu_step_down.yaml)
   ventricular_rate.py    ventricular rate of an arrhythmia stay, e.g. AF with RVR falling with rate control (Issue #3274)
   sepsis_severity.py     severity code of a sepsis discharge diagnosis
                          (septic shock / severe sepsis / sepsis) from the

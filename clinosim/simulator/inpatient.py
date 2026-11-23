@@ -1214,6 +1214,7 @@ def _simulate_patient(
         icu_transferred=icu_transferred,
         airway_declined=loop_result.airway_declined,
         icu_transferred_day=icu_transferred_day,
+        icu_discharge_day=loop_result.icu_discharge_day,
         deceased=death_occurred,
         death_day=actual_los if death_occurred else None,
         is_readmission=is_readmission,

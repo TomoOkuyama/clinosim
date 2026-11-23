@@ -424,9 +424,10 @@ def build_op_postop_plan(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
 def _in_icu_at(ctx: NarrativeContext, when: Any) -> bool:
     """Whether the patient was in the ICU at ``when``: an ICU encounter, or a
     stay transferred to the ICU on or before that time. The ICU period starts
-    ``icu_transferred_day`` days after admission and lasts to discharge, the
-    interval FHIR ``Encounter.classHistory`` gives it. A transfer with no
-    recorded day counts for the whole stay."""
+    ``icu_transferred_day`` days after admission and lasts to the step-down
+    (``icu_discharge_day``) or discharge, the interval FHIR
+    ``Encounter.classHistory`` gives it. A transfer with no recorded day counts
+    for the whole stay."""
     enc_type_raw = _o(ctx.encounter, "encounter_type", None)
     if str(_o(enc_type_raw, "value", enc_type_raw) or "").lower() == "icu":
         return True
@@ -437,7 +438,10 @@ def _in_icu_at(ctx: NarrativeContext, when: Any) -> bool:
     at = parse_iso_datetime(when, lenient=True)
     if not isinstance(day, int) or day < 0 or admitted is None or at is None:
         return True
-    return at >= admitted + timedelta(days=day)
+    if at < admitted + timedelta(days=day):
+        return False
+    out = getattr(ctx, "icu_discharge_day", -1)
+    return not (isinstance(out, int) and out > day and at >= admitted + timedelta(days=out))
 
 
 def _aftercare_text(proc: Any, lang: str) -> str:

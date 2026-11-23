@@ -403,6 +403,9 @@ class NarrativeContext:
     code_status: str = ""
     icu_transferred: bool = False
     icu_transferred_day: int = -1
+    # Issue #3555: the 0-indexed LOS day the patient moved back to the ward from
+    # the ICU, -1 while in the ICU to discharge / death or without a transfer.
+    icu_discharge_day: int = -1
 
     # === Issues #3249 / #3252 (outpatient visit reason) ===
     # ``condition_event.visit_type`` / ``visit_condition_id`` of an outpatient

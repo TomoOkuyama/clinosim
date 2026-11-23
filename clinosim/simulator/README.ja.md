@@ -192,6 +192,8 @@ clinosim/simulator/
   implied_chronic.py     入院が含意する慢性疾患。エンカウンターのプロファイルと人物レコードで同じ規則を使う (Issue #3263;
                          reference_data/implied_chronic_prevalence.yaml)
   injury_coding.py       疾患 YAML からの外傷入院のコーディング: 診断・手術・外因 (Issue #3258)
+  icu_step_down.py       ICU 滞在の一般病棟への退室 (ステップダウン): ICU 水準の支持が記録されなくなる最初の日、
+                         無ければ退院前日。死亡や短い入院では無し (Issue #3555; reference_data/icu_step_down.yaml)
   ventricular_rate.py    不整脈入院の心室レート。例: レートコントロールで低下する RVR 伴う AF (Issue #3274)
   sepsis_severity.py     敗血症の退院診断の重症度コード (敗血症性ショック /
                          重症敗血症 / 敗血症) を入院中のバイタル・MAR・検査
