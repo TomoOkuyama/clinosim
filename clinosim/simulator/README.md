@@ -306,7 +306,6 @@ Reference data (`reference_data/`, 17 YAMLs):
   reference_data/vasopressor_initiation.yaml  starting a vasopressor from low pressure after fluids (vasopressor_initiation.py)
   reference_data/vasoactive_weaning.yaml      vasopressor / inotrope weaning and the discharge gate after it (vasoactive_support.py)
   reference_data/oxygen_course.yaml           when supplemental oxygen is weaned, a ventilated stay is extubated, and recorded flows are stepped (oxygen_course.py)
-  reference_data/oxygen_course.yaml           when supplemental oxygen is weaned and a ventilated stay is extubated (oxygen_course.py)
   reference_data/oral_intake.yaml             nil by mouth while the AVPU level is P / U or the patient is ventilated, and the oral doses held then (oral_intake.py)
   reference_data/maintenance_iv_fluid.yaml    when the maintenance IV-fluid order is stopped (maintenance_iv_fluid.py)
   reference_data/ketoacidosis_resolution.yaml DKA resolution criteria and the IV-to-subcutaneous insulin transition (ketoacidosis_resolution.py)
