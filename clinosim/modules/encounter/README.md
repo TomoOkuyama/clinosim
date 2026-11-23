@@ -78,7 +78,14 @@ and
   Encounter carries the delivery / chemo Procedure and (via
   [`order`](../order/README.md)) per-cycle MedicationRequest +
   MedicationAdministration for each Day-1 drug in the regimen's
-  `cycle_orders`. Radiation therapy encounters analogous.
+  `cycle_orders`. Radiation therapy encounters analogous. The visit
+  follows the regimen's `administration` route (`iv` / `oral` /
+  `subcutaneous` / `intravesical`): its reason and its administration
+  Procedure (infusion, injection, bladder instillation; none for an oral
+  regimen, which is dispensed and has no MedicationAdministration) come from
+  `chemo_regimens.yaml::administration`; a cytotoxic regimen's
+  `pretreatment_labs` (CBC) are drawn at the visit; the visit records its
+  cycle of the course (`ConditionEvent.chemo_cycle`, Issue #3568).
 
 ## Public API
 

@@ -113,6 +113,9 @@ class ConditionEvent:
     # for every other encounter.
     visit_type: str = ""
     visit_condition_id: str = ""
+    # Chemotherapy visits (Issue #3568): the 1-based cycle of the regimen's
+    # course the visit gives (0 = not a chemotherapy cycle visit).
+    chemo_cycle: int = 0
 
 
 @dataclass

@@ -254,10 +254,12 @@ by_cancer:                            # per-code assignment probability
   C67: [{regimen: BCG_intravesical, probability: 0.20}]
   C71: [{regimen: Temozolomide_stupp, probability: 0.35}]
 
-procedure:                            # emitted per chemo_visit
-  jp_code: "G003"                     # JP MHLW: 抗悪性腫瘍剤注入
-  us_code: "96413"                    # US CPT: Chemotherapy administration
-  duration_minutes: 60
+administration:                       # per route (Issue #3568); regimens name theirs
+  iv:           {procedure: {jp_code: "G004",   us_code: "96413"}}  # infusion
+  oral:         {procedure: null}                                     # dispensed, no procedure
+  subcutaneous: {procedure: {jp_code: "G000",   us_code: "96402"}}  # injection
+  intravesical: {procedure: {jp_code: "G003-2", us_code: "51720"}}  # bladder instillation
+# regimen: administration: iv|oral|subcutaneous|intravesical, pretreatment_labs: [CBC]
 ```
 
 **Assignment semantics:** for each chronic-cancer carrier the

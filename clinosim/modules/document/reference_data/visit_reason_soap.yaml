@@ -83,20 +83,25 @@ kinds:
   # {therapy}: the regimen's kind of treatment (``therapy``); {cytotoxic}
   # marks the lines of a cytotoxic regimen only.
   chemotherapy:
+    # {cycle}: the cycle of the course the visit gives (written when the record
+    # states it); {after_first_cycle} marks a visit after the first cycle, the
+    # only one with a previous cycle to report on (Issue #3568).
     subjective:
       - en: "Presents for {therapy} for {cancer}."
         ja: "{cancer}に対する{therapy}のため来院。"
-      - en: "No fever, bleeding, mouth sores or diarrhoea since the last cycle{cytotoxic}."
-        ja: "前コース後の発熱・出血・口内炎・下痢の訴えなし{cytotoxic}。"
+      - en: "{cycle}"
+        ja: "{cycle}"
+      - en: "No fever, bleeding, mouth sores or diarrhoea since the last cycle{cytotoxic}{after_first_cycle}."
+        ja: "前コース後の発熱・出血・口内炎・下痢の訴えなし{cytotoxic}{after_first_cycle}。"
     objective:
       - en: "Pre-treatment labs: {labs}."
         ja: "投与前検査: {labs}。"
     assessment:
-      - en: "{cancer}: {therapy} given today ({drugs})."
-        ja: "{cancer}: 本日{therapy}を施行 ({drugs})。"
+      - en: "{cancer}: {given_assessment} ({drugs})."
+        ja: "{cancer}: {given_assessment} ({drugs})。"
     plan:
-      - en: "{therapy_title} administered as ordered ({drugs})."
-        ja: "{therapy}を指示通り投与 ({drugs})。"
+      - en: "{given_plan} ({drugs})."
+        ja: "{given_plan} ({drugs})。"
       - en: "Patient told to come in at once for a temperature of 38°C or higher (risk of febrile neutropenia){cytotoxic}."
         ja: "38°C 以上の発熱時は直ちに受診するよう説明 (発熱性好中球減少症のリスク){cytotoxic}。"
 
@@ -213,6 +218,23 @@ therapy:
   hormonal: {en: "hormone therapy", ja: "ホルモン療法"}
   targeted: {en: "targeted therapy", ja: "分子標的治療"}
   immunotherapy: {en: "immunotherapy", ja: "免疫療法"}
+
+# How the note words the giving of the visit's therapy, by the regimen's route
+# (chemo_regimens.yaml ``administration``); {therapy} / {therapy_title} are the
+# kind of treatment above (Issue #3568).
+chemo_administration:
+  iv:
+    assessment: {en: "{therapy} given today", ja: "本日{therapy}を施行"}
+    plan: {en: "{therapy_title} administered as ordered", ja: "{therapy}を指示通り投与"}
+  oral:
+    assessment: {en: "oral {therapy} prescribed today", ja: "本日経口の{therapy}を処方"}
+    plan: {en: "Oral {therapy} dispensed; patient instructed on taking it at home", ja: "経口の{therapy}を処方し、自宅での服用方法を説明"}
+  subcutaneous:
+    assessment: {en: "{therapy} given today by subcutaneous injection", ja: "本日{therapy}を皮下注射"}
+    plan: {en: "{therapy_title} injected subcutaneously as ordered", ja: "{therapy}を指示通り皮下注射"}
+  intravesical:
+    assessment: {en: "{therapy} instilled into the bladder today", ja: "本日{therapy}を膀胱内に注入"}
+    plan: {en: "{therapy_title} instilled into the bladder as ordered", ja: "{therapy}を指示通り膀胱内に注入"}
 
 # Lines for one visit condition, added after its kind's lines.
 #   diabetic_retinopathy_screening: the fundus examination is the visit; the
@@ -438,6 +460,12 @@ phrases:
   percentile:
     en: "({pct}th percentile)"
     ja: "({pct} パーセンタイル)"
+  chemo_cycle_of:
+    en: "Cycle {cycle} of {total}."
+    ja: "全{total}コース中の第{cycle}コース。"
+  chemo_cycle:
+    en: "Cycle {cycle}."
+    ja: "第{cycle}コース。"
   next_cycle:
     en: "Next dose: in {days} days."
     ja: "次回投与: {days}日後に予定。"

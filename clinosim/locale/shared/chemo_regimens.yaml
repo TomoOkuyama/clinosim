@@ -37,6 +37,8 @@ metadata:
 
 regimens:
   FOLFOX:                                # colorectal adjuvant
+    administration: iv
+    pretreatment_labs: [CBC]
     cycle_interval_days: 14
     course_cycles: 12                    # ~6 months adjuvant
     contains_drug_classes: [antineoplastic.fluoropyrimidine, chemo.platinum]  # catalog classes (Issue #2388)
@@ -45,6 +47,8 @@ regimens:
       - {drug_id: leucovorin,   dose: "400mg/m2",                       route: "IV"}
       - {drug_id: fluorouracil, dose: "400mg/m2 bolus + 2400mg/m2/46h", route: "IV"}
   CarboPem:                              # lung adjuvant / advanced
+    administration: iv
+    pretreatment_labs: [CBC]
     cycle_interval_days: 21
     course_cycles: 4
     contains_drug_classes: [chemo.platinum, chemo.antifolate]
@@ -52,12 +56,14 @@ regimens:
       - {drug_id: carboplatin, dose: "AUC5",     route: "IV"}
       - {drug_id: pemetrexed,  dose: "500mg/m2", route: "IV"}
   Trastuzumab_q3w:                       # breast HER2+ maintenance
+    administration: iv
     cycle_interval_days: 21
     course_cycles: 18                    # 1 year
     contains_drug_classes: [her2_antibody]
     cycle_orders:
       - {drug_id: trastuzumab, dose: "6mg/kg",   route: "IV"}
   LHRH_q28d:                             # prostate ADT depot
+    administration: subcutaneous
     cycle_interval_days: 28
     course_cycles: 24                    # 2 years continuous
     contains_drug_classes: [lhrh_agonist]
@@ -72,6 +78,8 @@ regimens:
     # 1000 mg/m2 IV Day 1, 8, 15 of a 28-day cycle. Simplified here as one
     # Day-1 chemo_visit per cycle (same pattern FOLFOX/CarboPem use — the
     # per-day expansion is a future MedicationAdmin slice).
+    administration: iv
+    pretreatment_labs: [CBC]
     cycle_interval_days: 28
     course_cycles: 6                     # ~6 months first-line palliative
     contains_drug_classes: [chemo.taxane, gemcitabine]
@@ -84,6 +92,7 @@ regimens:
       - {drug: "Nab-paclitaxel",  dose: "125mg/m2",   route: "IV"}
       - {drug_id: gemcitabine,    dose: "1000mg/m2",  route: "IV"}
   BCG_intravesical:                      # NMIBC adjuvant induction (SWOG 8507)
+    administration: intravesical
     cycle_interval_days: 7               # weekly instillation
     course_cycles: 6                     # 6-week induction; maintenance q3mo is out of scope
     contains_drug_classes: [immunotherapy]
@@ -99,6 +108,8 @@ regimens:
     # Adjuvant Temozolomide 150-200 mg/m2 PO daily × 5 days q28d × 6 cycles
     # after concurrent chemoradiation. Sim emits one Day-1 chemo_visit per
     # 28-day cycle (same simplification as GemNabP above).
+    administration: oral
+    pretreatment_labs: [CBC]
     cycle_interval_days: 28
     course_cycles: 6
     contains_drug_classes: [alkylator]
@@ -163,22 +174,71 @@ by_cancer:
   C71: [{regimen: Temozolomide_stupp, probability: 0.35}]  # GBM adjuvant Stupp
 
 # ---------------------------------------------------------------------------
-# Procedure code emitted on each chemo_visit encounter. Same code for all
-# regimens in slice 1 (the code identifies "chemotherapy administration",
-# not the specific regimen; the specific drugs would live on the Encounter's
-# MedicationAdministration slice — future work).
-procedure:
-  jp_code: "G004"                   # JP 医科診療報酬点数表: 点滴注射 (systemic IV; G003 is local arterial infusion)
-  jp_display: "点滴注射"
-  us_code: "96413"                  # US CPT: Chemotherapy administration, IV infusion, first hour
-  us_display: "Chemotherapy administration, IV infusion, up to 1 hour"
-  duration_minutes: 60              # infusion duration; encounter length includes prep/monitor
-  anesthesia: none
+# How a chemotherapy visit is administered, by regimen ``administration``
+# (iv | oral | subcutaneous | intravesical; a regimen without the key is iv).
+# ``visit_reason`` is the Encounter reason / chief complaint; ``procedure`` is
+# the administration Procedure emitted on the visit (``procedure_type`` is the
+# classifier key). An oral regimen has no administration procedure: the visit
+# is a review with dispensing, the patient takes the drug at home.
+#
+# Sources read for the codes (Issue #3568):
+#   JP  支払基金 基本マスター 医科診療行為マスター s_ALL20261102.csv
+#       (https://www.ssk.or.jp/seikyushiharai/tensuhyo/kihonmasta/kihonmasta_01.html):
+#       G000 皮内、皮下及び筋肉内注射, G004 点滴注射, G003-2 薬液膀胱内注入.
+#   US  CPT 96413 (IV infusion, first hour); 96402 (subcutaneous or
+#       intramuscular chemotherapy administration, hormonal anti-neoplastic;
+#       leuprolide) and 51720 (bladder instillation of anticarcinogenic agent),
+#       as described on aapc.com/codes/cpt-codes/96402 and /51720.
+administration:
+  iv:
+    visit_reason:
+      en: "Chemotherapy infusion"
+      ja: "化学療法・点滴投与"
+    procedure:
+      procedure_type: chemotherapy_administration
+      jp_code: "G004"               # JP 医科診療報酬点数表: 点滴注射 (systemic IV; G003 is local arterial infusion)
+      jp_display: "点滴注射"
+      us_code: "96413"              # US CPT: Chemotherapy administration, IV infusion, first hour
+      us_display: "Chemotherapy administration, IV infusion, up to 1 hour"
+      duration_minutes: 60          # infusion duration; encounter length includes prep/monitor
+      anesthesia: none
+  oral:
+    visit_reason:
+      en: "Oral chemotherapy review"
+      ja: "経口抗がん剤の治療管理"
+    procedure: null
+  subcutaneous:
+    visit_reason:
+      en: "Chemotherapy injection"
+      ja: "抗悪性腫瘍剤の皮下注射"
+    procedure:
+      procedure_type: chemotherapy_injection
+      jp_code: "G000"               # JP 医科診療報酬点数表: 皮内、皮下及び筋肉内注射
+      jp_display: "皮内、皮下及び筋肉内注射"
+      us_code: "96402"              # US CPT: chemotherapy administration, subcutaneous or intramuscular; hormonal anti-neoplastic
+      us_display: "Chemotherapy administration, subcutaneous or intramuscular; hormonal anti-neoplastic"
+      duration_minutes: 10
+      anesthesia: none
+  intravesical:
+    visit_reason:
+      en: "Bladder instillation"
+      ja: "膀胱内注入療法"
+    procedure:
+      procedure_type: bladder_instillation
+      jp_code: "G003-2"             # JP 医科診療報酬点数表: 薬液膀胱内注入
+      jp_display: "薬液膀胱内注入"
+      us_code: "51720"              # US CPT: bladder instillation of anticarcinogenic agent
+      us_display: "Bladder instillation of anticarcinogenic agent"
+      duration_minutes: 30
+      anesthesia: none
 
-# ---------------------------------------------------------------------------
-# Encounter reason strings emitted on Encounter.reasonCode / chief complaint.
+# A cytotoxic cycle's pre-treatment blood count (a regimen's
+# ``pretreatment_labs``) is resulted before the drugs are given: the CBC is
+# reported ``result_minutes`` after the arrival and dosing starts
+# ``dosing_after_result_minutes`` later (Issue #3568).
+pretreatment:
+  result_minutes: 60
+  dosing_after_result_minutes: 15
+
 encounter:
-  visit_reason:
-    en: "Chemotherapy infusion"
-    ja: "化学療法・点滴投与"
   department: "oncology_infusion"   # falls back to internal_medicine when the hospital lacks this dept

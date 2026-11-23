@@ -54,8 +54,11 @@ def _emitted_codes() -> set[tuple[str, str]]:
     peri = _yaml("locale/shared/perinatal.yaml")
     for proc in (peri["procedure"], peri["cesarean"]["procedure"], peri["abortion"]["procedure"]):
         out |= {("US", str(proc.get("us_code") or "")), ("JP", str(proc.get("jp_code") or ""))}
-    chemo = _yaml("locale/shared/chemo_regimens.yaml")["procedure"]
-    out |= {("US", str(chemo["us_code"])), ("JP", str(chemo["jp_code"]))}
+    # Issue #3568: one administration procedure per route (an oral regimen has none).
+    for route in _yaml("locale/shared/chemo_regimens.yaml")["administration"].values():
+        chemo = route["procedure"]
+        if chemo:
+            out |= {("US", str(chemo["us_code"])), ("JP", str(chemo["jp_code"]))}
     for path in (_ROOT / "modules/disease/reference_data").glob("*.yaml"):
 
         def walk(x: object) -> None:

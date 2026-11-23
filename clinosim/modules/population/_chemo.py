@@ -110,6 +110,7 @@ def _chemo_cycle_events(person: PersonRecord, year: int) -> list[LifeEvent]:
                     disease_id=cancer_code,
                     encounter_type="outpatient",
                     protocol_source=f"chemo_regimens:{picked_name}",
+                    chemo_cycle=cycle_idx + 1,
                 )
             )
     return out

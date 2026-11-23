@@ -112,6 +112,16 @@ class _WellChild(BaseModel):
         return self
 
 
+class _ChemoAdministration(BaseModel):
+    """How the note words the giving of the visit's therapy, by route: the
+    assessment and plan fragments (``{therapy}`` / ``{therapy_title}``)."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    assessment: _LangText
+    plan: _LangText
+
+
 class VisitReasonSoap(BaseModel):
     """Shape of visit_reason_soap.yaml."""
 
@@ -130,6 +140,7 @@ class VisitReasonSoap(BaseModel):
     vaccination_country_lines: dict[str, list[_LangText]]
     therapy_by_drug_class: dict[str, Literal["hormonal", "targeted", "immunotherapy"]]
     therapy: dict[Literal["cytotoxic", "hormonal", "targeted", "immunotherapy"], _LangText]
+    chemo_administration: dict[Literal["iv", "oral", "subcutaneous", "intravesical"], _ChemoAdministration]
     vital_findings: _VitalFindings
     vital_links: _VitalLinks
     phrases: dict[str, _LangText]
@@ -355,16 +366,36 @@ def _screening_items(ctx: Any) -> str:
     return t("list_sep.serial", lang).join(names)
 
 
+def _chemo_given(ctx: Any) -> list[tuple[str, str, str]]:
+    """The visit's chemotherapy as ``(drug id or name, drug name, dose)``: the
+    administrations charted, else (an oral regimen is dispensed, not
+    administered, Issue #3568) the chemotherapy medication orders."""
+    out: list[tuple[str, str, str]] = []
+    for mar in ctx.medications or []:
+        if str(_o(mar, "status", "given") or "given") == "given":
+            out.append(
+                (str(_o(mar, "drug_id", "") or ""), str(_o(mar, "drug_name", "") or ""), str(_o(mar, "dose", "") or ""))
+            )
+    if out:
+        return out
+    return [
+        (
+            "",
+            str(_o(o, "display_name", "") or ""),
+            str(_o(o, f"dose_text_{ctx.target_lang}", "") or _o(o, "dose_text_en", "") or ""),
+        )
+        for o in ctx.orders or []
+        if "-CHEMO-M" in str(_o(o, "order_id", "") or "")
+    ]
+
+
 def _chemo_values(ctx: Any, values: dict[str, Any]) -> None:
     from clinosim.locale.free_text import localize_drug_name
 
     lang = ctx.target_lang
     drugs: list[str] = []
-    for mar in ctx.medications or []:
-        if str(_o(mar, "status", "given") or "given") != "given":
-            continue
-        name = localize_drug_name(str(_o(mar, "drug_name", "") or ""), lang)
-        dose = str(_o(mar, "dose", "") or "")
+    for _id, drug_name, dose in _chemo_given(ctx):
+        name = localize_drug_name(drug_name, lang)
         if name:
             drugs.append(f"{name} {dose}".strip())
     if drugs:
@@ -377,9 +408,7 @@ def _visit_regimen(ctx: Any) -> dict[str, Any] | None:
     from clinosim.codes.drugs import drug_ref
     from clinosim.locale.loader import load_chemo_regimens
 
-    given = {
-        str(_o(m, "drug_id", "") or "") or drug_ref(str(_o(m, "drug_name", "") or "")) for m in ctx.medications or []
-    }
+    given = {drug_id or drug_ref(name) for drug_id, name, _dose in _chemo_given(ctx)}
     given.discard("")
     if not given:
         return None
@@ -414,6 +443,21 @@ def _therapy_values(ctx: Any, values: dict[str, Any]) -> None:
     values["therapy_title"] = text[:1].upper() + text[1:]
     if therapy == "cytotoxic":
         values["cytotoxic"] = ""
+    # Issue #3568: the route words the giving of the therapy; "present for" an
+    # injection / instillation / oral review, and the cycle of the course.
+    kind = str(regimen.get("administration") or "iv")
+    words = data.chemo_administration[kind]  # type: ignore[index]
+    lang = ctx.target_lang
+    values["given_assessment"] = localized(words.assessment, lang).format(
+        therapy=text, therapy_title=values["therapy_title"]
+    )
+    values["given_plan"] = localized(words.plan, lang).format(therapy=text, therapy_title=values["therapy_title"])
+    cycle = int(getattr(ctx, "chemo_cycle", 0) or 0)
+    if cycle > 0:
+        total = int(regimen.get("course_cycles") or 0)
+        values["cycle"] = _phrase("chemo_cycle_of" if total >= cycle else "chemo_cycle", lang, cycle=cycle, total=total)
+        if cycle > 1:
+            values["after_first_cycle"] = ""
 
 
 def _dose_timed_by_authored(imm: Any, ctx: Any) -> bool:

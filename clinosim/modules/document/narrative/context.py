@@ -139,6 +139,7 @@ def visit_reason_fields(record: Any, encounter: Any) -> dict[str, Any]:
     return {
         "visit_type": str(_o(event, "visit_type", "") or "") if own else "",
         "visit_condition_id": str(_o(event, "visit_condition_id", "") or "") if own else "",
+        "chemo_cycle": int(_o(event, "chemo_cycle", 0) or 0) if own else 0,
         "immunizations": [
             i for i in (_o(record, "immunizations", []) or []) if enc_id and _o(i, "encounter_id", "") == enc_id
         ],
