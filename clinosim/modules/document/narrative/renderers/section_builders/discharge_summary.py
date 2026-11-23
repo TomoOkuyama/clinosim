@@ -97,11 +97,13 @@ def compose_hospital_course(ctx: NarrativeContext, *, with_results: bool = True)
     # and their treatment, medication changes, condition at discharge. Each
     # sentence is written only when the record has its facts.
     from clinosim.modules.document.narrative import _hospital_course as hc
+    from clinosim.modules.document.narrative._icu_stay import icu_course_sentence
 
     builders = (
         hc.readmission_sentence,
         hc.treatments_sentence,
         hc.procedures_sentence,
+        icu_course_sentence,
         hc.complications_sentence,
         hc.notable_labs_sentence,
         hc.medication_changes_sentence,

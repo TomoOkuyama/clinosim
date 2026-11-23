@@ -1091,9 +1091,41 @@ nursing_shift:
     ja: "観察・ケア継続、特記事項なし。"
     en: "Observation and care ongoing, no significant findings."
 
+# Issue #3555: the ICU stay in the notes. The record has the transfer day and no
+# step-down day, so no text states a return to the ward.
+icu_stay:
+  progress_transfer:
+    ja: "入院{day}日目、集中治療室（ICU）へ転棟。"
+    en: "Transferred to the intensive care unit (ICU) on hospital day {day}."
+  progress_transfer_with_reason:
+    ja: "{reason}を認め、入院{day}日目に集中治療室（ICU）へ転棟。"
+    en: "Transferred to the intensive care unit (ICU) on hospital day {day} in the setting of {reason}."
+  progress_in_icu:
+    ja: "ICU管理中（入院{day}日目にICUへ転棟）。"
+    en: "In the ICU since hospital day {day}."
+  course:
+    ja: "入院{day}日目に集中治療室（ICU）へ転棟した。"
+    en: "Transferred to the intensive care unit (ICU) on hospital day {day}."
+  course_with_reason:
+    ja: "{reason}を認め、入院{day}日目に集中治療室（ICU）へ転棟した。"
+    en: "Transferred to the intensive care unit (ICU) on hospital day {day} in the setting of {reason}."
+  course_dated:
+    ja: "入院{day}日目（{date}）に集中治療室（ICU）へ転棟した。"
+    en: "Transferred to the intensive care unit (ICU) on hospital day {day} ({date})."
+  course_dated_with_reason:
+    ja: "{reason}を認め、入院{day}日目（{date}）に集中治療室（ICU）へ転棟した。"
+    en: "Transferred to the intensive care unit (ICU) on hospital day {day} ({date}) in the setting of {reason}."
+
 # Nursing items of a shift note (Issue #3478); the ordered list and the rule of
 # each item is reference_data/nursing_shift_items.yaml of the document module.
 nursing_shift_items:
+  icu:
+    transfer:
+      ja: "当シフト中にICUへ転棟。"
+      en: "Transferred to the ICU during this shift."
+    in_icu:
+      ja: "ICU管理中（入院{day}日目にICUへ転棟）。"
+      en: "In the ICU (transferred on hospital day {day})."
   pain:
     generic:
       ja: "疼痛"
