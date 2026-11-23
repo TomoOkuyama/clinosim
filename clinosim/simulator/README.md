@@ -305,7 +305,7 @@ Reference data (`reference_data/`, 17 YAMLs):
   reference_data/complication_actions.yaml    canonical complication action keys and the empirical-regimen protocol of each infectious complication (complication_actions.py)
   reference_data/vasopressor_initiation.yaml  starting a vasopressor from low pressure after fluids (vasopressor_initiation.py)
   reference_data/vasoactive_weaning.yaml      vasopressor / inotrope weaning and the discharge gate after it (vasoactive_support.py)
-  reference_data/oxygen_course.yaml           when supplemental oxygen is weaned and a ventilated stay is extubated (oxygen_course.py)
+  reference_data/oxygen_course.yaml           when supplemental oxygen is weaned, a ventilated stay is extubated, and recorded flows are stepped (oxygen_course.py)
   reference_data/maintenance_iv_fluid.yaml    when the maintenance IV-fluid order is stopped (maintenance_iv_fluid.py)
   reference_data/ketoacidosis_resolution.yaml DKA resolution criteria and the IV-to-subcutaneous insulin transition (ketoacidosis_resolution.py)
   reference_data/mixed_condition.yaml         late recognition, recovery and order merge of a mixed admission's co-disease (mixed_condition.py)

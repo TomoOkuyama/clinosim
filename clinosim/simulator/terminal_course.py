@@ -34,7 +34,7 @@ from clinosim.simulator._daily_loop_thresholds import (
     TERMINAL_VOLUME_MAX,
     TERMINAL_WINDOW_HOURS,
 )
-from clinosim.simulator.oxygen_course import OxygenCourse, oxygen_course_rules
+from clinosim.simulator.oxygen_course import OxygenCourse, oxygen_course_rules, round_oxygen_flow
 from clinosim.simulator.vitals_pipeline import _loc_for, _o2_for, o2_target, spo2_on_oxygen
 from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.encounter import Order, OrderResult, OrderStatus, OrderType, VitalSignRecord
@@ -111,7 +111,7 @@ def apply_terminal_course(
             respiratory_rate=None if record.respiratory_rate is None else int(round(raw["respiratory_rate"])),
             spo2=spo2,
             on_supplemental_oxygen=on_o2,
-            oxygen_flow_rate_lpm=round(flow, 1) if flow else None,
+            oxygen_flow_rate_lpm=round_oxygen_flow(flow),
             oxygen_delivery_device=device,
             consciousness_level=_loc_for(state, disease_id, 0, rng) if record.consciousness_level else "",
             nursing_note=note + "." if note else "",
@@ -170,7 +170,7 @@ def apply_terminal_course(
             vitals[i],
             spo2=round(spo2, 1),
             on_supplemental_oxygen=on,
-            oxygen_flow_rate_lpm=round(flow, 1) if flow else None,
+            oxygen_flow_rate_lpm=round_oxygen_flow(flow),
             oxygen_delivery_device=device,
         )
     vitals.sort(key=lambda v: v.timestamp)

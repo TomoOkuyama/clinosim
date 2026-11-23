@@ -83,11 +83,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #2 — assessment]",
-        "objective": "BP 131/82 mmHg, HR 97 bpm, RR 16 /min, SpO2 98% (nasal cannula 3.7 L/min), T 36.9°C (past 24 h: SpO2 min 94%)",
+        "objective": "BP 131/82 mmHg, HR 97 bpm, RR 16 /min, SpO2 98% (nasal cannula 3.5 L/min), T 36.9°C (past 24 h: SpO2 min 94%)",
         "plan": "[Mock LLM response #2 — plan]",
         "subjective": "[Mock LLM response #2 — subjective]"
       },
-      "text": "S: [Mock LLM response #2 — subjective]\nO: BP 131/82 mmHg, HR 97 bpm, RR 16 /min, SpO2 98% (nasal cannula 3.7 L/min), T 36.9°C (past 24 h: SpO2 min 94%)\nA: [Mock LLM response #2 — assessment]\nP: [Mock LLM response #2 — plan]"
+      "text": "S: [Mock LLM response #2 — subjective]\nO: BP 131/82 mmHg, HR 97 bpm, RR 16 /min, SpO2 98% (nasal cannula 3.5 L/min), T 36.9°C (past 24 h: SpO2 min 94%)\nA: [Mock LLM response #2 — assessment]\nP: [Mock LLM response #2 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-160487169457-03": {
@@ -133,11 +133,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #3 — assessment]",
-        "objective": "BP 132/81 mmHg, HR 101 bpm, RR 15 /min, SpO2 96% (nasal cannula 3.7 L/min), T 38.2°C (past 24 h: Tmax 38.9°C, HR max 105 bpm, SpO2 min 94%)",
+        "objective": "BP 132/81 mmHg, HR 101 bpm, RR 15 /min, SpO2 96% (nasal cannula 3.5 L/min), T 38.2°C (past 24 h: Tmax 38.9°C, HR max 105 bpm, SpO2 min 94%)",
         "plan": "[Mock LLM response #3 — plan]",
         "subjective": "[Mock LLM response #3 — subjective]"
       },
-      "text": "S: [Mock LLM response #3 — subjective]\nO: BP 132/81 mmHg, HR 101 bpm, RR 15 /min, SpO2 96% (nasal cannula 3.7 L/min), T 38.2°C (past 24 h: Tmax 38.9°C, HR max 105 bpm, SpO2 min 94%)\nA: [Mock LLM response #3 — assessment]\nP: [Mock LLM response #3 — plan]"
+      "text": "S: [Mock LLM response #3 — subjective]\nO: BP 132/81 mmHg, HR 101 bpm, RR 15 /min, SpO2 96% (nasal cannula 3.5 L/min), T 38.2°C (past 24 h: Tmax 38.9°C, HR max 105 bpm, SpO2 min 94%)\nA: [Mock LLM response #3 — assessment]\nP: [Mock LLM response #3 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-160487169457-04": {
@@ -183,11 +183,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #4 — assessment]",
-        "objective": "BP 134/81 mmHg, HR 103 bpm, RR 19 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.9°C (past 24 h: Tmax 39.1°C, HR max 106 bpm, RR max 24 /min)",
+        "objective": "BP 134/81 mmHg, HR 103 bpm, RR 19 /min, SpO2 98% (simple face mask 7.5 L/min), T 37.9°C (past 24 h: Tmax 39.1°C, HR max 106 bpm, RR max 24 /min)",
         "plan": "[Mock LLM response #4 — plan]",
         "subjective": "[Mock LLM response #4 — subjective]"
       },
-      "text": "S: [Mock LLM response #4 — subjective]\nO: BP 134/81 mmHg, HR 103 bpm, RR 19 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.9°C (past 24 h: Tmax 39.1°C, HR max 106 bpm, RR max 24 /min)\nA: [Mock LLM response #4 — assessment]\nP: [Mock LLM response #4 — plan]"
+      "text": "S: [Mock LLM response #4 — subjective]\nO: BP 134/81 mmHg, HR 103 bpm, RR 19 /min, SpO2 98% (simple face mask 7.5 L/min), T 37.9°C (past 24 h: Tmax 39.1°C, HR max 106 bpm, RR max 24 /min)\nA: [Mock LLM response #4 — assessment]\nP: [Mock LLM response #4 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-160487169457-05": {
@@ -233,11 +233,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #5 — assessment]",
-        "objective": "BP 133/78 mmHg, HR 99 bpm, RR 19 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.6°C (past 24 h: Tmax 38.7°C, HR max 107 bpm, RR max 21 /min)",
+        "objective": "BP 133/78 mmHg, HR 99 bpm, RR 19 /min, SpO2 98% (simple face mask 7.5 L/min), T 37.6°C (past 24 h: Tmax 38.7°C, HR max 107 bpm, RR max 21 /min)",
         "plan": "[Mock LLM response #5 — plan]",
         "subjective": "[Mock LLM response #5 — subjective]"
       },
-      "text": "S: [Mock LLM response #5 — subjective]\nO: BP 133/78 mmHg, HR 99 bpm, RR 19 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.6°C (past 24 h: Tmax 38.7°C, HR max 107 bpm, RR max 21 /min)\nA: [Mock LLM response #5 — assessment]\nP: [Mock LLM response #5 — plan]"
+      "text": "S: [Mock LLM response #5 — subjective]\nO: BP 133/78 mmHg, HR 99 bpm, RR 19 /min, SpO2 98% (simple face mask 7.5 L/min), T 37.6°C (past 24 h: Tmax 38.7°C, HR max 107 bpm, RR max 21 /min)\nA: [Mock LLM response #5 — assessment]\nP: [Mock LLM response #5 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-160487169457-06": {
@@ -283,11 +283,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #6 — assessment]",
-        "objective": "BP 132/82 mmHg, HR 96 bpm, RR 19 /min, SpO2 98% (simple face mask 7.7 L/min), T 38.2°C (past 24 h: Tmax 38.5°C, HR max 108 bpm)",
+        "objective": "BP 132/82 mmHg, HR 96 bpm, RR 19 /min, SpO2 98% (simple face mask 7.5 L/min), T 38.2°C (past 24 h: Tmax 38.5°C, HR max 108 bpm)",
         "plan": "[Mock LLM response #6 — plan]",
         "subjective": "[Mock LLM response #6 — subjective]"
       },
-      "text": "S: [Mock LLM response #6 — subjective]\nO: BP 132/82 mmHg, HR 96 bpm, RR 19 /min, SpO2 98% (simple face mask 7.7 L/min), T 38.2°C (past 24 h: Tmax 38.5°C, HR max 108 bpm)\nA: [Mock LLM response #6 — assessment]\nP: [Mock LLM response #6 — plan]"
+      "text": "S: [Mock LLM response #6 — subjective]\nO: BP 132/82 mmHg, HR 96 bpm, RR 19 /min, SpO2 98% (simple face mask 7.5 L/min), T 38.2°C (past 24 h: Tmax 38.5°C, HR max 108 bpm)\nA: [Mock LLM response #6 — assessment]\nP: [Mock LLM response #6 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-160487169457-07": {
@@ -333,11 +333,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #7 — assessment]",
-        "objective": "BP 134/78 mmHg, HR 98 bpm, RR 19 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.6°C (past 24 h: Tmax 38.7°C, HR max 105 bpm, RR max 21 /min)",
+        "objective": "BP 134/78 mmHg, HR 98 bpm, RR 19 /min, SpO2 98% (simple face mask 7.5 L/min), T 37.6°C (past 24 h: Tmax 38.7°C, HR max 105 bpm, RR max 21 /min)",
         "plan": "[Mock LLM response #7 — plan]",
         "subjective": "[Mock LLM response #7 — subjective]"
       },
-      "text": "S: [Mock LLM response #7 — subjective]\nO: BP 134/78 mmHg, HR 98 bpm, RR 19 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.6°C (past 24 h: Tmax 38.7°C, HR max 105 bpm, RR max 21 /min)\nA: [Mock LLM response #7 — assessment]\nP: [Mock LLM response #7 — plan]"
+      "text": "S: [Mock LLM response #7 — subjective]\nO: BP 134/78 mmHg, HR 98 bpm, RR 19 /min, SpO2 98% (simple face mask 7.5 L/min), T 37.6°C (past 24 h: Tmax 38.7°C, HR max 105 bpm, RR max 21 /min)\nA: [Mock LLM response #7 — assessment]\nP: [Mock LLM response #7 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-160487169457-08": {
@@ -383,11 +383,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #8 — assessment]",
-        "objective": "BP 134/78 mmHg, HR 96 bpm, RR 20 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.3°C (past 24 h: Tmax 38.5°C, HR max 105 bpm, RR max 21 /min)",
+        "objective": "BP 134/78 mmHg, HR 96 bpm, RR 20 /min, SpO2 98% (simple face mask 7.5 L/min), T 37.3°C (past 24 h: Tmax 38.5°C, HR max 105 bpm, RR max 21 /min)",
         "plan": "[Mock LLM response #8 — plan]",
         "subjective": "[Mock LLM response #8 — subjective]"
       },
-      "text": "S: [Mock LLM response #8 — subjective]\nO: BP 134/78 mmHg, HR 96 bpm, RR 20 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.3°C (past 24 h: Tmax 38.5°C, HR max 105 bpm, RR max 21 /min)\nA: [Mock LLM response #8 — assessment]\nP: [Mock LLM response #8 — plan]"
+      "text": "S: [Mock LLM response #8 — subjective]\nO: BP 134/78 mmHg, HR 96 bpm, RR 20 /min, SpO2 98% (simple face mask 7.5 L/min), T 37.3°C (past 24 h: Tmax 38.5°C, HR max 105 bpm, RR max 21 /min)\nA: [Mock LLM response #8 — assessment]\nP: [Mock LLM response #8 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-160487169457-09": {
@@ -433,11 +433,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #9 — assessment]",
-        "objective": "BP 134/81 mmHg, HR 96 bpm, RR 17 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.3°C (past 24 h: Tmax 39.0°C, HR max 103 bpm, RR max 21 /min)",
+        "objective": "BP 134/81 mmHg, HR 96 bpm, RR 17 /min, SpO2 98% (simple face mask 7.5 L/min), T 37.3°C (past 24 h: Tmax 39.0°C, HR max 103 bpm, RR max 21 /min)",
         "plan": "[Mock LLM response #9 — plan]",
         "subjective": "[Mock LLM response #9 — subjective]"
       },
-      "text": "S: [Mock LLM response #9 — subjective]\nO: BP 134/81 mmHg, HR 96 bpm, RR 17 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.3°C (past 24 h: Tmax 39.0°C, HR max 103 bpm, RR max 21 /min)\nA: [Mock LLM response #9 — assessment]\nP: [Mock LLM response #9 — plan]"
+      "text": "S: [Mock LLM response #9 — subjective]\nO: BP 134/81 mmHg, HR 96 bpm, RR 17 /min, SpO2 98% (simple face mask 7.5 L/min), T 37.3°C (past 24 h: Tmax 39.0°C, HR max 103 bpm, RR max 21 /min)\nA: [Mock LLM response #9 — assessment]\nP: [Mock LLM response #9 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-160487169457-10": {
@@ -483,11 +483,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #10 — assessment]",
-        "objective": "BP 135/82 mmHg, HR 98 bpm, RR 15 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.4°C (past 24 h: Tmax 38.4°C, HR max 107 bpm, RR max 21 /min)",
+        "objective": "BP 135/82 mmHg, HR 98 bpm, RR 15 /min, SpO2 98% (simple face mask 7.5 L/min), T 37.4°C (past 24 h: Tmax 38.4°C, HR max 107 bpm, RR max 21 /min)",
         "plan": "[Mock LLM response #10 — plan]",
         "subjective": "[Mock LLM response #10 — subjective]"
       },
-      "text": "S: [Mock LLM response #10 — subjective]\nO: BP 135/82 mmHg, HR 98 bpm, RR 15 /min, SpO2 98% (simple face mask 7.7 L/min), T 37.4°C (past 24 h: Tmax 38.4°C, HR max 107 bpm, RR max 21 /min)\nA: [Mock LLM response #10 — assessment]\nP: [Mock LLM response #10 — plan]"
+      "text": "S: [Mock LLM response #10 — subjective]\nO: BP 135/82 mmHg, HR 98 bpm, RR 15 /min, SpO2 98% (simple face mask 7.5 L/min), T 37.4°C (past 24 h: Tmax 38.4°C, HR max 107 bpm, RR max 21 /min)\nA: [Mock LLM response #10 — assessment]\nP: [Mock LLM response #10 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-160487169457-11": {
@@ -728,7 +728,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 136/78, HR 103, SpO2 96%, T 37.7°C; nasal cannula 3.7 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS 5.\nFever 38.8°C; observation continued.\nLevel of consciousness remains decreased (AVPU V).\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 3.7 L/min; device fit and observation continued.\nNPO, nothing by mouth.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nDay of surgery (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - day shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 136/78, HR 103, SpO2 96%, T 37.7°C; nasal cannula 3.5 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS 5.\nFever 38.8°C; observation continued.\nLevel of consciousness remains decreased (AVPU V).\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 3.5 L/min; device fit and observation continued.\nNPO, nothing by mouth.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nDay of surgery (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-17-evening": {
@@ -758,7 +758,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 134/80, HR 101, SpO2 98%, T 37.6°C; nasal cannula 3.7 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS 4.\nFever 38.9°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 3.7 L/min; device fit and observation continued.\nNPO, nothing by mouth.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nDay of surgery (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - evening shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 134/80, HR 101, SpO2 98%, T 37.6°C; nasal cannula 3.5 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS 4.\nFever 38.9°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 3.5 L/min; device fit and observation continued.\nNPO, nothing by mouth.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nDay of surgery (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-18-night": {
@@ -789,7 +789,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 131/77, HR 98, SpO2 98%, T 38.2°C; nasal cannula 3.7 L/min.\nMeds administered: Nicardipine, Labetalol, NS 80 mL/h.\nheadache reported, NRS peak 5, latest 4.\nFever 38.2°C; observation continued.\nLevel of consciousness remains decreased (AVPU V).\nPrevious day (6/15) fluid balance: intake 959 mL, output 931 mL (urine 149 mL), net +28 mL.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 3.7 L/min; device fit and observation continued.\nNPO continued.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 1 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - night shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 131/77, HR 98, SpO2 98%, T 38.2°C; nasal cannula 3.5 L/min.\nMeds administered: Nicardipine, Labetalol, NS 80 mL/h.\nheadache reported, NRS peak 5, latest 4.\nFever 38.2°C; observation continued.\nLevel of consciousness remains decreased (AVPU V).\nPrevious day (6/15) fluid balance: intake 959 mL, output 931 mL (urine 149 mL), net +28 mL.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 3.5 L/min; device fit and observation continued.\nNPO continued.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 1 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-19-day": {
@@ -820,7 +820,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 133/79, HR 105, SpO2 98%, T 38.5°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS peak 6, latest 5.\nFever 39.1°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/15) fluid balance: intake 959 mL, output 931 mL (urine 149 mL), net +28 mL.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued.\nDiet: Clear liquids, feeding needs partial help, oral intake the previous day 196 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 1 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - day shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 133/79, HR 105, SpO2 98%, T 38.5°C; simple face mask 7.5 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS peak 6, latest 5.\nFever 39.1°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/15) fluid balance: intake 959 mL, output 931 mL (urine 149 mL), net +28 mL.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: simple face mask 7.5 L/min; device fit and observation continued.\nDiet: Clear liquids, feeding needs partial help, oral intake the previous day 196 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 1 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-20-evening": {
@@ -851,7 +851,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 132/80, HR 101, SpO2 98%, T 38.0°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS peak 6, latest 4.\nFever 38.6°C; observation continued.\nLevel of consciousness remains decreased (AVPU V).\nPrevious day (6/15) fluid balance: intake 959 mL, output 931 mL (urine 149 mL), net +28 mL.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued.\nDiet: Clear liquids, feeding needs partial help, oral intake the previous day 196 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 1 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - evening shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 132/80, HR 101, SpO2 98%, T 38.0°C; simple face mask 7.5 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS peak 6, latest 4.\nFever 38.6°C; observation continued.\nLevel of consciousness remains decreased (AVPU V).\nPrevious day (6/15) fluid balance: intake 959 mL, output 931 mL (urine 149 mL), net +28 mL.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: simple face mask 7.5 L/min; device fit and observation continued.\nDiet: Clear liquids, feeding needs partial help, oral intake the previous day 196 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 1 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-21-night": {
@@ -882,7 +882,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 132/82, HR 104, SpO2 98%, T 38.4°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS peak 4, latest 3.\nFever 38.4°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/16) fluid balance: intake 787 mL, output 687 mL (urine 50 mL), net +100 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued.\nDiet: Clear liquids, feeding needs partial help, oral intake the previous day 322 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 2 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - night shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 132/82, HR 104, SpO2 98%, T 38.4°C; simple face mask 7.5 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS peak 4, latest 3.\nFever 38.4°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/16) fluid balance: intake 787 mL, output 687 mL (urine 50 mL), net +100 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: simple face mask 7.5 L/min; device fit and observation continued.\nDiet: Clear liquids, feeding needs partial help, oral intake the previous day 322 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 2 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-22-day": {
@@ -913,7 +913,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 133/80, HR 103, SpO2 98%, T 38.5°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, Labetalol, NS 80 mL/h.\nheadache reported, NRS 7.\nFever 38.7°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/16) fluid balance: intake 787 mL, output 687 mL (urine 50 mL), net +100 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 322 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 2 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - day shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 133/80, HR 103, SpO2 98%, T 38.5°C; simple face mask 7.5 L/min.\nMeds administered: Nicardipine, Labetalol, NS 80 mL/h.\nheadache reported, NRS 7.\nFever 38.7°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/16) fluid balance: intake 787 mL, output 687 mL (urine 50 mL), net +100 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: simple face mask 7.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 322 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 2 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-23-evening": {
@@ -944,7 +944,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 138/82, HR 101, SpO2 98%, T 38.3°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS 6.\nFever 38.6°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/16) fluid balance: intake 787 mL, output 687 mL (urine 50 mL), net +100 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 322 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 2 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - evening shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 138/82, HR 101, SpO2 98%, T 38.3°C; simple face mask 7.5 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS 6.\nFever 38.6°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/16) fluid balance: intake 787 mL, output 687 mL (urine 50 mL), net +100 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: simple face mask 7.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 322 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 2 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-24-night": {
@@ -974,7 +974,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 134/78, HR 102, SpO2 98%, T 37.5°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS 2.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/17) fluid balance: intake 879 mL, output 852 mL (urine 215 mL), net +27 mL.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 330 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 3 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - night shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 134/78, HR 102, SpO2 98%, T 37.5°C; simple face mask 7.5 L/min.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS 2.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/17) fluid balance: intake 879 mL, output 852 mL (urine 215 mL), net +27 mL.\nOxygen: simple face mask 7.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 330 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 3 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-25-day": {
@@ -1005,7 +1005,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 133/80, HR 106, SpO2 98%, T 38.5°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, Sodium Chloride 23.4% Injectable Solution 30mL IV over 15min via central line.\nheadache reported, NRS 4.\nFever 38.5°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/17) fluid balance: intake 879 mL, output 852 mL (urine 215 mL), net +27 mL.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 330 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 3 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - day shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 133/80, HR 106, SpO2 98%, T 38.5°C; simple face mask 7.5 L/min.\nMeds administered: Nicardipine, Sodium Chloride 23.4% Injectable Solution 30mL IV over 15min via central line.\nheadache reported, NRS 4.\nFever 38.5°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/17) fluid balance: intake 879 mL, output 852 mL (urine 215 mL), net +27 mL.\nOxygen: simple face mask 7.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 330 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 3 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-26-evening": {
@@ -1036,7 +1036,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 133/74, HR 102, SpO2 98%, T 38.2°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS 3.\nFever 38.2°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/17) fluid balance: intake 879 mL, output 852 mL (urine 215 mL), net +27 mL.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 330 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 3 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - evening shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 133/74, HR 102, SpO2 98%, T 38.2°C; simple face mask 7.5 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS 3.\nFever 38.2°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/17) fluid balance: intake 879 mL, output 852 mL (urine 215 mL), net +27 mL.\nOxygen: simple face mask 7.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 330 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 3 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-27-night": {
@@ -1065,7 +1065,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 131/80, HR 100, SpO2 98%, T 37.7°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS 2.\nFever 38.7°C; observation continued.\nPrevious day (6/18) fluid balance: intake 1108 mL, output 932 mL (urine 50 mL), net +176 mL.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 1108 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 4 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - night shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 131/80, HR 100, SpO2 98%, T 37.7°C; simple face mask 7.5 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS 2.\nFever 38.7°C; observation continued.\nPrevious day (6/18) fluid balance: intake 1108 mL, output 932 mL (urine 50 mL), net +176 mL.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 1108 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 4 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-28-day": {
@@ -1095,7 +1095,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 136/76, HR 105, SpO2 98%, T 37.7°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS 4.\nFever 38.1°C; observation continued.\nPrevious day (6/18) fluid balance: intake 1108 mL, output 932 mL (urine 50 mL), net +176 mL.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 1108 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 4 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - day shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 136/76, HR 105, SpO2 98%, T 37.7°C; simple face mask 7.5 L/min.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS 4.\nFever 38.1°C; observation continued.\nPrevious day (6/18) fluid balance: intake 1108 mL, output 932 mL (urine 50 mL), net +176 mL.\nOxygen: simple face mask 7.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 1108 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 4 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-29-evening": {
@@ -1125,7 +1125,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 129/80, HR 97, SpO2 98%, T 38.1°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS 6.\nFever 38.1°C; observation continued.\nPrevious day (6/18) fluid balance: intake 1108 mL, output 932 mL (urine 50 mL), net +176 mL.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 1108 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 4 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - evening shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 129/80, HR 97, SpO2 98%, T 38.1°C; simple face mask 7.5 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS 6.\nFever 38.1°C; observation continued.\nPrevious day (6/18) fluid balance: intake 1108 mL, output 932 mL (urine 50 mL), net +176 mL.\nOxygen: simple face mask 7.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 1108 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 4 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-30-night": {
@@ -1154,7 +1154,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 6\nRecorded by: Clara Pittman\nPatient status: BP 137/79, HR 95, SpO2 98%, T 37.1°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS 4.\nPrevious day (6/19) fluid balance: intake 945 mL, output 882 mL (urine 135 mL), net +63 mL.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 945 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 5 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - night shift] Day 6\nRecorded by: Clara Pittman\nPatient status: BP 137/79, HR 95, SpO2 98%, T 37.1°C; simple face mask 7.5 L/min.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS 4.\nPrevious day (6/19) fluid balance: intake 945 mL, output 882 mL (urine 135 mL), net +63 mL.\nOxygen: simple face mask 7.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 945 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 5 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-31-day": {
@@ -1184,7 +1184,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 6\nRecorded by: Clara Pittman\nPatient status: BP 132/80, HR 105, SpO2 98%, T 38.5°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS 4.\nFever 38.5°C; observation continued.\nPrevious day (6/19) fluid balance: intake 945 mL, output 882 mL (urine 135 mL), net +63 mL.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 945 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 5 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - day shift] Day 6\nRecorded by: Clara Pittman\nPatient status: BP 132/80, HR 105, SpO2 98%, T 38.5°C; simple face mask 7.5 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS 4.\nFever 38.5°C; observation continued.\nPrevious day (6/19) fluid balance: intake 945 mL, output 882 mL (urine 135 mL), net +63 mL.\nOxygen: simple face mask 7.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 945 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 5 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-32-evening": {
@@ -1214,7 +1214,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 6\nRecorded by: Clara Pittman\nPatient status: BP 131/78, HR 97, SpO2 98%, T 37.5°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS peak 2, latest 1.\nFever 38.1°C; observation continued.\nPrevious day (6/19) fluid balance: intake 945 mL, output 882 mL (urine 135 mL), net +63 mL.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 945 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 5 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - evening shift] Day 6\nRecorded by: Clara Pittman\nPatient status: BP 131/78, HR 97, SpO2 98%, T 37.5°C; simple face mask 7.5 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS peak 2, latest 1.\nFever 38.1°C; observation continued.\nPrevious day (6/19) fluid balance: intake 945 mL, output 882 mL (urine 135 mL), net +63 mL.\nOxygen: simple face mask 7.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 945 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 5 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-33-night": {
@@ -1244,7 +1244,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 134/78, HR 98, SpO2 98%, T 37.3°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS peak 2, latest 1.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/20) fluid balance: intake 1206 mL, output 1182 mL (urine 391 mL), net +24 mL.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 1206 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 6 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - night shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 134/78, HR 98, SpO2 98%, T 37.3°C; simple face mask 7.5 L/min.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS peak 2, latest 1.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/20) fluid balance: intake 1206 mL, output 1182 mL (urine 391 mL), net +24 mL.\nOxygen: simple face mask 7.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 1206 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 6 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-34-day": {
@@ -1275,7 +1275,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 133/78, HR 103, SpO2 98%, T 38.3°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS peak 2, latest 0.\nFever 39.0°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/20) fluid balance: intake 1206 mL, output 1182 mL (urine 391 mL), net +24 mL.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 1206 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 6 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - day shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 133/78, HR 103, SpO2 98%, T 38.3°C; simple face mask 7.5 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS peak 2, latest 0.\nFever 39.0°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/20) fluid balance: intake 1206 mL, output 1182 mL (urine 391 mL), net +24 mL.\nOxygen: simple face mask 7.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 1206 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 6 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-35-evening": {
@@ -1305,7 +1305,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 136/79, HR 98, SpO2 98%, T 37.6°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS peak 3, latest 0.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/20) fluid balance: intake 1206 mL, output 1182 mL (urine 391 mL), net +24 mL.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued.\nDiet: Soft diet, feeding independent, oral intake the previous day 1206 mL.\nADL: Barthel Index 95/100 (independent); mobility independent, toileting independent. Assistance provided as needed.\nPost-operative day 6 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - evening shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 136/79, HR 98, SpO2 98%, T 37.6°C; simple face mask 7.5 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS peak 3, latest 0.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/20) fluid balance: intake 1206 mL, output 1182 mL (urine 391 mL), net +24 mL.\nOxygen: simple face mask 7.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding independent, oral intake the previous day 1206 mL.\nADL: Barthel Index 95/100 (independent); mobility independent, toileting independent. Assistance provided as needed.\nPost-operative day 6 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-36-night": {
@@ -1334,7 +1334,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 132/81, HR 94, SpO2 98%, T 37.3°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS 1.\nPrevious day (6/21) fluid balance: intake 1265 mL, output 1326 mL (urine 689 mL), net -61 mL.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued.\nDiet: Soft diet, feeding independent, oral intake the previous day 1265 mL.\nADL: Barthel Index 95/100 (independent); mobility independent, toileting independent. Assistance provided as needed.\nPost-operative day 7 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - night shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 132/81, HR 94, SpO2 98%, T 37.3°C; simple face mask 7.5 L/min.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS 1.\nPrevious day (6/21) fluid balance: intake 1265 mL, output 1326 mL (urine 689 mL), net -61 mL.\nOxygen: simple face mask 7.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding independent, oral intake the previous day 1265 mL.\nADL: Barthel Index 95/100 (independent); mobility independent, toileting independent. Assistance provided as needed.\nPost-operative day 7 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-37-day": {
@@ -1363,7 +1363,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 133/80, HR 101, SpO2 98%, T 37.8°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS peak 3, latest 0.\nPrevious day (6/21) fluid balance: intake 1265 mL, output 1326 mL (urine 689 mL), net -61 mL.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued.\nDiet: Soft diet, feeding independent, oral intake the previous day 1265 mL.\nADL: Barthel Index 95/100 (independent); mobility independent, toileting independent. Assistance provided as needed.\nPost-operative day 7 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - day shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 133/80, HR 101, SpO2 98%, T 37.8°C; simple face mask 7.5 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS peak 3, latest 0.\nPrevious day (6/21) fluid balance: intake 1265 mL, output 1326 mL (urine 689 mL), net -61 mL.\nOxygen: simple face mask 7.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding independent, oral intake the previous day 1265 mL.\nADL: Barthel Index 95/100 (independent); mobility independent, toileting independent. Assistance provided as needed.\nPost-operative day 7 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-38-evening": {
@@ -1393,7 +1393,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 135/82, HR 98, SpO2 98%, T 37.4°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS 2.\nFever 38.4°C; observation continued.\nPrevious day (6/21) fluid balance: intake 1265 mL, output 1326 mL (urine 689 mL), net -61 mL.\nOxygen: simple face mask 7.7 L/min; device fit and observation continued.\nDiet: Soft diet, feeding independent, oral intake the previous day 1265 mL.\nADL: Barthel Index 95/100 (independent); mobility independent, toileting independent. Assistance provided as needed.\nPost-operative day 7 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - evening shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 135/82, HR 98, SpO2 98%, T 37.4°C; simple face mask 7.5 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS 2.\nFever 38.4°C; observation continued.\nPrevious day (6/21) fluid balance: intake 1265 mL, output 1326 mL (urine 689 mL), net -61 mL.\nOxygen: simple face mask 7.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding independent, oral intake the previous day 1265 mL.\nADL: Barthel Index 95/100 (independent); mobility independent, toileting independent. Assistance provided as needed.\nPost-operative day 7 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-39-night": {
@@ -1422,7 +1422,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 9\nRecorded by: Clara Pittman\nPatient status: BP 134/78, HR 96, SpO2 98%, T 37.6°C; simple face mask 7.7 L/min.\nMeds administered: Nicardipine.\nNo pain reported (NRS 0).\nFever 38.8°C; observation continued.\nPrevious day (6/22) fluid balance: intake 1391 mL, output 1543 mL (urine 906 mL), net -152 mL.\nDiet: Soft diet, feeding independent, oral intake the previous day 1391 mL.\nADL: Barthel Index 95/100 (independent); mobility independent, toileting independent. Assistance provided as needed.\nPost-operative day 8 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - night shift] Day 9\nRecorded by: Clara Pittman\nPatient status: BP 134/78, HR 96, SpO2 98%, T 37.6°C; simple face mask 7.5 L/min.\nMeds administered: Nicardipine.\nNo pain reported (NRS 0).\nFever 38.8°C; observation continued.\nPrevious day (6/22) fluid balance: intake 1391 mL, output 1543 mL (urine 906 mL), net -152 mL.\nDiet: Soft diet, feeding independent, oral intake the previous day 1391 mL.\nADL: Barthel Index 95/100 (independent); mobility independent, toileting independent. Assistance provided as needed.\nPost-operative day 8 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-40-day": {

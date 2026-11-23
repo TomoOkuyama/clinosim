@@ -32,6 +32,13 @@ wean_hours: 12
 wean_margin_spo2: 1.0
 wean_min_readings: 2
 
+# Recorded oxygen flows are rounded to this step (Issue #3556): flowmeters are
+# set in whole or half litres, so "2.9 L/min" is not a setting. Applied when
+# the flow is recorded, after the SpO2 has been computed from the unrounded
+# flow. Source status: the step is a clinosim modelling choice (not taken from
+# a guideline read in the session that wrote it).
+flow_step_lpm: 0.5
+
 # Mechanical ventilation after an intubation (Issue #3535). The stay is
 # ventilated from the intubation until the extubation rule below is met, or
 # until death. While ventilated the recorded oxygen device is the ventilator
