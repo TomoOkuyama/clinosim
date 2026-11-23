@@ -194,7 +194,7 @@ from clinosim.simulator._vitals_schedule_thresholds import (
 )
 from clinosim.simulator.adl_ceiling import barthel_item_caps
 from clinosim.simulator.maintenance_iv_fluid import maintenance_iv_fluid_rules
-from clinosim.simulator.oxygen_course import OxygenCourse
+from clinosim.simulator.oxygen_course import OxygenCourse, round_oxygen_flow
 from clinosim.simulator.ventricular_rate import VentricularRateCourse
 from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.encounter import (
@@ -812,7 +812,7 @@ def _generate_vitals(
             vitals[i],
             spo2=round(spo2, 1),
             on_supplemental_oxygen=on_o2,
-            oxygen_flow_rate_lpm=round(flow, 1) if flow else None,
+            oxygen_flow_rate_lpm=round_oxygen_flow(flow),
             oxygen_delivery_device=device,
         )
 

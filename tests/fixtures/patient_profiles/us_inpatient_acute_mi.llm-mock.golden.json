@@ -133,11 +133,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #3 — assessment]",
-        "objective": "BP 117/73 mmHg, HR 107 bpm, RR 22 /min, SpO2 99% (nasal cannula 3.2 L/min), T 37.7°C (past 24 h: Tmax 39.2°C, HR max 117 bpm, SpO2 min 92%)",
+        "objective": "BP 117/73 mmHg, HR 107 bpm, RR 22 /min, SpO2 99% (nasal cannula 3 L/min), T 37.7°C (past 24 h: Tmax 39.2°C, HR max 117 bpm, SpO2 min 92%)",
         "plan": "[Mock LLM response #3 — plan]",
         "subjective": "[Mock LLM response #3 — subjective]"
       },
-      "text": "S: [Mock LLM response #3 — subjective]\nO: BP 117/73 mmHg, HR 107 bpm, RR 22 /min, SpO2 99% (nasal cannula 3.2 L/min), T 37.7°C (past 24 h: Tmax 39.2°C, HR max 117 bpm, SpO2 min 92%)\nA: [Mock LLM response #3 — assessment]\nP: [Mock LLM response #3 — plan]"
+      "text": "S: [Mock LLM response #3 — subjective]\nO: BP 117/73 mmHg, HR 107 bpm, RR 22 /min, SpO2 99% (nasal cannula 3 L/min), T 37.7°C (past 24 h: Tmax 39.2°C, HR max 117 bpm, SpO2 min 92%)\nA: [Mock LLM response #3 — assessment]\nP: [Mock LLM response #3 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-04": {
@@ -183,11 +183,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #4 — assessment]",
-        "objective": "BP 113/68 mmHg, HR 106 bpm, RR 17 /min, SpO2 98% (nasal cannula 3.2 L/min), T 37.0°C (past 24 h: Tmax 39.1°C, HR max 119 bpm, RR max 23 /min)",
+        "objective": "BP 113/68 mmHg, HR 106 bpm, RR 17 /min, SpO2 98% (nasal cannula 3 L/min), T 37.0°C (past 24 h: Tmax 39.1°C, HR max 119 bpm, RR max 23 /min)",
         "plan": "[Mock LLM response #4 — plan]",
         "subjective": "[Mock LLM response #4 — subjective]"
       },
-      "text": "S: [Mock LLM response #4 — subjective]\nO: BP 113/68 mmHg, HR 106 bpm, RR 17 /min, SpO2 98% (nasal cannula 3.2 L/min), T 37.0°C (past 24 h: Tmax 39.1°C, HR max 119 bpm, RR max 23 /min)\nA: [Mock LLM response #4 — assessment]\nP: [Mock LLM response #4 — plan]"
+      "text": "S: [Mock LLM response #4 — subjective]\nO: BP 113/68 mmHg, HR 106 bpm, RR 17 /min, SpO2 98% (nasal cannula 3 L/min), T 37.0°C (past 24 h: Tmax 39.1°C, HR max 119 bpm, RR max 23 /min)\nA: [Mock LLM response #4 — assessment]\nP: [Mock LLM response #4 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-05": {
@@ -233,11 +233,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #5 — assessment]",
-        "objective": "BP 113/71 mmHg, HR 103 bpm, RR 20 /min, SpO2 98% (nasal cannula 3.2 L/min), T 37.5°C (past 24 h: Tmax 38.8°C, HR max 114 bpm)",
+        "objective": "BP 113/71 mmHg, HR 103 bpm, RR 20 /min, SpO2 98% (nasal cannula 3 L/min), T 37.5°C (past 24 h: Tmax 38.8°C, HR max 114 bpm)",
         "plan": "[Mock LLM response #5 — plan]",
         "subjective": "[Mock LLM response #5 — subjective]"
       },
-      "text": "S: [Mock LLM response #5 — subjective]\nO: BP 113/71 mmHg, HR 103 bpm, RR 20 /min, SpO2 98% (nasal cannula 3.2 L/min), T 37.5°C (past 24 h: Tmax 38.8°C, HR max 114 bpm)\nA: [Mock LLM response #5 — assessment]\nP: [Mock LLM response #5 — plan]"
+      "text": "S: [Mock LLM response #5 — subjective]\nO: BP 113/71 mmHg, HR 103 bpm, RR 20 /min, SpO2 98% (nasal cannula 3 L/min), T 37.5°C (past 24 h: Tmax 38.8°C, HR max 114 bpm)\nA: [Mock LLM response #5 — assessment]\nP: [Mock LLM response #5 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-06": {
@@ -733,11 +733,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #15 — assessment]",
-        "objective": "BP 119/74 mmHg, HR 95 bpm, RR 16 /min, SpO2 98% (simple face mask 4.4 L/min), T 36.4°C (past 24 h: HR max 103 bpm)",
+        "objective": "BP 119/74 mmHg, HR 95 bpm, RR 16 /min, SpO2 98% (simple face mask 4.5 L/min), T 36.4°C (past 24 h: HR max 103 bpm)",
         "plan": "[Mock LLM response #15 — plan]",
         "subjective": "[Mock LLM response #15 — subjective]"
       },
-      "text": "S: [Mock LLM response #15 — subjective]\nO: BP 119/74 mmHg, HR 95 bpm, RR 16 /min, SpO2 98% (simple face mask 4.4 L/min), T 36.4°C (past 24 h: HR max 103 bpm)\nA: [Mock LLM response #15 — assessment]\nP: [Mock LLM response #15 — plan]"
+      "text": "S: [Mock LLM response #15 — subjective]\nO: BP 119/74 mmHg, HR 95 bpm, RR 16 /min, SpO2 98% (simple face mask 4.5 L/min), T 36.4°C (past 24 h: HR max 103 bpm)\nA: [Mock LLM response #15 — assessment]\nP: [Mock LLM response #15 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-16": {
@@ -891,7 +891,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 117/72, HR 109, SpO2 96%, T 37.5°C; nasal cannula 3.2 L/min.\nMeds administered: Aspirin, Nitroglycerin.\nchest pain reported, NRS 5.\nSpO2 fell to 93% at 00:08; managed on nasal cannula 3.2 L/min.\nPrevious day (6/15) fluid balance: intake 745 mL, output 949 mL (urine 50 mL), net -204 mL.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nOxygen: nasal cannula 3.2 L/min; device fit and observation continued.\nNPO continued.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nDay 1 after Percutaneous transluminal coronary angioplasty (PCI); single major coronary artery. Puncture-site observation (bleeding, hematoma) and distal pulses continued."
+      "text": "[Nursing Shift Note - night shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 117/72, HR 109, SpO2 96%, T 37.5°C; nasal cannula 3 L/min.\nMeds administered: Aspirin, Nitroglycerin.\nchest pain reported, NRS 5.\nSpO2 fell to 93% at 00:08; managed on nasal cannula 3 L/min.\nPrevious day (6/15) fluid balance: intake 745 mL, output 949 mL (urine 50 mL), net -204 mL.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nOxygen: nasal cannula 3 L/min; device fit and observation continued.\nNPO continued.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nDay 1 after Percutaneous transluminal coronary angioplasty (PCI); single major coronary artery. Puncture-site observation (bleeding, hematoma) and distal pulses continued."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-21-day": {
@@ -922,7 +922,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 118/72, HR 113, SpO2 99%, T 36.6°C; nasal cannula 3.2 L/min.\nMeds administered: Ticagrelor, Heparin, Nitroglycerin.\nchest pain reported, NRS 5.\nFever 39.1°C; observation continued.\nPatient refused Nitroglycerin dose.\nPrevious day (6/15) fluid balance: intake 745 mL, output 949 mL (urine 50 mL), net -204 mL.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nOxygen: nasal cannula 3.2 L/min; device fit and observation continued.\nDiet: Clear liquids, feeding needs partial help, oral intake the previous day 130 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nDay 1 after Percutaneous transluminal coronary angioplasty (PCI); single major coronary artery. Puncture-site observation (bleeding, hematoma) and distal pulses continued."
+      "text": "[Nursing Shift Note - day shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 118/72, HR 113, SpO2 99%, T 36.6°C; nasal cannula 3 L/min.\nMeds administered: Ticagrelor, Heparin, Nitroglycerin.\nchest pain reported, NRS 5.\nFever 39.1°C; observation continued.\nPatient refused Nitroglycerin dose.\nPrevious day (6/15) fluid balance: intake 745 mL, output 949 mL (urine 50 mL), net -204 mL.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nOxygen: nasal cannula 3 L/min; device fit and observation continued.\nDiet: Clear liquids, feeding needs partial help, oral intake the previous day 130 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nDay 1 after Percutaneous transluminal coronary angioplasty (PCI); single major coronary artery. Puncture-site observation (bleeding, hematoma) and distal pulses continued."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-22-evening": {
@@ -952,7 +952,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 113/70, HR 113, SpO2 98%, T 37.6°C; nasal cannula 3.2 L/min.\nMeds administered: Ticagrelor, Nitroglycerin.\nchest pain reported, NRS 5.\nFever 38.5°C; observation continued.\nPrevious day (6/15) fluid balance: intake 745 mL, output 949 mL (urine 50 mL), net -204 mL.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nOxygen: nasal cannula 3.2 L/min; device fit and observation continued.\nDiet: Clear liquids, feeding needs partial help, oral intake the previous day 130 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nDay 1 after Percutaneous transluminal coronary angioplasty (PCI); single major coronary artery. Puncture-site observation (bleeding, hematoma) and distal pulses continued."
+      "text": "[Nursing Shift Note - evening shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 113/70, HR 113, SpO2 98%, T 37.6°C; nasal cannula 3 L/min.\nMeds administered: Ticagrelor, Nitroglycerin.\nchest pain reported, NRS 5.\nFever 38.5°C; observation continued.\nPrevious day (6/15) fluid balance: intake 745 mL, output 949 mL (urine 50 mL), net -204 mL.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nOxygen: nasal cannula 3 L/min; device fit and observation continued.\nDiet: Clear liquids, feeding needs partial help, oral intake the previous day 130 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nDay 1 after Percutaneous transluminal coronary angioplasty (PCI); single major coronary artery. Puncture-site observation (bleeding, hematoma) and distal pulses continued."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-23-night": {
@@ -980,7 +980,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 113/67, HR 102, SpO2 100%, T 36.8°C; nasal cannula 3.2 L/min.\nMeds administered: Ticagrelor, Nitroglycerin.\nchest pain reported, NRS 4.\nPrevious day (6/16) fluid balance: intake 1566 mL, output 1341 mL (urine 587 mL), net +225 mL.\nOxygen: nasal cannula 3.2 L/min; device fit and observation continued.\nDiet: Clear liquids, feeding needs partial help, oral intake the previous day 593 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - night shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 113/67, HR 102, SpO2 100%, T 36.8°C; nasal cannula 3 L/min.\nMeds administered: Ticagrelor, Nitroglycerin.\nchest pain reported, NRS 4.\nPrevious day (6/16) fluid balance: intake 1566 mL, output 1341 mL (urine 587 mL), net +225 mL.\nOxygen: nasal cannula 3 L/min; device fit and observation continued.\nDiet: Clear liquids, feeding needs partial help, oral intake the previous day 593 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-24-day": {
@@ -1009,7 +1009,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 111/71, HR 108, SpO2 98%, T 38.5°C; nasal cannula 3.2 L/min.\nMeds administered: Aspirin, Heparin, Nitroglycerin.\nchest pain reported, NRS 4.\nFever 38.8°C; observation continued.\nPrevious day (6/16) fluid balance: intake 1566 mL, output 1341 mL (urine 587 mL), net +225 mL.\nOxygen: nasal cannula 3.2 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 593 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - day shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 111/71, HR 108, SpO2 98%, T 38.5°C; nasal cannula 3 L/min.\nMeds administered: Aspirin, Heparin, Nitroglycerin.\nchest pain reported, NRS 4.\nFever 38.8°C; observation continued.\nPrevious day (6/16) fluid balance: intake 1566 mL, output 1341 mL (urine 587 mL), net +225 mL.\nOxygen: nasal cannula 3 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 593 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-25-evening": {
@@ -1038,7 +1038,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 111/67, HR 108, SpO2 98%, T 37.8°C; nasal cannula 3.2 L/min.\nMeds administered: Ticagrelor, Nitroglycerin.\nchest pain reported, NRS 4.\nFever 38.1°C; observation continued.\nPrevious day (6/16) fluid balance: intake 1566 mL, output 1341 mL (urine 587 mL), net +225 mL.\nOxygen: nasal cannula 3.2 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 593 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - evening shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 111/67, HR 108, SpO2 98%, T 37.8°C; nasal cannula 3 L/min.\nMeds administered: Ticagrelor, Nitroglycerin.\nchest pain reported, NRS 4.\nFever 38.1°C; observation continued.\nPrevious day (6/16) fluid balance: intake 1566 mL, output 1341 mL (urine 587 mL), net +225 mL.\nOxygen: nasal cannula 3 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 593 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-26-night": {
@@ -1066,7 +1066,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 113/66, HR 107, SpO2 98%, T 37.3°C; nasal cannula 3.2 L/min.\nMeds administered: Aspirin, Nitroglycerin.\nchest pain reported, NRS 3.\nPrevious day (6/17) fluid balance: intake 837 mL, output 992 mL (urine 238 mL), net -155 mL.\nOxygen: nasal cannula 3.2 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 262 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - night shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 113/66, HR 107, SpO2 98%, T 37.3°C; nasal cannula 3 L/min.\nMeds administered: Aspirin, Nitroglycerin.\nchest pain reported, NRS 3.\nPrevious day (6/17) fluid balance: intake 837 mL, output 992 mL (urine 238 mL), net -155 mL.\nOxygen: nasal cannula 3 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 262 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-27-day": {
@@ -1858,7 +1858,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 13\nRecorded by: Clara Pittman\nPatient status: BP 115/70, HR 96, SpO2 98%, T 36.2°C; simple face mask 4.4 L/min.\nMeds administered: Aspirin, Nitroglycerin.\nchest pain reported, NRS 1.\nPrevious day (6/26) fluid balance: intake 1723 mL, output 1662 mL (urine 719 mL), net +61 mL.\nOxygen: simple face mask 4.4 L/min; device fit and observation continued.\nDiet: Soft diet, feeding independent, oral intake the previous day 906 mL.\nADL: Barthel Index 95/100 (independent); mobility independent, toileting independent. Assistance provided as needed."
+      "text": "[Nursing Shift Note - day shift] Day 13\nRecorded by: Clara Pittman\nPatient status: BP 115/70, HR 96, SpO2 98%, T 36.2°C; simple face mask 4.5 L/min.\nMeds administered: Aspirin, Nitroglycerin.\nchest pain reported, NRS 1.\nPrevious day (6/26) fluid balance: intake 1723 mL, output 1662 mL (urine 719 mL), net +61 mL.\nOxygen: simple face mask 4.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding independent, oral intake the previous day 906 mL.\nADL: Barthel Index 95/100 (independent); mobility independent, toileting independent. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-55-evening": {
@@ -1886,7 +1886,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 13\nRecorded by: Clara Pittman\nPatient status: BP 118/73, HR 98, SpO2 98%, T 36.6°C; simple face mask 4.4 L/min.\nMeds administered: Ticagrelor, Nitroglycerin.\nNo pain reported (NRS 0).\nPrevious day (6/26) fluid balance: intake 1723 mL, output 1662 mL (urine 719 mL), net +61 mL.\nOxygen: simple face mask 4.4 L/min; device fit and observation continued.\nDiet: Soft diet, feeding independent, oral intake the previous day 906 mL.\nADL: Barthel Index 95/100 (independent); mobility independent, toileting independent. Assistance provided as needed."
+      "text": "[Nursing Shift Note - evening shift] Day 13\nRecorded by: Clara Pittman\nPatient status: BP 118/73, HR 98, SpO2 98%, T 36.6°C; simple face mask 4.5 L/min.\nMeds administered: Ticagrelor, Nitroglycerin.\nNo pain reported (NRS 0).\nPrevious day (6/26) fluid balance: intake 1723 mL, output 1662 mL (urine 719 mL), net +61 mL.\nOxygen: simple face mask 4.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding independent, oral intake the previous day 906 mL.\nADL: Barthel Index 95/100 (independent); mobility independent, toileting independent. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-56-night": {
@@ -1914,7 +1914,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 14\nRecorded by: Clara Pittman\nPatient status: BP 118/71, HR 98, SpO2 98%, T 36.6°C; simple face mask 4.4 L/min.\nMeds administered: Aspirin, Heparin, Nitroglycerin.\nchest pain reported, NRS 2.\nPrevious day (6/27) fluid balance: intake 1440 mL, output 1378 mL (urine 414 mL), net +62 mL.\nOxygen: simple face mask 4.4 L/min; device fit and observation continued.\nDiet: Soft diet, feeding independent, oral intake the previous day 962 mL.\nADL: Barthel Index 95/100 (independent); mobility independent, toileting independent. Assistance provided as needed."
+      "text": "[Nursing Shift Note - night shift] Day 14\nRecorded by: Clara Pittman\nPatient status: BP 118/71, HR 98, SpO2 98%, T 36.6°C; simple face mask 4.5 L/min.\nMeds administered: Aspirin, Heparin, Nitroglycerin.\nchest pain reported, NRS 2.\nPrevious day (6/27) fluid balance: intake 1440 mL, output 1378 mL (urine 414 mL), net +62 mL.\nOxygen: simple face mask 4.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding independent, oral intake the previous day 962 mL.\nADL: Barthel Index 95/100 (independent); mobility independent, toileting independent. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-57-day": {

@@ -22,7 +22,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from clinosim.datafiles import load_data_yaml
 
-__all__ = ["OxygenCourse", "OxygenCourseRules", "VentilationRules", "oxygen_course_rules"]
+__all__ = ["OxygenCourse", "OxygenCourseRules", "VentilationRules", "oxygen_course_rules", "round_oxygen_flow"]
 
 # (on, flow L/min, device) as _o2_for returns them.
 O2Draw = tuple[bool, float | None, str]
@@ -53,6 +53,7 @@ class OxygenCourseRules(BaseModel):
     wean_hours: float = Field(gt=0)
     wean_margin_spo2: float = Field(ge=0)
     wean_min_readings: int = Field(ge=1)
+    flow_step_lpm: float = Field(gt=0)
     ventilation: VentilationRules
 
 
@@ -62,6 +63,18 @@ def oxygen_course_rules() -> OxygenCourseRules:
     return OxygenCourseRules.model_validate(
         load_data_yaml(Path(__file__).resolve().parent / "reference_data" / "oxygen_course.yaml")
     )
+
+
+def round_oxygen_flow(flow: float | None) -> float | None:
+    """The flow as set on a flowmeter: rounded to ``flow_step_lpm`` (Issue #3556).
+
+    Applied only when the flow is recorded; the SpO2 and the course's titration
+    use the unrounded flow, so the recorded SpO2 does not change. A positive
+    flow never rounds down to zero (the lowest setting is one step)."""
+    if not flow:
+        return None
+    step = oxygen_course_rules().flow_step_lpm
+    return max(step, round(round(flow / step) * step, 3))
 
 
 @dataclass
