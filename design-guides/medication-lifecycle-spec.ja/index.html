@@ -2564,7 +2564,7 @@
 <td><code>tests/unit/simulator/test_vasoactive_weaning_3270.py</code></td>
 </tr>
 <tr>
-<td>補助酸素は読み取りごとのフラグでなく入院中の状態として扱う。室内気 SpO2 が目標(92%、COPD 増悪は 88%)を下回った最初の測定で開始し、デバイスと流量はその測定の抽選値を使い、酸素下の記録 SpO2 が目標未満の間は増量のみ行い(減量しない)、室内気 SpO2 が目標+1 ポイント以上の状態が 12 時間続き(2 測定以上)た場合に限り中止する(閾値はモデル上の選択。BTS 2017: 安定し SpO2 が良好な患者で酸素を減量・中止する)。その間の全測定(連続モニタ測定を含む)が同じ酸素投与フラグ・デバイス・流量を持ち、中止後に目標を下回れば新しい投与になる。測定ごとの抽選は従来どおり行うため RNG ストリームは動かない。</td>
+<td>補助酸素は読み取りごとのフラグでなく入院中の状態として扱う。室内気 SpO2 が目標(92%、COPD 増悪は 88%)を下回った最初の測定で開始し、デバイスと流量はその測定の抽選値を使い、酸素下の記録 SpO2 が目標未満の間は増量のみ行い(減量しない)、室内気 SpO2 が目標+1 ポイント以上の状態が 12 時間続き(2 測定以上)た場合に限り中止する(閾値はモデル上の選択。BTS 2017: 安定し SpO2 が良好な患者で酸素を減量・中止する)。その間の全測定(連続モニタ測定を含む)が同じ酸素投与フラグ・デバイス・流量を持ち、中止後に目標を下回れば新しい投与になる。記録する流量は、SpO2 を丸め前の流量で計算した後に、<code>oxygen_course.yaml</code> のフローメーター刻み (<code>flow_step_lpm</code>、0.5 L/分) に丸める (SpO2 は変わらない)。測定ごとの抽選は従来どおり行うため RNG ストリームは動かない。</td>
 <td><code>simulator/oxygen_course.py</code> (<code>OxygenCourse</code>)、<code>vitals_pipeline.py</code> (<code>resolve_oxygen</code>, <code>_generate_vitals</code>)、<code>terminal_course.py</code>; データ <code>simulator/reference_data/oxygen_course.yaml</code>; 経過は <code>daily_loop.py::_Run.oxygen</code> が保持</td>
 <td><code>tests/unit/simulator/test_oxygen_course_3469.py</code></td>
 </tr>
