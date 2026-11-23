@@ -498,6 +498,15 @@ def _finalize_discharge(
     # singleton) and avoids extra doc stubs for the synthesized ED.
     if encounter.admit_source == AdmitSource.EMD and not encounter.admit_source_encounter_id:
         encounter.admit_source_encounter_id = f"{encounter.encounter_id}-ED"
+    if encounter.last_known_well is None:
+        # Issue #3558: an acute stroke admission records when the patient was
+        # last known well (arrival minus the onset-to-arrival interval; the ED
+        # phase of a via-ED admission precedes the admission by the ED stay).
+        from clinosim.modules.triage.engine import admitted_ed_stay
+        from clinosim.simulator.stroke_onset import last_known_well
+
+        arrival = admission_time - admitted_ed_stay() if encounter.admit_source == AdmitSource.EMD else admission_time
+        encounter.last_known_well = last_known_well(encounter.encounter_id, disease_id, arrival, country_key)
     if not encounter.discharge_disposition:
         # EXP on death (#299), SNF when still unsafe for home at the end of
         # the stay (Issue #2084), otherwise HOME.

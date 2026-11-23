@@ -327,6 +327,16 @@ def sha_normal(salt: str, mean: float = 0.0, sd: float = 1.0) -> float:
     return mean + sd * math.sqrt(-2.0 * _log(u1)) * _cos(_TWO_PI_FLOAT * u2)
 
 
+def sha_lognormal(salt: str, median: float, sigma: float) -> float:
+    """Return a deterministic log-normal variate with the given ``median`` and
+    log-scale ``sigma`` from a SHA-256 hash of ``salt`` (:func:`sha_normal`
+    through the cross-platform ``_pow``). RNG-neutral like the other ``sha_*``
+    helpers."""
+    if median <= 0.0 or sigma < 0.0:
+        raise ValueError(f"sha_lognormal needs median > 0 and sigma >= 0, got {median}, {sigma}")
+    return median * _pow(math.e, sha_normal(salt, 0.0, sigma))
+
+
 def sha_weighted_choice(salt: str, choices: tuple[str, ...], weights: tuple[float, ...]) -> str:
     """Deterministic weighted choice from a SHA-salted quantile.
 

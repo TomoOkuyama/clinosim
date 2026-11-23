@@ -28,6 +28,7 @@ from clinosim.simulator.oxygen_course import OxygenCourseRules
 from clinosim.simulator.permissive_hypertension import PermissiveHypertensionRules
 from clinosim.simulator.sex_gating import SexRestrictionRules
 from clinosim.simulator.statin_monitoring import StatinMonitoringRules
+from clinosim.simulator.stroke_onset import StrokeOnsetRules
 from clinosim.simulator.vasoactive_support import VasoactiveWeaningRules
 from clinosim.simulator.vasopressor_initiation import VasopressorInitiationRules
 
@@ -52,6 +53,7 @@ _MODELS: dict[str, type[BaseModel]] = {
     "permissive_hypertension_hold.yaml": PermissiveHypertensionRules,
     "renal_medication_rules.yaml": RenalMedicationRules,
     "statin_monitoring.yaml": StatinMonitoringRules,
+    "stroke_onset_to_arrival.yaml": StrokeOnsetRules,
     "vasoactive_hold.yaml": VasoactiveHoldRules,
     "vasoactive_weaning.yaml": VasoactiveWeaningRules,
     "vasopressor_initiation.yaml": VasopressorInitiationRules,
@@ -105,6 +107,7 @@ _NESTED: dict[str, Callable[[dict[str, Any]], None]] = {
     "permissive_hypertension_hold.yaml": lambda d: d["held_classes"].append("antihypertensives"),
     "renal_medication_rules.yaml": lambda d: d["renal_drugs"].update(metformin="hld"),
     "statin_monitoring.yaml": lambda d: _rename(d["countries"]["US"]["step_up_ldl"][0], "ldl_mg_dl", "ldl_mgdl"),
+    "stroke_onset_to_arrival.yaml": lambda d: d["countries"]["us"].update(median_minute=155),
     "vasoactive_hold.yaml": lambda d: d["held_classes"].append("antihypertensives"),
     "vasoactive_weaning.yaml": lambda d: d.update(stable_hours={"hours": 24}),
     "vasopressor_initiation.yaml": lambda d: d["fluid_drug_ids"].append({"drug": "normal_saline"}),

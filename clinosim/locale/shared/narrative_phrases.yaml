@@ -928,6 +928,14 @@ adl_detail:
     ja: "Barthel 指数 {score}/100 → {band}{detail}"
     en: "Barthel Index {score}/100 → {band}{detail}"
 
+# Acute stroke present illness (Issue #3558): the time the patient was last
+# known well (Encounter.last_known_well), appended to the HPI of the admission
+# H&P and the ED note of a stroke admission. {when} is "YYYY-MM-DD HH:MM".
+stroke_onset:
+  last_known_well:
+    ja: "最終健常確認時刻: {when}。"
+    en: "Last known well: {when}."
+
 # Discharge-summary hospital_course composer phrases (Phase 1d-19).
 # From section_builders.discharge_summary.build_hospital_course.
 hospital_course:
