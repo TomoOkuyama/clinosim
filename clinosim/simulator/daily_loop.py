@@ -34,6 +34,7 @@ from clinosim.modules.clinical_course.engine import (
     get_daily_directive,
     natural_recovery_directive,
 )
+from clinosim.modules.code_status.engine import airway_declined
 from clinosim.modules.diagnosis.engine import update_differential
 from clinosim.modules.disease.localization import archetype_start_entries
 from clinosim.modules.disease.protocol import DiseaseProtocol, load_disease_protocol
@@ -307,6 +308,9 @@ class DailyLoopResult:
     aki_at_discharge: bool = False
     # Issue #3539: the final lactate is at or above the metformin hold threshold.
     lactate_high_at_discharge: bool = False
+    # Issue #3551: the patient decided against intubation, so the airway escalation
+    # did not intubate (the code-status enricher assigns a tier that declines it).
+    airway_declined: bool = False
 
 
 @dataclass
@@ -374,6 +378,7 @@ class _Run:
     icu_transferred_day: int = -1  # C5-22: day of ICU transfer
     intubated: bool = False
     intubated_day: int | None = None  # Issue #2101: complication context
+    airway_declined: bool = False  # Issue #3551: the airway threshold was crossed, the patient declined intubation
     escalation_procedures: list = field(default_factory=list)  # Issue #2091: state-driven intubation records
     prev_diet: str = ""  # last diet ordered for this patient
     oral_diet_since_day: int | None = None  # Issue #3409: day the diet first became oral (None: not oral)
@@ -388,10 +393,23 @@ class _Run:
     oxygen: OxygenCourse = field(default_factory=OxygenCourse)  # Issue #3469: supplemental-oxygen state
 
 
+def _airway_escalation_allowed(stay: _Stay, run: _Run) -> bool:
+    """Issue #3551: the airway is secured only when the patient has not decided
+    against intubation (a not-for-intubation or comfort-care status), decided
+    before the escalation from a sub-RNG of the encounter id (no draw from the
+    stay's RNG). The decision is kept on the run for the code-status enricher."""
+    if run.airway_declined:
+        return False
+    if airway_declined(stay.patient.age, stay.country, stay.encounter_id):
+        run.airway_declined = True
+        return False
+    return True
+
+
 def _escalate_on_arrival(stay: _Stay, run: _Run) -> None:
     """Presentation already beyond the airway / ICU thresholds (e.g. GCS <= 8 on
     arrival): intubate and transfer on the admission day."""
-    if airway_escalation_needed(run.state):
+    if airway_escalation_needed(run.state) and _airway_escalation_allowed(stay, run):
         run.intubated = True
         run.intubated_day = 0
         run.oxygen.start_ventilation(stay.admission_time + timedelta(hours=1))
@@ -1530,7 +1548,7 @@ def _update_ventilation(stay: _Stay, run: _Run, day: int, *, last_day: bool) -> 
 def _escalate_airway_and_icu(stay: _Stay, run: _Run, day: int) -> None:
     """State-driven airway / ICU escalation (Issue #2091): intubation on the
     day the airway threshold is crossed, ICU transfer for airway or shock."""
-    if not run.intubated and airway_escalation_needed(run.state):
+    if not run.intubated and airway_escalation_needed(run.state) and _airway_escalation_allowed(stay, run):
         run.intubated = True
         run.intubated_day = day
         intubated_at = stay.admission_time + timedelta(days=day, hours=AIRWAY_ESCALATION_HOUR)
@@ -1941,6 +1959,7 @@ def _run_daily_loop(
         actual_los=actual_los,
         on_vasoactive_support=on_support and not run.death_occurred,
         aki_at_discharge=run.aki.active and not run.death_occurred,
+        airway_declined=run.airway_declined,
         lactate_high_at_discharge=bool(run.lactate.points)
         and run.lactate.active_at(run.lactate.points[-1][0])
         and not run.death_occurred,

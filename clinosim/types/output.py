@@ -97,6 +97,9 @@ class CIFPatientRecord:
     # written before it existed.
     home_medications_at_admission: list[HomeMedication] | None = None
     icu_transferred: bool = False
+    # Issue #3551: the airway threshold was crossed and the patient had decided
+    # against intubation, so none was performed.
+    airway_declined: bool = False
     # C5-22 (imaging chain closure): day (0-indexed LOS day) at
     # which the patient was transferred to ICU. -1 when no transfer. Used
     # by `_fhir_encounter._build_class_history` to emit FHIR

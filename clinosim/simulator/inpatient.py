@@ -1212,6 +1212,7 @@ def _simulate_patient(
         microbiology=microbiology,
         discharge_prescription=discharge_rx,
         icu_transferred=icu_transferred,
+        airway_declined=loop_result.airway_declined,
         icu_transferred_day=icu_transferred_day,
         deceased=death_occurred,
         death_day=actual_los if death_occurred else None,

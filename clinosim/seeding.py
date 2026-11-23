@@ -492,6 +492,12 @@ def resuscitation_seed(patient_id: str, encounter_id: str) -> int:
     return _digest_int(f"resuscitation:{patient_id}:{encounter_id}", 8)
 
 
+def airway_declined_seed(encounter_id: str) -> int:
+    """Per-stay seed of the decision to decline intubation (Issue #3551, 64-bit); the
+    stay's own RNG is not read."""
+    return _digest_int(f"airway-declined:{encounter_id}", 8)
+
+
 def newborn_seed(key: str) -> int:
     """Per-mother (or per-key) seed for newborn attributes, bed and delivery
     mode draws, in ``[0, 2**32)``."""

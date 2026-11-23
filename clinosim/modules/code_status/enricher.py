@@ -21,6 +21,10 @@ def _qualifies(encounter_type: str, deceased: bool, icu: bool) -> bool:
     return False
 
 
+def _intubated(rec) -> bool:
+    return any(_get(p, "procedure_type", "") == "intubation" for p in _get(rec, "procedures", []) or [])
+
+
 def enrich_code_status(ctx) -> None:
     country = _get(_get(ctx, "config"), "country", "US") if _get(ctx, "config") else "US"
     for rec in ctx.records:
@@ -36,5 +40,8 @@ def enrich_code_status(ctx) -> None:
             age = int(_get(patient, "age", 0) or 0) if patient else 0
             context = "terminal" if deceased else ("icu" if icu else "routine")
             rng = determinism.default_rng(derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["code_status"], eid))
-            code = assign_code_status(age, context, country, rng)
+            # Issue #3551: the airway decision made in the stay is kept (declined:
+            # a tier that declines intubation; intubated: one that does not).
+            airway = "declined" if _get(rec, "airway_declined", False) else ("intubated" if _intubated(rec) else "")
+            code = assign_code_status(age, context, country, rng, airway=airway)
         _set(rec, "code_status", code)

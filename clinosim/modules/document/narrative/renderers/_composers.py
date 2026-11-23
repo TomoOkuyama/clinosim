@@ -634,6 +634,30 @@ def compose_progress_held_line(ctx: NarrativeContext) -> str:
     return t("progress.meds_held", ctx.target_lang, list=cap_names(held, ctx.target_lang)) if held else ""
 
 
+def compose_progress_intubation_status_line(ctx: NarrativeContext) -> str:
+    """The plan line of the first note after an intubation of a patient whose
+    resuscitation status is "not for resuscitation" (Issue #3551): the status
+    stays in place and the ventilation is a time-limited trial. ``""`` for any
+    other note: another status, no intubation, or an intubation outside the
+    note's period (the period since the previous note, as ``_note_period_vitals``)."""
+    from datetime import timedelta
+
+    from clinosim.modules.document.narrative._narrative_interpretation_thresholds import notable_lab_rules
+    from clinosim.modules.document.reference_data_loaders import load_death_course
+
+    as_of = getattr(ctx, "authored_datetime", None)
+    if as_of is None or ctx.code_status not in load_death_course().not_for_resuscitation_codes:
+        return ""
+    window = timedelta(hours=notable_lab_rules().window_hours)
+    for proc in ctx.procedures or []:
+        if str(_o(proc, "procedure_type", "") or "") != "intubation":
+            continue
+        start = parse_iso_datetime(_o(proc, "start_datetime", None), lenient=True)
+        if start is not None and as_of - window < start <= as_of:
+            return t("progress.intubation_code_status", ctx.target_lang)
+    return ""
+
+
 def compose_progress_plan_from_state(ctx: NarrativeContext) -> str:
     """Inpatient progress_note Plan from CIF facts: the drugs of the note's
     period — started, continued, given once, held and stopped, each ranked

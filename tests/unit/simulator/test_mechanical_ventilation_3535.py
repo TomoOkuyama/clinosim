@@ -149,7 +149,7 @@ def test_final_readings_stay_on_the_ventilator() -> None:
 
 def _stay_and_run(state: PhysiologicalState):
     stay = SimpleNamespace(
-        patient=SimpleNamespace(patient_id="POP-1"),
+        patient=SimpleNamespace(patient_id="POP-1", age=60),
         encounter_id="ENC-1",
         admission_time=T0,
         attending_id="DR-1",
