@@ -352,6 +352,15 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
     return conditions
 
 
+def _apply_last_known_well(cond: dict, ctx: _ConditionContext) -> None:
+    """Issue #3558: an acute stroke admission's Condition begins when the
+    patient was last known well (``Encounter.last_known_well``), before the
+    arrival; ``recordedDate`` stays the admission time. No-op otherwise."""
+    lkw = ctx.encounter.get("last_known_well") if ctx.encounter else None
+    if lkw:
+        cond["onsetDateTime"] = to_fhir_datetime(lkw)
+
+
 def _primary_condition(
     ctx: _ConditionContext, record: dict, dx: dict, chronic_list: list, seen_codes: set[str]
 ) -> dict | None:
@@ -430,6 +439,7 @@ def _primary_condition(
         # broken by date-only precision.
         cond["onsetDateTime"] = to_fhir_datetime(ctx.admission_dt)
         cond["recordedDate"] = cond["onsetDateTime"]
+        _apply_last_known_well(cond, ctx)
 
     if ctx.encounters:
         cond["encounter"] = encounter_ref(ctx.encounter_id)
@@ -509,6 +519,7 @@ def _admission_condition(ctx: _ConditionContext, dx: dict, chronic_list: list) -
     if ctx.admission_dt:
         cond["onsetDateTime"] = to_fhir_datetime(ctx.admission_dt)
         cond["recordedDate"] = cond["onsetDateTime"]
+        _apply_last_known_well(cond, ctx)
     if ctx.resolved_at_discharge:
         cond["abatementDateTime"] = to_fhir_datetime(ctx.discharge_dt)
     _set_bodysite(cond, admit_raw, ctx.country)

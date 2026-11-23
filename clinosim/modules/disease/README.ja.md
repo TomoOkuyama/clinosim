@@ -295,4 +295,6 @@ pytest tests/unit -k disease -q
 
 急性期脳卒中 (`cerebral_infarction`、`hemorrhagic_stroke`) の側は、滞在ごとに 1 つで、encounter id のハッシュから乱数を引かずに導く (`laterality.py`、Issue #3557)。`stroke_weakness_side` は入院時診察が書く麻痺側、`stroke_lesion_side` は反対側の大脳半球 (右麻痺と左方への共同偏視は左中大脳動脈領域の病変) で、頭部画像レポートの `{side}` になる。
 
+急性期脳卒中患者の最終健常確認時刻 (`Encounter.last_known_well`、Issue #3558) は、来院時刻 (救急経由入院では入院時刻から救急滞在時間を引いたもの) から発症〜来院間隔を引いた時刻である。間隔は国別の対数正規分布 (`simulator/reference_data/stroke_onset_to_arrival.yaml`。米国は AHA Get With The Guidelines-Stroke の中央値 155 分、日本は Japan Standard Stroke Registry Study で虚血性脳卒中の 38% が 3 時間以内に入院したことに合わせた中央値 285 分) から、encounter id のハッシュで乱数を引かずに決める (`simulator/stroke_onset.py`)。入院時 H&P と救急記録がこれを記載し (「最終健常確認時刻: 2026-06-20 14:30。」)、主病名 Condition の `onsetDateTime` はこの時刻になる (`recordedDate` は入院時刻のまま)。血栓溶解療法はモデル化していないため、治療判断はこの間隔に依存しない。
+
 記録の完成後、`simulator/chronic_reconcile.py` が、同一患者の先行する受診で未記載だった慢性疾患の発症日を、その受診の翌日 (後から初めて記録) に移す。どの受診も発症日と矛盾しない。

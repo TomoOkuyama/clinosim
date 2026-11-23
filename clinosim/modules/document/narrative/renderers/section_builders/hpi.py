@@ -44,6 +44,7 @@ from clinosim.modules.document.narrative.renderers.section_builders.patient_hist
     home_medications_at_admission,
 )
 from clinosim.modules.document.reference_data_loaders import hpi_pertinent_negatives
+from clinosim.timeutil import parse_iso_datetime
 from clinosim.types.document import DocumentType, NarrativeContext
 
 if TYPE_CHECKING:
@@ -64,8 +65,25 @@ def build_hpi(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> t
     the check at each return.
     """
     text, facts = _build_hpi_core(generator, ctx)
+    text, facts = _maybe_append_last_known_well(text, facts, ctx)
     text, facts = _maybe_append_readmission(text, facts, ctx)
     return _maybe_append_newborn_workup(text, facts, ctx)
+
+
+def _maybe_append_last_known_well(text: str, facts: list[str], ctx: NarrativeContext) -> tuple[str, list[str]]:
+    """Issue #3558: the H&P and the ED note of an acute stroke admission state
+    when the patient was last known well (``Encounter.last_known_well``);
+    nothing for an encounter without one."""
+    if ctx.document_type not in (DocumentType.ADMISSION_HP, DocumentType.ED_NOTE) or ctx.encounter is None:
+        return text, facts
+    when = parse_iso_datetime(_o(ctx.encounter, "last_known_well", None), lenient=True)
+    if when is None:
+        return text, facts
+    sentence = t("stroke_onset.last_known_well", ctx.target_lang, when=when.strftime("%Y-%m-%d %H:%M"))
+    facts.append("ctx.encounter.last_known_well")
+    if not text:
+        return sentence, facts
+    return f"{text}{t('list_sep.sentence_gap', ctx.target_lang)}{sentence}", facts
 
 
 def _maybe_append_readmission(text: str, facts: list[str], ctx: NarrativeContext) -> tuple[str, list[str]]:

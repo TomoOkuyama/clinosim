@@ -1,0 +1,41 @@
+# Interval from the last time an acute stroke patient was known to be well to
+# the arrival at the hospital (Issue #3558). Read by
+# clinosim/simulator/stroke_onset.py, which sets Encounter.last_known_well of an
+# acute stroke admission to the arrival time minus a log-normal draw
+# (median `median_minutes`, log-scale `sigma`) from a hash of the encounter id
+# (no simulation RNG stream is consumed), clamped to
+# [`min_minutes`, `max_minutes`].
+#
+# Sources read in this change:
+#   - United States: Ader J et al., Neurology 2019 (PMC6711658), AHA Get With
+#     The Guidelines-Stroke 2015-2017, 118,683 ischemic stroke patients
+#     brought by ground EMS to 1,489 hospitals. Onset-to-arrival time (the
+#     time symptoms were discovered to arrival) median 155 min,
+#     IQR 64-484 min; 52.7-58.2% arrived within 3.5 h (by driving-time
+#     quartile). A log-normal with median 155 and sigma 1.5 reproduces the
+#     quartiles (sigma = ln(484/64) / (2 * 0.6745) = 1.50) and puts 58% within
+#     3.5 h.
+#   - Japan: the Japan Standard Stroke Registry Study (Japanese Journal of
+#     Stroke 2002, abstract only): 38% of ischemic stroke patients were
+#     admitted within 3 h (about 8,000 acute stroke cases, 45 stroke centers,
+#     1999-2002). That is the only figure read, so the log-scale sigma is
+#     borrowed from the US quartiles and the median is set so that 38% fall
+#     within 3 h: median = 180 min * exp(0.305 * 1.5) = 285 min.
+# MODELLING CHOICES (no source read): the same distribution is used for
+# haemorrhagic stroke (no registry figure for it was read), and the clamp
+# bounds (5 min, 72 h) are simulation choices that keep the draw inside the
+# documented care pathway. Thrombolysis is not modelled in clinosim, so no
+# treatment decision depends on this interval.
+metadata:
+  kind: reference
+  name: stroke_onset_to_arrival
+  source: clinosim
+
+disease_ids: [cerebral_infarction, hemorrhagic_stroke]
+min_minutes: 5
+max_minutes: 4320
+# Per-country log-normal; `default` applies to a country without an entry.
+default: us
+countries:
+  us: {median_minutes: 155, sigma: 1.5}
+  japan: {median_minutes: 285, sigma: 1.5}

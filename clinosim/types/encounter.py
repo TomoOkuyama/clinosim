@@ -120,6 +120,11 @@ class Encounter:
     # preserves existing behaviour for all non-companion encounters).
     admission_diagnosis_code: str = ""
     admission_diagnosis_system: str = ""
+    # Issue #3558: the last time an acute stroke patient was known to be well
+    # (symptom onset when witnessed): the arrival at the hospital minus an
+    # onset-to-arrival interval (simulator/stroke_onset.py). ``None`` for every
+    # encounter that is not an acute stroke admission.
+    last_known_well: datetime | None = None
 
     def __post_init__(self) -> None:
         if self.time_resolution is None:
