@@ -1,11 +1,14 @@
-"""Executing the actions a complication declares (Issue #3543).
+"""Executing the actions a complication declares (Issues #3543, #3639).
 
 A disease YAML lists ``actions`` on a complication. Only ``icu_transfer`` was
 ever acted on, so an infectious complication (aspiration pneumonia, urinary
 tract infection, surgical site infection, sepsis, ...) got no antibiotic. This
 module resolves the antibiotic actions: the one canonical spelling of an
 action, and the empirical regimen of a complication, taken from the first-line
-antibiotics of the disease protocol that the reference data names for it.
+antibiotics of the disease protocol that the reference data names for it. The
+airway action (intubation / mechanical ventilation, Issue #3639) is resolved
+here too; the diagnosis a complication gives the stay is in
+``complication_dx`` (Issue #3673).
 Values live in ``reference_data/complication_actions.yaml``. Everything here is
 RNG-free.
 """
@@ -34,6 +37,8 @@ class ComplicationActionRules(BaseModel):
     antibiotic_actions: dict[_Slug, dict[_Slug, _Slug]] = Field(min_length=1)
     no_regimen: tuple[_Slug, ...]
     not_executed_antibiotic_actions: tuple[_Slug, ...]
+    airway_actions: tuple[_Slug, ...] = Field(min_length=1)
+    not_executed_airway_actions: tuple[_Slug, ...]
 
 
 @functools.cache
@@ -56,6 +61,17 @@ def antibiotic_actions_of(complication: dict[str, Any]) -> list[str]:
     out: dict[str, None] = {}
     for action in complication.get("actions", []) or []:
         if isinstance(action, str) and canonical_action(action) in rules.antibiotic_actions:
+            out.setdefault(canonical_action(action))
+    return list(out)
+
+
+def airway_actions_of(complication: dict[str, Any]) -> list[str]:
+    """The canonical executed airway actions a complication declares (``intubate``
+    for intubation / mechanical ventilation), in order and without repeats."""
+    rules = complication_action_rules()
+    out: dict[str, None] = {}
+    for action in complication.get("actions", []) or []:
+        if isinstance(action, str) and canonical_action(action) in rules.airway_actions:
             out.setdefault(canonical_action(action))
     return list(out)
 

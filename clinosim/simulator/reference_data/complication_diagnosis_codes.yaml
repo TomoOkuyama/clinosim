@@ -34,6 +34,7 @@ codes:
   respiratory_failure: J96.00
   respiratory_failure_requiring_niv: J96.00
   acute_respiratory_distress_syndrome: J80
+  acute_respiratory_distress: J80
   ards: J80
   ARDS: J80
   disseminated_intravascular_coagulation: D65
