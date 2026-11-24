@@ -629,6 +629,20 @@ outpatient:
   subject_no_sex:
     ja: "{age}歳患者、"
     en: "{age}-year-old patient"
+  # Issue #3702: a child under one year (age 0), by age in months; under one
+  # month, a newborn.
+  subject_infant_with_sex:
+    ja: "生後{months}か月の乳児 ({sex})、"
+    en: "{months}-month-old {sex} patient"
+  subject_infant_no_sex:
+    ja: "生後{months}か月の乳児、"
+    en: "{months}-month-old patient"
+  subject_newborn_with_sex:
+    ja: "新生児 ({sex})、"
+    en: "Newborn {sex} patient"
+  subject_newborn_no_sex:
+    ja: "新生児、"
+    en: "Newborn patient"
   visit_reason_with_cc:
     ja: "本日「{cc}」のため外来受診。"
     en: " presenting for {cc}."
