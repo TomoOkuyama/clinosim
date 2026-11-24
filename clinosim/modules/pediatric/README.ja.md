@@ -154,7 +154,7 @@ pediatric event を他の calendar event と同等に扱う。
 | Population calendar loop | [`clinosim/modules/population/engine.py`](../population/engine.py) (`generate_healthcare_calendar` 内) | (person, year) ごとに `generate_pediatric_events(person, year, prng, country=country)` を呼び、返却 `LifeEvent` を calendar `events` list に追加。 |
 | Healthcare-calendar dispatch | [`clinosim/simulator/phases/_healthcare_calendar.py`](../../simulator/phases/_healthcare_calendar.py) | `event_type == "pediatric_visit"` を外来受診に振り分け (診療科は `resolve_outpatient_department`、主訴は `_pediatric_visit_reason(disease_id)`)。 |
 | Visit-reason lookup | [`clinosim/simulator/_setup.py`](../../simulator/_setup.py) (`_pediatric_visit_reason`) | `load_pediatric_schedule()` から `visit_reason` を読む。 |
-| Outpatient encounter | [`clinosim/simulator/outpatient.py`](../../simulator/outpatient.py), [`outpatient_dept.py`](../../simulator/outpatient_dept.py) | `visit_type == "pediatric_visit"` 分岐。`pediatric_presentation` が急性受診の vitals・発熱状態・処方を供給。 |
+| Outpatient encounter | [`clinosim/simulator/outpatient.py`](../../simulator/outpatient.py), [`outpatient_dept.py`](../../simulator/outpatient_dept.py) | `visit_type == "pediatric_visit"` 分岐。`pediatric_presentation` が急性受診の vitals・発熱状態・処方を供給。健診の受診は体温・心拍を測定し、3 歳以上では血圧・呼吸数も測定する (`clinosim/locale/shared/chronic_followup.yaml` の `_well_child_vitals`、Issue #3653、乱数の引き方は変えない)。 |
 
 ## テスト
 

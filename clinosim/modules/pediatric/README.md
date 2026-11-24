@@ -159,7 +159,7 @@ treats pediatric events like any other calendar event.
 | Population calendar loop | [`clinosim/modules/population/engine.py`](../population/engine.py) (inside `generate_healthcare_calendar`) | Calls `generate_pediatric_events(person, year, prng, country=country)` per (person, year) and extends the calendar's `events` list with the returned `LifeEvent` records. |
 | Healthcare-calendar dispatch | [`clinosim/simulator/phases/_healthcare_calendar.py`](../../simulator/phases/_healthcare_calendar.py) | Routes `event_type == "pediatric_visit"` to an outpatient visit (department via `resolve_outpatient_department`, chief complaint via `_pediatric_visit_reason(disease_id)`). |
 | Visit-reason lookup | [`clinosim/simulator/_setup.py`](../../simulator/_setup.py) (`_pediatric_visit_reason`) | Reads `visit_reason` from `load_pediatric_schedule()`. |
-| Outpatient encounter | [`clinosim/simulator/outpatient.py`](../../simulator/outpatient.py), [`outpatient_dept.py`](../../simulator/outpatient_dept.py) | `visit_type == "pediatric_visit"` branches; `pediatric_presentation` supplies the acute visit's vitals, febrile state and prescriptions. |
+| Outpatient encounter | [`clinosim/simulator/outpatient.py`](../../simulator/outpatient.py), [`outpatient_dept.py`](../../simulator/outpatient_dept.py) | `visit_type == "pediatric_visit"` branches; `pediatric_presentation` supplies the acute visit's vitals, febrile state and prescriptions. A well-child visit measures temperature and heart rate, plus blood pressure and respiratory rate from age 3 (`_well_child_vitals` in `clinosim/locale/shared/chronic_followup.yaml`, Issue #3653; no new random draw). |
 
 ## Testing
 

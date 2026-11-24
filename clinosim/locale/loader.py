@@ -57,6 +57,7 @@ from clinosim.locale.loaders.clinical import (
     load_single_gene_diseases,
     load_specialty_routing,
     visit_vitals,
+    well_child_vitals,
 )
 from clinosim.locale.loaders.country_parameters import load_care_practice, load_population_genetics
 from clinosim.locale.loaders.demographics import (
@@ -160,6 +161,7 @@ __all__ = [
     "chronic_followup_interval_months",
     "chronic_followup_vitals",
     "visit_vitals",
+    "well_child_vitals",
     "load_chronic_followup",
     "load_chronic_medications",
     "drug_code",
