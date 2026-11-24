@@ -44,6 +44,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 - A Composition section's `code.text` is the section's own localized title (計画 for the SOAP plan, Plan in English) instead of the LOINC display of its code, so outpatient, episode and procedure-note plan sections no longer read 入院診療計画書; the document-level type text keeps the LOINC display (#3697).
 - A population death date no longer falls inside a survivor inpatient stay: a stay that runs up to the death date ends as an in-hospital death on that date, a stay without a death course moves the death to after the discharge, and the FHIR post-mortem clip keeps `Encounter.period.end` a full dateTime and clips `classHistory` and `location` too (#3633).
 - Supplemental oxygen is titrated down as well as up: once the SpO2 on oxygen stays above the target band the flow is lowered one flowmeter step at a time and the device follows (mask to nasal cannula), so a stepped-down ICU patient no longer stays on 8-10 L/min on the ward and the step-down follows the criteria more often (#3632).
+- The JP progress-note course sentence for an improving but not yet stable finding reads as Japanese clinical writing (改善しつつあるが、安定化は未確認) instead of a literal rendering of the English wording.
 
 ## [0.7.3] - 2026-11-24
 
