@@ -29,6 +29,14 @@ encounter:
     jp: 5                               # JSOG normal delivery LOS ~4-5 days
     us: 2                               # US Medicare/HEDIS ~2 days (48h stay)
   department: "obstetrics_gynecology"   # its own department with a maternity ward in the bundled hospitals (Issue #2641)
+  # The mother is admitted this many hours before the delivery (labor; Issue
+  # #3686), so the intrapartum IV fluid (2 h before) and the pre-incision
+  # antibiotic (30 min before) are ordered inside the stay. Discharge stays
+  # the delivery plus the length of stay. MODEL CHOICE: not taken from a
+  # guideline; sized to cover the pre-delivery order offsets.
+  labor_hours_before_delivery:
+    vaginal: 2
+    cesarean: 1
 
 # ---------------------------------------------------------------------------
 # Delivery Procedure — emitted on the encounter with the JP/US billing code.

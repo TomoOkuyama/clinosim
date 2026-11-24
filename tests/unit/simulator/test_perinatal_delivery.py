@@ -253,7 +253,8 @@ def test_delivery_encounter_returns_mother_and_newborn_records_jp() -> None:
     assert mother_rec.patient.patient_id == "POP-000001"
     m_enc = mother_rec.encounters[0]
     assert m_enc.encounter_type.value == "inpatient"
-    assert m_enc.admission_datetime == visit_dt
+    # Issue #3686: the mother is admitted in labor, 2 h before the delivery.
+    assert m_enc.admission_datetime == visit_dt - timedelta(hours=2)
     assert (m_enc.discharge_datetime - visit_dt).days == 5, "JP delivery LOS should be 5 days"
     assert mother_rec.clinical_diagnosis.admission_diagnosis_code == "O80"
     assert mother_rec.clinical_diagnosis.discharge_diagnosis_code == "Z37.0"
