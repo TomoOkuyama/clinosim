@@ -596,6 +596,29 @@ def _maternal_vitals(
     return out
 
 
+def _maternal_adl(patient: PatientProfile, admission: datetime, discharge: datetime, cesarean: bool) -> list:
+    """The mother's Barthel assessment on each hospital day of the delivery
+    stay, admission date to discharge date (Issue #3665): the
+    ``maternal_adl.<mode>.barthel_by_day`` target of the day, within the
+    per-item ceiling of any staged chronic functional condition. No random
+    draw."""
+    from clinosim.simulator.adl_ceiling import barthel_item_caps
+    from clinosim.simulator.vitals_pipeline import barthel_assessment
+
+    targets = (
+        (load_perinatal_config().get("maternal_adl") or {}).get("cesarean" if cesarean else "vaginal") or {}
+    ).get("barthel_by_day") or []
+    if not targets:
+        return []
+    caps = barthel_item_caps(patient)
+    ceiling = sum(caps.values())
+    first = admission.date()
+    return [
+        barthel_assessment(min(int(targets[min(day, len(targets) - 1)]), ceiling), caps, first + timedelta(days=day))
+        for day in range((discharge.date() - first).days + 1)
+    ]
+
+
 def _gestational_days(mother: PatientProfile, delivered_at: datetime) -> int | None:
     """The delivery date minus the LMP of the pregnancy period that delivers on
     it; ``None`` when no period gives an LMP. No random draw."""
@@ -1193,6 +1216,9 @@ def simulate_delivery_encounter(
             is_cesarean,
             _bundle_nurse,
             _cx.bp_override(_cx_effects, encounter.encounter_id, encounter.admission_datetime),
+        ),
+        adl_assessments=_maternal_adl(
+            patient, encounter.admission_datetime, encounter.discharge_datetime or visit_date, is_cesarean
         ),
         lab_results=[o.result for o in _cx_labs if o.result is not None],
         procedures=[procedure],
