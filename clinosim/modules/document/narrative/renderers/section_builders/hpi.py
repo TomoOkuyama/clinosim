@@ -377,7 +377,6 @@ def _hpi_parts(ctx: NarrativeContext) -> _HpiParts:
     )
 
     country = country_code(ctx.locale)
-    conds = _o(patient, "chronic_conditions", []) or []
     chronic_labels: list[str] = []
     for c in ordered_chronic_conditions(ctx):
         code = _o(c, "code", "") or (c if isinstance(c, str) else "")
@@ -411,15 +410,9 @@ def _hpi_parts(ctx: NarrativeContext) -> _HpiParts:
             joined = sep.join(med_labels) + (f"{sep}{more}" if more else "")
             parts.append(t("narrative_text.hpi.home_meds", lang, items=joined))
 
-    # Issue #984: prior-care sentinel (derived — never claim a specific
-    # institution or datetime not in CIF). Two branches:
-    #   (a) patient has chronic conditions + home medications → "かかりつけ医
-    #       で処方継続中" (evidence: patient is under ongoing care)
-    #   (b) neither → omit (silent no-op)
-    if conds and meds:
-        parts.append(t("narrative_text.hpi.prior_care_chronic", lang))
-    elif meds:
-        parts.append(t("narrative_text.hpi.prior_care_outpatient", lang))
+    # Issue #3700: no prior-care sentence. Who continues the therapy, and by
+    # which route, is not in the record; the home-medication sentence above
+    # already states the therapy.
 
     return _HpiParts(demographics, cc_sentence, _join(*parts))
 

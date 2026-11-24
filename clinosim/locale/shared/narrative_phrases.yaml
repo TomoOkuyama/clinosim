@@ -3717,12 +3717,6 @@ narrative_text:
     home_meds:
       ja: "常用薬: {items}。"
       en: "Home medications: {items}."
-    prior_care_chronic:
-      ja: "かかりつけ医で内服治療継続中。"
-      en: "Oral therapy continued by the primary care physician."
-    prior_care_outpatient:
-      ja: "外来にて内服処方継続中。"
-      en: "Oral prescriptions continued in the outpatient clinic."
     list_sep:
       ja: "、"
       en: ", "
