@@ -140,6 +140,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_2",
+        "ctx.exam.unchanged_from_previous_day",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -173,11 +174,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #4 — assessment]",
-        "objective": "BP 104/62 mmHg, HR 112 回/分, RR 20 回/分, SpO2 97% (鼻カニューラ 4 L/分), T 38.7°C (直近24時間: 最高体温 40.4°C、HR 最大 127 回/分、RR 最大 25 回/分、SpO2 最低 92%)。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし、頻脈。呼吸器: 呼吸促迫、補助呼吸筋使用、酸素投与下。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+        "objective": "BP 104/62 mmHg, HR 112 回/分, RR 20 回/分, SpO2 97% (鼻カニューラ 4 L/分), T 38.7°C (直近24時間: 最高体温 40.4°C、HR 最大 127 回/分、RR 最大 25 回/分、SpO2 最低 92%)。呼吸器: 呼吸促迫、補助呼吸筋使用、酸素投与下。一般状態、循環器、腹部、神経: 前日と著変なし",
         "plan": "[Mock LLM response #4 — plan]",
         "subjective": "[Mock LLM response #4 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #4 — subjective]\nO（客観） BP 104/62 mmHg, HR 112 回/分, RR 20 回/分, SpO2 97% (鼻カニューラ 4 L/分), T 38.7°C (直近24時間: 最高体温 40.4°C、HR 最大 127 回/分、RR 最大 25 回/分、SpO2 最低 92%)。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし、頻脈。呼吸器: 呼吸促迫、補助呼吸筋使用、酸素投与下。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #4 — assessment]\nP（計画） [Mock LLM response #4 — plan]"
+      "text": "S（主観） [Mock LLM response #4 — subjective]\nO（客観） BP 104/62 mmHg, HR 112 回/分, RR 20 回/分, SpO2 97% (鼻カニューラ 4 L/分), T 38.7°C (直近24時間: 最高体温 40.4°C、HR 最大 127 回/分、RR 最大 25 回/分、SpO2 最低 92%)。呼吸器: 呼吸促迫、補助呼吸筋使用、酸素投与下。一般状態、循環器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #4 — assessment]\nP（計画） [Mock LLM response #4 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-05": {
@@ -187,7 +188,6 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_3",
-        "ctx.exam.unchanged_from_previous_day",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -221,11 +221,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #5 — assessment]",
-        "objective": "BP 105/62 mmHg, HR 111 回/分, RR 23 回/分, SpO2 93% (鼻カニューラ 3 L/分), T 38.9°C (直近24時間: 最高体温 40.3°C、HR 最大 120 回/分、RR 最大 24 回/分、SpO2 最低 90%)。一般状態: 意識清明、発熱あり。呼吸器: 呼吸音清明、頻呼吸、SpO2 低下、酸素投与下。神経: 麻痺なし。循環器、腹部: 前日と著変なし",
+        "objective": "BP 105/62 mmHg, HR 111 回/分, RR 23 回/分, SpO2 93% (鼻カニューラ 3 L/分), T 38.9°C (直近24時間: 最高体温 40.3°C、HR 最大 120 回/分、RR 最大 24 回/分、SpO2 最低 90%)。一般状態: 意識清明、発熱あり。循環器: 整、心雑音なし、頻脈。呼吸器: 呼吸音清明、頻呼吸、SpO2 低下、酸素投与下。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
         "plan": "[Mock LLM response #5 — plan]",
         "subjective": "[Mock LLM response #5 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #5 — subjective]\nO（客観） BP 105/62 mmHg, HR 111 回/分, RR 23 回/分, SpO2 93% (鼻カニューラ 3 L/分), T 38.9°C (直近24時間: 最高体温 40.3°C、HR 最大 120 回/分、RR 最大 24 回/分、SpO2 最低 90%)。一般状態: 意識清明、発熱あり。呼吸器: 呼吸音清明、頻呼吸、SpO2 低下、酸素投与下。神経: 麻痺なし。循環器、腹部: 前日と著変なし\nA（評価） [Mock LLM response #5 — assessment]\nP（計画） [Mock LLM response #5 — plan]"
+      "text": "S（主観） [Mock LLM response #5 — subjective]\nO（客観） BP 105/62 mmHg, HR 111 回/分, RR 23 回/分, SpO2 93% (鼻カニューラ 3 L/分), T 38.9°C (直近24時間: 最高体温 40.3°C、HR 最大 120 回/分、RR 最大 24 回/分、SpO2 最低 90%)。一般状態: 意識清明、発熱あり。循環器: 整、心雑音なし、頻脈。呼吸器: 呼吸音清明、頻呼吸、SpO2 低下、酸素投与下。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #5 — assessment]\nP（計画） [Mock LLM response #5 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-06": {
