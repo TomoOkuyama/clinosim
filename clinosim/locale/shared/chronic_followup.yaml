@@ -495,8 +495,10 @@ _post_discharge:
 _post_discharge_by_disease:
   bacterial_pneumonia:
     visit_reason:
-      en: "Post-pneumonia follow-up, CRP check, chest X-ray review"
-      ja: "肺炎退院後フォローアップ・CRP確認・胸部X線評価"
+      # No imaging order is part of this visit (Issue #3652), so the reason
+      # names the CRP check only.
+      en: "Post-pneumonia follow-up, CRP check"
+      ja: "肺炎退院後フォローアップ・CRP確認"
     labs: [CRP, WBC]
   heart_failure_exacerbation:
     visit_reason:

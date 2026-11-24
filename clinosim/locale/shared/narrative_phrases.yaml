@@ -1800,15 +1800,19 @@ chronic_monitoring:
   renal_function:
     ja: "、腎機能推移を継続監視。"
     en: "; ongoing renal function monitoring."
+  # Issue #3652: the visit records no CAT / mMRC / ACT / C-ACT score, so these
+  # phrases state only a clinician review of symptoms and control, never a
+  # scored instrument (the keys keep their names; asthma-control-instruments.yaml
+  # still picks the phrase by age).
   cat_mmrc_review:
-    ja: "、CAT スコア / mMRC で症状評価。"
-    en: "; CAT / mMRC symptom review."
+    ja: "、息切れ・咳・増悪の有無を確認。"
+    en: "; symptoms (dyspnea, cough, exacerbations) reviewed."
   act_control_review:
-    ja: "、ACT で コントロール状況確認。"
-    en: "; ACT control review."
+    ja: "、喘息のコントロール状況を確認。"
+    en: "; asthma control reviewed."
   cact_control_review:
-    ja: "、小児喘息コントロールテスト (C-ACT) でコントロール状況確認。"
-    en: "; Childhood ACT control review."
+    ja: "、保護者からの聴取でコントロール状況を確認。"
+    en: "; asthma control reviewed with the caregiver."
   symptom_control_review:
     ja: "、保護者からの聴取で症状・夜間覚醒・発作治療薬の使用頻度を確認。"
     en: "; symptom control reviewed with the caregiver (daytime symptoms, night waking, reliever use)."

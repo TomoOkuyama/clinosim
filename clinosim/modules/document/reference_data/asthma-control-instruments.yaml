@@ -10,7 +10,11 @@
 # Asthma Control Test (ACT) is the adult / adolescent instrument (12 years
 # and older). A patient of unknown age falls to the adult band.
 #
-# `phrase` is an `narrative_phrases.yaml` key (EN + JA authored).
+# `phrase` is an `narrative_phrases.yaml` key (EN + JA authored). Since Issue
+# #3652 the phrases state a clinician review of control (with the caregiver for
+# a child), not a scored ACT / C-ACT: no such score is recorded by a visit, and
+# a note must not claim a result that is not in the record. The age bands still
+# select the wording that fits the instrument a clinic would use.
 # Bands are matched in order; `age_min` / `age_max` are inclusive.
 metadata:
   kind: reference

@@ -187,7 +187,7 @@ clinosim/modules/document/
     clinosim-discharge-instruction.yaml  退院指導 (load_discharge_instructions、旧 discharge_instructions.yaml、#1862)。各項目に `applies_when` 条件 (性別・喫煙/飲酒状況・疾患群・退院処方薬、該当薬は `{drugs}` に展開、最終クレアチニンが AKI 定義を満たす `aki_at_discharge` (#3281)、喘息増悪のピークフロー・長期管理薬・コントロール評価文の `age_min` / `age_max` (#3264)) を付けられ、renderers/_resolvers.py resolve_discharge_instructions が評価し重複文を除く (#3254)。`setting` (自宅/施設退院)・`drug_course: chronic` (日数固定の処方は「毎日内服」に含めない) の条件と、トップレベルの `slots` (救急受診・食事は層やキーが違っても 1 件だけ表示、施設退院は施設職員宛の文に置換) (#3554)
     clinosim-nursing-content.yaml    急性疾患別 (看護診断・目標と OP/TP/EP の看護計画・教育) と慢性 ICD-10 併存疾患別の看護記録内容 (load_nursing_content)
     cc-pe-consistency-keywords.yaml  主訴 ↔ 身体所見の整合 rail (narrative/_narrative_utils.py)
-    asthma-control-instruments.yaml  年齢別の喘息コントロール評価 (12 歳以上 ACT、4-11 歳 C-ACT、4 歳未満は保護者への症状聴取; Issue #3264, GINA 2024)
+    asthma-control-instruments.yaml  年齢別の喘息コントロール評価 (12 歳以上 ACT、4-11 歳 C-ACT、4 歳未満は保護者への症状聴取; Issue #3264, GINA 2024。文言は評価の実施を述べるのみで、受診が記録しない ACT / C-ACT のスコアは主張しない: Issue #3652)
     chronic-med-class-hints.yaml     慢性疾患 assessment の薬効分類 hint (narrative/renderers/section_builders/outpatient_soap.py)
     disease_exam.yaml                疾患ごとの入院時身体所見 (疾患が及ぶ系統の所見、英語・日本語)、AVPU による意識の句、心房細動の脈の規則、急性期脳卒中の局所神経症状と NIHSS の範囲、分娩入院の分娩様式別の産科所見 (分娩処置の終了前は分娩前、終了後は産褥の所見、Issue #3403) (load_disease_exam)
     ed_note_admitted.yaml            ED 経由入院の ED 記録: 来院時バイタルの成人の判定範囲とバイタルを述べる所見語 (来院時の測定値と矛盾する day-0 身体所見の句は書かない)、トリアージの来院手段と照合する救急搬入の HPI 表現 (load_ed_note_admitted)
