@@ -43,7 +43,7 @@
 | 保留規則は入院時・投与時・退院時で一つの出所から読む(薬剤ごとの腎機能対応、バイタルの保留条件、メトホルミンの腎機能閾値)。 | `medication_pipeline.py`(`renal_medication_rules`, `mar_vital_hold_reason`, `metformin_admission_hold_threshold`)、`discharge_rx.py::renal_hold_drugs`。データ `simulator/reference_data/renal_medication_rules.yaml`, `locale/shared/chronic_medications.yaml` | `tests/unit/test_hold_rules_one_source_2296.py`, `tests/unit/test_medication_holds_acute_illness_1335.py` |
 | 疾患プロトコルの `medication_holds` は `applies_at_discharge: true` の項目だけ退院時にも適用する(既定は入院中のみ)。退院時の保留は、最終的な退院処方に含まれない薬剤についてだけ、退院日時で記録する。 | `discharge_rx.py::build_discharge_rx`; データ `modules/disease/reference_data/*.yaml` | `tests/unit/test_discharge_hold_final_rx_3441.py` |
 | 薬剤の判断はカタログ上の同一性で行い、名前の部分文字列では行わない。 | `clinosim/codes/drugs.py`(コードマッピング仕様参照) | `tests/unit/test_has_drug_logic_2377.py` |
-| 範囲で書かれたプロトコルの用量・詳細 (「25-100mg PO daily」「NS 80-125 mL/h」) は、プロトコルの読み込み時に一度だけ、範囲の単位ごとの規則で一つの用量に解決する。既定は下限の開始用量で、維持輸液の mL/h 速度だけは上限の速度とする。書かれた範囲は `titration_range` としてエントリに残るので、オーダー・処方・投与は一つの用量を述べる。乱数は引かない (Issue #3265)。 | `modules/order/dose_range.py::resolve_dose_ranges`、`modules/disease/protocol.py::resolve_protocol_dose_ranges`。データは `modules/order/reference_data/dose_range_resolution.yaml` | `tests/unit/test_dose_range_resolution_3265.py` |
+| 範囲で書かれたプロトコルの用量・詳細 (「25-100mg PO daily」「NS 80-125 mL/h」) は、プロトコルの読み込み時に一度だけ、範囲の単位ごとの規則で一つの用量に解決する。既定は下限の開始用量で、維持輸液の mL/h 速度だけは上限の速度とする。書かれた範囲は `titration_range` としてエントリに残るので、オーダー・処方・投与は一つの用量を述べる。乱数は引かない (Issue #3265)。 | `modules/order/dose_range.py::resolve_dose_ranges`、`modules/order/dose_range.py::resolve_protocol_dose_ranges` (`modules/disease/protocol.py` から呼ぶ)。データは `modules/order/reference_data/dose_range_resolution.yaml` | `tests/unit/test_dose_range_resolution_3265.py` |
 
 ## 4. 投与
 

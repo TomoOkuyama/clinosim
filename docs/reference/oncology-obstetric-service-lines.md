@@ -366,7 +366,7 @@ home med, `_deactivate_to_layer1` drops any item whose
 `duration_days` is in the acute range:
 
 ```
-drop if 0 < duration_days <= _ACUTE_COURSE_MAX_DAYS  (= 14)
+drop if 0 < duration_days <= ACUTE_COURSE_MAX_DAYS  (= 14)
 ```
 
 **Two key edge cases** the discharge-Rx pipeline honours:
@@ -454,7 +454,7 @@ for the AD-16 pattern that motivates these.
 | Change prenatal visit cadence / postpartum offsets | `locale/shared/perinatal.yaml::lifecycle.prenatal_visit_gestational_weeks` / `::postpartum_visit_offsets_days` |
 | Activate an opposite-sex augmentation on a currently-single-sex chronic code | Convert the entry to `by_sex` form in `demographics.yaml`; check sibling `code_mapping_diagnosis.yaml` for sex-conditional billing codes (see §3.2) |
 | Add a chronic-med monitoring rule | `modules/monitoring/reference_data/medication_monitoring.yaml` — no Python change |
-| Change the acute-course cutoff | `simulator/helpers.py::_ACUTE_COURSE_MAX_DAYS` (single constant) |
+| Change the acute-course cutoff | `simulator/_stay_thresholds.py::ACUTE_COURSE_MAX_DAYS` (single constant) |
 | Force a specific drug class to always carry forward | Add to a disease YAML's `continue_at_discharge` category block; the discharge-Rx builder defaults its `duration_days` to 28 so the acute filter never fires |
 
 ---

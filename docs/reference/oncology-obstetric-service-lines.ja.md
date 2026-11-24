@@ -356,7 +356,7 @@ eradication) が silently に慢性 home med にならないよう、
 drop する:
 
 ```
-drop if 0 < duration_days <= _ACUTE_COURSE_MAX_DAYS  (= 14)
+drop if 0 < duration_days <= ACUTE_COURSE_MAX_DAYS  (= 14)
 ```
 
 **退院 Rx pipeline が honor する 2 つの重要なエッジケース:**
@@ -440,7 +440,7 @@ cascade しないことを保証する:
 | 妊婦健診の cadence / 産褥 offset を変更 | `locale/shared/perinatal.yaml::lifecycle.prenatal_visit_gestational_weeks` / `::postpartum_visit_offsets_days` |
 | 現在単性別の慢性コードに opposite-sex augmentation を活性化 | `demographics.yaml` のエントリを `by_sex` form に変換; sex-conditional 請求コード用の sibling `code_mapping_diagnosis.yaml` も要チェック (§3.2 参照) |
 | 慢性薬モニタリングルールを追加 | `modules/monitoring/reference_data/medication_monitoring.yaml` — Python 変更不要 |
-| Acute-course cutoff を変更 | `simulator/helpers.py::_ACUTE_COURSE_MAX_DAYS` (単一定数) |
+| Acute-course cutoff を変更 | `simulator/_stay_thresholds.py::ACUTE_COURSE_MAX_DAYS` (単一定数) |
 | 特定の薬剤クラスを常時 carry forward させる | disease YAML の `continue_at_discharge` category block に追加; 退院 Rx builder がその `duration_days` の default を 28 にするので acute filter は発火しない |
 
 ---

@@ -446,7 +446,7 @@ def build_discharge_rx(
         For those, the default ``duration_days`` is the chronic-renewal
         length (28) rather than the acute-course default (7) — the
         ``_deactivate_to_layer1`` carry-forward filter (helpers.py
-        ``_ACUTE_COURSE_MAX_DAYS = 14``) would otherwise drop them from
+        ``ACUTE_COURSE_MAX_DAYS = 14``) would otherwise drop them from
         the next admission's home-medication orders. Explicit
         ``duration_days`` in the YAML always wins over the default.
         """
