@@ -540,3 +540,41 @@ def _is_lab_observation(resource: dict) -> bool:
                     return False
                 return True
     return False
+
+
+def fill_ecs_department_from_encounters(entries: list[dict], country: str) -> None:
+    """Replace the ``JP_eCS_Department`` placeholder on MedicationRequest and
+    Condition entries with the department of the Encounter they reference
+    (Issue #3692): the same value as that Encounter's ``serviceType`` text.
+
+    Runs once per bundle, after every resource is built and routed (a
+    resource moved to the ED bridge reads the bridge's department). A
+    resource whose Encounter has no department (a problem-list Condition) or
+    that references no Encounter in the bundle keeps the placeholder. No-op
+    outside JP-CLINS countries.
+    """
+    from clinosim.country_profile import country_profile
+    from clinosim.modules.output.fhir_r4.lib.ecs_extensions import _JP_ECS_DEPARTMENT_EXT_URL
+
+    if not country_profile(country).uses("jp_clins"):
+        return
+    dept_by_enc: dict[str, str] = {}
+    for e in entries:
+        res = e.get("resource") if isinstance(e, dict) else None
+        if isinstance(res, dict) and res.get("resourceType") == "Encounter":
+            text = (res.get("serviceType") or {}).get("text") or ""
+            if text and res.get("id"):
+                dept_by_enc[str(res["id"])] = str(text)
+    if not dept_by_enc:
+        return
+    for e in entries:
+        res = e.get("resource") if isinstance(e, dict) else None
+        if not isinstance(res, dict) or res.get("resourceType") not in ("MedicationRequest", "Condition"):
+            continue
+        ref = (res.get("encounter") or {}).get("reference") or ""
+        dept = dept_by_enc.get(ref.rsplit("/", 1)[-1]) if ref else None
+        if not dept:
+            continue
+        for ext in res.get("extension") or []:
+            if isinstance(ext, dict) and ext.get("url") == _JP_ECS_DEPARTMENT_EXT_URL:
+                ext["valueCodeableConcept"] = {"text": dept}
