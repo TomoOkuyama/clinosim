@@ -339,7 +339,9 @@ def period_states(
         if high is not None and (max(values) >= high if inclusive else max(values) > high):
             found.add("high")
         states[vital] = found or {"normal"}
-    if readings and _o(readings[-1], "on_supplemental_oxygen", False):
+    # The latest reading that measured oxygen (a temperature-only row did not, Issue #3644).
+    measured_o2 = [r for r in readings if _o(r, "on_supplemental_oxygen", None) is not None]
+    if measured_o2 and _o(measured_o2[-1], "on_supplemental_oxygen", False):
         states["on_oxygen"] = {"high"}
     levels = {str(_o(r, "consciousness_level", "") or "") for r in readings}
     if levels & {"V", "P", "U"}:

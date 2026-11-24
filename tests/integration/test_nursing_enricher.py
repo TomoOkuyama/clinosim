@@ -114,8 +114,8 @@ def test_issue_911_gcs_not_set_when_consciousness_level_empty():
     assert rec.vital_signs[0].gcs_score is None, (
         f"GCS must be None on vitals without AVPU sample; got {rec.vital_signs[0].gcs_score!r}"
     )
-    # NEWS2 remains populated (it does not depend on AVPU).
-    assert rec.vital_signs[0].news2_score is not None
+    # Issue #3644: a set without the AVPU level (and the other parameters) is not a NEWS2 set.
+    assert rec.vital_signs[0].news2_score is None
 
 
 def test_issue_911_gcs_reflects_avpu_band():

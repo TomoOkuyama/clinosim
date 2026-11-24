@@ -8,6 +8,16 @@ metadata:
   source: clinosim
 
 news2:
+  # NEWS2 aggregates these seven parameters (RCP 2017); a vital-sign row is scored
+  # only when all of the listed vital-sign fields are recorded (Issue #3644). The
+  # supplemental-oxygen flag is recorded together with SpO2, so it is not listed.
+  required_inputs:
+    - respiratory_rate
+    - spo2
+    - temperature_celsius
+    - systolic_bp
+    - heart_rate
+    - consciousness_level
   # Each band: [low_inclusive, high_inclusive, points]. Use null for open bounds.
   respiratory_rate:
     - [null, 8, 3]

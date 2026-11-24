@@ -338,7 +338,7 @@ class VitalSignRecord:
     spo2: float | None = None
     pain_score: int | None = None
     consciousness_level: str = "A"  # AVPU: A=Alert, V=Voice, P=Pain, U=Unresponsive (NEWS2)
-    on_supplemental_oxygen: bool = False
+    on_supplemental_oxygen: bool | None = False  # None = oxygen not measured in this row (Issue #3644)
     oxygen_flow_rate_lpm: float | None = None  # liters per minute, if on O2
     oxygen_delivery_device: str = (
         ""  # "nasal_cannula" | "simple_mask" | "venturi" | "non-rebreather" | "HFNC" | "BiPAP" | "ventilator"  # noqa: E501

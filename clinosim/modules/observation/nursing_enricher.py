@@ -18,6 +18,7 @@ from clinosim.modules.observation.nursing import (
     compute_morse_fall_risk,
     compute_news2,
     morse_forgets_limitations_from,
+    news2_inputs_complete,
 )
 from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 from clinosim.types.encounter import NursingRiskAssessment
@@ -64,7 +65,7 @@ def enrich_nursing(ctx) -> None:
         # scale is not authored for the other to contradict.
         for vs in _get(rec, "vital_signs", []) or []:
             vsd = vs if isinstance(vs, dict) else vs.__dict__
-            news2 = compute_news2(vsd) if news2_applies else None
+            news2 = compute_news2(vsd) if news2_applies and news2_inputs_complete(vsd) else None
             loc_val = vsd.get("consciousness_level", "") or ""
             # Issue #3243: a set whose GCS its writer already recorded (the ED
             # arrival set of the triage enricher) keeps it and draws nothing
