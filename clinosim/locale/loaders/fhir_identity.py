@@ -316,13 +316,18 @@ def load_clinic_calendar(country: str) -> dict[str, Any]:
 def resident_insurer_number(country: str, scheme: str, prefecture: str, city: str) -> str:
     """保険者番号 of the ``scheme`` insurer serving a residence (Issue #3015):
     the identity.yaml ``payers[scheme]`` entry for the ``prefecture`` (and,
-    when the entry names one, the ``city``) — 国民健康保険 by municipality,
+    when the entry names one, the ``city``; a designated city's entry
+    carries a ``ward_suffix`` and serves its ward addresses) — 国民健康保険 by municipality,
     後期高齢者医療 by prefecture. ``""`` when no entry serves the residence."""
     for entry in (load_identity_config(country).get("payers", {}) or {}).get(scheme) or []:
         if entry.get("prefecture") and entry["prefecture"] != prefecture:
             continue
         if entry.get("city") and entry["city"] != city:
-            continue
+            # A designated city (``ward_suffix``) serves every ward address
+            # "<city><ward>区" (Issue #3696).
+            suffix = str(entry.get("ward_suffix") or "")
+            if not (suffix and city.startswith(entry["city"]) and city.endswith(suffix)):
+                continue
         if entry.get("prefecture"):
             return str(entry["number"])
     return ""
