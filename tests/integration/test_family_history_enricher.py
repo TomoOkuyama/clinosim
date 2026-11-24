@@ -49,7 +49,7 @@ def test_newborn_mother_carries_the_maternal_chronic_conditions():
     # Issue #3689: the baby's own (empty) condition list does not decide the mother's history.
     rec = _baby("P1-BABY", ["I10", "E66.3"])
     enrich_family_history(_Ctx([rec]))
-    assert {"I10", "E66"} <= set(_mother_codes(rec))
+    assert {"I10", "E66.3"} <= set(_mother_codes(rec))
 
 
 def test_newborn_maternal_conditions_reach_every_record_of_the_baby():

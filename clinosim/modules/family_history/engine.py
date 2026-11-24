@@ -173,10 +173,16 @@ def with_maternal_conditions(
     ICD base codes of her conditions are added to the sampled ones; a Z-code
     (status, not a disease of hers) is not carried. Nothing is drawn, so the
     other relatives and the stream stay as sampled."""
-    base = [b for c in maternal_codes if (b := _condition_code(c).split(".")[0].upper()) and not b.startswith("Z")]
-    if not base:
+    # The mother's own (full) codes are kept: a bare ICD category such as F17
+    # or E66 is not a valid code in every locale's system (JP MHLW lists only
+    # the subcodes), while her record's codes are (Issue #3689 CI). A code
+    # whose category a sampled code already names is not added twice.
+    own = [c for c in (_condition_code(x).strip().upper() for x in maternal_codes) if c and not c.startswith("Z")]
+    if not own:
         return fams
     for rel in fams:
         if rel.relationship == "MTH":
-            rel.condition_codes = list(dict.fromkeys([*base, *rel.condition_codes]))
+            sampled = {c.split(".")[0] for c in rel.condition_codes}
+            add = [c for c in own if c.split(".")[0] not in sampled]
+            rel.condition_codes = list(dict.fromkeys([*add, *rel.condition_codes]))
     return fams

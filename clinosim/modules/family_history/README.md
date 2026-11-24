@@ -27,7 +27,7 @@ and CSV adapters emit `FamilyMemberHistory` resources and a
   on female relatives only (enforced by the per-condition `sex` field
   in the reference YAML).
 - **Newborn mother**: a newborn's mother is a known person, so the
-  mother relative of a baby's record also carries the ICD base codes of the
+  mother relative of a baby's record also carries the ICD codes (as recorded on her record) of the
   chronic conditions of her record at delivery
   (`extensions["newborn"]["birth"]["maternal_condition_codes"]`, Z-codes
   excluded), for every record of that baby; nothing is drawn for it
