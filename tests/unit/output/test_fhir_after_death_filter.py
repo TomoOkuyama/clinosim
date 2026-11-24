@@ -164,7 +164,7 @@ def test_encounter_clamps_period_end_when_home_disp_extends_past_death() -> None
     assert len(kept) == 1
     enc = kept[0]["resource"]
     # period.end clamped down to dod (calendar-date prefix)
-    assert enc["period"]["end"] == "2026-01-09"
+    assert enc["period"]["end"] == "2026-01-09T23:59:59Z"  # Issue #3633: a full dateTime
     # dischargeDisposition flipped from home → exp
     disp_code = enc["hospitalization"]["dischargeDisposition"]["coding"][0]["code"]
     assert disp_code == "exp"
@@ -197,7 +197,7 @@ def test_encounter_leaves_exp_disp_alone_but_still_clamps_end() -> None:
     ]
     kept = _drop_entries_after_death(entries, "2026-01-09", lang="en", country="US")
     enc = kept[0]["resource"]
-    assert enc["period"]["end"] == "2026-01-09"
+    assert enc["period"]["end"] == "2026-01-09T23:59:59Z"  # Issue #3633: a full dateTime
     # disp untouched — already exp
     disp_code = enc["hospitalization"]["dischargeDisposition"]["coding"][0]["code"]
     assert disp_code == "exp"
@@ -249,4 +249,4 @@ def test_encounter_without_disp_still_clamps_end() -> None:
     ]
     kept = _drop_entries_after_death(entries, "2026-01-09", lang="en", country="US")
     enc = kept[0]["resource"]
-    assert enc["period"]["end"] == "2026-01-09"
+    assert enc["period"]["end"] == "2026-01-09T23:59:59Z"  # Issue #3633: a full dateTime

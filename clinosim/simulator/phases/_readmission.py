@@ -18,7 +18,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 from clinosim.modules.population.engine import LifeEvent
-from clinosim.modules.population.vital_status import record_hospital_death
+from clinosim.modules.population.vital_status import defer_death_past_stay, known_death_date, record_hospital_death
 from clinosim.seeding import PHASE_INPATIENT_SIM, PHASE_READMISSION, derive_phase_rng
 from clinosim.simulator._setup import _activate_cached_person
 from clinosim.simulator.discharge_gate import _evaluate_readmission
@@ -102,6 +102,7 @@ def dispatch_readmission(re_event: LifeEvent, ctx: ForwardContext) -> CIFPatient
         readmission_number=re_event.readmission_number,
         hospital_state=ctx.hospital_state,
         hospital_ops=ctx.hospital_ops,
+        population_death_date=known_death_date(person, ctx.cutoff),
     )
     post_hoc = _verify_no_actual_overlap(ctx.patient_records, record)
     if post_hoc is not None:
@@ -110,4 +111,5 @@ def dispatch_readmission(re_event: LifeEvent, ctx: ForwardContext) -> CIFPatient
     ctx.patient_records.append(record)
     _deactivate_to_layer1(person, record, re_event.disease_id, patient_cache=ctx.patient_cache)
     record_hospital_death(person, record)
+    defer_death_past_stay(person, record, ctx.master_seed)
     return record

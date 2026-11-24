@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import dataclass, field, replace
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import Any
 
 import numpy as np
@@ -362,6 +362,9 @@ class _Stay:
     # the ED, so its first doses are given from the order, not from the
     # admission; None for a stay not admitted through the ED.
     ed_start: datetime | None = None
+    # Issue #3633: the person's population-level death date when it falls on
+    # or after the admission; the stay ends in death on that date.
+    population_death_date: date | None = None
 
     @property
     def country(self) -> str:
@@ -1633,7 +1636,7 @@ def _escalate_airway_and_icu(stay: _Stay, run: _Run, day: int) -> None:
 def _dies_today(stay: _Stay, run: _Run, day: int, expected_mortality_multiplier: float) -> bool:
     """Mortality (disease-specific rate from YAML benchmarks)."""
     benchmark_mortality = stay.protocol.outcome_benchmarks.get(stay.country_key, {}).get("in_hospital_mortality", 0.0)
-    return _evaluate_mortality(
+    drawn = _evaluate_mortality(
         run.state,
         stay.patient,
         severity=stay.severity,
@@ -1649,6 +1652,20 @@ def _dies_today(stay: _Stay, run: _Run, day: int, expected_mortality_multiplier:
         )
         / expected_mortality_multiplier,
     )
+    # Issue #3633: the draw above is made either way (the stay's RNG stream is
+    # unchanged); a person whose population death date is reached by the end of
+    # today dies today, so the stay ends in that death, not in a discharge.
+    return drawn or _population_death_due(stay, day)
+
+
+def _population_death_due(stay: _Stay, day: int) -> bool:
+    """True when the person's population death date is on or before the date
+    the death would be recorded for a death today (Issue #3633). Draws nothing."""
+    from clinosim.simulator.inpatient import _planned_discharge_datetime
+
+    if stay.population_death_date is None:
+        return False
+    return _planned_discharge_datetime(stay.admission_time, day + 1, 0).date() >= stay.population_death_date
 
 
 def _drop_doses_after_death(stay: _Stay, run: _Run, day: int) -> None:
@@ -1819,6 +1836,7 @@ def _run_daily_loop(
     surgery: tuple[int, float] | None = None,
     prior_procedures: list | None = None,
     co_disease: CoDiseaseCourse | None = None,
+    population_death_date: date | None = None,
 ) -> DailyLoopResult:
     """Run the day-by-day simulation loop. Returns all generated data.
 
@@ -1858,6 +1876,7 @@ def _run_daily_loop(
         child=child_dosing(patient, encounter_id, admission_time, country_key),
         co_disease=co_disease,
         ed_start=ed_start,
+        population_death_date=population_death_date,
     )
     run = _Run(
         state=state,
