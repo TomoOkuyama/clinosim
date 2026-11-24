@@ -3260,7 +3260,7 @@
 </tr>
 <tr>
 <td><code>locale.loader.resident_insurer_number(country, scheme, prefecture, city)</code></td>
-<td>居住地を担当する保険者の JP 保険者番号 (Issue #3015): <code>identity.yaml</code> の <code>payers[scheme]</code> の各エントリが担当する <code>prefecture</code> (国民健康保険は <code>city</code> も) を持ち、identity provider と FHIR Coverage builder の両方がこの関数で解決する</td>
+<td>居住地を担当する保険者の JP 保険者番号 (Issue #3015): <code>identity.yaml</code> の <code>payers[scheme]</code> の各エントリが担当する <code>prefecture</code> (国民健康保険は <code>city</code> も。政令指定都市は <code>ward_suffix</code> を付け、横浜市西区のような区の住所を市の保険者に解決する) を持ち、identity provider と FHIR Coverage builder の両方がこの関数で解決する</td>
 <td><code>""</code></td>
 </tr>
 <tr>

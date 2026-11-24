@@ -3261,7 +3261,7 @@
 </tr>
 <tr>
 <td><code>locale.loader.resident_insurer_number(country, scheme, prefecture, city)</code></td>
-<td>JP 保険者番号 of the insurer serving a residence (Issue #3015): <code>identity.yaml</code> <code>payers[scheme]</code> entries name the <code>prefecture</code> (and <code>city</code> for 国民健康保険) they serve; the identity provider and the FHIR Coverage builder both resolve through it</td>
+<td>JP 保険者番号 of the insurer serving a residence (Issue #3015): <code>identity.yaml</code> <code>payers[scheme]</code> entries name the <code>prefecture</code> (and <code>city</code> for 国民健康保険, with <code>ward_suffix</code> on a designated city so its ward addresses such as 横浜市西区 resolve to the city's insurer) they serve; the identity provider and the FHIR Coverage builder both resolve through it</td>
 <td><code>""</code></td>
 </tr>
 <tr>

@@ -2575,6 +2575,7 @@ YAML の読み込みと検証は
 <code>fhir_address</code>) で、汎用の整形器 <code>clinosim/locale/patterns.py</code> が抽選・整形する
 (libaddressinput / libphonenumber 方式)。Patient の MRN の system と国の識別子は
 <code>clinosim/locale/&lt;cc&gt;/identity.yaml</code> (<code>fhir_patient</code>) に置く。</p>
+<p>JP の住所表では、政令指定都市は市単独でなく区ごとのエントリ (<code>横浜市西区</code>) で並べる。政令指定都市の郵便住所は必ず区を含むため。各区の <code>zips</code> は日本郵便 <code>ken_all</code> データでその区に属する 7 桁コードとし、区の重みの合計は市の重みに一致させる。<code>identity.yaml</code> の市の国民健康保険エントリは <code>ward_suffix</code> を持ち、区の住所でもその保険者に解決される。ガード: <code>tests/unit/locale/test_jp_designated_city_ward_3696.py</code>。</p>
 <p>モジュールの<strong>国別パラメータ</strong> (退院基準、手術までの時間など) は、そのモジュール
 の <code>reference_data/</code> または <code>clinosim/locale/&lt;cc&gt;/&lt;topic&gt;.yaml</code> に国をキーとして
 置き、モジュールのローダーで読む。プロファイルには重複して持たない。</p>

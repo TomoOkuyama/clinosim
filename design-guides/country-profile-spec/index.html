@@ -2585,6 +2585,7 @@ changes only when the country needs an algorithm no country has yet.</p>
 <code>clinosim/locale/patterns.py</code> (libaddressinput / libphonenumber style). The
 Patient's MRN system and national identifier are in
 <code>clinosim/locale/&lt;cc&gt;/identity.yaml</code> (<code>fhir_patient</code>).</p>
+<p>In the JP address table a designated city (政令指定都市) is listed as one entry per ward (<code>横浜市西区</code>), never as the bare city, because a postal address in such a city always names the ward; each ward's <code>zips</code> are 7-digit codes of that ward in the Japan Post <code>ken_all</code> data, and the ward weights sum to the city's weight. The city's 国民健康保険 entry in <code>identity.yaml</code> carries <code>ward_suffix</code> so a ward address still resolves to it. Guard: <code>tests/unit/locale/test_jp_designated_city_ward_3696.py</code>.</p>
 <p>Country-specific <strong>parameters of a module</strong> (for example discharge
 criteria or time to surgery) stay in that module's <code>reference_data/</code>
 or in <code>clinosim/locale/&lt;cc&gt;/&lt;topic&gt;.yaml</code>, keyed by country and read
