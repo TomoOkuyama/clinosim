@@ -81,11 +81,20 @@ from clinosim.modules.imaging.engine import (
     load_modalities,                 # () -> dict (@lru_cache)
     load_body_sites,                 # () -> dict (@lru_cache)
     load_impression_templates,       # () -> dict (@lru_cache)
+    imaging_template_read_is_abnormal,  # (modality, body_site_snomed, impressions) -> bool | None
 )
 from clinosim.modules.imaging.inference import (
     infer_imaging_metadata,          # (display_name) -> dict | None (whitelist regex)
 )
 ```
+
+DiagnosticReport の `conclusionCode` は engine が引いた読影に従う
+(Issue #3676): `imaging_template_read_is_abnormal` が、modality x 部位の
+全疾患の impression template を通して所見文から判定を復元する
+(正常 template の impression は正常読影、それ以外の template 由来の
+impression (`{side}` 置換後を含む) は異常読影)。どの template も書いていない
+文 (汎用・心臓系レポート) だけが `imaging-impression-keywords.yaml` の
+キーワード分類に fallback する。
 
 ## 決定論
 
