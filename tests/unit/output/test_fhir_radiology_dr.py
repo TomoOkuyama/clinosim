@@ -166,7 +166,11 @@ def test_radiology_dr_conclusion_code_normal_when_findings_codes_empty():
     Previously (PR1) findings_codes empty → conclusionCode omitted, but that
     conflated the two states and caused JP Core validation to flag missing code.
     """
-    ctx = _make_ctx([_sample_study()])
+    study = _sample_study()
+    # A normal read; the fixture's "Pneumonia." is an abnormal one (Issue #3676).
+    study.report.findings_text = "No focal consolidation."
+    study.report.impression_text = "No acute cardiopulmonary process."
+    ctx = _make_ctx([study])
     dr = _rad_drs(ctx)[0]
     assert dr["conclusionCode"] == [
         {
@@ -391,3 +395,10 @@ def test_us_radiology_dr_unchanged_from_session_58():
     codes = {c["code"] for c in cats[0]["coding"]}
     assert RADIOLOGY_CATEGORY_SNOMED in codes
     assert RADIOLOGY_CATEGORY_V2_0074 in codes
+
+
+def test_radiology_dr_conclusion_code_abnormal_for_a_pneumonia_read():
+    """A read naming pneumonia is coded Abnormal (Issue #3676)."""
+    dr = _rad_drs(_make_ctx([_sample_study()]))[0]
+    assert dr["conclusion"] == "Pneumonia."
+    assert dr["conclusionCode"][0]["coding"][0]["code"] == "263654008"

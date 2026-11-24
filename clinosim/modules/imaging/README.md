@@ -85,11 +85,20 @@ from clinosim.modules.imaging.engine import (
     load_modalities,                 # () -> dict (@lru_cache)
     load_body_sites,                 # () -> dict (@lru_cache)
     load_impression_templates,       # () -> dict (@lru_cache)
+    imaging_template_read_is_abnormal,  # (modality, body_site_snomed, impressions) -> bool | None
 )
 from clinosim.modules.imaging.inference import (
     infer_imaging_metadata,          # (display_name) -> dict | None (whitelist regex)
 )
 ```
+
+The DiagnosticReport `conclusionCode` follows the read the engine drew
+(Issue #3676): `imaging_template_read_is_abnormal` recovers the verdict from
+the impression text through the impression templates of the modality x body
+site over every disease (a normal template's impression is a normal read, any
+other templated impression, `{side}` filled in, an abnormal one). Only a text
+no template wrote (generic and cardiac reports) falls back to the keyword
+classifier in `imaging-impression-keywords.yaml`.
 
 ## Determinism
 

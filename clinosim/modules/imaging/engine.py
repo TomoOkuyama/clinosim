@@ -856,6 +856,56 @@ def imaging_report_is_abnormal(
     return not (texts & {normal["en"].strip(), normal["ja"].strip()})
 
 
+@lru_cache(maxsize=1)
+def _template_read_index() -> dict[str, tuple[frozenset[str], tuple[re.Pattern[str], ...]]]:
+    """Per ``{modality}_{body site}`` key, the normal impressions and the
+    abnormal impressions (as patterns, a ``{side}`` matching any text) of every
+    disease template."""
+    normal: dict[str, set[str]] = {}
+    abnormal: dict[str, list[re.Pattern[str]]] = {}
+    for bucket_by_key in load_impression_templates().values():
+        for key, bucket in bucket_by_key.items():
+            if "normal" in bucket:
+                for text in bucket["normal"]["impression"].values():
+                    normal.setdefault(key, set()).add(text.strip())
+            variants = [bucket["abnormal"]] if "abnormal" in bucket else []
+            variants += [v for v in (bucket.get("abnormal_by_code") or {}).values() if isinstance(v, dict)]
+            for variant in variants:
+                for text in variant["impression"].values():
+                    pattern = ".*".join(re.escape(part) for part in text.strip().split("{side}"))
+                    abnormal.setdefault(key, []).append(re.compile(pattern, re.DOTALL))
+    return {key: (frozenset(normal.get(key, ())), tuple(abnormal.get(key, ()))) for key in set(normal) | set(abnormal)}
+
+
+def imaging_template_read_is_abnormal(
+    modality: str, body_site_snomed: str, impressions: tuple[str, ...]
+) -> bool | None:
+    """Whether a report with one of ``impressions`` reads abnormal, from the
+    impression templates of ``modality`` x body site over every disease: the
+    impression of a normal template is a normal read, one of an abnormal
+    template (any ``{side}`` filled in) an abnormal read, ``None`` for a text no
+    template wrote (a generic or cardiac report). The decision the engine made
+    when it drew the read, recovered from the text the CIF keeps, so the
+    DiagnosticReport verdict cannot disagree with it (Issue #3676)."""
+    texts = {x.strip() for x in impressions if x and x.strip()}
+    if not texts:
+        return None
+    try:
+        site = _body_site_key_from_snomed(body_site_snomed)
+    except ValueError:
+        return None
+    template_site = (load_body_sites().get(site) or {}).get("report_template_site") or site
+    index = _template_read_index()
+    found_abnormal = False
+    for key in {f"{modality}_{site}", f"{modality}_{template_site}"}:
+        normal, abnormal = index.get(key, (frozenset(), ()))
+        if texts & normal:
+            return False
+        if any(p.fullmatch(text) for text in texts for p in abnormal):
+            found_abnormal = True
+    return True if found_abnormal else None
+
+
 def _with_side(text: str, laterality: str, lang: str) -> str:
     """``text`` with its ``{side}`` the study's side in ``lang`` (English when
     the language has no term); a text without ``{side}`` is unchanged."""

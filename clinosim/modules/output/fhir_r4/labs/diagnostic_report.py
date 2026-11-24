@@ -456,6 +456,21 @@ def _derive_imaging_conclusion_code(impression_text: str, lang: str) -> dict:
     return dual_slot_concept("snomed-ct", code, lang)
 
 
+def _imaging_conclusion_code(modality: str, body_site_snomed: str, impression_text: str, lang: str) -> dict:
+    """The ``conclusionCode`` of a radiology DR (Issue #3676): the read the
+    imaging engine drew, recovered from the impression text through the
+    disease templates (a normal template's impression is a normal read, any
+    other templated impression an abnormal one), so the code and the text
+    cannot disagree. A text no template wrote (generic and cardiac reports)
+    falls back to the keyword classifier."""
+    from clinosim.modules.imaging.engine import imaging_template_read_is_abnormal
+
+    abnormal = imaging_template_read_is_abnormal(modality, body_site_snomed, (impression_text,))
+    if abnormal is None:
+        return _derive_imaging_conclusion_code(impression_text, lang)
+    return dual_slot_concept("snomed-ct", FINDING_ABNORMAL if abnormal else FINDING_NORMAL, lang)
+
+
 def _build_lab_panel_conclusion(
     group: _GroupedPanel,
     orders: list[Any],
@@ -1313,7 +1328,7 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
             {"coding": [{"system": get_system_uri("snomed-ct"), "code": code}]} for code in findings_codes
         ]
     else:
-        dr["conclusionCode"] = [_derive_imaging_conclusion_code(impression_text, lang)]
+        dr["conclusionCode"] = [_imaging_conclusion_code(modality_code, body_site_snomed, impression_text, lang)]
     # C5-20 (Chain 3): presentedForm — findings + impression as text/plain
     # (mirrors text.div content, formatted for direct patient reading).
     if proc_display:

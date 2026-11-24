@@ -72,9 +72,13 @@ abnormal:
   - 肺水腫  # pulmonary edema
   - 無気肺  # atelectasis
   - 透過性  # increased/decreased radiolucency
+  - 肺炎  # pneumonia (Issue #3676)
+  - 塞栓  # embolism
   # English abnormal markers
   - abnormal
   - consolidation
+  - pneumonia  # Issue #3676
+  - embol  # embolism, embolic
   - fracture
   - mass
   - hemorrhage
