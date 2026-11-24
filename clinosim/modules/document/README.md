@@ -151,6 +151,9 @@ from clinosim.modules.document.engine import document_enricher
   `_pick_document_author` dispatches to
   `encounter.primary_nurse_id` when the document's LOINC is in the
   set, else to `attending_physician_id` (AD-65 Bug B fix).
+  A spec with `author_role: triage_nurse` (the ED triage note,
+  Issue #3703) is dispatched to `encounter.triage_nurse_id` (the ED
+  nurse who charted the triage vitals), falling back to the attending.
 - **Document-type specs**
   ([`reference_data/document_type_specs.yaml`](reference_data/document_type_specs.yaml))
   — per-document-type registry entries (`DocumentTypeSpec` in

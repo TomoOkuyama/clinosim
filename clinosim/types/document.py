@@ -130,6 +130,12 @@ class DocumentTypeSpec:
     of the visit (the ED physician note, written once the disposition is
     known)."""
 
+    author_role: str = ""
+    """Who authors the document, when not the attending (Issue #3703):
+    ``triage_nurse`` = the ED nurse who charted the triage vitals
+    (``Encounter.triage_nurse_id``), falling back to the attending. Empty =
+    the default dispatch of ``_pick_document_author``."""
+
     composition_sections_jp: tuple[str, ...] = field(default_factory=tuple)
     """JP-CLINS-compliant section list.
 
