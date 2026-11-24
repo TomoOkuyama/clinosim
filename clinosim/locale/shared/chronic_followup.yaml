@@ -485,6 +485,17 @@ _visit_vitals:
   vaccination_child: [temperature, heart_rate]
   vaccination_adult: [temperature, heart_rate, systolic_bp, diastolic_bp]
 
+# The vital signs of a well-child visit of a child aged `min_age_years` or over
+# (Issue #3653): the annual check measures blood pressure and respiratory rate
+# with temperature and heart rate (clinical convention for paediatric
+# preventive visits; no guideline cited). A younger child's visit measures
+# temperature and heart rate only. The blood pressure and respiratory rate are
+# drawn from the paediatric range of the child's age (pediatric_ranges.yaml).
+_well_child_vitals:
+  min_age_years: 3
+  disease_ids: [well_child_early, well_child_school]
+  vitals: [temperature, heart_rate, systolic_bp, diastolic_bp, respiratory_rate]
+
 # Disease-specific post-discharge follow-up
 _post_discharge:
   first_visit_days: 14

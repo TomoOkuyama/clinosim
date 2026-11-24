@@ -103,10 +103,13 @@ class _WellChild(BaseModel):
     # (Issue #3566); generic age-appropriate observations, no findings.
     feeding: dict[str, _LangText] = Field(min_length=1)
     exam: dict[str, _LangText] = Field(min_length=1)
+    # Vision, hearing and dental screening of the annual check by age band
+    # (Issue #3653); the ``exam`` table also covers children from 3 years.
+    screening: dict[str, _LangText] = Field(min_length=1)
 
     @model_validator(mode="after")
     def _bands(self) -> _WellChild:
-        for table in (self.development, self.guidance, self.feeding, self.exam):
+        for table in (self.development, self.guidance, self.feeding, self.exam, self.screening):
             for key in table:
                 parse_age_band(key)
         return self
@@ -547,14 +550,21 @@ def _well_child_values(ctx: Any, values: dict[str, Any]) -> None:
         values["guidance"] = localized(data.guidance[band], lang)
     _growth_values(ctx, values)
     _infant_values(ctx, values, months)
+    # Issue #3653: the annual check of a child from 3 years states an
+    # examination and the screening (the infant tables stop at 12 months).
+    for key, table in (("exam", data.exam), ("screening", data.screening)):
+        band = find_age_band(table, months)
+        if key not in values and band is not None:
+            values[key] = localized(table[band], lang)
 
 
 def _infant_values(ctx: Any, values: dict[str, Any], months: int) -> None:
     """``feeding``, ``exam`` and, for a visit that is not a well-child check,
     ``infant_development`` of an infant visit (Issue #3566): age-banded
     statements from ``well_child.feeding`` / ``exam`` / ``development``; the
-    feeding and examination tables cover infants only, so an older child gets
-    none of them."""
+    feeding table covers infants only, so an older child gets none of them (the
+    annual check's examination and screening are set by ``_well_child_values``,
+    Issue #3653)."""
     lang = ctx.target_lang
     data = load_visit_reason_soap().well_child
     if find_age_band(data.feeding, months) is None:

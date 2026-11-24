@@ -200,6 +200,8 @@ kinds:
         ja: "身体計測: {growth}。"
       - en: "Examination: {exam}."
         ja: "診察: {exam}。"
+      - en: "Screening: {screening}."
+        ja: "スクリーニング: {screening}。"
     assessment:
       - en: "Well child: development appropriate for age — {development}."
         ja: "健診: 年齢相応の発達 — {development}。"
@@ -578,3 +580,26 @@ well_child:
     "6-11":
       en: "anterior fontanelle open and flat, regular heart sounds, moves all limbs symmetrically"
       ja: "大泉門は開大・平坦、心音は整、四肢の動きは左右対称"
+    # Age 3 years and over (Issue #3653): the annual check's examination, generic
+    # age-appropriate observations (clinical convention, no guideline cited).
+    "36-71":
+      en: "alert and active, regular heart sounds, lungs clear, abdomen soft, steady gait"
+      ja: "活気あり、心音は整、肺音は清、腹部は軟、歩行は安定"
+    "72-143":
+      en: "well appearing, regular heart sounds, lungs clear, abdomen soft, spine straight, skin and teeth without abnormality"
+      ja: "全身状態良好、心音は整、肺音は清、腹部は軟、脊柱側弯なし、皮膚・歯牙に異常なし"
+    "144+":
+      en: "well appearing, regular heart sounds, lungs clear, abdomen soft, pubertal development appropriate for age, skin and teeth without abnormality"
+      ja: "全身状態良好、心音は整、肺音は清、腹部は軟、二次性徴は年齢相応、皮膚・歯牙に異常なし"
+  # The sensory screening of the annual check, by age (Issue #3653): vision and
+  # hearing from 3 years, dental inspection from school age.
+  screening:
+    "36-71":
+      en: "vision and hearing, no concern noted"
+      ja: "視力・聴力に問題の指摘なし"
+    "72-143":
+      en: "vision and hearing, no concern noted; dental inspection, no caries noted"
+      ja: "視力・聴力に問題の指摘なし、歯科診察でう歯の指摘なし"
+    "144+":
+      en: "vision and hearing, no concern noted; dental inspection, no caries noted"
+      ja: "視力・聴力に問題の指摘なし、歯科診察でう歯の指摘なし"

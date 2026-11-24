@@ -245,6 +245,23 @@ def visit_vitals(key: str) -> frozenset[str] | None:
     return frozenset(_FOLLOWUP_VITAL_FIELDS[v] for v in vitals)
 
 
+def well_child_vitals(disease_id: str, age_years: int | None) -> frozenset[str] | None:
+    """Vital-sign groups a well-child visit of ``disease_id`` for a child of
+    ``age_years`` measures beyond temperature and heart rate (the
+    ``_well_child_vitals`` table of chronic_followup.yaml, Issue #3653);
+    ``None`` when the table does not apply (another visit, a younger child, an
+    unknown age)."""
+    spec = load_chronic_followup().get("_well_child_vitals") or {}
+    if age_years is None or disease_id not in (spec.get("disease_ids") or []):
+        return None
+    if age_years < int(spec["min_age_years"]):
+        return None
+    unknown = [v for v in spec["vitals"] if v not in _FOLLOWUP_VITAL_FIELDS]
+    if unknown:
+        raise ValueError(f"chronic_followup.yaml: _well_child_vitals has unknown vitals {unknown}")
+    return frozenset(_FOLLOWUP_VITAL_FIELDS[v] for v in spec["vitals"])
+
+
 def chronic_followup_interval_months(codes: Iterable[str]) -> int | None:
     """Months between a patient's chronic follow-up visits: the shortest
     ``follow_up_interval_months`` (default 3) among their followed-up codes, as

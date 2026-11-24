@@ -21,6 +21,7 @@ from clinosim.locale.loader import (
     load_chronic_followup,
     order_test_display,
     visit_vitals,
+    well_child_vitals,
 )
 from clinosim.locale.localized import localized
 from clinosim.modules.encounter.engine import create_inpatient_encounter
@@ -428,8 +429,13 @@ def _record_visit_vitals(
     elif visit_type == "pediatric_visit":
         # #760 pass 2 — well-child visits measure growth-chart vitals
         # (temperature + heart rate; weight/height are typed elsewhere on
-        # the patient record). No spo2 / bp / rr in a well-child visit.
-        fields = {"temp", "hr"}
+        # the patient record). No spo2 in a well-child visit; a child aged 3 or
+        # over also has the blood pressure and respiratory rate measured
+        # (Issue #3653, `_well_child_vitals` of chronic_followup.yaml).
+        from clinosim.modules.observation.pediatric_ranges import age_in_completed_months as _age_months
+
+        months = _age_months(patient.date_of_birth, visit_date)
+        fields = set(well_child_vitals(chronic_code, None if months is None else months // 12) or {"temp", "hr"})
     else:
         fields = {"hr", "bp"}
 
