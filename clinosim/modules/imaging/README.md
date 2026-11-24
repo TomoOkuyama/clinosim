@@ -139,6 +139,13 @@ from clinosim.modules.imaging.inference import (
   - `body_sites.yaml` — SNOMED body-site catalog.
   - `impression_templates.yaml` — per-modality / per-body-site
     negative and abnormal report templates.
+  - `follow_up_consistency.yaml` — `abnormal_persists.default_days` (and
+    `by_disease` overrides): a repeat study of a body site (any modality)
+    reads abnormal while an earlier study of that site in the stay read
+    abnormal within this window (`abnormal_persists_days`, Issue #3646); the
+    enricher reads a stay's studies in time order and the per-study random
+    draw is unchanged. The window is a modelling parameter, not a sourced
+    figure.
   - `cardiac_reports.yaml` — ECG and coronary angiography reports
     (Issue #3020): an ECG (`ECG`) states rhythm, rate, axis, intervals and
     ST-T findings from the stay's disease and ICD-10 code (acute-MI
@@ -199,6 +206,7 @@ clinosim/modules/imaging/
     body_sites.yaml                SNOMED body-site catalog
     exam_region_patterns.yaml      en/ja order-name patterns of region- / indication-specific studies, matched first by inference.py (Issue #3113)
     impression_templates.yaml      per-(modality × body_site) report templates
+    follow_up_consistency.yaml     days an abnormal read of a site persists for repeat studies (Issue #3646)
     cardiac_reports.yaml           ECG, coronary angiogram and HF-echo report content
     view_labels.yaml               en / ja view names for series descriptions (series_view_display, Issue #3030)
     bedside_examinations.yaml      work-up order names that are bedside examinations, not imaging (bedside_examination_names, Issue #2796)

@@ -1,0 +1,23 @@
+---
+# follow_up_consistency.yaml — repeat imaging of a body site within a stay
+#
+# Issue #3646: every study of a stay used to draw its own normal / abnormal read, so a chest
+# study that showed lobar pneumonia could be followed a day later by a chest CT reading "No
+# acute pulmonary process". A later study of the same body site (any modality: a chest X-ray
+# and a chest CT agree) now reads abnormal when an earlier study of that site read abnormal
+# within the last `default_days` days; after that it follows its own abnormal rate again, so a
+# finding can normalise late in the course. A per-disease window overrides the default.
+#
+# The window is a modelling parameter, not a published figure: it is the shortest span in
+# which a consolidation, bleed or fracture read abnormal cannot plausibly vanish, and it is
+# deliberately short (the radiographic resolution of pneumonia takes weeks). No source is
+# cited for the number; a disease needing a longer window is added under `by_disease`.
+
+metadata:
+  kind: reference
+  name: follow_up_consistency
+  source: clinosim
+
+abnormal_persists:
+  default_days: 7
+  by_disease: {}

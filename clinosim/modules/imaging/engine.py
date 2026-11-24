@@ -780,6 +780,42 @@ def _diagnosis_variant(by_code: dict[str, Any], code: str) -> Any:
     return best
 
 
+class _AbnormalPersists(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    default_days: StrictInt = Field(ge=0)
+    by_disease: dict[str, StrictInt] = Field(default_factory=dict)
+
+    @field_validator("by_disease")
+    @classmethod
+    def _known_non_negative(cls, value: dict[str, int]) -> dict[str, int]:
+        bad = sorted(d for d, days in value.items() if days < 0 or d not in SUPPORTED_IMAGING_DISEASES)
+        if bad:
+            raise ValueError(f"follow_up_consistency.yaml by_disease: unknown disease or negative days: {bad}")
+        return value
+
+
+class FollowUpConsistency(BaseModel):
+    """Shape of follow_up_consistency.yaml (Issue #3646)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    abnormal_persists: _AbnormalPersists
+
+
+@lru_cache(maxsize=1)
+def _load_follow_up_consistency() -> FollowUpConsistency:
+    data = load_validated_yaml(_REF_DIR / "follow_up_consistency.yaml", FollowUpConsistency)
+    return FollowUpConsistency.model_validate(data)
+
+
+def abnormal_persists_days(disease_id: str) -> int:
+    """Days after an abnormal read of a body site during which a repeat study of
+    the site reads abnormal as well (Issue #3646)."""
+    cfg = _load_follow_up_consistency().abnormal_persists
+    return cfg.by_disease.get(disease_id, cfg.default_days)
+
+
 def _select_report_template(
     disease_id: str,
     modality: str,
@@ -789,6 +825,7 @@ def _select_report_template(
     rng: np.random.Generator,
     diagnosis_code: str = "",
     laterality: str = "",
+    prior_abnormal: bool = False,
 ) -> tuple[str, dict[str, Any]]:
     """Select normal/abnormal report template based on disease + severity.
 
@@ -817,7 +854,9 @@ def _select_report_template(
         )
     # Severity → abnormal rate; "any" is a catch-all fallback.
     rate = abnormal_rate_by_severity.get(severity, abnormal_rate_by_severity.get("any", 0.0))
-    is_abnormal = float(rng.random()) < rate
+    # Issue #3646: the draw is always made (no stream moves); an abnormal read of
+    # the site earlier in the stay keeps this study abnormal.
+    is_abnormal = float(rng.random()) < rate or prior_abnormal
     variant = "abnormal" if is_abnormal else "normal"
     if variant not in bucket:
         # e.g. disease only defines "abnormal" with any:1.0 — use the only key.
@@ -952,7 +991,18 @@ def imaging_enricher(ctx: Any) -> None:
         severity: str = _o(record, "severity", "moderate") or "moderate"
         studies: list[ImagingStudyRecord] = list((_o(record, "extensions", {}) or {}).get("imaging", []))
 
-        for idx, order in enumerate(imaging_orders, start=1):
+        # Issue #3646: the studies are read in time order, so a repeat study of a
+        # body site can agree with the earlier read; ids and the output order keep
+        # the order list's numbering.
+        n_before = len(studies)
+        last_abnormal: dict[str, datetime] = {}
+        persists = timedelta(days=abnormal_persists_days(disease_id))
+        by_time = sorted(
+            enumerate(imaging_orders, start=1),
+            key=lambda pair: (_o(pair[1], "ordered_datetime") or datetime.min, pair[0]),
+        )
+        listed_at: dict[int, int] = {}  # id(study) -> its number in the order list
+        for idx, order in by_time:
             order_id: str = _o(order, "order_id", "") or ""
             sub_seed = derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["imaging"], order_id)
             rng = determinism.default_rng(sub_seed)
@@ -1071,6 +1121,7 @@ def imaging_enricher(ctx: Any) -> None:
                         _stub_started, "", stub_study.patient_id, order_id
                     )
                 studies.append(stub_study)
+                listed_at[id(stub_study)] = idx
                 continue
 
             series = _expand_views_to_series(modality, body_site_key, views, rng)
@@ -1104,6 +1155,8 @@ def imaging_enricher(ctx: Any) -> None:
             if not abnormal_rate:
                 abnormal_rate = workup_abnormal_rate(disease_id, modality, body_site_key)
             try:
+                _when = _o(order, "ordered_datetime")
+                _prior = last_abnormal.get(body_site_key)
                 _variant, template = _select_report_template(
                     disease_id,
                     modality,
@@ -1113,7 +1166,9 @@ def imaging_enricher(ctx: Any) -> None:
                     rng,
                     _stay_diagnosis_code(record),
                     _laterality,
+                    prior_abnormal=bool(_prior is not None and _when is not None and _when - _prior <= persists),
                 )
+                _template_abnormal = _variant == "abnormal"
                 encounter_id: str = _o(order, "encounter_id", "") or ""
                 report = RadiologyReport(
                     report_id=f"{RADIOLOGY_REPORT_ID_PREFIX}{encounter_id}-{idx}",
@@ -1127,6 +1182,7 @@ def imaging_enricher(ctx: Any) -> None:
                     # findings_codes: forward-compat slot — PR1 leaves empty.
                 )
             except ValueError:
+                _template_abnormal = False
                 # Template unregistered → P1-11 (session 88j): emit
                 # generic negative-findings report instead of None so
                 # the ED / unknown_condition path still gets a RAD DR.
@@ -1142,6 +1198,9 @@ def imaging_enricher(ctx: Any) -> None:
             _cardiac = cardiac_report(modality, record, order, report.report_id, body_site_key)
             if _cardiac is not None:
                 report = _cardiac
+            elif _template_abnormal and _o(order, "ordered_datetime") is not None:
+                _read_at = _o(order, "ordered_datetime")
+                last_abnormal[body_site_key] = max(_read_at, last_abnormal.get(body_site_key, _read_at))
 
             # Issue #822 follow-up: non-stub studies were the majority of
             # the 916 / 4863 (18.8%) empty-description hits in the deployed
@@ -1175,6 +1234,11 @@ def imaging_enricher(ctx: Any) -> None:
                 study.started_datetime, modality, study.patient_id, order_id
             )
             studies.append(study)
+            listed_at[id(study)] = idx
+
+        # Back to the order list's numbering (a stable sort: the processed order
+        # is kept for equal numbers).
+        studies[n_before:] = sorted(studies[n_before:], key=lambda st: listed_at[id(st)])
 
         # Write back — create extensions dict on SimpleNamespace stubs if absent.
         extensions = _o(record, "extensions", None)
