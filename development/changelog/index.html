@@ -2397,6 +2397,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
 <li>A population death date no longer falls inside a survivor inpatient stay: a stay that runs up to the death date ends as an in-hospital death on that date, a stay without a death course moves the death to after the discharge, and the FHIR post-mortem clip keeps <code>Encounter.period.end</code> a full dateTime and clips <code>classHistory</code> and <code>location</code> too (#3633).</li>
+<li>Supplemental oxygen is titrated down as well as up: once the SpO2 on oxygen stays above the target band the flow is lowered one flowmeter step at a time and the device follows (mask to nasal cannula), so a stepped-down ICU patient no longer stays on 8-10 L/min on the ward and the step-down follows the criteria more often (#3632).</li>
 </ul>
 <h2 id="073---2026-11-24">[0.7.3] - 2026-11-24<a class="headerlink" href="#073---2026-11-24" title="Permanent link">&para;</a></h2>
 <h3 id="highlights">Highlights<a class="headerlink" href="#highlights" title="Permanent link">&para;</a></h3>
