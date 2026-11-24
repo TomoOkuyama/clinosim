@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, NamedTuple
 
 import numpy as np
 
@@ -1429,9 +1429,11 @@ def _simulate_outpatient_visit(
 # ``patient_records.append(opd_record)`` to compute which specialty
 # encounters to synthesise additively on top of the primary care /
 # internal medicine visit stream. Returns a list of
-# ``(specialty, cadence, period_key)`` tuples that the caller then
-# fans out into fresh ``_simulate_outpatient_visit`` calls with the
-# resolved specialty department.
+# ``SpecialtyTick`` tuples (``specialty, cadence, period_key,
+# chronic_code``; Issue #3659: the code is the patient's condition that
+# routed them to the specialty, which codes the specialty visit) that the
+# caller then fans out into fresh ``_simulate_outpatient_visit`` calls with
+# the resolved specialty department.
 #
 # Dedup state lives on the patient's ``visit_ledger.specialty_visits``, a
 # ``set[tuple[specialty_name, year, period_slot | None]]`` where
@@ -1442,12 +1444,35 @@ def _simulate_outpatient_visit(
 # downstream ``_simulate_outpatient_visit`` call. Patients with zero
 # matching routes see an empty return, so the engine performs zero
 # additional emits and their byte-identity is preserved.
-def _specialty_fanout_tick(
-    patient: PatientProfile, chronic_event_time: datetime
-) -> list[tuple[str, str, tuple[int, int | None]]]:
-    """Return list of ``(specialty, cadence, period_key)`` tuples to
-    synthesise at this chronic_followup tick. Updates per-patient
-    dedup tracker in place."""
+class SpecialtyTick(NamedTuple):
+    """One specialty visit to synthesise at a chronic follow-up tick.
+
+    ``chronic_code`` is the first of the patient's chronic conditions that the
+    route matched (``requires_chronic``, ``requires_chronic_prefix`` or
+    ``requires_concept_group``): the visit is coded and treated for it
+    (Issue #3659)."""
+
+    specialty: str
+    cadence: str
+    period_key: tuple[int, int | None]
+    chronic_code: str
+
+
+def _route_matching_code(route: dict[str, Any], chronic_codes: list[str]) -> str:
+    """The first of ``chronic_codes`` that ``route`` matches, "" for none."""
+    requires = list(route.get("requires_chronic") or [])
+    prefix = list(route.get("requires_chronic_prefix") or [])
+    group = route.get("requires_concept_group")
+    vs = concept_group(str(group)) if group else None
+    for code in chronic_codes:
+        if code in requires or any(code.startswith(p) for p in prefix) or (vs is not None and vs.contains(code)):
+            return code
+    return ""
+
+
+def _specialty_fanout_tick(patient: PatientProfile, chronic_event_time: datetime) -> list[SpecialtyTick]:
+    """Return the ``SpecialtyTick`` list to synthesise at this chronic_followup
+    tick. Updates per-patient dedup tracker in place."""
     from clinosim.locale.loader import load_specialty_routing
 
     routes = load_specialty_routing()
@@ -1467,21 +1492,11 @@ def _specialty_fanout_tick(
     year = chronic_event_time.year
     month = chronic_event_time.month
 
-    out: list[tuple[str, str, tuple[int, int | None]]] = []
+    out: list[SpecialtyTick] = []
     seen_specialty_this_tick: set[str] = set()
     for route in routes:
-        requires = list(route.get("requires_chronic") or [])
-        prefix = list(route.get("requires_chronic_prefix") or [])
-        matched = False
-        if requires:
-            matched = any(code in requires for code in chronic_codes)
-        if not matched and prefix:
-            matched = any(any(code.startswith(p) for p in prefix) for code in chronic_codes)
-        group = route.get("requires_concept_group")
-        if not matched and group:
-            vs = concept_group(str(group))
-            matched = any(vs.contains(code) for code in chronic_codes)
-        if not matched:
+        matched_code = _route_matching_code(route, chronic_codes)
+        if not matched_code:
             continue
         specialty = str(route.get("specialty") or "")
         cadence = str(route.get("cadence") or "")
@@ -1504,5 +1519,5 @@ def _specialty_fanout_tick(
             continue
         emitted.add(key)
         seen_specialty_this_tick.add(specialty)
-        out.append((specialty, cadence, (year, period_slot)))
+        out.append(SpecialtyTick(specialty, cadence, (year, period_slot), matched_code))
     return out
