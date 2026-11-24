@@ -276,7 +276,9 @@ class DischargeInstructionGate(BaseModel):
     catalog drug ids or classes of which at least one must be on the
     discharge prescription — the drugs matched fill ``{drugs}``;
     ``aki_at_discharge`` keeps the instruction for a patient whose final
-    creatinine still meets the AKI definition (Issue #3281)."""
+    creatinine still meets the AKI definition (Issue #3281);
+    ``fever_at_discharge`` keeps it for a patient still febrile (a temperature
+    at or above the gate's fever threshold in the last day, Issue #3637)."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -291,6 +293,8 @@ class DischargeInstructionGate(BaseModel):
     vitamin_k_given: bool | None = None
     # Issue #3281: the stay's final creatinine still meets the KDIGO AKI definition.
     aki_at_discharge: bool = False
+    # Issue #3637: the stay reached its extension cap still febrile.
+    fever_at_discharge: bool = False
     # Issue #3554: where the patient goes after discharge ("home" = a private
     # residence, "facility" = a nursing facility or another hospital; the
     # dispositions that count as a facility are the file's

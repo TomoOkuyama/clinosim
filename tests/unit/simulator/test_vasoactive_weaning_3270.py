@@ -233,7 +233,7 @@ def urosepsis_with_norepinephrine():
     from clinosim.types.config import ForcedScenario, SimulatorConfig
 
     scenario = ForcedScenario(
-        disease_id="urinary_tract_infection", count=8, severity="severe", archetype="sudden_deterioration"
+        disease_id="urinary_tract_infection", count=16, severity="severe", archetype="sudden_deterioration"
     )
     return run_forced(scenario, SimulatorConfig(random_seed=7, country="US"))
 

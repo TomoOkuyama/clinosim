@@ -195,7 +195,9 @@ clinosim/simulator/
                          while it is active (sticky from the first result meeting the definition until
                          a 10% fall from the peak, #3538), metformin held while lactate
                          is high (#3539), the discharge gate (Issue #3281), and the AKI onset
-                         dated at the first creatinine that meets the definition (#3642)
+                         dated at the first creatinine that meets the definition (#3642),
+                         and a fever extends the stay up to its own, longer cap; a patient still
+                         febrile then is discharged to a facility, not home (#3637)
   device_removal.py      urinary / central venous catheter placement and removal:
                          the event that placed it and the day its indication
                          ended (Issue #3516)

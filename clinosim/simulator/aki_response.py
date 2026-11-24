@@ -73,6 +73,7 @@ class AkiResponseRules(BaseModel):
     fever_celsius: float = Field(gt=0)
     fever_window_hours: int = Field(gt=0)
     max_extension_days: int = Field(ge=0)
+    fever_max_extension_days: int = Field(ge=0)
     lactate_hold: LactateHoldRules
 
     @field_validator("hold_classes")
@@ -270,6 +271,18 @@ def discharge_findings_unresolved(course: AkiCourse, vitals: Iterable[VitalSignR
     """True while the patient is not fit to go home for the kidneys or a
     fever: AKI that has not begun to recover, or a fever in the last day."""
     return course.not_improving or fever_persists(vitals)
+
+
+def discharge_extension_days(course: AkiCourse, vitals: Iterable[VitalSignRecord]) -> int:
+    """How many days past the sampled stay the patient may be kept for the
+    findings still unresolved (Issue #3637): ``fever_max_extension_days`` while
+    a fever persists, ``max_extension_days`` for AKI that has not begun to
+    recover, 0 when nothing is unresolved."""
+    rules = aki_response_rules()
+    vitals = list(vitals)
+    if fever_persists(vitals):
+        return rules.fever_max_extension_days
+    return rules.max_extension_days if course.not_improving else 0
 
 
 def _field(rec: object, name: str) -> object:
