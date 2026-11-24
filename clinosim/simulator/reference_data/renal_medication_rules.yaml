@@ -3,9 +3,10 @@
 # One list for admission (simulator/medication_pipeline.py) and discharge
 # (simulator/discharge_rx.py). Keys are matched as lower-case substrings of
 # the drug name. The value is the admission action when the patient has
-# renal impairment and a low renal reserve:
-#   hold   — the home medication is not ordered;
-#   reduce — it is ordered with a renal dose reduction.
+# renal impairment (CKD diagnosis or low current renal function):
+#   hold   — the home medication is not ordered (Issue #3641);
+#   reduce — it is ordered with a renal dose annotation when the static
+#            renal reserve is also low.
 # At discharge every listed drug is held when the final renal function is
 # below DISCHARGE_RENAL_HOLD_THRESHOLD (KDIGO stage 3b+ or active AKI).
 #
@@ -18,6 +19,11 @@ metadata:
   kind: reference
   name: renal_medication_rules
   source: clinosim
+
+# Admission hold reason logged for a `hold` drug (Issue #3641). A `hold` drug is
+# held whenever the kidneys are already impaired at admission (CKD diagnosis or
+# low current renal function); the static renal reserve gates only `reduce`.
+admission_hold_reason: "Renal impairment at admission: nephrotoxic or renally cleared drug held"
 
 renal_drugs:
   metformin: hold

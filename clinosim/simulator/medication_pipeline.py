@@ -142,6 +142,9 @@ class RenalMedicationRules(BaseModel):
 
     # Drug (catalog id or name) -> admission action for renal impairment.
     renal_drugs: dict[str, Literal["hold", "reduce"]] = Field(min_length=1)
+    # The reason recorded when a ``hold`` drug is not ordered at admission
+    # (display table: ``locale/shared/medication_hold_reasons.yaml``).
+    admission_hold_reason: str = Field(min_length=1)
 
 
 @functools.cache
@@ -156,6 +159,18 @@ def renal_medication_rules() -> dict[str, str]:
         Path(__file__).resolve().parent / "reference_data" / "renal_medication_rules.yaml", RenalMedicationRules
     )
     return {drug_key(str(k)): str(v) for k, v in (data.get("renal_drugs") or {}).items()}
+
+
+@functools.cache
+def renal_admission_hold_reason() -> str:
+    """The reason logged when a renal ``hold`` drug is not ordered at admission
+    (``renal_medication_rules.yaml``, Issue #3641)."""
+    from clinosim.datafiles import load_validated_yaml
+
+    data = load_validated_yaml(
+        Path(__file__).resolve().parent / "reference_data" / "renal_medication_rules.yaml", RenalMedicationRules
+    )
+    return str(data["admission_hold_reason"])
 
 
 def mar_vital_hold_reason(drug_name: str, vitals: Any) -> str | None:
@@ -500,14 +515,26 @@ def _generate_home_medication_orders(
 
         # 3. Renal dose adjustment for CKD patients.
         # Issue #2296: one renal drug list shared with discharge.
-        if has_renal_impairment and renal_reserve < METFORMIN_RENAL_RESERVE_THRESHOLD:
-            action = renal_medication_rules().get(med_key)
-            if action == "hold":
-                continue  # held
-            if action == "reduce":
-                intent += t("order_intent.dose_reduced_renal", "en")
-                # Issue #871: mirror the annotation on the JA display.
-                intent_ja += t("order_intent.dose_reduced_renal", "ja")
+        # Issue #3641: a ``hold`` drug (NSAID, alendronate) is held whenever the
+        # kidneys are already impaired at admission (CKD diagnosis or low
+        # current renal function); the static reserve gates only the ``reduce``
+        # annotation. The hold is logged for the reconciliation.
+        action = renal_medication_rules().get(med_key) if has_renal_impairment else None
+        if action == "hold":
+            _log_disease_medication_hold(
+                patient,
+                encounter_id=encounter_id,
+                held_drug_name=drug_name,
+                held_drug_name_ja=getattr(med, "drug_name_ja", "") or drug_name,
+                hold_reason=renal_admission_hold_reason(),
+                disease_id="renal_impairment",
+                timestamp=admission_time,
+            )
+            continue  # held
+        if action == "reduce" and renal_reserve < METFORMIN_RENAL_RESERVE_THRESHOLD:
+            intent += t("order_intent.dose_reduced_renal", "en")
+            # Issue #871: mirror the annotation on the JA display.
+            intent_ja += t("order_intent.dose_reduced_renal", "ja")
 
         order = Order(
             order_id=f"ORD-{encounter_id}-HM-{med_idx:02d}",
