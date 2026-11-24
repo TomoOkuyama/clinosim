@@ -33,6 +33,7 @@ from clinosim.modules.newborn.engine import (
     build_vitamin_k_administrations,
     has_perinatal_baseline_emitted,
     is_newborn_birth_record,
+    load_newborn_config,
     mark_perinatal_baseline_emitted,
 )
 
@@ -51,6 +52,33 @@ def _set_giving_nurse(mars: list[Any], record: Any, roster: Any) -> None:
     department = str(_get(enc, "department_id", "") or "") if enc is not None else ""
     for m in mars:
         m.administered_by = stable_nurse(roster, str(m.order_id), ward=ward, department=department)
+
+
+def _derive_jaundice(record: Any, bilirubin: list[dict[str, Any]]) -> None:
+    """P59.9 neonatal jaundice from the measured bilirubin (Issue #3669): a
+    baby whose peak reading is at or above
+    ``newborn_screening.yaml bilirubin.documentation_threshold_mg_dl`` carries
+    P59.9 in ``perinatal_history`` and as a working diagnosis of the birth
+    encounter. Idempotent."""
+    from clinosim.types.patient import ChronicCondition
+
+    if not bilirubin:
+        return
+    threshold = float((load_newborn_config().get("bilirubin") or {})["documentation_threshold_mg_dl"])
+    if max(float(b["value_mg_dl"]) for b in bilirubin) < threshold:
+        return
+    patient = _get(record, "patient", None)
+    encounters = _get(record, "encounters", []) or []
+    diagnosis = _get(record, "clinical_diagnosis", None)
+    admitted = _get(encounters[0], "admission_datetime", None) if encounters else None
+    if patient is None or diagnosis is None or admitted is None:
+        return
+    if not any(c.code == "P59.9" for c in patient.perinatal_history):
+        patient.perinatal_history.append(ChronicCondition(code="P59.9", onset_date=admitted.date()))
+    if not any(d.get("disease_id") == "P59.9" for d in diagnosis.working_diagnoses):
+        diagnosis.working_diagnoses.append(
+            {"disease_id": "P59.9", "onset_day": 0, "onset_datetime": admitted.isoformat()}
+        )
 
 
 def enrich_newborn(ctx: Any) -> None:
@@ -113,6 +141,7 @@ def enrich_newborn(ctx: Any) -> None:
                 new_metabolic_workflow = None
             else:
                 mark_perinatal_baseline_emitted(_pid, "428447008")
+        _derive_jaundice(record, new_bili)
         if new_bili or new_cchd or new_metabolic_workflow:
             ext = _get(record, "extensions", None)
             if ext is None:

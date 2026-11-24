@@ -57,6 +57,7 @@ class _Bilirubin(_Strict):
     mean_by_day: dict[int, float]
     std_by_day: dict[int, float]
     level_correlation: float = Field(ge=0, lt=1)
+    documentation_threshold_mg_dl: float = Field(gt=0)
     clamp_min: float
     clamp_max: float
 

@@ -201,7 +201,7 @@ def _is_perinatal_code(code: str) -> bool:
 
 
 def _sample_newborn_conditions(
-    mother_id: str, delivery_date: date
+    mother_id: str, delivery_date: date, gestational_days: int | None = None
 ) -> tuple[list[ChronicCondition], list[ChronicCondition]]:
     """Sample newborn conditions from ``perinatal.yaml::newborn_conditions``.
 
@@ -214,6 +214,11 @@ def _sample_newborn_conditions(
     Per-mother sub-RNG (``newborn_conditions_seed``) makes the
     outcome deterministic per birth and RNG-neutral against every
     other patient in the cohort.
+
+    Issue #3669: every row is still drawn, so the stream is unchanged, but a
+    ``derived_from`` row (P59.9, derived from the bilirubin reading) is not
+    kept, and a ``gestational_weeks_below`` row (P07.3 preterm, with its
+    triggers) is kept only for a birth before that age.
     """
     cfg = load_perinatal_config()
     entries = cfg.get("newborn_conditions") or []
@@ -239,14 +244,19 @@ def _sample_newborn_conditions(
         prob = float(entry.get("probability") or 0.0)
         if float(rng.random()) >= prob:
             continue
-        _route(ChronicCondition(code=code, onset_date=onset))
+        below = entry.get("gestational_weeks_below")
+        keep = not entry.get("derived_from") and (
+            below is None or (gestational_days is not None and gestational_days < float(below) * 7)
+        )
+        if keep:
+            _route(ChronicCondition(code=code, onset_date=onset))
         # Conditional triggers (e.g. preterm → RDS)
         for trig in entry.get("triggers") or []:
             if not isinstance(trig, dict):
                 continue
             trig_code = str(trig.get("code") or "")
             trig_prob = float(trig.get("conditional_probability") or 0.0)
-            if trig_code and float(rng.random()) < trig_prob:
+            if trig_code and float(rng.random()) < trig_prob and keep:
                 _route(ChronicCondition(code=trig_code, onset_date=onset))
     return persistent, perinatal
 
@@ -431,7 +441,11 @@ def _build_newborn_patient(
     # the given reading is the newborn's own, from its name-pool entry.
     newborn_phonetic = _newborn_phonetic(mother, given_entry)
     # Issue #1699: route sampled newborn conditions into chronic vs perinatal.
-    _newborn_persistent, _newborn_perinatal = _sample_newborn_conditions(mother.patient_id, delivery_date)
+    _newborn_persistent, _newborn_perinatal = _sample_newborn_conditions(
+        mother.patient_id,
+        delivery_date,
+        _birth_data(mother, datetime.combine(delivery_date, datetime.min.time()), False)["gestational_age_days"],
+    )
     return PatientProfile(
         patient_id=newborn_id,
         household_id=mother.household_id,
@@ -621,7 +635,7 @@ def _birth_data(mother: PatientProfile, delivered_at: datetime, cesarean: bool) 
         "gestational_age_days": _gestational_days(mother, delivered_at),
         "delivery_mode": "cesarean" if cesarean else "vaginal",
         "maternal_age": age_at_measurement(mother, delivered_at)[0],
-        "maternal_condition_codes": [c.code for c in mother.chronic_conditions if c.code],
+        "maternal_condition_codes": [c.code for c in getattr(mother, "chronic_conditions", None) or [] if c.code],
     }
 
 
@@ -1286,7 +1300,17 @@ def simulate_delivery_encounter(
             _nb_person.visit_count = max(1, _nb_person.visit_count + 1)
 
     # Z38.0: single liveborn, born in hospital, without cesarean
-    newborn_diagnosis = encounter_diagnosis("Z38.0", country)
+    # Issue #3669: every other sampled perinatal condition is a diagnosis of
+    # the birth encounter too (the mother's complications use the same shape).
+    newborn_diagnosis = encounter_diagnosis(
+        "Z38.0",
+        country,
+        working_diagnoses=[
+            {"disease_id": c.code, "onset_day": 0, "onset_datetime": visit_date.isoformat()}
+            for c in newborn.perinatal_history
+            if c.code != "Z38.0"
+        ],
+    )
     newborn_condition_event = ConditionEvent(
         condition_id=f"COND-{newborn.patient_id}-BIRTH",
         condition_type="newborn_birth",
