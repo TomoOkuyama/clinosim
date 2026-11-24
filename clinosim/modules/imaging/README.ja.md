@@ -132,6 +132,12 @@ from clinosim.modules.imaging.inference import (
   - `body_sites.yaml` — SNOMED body-site カタログ。
   - `impression_templates.yaml` — modality × body-site 別 negative
     / abnormal report template。
+  - `follow_up_consistency.yaml` — `abnormal_persists.default_days` (と
+    `by_disease` による上書き): stay 内で同じ部位 (modality 不問) の以前の
+    検査がこの期間内に異常読影だった場合、その部位の再検査も異常と読影する
+    (`abnormal_persists_days`、Issue #3646)。enricher は stay の検査を時刻順に
+    処理し、検査ごとの乱数 draw は変えない。この期間はモデル上のパラメータで、
+    出典のある値ではない。
   - `cardiac_reports.yaml` — 心電図・冠動脈造影の所見 (Issue #3020)。
     心電図 (`ECG`) は入院の疾患と ICD-10 コード (急性心筋梗塞の部位)、
     慢性心房細動の診断、記録時刻に最も近い心拍数から、調律・心拍数・
@@ -186,6 +192,7 @@ clinosim/modules/imaging/
     body_sites.yaml                SNOMED body-site カタログ
     exam_region_patterns.yaml      部位・適応別の検査の en/ja order 名パターン (inference.py が先に照合、Issue #3113)
     impression_templates.yaml      (modality × body_site) 別 report template
+    follow_up_consistency.yaml     部位の異常読影が再検査に持続する日数 (Issue #3646)
     cardiac_reports.yaml           ECG・冠動脈造影・心不全心エコーの report 内容
     view_labels.yaml               series description 用の en / ja view 名 (series_view_display、Issue #3030)
     bedside_examinations.yaml      画像検査ではなくベッドサイド診察である work-up order 名 (bedside_examination_names、Issue #2796)
