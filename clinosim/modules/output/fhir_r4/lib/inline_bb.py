@@ -741,6 +741,14 @@ def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
     # Issue #3483: the epinephrine doses of a resuscitation attempt are minutes
     # apart on purpose and are not scheduling duplicates.
     _resuscitation_doses: set[int] = set()
+    # Issue #3690: the category follows the class of the Encounter the doses
+    # are given in (doses dated in the ED phase of a via-ED admission are
+    # moved to the ED bridge later and re-categorised there).
+    _ma_enc = (ctx.record.get("encounters") or [{}])[0]
+    _ma_encounter_type = str(
+        (_ma_enc.get("encounter_type", "") if isinstance(_ma_enc, dict) else getattr(_ma_enc, "encounter_type", ""))
+        or "inpatient"
+    )
     for i, mar in enumerate(ctx.record.get("medication_administrations", [])):
         if not (mar.get("drug_name") or "").strip():
             continue
@@ -762,6 +770,7 @@ def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
             chronic_condition_codes=_chronic_codes,
             parent_order=_order_by_oid.get(_oid),
             patient_sex=str((ctx.patient_data or {}).get("sex", "") or ""),
+            encounter_type=_ma_encounter_type,
         )
         _req = _resource.get("request") if isinstance(_resource, dict) else None
         if _req and isinstance(_req, dict):
