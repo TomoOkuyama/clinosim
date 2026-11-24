@@ -173,7 +173,10 @@ clinosim/simulator/
                          `reference_data/complication_diagnosis_codes.yaml`。乱数なし (Issue #3673)
   complication_actions.py  合併症に疾患 YAML が宣言する抗菌薬 `actions`: 表記を 1 つの正規
                          キーに統一し、合併症ごとに指定したプロトコルの第一選択抗菌薬を
-                         発症時に薬剤安全性ゲート経由で発注。乱数なし (Issue #3543)
+                         発症時に薬剤安全性ゲート経由で発注。乱数なし (Issue #3543)。気道の action
+                         (`intubation` / `mechanical_ventilation`) は発症時に状態駆動の経路で
+                         気道を確保 (人工呼吸器・ICU・絶食・手技) (Issue #3639)。呼吸不全・ARDS の
+                         病名は complication_dx.py が日付付きの診断にする (Issue #3673)
   vasopressor_initiation.py  記録された平均血圧が輸液後も低い場合に昇圧薬を開始する
                          (固定病日ではなく生理状態駆動, Issue #3332)
   aki_response.py        急性腎障害 (KDIGO のクレアチニン基準): 活動期間中の薬剤保留

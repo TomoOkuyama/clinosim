@@ -187,7 +187,10 @@ clinosim/simulator/
                          complication: one canonical spelling, and the first-line
                          antibiotic of the protocol named for the complication,
                          ordered at onset through the drug-safety gate; no RNG
-                         (Issue #3543)
+                         (Issue #3543); the airway action (`intubation` / `mechanical_ventilation`)
+                         secures the airway at onset through the state-driven path (ventilator,
+                         ICU, NPO diet, procedure) (Issue #3639); the respiratory failure / ARDS
+                         diagnosis is dated by complication_dx.py (Issue #3673)
   vasopressor_initiation.py  starts a vasopressor from the recorded mean arterial
                          pressure (low despite fluids) instead of a fixed day
                          (Issue #3332)

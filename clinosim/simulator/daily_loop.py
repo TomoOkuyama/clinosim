@@ -115,6 +115,7 @@ from clinosim.simulator.aki_response import (
     lactate_course,
 )
 from clinosim.simulator.complication_actions import (
+    airway_actions_of,
     antibiotic_actions_of,
     complication_action_rules,
     first_line_antibiotics,
@@ -1482,7 +1483,13 @@ def _apply_complications(stay: _Stay, run: _Run, day: int, comp_list: list) -> N
             )
         for antibiotic_action in antibiotic_actions_of(comp):
             _start_complication_antibiotic(stay, run, day, comp_name, antibiotic_action, onset_dt)
-        if "icu_transfer" in comp.get("actions", []):
+        # Issue #3639: a complication that requires intubation secures the airway
+        # at its onset (the patient is then ventilated and in the ICU), unless
+        # the patient is already intubated or has declined intubation.
+        intubate = bool(airway_actions_of(comp))
+        if intubate and not run.intubated and _airway_escalation_allowed(stay, run):
+            _secure_airway(stay, run, day, onset_dt)
+        if "icu_transfer" in comp.get("actions", []) or (intubate and run.intubated):
             run.icu_trigger_days.add(day)
             if not run.icu_transferred:
                 # C5-22: capture day of transfer for
@@ -1638,24 +1645,31 @@ def _record_icu_support(stay: _Stay, run: _Run, day: int) -> None:
     )
 
 
+def _secure_airway(stay: _Stay, run: _Run, day: int, intubated_at: datetime) -> None:
+    """Intubate and ventilate from ``intubated_at``: the intubation procedure,
+    the ventilator state of the readings from then on and the ventilated diet.
+    The one path of the state-driven escalation and of a complication that
+    requires intubation (Issue #3639). Draws nothing."""
+    run.intubated = True
+    run.intubated_day = day
+    _start_ventilation(stay, run, day, intubated_at)
+    run.escalation_procedures.append(
+        build_intubation_procedure(
+            stay.patient.patient_id,
+            stay.encounter_id,
+            intubated_at,
+            stay.country,
+            f"PROC-{stay.patient.patient_id}-AIR{day:02d}",
+            performer_id=stay.attending_id,
+        )
+    )
+
+
 def _escalate_airway_and_icu(stay: _Stay, run: _Run, day: int) -> None:
     """State-driven airway / ICU escalation (Issue #2091): intubation on the
     day the airway threshold is crossed, ICU transfer for airway or shock."""
     if not run.intubated and airway_escalation_needed(run.state) and _airway_escalation_allowed(stay, run):
-        run.intubated = True
-        run.intubated_day = day
-        intubated_at = stay.admission_time + timedelta(days=day, hours=AIRWAY_ESCALATION_HOUR)
-        _start_ventilation(stay, run, day, intubated_at)
-        run.escalation_procedures.append(
-            build_intubation_procedure(
-                stay.patient.patient_id,
-                stay.encounter_id,
-                intubated_at,
-                stay.country,
-                f"PROC-{stay.patient.patient_id}-AIR{day:02d}",
-                performer_id=stay.attending_id,
-            )
-        )
+        _secure_airway(stay, run, day, stay.admission_time + timedelta(days=day, hours=AIRWAY_ESCALATION_HOUR))
     if not run.icu_transferred and icu_escalation_needed(run.state):
         run.icu_transferred_day = day
         run.icu_transferred = True

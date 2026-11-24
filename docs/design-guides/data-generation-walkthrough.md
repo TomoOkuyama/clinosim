@@ -234,7 +234,9 @@ The inpatient daily loop is the heart of the data. Roughly:
    `["icu_transfer"]` fires and triggers ICU transfer, and one that
    declares `start_antibiotic` (or `start_broad_spectrum_antibiotic`)
    gets the first-line antibiotic of its empirical-regimen protocol at
-   onset (`simulator/reference_data/complication_actions.yaml`); the
+   onset (`simulator/reference_data/complication_actions.yaml`); one that
+   declares `intubation` / `mechanical_ventilation` secures the airway at
+   onset through the state-driven path (ventilator, ICU, procedure); the
    other action strings are not executed.
 5. **Orders / labs / vitals / meds**: physiology state drives
    `derive_lab_values` (30+ analytes) for lab values, vitals, and

@@ -172,8 +172,9 @@ Layer 1 → Layer 2 `PatientProfile` に厚くなる:身長/体重、**慢性疾
    `actions: ["icu_transfer"]` を含む合併症が発火すると ICU 転送。
    `start_antibiotic` (または `start_broad_spectrum_antibiotic`) を宣言する
    合併症は、発症時に経験的治療プロトコルの第一選択抗菌薬を発注する
-   (`simulator/reference_data/complication_actions.yaml`)。その他のアクション
-   文字列は実行されない。
+   (`simulator/reference_data/complication_actions.yaml`)。`intubation` /
+   `mechanical_ventilation` を宣言する合併症は発症時に状態駆動の経路で気道を確保し
+   (人工呼吸器・ICU・手技)。その他のアクション文字列は実行されない。
 5. **オーダ/検査/バイタル/投薬**: physiology 状態から `derive_lab_values`(30+ analyte)で検査値、
    vitals、`place_admission_orders` / `place_daily_lab_orders`(panel-aware)/ 画像
    (`place_imaging_orders`)/ MAR を生成。
