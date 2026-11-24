@@ -3,7 +3,7 @@
 Every encounter kind (ED, outpatient, perinatal, unknown condition,
 inpatient) ends the same way: the encounter's orders are tied to it, its
 admit source / discharge disposition / priority are set, the attending
-physician also admits and discharges, and a ``ClinicalDiagnosis`` is
+physician of an ED visit or a stay also admits and discharges, and a ``ClinicalDiagnosis`` is
 written in the country's diagnosis code system. Procedures performed in
 the encounter lie inside its period: a clinic visit lasts until its last
 procedure ends, while a stay with a fixed end holds its procedures within it.
@@ -17,8 +17,11 @@ from typing import Any
 
 from clinosim.codes import system_key_for
 from clinosim.types.clinical import ClinicalDiagnosis
-from clinosim.types.encounter import Encounter, Order
+from clinosim.types.encounter import Encounter, EncounterType, Order
 from clinosim.types.procedure import ProcedureRecord
+
+# Visits that admit and discharge nobody (Issue #3691).
+_AMBULATORY_TYPES = frozenset({EncounterType.OUTPATIENT, EncounterType.PRENATAL_VISIT})
 
 
 def attach_orders(orders: Iterable[Order], encounter: Encounter) -> None:
@@ -29,12 +32,15 @@ def attach_orders(orders: Iterable[Order], encounter: Encounter) -> None:
 
 
 def finalize_encounter(encounter: Encounter, *, admit_source: str, disposition: str, priority: str) -> None:
-    """Set the route fields and let the attending physician admit and discharge."""
+    """Set the route fields; for an ED visit or a stay the attending physician
+    also admits and discharges. An ambulatory visit (clinic, check-up,
+    vaccination, prenatal visit) admits and discharges nobody (Issue #3691)."""
     encounter.admit_source = admit_source
     encounter.discharge_disposition = disposition
     encounter.priority = priority
-    encounter.admitting_physician_id = encounter.attending_physician_id
-    encounter.discharging_physician_id = encounter.attending_physician_id
+    if encounter.encounter_type not in _AMBULATORY_TYPES:
+        encounter.admitting_physician_id = encounter.attending_physician_id
+        encounter.discharging_physician_id = encounter.attending_physician_id
 
 
 def encounter_diagnosis(

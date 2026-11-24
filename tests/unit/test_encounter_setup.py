@@ -6,7 +6,7 @@ from datetime import datetime
 
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
 from clinosim.simulator.encounter_setup import attach_orders, encounter_diagnosis, finalize_encounter
-from clinosim.types.encounter import Encounter, Order
+from clinosim.types.encounter import Encounter, EncounterType, Order
 
 
 def test_attach_orders_fills_only_orders_without_an_encounter() -> None:
@@ -17,7 +17,12 @@ def test_attach_orders_fills_only_orders_without_an_encounter() -> None:
 
 
 def test_finalize_encounter_sets_route_and_lets_the_attending_admit_and_discharge() -> None:
-    enc = Encounter(encounter_id="ENC-1", admission_datetime=datetime(2026, 1, 1), attending_physician_id="DR-7")
+    enc = Encounter(
+        encounter_id="ENC-1",
+        encounter_type=EncounterType.INPATIENT,
+        admission_datetime=datetime(2026, 1, 1),
+        attending_physician_id="DR-7",
+    )
     finalize_encounter(
         enc, admit_source=AdmitSource.BORN, disposition=DischargeDisposition.HOME, priority=ActPriority.R
     )
@@ -35,3 +40,17 @@ def test_encounter_diagnosis_uses_the_country_code_system() -> None:
 def test_encounter_diagnosis_takes_a_separate_discharge_code_and_extra_fields() -> None:
     dx = encounter_diagnosis("O80", "US", discharge_code="Z37.0", diagnosis_correct=False)
     assert (dx.admission_diagnosis_code, dx.discharge_diagnosis_code, dx.diagnosis_correct) == ("O80", "Z37.0", False)
+
+
+def test_finalize_encounter_leaves_admitter_and_discharger_empty_for_ambulatory_visits() -> None:
+    """Issue #3691: nobody admits or discharges a clinic visit; an ED visit is admitted and discharged."""
+    for etype, expected in (
+        (EncounterType.OUTPATIENT, ""),
+        (EncounterType.PRENATAL_VISIT, ""),
+        (EncounterType.EMERGENCY, "DR-7"),
+    ):
+        enc = Encounter(encounter_id="ENC-1", encounter_type=etype, attending_physician_id="DR-7")
+        finalize_encounter(
+            enc, admit_source=AdmitSource.OUTP, disposition=DischargeDisposition.HOME, priority=ActPriority.R
+        )
+        assert enc.admitting_physician_id == enc.discharging_physician_id == expected, etype

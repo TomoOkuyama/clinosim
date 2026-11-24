@@ -401,7 +401,8 @@ def _set_reason(
 
 
 def _set_participants(resource: dict[str, Any], enc: dict, class_code: str, country: str) -> None:
-    """Encounter.participant: attending, admitter, discharger."""
+    """Encounter.participant: attending; admitter and discharger for an
+    inpatient stay or ED visit only (Issue #3691)."""
     # Participant: attending, admitter, discharger
     participants: list[dict[str, Any]] = []
     attending = enc.get("attending_physician_id", "")
@@ -416,9 +417,11 @@ def _set_participants(resource: dict[str, Any], enc: dict, class_code: str, coun
     # Core Encounter recommends admitter / discharger tracking for inpatient
     # workflows. Previously only 4 IMP encounters emitted ADM/DIS because
     # attending == admitter suppressed the elif fallback.
+    # Issue #3691: nobody admits or discharges an ambulatory visit, so ADM /
+    # DIS are gated on the class for explicit ids too.
     _is_ip = class_code in ("IMP", "EMER")
-    _admitter_effective = admitter or (attending if _is_ip else "")
-    _discharger_effective = discharger or (attending if _is_ip and enc.get("discharge_datetime") else "")
+    _admitter_effective = (admitter or attending) if _is_ip else ""
+    _discharger_effective = (discharger or (attending if enc.get("discharge_datetime") else "")) if _is_ip else ""
     if _admitter_effective:
         participants.append(make_participant("ADM", _admitter_effective, country))
     if _discharger_effective:
