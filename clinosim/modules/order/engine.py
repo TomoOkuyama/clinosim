@@ -364,6 +364,10 @@ def enrich_medication_order(order: Order, dose_str: str = "") -> Order:
             order.frequency_per_day = _derived
     if not order.route and parsed.get("route"):
         order.route = parsed["route"]
+    # Issue #3640: the course length the dose text states; an explicit numeric
+    # ``duration_days`` is kept.
+    if order.duration_days is None and parsed.get("duration_days") is not None:
+        order.duration_days = parsed["duration_days"]
     # Fallback: heuristic from drug name (PO is the default for tablets)
     if not order.route and order.display_name:
         from clinosim.simulator.helpers import _determine_route
@@ -403,10 +407,17 @@ def split_loading_dose(dose_str: str) -> tuple[str, str] | None:
     return (m.group("load").strip(), m.group("maint").strip()) if m else None
 
 
+# Issue #3640: the course length a dose text states ("daily x5 days", "x5-7
+# days", "x 3-5 days"; a range gives its upper bound). A course that goes on
+# after it ("x21 days, then 20mg PO daily") is not a stop, so it gives none.
+_STATED_COURSE = re.compile(r"\bx\s*(\d+)(?:\s*-\s*(\d+))?\s*days?\b(?!.*\bthen\b)", re.IGNORECASE | re.DOTALL)
+
+
 def parse_dose_string(dose_str: str) -> dict[str, Any]:
     """Parse a dose string like '500mg PO BID' into structured fields.
 
-    Returns dict with keys: dose_quantity, dose_unit, frequency, frequency_per_day, route.
+    Returns dict with keys: dose_quantity, dose_unit, frequency, frequency_per_day, route,
+    and ``duration_days`` when the text states the course length (Issue #3640).
     All keys may be missing if unparseable. A "X loading, then Y" string is
     the maintenance regimen Y (Issue #3002: the loading dose is given once,
     see :func:`split_loading_dose`).
@@ -492,6 +503,10 @@ def parse_dose_string(dose_str: str) -> dict[str, Any]:
     # the MAR gives the drug on demand and FHIR emits asNeededBoolean.
     if re.search(r"\bprn\b", s_lower):
         result["frequency"] = f"{result.get('frequency', '')} PRN".strip()
+
+    course = _STATED_COURSE.search(s)
+    if course:
+        result["duration_days"] = int(course.group(2) or course.group(1))
 
     return result
 
@@ -697,7 +712,7 @@ def protocol_medication_orders(
         frequency=parsed.get("frequency", ""),
         frequency_per_day=parsed.get("frequency_per_day"),
         route=parsed.get("route") or med_spec.get("route", ""),
-        duration_days=med_spec.get("duration_days"),
+        duration_days=med_spec.get("duration_days", parsed.get("duration_days")),
         order_set=order_set,
     )
     out: list[Order] = []
