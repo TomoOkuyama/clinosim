@@ -63,10 +63,14 @@ def test_control_instrument_follows_age(age: int | None, key: str) -> None:
     assert _asthma_control_phrase_key(age) == key
 
 
-def test_control_phrases_exist_in_both_languages_without_act_for_children() -> None:
+def test_control_phrases_exist_in_both_languages_and_follow_age() -> None:
+    # Issue #3652: the visit records no ACT / C-ACT score, so the phrases name
+    # a review of control (the caregiver for a child), never a scored instrument.
     for lang in ("en", "ja"):
+        adult = t(_asthma_control_phrase_key(45), lang)
         child = t(_asthma_control_phrase_key(8), lang)
         toddler = t(_asthma_control_phrase_key(3), lang)
-        assert "Childhood" in child or "C-ACT" in child
-        assert "ACT" not in toddler
-        assert not t(_asthma_control_phrase_key(3), lang).startswith("chronic_monitoring")
+        assert len({adult, child, toddler}) == 3
+        for text in (adult, child, toddler):
+            assert "ACT" not in text
+            assert not text.startswith("chronic_monitoring")
