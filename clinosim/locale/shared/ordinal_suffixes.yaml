@@ -1,0 +1,15 @@
+# English ordinal suffixes (Issue #3701), read by clinosim/locale/ordinal.py.
+#
+# A language without an entry has no ordinal suffix. English: 1st, 2nd, 3rd and
+# the suffix "th" for every other number, including 11th, 12th and 13th (the
+# numbers whose last two digits are 11, 12 or 13 take the default). The rule is
+# English grammar, not a clinical value.
+metadata:
+  kind: reference
+  name: ordinal_suffixes
+  source: clinosim
+
+en:
+  default: th
+  by_last_digit: {"1": st, "2": nd, "3": rd}
+  default_for_last_two_digits: ["11", "12", "13"]

@@ -569,6 +569,7 @@ def _growth_values(ctx: Any, values: dict[str, Any]) -> None:
     """``values["growth"]``: the visit's measured weight, height and head
     circumference with their percentiles, from the same derivation the FHIR
     anthropometric Observations use."""
+    from clinosim.locale.ordinal import ordinal_suffix
     from clinosim.modules.population.encounter_anthropometry import encounter_anthropometrics, growth_percentiles
 
     lang = ctx.target_lang
@@ -591,7 +592,7 @@ def _growth_values(ctx: Any, values: dict[str, Any]) -> None:
             continue
         text = f"{t(label, lang)} {measured[key]:g} {unit}"
         if key in pct:
-            text += " " + _phrase("percentile", lang, pct=pct[key])
+            text += " " + _phrase("percentile", lang, pct=pct[key], suffix=ordinal_suffix(pct[key], lang))
         parts.append(text)
     if parts:
         values["growth"] = t("list_sep.serial", lang).join(parts)

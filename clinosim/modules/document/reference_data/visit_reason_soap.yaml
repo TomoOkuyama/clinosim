@@ -493,7 +493,7 @@ phrases:
     en: "Imaging ordered today ({list}): read pending."
     ja: "本日の画像検査 ({list}): 読影結果待ち。"
   percentile:
-    en: "({pct}th percentile)"
+    en: "({pct}{suffix} percentile)"
     ja: "({pct} パーセンタイル)"
   chemo_cycle_of:
     en: "Cycle {cycle} of {total}."
