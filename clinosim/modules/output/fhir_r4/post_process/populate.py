@@ -286,6 +286,7 @@ def _resolve_mhlw_usage_code(
     period: int | None,
     period_unit: str,
     route_text: str = "",
+    as_needed: bool = False,
 ) -> tuple[str, str] | None:
     """Return (MHLW code, display) or None when the (drug, cadence) tuple
     does not map to a coded entry.
@@ -294,7 +295,10 @@ def _resolve_mhlw_usage_code(
         1. Non-oral route → None (MHLW ePrescription CS has 0 injection
            codes; emitting an oral meal-context code for an IV/SC/IM
            drug is semantically wrong).
-        2. Drug in `_DRUG_PRN_MHLW_CODE` → return the PRN condition code.
+        2. As-needed dosage (``as_needed``, Issue #3675) → the drug's PRN
+           condition code, or None when it has none (never a cadence or
+           meal-context code: an as-needed dose has a trigger, not a
+           schedule). A scheduled dosage never takes the PRN code.
         3. Fixed-interval hourly cadence (Q3H / Q6H / Q8H / Q12H)
            expressed as (freq, period=1, periodUnit='d') → the
            matching entry in `_HOURLY_CADENCE_MHLW_CODE`.
@@ -317,9 +321,11 @@ def _resolve_mhlw_usage_code(
             return None
 
     # Path 2: PRN condition-based codes bypass the (freq, meal-context)
-    # table — an as-needed dose has a trigger condition, not a cadence.
-    if drug_text in _DRUG_PRN_MHLW_CODE:
-        return _DRUG_PRN_MHLW_CODE[drug_text]
+    # table — an as-needed dose has a trigger condition, not a cadence. The
+    # dosage's own as-needed state decides (Issue #3675): the code follows
+    # `asNeededBoolean`, not the drug name.
+    if as_needed:
+        return _DRUG_PRN_MHLW_CODE.get(drug_text)
 
     # Path 3: fixed-interval hourly cadence (Q3H / Q6H / Q8H / Q12H).
     # Recognises the shape `freq=N, period=1, periodUnit='d'` for
@@ -633,6 +639,7 @@ def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
                     _repeat.get("period") if isinstance(_repeat, dict) else None,
                     (_repeat.get("periodUnit") or "") if isinstance(_repeat, dict) else "",
                     _route_text,
+                    as_needed=bool(dosage.get("asNeededBoolean")),
                 )
                 if _mhlw is not None:
                     _mhlw_code, _mhlw_display = _mhlw
@@ -669,9 +676,18 @@ def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
                 "",
             )
             _dosage_text = str(dosage.get("text") or "")
+            _cadence_text = _derive_usage_display_from_timing(timing.get("repeat"))
+            if dosage.get("asNeededBoolean") and not _mhlw_display:
+                # Issue #3675: an as-needed dose without an MHLW as-needed
+                # code states that it is taken as needed, never a bare cadence.
+                _cadence_text = (
+                    t("fhir_emit_text.as_needed_usage", "ja", usage=_cadence_text)
+                    if _cadence_text
+                    else t("fhir_emit_text.as_needed", "ja")
+                )
             code_field["text"] = (
                 _mhlw_display
-                or _derive_usage_display_from_timing(timing.get("repeat"))
+                or _cadence_text
                 # A dosage text that is only the dose ("35mg") states no usage.
                 or ("" if _DOSE_ONLY_TEXT.fullmatch(_dosage_text) else _dosage_text)
                 or _JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY
