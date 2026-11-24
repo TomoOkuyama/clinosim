@@ -71,3 +71,6 @@ class BundleContext:
     # snapshot ({(encounter_id, seq): {status, end_date, prior_rx}}), computed
     # across the patient's records before the per-record bundles are built.
     rx_closures: dict[tuple[str, int], dict[str, Any]] = field(default_factory=dict)
+    # Issue #3694: earliest Encounter start of the patient across all records
+    # (problem-list Conditions are dated at first recording); "" when unknown.
+    first_seen_dt: str = ""

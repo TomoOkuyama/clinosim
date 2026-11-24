@@ -301,6 +301,10 @@ def convert_cif_to_fhir(
         rx_closures = prescription_closures(
             reader.iter_patients(), date.fromisoformat(snapshot_date) if snapshot_date else None
         )
+        # Issue #3694: a problem-list Condition is emitted once per patient and
+        # dated at the patient's first recording, so the earliest Encounter
+        # start across the patient's records is known before any bundle is built.
+        first_seen_by_patient = _first_seen_by_patient(reader.iter_patients())
         for record in reader.iter_patients():
             n_patients += 1
             bundle = _build_bundle(
@@ -311,6 +315,7 @@ def convert_cif_to_fhir(
                 snapshot_date,
                 snapshot_drop_counter=snapshot_drop_counter,
                 rx_closures=rx_closures,
+                first_seen_dt=first_seen_by_patient.get(str((record.get("patient") or {}).get("patient_id", "")), ""),
             )
             for entry in bundle.get("entry", []):
                 write(entry["resource"])
@@ -764,6 +769,25 @@ def _finalize_resource(resource: dict, country: str, roster_map: dict[str, dict]
     return specimen
 
 
+def _first_seen_by_patient(records: Any) -> dict[str, str]:
+    """Earliest Encounter start per patient across all of the patient's
+    records (Issue #3694)."""
+    from datetime import datetime as _dt
+
+    from clinosim.modules.output.fhir_r4.conditions.conditions import record_first_start
+
+    first: dict[str, tuple[Any, str]] = {}
+    for rec in records:
+        pid = str((rec.get("patient") or {}).get("patient_id", ""))
+        start = record_first_start(rec)
+        if not pid or not start:
+            continue
+        parsed = _dt.fromisoformat(start.replace("Z", "+00:00")).replace(tzinfo=None)
+        if pid not in first or parsed < first[pid][0]:
+            first[pid] = (parsed, start)
+    return {pid: v[1] for pid, v in first.items()}
+
+
 def _build_bundle(
     record: dict,
     country: str,
@@ -772,6 +796,7 @@ def _build_bundle(
     snapshot_date: str | None = None,
     snapshot_drop_counter: dict[str, int] | None = None,
     rx_closures: dict[tuple[str, int], dict] | None = None,
+    first_seen_dt: str = "",
 ) -> dict:
     """Build a FHIR R4 Bundle from a CIF patient record by running the builder registry."""
     if roster_map is None:
@@ -822,6 +847,7 @@ def _build_bundle(
         patient_sex=patient_data.get("sex", ""),
         snapshot_date=snapshot_date,
         rx_closures=rx_closures or {},
+        first_seen_dt=first_seen_dt,
     )
 
     entries: list[dict] = []

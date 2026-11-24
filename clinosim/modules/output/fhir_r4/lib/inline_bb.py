@@ -202,7 +202,7 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
     _resources = []
     # Issue #3597: the Condition builder decides which encounter-diagnosis
     # Conditions exist; every one of them is referenced from its Encounter.
-    _emitted_conditions = _build_conditions(ctx.record, ctx.patient_id, ctx.country)
+    _emitted_conditions = _build_conditions(ctx.record, ctx.patient_id, ctx.country, ctx.first_seen_dt)
     for enc in ctx.record.get("encounters", []) or []:
         _enc_key = enc.get("encounter_id", "") if isinstance(enc, dict) else getattr(enc, "encounter_id", "")
         _partof_id = (
@@ -310,7 +310,7 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
 
 
 def _bb_conditions(ctx: BundleContext) -> list[dict]:
-    return list(_build_conditions(ctx.record, ctx.patient_id, ctx.country))
+    return list(_build_conditions(ctx.record, ctx.patient_id, ctx.country, ctx.first_seen_dt))
 
 
 def _bb_occupation(ctx: BundleContext) -> list[dict]:
