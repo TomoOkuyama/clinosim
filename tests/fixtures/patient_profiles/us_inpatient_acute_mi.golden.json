@@ -750,6 +750,7 @@
         "ctx.procedures",
         "ctx.lab_results",
         "ctx.discharge_medications",
+        "ctx.vitals",
         "ctx.encounter.discharge_disposition",
         "ctx.los_days",
         "ctx.diagnoses",
@@ -770,7 +771,7 @@
         "discharge_instructions": "Get adequate rest and avoid overexertion. Cardiology follow-up within 1-2 weeks. Cardiac rehabilitation enrollment recommended. Take your heart medications (Aspirin, Ticagrelor, Atorvastatin) every day as prescribed. Do NOT stop them without consulting your cardiologist. Facility staff: contact the physician or call emergency services if the patient's symptoms worsen significantly. Restricted activity for 4-6 weeks. Avoid heavy lifting. Gradual return per cardiologist guidance. Low-fat, low-sodium diet. Weight management.",
         "discharge_medications": "Aspirin 81mg PO daily x365d; Ticagrelor 90mg PO BID x365d; Atorvastatin 80mg PO daily x365d",
         "follow_up": "Cardiology follow-up within 1-2 weeks. Cardiac rehabilitation enrollment recommended.",
-        "hospital_course": "Length of stay: 14 days (primary reason: Chest pain, diaphoresis, dyspnea). Main treatment: vasoactive drugs (Dobutamine); antithrombotic therapy (Heparin, Aspirin, Ticagrelor); other parenteral drugs (Nitroglycerin). Key procedures: Urinary catheter insertion (2024-06-15), Arterial line insertion (2024-06-15), Transthoracic echocardiography (2024-06-15), Percutaneous coronary intervention (PCI) (2024-06-15). Significant results: troponin I 97.881 ng/mL [H] (troponin elevation) on hospital day 1. Medication changes from admission: started Aspirin, Ticagrelor, Atorvastatin. Condition at discharge: discharged to skilled nursing facility, Barthel Index 95/100."
+        "hospital_course": "Length of stay: 14 days (primary reason: Chest pain, diaphoresis, dyspnea). Main treatment: vasoactive drugs (Dobutamine); antithrombotic therapy (Heparin, Aspirin, Ticagrelor); other parenteral drugs (Nitroglycerin). Key procedures: Urinary catheter insertion (2024-06-15), Arterial line insertion (2024-06-15), Transthoracic echocardiography (2024-06-15), Percutaneous coronary intervention (PCI) (2024-06-15). Significant results: troponin I 97.881 ng/mL [H] (troponin elevation) on hospital day 1. Medication changes from admission: started Aspirin, Ticagrelor, Atorvastatin. Vital signs at discharge: BP 120/70 mmHg, HR 99 bpm, RR 17 /min, SpO2 98% (RA), T 36.3°C. Condition at discharge: discharged to skilled nursing facility, Barthel Index 95/100."
       },
       "text": ""
     }

@@ -106,12 +106,16 @@ def compose_hospital_course(ctx: NarrativeContext, *, with_results: bool = True)
         icu_course_sentence,
         hc.complications_sentence,
         hc.notable_labs_sentence,
+        hc.microbiology_sentence,
         hc.medication_changes_sentence,
         hc.newborn_prophylaxis_sentence,
+        hc.discharge_vitals_sentence,
         hc.discharge_condition_sentence,
     )
+    # The referral letter has its own results section (Issue #3679).
+    results_only = (hc.notable_labs_sentence, hc.microbiology_sentence, hc.discharge_vitals_sentence)
     for build in builders:
-        if build is hc.notable_labs_sentence and not with_results:
+        if build in results_only and not with_results:
             continue
         sentence, fact = build(ctx)
         if sentence:

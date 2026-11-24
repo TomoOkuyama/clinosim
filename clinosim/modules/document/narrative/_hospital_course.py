@@ -435,6 +435,78 @@ def newborn_prophylaxis_sentence(ctx: NarrativeContext) -> tuple[str, str]:
     return t("hospital_course.newborn_given_line", lang, list=t("list_sep.serial", lang).join(items)), "ctx.medications"
 
 
+def culture_labels(culture: Any, lang: str) -> tuple[str, str]:
+    """The specimen and the organism of a culture in the note language: the
+    registry display of its SNOMED codes (the specimen suffix dropped), the
+    controlled specimen key when the code has no display. Shared with the
+    referral letter's culture results (Issue #3679)."""
+    from clinosim.codes import display
+
+    specimen = str(display("snomed-ct", str(_o(culture, "specimen_snomed", "") or ""), lang) or "")
+    specimen = specimen.removesuffix(t("referral.specimen_suffix", lang)).strip()
+    if not specimen:
+        specimen = str(_o(culture, "specimen", "") or "")
+    organism = str(display("snomed-ct", str(_o(culture, "organism_snomed", "") or ""), lang) or "")
+    return specimen, organism
+
+
+def microbiology_sentence(ctx: NarrativeContext) -> tuple[str, str]:
+    """The positive cultures of the stay known at the note, each with its
+    specimen, organism and collection date (Issue #3679). A culture without
+    growth is not a significant result of the stay and is not written."""
+    lang = ctx.target_lang
+    items: list[str] = []
+    for culture in getattr(ctx, "microbiology", None) or []:
+        if not _o(culture, "growth", False):
+            continue
+        collected = parse_iso_datetime(_o(culture, "collected_datetime", None), lenient=True)
+        if not _known_at(ctx, collected):
+            continue
+        specimen, organism = culture_labels(culture, lang)
+        if not (specimen and organism):
+            continue
+        key = "hospital_course.culture_growth_dated" if collected is not None else "referral.culture_growth"
+        item = t(
+            key, lang, specimen=specimen, organism=organism, date=collected.date().isoformat() if collected else ""
+        )
+        if item not in items:
+            items.append(item)
+    if not items:
+        return "", ""
+    return t("hospital_course.microbiology_line", lang, list=t("list_sep.semicolon", lang).join(items)), (
+        "ctx.microbiology"
+    )
+
+
+def discharge_vitals_sentence(ctx: NarrativeContext) -> tuple[str, str]:
+    """The last vital signs before discharge (Issue #3679): the latest value of
+    each vital over the readings of the day before the note's authored time
+    (the encounter's discharge time without one), SpO2 with its oxygen device
+    and flow or room air. Omitted when no reading was taken in that period."""
+    from clinosim.modules.document.narrative._as_of import recorded_by
+    from clinosim.modules.document.narrative._narrative_interpretation_thresholds import notable_lab_rules
+    from clinosim.modules.document.narrative._vitals_line import PROGRESS_DAY, format_vitals_line, latest_vitals_set
+
+    lang = ctx.target_lang
+    enc = getattr(ctx, "encounter", None)
+    as_of = getattr(ctx, "authored_datetime", None)
+    if as_of is None and enc is not None:
+        as_of = parse_iso_datetime(_o(enc, "discharge_datetime", None), lenient=True)
+    if as_of is None:
+        return "", ""
+    start = as_of - timedelta(hours=notable_lab_rules().window_hours)
+    readings = []
+    for v in recorded_by(list(getattr(ctx, "vitals", None) or []), as_of):
+        when = parse_iso_datetime(_o(v, "timestamp", None), lenient=True)
+        if when is not None and when > start:
+            readings.append((when, v))
+    readings.sort(key=lambda x: x[0])
+    line = format_vitals_line(latest_vitals_set([v for _, v in readings]), PROGRESS_DAY, lang)
+    if not line:
+        return "", ""
+    return t("hospital_course.discharge_vitals_line", lang, vitals=line), "ctx.vitals"
+
+
 def discharge_condition_sentence(ctx: NarrativeContext) -> tuple[str, str]:
     """Where the patient went and the Barthel Index in force at discharge."""
     from clinosim.locale.loader import narrative_label

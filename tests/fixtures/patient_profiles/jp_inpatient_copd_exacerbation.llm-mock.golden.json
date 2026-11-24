@@ -829,6 +829,7 @@
         "ctx.medications",
         "ctx.complications_events",
         "ctx.discharge_medications",
+        "ctx.vitals",
         "ctx.encounter.discharge_disposition",
         "ctx.los_days",
         "ctx.encounter.discharge_datetime",

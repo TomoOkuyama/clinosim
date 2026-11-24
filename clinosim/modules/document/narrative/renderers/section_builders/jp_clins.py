@@ -358,19 +358,16 @@ def _culture_results(ctx: NarrativeContext) -> list[str]:
     """One entry per culture of the stay: the specimen, the organism isolated
     with its susceptibilities (antibiotic and S / I / R), or no growth."""
     from clinosim.codes import display
+    from clinosim.modules.document.narrative._hospital_course import culture_labels
 
     lang = ctx.target_lang
     sep = t("list_sep.serial", lang)
     out: list[str] = []
     for culture in getattr(ctx, "microbiology", None) or []:
-        specimen = str(display("snomed-ct", str(_o(culture, "specimen_snomed", "") or ""), lang) or "")
-        specimen = specimen.removesuffix(t("referral.specimen_suffix", lang)).strip()
-        if not specimen:
-            specimen = str(_o(culture, "specimen", "") or "")
+        specimen, organism = culture_labels(culture, lang)
         if not _o(culture, "growth", False):
             out.append(t("referral.culture_no_growth", lang, specimen=specimen))
             continue
-        organism = str(display("snomed-ct", str(_o(culture, "organism_snomed", "") or ""), lang) or "")
         drugs = []
         for s in (_o(culture, "susceptibilities", []) or [])[:_MAX_LISTED_SUSCEPTIBILITIES]:
             name = str(display("loinc", str(_o(s, "antibiotic_loinc", "") or ""), lang) or "")

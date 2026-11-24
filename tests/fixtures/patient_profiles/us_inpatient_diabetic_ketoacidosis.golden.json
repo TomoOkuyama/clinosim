@@ -201,6 +201,7 @@
         "ctx.complications_events",
         "ctx.lab_results",
         "ctx.discharge_medications",
+        "ctx.vitals",
         "ctx.encounter.discharge_disposition",
         "ctx.los_days",
         "ctx.diagnoses",
@@ -222,7 +223,7 @@
         "discharge_instructions": "Drink plenty of fluids. Get adequate rest and avoid overexertion. Follow up with PCP in 7-10 days. Complete prescribed medications as directed. Check blood glucose 4-6 times daily; check urine or blood ketones if BG >250 mg/dL. Return to ER for BG >300 mg/dL with ketones, persistent vomiting, deep breathing, or altered mental status. Follow diabetic diet plan; maintain hydration especially during illness (small sips frequently). Gradual return to normal activity.",
         "discharge_medications": "Insulin Glargine 11U SC daily x28d",
         "follow_up": "Follow up with PCP in 7-10 days.",
-        "hospital_course": "Length of stay: 3 days (primary reason: Nausea, vomiting, abdominal pain, polyuria, altered consciousness). Main treatment: antimicrobials (Ampicillin/Sulbactam); antithrombotic therapy (Enoxaparin); insulin (Insulin, Regular, Human); other parenteral drugs (Potassium Chloride). Key procedures: Central venous catheter insertion (2024-06-15). Complications during stay: aspiration pneumonia (onset hospital day 3), DVT (onset hospital day 3). Significant results: glucose 551 mg/dL [critical] on hospital day 1, treated with Insulin, Regular, Human; pH 7.04 [critical] on hospital day 1; Na 150 mmol/L [H] (prior 146; hypernatremia) on hospital day 3. Medication changes from admission: started Insulin Glargine. Condition at discharge: discharged home, Barthel Index 80/100."
+        "hospital_course": "Length of stay: 3 days (primary reason: Nausea, vomiting, abdominal pain, polyuria, altered consciousness). Main treatment: antimicrobials (Ampicillin/Sulbactam); antithrombotic therapy (Enoxaparin); insulin (Insulin, Regular, Human); other parenteral drugs (Potassium Chloride). Key procedures: Central venous catheter insertion (2024-06-15). Complications during stay: aspiration pneumonia (onset hospital day 3), DVT (onset hospital day 3). Significant results: glucose 551 mg/dL [critical] on hospital day 1, treated with Insulin, Regular, Human; pH 7.04 [critical] on hospital day 1; Na 150 mmol/L [H] (prior 146; hypernatremia) on hospital day 3. Medication changes from admission: started Insulin Glargine. Vital signs at discharge: BP 113/72 mmHg, HR 101 bpm, RR 22 /min, SpO2 96% (RA), T 36.7°C. Condition at discharge: discharged home, Barthel Index 80/100."
       },
       "text": ""
     }
