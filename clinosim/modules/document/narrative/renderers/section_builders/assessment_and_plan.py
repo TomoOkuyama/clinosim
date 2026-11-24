@@ -25,6 +25,7 @@ Generator-threaded helpers:
 
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING
 
 from clinosim.countries import country_code, has_authored_narrative
@@ -40,6 +41,7 @@ from clinosim.modules.document.narrative.renderers._shared_helpers import (
     procedure_names,
 )
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
+from clinosim.modules.document.reference_data_loaders import load_disease_exam
 from clinosim.types.document import NarrativeContext
 
 if TYPE_CHECKING:
@@ -100,6 +102,20 @@ def build_assessment_and_plan(generator: TemplateNarrativeGenerator, ctx: Narrat
     return text, facts
 
 
+_DIAGNOSIS_CODE = re.compile(r"^[A-Za-z]\d{2}")
+
+
+def _is_diagnosis_code(disease_id: str) -> bool:
+    """Whether a disease id of the condition event is an ICD diagnosis code
+    (a delivery stay's outcome and complications) rather than a disease id."""
+    return bool(_DIAGNOSIS_CODE.match(disease_id))
+
+
+def _is_birth_outcome_code(code: str) -> bool:
+    prefixes = load_disease_exam().delivery.outcome_prefixes
+    return any(code.upper().startswith(p.upper()) for p in prefixes)
+
+
 def _compose_ap_assessment_from_state(ctx: NarrativeContext) -> str:
     """admission_hp Assessment composed from CIF (v9 density fix).
 
@@ -153,6 +169,18 @@ def _compose_ap_assessment_from_state(ctx: NarrativeContext) -> str:
     for disease, severity in diseases:
         from clinosim.modules.document.narrative._replacement_localization import localize_token
 
+        if _is_diagnosis_code(disease):
+            # Issue #3671: a delivery stay lists diagnosis codes (the birth
+            # outcome and the complications), not disease ids; the outcome is
+            # not a working diagnosis and a code has no simulated severity.
+            if _is_birth_outcome_code(disease):
+                continue
+            label = chronic_condition_label(
+                disease, country_code(ctx.locale), lang, str(_o(ctx.patient, "sex", "") or "")
+            )
+            if label:
+                parts.append(t("ap_assessment.disease_line", lang, disease=label))
+            continue
         _sev = localize_token(severity, "severity", lang)
         # Phase 1c-2 (2026-09-22): the raw disease_id snake_case
         # token ("bacterial_pneumonia", "acute_myocardial_infarction")
