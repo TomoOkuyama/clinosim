@@ -149,6 +149,15 @@ clinosim/simulator/
   emergency.py           ED encounter simulator
   discharge_gate.py      discharge-timing decision logic
   permissive_hypertension.py  permissive-hypertension order window and the antihypertensive hold (Issue #3557)
+  oral_intake.py         nil by mouth while the AVPU level is P / U or the patient is ventilated:
+                         NPO diet and the oral-route doses held then; no RNG (Issue #3552;
+                         reference_data/oral_intake.yaml)
+  oxygen_course.py       the supplemental-oxygen course of a stay: on / off state, device and flow
+                         carried across readings, weaning, extubation of a ventilated stay and
+                         stepped flow values (Issue #3469; reference_data/oxygen_course.yaml)
+  stroke_onset.py        last known well of an acute stroke admission: arrival minus a hash-drawn
+                         onset-to-arrival interval, no RNG stream (Issue #3558;
+                         reference_data/stroke_onset_to_arrival.yaml)
   vasoactive_support.py  vasopressor / inotrope weaning (MAP target met and
                          out of shock) and the observation day off support
                          before discharge (Issue #3270)
@@ -207,7 +216,9 @@ clinosim/simulator/
                          simulators (loads reference_data/diagnosis_rules.yaml)
   chronic_reconcile.py   makes a patient's chronic-condition onsets agree with their encounters (Issue #3263)
   implied_chronic.py     chronic conditions a stay implies; one rule for the encounter profile and the person record (Issue #3263;
-                         reference_data/implied_chronic_prevalence.yaml)
+                         reference_data/icu_step_down.yaml           when an ICU stay steps down to the ward (icu_step_down.py)
+  reference_data/stroke_onset_to_arrival.yaml onset-to-arrival interval of an acute stroke by country (stroke_onset.py)
+  reference_data/implied_chronic_prevalence.yaml)
   injury_coding.py       coding of an injury admission from the disease YAML: diagnosis, operation, external cause (Issue #3258)
   icu_step_down.py       the step-down of an ICU stay to the ward: the first day after which no ICU-level support is recorded, else
                          the day before discharge; none for a death or a stay too short (Issue #3555;
@@ -294,7 +305,7 @@ CLI subcommand handlers (11 files):
   cli_test_encounter.py  `clinosim test-encounter` subcommand
 ```
 
-Reference data (`reference_data/`, 17 YAMLs):
+Reference data (`reference_data/`, 22 YAMLs):
 
 ```
   reference_data/adl_functional_ceilings.yaml  premorbid Barthel ceiling by dementia CDR stage (adl_ceiling.py)
