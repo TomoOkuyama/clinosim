@@ -29,9 +29,11 @@ diagnosis_variants:
   - {weight: 0.20, site: hand, body_site_snomed: "85562004", codes: {us: "S61.411A", jp: "S61.8"}}       # right hand
   - {weight: 0.26, site: finger, body_site_snomed: "7569003", codes: {us: "S61.210A", jp: "S61.0"}}      # right index finger
   - {weight: 0.10, site: leg, body_site_snomed: "30021000", codes: {us: "S81.811A", jp: "S81.8"}}        # right lower leg
+# Issue #3681: the closure (suture, staples, adhesive or none) is drawn per
+# visit, so the complaint does not state a suture.
 chief_complaint:
-  en: "Laceration requiring sutures"
-  ja: "裂傷（縫合が必要）"
+  en: "Laceration"
+  ja: "裂傷"
 encounter_type: emergency
 department: emergency_medicine
 disposition: discharge_home
@@ -74,7 +76,16 @@ discharge_instructions:
   - {en: "Keep wound clean and dry for 24 hours", ja: "24時間は創部を清潔・乾燥に保つ"}
   - {en: "Watch for signs of infection: increasing redness, swelling, warmth, drainage", ja: "発赤・腫脹・熱感・排膿の増強など感染徴候に注意"}
   - {en: "Return if fever or red streaking from wound", ja: "発熱や創部から広がる赤い線状の発赤があれば再受診"}
-follow_up: {en: "suture removal in 7-10 days (face 5 days)", ja: "7〜10日後に抜糸（顔面は5日後）"}
+# Issue #3681: the advice follows the closure the visit ordered (the first
+# matching entry); `follow_up` is the advice for a visit with none of them. The
+# 7-10 day (5 day for the face) removal interval is the protocol's long-standing
+# advice; the wound check in 2-3 days is a clinosim model choice. Tissue
+# adhesive needs no removal (it sloughs off by itself), as stated in the Issue.
+follow_up_by_closure:
+  - {treatments: ["Suture closure", "Skin staples"], sites: [face], en: "suture or staple removal in 5 days", ja: "5日後に抜糸・抜鉤"}
+  - {treatments: ["Suture closure", "Skin staples"], en: "suture or staple removal in 7-10 days", ja: "7〜10日後に抜糸・抜鉤"}
+  - {treatments: ["Tissue adhesive (glue)"], en: "no removal is needed for the tissue adhesive; wound check in 2-3 days if the edges separate", ja: "組織接着剤の除去は不要。創縁が離開した場合は2〜3日後に創部の確認"}
+follow_up: {en: "wound check in 2-3 days or sooner for signs of infection", ja: "2〜3日後に創部の確認（感染徴候があれば早めに受診）"}
 
 discharge_prescriptions:
   - {drug: "Ibuprofen 400mg", locale_name: {jp: "Ibuprofen 200mg"}, route: "PO", frequency: "tid PRN", duration_days: 5, probability: 0.6}

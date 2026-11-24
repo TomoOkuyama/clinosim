@@ -282,6 +282,24 @@ def visit_body_site(variants: Sequence[Any], code: str) -> str:
     return sites.pop() if len(sites) == 1 else ""
 
 
+def visit_follow_up(protocol: Any, ordered: Any, site: str | None) -> Any:
+    """The follow-up language map of a visit (Issue #3681): the first
+    ``follow_up_by_closure`` entry whose ``treatments`` the visit ordered
+    (``ordered``: order display names) and whose ``sites`` include the visit's
+    site group, else the protocol's ``follow_up`` (the advice without a
+    closure). ``None`` for a protocol with no follow-up."""
+    names = {str(n).casefold() for n in ordered}
+    entries = _get(protocol, "follow_up_by_closure") or []
+    for entry in entries:
+        if not {str(t).casefold() for t in _get(entry, "treatments") or []} & names:
+            continue
+        sites = _get(entry, "sites") or []
+        if sites and site not in sites:
+            continue
+        return {"en": _get(entry, "en"), "ja": _get(entry, "ja")}
+    return _get(protocol, "follow_up")
+
+
 def study_in_site(spec: Mapping[str, Any], variant: Mapping[str, Any] | None) -> bool:
     """True when the workup entry ``spec`` applies to the visit's diagnosis
     variant: an entry without ``sites`` applies to every visit (Issue #3680)."""
@@ -354,6 +372,20 @@ class _Treatment(BaseModel):
     dose: str | None = None
     locale_name: dict[str, str] = Field(default_factory=dict)
     locale_exclude: list[str] = Field(default_factory=list)
+
+
+class _FollowUpByClosure(BaseModel):
+    """Follow-up advice that depends on how a wound was closed (Issue #3681):
+    it applies to a visit that ordered any of ``treatments`` (names of the
+    protocol's ``treatment``) and, when ``sites`` is given, whose diagnosis
+    variant has one of those site groups. The first matching entry is used."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    treatments: list[str] = Field(min_length=1)
+    sites: list[str] = []
+    en: str = Field(min_length=1)
+    ja: str = Field(min_length=1)
 
 
 class _DiagnosisVariant(BaseModel):
@@ -702,6 +734,22 @@ class EncounterConditionProtocol(BaseModel):
     # ({en, ja}); the ED note's disposition lists them for a patient sent home.
     discharge_instructions: list[_DischargeInstruction | str] = []
     follow_up: dict[str, str] = {}
+    # Issue #3681: follow-up that depends on the closure ordered; ``follow_up``
+    # is then the advice for a visit with none of those closures.
+    follow_up_by_closure: list[_FollowUpByClosure] = []
+
+    @model_validator(mode="after")
+    def _follow_up_closures_exist(self) -> EncounterConditionProtocol:
+        ordered = {t.name for t in self.treatment}
+        sites = {v.site for v in self.diagnosis_variants if v.site}
+        for entry in self.follow_up_by_closure:
+            unknown = sorted(set(entry.treatments) - ordered)
+            if unknown:
+                raise ValueError(f"{self.condition_id}: follow_up_by_closure names treatments {unknown} not ordered")
+            bad_sites = sorted(set(entry.sites) - sites)
+            if bad_sites:
+                raise ValueError(f"{self.condition_id}: follow_up_by_closure names unknown sites {bad_sites}")
+        return self
 
     @model_validator(mode="after")
     def _one_diagnosis_source(self) -> EncounterConditionProtocol:

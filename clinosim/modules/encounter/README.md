@@ -148,7 +148,7 @@ from clinosim.modules.encounter.discharge_outcome import discharge_outcome
   exactly one of `icd10_code` and `diagnosis_variants` (weighted
   per-country codes for a diagnosis that varies per visit, Issue #3279; a variant may also carry a `site` group and a SNOMED CT `body_site_snomed`: a minor laceration is coded by site, its wound-care Procedures take the site as `bodySite` through `visit_body_site`, and a workup imaging entry with `sites: [...]` is ordered only for those sites, Issue #3680), declares every optional section (workup, treatment,
   discharge prescriptions, narrative, ...) as a typed field, and rejects
-  unknown keys (`extra="forbid"`). Every `route:` value is also checked against the shared
+  unknown keys (`extra="forbid"`). A protocol's `follow_up_by_closure` (Issue #3681: entries of `treatments`, optional `sites`, `en`, `ja`) makes the ED note's follow-up follow the closure the visit ordered (first matching entry via `visit_follow_up`); `follow_up` is then the advice for a visit with none of them. Each treatment must be one the protocol orders and each site a site group of its `diagnosis_variants`. Every `route:` value is also checked against the shared
   route vocabulary at load time.
 
 ## Dependencies

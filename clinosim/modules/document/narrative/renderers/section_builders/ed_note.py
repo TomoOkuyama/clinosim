@@ -788,12 +788,32 @@ def build_ed_disposition(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
     if prescribed:
         parts.append(t("ed.discharge_prescription", lang, list=prescribed))
         facts.append("ctx.discharge_medications")
-    follow_up = localized(_o(proto, "follow_up", None), lang) if proto is not None else ""
+    follow_up = localized(_visit_follow_up(ctx), lang) if proto is not None else ""
     if follow_up:
         parts.append(t("ed.follow_up", lang, text=follow_up))
         facts.append("encounter_protocol.follow_up")
     # The instruction / follow-up phrases carry their own leading separator.
     return "".join(parts), facts
+
+
+def _visit_follow_up(ctx: NarrativeContext) -> Any:
+    """The protocol's follow-up for this visit (Issue #3681): by the closure
+    the visit ordered and the wound site, else the general one."""
+    from clinosim.modules.document.narrative._template_helpers import _diagnosis_variant_indices
+    from clinosim.modules.encounter.protocol import visit_follow_up
+
+    proto = ctx.encounter_protocol
+    enc_id = _o(ctx.encounter, "encounter_id", "") if ctx.encounter is not None else ""
+    ordered = [
+        str(_o(o, "display_name", "") or "")
+        for o in ctx.orders or []
+        if not enc_id or (_o(o, "encounter_id", "") or enc_id) == enc_id
+    ]
+    variants = _o(proto, "diagnosis_variants", None) or []
+    matching = _diagnosis_variant_indices(ctx)
+    sites = {str(_o(variants[i], "site", "") or "") for i in matching}
+    site = sites.pop() if len(sites) == 1 else None
+    return visit_follow_up(proto, ordered, site or None)
 
 
 def _discharge_prescription_text(ctx: NarrativeContext, lang: str) -> str:

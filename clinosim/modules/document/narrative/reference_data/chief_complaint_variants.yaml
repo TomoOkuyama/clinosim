@@ -269,7 +269,7 @@ variants:
   # Issue #3680: the wound site is a coded variant of the visit, so no variant
   # names a site of its own (the HPI and the exam state the coded site).
   minor_laceration:
-    - "裂傷（縫合が必要）"
+    - "裂傷"
     - "包丁による切創・出血持続"
     - "転倒による裂創"
     - { text: "作業中のガラス切創", min_age: 15 }
