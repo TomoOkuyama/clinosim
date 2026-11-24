@@ -60,7 +60,10 @@ from clinosim.modules.output.fhir_r4.lib.ecs_extensions import (
 `_AFTER_DEATH_START_GATED_RESOURCE_TYPES`, `_BUNDLE_BUILDERS`,
 `_POST_SNAPSHOT_ALLOWED_RESOURCE_TYPES`, `_build_bundle`,
 `_drop_entries_after_death`, `_drop_entries_after_snapshot`,
-`_fhir_id_is_spec_valid` — NDJSON writer の id guard)。`lib/` の各
+`_fhir_id_is_spec_valid` — NDJSON writer の id guard)。死亡後の除外は
+ガードであり、死亡後に終わる Encounter が残る場合も `period.end` は完全な
+dateTime (死亡時刻、なければ死亡日の末尾) とし、`classHistory` / `location`
+の期間も同様に切る (Issue #3633)。`lib/` の各
 helper module はそれぞれ自前の `__all__` を持つ
 ([`lib/README.ja.md`](lib/README.ja.md) 参照)。
 

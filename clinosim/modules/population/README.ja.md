@@ -73,7 +73,12 @@ calendar (月次 acute-disease event、慢性フォロー visit、screening、
    タから記録し、死亡時刻 (`death_datetime`、死亡退院の退院日時) を保持して
    `Patient.deceasedDateTime` に出力する。院外死亡は受診なしでも起き、日付
    のみ分かるため `deceasedDateTime` はその日の 23:59:59 とする。以後の
-   イベントはすべて `in_population_at(date)` で止まる。
+   イベントはすべて `in_population_at(date)` で止まる。生存退院の入院中に
+   死亡日が入ることはない。既知の院外死亡日まで続く入院は、その日の院内死亡
+   として終わる (日次ループが `population_death_date` を受け取り、通常の死亡
+   抽選は従来どおり行う)。死亡経過を持たない入院 (原因不明) では、死亡日を
+   退院の 1〜30 日後へ移す (`vital_status.defer_death_past_stay`、専用の
+   sub-seed、Issue #3633)。
 5. **出生** — 出産で新生児を登録し (`newborn.register_newborn`)、出生入院の
    退院翌日に集団へ加える (`PersonRecord.enrolled_from`)。その年の残りの
    受診予定を作り、以後は他の人と同じく加齢・疾患・受診・死亡の対象になる。

@@ -39,6 +39,10 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Fixed
+
+- A population death date no longer falls inside a survivor inpatient stay: a stay that runs up to the death date ends as an in-hospital death on that date, a stay without a death course moves the death to after the discharge, and the FHIR post-mortem clip keeps `Encounter.period.end` a full dateTime and clips `classHistory` and `location` too (#3633).
+
 ## [0.7.3] - 2026-11-24
 
 ### Highlights
