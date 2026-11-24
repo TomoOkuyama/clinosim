@@ -32,6 +32,11 @@ reasons:
   "Acute kidney injury: nephrotoxic or renally cleared drug held (KDIGO 2012)":
     en: "acute kidney injury (nephrotoxic or renally cleared drug held, KDIGO 2012)"
     ja: "急性腎障害 (腎毒性または腎排泄性の薬剤のため保留、KDIGO 2012)"
+  # Issue #3641: a home NSAID / alendronate not ordered at an admission with
+  # already-impaired kidneys (simulator/reference_data/renal_medication_rules.yaml).
+  "Renal impairment at admission: nephrotoxic or renally cleared drug held":
+    en: "renal impairment at admission (nephrotoxic or renally cleared drug held)"
+    ja: "入院時の腎機能障害 (腎毒性または腎排泄性の薬剤のため保留)"
   # Issue #3539: metformin held while the latest lactate is high
   # (simulator/reference_data/aki_response.yaml `lactate_hold`).
   "Lactate at or above the threshold: metformin held (lactic acidosis risk)":
