@@ -88,9 +88,12 @@ def test_contact_is_kept_on_the_person_record() -> None:
     assert person.emergency_contact_relationship == patient.contact.emergency_contact_relationship
 
 
-def test_a_minor_without_a_guardian_gets_no_contact_and_stores_none() -> None:
+def test_a_minor_without_a_guardian_names_a_parent_and_stores_no_adult_contact() -> None:
+    # Issue #3658: the parent is kept on the guardian fields, so the adult
+    # contact drawn when the person comes of age is not this one.
     demo = load_demographics("US")
     person = _adult(age=10)
     patient = activate_patient(person, default_rng(3), demo)
-    assert _contact(patient)[:2] == ("", "")
+    assert patient.contact.emergency_contact_relationship == "parent"
+    assert person.guardian_contact_relationship == "parent"
     assert person.emergency_contact_relationship == ""

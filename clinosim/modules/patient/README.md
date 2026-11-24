@@ -21,7 +21,7 @@ divorced or widowed person names no spouse). The contact keeps its sex,
 a specific v3-RoleCode (FTH/MTH, BRO/SIS, SON/DAU, HUSB/WIFE, from the
 relationship slug and the sex) and the family/given name parts (Issue
 #3599); the sex is the one the already-drawn given name was chosen for, so
-no draw is added. An adult's named contact has a phone of their own: a mobile drawn from the country's pattern with a stream seeded by the person id and birth date (`seeding.emergency_contact_phone_seed`, Issue #3695), never the patient's own number; a minor keeps the guardian's number. The
+no draw is added. An adult's named contact has a phone of their own: a mobile drawn from the country's pattern with a stream seeded by the person id and birth date (`seeding.emergency_contact_phone_seed`, Issue #3695), never the patient's own number; a minor keeps the guardian's number. A minor (below the table's `adult_age_min`) names a parent as the contact (`emergency_contact.minor_relationships`, drawn once from its own person-scoped stream `guardian_contact_seed` and kept on the person's `guardian_contact_*` fields; a child born in the simulation keeps its mother), and its `employment_status` is empty below 6 years and `student` from 6 to 17 (`employment_status.minor` of `demographics.yaml`; adults are `employed`, `retired` from 65) (Issue #3658). The
 simulator activates each person once per `(person_id, as_of_year)`
 cache key — the returned profile is what every downstream encounter
 simulator consumes.

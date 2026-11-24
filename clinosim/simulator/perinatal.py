@@ -469,13 +469,15 @@ def _build_newborn_patient(
         rh_factor=newborn_rh_factor,
         baseline_vitals=baseline_vitals,
         occupation=occupation,
-        # Newborn-specific demographic constants: single (never married)
-        # and unemployed. Overrides the PatientProfile dataclass defaults
-        # (``marital_status=""`` and ``employment_status="retired"``) so
-        # downstream consumers reading these fields for the newborn see
-        # clinically sensible values rather than a schema fallback.
+        # Newborn-specific demographic constants: single (never married) and
+        # no employment status (not applicable to a newborn; "unemployed"
+        # would say the newborn is seeking work, Issue #3658). Overrides the
+        # PatientProfile dataclass defaults (``marital_status=""`` and
+        # ``employment_status="retired"``) so downstream consumers reading
+        # these fields for the newborn see clinically sensible values rather
+        # than a schema fallback.
         marital_status="S",
-        employment_status="unemployed",
+        employment_status="",
         address=Address(**{k: v for k, v in vars(mother.address).items()}) if mother.address else Address(),
         # Issue #1246: newborns cannot be contacted directly (no personal
         # phone / email), so `Patient.telecom` stays empty — but every

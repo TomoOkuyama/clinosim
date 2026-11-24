@@ -59,6 +59,12 @@ distribution:
 # and a widowed person names a child or a sibling. Order within a row is
 # load-bearing (it is the order of the weighted draw).
 emergency_contact:
+  # The emergency contact of a minor (below adult_age_min) is a parent (Issue
+  # #3658). A legal-guardian role is not modelled, so the contact is a parent,
+  # whose sex gives father (FTH) or mother (MTH). No published distribution was
+  # used (a hospital does not register a minor without a guardian contact). Drawn
+  # with its own stream (guardian_contact_seed).
+  minor_relationships: {parent: 1.0}
   relationships:
     M:
       "18-74": {spouse: 0.55, parent: 0.20, sibling: 0.15, child: 0.10}

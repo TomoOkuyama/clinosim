@@ -25,6 +25,7 @@ __all__ = [
     "contact_relationships",
     "contact_role_code",
     "draw_marital_status",
+    "minor_contact_relationships",
     "minor_marital_status",
     "person_marital_status",
 ]
@@ -87,6 +88,17 @@ def contact_relationships(marital_status: str, age: int, country: str) -> tuple[
         return [], []
     row = _row(rels[marital_status], age)
     labels = list(row)
+    return labels, list(normalize_probabilities([float(row[k]) for k in labels], fallback="raise"))
+
+
+def minor_contact_relationships(country: str) -> tuple[list[str], list[float]]:
+    """Relationship labels and probabilities of a minor's emergency contact
+    (``emergency_contact.minor_relationships``, Issue #3658; empty without a
+    table)."""
+    row = (load_marital_status(country).get("emergency_contact") or {}).get("minor_relationships") or {}
+    labels = list(row)
+    if not labels:
+        return [], []
     return labels, list(normalize_probabilities([float(row[k]) for k in labels], fallback="raise"))
 
 
