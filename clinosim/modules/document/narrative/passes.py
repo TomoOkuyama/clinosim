@@ -379,9 +379,12 @@ class NarrativePass(ABC):
                         ctx_cache[cache_key] = _cached
                     return _cached, enc, enc_id
 
-                for stub in stubs:
+                previous_authored = self._previous_authored_times(stubs)
+                for stub_index, stub in enumerate(stubs):
                     _stub_enc_id = str(stub.get("encounter_id", "") or "")
                     ctx, encounter_dict, encounter_id = _ctx_for(_stub_enc_id)
+                    # Issue #3677: the ctx is cached per encounter and type, so set it per stub.
+                    ctx.previous_authored_datetime = previous_authored[stub_index]
                     # Per-stub shift key (daily_3shift stubs carry
                     # "night"/"day"/"evening"; all other stubs "").
                     ctx.shift = str(stub.get("shift", "") or "")
@@ -979,6 +982,25 @@ class NarrativePass(ABC):
         if stub_dt is None or admission_dt is None:
             return 0
         return max(0, (stub_dt.date() - admission_dt.date()).days)
+
+    @staticmethod
+    def _previous_authored_times(stubs: list[dict[str, Any]]) -> list[datetime | None]:
+        """For each stub, the latest earlier authored time among the stubs of the
+        same encounter (``None`` for the first or an untimed stub): the end of the
+        period the previous note covered (Issue #3677)."""
+        times = [parse_iso_datetime(s.get("authored_datetime"), lenient=True) for s in stubs]
+        out: list[datetime | None] = []
+        for stub, when in zip(stubs, times, strict=True):
+            earlier = [
+                t
+                for other, t in zip(stubs, times, strict=True)
+                if t is not None
+                and when is not None
+                and t < when
+                and other.get("encounter_id") == stub.get("encounter_id")
+            ]
+            out.append(max(earlier) if earlier else None)
+        return out
 
     def _find_matching_stubs(self, patient_dict: dict[str, Any], spec: DocumentTypeSpec) -> list[dict[str, Any]]:
         """Return ALL stubs matching ``spec.type_key``, in document-list order.

@@ -247,6 +247,10 @@ class NarrativeContext:
     # set per stub by NarrativePass. Builders read only data recorded up to it
     # (``narrative/_as_of.py``); None when the document has no authored time.
     authored_datetime: datetime | None = None
+    # Issue #3677: the authored time of the preceding note of the same encounter
+    # and document type, set per stub by NarrativePass; a daily note's "previous
+    # period" ends there. None for the first note.
+    previous_authored_datetime: datetime | None = None
     # Issue #3445: the practitioner who authored the document
     # (ClinicalDocument.author_practitioner_id), set per stub by NarrativePass.
     # The nursing shift note names this nurse (the one on duty, Issue #3408),

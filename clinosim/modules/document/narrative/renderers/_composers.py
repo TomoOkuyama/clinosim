@@ -230,11 +230,22 @@ def _note_period_vitals(ctx: NarrativeContext, *, previous: bool = False) -> lis
         day = ctx.day_index - 1 if previous else ctx.day_index
         return _filter_vitals_for_day(vitals, day, getattr(ctx, "encounter", None)) if day >= 0 else []
     window = timedelta(hours=notable_lab_rules().window_hours)
-    end = as_of - window if previous else as_of
+    # Issue #3677: the previous period is the period the previous note covered,
+    # ending at that note's authored time; the current one reaches back at
+    # least to it, so no reading falls in neither (the first note, or one whose
+    # predecessor is unknown, keeps the fixed windows).
+    previous_note = getattr(ctx, "previous_authored_datetime", None)
+    if previous:
+        end = previous_note if previous_note is not None else as_of - window
+    else:
+        end = as_of
+    start = end - window
+    if not previous and previous_note is not None and previous_note < start:
+        start = previous_note
     timed = []
     for i, v in enumerate(vitals):
         when = parse_iso_datetime(_o(v, "timestamp", None), lenient=True)
-        if when is not None and end - window < when <= end:
+        if when is not None and start < when <= end:
             timed.append((when, i, v))
     timed.sort(key=lambda x: (x[0], x[1]))
     return [v for _, _, v in timed]
