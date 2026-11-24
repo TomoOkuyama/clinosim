@@ -32,7 +32,7 @@ in the [#1252 design comment](https://github.com/TomoOkuyama/clinosim/issues/125
     result name the per-country screening-laboratory `Organization`
     (`metabolic_screen.performer_organization` in the YAML) as
     `performer`.
-  - Transcutaneous bilirubin, CCHD pulse-ox screen (`Observation`) and
+  - Transcutaneous bilirubin (one trajectory per baby: a per-baby level shared by days 1-3, `bilirubin.level_correlation`, each day's marginal the configured normal; Issue #3668), CCHD pulse-ox screen (`Observation`) and
     US erythromycin ophthalmic prophylaxis (`MedicationAdministration`;
     JP config declares no drug, so nothing is emitted) — N7.
 - **Once-per-newborn dedup** (Issue #1736): siblings delivered by the
