@@ -3180,7 +3180,7 @@ both layers.</p>
 taper, 14-day PPI eradication) from silently becoming a chronic
 home med, <code>_deactivate_to_layer1</code> drops any item whose
 <code>duration_days</code> is in the acute range:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>drop if 0 &lt; duration_days &lt;= _ACUTE_COURSE_MAX_DAYS  (= 14)
+<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>drop if 0 &lt; duration_days &lt;= ACUTE_COURSE_MAX_DAYS  (= 14)
 </span></code></pre></div>
 <p><strong>Two key edge cases</strong> the discharge-Rx pipeline honours:
 - <strong><code>duration_days == 0</code></strong> is the disease-YAML convention for
@@ -3359,7 +3359,7 @@ for the AD-16 pattern that motivates these.</p>
 </tr>
 <tr>
 <td>Change the acute-course cutoff</td>
-<td><code>simulator/helpers.py::_ACUTE_COURSE_MAX_DAYS</code> (single constant)</td>
+<td><code>simulator/_stay_thresholds.py::ACUTE_COURSE_MAX_DAYS</code> (single constant)</td>
 </tr>
 <tr>
 <td>Force a specific drug class to always carry forward</td>

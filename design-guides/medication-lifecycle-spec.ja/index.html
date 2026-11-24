@@ -2518,7 +2518,7 @@
 </tr>
 <tr>
 <td>範囲で書かれたプロトコルの用量・詳細 (「25-100mg PO daily」「NS 80-125 mL/h」) は、プロトコルの読み込み時に一度だけ、範囲の単位ごとの規則で一つの用量に解決する。既定は下限の開始用量で、維持輸液の mL/h 速度だけは上限の速度とする。書かれた範囲は <code>titration_range</code> としてエントリに残るので、オーダー・処方・投与は一つの用量を述べる。乱数は引かない (Issue #3265)。</td>
-<td><code>modules/order/dose_range.py::resolve_dose_ranges</code>、<code>modules/disease/protocol.py::resolve_protocol_dose_ranges</code>。データは <code>modules/order/reference_data/dose_range_resolution.yaml</code></td>
+<td><code>modules/order/dose_range.py::resolve_dose_ranges</code>、<code>modules/order/dose_range.py::resolve_protocol_dose_ranges</code> (<code>modules/disease/protocol.py</code> から呼ぶ)。データは <code>modules/order/reference_data/dose_range_resolution.yaml</code></td>
 <td><code>tests/unit/test_dose_range_resolution_3265.py</code></td>
 </tr>
 </tbody>

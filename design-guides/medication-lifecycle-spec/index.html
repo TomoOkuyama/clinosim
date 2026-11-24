@@ -2518,7 +2518,7 @@
 </tr>
 <tr>
 <td>A protocol dose or detail written as a range ("25-100mg PO daily", "NS 80-125 mL/h") is resolved to one dose once, when the protocol is loaded, by the rule of the range's unit: the lower, starting dose by default, the upper rate for a maintenance-fluid mL/h rate. The written range stays on the entry as <code>titration_range</code>, so an order, a prescription or an administration states one dose. It draws no random number (Issue #3265).</td>
-<td><code>modules/order/dose_range.py::resolve_dose_ranges</code>, <code>modules/disease/protocol.py::resolve_protocol_dose_ranges</code>; data <code>modules/order/reference_data/dose_range_resolution.yaml</code></td>
+<td><code>modules/order/dose_range.py::resolve_dose_ranges</code>, <code>modules/order/dose_range.py::resolve_protocol_dose_ranges</code> (called from <code>modules/disease/protocol.py</code>); data <code>modules/order/reference_data/dose_range_resolution.yaml</code></td>
 <td><code>tests/unit/test_dose_range_resolution_3265.py</code></td>
 </tr>
 </tbody>

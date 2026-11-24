@@ -2937,7 +2937,7 @@ sync する。</p>
 eradication) が silently に慢性 home med にならないよう、
 <code>_deactivate_to_layer1</code> は <code>duration_days</code> が acute range に入る item を
 drop する:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>drop if 0 &lt; duration_days &lt;= _ACUTE_COURSE_MAX_DAYS  (= 14)
+<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>drop if 0 &lt; duration_days &lt;= ACUTE_COURSE_MAX_DAYS  (= 14)
 </span></code></pre></div>
 <p><strong>退院 Rx pipeline が honor する 2 つの重要なエッジケース:</strong>
 - <strong><code>duration_days == 0</code></strong> は disease-YAML の「長期 / 未指定」convention
@@ -3112,7 +3112,7 @@ cascade しないことを保証する:</p>
 </tr>
 <tr>
 <td>Acute-course cutoff を変更</td>
-<td><code>simulator/helpers.py::_ACUTE_COURSE_MAX_DAYS</code> (単一定数)</td>
+<td><code>simulator/_stay_thresholds.py::ACUTE_COURSE_MAX_DAYS</code> (単一定数)</td>
 </tr>
 <tr>
 <td>特定の薬剤クラスを常時 carry forward させる</td>
