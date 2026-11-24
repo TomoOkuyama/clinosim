@@ -72,6 +72,7 @@ from clinosim.modules.observation.vitals_thresholds import (
     FEVER_THRESHOLD_C,
     HIGH_FEVER_RECHECK_C,
 )
+from clinosim.modules.physiology._lab_derivation_thresholds import LAB_REFERENCE_SAO2_PCT
 from clinosim.modules.physiology._vital_signs_thresholds import (
     CONSCIOUSNESS_AVPU_NOISE_SD,
     CONSCIOUSNESS_AVPU_P_THRESHOLD,
@@ -79,7 +80,7 @@ from clinosim.modules.physiology._vital_signs_thresholds import (
     CONSCIOUSNESS_AVPU_V_THRESHOLD,
     PAIN_SCORE_SCALE,
 )
-from clinosim.modules.physiology.engine import derive_observed_vitals
+from clinosim.modules.physiology.engine import derive_observed_vitals, room_air_saturation
 from clinosim.seeding import avpu_day_seed, complication_avpu_seed, daily_output_seed
 from clinosim.simulator._adl_thresholds import (
     ADL_ASSESSMENT_INTERVAL_DAYS,
@@ -194,7 +195,7 @@ from clinosim.simulator._vitals_schedule_thresholds import (
 )
 from clinosim.simulator.adl_ceiling import barthel_item_caps
 from clinosim.simulator.maintenance_iv_fluid import maintenance_iv_fluid_rules
-from clinosim.simulator.oxygen_course import OxygenCourse, round_oxygen_flow
+from clinosim.simulator.oxygen_course import OxygenCourse, oxygen_course_rules, round_oxygen_flow
 from clinosim.simulator.ventricular_rate import VentricularRateCourse
 from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.encounter import (
@@ -448,7 +449,6 @@ def put_on_ventilator(vitals: list[VitalSignRecord], since: datetime, state, dis
     as readings on the ventilator: the device, no flow, and an SpO2 at least
     as high as charted (raised as by the ventilation's equivalent oxygen
     flow). Draws nothing."""
-    from clinosim.simulator.oxygen_course import oxygen_course_rules
 
     vent = oxygen_course_rules().ventilation
     for i, v in enumerate(vitals):
@@ -520,6 +520,21 @@ def spo2_on_oxygen(room_air_spo2: float, flow: float, state, disease_id: str) ->
     gain = flow * O2_SPO2_GAIN_PER_LPM * (1.0 - impairment * O2_REFRACTORY_SHUNT_FACTOR)
     cap = O2_COPD_SPO2_CAP if disease_id == "copd_exacerbation" else O2_SPO2_CAP
     return max(room_air_spo2, min(cap, room_air_spo2 + gain))
+
+
+def oxygen_saturation_for_lab(course: OxygenCourse, when: datetime, state, disease_id: str) -> float | None:
+    """The arterial saturation a blood gas drawn at ``when`` should reflect while
+    the stay is on oxygen or the ventilator (Issue #3649): the noise-free
+    reference room-air saturation of ``state`` raised by the prevailing flow
+    exactly as the charted SpO2 is. ``None`` off oxygen (the room-air value
+    applies). Draws nothing."""
+    if course.ventilated_at(when):
+        flow = oxygen_course_rules().ventilation.equivalent_flow_lpm
+    elif course.on and course.flow:
+        flow = course.flow
+    else:
+        return None
+    return spo2_on_oxygen(room_air_saturation(state, LAB_REFERENCE_SAO2_PCT), flow, state, disease_id)
 
 
 def _loc_for(state, disease_id, day, rng):

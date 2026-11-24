@@ -74,6 +74,7 @@ The four symptom axes default to 0, are clamped to their range by `state_variabl
   - pain adds `0.8 × max(0, pain − 0.4)` to the sympathetic drive, so mild / chronic pain does not raise HR / BP
   - oxygenation → SpO2 −25, RR +14, HR +20 at 1.0
   - `room_air_saturation()` is shared by the SpO2 vital and blood-gas pO2 (Severinghaus inversion); oxygenation also lowers pCO2 (hyperventilation) unless CO2 is retained. `pulmonary_inflammation=False` (a pediatric URI / otitis media visit, Issue #2987) keeps inflammation from lowering SpO2
+  - On supplemental oxygen or the ventilator at the draw, the blood-gas pO2 follows the saturation on oxygen (`derive_lab_values(sao2_pct=...)`, set by the daily loop from the stay's oxygen course via `oxygen_saturation_for_lab`), so a gas drawn next to a charted SpO2 of 98% is not below 55 mmHg (Issue #3649). Off oxygen, and on the admission-day labs before oxygen starts, it is the room-air value.
 - **Observations**:
   - pain score = max(noise draw, round(10 × pain_level)) for inpatient / ED; outpatient records it when set; FHIR LOINC 72514-3
   - AVPU = consciousness + N(0, 0.12) mapped to V ≥ 0.25, P ≥ 0.5, U ≥ 0.75 (inpatient and ED; clinic visits do not assess it)
