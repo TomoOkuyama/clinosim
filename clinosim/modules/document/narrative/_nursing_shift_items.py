@@ -25,6 +25,7 @@ from clinosim.datafiles import load_validated_yaml
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._as_of import in_force_at
+from clinosim.modules.document.narrative._delivery import delivery_mode
 from clinosim.modules.document.narrative._drug_names import administered_drug_key, administered_drug_name
 from clinosim.modules.document.narrative._narrative_interpretation_thresholds import progress_vitals_rules
 from clinosim.modules.document.narrative._narrative_utils import is_neonate
@@ -49,6 +50,7 @@ class NursingShiftItem(BaseModel):
     fact: str
     skip_neonate: bool
     only_neonate: bool = False
+    only_postpartum: bool = False
 
 
 class HoldReasonPattern(BaseModel):
@@ -587,6 +589,28 @@ def _day_of_life(d: ShiftData) -> int | None:
     return max((d.window[0].date() - dob).days, 0)
 
 
+def _item_postpartum(d: ShiftData) -> str | None:
+    """A delivery stay's shift after the birth ended (Issue #3664): the
+    postpartum day, the obstetric finding of the delivery exam block (the text
+    the H&P and the progress note use) and that breastfeeding and voiding are not
+    recorded (the record holds none, so none is stated)."""
+    from clinosim.modules.document.narrative._delivery import delivery_end, delivery_mode
+    from clinosim.modules.document.narrative.renderers._disease_exam import postpartum_obstetric_exam
+
+    birth = delivery_end(d.ctx)
+    if d.window is None or birth is None or delivery_mode(d.ctx) is None:
+        return None
+    end = d.window[1].replace(tzinfo=None)
+    if end <= birth.replace(tzinfo=None):
+        return None
+    return t(
+        "nursing_shift_items.postpartum.line",
+        d.lang,
+        day=(end.date() - birth.date()).days,
+        finding=postpartum_obstetric_exam(d.ctx),
+    )
+
+
 def _item_newborn_care(d: ShiftData) -> str | None:
     dol = _day_of_life(d)
     if dol is None:
@@ -639,6 +663,7 @@ ITEM_FUNCTIONS: dict[str, Callable[[ShiftData], str | None]] = {
     "skin": _item_skin,
     "mobility": _item_mobility,
     "wound": _item_wound,
+    "postpartum": _item_postpartum,
     "fall_risk": _item_fall_risk,
     "newborn_care": _item_newborn_care,
     "newborn_weight": _item_newborn_weight,
@@ -704,6 +729,8 @@ def nursing_shift_item_lines(
     out: list[tuple[str, str]] = []
     for item in nursing_shift_items_config().items:
         if (neonate and item.skip_neonate) or (item.only_neonate and not neonate):
+            continue
+        if item.only_postpartum and delivery_mode(ctx) is None:
             continue
         text = ITEM_FUNCTIONS[item.id](data)
         if text:

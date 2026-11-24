@@ -15,6 +15,7 @@
 #              (no self-reported pain score for a newborn)
 #   only_neonate: the item is written only for a patient in the neonatal period
 #              (the newborn set replaces the adult assessments; default false)
+#   only_postpartum: the item is written only for a delivery stay (default false)
 #
 # Thresholds are not repeated here: fever is the ``trend.fever_c`` of
 # progress_vitals.yaml, the SpO2 floor is the ``limits.spo2`` of
@@ -95,6 +96,12 @@ items:
     rule: a surgical procedure of the encounter started before the shift's end, within the site-observation window of `site_observation` below; the post-operative day and the routine surgical-site observation, or the access-site / pocket observation for a catheter procedure or device implant (no finding is stated)
     fact: ctx.procedures.surgical_site
     skip_neonate: true
+  - id: postpartum
+    source: extensions.delivery.mode; procedures[] (the delivery procedure); disease_exam.yaml delivery.modes.<mode>.obstetric_postpartum
+    rule: a delivery stay, in a shift that ends after the delivery procedure ended; the postpartum day, the obstetric finding of the delivery exam block (the text of the H&P and the progress note), and that breastfeeding and voiding are not recorded (the record holds none; no pain or mobility is stated here, the pain and mobility items state them from the record)
+    fact: ctx.delivery.postpartum
+    skip_neonate: true
+    only_postpartum: true
   - id: fall_risk
     source: nursing_risk_assessments[].fall_risk_level, morse_total
     rule: the fall-risk level in force at the shift's end is moderate or high; the level with the Morse total
