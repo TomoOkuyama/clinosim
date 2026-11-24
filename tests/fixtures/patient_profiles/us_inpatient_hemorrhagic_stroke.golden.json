@@ -134,11 +134,11 @@
       },
       "sections": {
         "assessment": "Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 2. Post-operative day 1 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new fever, tachycardia, oxygen therapy). Abnormal vital signs persisting (low SpO2, reduced consciousness); no improvement yet. Level of consciousness remains decreased (AVPU V, 2 days); work-up for the cause, including delirium, continues (medication, infection, electrolyte disturbance, hypoxia).",
-        "objective": "BP 132/81 mmHg, HR 101 bpm, RR 15 /min, SpO2 93% (nasal cannula 2 L/min), T 38.2°C (past 24 h: Tmax 38.9°C, HR max 105 bpm)",
+        "objective": "BP 132/81 mmHg, HR 101 bpm, RR 15 /min, SpO2 93% (nasal cannula 2 L/min), T 38.2°C (past 24 h: Tmax 38.9°C, HR max 105 bpm, SpO2 min 93%)",
         "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet changed to NPO (nothing by mouth).",
         "subjective": "Hospital day 2. New-onset fever 38.2°C (peak 38.9°C in the past 24 h). Persistent headache (NRS 5). Level of consciousness remains decreased (AVPU V)."
       },
-      "text": "S: Hospital day 2. New-onset fever 38.2°C (peak 38.9°C in the past 24 h). Persistent headache (NRS 5). Level of consciousness remains decreased (AVPU V).\nO: BP 132/81 mmHg, HR 101 bpm, RR 15 /min, SpO2 93% (nasal cannula 2 L/min), T 38.2°C (past 24 h: Tmax 38.9°C, HR max 105 bpm)\nA: Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 2. Post-operative day 1 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new fever, tachycardia, oxygen therapy). Abnormal vital signs persisting (low SpO2, reduced consciousness); no improvement yet. Level of consciousness remains decreased (AVPU V, 2 days); work-up for the cause, including delirium, continues (medication, infection, electrolyte disturbance, hypoxia).\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet changed to NPO (nothing by mouth)."
+      "text": "S: Hospital day 2. New-onset fever 38.2°C (peak 38.9°C in the past 24 h). Persistent headache (NRS 5). Level of consciousness remains decreased (AVPU V).\nO: BP 132/81 mmHg, HR 101 bpm, RR 15 /min, SpO2 93% (nasal cannula 2 L/min), T 38.2°C (past 24 h: Tmax 38.9°C, HR max 105 bpm, SpO2 min 93%)\nA: Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 2. Post-operative day 1 (Craniotomy for intracranial hematoma evacuation). Vital signs worsening compared with the previous day (new fever, tachycardia, oxygen therapy). Abnormal vital signs persisting (low SpO2, reduced consciousness); no improvement yet. Level of consciousness remains decreased (AVPU V, 2 days); work-up for the cause, including delirium, continues (medication, infection, electrolyte disturbance, hypoxia).\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet changed to NPO (nothing by mouth)."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-04": {
@@ -183,12 +183,12 @@
         }
       },
       "sections": {
-        "assessment": "Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 3. Post-operative day 2 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (low SpO2 resolved). Vital signs improving compared with the previous day (fever improved, not yet sustained). Abnormal vital signs persisting (tachycardia, reduced consciousness, oxygen therapy); no improvement yet. Level of consciousness remains decreased (AVPU V, 3 days); work-up for the cause, including delirium, continues (medication, infection, electrolyte disturbance, hypoxia). Notable labs (past 24 h): glucose 131 mg/dL [H] (prior 119).",
-        "objective": "BP 134/81 mmHg, HR 103 bpm, RR 19 /min, SpO2 98% (simple face mask 6.5 L/min), T 37.9°C (past 24 h: Tmax 39.1°C, HR max 106 bpm, RR max 24 /min)",
+        "assessment": "Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 3. Post-operative day 2 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (fever, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (tachycardia, reduced consciousness, oxygen therapy); no improvement yet. Level of consciousness remains decreased (AVPU V, 3 days); work-up for the cause, including delirium, continues (medication, infection, electrolyte disturbance, hypoxia). Notable labs (past 24 h): glucose 131 mg/dL [H] (prior 119).",
+        "objective": "BP 134/81 mmHg, HR 103 bpm, RR 19 /min, SpO2 98% (nasal cannula 1 L/min), T 37.9°C (past 24 h: Tmax 39.1°C, HR max 106 bpm, RR max 24 /min, SpO2 min 89%)",
         "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet changed to Clear liquids.",
-        "subjective": "Hospital day 3. Fever up to 39.1°C in the past 24 h; now 37.9°C, below the fever threshold. Persistent headache (NRS 4). Level of consciousness remains decreased (AVPU V)."
+        "subjective": "Hospital day 3. Fever up to 39.1°C in the past 24 h; now 37.9°C, below the fever threshold. SpO2 fell to 89% in the past 24 h; now 98%. Persistent headache (NRS 4). Level of consciousness remains decreased (AVPU V)."
       },
-      "text": "S: Hospital day 3. Fever up to 39.1°C in the past 24 h; now 37.9°C, below the fever threshold. Persistent headache (NRS 4). Level of consciousness remains decreased (AVPU V).\nO: BP 134/81 mmHg, HR 103 bpm, RR 19 /min, SpO2 98% (simple face mask 6.5 L/min), T 37.9°C (past 24 h: Tmax 39.1°C, HR max 106 bpm, RR max 24 /min)\nA: Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 3. Post-operative day 2 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (low SpO2 resolved). Vital signs improving compared with the previous day (fever improved, not yet sustained). Abnormal vital signs persisting (tachycardia, reduced consciousness, oxygen therapy); no improvement yet. Level of consciousness remains decreased (AVPU V, 3 days); work-up for the cause, including delirium, continues (medication, infection, electrolyte disturbance, hypoxia). Notable labs (past 24 h): glucose 131 mg/dL [H] (prior 119).\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet changed to Clear liquids."
+      "text": "S: Hospital day 3. Fever up to 39.1°C in the past 24 h; now 37.9°C, below the fever threshold. SpO2 fell to 89% in the past 24 h; now 98%. Persistent headache (NRS 4). Level of consciousness remains decreased (AVPU V).\nO: BP 134/81 mmHg, HR 103 bpm, RR 19 /min, SpO2 98% (nasal cannula 1 L/min), T 37.9°C (past 24 h: Tmax 39.1°C, HR max 106 bpm, RR max 24 /min, SpO2 min 89%)\nA: Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 3. Post-operative day 2 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (fever, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (tachycardia, reduced consciousness, oxygen therapy); no improvement yet. Level of consciousness remains decreased (AVPU V, 3 days); work-up for the cause, including delirium, continues (medication, infection, electrolyte disturbance, hypoxia). Notable labs (past 24 h): glucose 131 mg/dL [H] (prior 119).\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet changed to Clear liquids."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-05": {
@@ -233,12 +233,12 @@
         }
       },
       "sections": {
-        "assessment": "Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 4. Post-operative day 3 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (fever, tachycardia, tachypnea improved, not yet sustained). Abnormal vital signs persisting (reduced consciousness, oxygen therapy); no improvement yet. Level of consciousness remains decreased (AVPU V, 4 days); work-up for the cause, including delirium, continues (medication, infection, electrolyte disturbance, hypoxia). Notable labs (past 24 h): WBC 13374 /uL [H] (prior 11275), glucose 115 mg/dL [H] (prior 131).",
-        "objective": "BP 133/78 mmHg, HR 99 bpm, RR 19 /min, SpO2 98% (simple face mask 4.5 L/min), T 37.6°C (past 24 h: Tmax 38.7°C, HR max 107 bpm, RR max 21 /min)",
+        "assessment": "Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 4. Post-operative day 3 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (fever, tachycardia, tachypnea, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (reduced consciousness, oxygen therapy); no improvement yet. Level of consciousness remains decreased (AVPU V, 4 days); work-up for the cause, including delirium, continues (medication, infection, electrolyte disturbance, hypoxia). Notable labs (past 24 h): WBC 13374 /uL [H] (prior 11275), glucose 115 mg/dL [H] (prior 131).",
+        "objective": "BP 133/78 mmHg, HR 99 bpm, RR 19 /min, SpO2 98% (nasal cannula 2 L/min), T 37.6°C (past 24 h: Tmax 38.7°C, HR max 107 bpm, RR max 21 /min, SpO2 min 91%)",
         "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet changed to Soft diet.",
-        "subjective": "Hospital day 4. Fever up to 38.7°C in the past 24 h; now 37.6°C, below the fever threshold. Well-controlled headache (NRS 4 → 2). Level of consciousness remains decreased (AVPU V)."
+        "subjective": "Hospital day 4. Fever up to 38.7°C in the past 24 h; now 37.6°C, below the fever threshold. SpO2 fell to 91% in the past 24 h; now 98%. Well-controlled headache (NRS 4 → 2). Level of consciousness remains decreased (AVPU V)."
       },
-      "text": "S: Hospital day 4. Fever up to 38.7°C in the past 24 h; now 37.6°C, below the fever threshold. Well-controlled headache (NRS 4 → 2). Level of consciousness remains decreased (AVPU V).\nO: BP 133/78 mmHg, HR 99 bpm, RR 19 /min, SpO2 98% (simple face mask 4.5 L/min), T 37.6°C (past 24 h: Tmax 38.7°C, HR max 107 bpm, RR max 21 /min)\nA: Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 4. Post-operative day 3 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (fever, tachycardia, tachypnea improved, not yet sustained). Abnormal vital signs persisting (reduced consciousness, oxygen therapy); no improvement yet. Level of consciousness remains decreased (AVPU V, 4 days); work-up for the cause, including delirium, continues (medication, infection, electrolyte disturbance, hypoxia). Notable labs (past 24 h): WBC 13374 /uL [H] (prior 11275), glucose 115 mg/dL [H] (prior 131).\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet changed to Soft diet."
+      "text": "S: Hospital day 4. Fever up to 38.7°C in the past 24 h; now 37.6°C, below the fever threshold. SpO2 fell to 91% in the past 24 h; now 98%. Well-controlled headache (NRS 4 → 2). Level of consciousness remains decreased (AVPU V).\nO: BP 133/78 mmHg, HR 99 bpm, RR 19 /min, SpO2 98% (nasal cannula 2 L/min), T 37.6°C (past 24 h: Tmax 38.7°C, HR max 107 bpm, RR max 21 /min, SpO2 min 91%)\nA: Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 4. Post-operative day 3 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (fever, tachycardia, tachypnea, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (reduced consciousness, oxygen therapy); no improvement yet. Level of consciousness remains decreased (AVPU V, 4 days); work-up for the cause, including delirium, continues (medication, infection, electrolyte disturbance, hypoxia). Notable labs (past 24 h): WBC 13374 /uL [H] (prior 11275), glucose 115 mg/dL [H] (prior 131).\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Diet changed to Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-06": {
@@ -283,12 +283,12 @@
         }
       },
       "sections": {
-        "assessment": "Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 5. Post-operative day 4 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (tachypnea resolved). Vital signs improving compared with the previous day (tachycardia, reduced consciousness improved, not yet sustained). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Abnormal vital signs persisting and worsening (fever 37.6 → 38.2). Notable labs (past 24 h): WBC 11445 /uL [H] (prior 13374), glucose 127 mg/dL [H] (prior 115).",
-        "objective": "BP 132/82 mmHg, HR 96 bpm, RR 19 /min, SpO2 98% (nasal cannula 3 L/min), T 38.2°C (past 24 h: Tmax 38.5°C, HR max 108 bpm)",
+        "assessment": "Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 5. Post-operative day 4 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (tachypnea resolved). Vital signs improving compared with the previous day (tachycardia, low SpO2, reduced consciousness improved, not yet sustained). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Abnormal vital signs persisting and worsening (fever 37.6 → 38.2). Notable labs (past 24 h): WBC 11445 /uL [H] (prior 13374), glucose 127 mg/dL [H] (prior 115).",
+        "objective": "BP 132/82 mmHg, HR 96 bpm, RR 19 /min, SpO2 97% (nasal cannula 1 L/min), T 38.2°C (past 24 h: Tmax 38.5°C, HR max 108 bpm, SpO2 min 93%)",
         "plan": "Continue current medications: Nicardipine, Labetalol. Given once: Sodium Chloride 23.4% Injectable Solution 30mL IV over 15min via central line. Stopped: IV fluids: NS 80 mL/h. Diet: Soft diet.",
         "subjective": "Hospital day 5. Persistent fever 38.2°C (peak 38.5°C in the past 24 h). Level of consciousness improved, now alert (prev AVPU V)."
       },
-      "text": "S: Hospital day 5. Persistent fever 38.2°C (peak 38.5°C in the past 24 h). Level of consciousness improved, now alert (prev AVPU V).\nO: BP 132/82 mmHg, HR 96 bpm, RR 19 /min, SpO2 98% (nasal cannula 3 L/min), T 38.2°C (past 24 h: Tmax 38.5°C, HR max 108 bpm)\nA: Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 5. Post-operative day 4 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (tachypnea resolved). Vital signs improving compared with the previous day (tachycardia, reduced consciousness improved, not yet sustained). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Abnormal vital signs persisting and worsening (fever 37.6 → 38.2). Notable labs (past 24 h): WBC 11445 /uL [H] (prior 13374), glucose 127 mg/dL [H] (prior 115).\nP: Continue current medications: Nicardipine, Labetalol. Given once: Sodium Chloride 23.4% Injectable Solution 30mL IV over 15min via central line. Stopped: IV fluids: NS 80 mL/h. Diet: Soft diet."
+      "text": "S: Hospital day 5. Persistent fever 38.2°C (peak 38.5°C in the past 24 h). Level of consciousness improved, now alert (prev AVPU V).\nO: BP 132/82 mmHg, HR 96 bpm, RR 19 /min, SpO2 97% (nasal cannula 1 L/min), T 38.2°C (past 24 h: Tmax 38.5°C, HR max 108 bpm, SpO2 min 93%)\nA: Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 5. Post-operative day 4 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (tachypnea resolved). Vital signs improving compared with the previous day (tachycardia, low SpO2, reduced consciousness improved, not yet sustained). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Abnormal vital signs persisting and worsening (fever 37.6 → 38.2). Notable labs (past 24 h): WBC 11445 /uL [H] (prior 13374), glucose 127 mg/dL [H] (prior 115).\nP: Continue current medications: Nicardipine, Labetalol. Given once: Sodium Chloride 23.4% Injectable Solution 30mL IV over 15min via central line. Stopped: IV fluids: NS 80 mL/h. Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-07": {
@@ -333,12 +333,12 @@
         }
       },
       "sections": {
-        "assessment": "Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 6. Post-operative day 5 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (reduced consciousness resolved). Vital signs improving compared with the previous day (fever, tachycardia improved, not yet sustained). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): WBC 12528 /uL [H] (prior 11445), glucose 118 mg/dL [H] (prior 127).",
-        "objective": "BP 134/78 mmHg, HR 98 bpm, RR 19 /min, SpO2 96% (nasal cannula 2.5 L/min), T 37.6°C (past 24 h: Tmax 38.7°C, HR max 105 bpm, RR max 21 /min, SpO2 min 93%)",
+        "assessment": "Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 6. Post-operative day 5 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (reduced consciousness resolved). Vital signs improving compared with the previous day (fever, tachycardia, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): WBC 12528 /uL [H] (prior 11445), glucose 118 mg/dL [H] (prior 127).",
+        "objective": "BP 134/78 mmHg, HR 98 bpm, RR 19 /min, SpO2 94% (nasal cannula 1 L/min), T 37.6°C (past 24 h: Tmax 38.7°C, HR max 105 bpm, RR max 21 /min, SpO2 min 92%)",
         "plan": "Continue current medications: Nicardipine, Labetalol. Diet: Soft diet.",
         "subjective": "Hospital day 6. Fever up to 38.7°C in the past 24 h; now 37.6°C, below the fever threshold."
       },
-      "text": "S: Hospital day 6. Fever up to 38.7°C in the past 24 h; now 37.6°C, below the fever threshold.\nO: BP 134/78 mmHg, HR 98 bpm, RR 19 /min, SpO2 96% (nasal cannula 2.5 L/min), T 37.6°C (past 24 h: Tmax 38.7°C, HR max 105 bpm, RR max 21 /min, SpO2 min 93%)\nA: Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 6. Post-operative day 5 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (reduced consciousness resolved). Vital signs improving compared with the previous day (fever, tachycardia improved, not yet sustained). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): WBC 12528 /uL [H] (prior 11445), glucose 118 mg/dL [H] (prior 127).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet."
+      "text": "S: Hospital day 6. Fever up to 38.7°C in the past 24 h; now 37.6°C, below the fever threshold.\nO: BP 134/78 mmHg, HR 98 bpm, RR 19 /min, SpO2 94% (nasal cannula 1 L/min), T 37.6°C (past 24 h: Tmax 38.7°C, HR max 105 bpm, RR max 21 /min, SpO2 min 92%)\nA: Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 6. Post-operative day 5 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (reduced consciousness resolved). Vital signs improving compared with the previous day (fever, tachycardia, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): WBC 12528 /uL [H] (prior 11445), glucose 118 mg/dL [H] (prior 127).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-08": {
@@ -384,11 +384,11 @@
       },
       "sections": {
         "assessment": "Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 7. Post-operative day 6 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (fever, tachycardia, tachypnea, low SpO2 improved, not yet sustained). Vital signs worsening compared with the previous day (new reduced consciousness). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): WBC 11395 /uL [H] (prior 12528), glucose 119 mg/dL [H] (prior 118).",
-        "objective": "BP 134/78 mmHg, HR 96 bpm, RR 20 /min, SpO2 98% (simple face mask 7.5 L/min), T 37.3°C (past 24 h: Tmax 38.5°C, HR max 105 bpm, RR max 21 /min, SpO2 min 93%)",
+        "objective": "BP 134/78 mmHg, HR 96 bpm, RR 20 /min, SpO2 96% (nasal cannula 2 L/min), T 37.3°C (past 24 h: Tmax 38.5°C, HR max 105 bpm, RR max 21 /min, SpO2 min 90%)",
         "plan": "Continue current medications: Nicardipine, Labetalol. Diet: Soft diet.",
-        "subjective": "Hospital day 7. Fever up to 38.5°C in the past 24 h; now 37.3°C, below the fever threshold. New decrease in level of consciousness (AVPU V); orientation being monitored."
+        "subjective": "Hospital day 7. Fever up to 38.5°C in the past 24 h; now 37.3°C, below the fever threshold. SpO2 fell to 90% in the past 24 h; now 96%. New decrease in level of consciousness (AVPU V); orientation being monitored."
       },
-      "text": "S: Hospital day 7. Fever up to 38.5°C in the past 24 h; now 37.3°C, below the fever threshold. New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 134/78 mmHg, HR 96 bpm, RR 20 /min, SpO2 98% (simple face mask 7.5 L/min), T 37.3°C (past 24 h: Tmax 38.5°C, HR max 105 bpm, RR max 21 /min, SpO2 min 93%)\nA: Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 7. Post-operative day 6 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (fever, tachycardia, tachypnea, low SpO2 improved, not yet sustained). Vital signs worsening compared with the previous day (new reduced consciousness). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): WBC 11395 /uL [H] (prior 12528), glucose 119 mg/dL [H] (prior 118).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet."
+      "text": "S: Hospital day 7. Fever up to 38.5°C in the past 24 h; now 37.3°C, below the fever threshold. SpO2 fell to 90% in the past 24 h; now 96%. New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 134/78 mmHg, HR 96 bpm, RR 20 /min, SpO2 96% (nasal cannula 2 L/min), T 37.3°C (past 24 h: Tmax 38.5°C, HR max 105 bpm, RR max 21 /min, SpO2 min 90%)\nA: Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 7. Post-operative day 6 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (fever, tachycardia, tachypnea, low SpO2 improved, not yet sustained). Vital signs worsening compared with the previous day (new reduced consciousness). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): WBC 11395 /uL [H] (prior 12528), glucose 119 mg/dL [H] (prior 118).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-09": {
@@ -433,12 +433,12 @@
         }
       },
       "sections": {
-        "assessment": "Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 8. Post-operative day 7 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (low SpO2 resolved). Vital signs improving compared with the previous day (fever, tachycardia, tachypnea, reduced consciousness improved, not yet sustained). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): WBC 11893 /uL [H] (prior 11395), glucose 133 mg/dL [H] (prior 119).",
-        "objective": "BP 134/81 mmHg, HR 96 bpm, RR 17 /min, SpO2 98% (simple face mask 5.5 L/min), T 37.3°C (past 24 h: Tmax 39.0°C, HR max 103 bpm, RR max 21 /min)",
+        "assessment": "Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 8. Post-operative day 7 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (fever, tachycardia, tachypnea, low SpO2, reduced consciousness improved, not yet sustained). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): WBC 11893 /uL [H] (prior 11395), glucose 133 mg/dL [H] (prior 119).",
+        "objective": "BP 134/81 mmHg, HR 96 bpm, RR 17 /min, SpO2 98% (nasal cannula 1 L/min), T 37.3°C (past 24 h: Tmax 39.0°C, HR max 103 bpm, RR max 21 /min, SpO2 min 93%)",
         "plan": "Continue current medications: Nicardipine, Labetalol. Diet: Soft diet.",
         "subjective": "Hospital day 8. Fever up to 39.0°C in the past 24 h; now 37.3°C, below the fever threshold. Level of consciousness improved, now alert (prev AVPU V)."
       },
-      "text": "S: Hospital day 8. Fever up to 39.0°C in the past 24 h; now 37.3°C, below the fever threshold. Level of consciousness improved, now alert (prev AVPU V).\nO: BP 134/81 mmHg, HR 96 bpm, RR 17 /min, SpO2 98% (simple face mask 5.5 L/min), T 37.3°C (past 24 h: Tmax 39.0°C, HR max 103 bpm, RR max 21 /min)\nA: Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 8. Post-operative day 7 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (low SpO2 resolved). Vital signs improving compared with the previous day (fever, tachycardia, tachypnea, reduced consciousness improved, not yet sustained). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): WBC 11893 /uL [H] (prior 11395), glucose 133 mg/dL [H] (prior 119).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet."
+      "text": "S: Hospital day 8. Fever up to 39.0°C in the past 24 h; now 37.3°C, below the fever threshold. Level of consciousness improved, now alert (prev AVPU V).\nO: BP 134/81 mmHg, HR 96 bpm, RR 17 /min, SpO2 98% (nasal cannula 1 L/min), T 37.3°C (past 24 h: Tmax 39.0°C, HR max 103 bpm, RR max 21 /min, SpO2 min 93%)\nA: Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 8. Post-operative day 7 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (fever, tachycardia, tachypnea, low SpO2, reduced consciousness improved, not yet sustained). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): WBC 11893 /uL [H] (prior 11395), glucose 133 mg/dL [H] (prior 119).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-10": {
@@ -483,12 +483,12 @@
         }
       },
       "sections": {
-        "assessment": "Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 9. Post-operative day 8 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (reduced consciousness resolved). Vital signs improving compared with the previous day (fever, tachycardia, tachypnea improved, not yet sustained). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): WBC 11258 /uL [H] (prior 11893), glucose 124 mg/dL [H] (prior 133).",
-        "objective": "BP 135/82 mmHg, HR 98 bpm, RR 15 /min, SpO2 98% (nasal cannula 4 L/min), T 37.4°C (past 24 h: Tmax 38.4°C, HR max 107 bpm, RR max 21 /min)",
+        "assessment": "Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 9. Post-operative day 8 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (reduced consciousness resolved). Vital signs improving compared with the previous day (fever, tachycardia, tachypnea, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): WBC 11258 /uL [H] (prior 11893), glucose 124 mg/dL [H] (prior 133).",
+        "objective": "BP 135/82 mmHg, HR 98 bpm, RR 15 /min, SpO2 95% (nasal cannula 1 L/min), T 37.4°C (past 24 h: Tmax 38.4°C, HR max 107 bpm, RR max 21 /min, SpO2 min 92%)",
         "plan": "Continue current medications: Nicardipine, Labetalol. Diet: Soft diet.",
         "subjective": "Hospital day 9. Fever up to 38.4°C in the past 24 h; now 37.4°C, below the fever threshold."
       },
-      "text": "S: Hospital day 9. Fever up to 38.4°C in the past 24 h; now 37.4°C, below the fever threshold.\nO: BP 135/82 mmHg, HR 98 bpm, RR 15 /min, SpO2 98% (nasal cannula 4 L/min), T 37.4°C (past 24 h: Tmax 38.4°C, HR max 107 bpm, RR max 21 /min)\nA: Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 9. Post-operative day 8 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (reduced consciousness resolved). Vital signs improving compared with the previous day (fever, tachycardia, tachypnea improved, not yet sustained). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): WBC 11258 /uL [H] (prior 11893), glucose 124 mg/dL [H] (prior 133).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet."
+      "text": "S: Hospital day 9. Fever up to 38.4°C in the past 24 h; now 37.4°C, below the fever threshold.\nO: BP 135/82 mmHg, HR 98 bpm, RR 15 /min, SpO2 95% (nasal cannula 1 L/min), T 37.4°C (past 24 h: Tmax 38.4°C, HR max 107 bpm, RR max 21 /min, SpO2 min 92%)\nA: Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 9. Post-operative day 8 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (reduced consciousness resolved). Vital signs improving compared with the previous day (fever, tachycardia, tachypnea, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Notable labs (past 24 h): WBC 11258 /uL [H] (prior 11893), glucose 124 mg/dL [H] (prior 133).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-11": {
@@ -533,12 +533,12 @@
         }
       },
       "sections": {
-        "assessment": "Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 10. Post-operative day 9 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (tachypnea resolved). Vital signs improving compared with the previous day (fever, tachycardia, oxygen therapy improved, not yet sustained). Notable labs (past 24 h): WBC 13163 /uL [H] (prior 11258).",
+        "assessment": "Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 10. Post-operative day 9 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (tachypnea resolved). Vital signs improving compared with the previous day (fever, tachycardia, low SpO2, oxygen therapy improved, not yet sustained). Notable labs (past 24 h): WBC 13163 /uL [H] (prior 11258).",
         "objective": "BP 134/82 mmHg, HR 96 bpm, RR 20 /min, SpO2 96% (RA), T 37.2°C, weaned off supplemental O2 (past 24 h: Tmax 38.8°C, HR max 101 bpm, SpO2 min 93%)",
         "plan": "Continue current medications: Nicardipine, Labetalol. Diet: Soft diet.",
         "subjective": "Hospital day 10. Fever up to 38.8°C in the past 24 h; now 37.2°C, below the fever threshold."
       },
-      "text": "S: Hospital day 10. Fever up to 38.8°C in the past 24 h; now 37.2°C, below the fever threshold.\nO: BP 134/82 mmHg, HR 96 bpm, RR 20 /min, SpO2 96% (RA), T 37.2°C, weaned off supplemental O2 (past 24 h: Tmax 38.8°C, HR max 101 bpm, SpO2 min 93%)\nA: Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 10. Post-operative day 9 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (tachypnea resolved). Vital signs improving compared with the previous day (fever, tachycardia, oxygen therapy improved, not yet sustained). Notable labs (past 24 h): WBC 13163 /uL [H] (prior 11258).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet."
+      "text": "S: Hospital day 10. Fever up to 38.8°C in the past 24 h; now 37.2°C, below the fever threshold.\nO: BP 134/82 mmHg, HR 96 bpm, RR 20 /min, SpO2 96% (RA), T 37.2°C, weaned off supplemental O2 (past 24 h: Tmax 38.8°C, HR max 101 bpm, SpO2 min 93%)\nA: Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 10. Post-operative day 9 (Craniotomy for intracranial hematoma evacuation). Vital signs improving compared with the previous day (tachypnea resolved). Vital signs improving compared with the previous day (fever, tachycardia, low SpO2, oxygen therapy improved, not yet sustained). Notable labs (past 24 h): WBC 13163 /uL [H] (prior 11258).\nP: Continue current medications: Nicardipine, Labetalol. Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-12": {
@@ -712,6 +712,7 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
+        "ctx.vitals.shift.desaturation",
         "ctx.vitals.shift.consciousness",
         "ctx.devices.shift",
         "ctx.orders.diet.shift",
@@ -729,7 +730,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 136/78, HR 103, SpO2 95%, T 37.7°C; nasal cannula 3 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS 5.\nFever 38.8°C; observation continued.\nLevel of consciousness remains decreased (AVPU V).\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 3 L/min; device fit and observation continued.\nNPO, nothing by mouth.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nDay of surgery (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - day shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 136/78, HR 103, SpO2 93%, T 37.7°C; nasal cannula 1.5 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS 5.\nFever 38.8°C; observation continued.\nSpO2 fell to 93% at 14:55; managed on nasal cannula 1.5 L/min.\nLevel of consciousness remains decreased (AVPU V).\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 1.5 L/min; device fit and observation continued.\nNPO, nothing by mouth.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nDay of surgery (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-17-evening": {
@@ -759,7 +760,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 134/80, HR 101, SpO2 98%, T 37.6°C; nasal cannula 2.5 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS 4.\nFever 38.9°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 2.5 L/min; device fit and observation continued.\nNPO, nothing by mouth.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nDay of surgery (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - evening shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 134/80, HR 101, SpO2 98%, T 37.6°C; nasal cannula 1 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS 4.\nFever 38.9°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nNPO, nothing by mouth.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nDay of surgery (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-18-night": {
@@ -791,7 +792,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 131/77, HR 98, SpO2 98%, T 38.2°C; nasal cannula 2 L/min.\nMeds administered: Nicardipine, Labetalol, NS 80 mL/h.\nheadache reported, NRS peak 5, latest 4.\nFever 38.2°C; observation continued.\nSpO2 fell to 93% at 03:59; managed on nasal cannula 2 L/min.\nLevel of consciousness remains decreased (AVPU V).\nPrevious day (6/15) fluid balance: intake 959 mL, output 931 mL (urine 149 mL), net +28 mL.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 2 L/min; device fit and observation continued.\nNPO continued.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 1 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - night shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 131/77, HR 98, SpO2 97%, T 38.2°C; nasal cannula 1 L/min.\nMeds administered: Nicardipine, Labetalol, NS 80 mL/h.\nheadache reported, NRS peak 5, latest 4.\nFever 38.2°C; observation continued.\nSpO2 fell to 93% at 03:59; managed on nasal cannula 2 L/min.\nLevel of consciousness remains decreased (AVPU V).\nPrevious day (6/15) fluid balance: intake 959 mL, output 931 mL (urine 149 mL), net +28 mL.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nNPO continued.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 1 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-19-day": {
@@ -804,6 +805,7 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
+        "ctx.vitals.shift.desaturation",
         "ctx.vitals.shift.consciousness",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
@@ -822,7 +824,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 133/79, HR 105, SpO2 98%, T 38.5°C; simple face mask 7.5 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS peak 6, latest 5.\nFever 39.1°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/15) fluid balance: intake 959 mL, output 931 mL (urine 149 mL), net +28 mL.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: simple face mask 7.5 L/min; device fit and observation continued.\nDiet: Clear liquids, feeding needs partial help, oral intake the previous day 196 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 1 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - day shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 133/79, HR 105, SpO2 98%, T 38.5°C; nasal cannula 2 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS peak 6, latest 5.\nFever 39.1°C; observation continued.\nSpO2 fell to 89% at 11:54; managed on nasal cannula 2 L/min.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/15) fluid balance: intake 959 mL, output 931 mL (urine 149 mL), net +28 mL.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 2 L/min; device fit and observation continued.\nDiet: Clear liquids, feeding needs partial help, oral intake the previous day 196 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 1 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-20-evening": {
@@ -835,6 +837,7 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
+        "ctx.vitals.shift.desaturation",
         "ctx.vitals.shift.consciousness",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
@@ -853,7 +856,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 132/80, HR 101, SpO2 98%, T 38.0°C; simple face mask 6.5 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS peak 6, latest 4.\nFever 38.6°C; observation continued.\nLevel of consciousness remains decreased (AVPU V).\nPrevious day (6/15) fluid balance: intake 959 mL, output 931 mL (urine 149 mL), net +28 mL.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: simple face mask 6.5 L/min; device fit and observation continued.\nDiet: Clear liquids, feeding needs partial help, oral intake the previous day 196 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 1 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - evening shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 132/80, HR 101, SpO2 97%, T 38.0°C; nasal cannula 1 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS peak 6, latest 4.\nFever 38.6°C; observation continued.\nSpO2 fell to 94% at 18:59; managed on nasal cannula 1 L/min.\nLevel of consciousness remains decreased (AVPU V).\nPrevious day (6/15) fluid balance: intake 959 mL, output 931 mL (urine 149 mL), net +28 mL.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Clear liquids, feeding needs partial help, oral intake the previous day 196 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 1 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-21-night": {
@@ -866,6 +869,7 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
+        "ctx.vitals.shift.desaturation",
         "ctx.vitals.shift.consciousness",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
@@ -884,7 +888,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 132/82, HR 104, SpO2 98%, T 38.4°C; simple face mask 6 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS peak 4, latest 3.\nFever 38.4°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/16) fluid balance: intake 787 mL, output 687 mL (urine 50 mL), net +100 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: simple face mask 6 L/min; device fit and observation continued.\nDiet: Clear liquids, feeding needs partial help, oral intake the previous day 322 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 2 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - night shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 132/82, HR 104, SpO2 95%, T 38.4°C; nasal cannula 2 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS peak 4, latest 3.\nFever 38.4°C; observation continued.\nSpO2 fell to 91% at 04:59; managed on nasal cannula 2 L/min.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/16) fluid balance: intake 787 mL, output 687 mL (urine 50 mL), net +100 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 2 L/min; device fit and observation continued.\nDiet: Clear liquids, feeding needs partial help, oral intake the previous day 322 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 2 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-22-day": {
@@ -897,6 +901,7 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
+        "ctx.vitals.shift.desaturation",
         "ctx.vitals.shift.consciousness",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
@@ -915,7 +920,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 133/80, HR 103, SpO2 97%, T 38.5°C; simple face mask 5 L/min.\nMeds administered: Nicardipine, Labetalol, NS 80 mL/h.\nheadache reported, NRS 7.\nFever 38.7°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/16) fluid balance: intake 787 mL, output 687 mL (urine 50 mL), net +100 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: simple face mask 5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 322 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 2 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - day shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 133/80, HR 103, SpO2 93%, T 38.5°C; nasal cannula 2 L/min.\nMeds administered: Nicardipine, Labetalol, NS 80 mL/h.\nheadache reported, NRS 7.\nFever 38.7°C; observation continued.\nSpO2 fell to 92% at 13:02; managed on nasal cannula 1 L/min.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/16) fluid balance: intake 787 mL, output 687 mL (urine 50 mL), net +100 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 2 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 322 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 2 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-23-evening": {
@@ -928,6 +933,7 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
+        "ctx.vitals.shift.desaturation",
         "ctx.vitals.shift.consciousness",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
@@ -946,7 +952,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 138/82, HR 101, SpO2 98%, T 38.3°C; simple face mask 4.5 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS 6.\nFever 38.6°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/16) fluid balance: intake 787 mL, output 687 mL (urine 50 mL), net +100 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: simple face mask 4.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 322 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 2 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - evening shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 138/82, HR 101, SpO2 93%, T 38.3°C; nasal cannula 1 L/min.\nMeds administered: Nicardipine, NS 80 mL/h.\nheadache reported, NRS 6.\nFever 38.6°C; observation continued.\nSpO2 fell to 93% at 22:10; managed on nasal cannula 1 L/min.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/16) fluid balance: intake 787 mL, output 687 mL (urine 50 mL), net +100 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 322 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 2 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-24-night": {
@@ -958,6 +964,7 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.desaturation",
         "ctx.vitals.shift.consciousness",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
@@ -976,7 +983,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 134/78, HR 102, SpO2 96%, T 37.5°C; nasal cannula 4 L/min.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS 2.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/17) fluid balance: intake 879 mL, output 852 mL (urine 215 mL), net +27 mL.\nOxygen: nasal cannula 4 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 330 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 3 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - night shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 134/78, HR 102, SpO2 93%, T 37.5°C; nasal cannula 2 L/min.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS 2.\nSpO2 fell to 92% at 00:53; managed on nasal cannula 2 L/min.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/17) fluid balance: intake 879 mL, output 852 mL (urine 215 mL), net +27 mL.\nOxygen: nasal cannula 2 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 330 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 3 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-25-day": {
@@ -989,6 +996,7 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
+        "ctx.vitals.shift.desaturation",
         "ctx.vitals.shift.consciousness",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
@@ -1007,7 +1015,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 133/80, HR 106, SpO2 98%, T 38.5°C; nasal cannula 4 L/min.\nMeds administered: Nicardipine, Sodium Chloride 23.4% Injectable Solution 30mL IV over 15min via central line.\nheadache reported, NRS 4.\nFever 38.5°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/17) fluid balance: intake 879 mL, output 852 mL (urine 215 mL), net +27 mL.\nOxygen: nasal cannula 4 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 330 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 3 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - day shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 133/80, HR 106, SpO2 98%, T 38.5°C; nasal cannula 3 L/min.\nMeds administered: Nicardipine, Sodium Chloride 23.4% Injectable Solution 30mL IV over 15min via central line.\nheadache reported, NRS 4.\nFever 38.5°C; observation continued.\nSpO2 fell to 93% at 12:54; managed on nasal cannula 3 L/min.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/17) fluid balance: intake 879 mL, output 852 mL (urine 215 mL), net +27 mL.\nOxygen: nasal cannula 3 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 330 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 3 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-26-evening": {
@@ -1020,6 +1028,7 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
+        "ctx.vitals.shift.desaturation",
         "ctx.vitals.shift.consciousness",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
@@ -1038,7 +1047,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 133/74, HR 102, SpO2 97%, T 38.2°C; nasal cannula 3.5 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS 3.\nFever 38.2°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/17) fluid balance: intake 879 mL, output 852 mL (urine 215 mL), net +27 mL.\nOxygen: nasal cannula 3.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 330 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 3 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - evening shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 133/74, HR 102, SpO2 95%, T 38.2°C; nasal cannula 2 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS 3.\nFever 38.2°C; observation continued.\nSpO2 fell to 93% at 22:05; managed on nasal cannula 2 L/min.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/17) fluid balance: intake 879 mL, output 852 mL (urine 215 mL), net +27 mL.\nOxygen: nasal cannula 2 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 330 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 3 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-27-night": {
@@ -1051,6 +1060,7 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
+        "ctx.vitals.shift.desaturation",
         "ctx.intake_output_records.previous_day",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
@@ -1067,7 +1077,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 131/80, HR 100, SpO2 97%, T 37.7°C; nasal cannula 3 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS 2.\nFever 38.7°C; observation continued.\nPrevious day (6/18) fluid balance: intake 1108 mL, output 932 mL (urine 50 mL), net +176 mL.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 1108 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 4 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - night shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 131/80, HR 100, SpO2 94%, T 37.7°C; nasal cannula 1 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS 2.\nFever 38.7°C; observation continued.\nSpO2 fell to 93% at 05:00; managed on nasal cannula 1 L/min.\nPrevious day (6/18) fluid balance: intake 1108 mL, output 932 mL (urine 50 mL), net +176 mL.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 1108 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 4 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-28-day": {
@@ -1098,7 +1108,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 136/76, HR 105, SpO2 93%, T 37.7°C; nasal cannula 2.5 L/min.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS 4.\nFever 38.1°C; observation continued.\nSpO2 fell to 93% at 14:46; managed on nasal cannula 2.5 L/min.\nPrevious day (6/18) fluid balance: intake 1108 mL, output 932 mL (urine 50 mL), net +176 mL.\nOxygen: nasal cannula 2.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 1108 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 4 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - day shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 136/76, HR 105, SpO2 92%, T 37.7°C; nasal cannula 2 L/min.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS 4.\nFever 38.1°C; observation continued.\nSpO2 fell to 92% at 14:46; managed on nasal cannula 2 L/min.\nPrevious day (6/18) fluid balance: intake 1108 mL, output 932 mL (urine 50 mL), net +176 mL.\nOxygen: nasal cannula 2 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 1108 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 4 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-29-evening": {
@@ -1111,6 +1121,7 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
+        "ctx.vitals.shift.desaturation",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
         "ctx.orders.diet.shift",
@@ -1128,7 +1139,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 129/80, HR 97, SpO2 98%, T 38.1°C; nasal cannula 2.5 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS 6.\nFever 38.1°C; observation continued.\nPrevious day (6/18) fluid balance: intake 1108 mL, output 932 mL (urine 50 mL), net +176 mL.\nOxygen: nasal cannula 2.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 1108 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 4 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - evening shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 129/80, HR 97, SpO2 98%, T 38.1°C; nasal cannula 1 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS 6.\nFever 38.1°C; observation continued.\nSpO2 fell to 92% at 22:08; managed on nasal cannula 1 L/min.\nPrevious day (6/18) fluid balance: intake 1108 mL, output 932 mL (urine 50 mL), net +176 mL.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 1108 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 4 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-30-night": {
@@ -1220,7 +1231,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 6\nRecorded by: Clara Pittman\nPatient status: BP 131/78, HR 97, SpO2 96%, T 37.5°C; nasal cannula 2 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS peak 2, latest 1.\nFever 38.1°C; observation continued.\nSpO2 fell to 94% at 17:51; managed on nasal cannula 2 L/min.\nPrevious day (6/19) fluid balance: intake 945 mL, output 882 mL (urine 135 mL), net +63 mL.\nOxygen: nasal cannula 2 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 945 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 5 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - evening shift] Day 6\nRecorded by: Clara Pittman\nPatient status: BP 131/78, HR 97, SpO2 95%, T 37.5°C; nasal cannula 1 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS peak 2, latest 1.\nFever 38.1°C; observation continued.\nSpO2 fell to 92% at 17:51; managed on nasal cannula 1 L/min.\nPrevious day (6/19) fluid balance: intake 945 mL, output 882 mL (urine 135 mL), net +63 mL.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 945 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 5 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-33-night": {
@@ -1232,6 +1243,7 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.desaturation",
         "ctx.vitals.shift.consciousness",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
@@ -1250,7 +1262,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 134/78, HR 98, SpO2 98%, T 37.3°C; simple face mask 7 L/min.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS peak 2, latest 1.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/20) fluid balance: intake 1206 mL, output 1182 mL (urine 391 mL), net +24 mL.\nOxygen: simple face mask 7 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 1206 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 6 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - night shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 134/78, HR 98, SpO2 94%, T 37.3°C; nasal cannula 1 L/min.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS peak 2, latest 1.\nSpO2 fell to 90% at 01:01; managed on nasal cannula 2 L/min.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/20) fluid balance: intake 1206 mL, output 1182 mL (urine 391 mL), net +24 mL.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 1206 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 6 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-34-day": {
@@ -1263,6 +1275,7 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
+        "ctx.vitals.shift.desaturation",
         "ctx.vitals.shift.consciousness",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
@@ -1281,7 +1294,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 133/78, HR 103, SpO2 98%, T 38.3°C; simple face mask 6.5 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS peak 2, latest 0.\nFever 39.0°C; observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/20) fluid balance: intake 1206 mL, output 1182 mL (urine 391 mL), net +24 mL.\nOxygen: simple face mask 6.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 1206 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 6 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - day shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 133/78, HR 103, SpO2 95%, T 38.3°C; nasal cannula 1 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS peak 2, latest 0.\nFever 39.0°C; observation continued.\nSpO2 fell to 93% at 13:04; managed on nasal cannula 1 L/min.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/20) fluid balance: intake 1206 mL, output 1182 mL (urine 391 mL), net +24 mL.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 1206 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nPost-operative day 6 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-35-evening": {
@@ -1293,6 +1306,7 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.desaturation",
         "ctx.vitals.shift.consciousness",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
@@ -1311,7 +1325,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 136/79, HR 98, SpO2 98%, T 37.6°C; simple face mask 6 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS peak 3, latest 0.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/20) fluid balance: intake 1206 mL, output 1182 mL (urine 391 mL), net +24 mL.\nOxygen: simple face mask 6 L/min; device fit and observation continued.\nDiet: Soft diet, feeding independent, oral intake the previous day 1206 mL.\nADL: Barthel Index 95/100 (independent); mobility independent, toileting independent. Assistance provided as needed.\nPost-operative day 6 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - evening shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 136/79, HR 98, SpO2 98%, T 37.6°C; nasal cannula 1 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS peak 3, latest 0.\nSpO2 fell to 94% at 22:20; managed on nasal cannula 1 L/min.\nDecreased level of consciousness (AVPU V); observation continued.\nPrevious day (6/20) fluid balance: intake 1206 mL, output 1182 mL (urine 391 mL), net +24 mL.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding independent, oral intake the previous day 1206 mL.\nADL: Barthel Index 95/100 (independent); mobility independent, toileting independent. Assistance provided as needed.\nPost-operative day 6 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-36-night": {
@@ -1323,6 +1337,7 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.desaturation",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
         "ctx.orders.diet.shift",
@@ -1340,7 +1355,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 132/81, HR 94, SpO2 98%, T 37.3°C; simple face mask 5.5 L/min.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS 1.\nPrevious day (6/21) fluid balance: intake 1265 mL, output 1326 mL (urine 689 mL), net -61 mL.\nOxygen: simple face mask 5.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding independent, oral intake the previous day 1265 mL.\nADL: Barthel Index 95/100 (independent); mobility independent, toileting independent. Assistance provided as needed.\nPost-operative day 7 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - night shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 132/81, HR 94, SpO2 96%, T 37.3°C; nasal cannula 1 L/min.\nMeds administered: Nicardipine, Labetalol.\nheadache reported, NRS 1.\nSpO2 fell to 94% at 02:10; managed on nasal cannula 1 L/min.\nPrevious day (6/21) fluid balance: intake 1265 mL, output 1326 mL (urine 689 mL), net -61 mL.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding independent, oral intake the previous day 1265 mL.\nADL: Barthel Index 95/100 (independent); mobility independent, toileting independent. Assistance provided as needed.\nPost-operative day 7 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-37-day": {
@@ -1352,6 +1367,7 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.desaturation",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
         "ctx.orders.diet.shift",
@@ -1369,7 +1385,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 133/80, HR 101, SpO2 98%, T 37.8°C; simple face mask 4.5 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS peak 3, latest 0.\nPrevious day (6/21) fluid balance: intake 1265 mL, output 1326 mL (urine 689 mL), net -61 mL.\nOxygen: simple face mask 4.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding independent, oral intake the previous day 1265 mL.\nADL: Barthel Index 95/100 (independent); mobility independent, toileting independent. Assistance provided as needed.\nPost-operative day 7 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - day shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 133/80, HR 101, SpO2 97%, T 37.8°C; nasal cannula 1 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS peak 3, latest 0.\nSpO2 fell to 92% at 14:05; managed on nasal cannula 1 L/min.\nPrevious day (6/21) fluid balance: intake 1265 mL, output 1326 mL (urine 689 mL), net -61 mL.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding independent, oral intake the previous day 1265 mL.\nADL: Barthel Index 95/100 (independent); mobility independent, toileting independent. Assistance provided as needed.\nPost-operative day 7 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-38-evening": {
@@ -1382,6 +1398,7 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
+        "ctx.vitals.shift.desaturation",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
         "ctx.orders.diet.shift",
@@ -1399,7 +1416,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 135/82, HR 98, SpO2 98%, T 37.4°C; nasal cannula 4 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS 2.\nFever 38.4°C; observation continued.\nPrevious day (6/21) fluid balance: intake 1265 mL, output 1326 mL (urine 689 mL), net -61 mL.\nOxygen: nasal cannula 4 L/min; device fit and observation continued.\nDiet: Soft diet, feeding independent, oral intake the previous day 1265 mL.\nADL: Barthel Index 95/100 (independent); mobility independent, toileting independent. Assistance provided as needed.\nPost-operative day 7 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - evening shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 135/82, HR 98, SpO2 95%, T 37.4°C; nasal cannula 1 L/min.\nMeds administered: Nicardipine.\nheadache reported, NRS 2.\nFever 38.4°C; observation continued.\nSpO2 fell to 93% at 18:05; managed on nasal cannula 1 L/min.\nPrevious day (6/21) fluid balance: intake 1265 mL, output 1326 mL (urine 689 mL), net -61 mL.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding independent, oral intake the previous day 1265 mL.\nADL: Barthel Index 95/100 (independent); mobility independent, toileting independent. Assistance provided as needed.\nPost-operative day 7 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-39-night": {
@@ -1428,7 +1445,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 9\nRecorded by: Clara Pittman\nPatient status: BP 134/78, HR 96, SpO2 98%, T 37.6°C; nasal cannula 3.5 L/min.\nMeds administered: Nicardipine.\nNo pain reported (NRS 0).\nFever 38.8°C; observation continued.\nPrevious day (6/22) fluid balance: intake 1391 mL, output 1543 mL (urine 906 mL), net -152 mL.\nDiet: Soft diet, feeding independent, oral intake the previous day 1391 mL.\nADL: Barthel Index 95/100 (independent); mobility independent, toileting independent. Assistance provided as needed.\nPost-operative day 8 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
+      "text": "[Nursing Shift Note - night shift] Day 9\nRecorded by: Clara Pittman\nPatient status: BP 134/78, HR 96, SpO2 98%, T 37.6°C; nasal cannula 1 L/min.\nMeds administered: Nicardipine.\nNo pain reported (NRS 0).\nFever 38.8°C; observation continued.\nPrevious day (6/22) fluid balance: intake 1391 mL, output 1543 mL (urine 906 mL), net -152 mL.\nDiet: Soft diet, feeding independent, oral intake the previous day 1391 mL.\nADL: Barthel Index 95/100 (independent); mobility independent, toileting independent. Assistance provided as needed.\nPost-operative day 8 (Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral). Surgical-site observation (bleeding, drainage, redness, swelling) continued."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-40-day": {

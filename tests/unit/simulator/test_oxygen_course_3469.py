@@ -68,11 +68,13 @@ def test_restart_after_wean_is_a_new_course() -> None:
 def test_titrates_up_never_down() -> None:
     c = OxygenCourse()
     _run(c, 85.0, 0, NC)
-    # On 2 L/min the recorded SpO2 is still below the target: flow goes up.
+    # On 2 L/min the recorded SpO2 is still below the target: flow goes up one step
+    # (Issue #3643), not to the draw's 8 L/min.
+    step = oxygen_course_rules().up_step_lpm
     on, flow, device, _ = _run(c, 80.0, 2, MASK)
-    assert (on, flow, device) == (True, 8.0, "simple_mask")
+    assert (on, flow, device) == (True, 2.0 + step, "nasal_cannula")
     # A later, smaller draw does not lower it.
-    assert _run(c, 89.0, 4, NC)[1] == 8.0
+    assert _run(c, 89.0, 4, NC)[1] == 2.0 + step
 
 
 def test_no_flicker_with_noisy_readings() -> None:
