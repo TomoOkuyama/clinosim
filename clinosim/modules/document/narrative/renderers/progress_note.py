@@ -38,6 +38,7 @@ from clinosim.modules.document.narrative.renderers._composers import (
     _complications_known_on_day,
     _note_period_vitals,
     apply_cc_pe_consistency,
+    compose_postpartum_exam_line,
     pe_vitals_reading,
 )
 from clinosim.modules.document.narrative.renderers._disease_exam import exam_findings
@@ -82,6 +83,13 @@ def render_progress_note(
         _obj_vitals = generator._compose_today_vitals_line(ctx)
         subjective = composed_subj or t("fallback.generic_fallback", lang)
         objective = _obj_vitals if _obj_vitals else t("fallback.generic_fallback", lang)
+        # Issue #3687: the postpartum finding of a delivery stay.
+        postpartum_line = compose_postpartum_exam_line(ctx)
+        if postpartum_line:
+            objective = (
+                f"{_obj_vitals}{t('list_sep.period_space', lang)}{postpartum_line}" if _obj_vitals else postpartum_line
+            )
+            facts.append("ctx.delivery.postpartum_exam")
         if composed_subj:
             facts.append("ctx.progress_subjective.state_composed.en")
         if _obj_vitals:
@@ -217,6 +225,12 @@ def render_progress_note(
             facts.append("ctx.exam.unchanged_from_previous_day")
         if phys_summary:
             objective = f"{objective}。{phys_summary}" if objective else phys_summary
+        # Issue #3687: the postpartum finding of a delivery stay, unless the
+        # exam above already states the obstetric system (the admission day).
+        postpartum_line = compose_postpartum_exam_line(ctx) if "obstetric" not in findings else ""
+        if postpartum_line:
+            objective = f"{objective}。{postpartum_line}" if objective else postpartum_line
+            facts.append("ctx.delivery.postpartum_exam")
         # Issue #3456: the "no special findings" filler states an empty
         # section; it is not written before or beside a finding.
         objective = objective or _generic_s

@@ -21,7 +21,7 @@ from clinosim.locale.i18n import t
 from clinosim.locale.localized import localized, normalize_lang
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.disease.laterality import stroke_weakness_side
-from clinosim.modules.document.narrative._delivery import delivery_mode
+from clinosim.modules.document.narrative._delivery import delivery_end, delivery_mode
 from clinosim.modules.document.narrative._narrative_utils import is_neonate
 from clinosim.modules.document.narrative.renderers._exam_agreement import agreeing_clauses
 from clinosim.modules.document.reference_data_loaders import load_disease_exam
@@ -246,20 +246,10 @@ def _after_delivery(ctx: NarrativeContext) -> bool:
     with no authored time is the day's record of a stay whose admission is the
     birth, so it is after the birth; a stay with no delivery procedure keeps
     the antepartum exam."""
-    from clinosim.timeutil import parse_iso_datetime
     from clinosim.types.document import DocumentType
 
-    enc_id = _o(ctx.encounter, "encounter_id", "") if ctx.encounter is not None else ""
-    ends = []
-    for proc in ctx.procedures or []:
-        if _o(proc, "procedure_type", "") != "delivery":
-            continue
-        if enc_id and _o(proc, "encounter_id", "") not in ("", enc_id):
-            continue
-        end = parse_iso_datetime(_o(proc, "end_datetime", None) or _o(proc, "start_datetime", None), lenient=True)
-        if end is not None:
-            ends.append(end)
-    if not ends:
+    first_end = delivery_end(ctx)
+    if first_end is None:
         return False
     # The admission H&P records the state on admission: a mother admitted in
     # labor is described as in labor even when the note is signed after the
@@ -267,7 +257,17 @@ def _after_delivery(ctx: NarrativeContext) -> bool:
     if ctx.document_type == DocumentType.ADMISSION_HP:
         return False
     authored = ctx.authored_datetime
-    return authored is None or authored >= min(ends)
+    return authored is None or authored >= first_end
+
+
+def postpartum_obstetric_exam(ctx: NarrativeContext) -> str:
+    """The postpartum obstetric finding of the stay's mode of delivery in the
+    note language (``disease_exam.yaml`` ``delivery.modes.<mode>``), ``""`` for
+    a stay that is not a delivery."""
+    mode = delivery_mode(ctx)
+    if mode is None:
+        return ""
+    return localized(load_disease_exam().delivery.modes[mode].obstetric_postpartum, ctx.target_lang)
 
 
 def _delivery_exam(ctx: NarrativeContext, reading: Any | None) -> dict[str, str]:
