@@ -19,6 +19,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -61,6 +62,7 @@ class AkiResponseRules(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     creatinine_lab: str = Field(min_length=1)
+    complication: str = Field(min_length=1)
     abs_rise_mg_dl: float = Field(gt=0)
     abs_rise_window_hours: int = Field(gt=0)
     ratio: float = Field(gt=1)
@@ -183,6 +185,34 @@ def aki_course(results: Iterable[OrderResult]) -> AkiCourse:
         active = meets or (peak is not None and value > (1 - rules.recovery_fall_fraction) * peak)
         points.append((when, value, active))
     return AkiCourse(tuple(points))
+
+
+def date_aki_complications(
+    complications: Iterable[dict[str, Any] | str], results: Iterable[OrderResult], admission_time: datetime
+) -> list[dict[str, Any] | str]:
+    """The stay's complication entries with each AKI dated by the lab (Issue
+    #3642). The diagnosis is made from the creatinine, so the onset is the
+    first result that meets the KDIGO definition (``aki_course``), never
+    earlier than the onset the daily loop recorded; an AKI that no creatinine
+    of the stay shows is not recorded (the state impact stays, and no lab is
+    invented). Other complications are returned unchanged. RNG-free."""
+    name = aki_response_rules().complication
+    first = next((when for when, _value, meets in aki_course(results).points if meets), None)
+    out: list[dict[str, Any] | str] = []
+    for comp in complications:
+        if not isinstance(comp, dict) or comp.get("name") != name:
+            out.append(comp)
+            continue
+        if first is None:
+            continue
+        recorded = datetime.fromisoformat(comp["onset_datetime"]) if comp.get("onset_datetime") else None
+        if recorded is not None and first <= recorded:
+            out.append(comp)
+            continue
+        out.append(
+            {**comp, "onset_datetime": first.isoformat(), "onset_day": (first.date() - admission_time.date()).days}
+        )
+    return out
 
 
 @dataclass(frozen=True)

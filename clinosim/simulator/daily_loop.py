@@ -109,6 +109,7 @@ from clinosim.simulator.aki_response import (
     LactateCourse,
     aki_course,
     aki_response_rules,
+    date_aki_complications,
     discharge_findings_unresolved,
     lactate_course,
 )
@@ -2021,6 +2022,9 @@ def _run_daily_loop(
                     break
             los_ceiling += 1
 
+    # Issue #3642: the diagnosis is made from the creatinine, so the AKI is
+    # dated at the first result that meets the definition.
+    run.complications = date_aki_complications(run.complications, run.lab_results, stay.admission_time)
     if not run.death_occurred:
         # Issue #3450: the discharge day starts like any day, so a resolved
         # ketoacidosis goes home on subcutaneous insulin, not on the infusion.

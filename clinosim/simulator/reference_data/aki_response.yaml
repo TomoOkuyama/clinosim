@@ -19,6 +19,10 @@
 #     longer does. At discharge the same drugs are left off the prescription
 #     while the final creatinine meets the definition, and continue
 #     (restarted) once it no longer does.
+#   - Onset. The AKI complication of the daily loop is dated at the first
+#     creatinine that meets the definition (never earlier than the day it
+#     fired), and is not recorded when no creatinine of the stay meets it
+#     (`complication` names it; Issue #3642).
 #   - Discharge gate. A patient is not discharge-ready, not safe for home, and
 #     the stay is extended by at most `max_extension_days` beyond the sampled
 #     stay, while the creatinine meets the AKI definition and has not fallen
@@ -81,6 +85,7 @@ metadata:
   source: clinosim
 
 creatinine_lab: Creatinine
+complication: acute_kidney_injury
 abs_rise_mg_dl: 0.3
 abs_rise_window_hours: 48
 ratio: 1.5
