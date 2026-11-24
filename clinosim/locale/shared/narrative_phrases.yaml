@@ -4365,6 +4365,13 @@ fhir_emit_text:
   freq_per_day:
     ja: "1日{n}回"
     en: "{n} times a day"
+  # Issue #3675: usage text of an as-needed dose without an MHLW as-needed code.
+  as_needed:
+    ja: "必要時"
+    en: "as needed"
+  as_needed_usage:
+    ja: "必要時（{usage}）"
+    en: "as needed ({usage})"
   # Issue #3130: usage text of a weekly / monthly / single dose.
   freq_per_week:
     ja: "週{n}回"
