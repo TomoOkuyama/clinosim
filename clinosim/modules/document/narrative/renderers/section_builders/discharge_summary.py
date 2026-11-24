@@ -102,6 +102,7 @@ def compose_hospital_course(ctx: NarrativeContext, *, with_results: bool = True)
     builders = (
         hc.readmission_sentence,
         hc.treatments_sentence,
+        hc.delivery_sentence,
         hc.procedures_sentence,
         icu_course_sentence,
         hc.complications_sentence,
