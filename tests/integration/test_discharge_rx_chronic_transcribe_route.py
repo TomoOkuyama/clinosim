@@ -55,8 +55,10 @@ def test_dc_rows_chronic_transcribed_non_oral_drugs_have_no_po_route(tmp_path: P
     """The 21 inhaled/insulin rows measured by session 73 supervisor MUST
     have route="" (not "PO") after this PR.
     """
+    # The sample of inhaled/insulin discharge rows is small at p=300 and
+    # moves with any change to the population draw; seed 101 yields several.
     cfg = SimulatorConfig(
-        random_seed=42,
+        random_seed=101,
         catchment_population=300,
         country="JP",
         time_range=("2025-01", "2026-01"),
