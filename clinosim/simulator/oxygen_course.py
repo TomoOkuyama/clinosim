@@ -4,8 +4,9 @@ A patient is on oxygen or not, and stays so until weaned: the on / off state,
 device and flow are carried across the readings of a stay instead of being
 decided afresh from each noisy room-air SpO2. Oxygen starts at the first
 reading below the target (device and flow from the draw that reading made),
-is titrated up while the SpO2 on oxygen is still below the target and down
-(one flowmeter step, the device following the flow) while it stays above
+is titrated up while the SpO2 on oxygen is still below the target (one
+``up_step_lpm`` per reading towards the draw's flow, Issue #3643) and down
+(``down_step_lpm``, the device following the flow) while it stays above
 the target plus ``down_margin_spo2`` (Issue #3632), and is stopped once the
 room-air SpO2 has stayed at or above the target plus a margin for
 ``wean_hours`` (``reference_data/oxygen_course.yaml``). Everything
@@ -60,6 +61,8 @@ class OxygenCourseRules(BaseModel):
     wean_margin_spo2: float = Field(ge=0)
     wean_min_readings: int = Field(ge=1)
     flow_step_lpm: float = Field(gt=0)
+    up_step_lpm: float = Field(gt=0)
+    down_step_lpm: float = Field(gt=0)
     down_margin_spo2: float = Field(gt=0)
     down_hours: float = Field(gt=0)
     down_min_readings: int = Field(ge=1)
@@ -223,14 +226,18 @@ class OxygenCourse:
         if self._lower_flow_due(when, spo2, target):
             rules = oxygen_course_rules()
             step = rules.flow_step_lpm
-            self.flow = max(rules.min_flow_lpm, round((flow or 0.0) / step) * step - step)
+            self.flow = max(rules.min_flow_lpm, round((flow or 0.0) / step) * step - rules.down_step_lpm)
             self.device = device_for_flow(self.flow)
             self.high_since, self.high_readings = None, 0
             flow, device = self.flow, self.device
             spo2 = spo2_on_oxygen(room_air_spo2, flow)
         d_flow = draw[1]
         if spo2 < target and draw[0] and d_flow is not None and (flow is None or d_flow > flow):
-            self.flow, self.device = d_flow, draw[2]
+            # Issue #3643: one ``up_step_lpm`` towards the draw's flow, not the
+            # draw's flow itself (a jump of several litres between two readings).
+            raised = d_flow if not flow else min(d_flow, flow + oxygen_course_rules().up_step_lpm)
+            self.flow = raised
+            self.device = draw[2] if raised == d_flow else device_for_flow(raised)
             flow, device = self.flow, self.device
             spo2 = spo2_on_oxygen(room_air_spo2, flow)
         return True, flow, device, spo2

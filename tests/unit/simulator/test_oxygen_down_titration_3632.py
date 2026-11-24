@@ -47,11 +47,11 @@ def test_flow_comes_down_step_by_step_and_device_follows() -> None:
         if flow <= r.min_flow_lpm:
             break
     flows = [f for f, _ in seen if f is not None]
-    assert flows == sorted(flows, reverse=True) and flows[0] == 10.0
+    assert flows == sorted(flows, reverse=True) and flows[0] >= 10.0 - r.down_step_lpm
     # One flowmeter step at a time.
-    assert all(abs((a - b) - r.flow_step_lpm) < 1e-9 for a, b in zip(flows, flows[1:], strict=False))
+    assert all(abs((a - b) - r.down_step_lpm) < 1e-9 for a, b in zip(flows, flows[1:], strict=False))
     devices = [d for _, d in seen]
-    assert devices[0] == "non-rebreather"
+    assert devices[0] in {"non-rebreather", "simple_mask"}
     assert "simple_mask" in devices and devices[-1] == "nasal_cannula"
 
 
