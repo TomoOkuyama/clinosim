@@ -8,11 +8,16 @@ from __future__ import annotations
 
 import hashlib
 from datetime import date, datetime, timedelta
+from functools import lru_cache
+from pathlib import Path
 from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field
 
 from clinosim import determinism
 from clinosim.codes import system_key_for
 from clinosim.countries import is_jp
+from clinosim.datafiles import load_validated_yaml
 from clinosim.locale.clinic_calendar import clinic_visit_day, is_clinic_day
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _get
@@ -36,8 +41,63 @@ from clinosim.modules.immunization.visits import (
     is_flu_visit_candidate,
     vaccination_visits_by_patient,
 )
+from clinosim.modules.pediatric.calendar import is_acute_illness_condition
 from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 from clinosim.types.encounter import Encounter, EncounterStatus, EncounterType, VitalSignRecord
+
+_PRECAUTIONS_PATH = Path(__file__).parent / "reference_data" / "vaccination_precautions.yaml"
+_FALLBACK_FEBRILE_CELSIUS = 38.0
+
+
+class _VaccinationPrecautions(BaseModel):
+    """Shape of ``reference_data/vaccination_precautions.yaml``."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    febrile_celsius: float = Field(gt=0)
+
+
+@lru_cache(maxsize=1)
+def _febrile_celsius() -> float:
+    """Temperature at or above which a visit is febrile (Issue #3655), from
+    ``reference_data/vaccination_precautions.yaml``."""
+    data = load_validated_yaml(_PRECAUTIONS_PATH, _VaccinationPrecautions)
+    return float(data.get("febrile_celsius", _FALLBACK_FEBRILE_CELSIUS))
+
+
+def acute_visit_encounter_ids(records: list) -> set[str]:
+    """Ids of the encounters a routine dose is not given at (Issue #3655): a
+    pediatric acute-illness visit (``condition_event.visit_condition_id``) and
+    any visit of a record whose vital set of the visit day has a temperature
+    at or above the febrile threshold. Synthesized vaccination visits are
+    never excluded."""
+    febrile = _febrile_celsius()
+    out: set[str] = set()
+    for rec in records:
+        encs = [
+            e
+            for e in (_get(rec, "encounters", []) or [])
+            if (_get(e, "encounter_id", "") or "") and not str(_get(e, "encounter_id", "")).startswith("ENC-VAX-")
+        ]
+        cond = _get(rec, "condition_event", None)
+        if (
+            cond is not None
+            and _get(cond, "visit_type", "") == "pediatric_visit"
+            and is_acute_illness_condition(str(_get(cond, "visit_condition_id", "") or ""))
+        ):
+            out.update(str(_get(e, "encounter_id", "")) for e in encs)
+        febrile_days = {
+            vs.timestamp.date()
+            for vs in (_get(rec, "vital_signs", []) or [])
+            if (_get(vs, "temperature_celsius", None) or 0) >= febrile
+            and isinstance(_get(vs, "timestamp", None), datetime)
+        }
+        for e in encs:
+            adm = _get(e, "admission_datetime", None)
+            if isinstance(adm, datetime) and adm.date() in febrile_days:
+                out.add(str(_get(e, "encounter_id", "")))
+    return out
 
 
 def _as_of(ctx, rec) -> date:
@@ -135,6 +195,7 @@ def _align_to_encounters(
     lot_cvx: dict[str, str] | None = None,
     dob: date | None = None,
     dose_windows: dict[str, dict[int, tuple[int, int]]] | None = None,
+    excluded_encounter_ids: frozenset[str] | set[str] = frozenset(),
 ) -> list:
     """Snap each immunization's occurrence_date to a nearby pediatric_visit
     encounter and stamp the encounter_id.
@@ -165,6 +226,9 @@ def _align_to_encounters(
         (``dose_windows`` = ``dose_windows_by_cvx``, measured from ``dob``;
         Issue #3567), and doses the engine gave one date move together to
         one visit (all of them, or none).
+      * A dose is not snapped onto an encounter of ``excluded_encounter_ids``
+        (an acute-illness or febrile visit, ``acute_visit_encounter_ids``;
+        Issue #3655): the dose takes another visit or its own vaccination visit.
       * A snapped dose's lot is regenerated for its new date (Issue #3282;
         ``lot_cvx`` = ``lot_cvx_by_cvx``, the CVX the lot is keyed by).
 
@@ -188,7 +252,7 @@ def _align_to_encounters(
         if str(_et_val).lower() not in ("outpatient", "amb", "ambulatory"):
             continue
         _eid = _get(enc, "encounter_id", "") or ""
-        if not _eid:
+        if not _eid or _eid in excluded_encounter_ids:
             continue
         _enc_days.append((_adm.date(), _eid))
     if not _enc_days:
@@ -509,6 +573,7 @@ def enrich_immunizations(ctx) -> None:
     visits_by_patient = vaccination_visits_by_patient(ctx.records)
     season_months = flu_season_months(schedule)
     _lot_cvx = lot_cvx_by_cvx(schedule)
+    _acute_visits = frozenset(acute_visit_encounter_ids(ctx.records))
     # Issue #1245: a patient with N record files (per-encounter CIF sharding)
     # produced N copies of every synth VAX encounter — `generate_immunizations`
     # is deterministic per patient (same imm list on every call), so each
@@ -572,6 +637,7 @@ def enrich_immunizations(ctx) -> None:
             _lot_cvx,
             _get(patient, "date_of_birth", None),
             dose_windows_by_cvx(schedule),
+            _acute_visits,
         )
         if roster is not None and hasattr(roster, "members"):
             _give_stay_doses_by_ward_nurse(recs, pool, roster, pid)

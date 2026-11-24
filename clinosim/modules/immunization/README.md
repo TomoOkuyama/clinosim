@@ -174,7 +174,14 @@ their records, then binds each dose (deterministic, no rng):
    its own date. A series dose is never snapped outside its schedule
    window (`age_days_min`..`age_days_max`), and doses the engine gave one
    date (the infant series co-due at one well-child visit) move together to
-   one visit — all of them or none (Issue #3567).
+   one visit — all of them or none (Issue #3567). A dose is never snapped
+   onto an acute-illness or febrile visit (Issue #3655): a pediatric visit
+   whose `visit_condition_id` is one of the pediatric schedule's
+   `presentations` (`pediatric.calendar.is_acute_illness_condition`), or any
+   visit with a temperature at or above `febrile_celsius` of
+   `reference_data/vaccination_precautions.yaml` (38.0 C) on its day
+   (`enricher.acute_visit_encounter_ids`); the dose takes a well, vaccination
+   or follow-up visit, else its own `ENC-VAX-*` visit.
 
 A dose still unbound and dated before the simulation window start
 (`config.time_range[0]`) is marked `primary_source=False` and left
@@ -239,7 +246,7 @@ encounter documents).
     deferrals, distinct from silent no-shows. Applied in every
     scheduling branch (`annual`, `every_n_years`, `once`,
     `pediatric_series`) and to maternal Tdap (`once` since #2207).
-- Locale schedules (no `reference_data/` directory in this module):
+- Locale schedules (the module's `reference_data/` holds only `vaccination_precautions.yaml`):
   - [`clinosim/locale/us/immunization_schedule.yaml`](../../locale/us/immunization_schedule.yaml)
     — CDC ACIP schedule. Currently 18 entries: 5 adult (Influenza,
     COVID-19 mRNA, PPSV23, Tdap, RZV Shingrix) + 13 paediatric
@@ -281,10 +288,13 @@ clinosim/modules/immunization/
   engine.py                       generate_immunizations + load_schedule + helpers
   enricher.py                     POST_RECORDS enrichment (patient-scoped sub-RNG)
   visits.py                       doses given at vaccination (Z23) visits
+  reference_data/
+    vaccination_precautions.yaml  febrile_celsius: visits a routine dose is not given at
 ```
 
-The module has **no `reference_data/` directory and no `audit.py`** —
-country data lives under `clinosim/locale/`, and no
+The module has **no `audit.py`** — country schedules live under
+`clinosim/locale/` (the module's own `reference_data/` holds only the
+vaccination precautions), and no
 `ModuleAuditSpec` is registered. Verification lives in the tests
 below.
 

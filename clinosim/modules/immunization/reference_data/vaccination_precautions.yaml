@@ -1,0 +1,15 @@
+# Visits at which a routine dose is not given (Issue #3655).
+#
+# A moderate or severe acute illness, with or without fever, is a precaution
+# to vaccination: the dose is deferred to a well, vaccination or follow-up
+# visit. The 38.0 degrees C cut-off for "febrile" is the clinosim modelling
+# choice also used for the fever rule in simulator/reference_data/aki_response.yaml;
+# no source read in this work fixes it. The acute-illness visits themselves
+# are the `presentations` of modules/pediatric/reference_data/pediatric_schedule.yaml
+# (see `is_acute_illness_condition`), not repeated here.
+metadata:
+  kind: reference
+  name: vaccination_precautions
+  source: clinosim
+
+febrile_celsius: 38.0
