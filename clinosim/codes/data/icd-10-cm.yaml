@@ -102,6 +102,33 @@ codes:
     en: "Fracture of rib(s), sternum and thoracic spine"
   S42:
     en: "Fracture of shoulder and upper arm"
+  # Issue #3680: laceration without foreign body of the site of a minor
+  # laceration (initial encounter); titles from NLM Clinical Tables, each code
+  # checked individually.
+  S01:
+    en: "Open wound of head"
+  S01.01XA:
+    en: "Laceration without foreign body of scalp, initial encounter"
+  S01.411A:
+    en: "Laceration without foreign body of right cheek and temporomandibular area, initial encounter"
+  S01.511A:
+    en: "Laceration without foreign body of lip, initial encounter"
+  S01.81XA:
+    en: "Laceration without foreign body of other part of head, initial encounter"
+  S51:
+    en: "Open wound of forearm"
+  S51.811A:
+    en: "Laceration without foreign body of right forearm, initial encounter"
+  S61:
+    en: "Open wound of wrist, hand and fingers"
+  S61.210A:
+    en: "Laceration without foreign body of right index finger without damage to nail, initial encounter"
+  S61.411A:
+    en: "Laceration without foreign body of right hand, initial encounter"
+  S81:
+    en: "Open wound of lower leg"
+  S81.811A:
+    en: "Laceration without foreign body, right lower leg, initial encounter"
   S52:
     en: "Fracture of forearm"
   S62:

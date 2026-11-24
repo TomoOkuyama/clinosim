@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
@@ -248,6 +248,45 @@ class _WorkupImaging(BaseModel):
     abnormal_rate_by_severity: dict[str, float] = {}
     # Issue #3238: any one red flag orders the study regardless of probability.
     required_if: list[_ImagingRedFlag] = Field(default_factory=list)
+    # Issue #3680: the study is ordered only for a visit whose diagnosis
+    # variant has one of these ``site`` groups (empty = every visit).
+    sites: list[str] = []
+
+
+def matching_diagnosis_variant_indices(variants: Sequence[Any], code: str) -> list[int]:
+    """Indices of the ``diagnosis_variants`` whose code (in any country slot)
+    is ``code``: one when the code tells the variants apart, several when it
+    does not (a JP burn code has no side), none for no code. The one lookup
+    of a visit's variant from its diagnosis code (Issues #3251, #3680)."""
+    bare = str(code or "").replace(".", "").upper()
+    if not bare:
+        return []
+    return [
+        i
+        for i, variant in enumerate(variants)
+        if bare in {str(c).replace(".", "").upper() for c in (_get(variant, "codes") or {}).values()}
+    ]
+
+
+def _get(item: Any, key: str) -> Any:
+    return item.get(key) if isinstance(item, Mapping) else getattr(item, key, None)
+
+
+def visit_body_site(variants: Sequence[Any], code: str) -> str:
+    """SNOMED CT body structure of the wound of a visit coded ``code``: the
+    ``body_site_snomed`` of the variant the code names, ``""`` when the code
+    names none or the matching variants disagree (Issue #3680)."""
+    sites = {
+        str(_get(variants[i], "body_site_snomed") or "") for i in matching_diagnosis_variant_indices(variants, code)
+    }
+    return sites.pop() if len(sites) == 1 else ""
+
+
+def study_in_site(spec: Mapping[str, Any], variant: Mapping[str, Any] | None) -> bool:
+    """True when the workup entry ``spec`` applies to the visit's diagnosis
+    variant: an entry without ``sites`` applies to every visit (Issue #3680)."""
+    sites = spec.get("sites")
+    return not sites or (variant is not None and variant.get("site") in set(sites))
 
 
 def study_in_country(spec: Mapping[str, Any], country: str) -> bool:
@@ -327,6 +366,10 @@ class _DiagnosisVariant(BaseModel):
 
     weight: float = Field(gt=0.0)
     codes: dict[str, str]
+    # Issue #3680: the site group of the wound (the workup is gated on it) and
+    # the SNOMED CT body structure that is the Procedure bodySite.
+    site: str | None = None
+    body_site_snomed: str | None = None
 
     @field_validator("codes")
     @classmethod

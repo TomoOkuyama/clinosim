@@ -94,13 +94,13 @@ def _emergency_protocols() -> dict[str, dict]:
 
 def test_injury_hpi_states_hours_before_arrival_en() -> None:
     hpi, _ = build_hpi(_GEN, _ctx("minor_laceration"))
-    assert re.search(r"Sustained a laceration about \d+ hours? before arrival", hpi), hpi
+    assert re.search(r"Sustained a laceration of the [a-z ]+ about \d+ hours? before arrival", hpi), hpi
     assert "day" not in hpi and "progressively worsening" not in hpi
 
 
 def test_injury_hpi_states_hours_before_arrival_ja() -> None:
     hpi, _ = build_hpi(_GEN, _ctx("minor_laceration", "ja"))
-    assert re.match(r"来院約\d+時間前に裂傷を受傷", hpi), hpi
+    assert re.match(r"来院約\d+時間前に.+に裂傷を受傷", hpi), hpi
     assert "日前" not in hpi
 
 

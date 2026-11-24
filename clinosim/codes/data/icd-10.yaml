@@ -481,6 +481,45 @@ codes:
   S42:
     en: Fracture of shoulder and upper arm
     ja: "肩及び上腕の骨折"
+  # Issue #3680: open wound of the site of a minor laceration. `ja` verbatim
+  # from the MHLW 内容例示表 chapter XIX; `en` from tx.fhir.org $lookup
+  # (WHO ICD-10), each code checked individually.
+  S01:
+    en: Open wound of head
+    ja: "頭部の開放創"
+  S01.0:
+    en: Open wound of scalp
+    ja: "頭皮の開放創"
+  S01.4:
+    en: Open wound of cheek and temporomandibular area
+    ja: "頬部及び側頭下顎部の開放創"
+  S01.5:
+    en: Open wound of lip and oral cavity
+    ja: "口唇及び口腔の開放創"
+  S01.8:
+    en: Open wound of other parts of head
+    ja: "頭部のその他の部位の開放創"
+  S51:
+    en: Open wound of forearm
+    ja: "前腕の開放創"
+  S51.8:
+    en: Open wound of other parts of forearm
+    ja: "前腕のその他の部位の開放創"
+  S61:
+    en: Open wound of wrist and hand
+    ja: "手首及び手の開放創"
+  S61.0:
+    en: Open wound of finger(s) without damage to nail
+    ja: "爪の傷害を伴わない指の開放創"
+  S61.8:
+    en: Open wound of other parts of wrist and hand
+    ja: "手首及び手のその他の部位の開放創"
+  S81:
+    en: Open wound of lower leg
+    ja: "下腿の開放創"
+  S81.8:
+    en: Open wound of other parts of lower leg
+    ja: "下腿のその他の部位の開放創"
   S52:
     en: Fracture of forearm
     ja: "前腕の骨折"

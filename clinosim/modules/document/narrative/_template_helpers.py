@@ -247,18 +247,15 @@ def _diagnosis_variant_indices(ctx: NarrativeContext) -> list[int]:
     """Indices of the protocol's ``diagnosis_variants`` whose code (in any
     country slot) is the visit's diagnosis code (Issue #3251); several when
     the code does not tell them apart (a JP burn code has no side), none when
-    no diagnosis is recorded."""
+    no diagnosis is recorded. The lookup is
+    ``encounter.protocol.matching_diagnosis_variant_indices``, shared with the
+    Procedure body site (Issue #3680)."""
     from clinosim.modules.document.narrative._visit_reason import visit_dx
+    from clinosim.modules.encounter.protocol import matching_diagnosis_variant_indices
 
-    code = visit_dx(ctx).replace(".", "").upper()
-    if not code:
-        return []
-    variants = _o(ctx.encounter_protocol, "diagnosis_variants", None) or []
-    return [
-        i
-        for i, variant in enumerate(variants)
-        if code in {str(c).replace(".", "").upper() for c in (_o(variant, "codes", None) or {}).values()}
-    ]
+    return matching_diagnosis_variant_indices(
+        _o(ctx.encounter_protocol, "diagnosis_variants", None) or [], visit_dx(ctx)
+    )
 
 
 def _language_placeholders(fields: set[str], ctx: NarrativeContext) -> dict[str, str]:
