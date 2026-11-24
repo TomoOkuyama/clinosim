@@ -89,7 +89,10 @@ P(Disease|Test) ∝ P(Test|Disease) × P(Disease)
 > admitted as `icd_codes.primary` only if it is that primary, extends it (the
 > same characters plus more, `S72.0` -> `S72.00`) or is listed in the
 > protocol's `icd_codes.discharge_refinements` (organism, etiology or severity
-> that adds specificity: `J18.9` -> `J13`, `I50.9` -> `I50.0`). A less specific
+> that adds specificity: `I50.9` -> `I50.0`; for a bacterial pneumonia the
+> organism-specific `J13` / `J14` / `J15.x` follow an isolate of the stay's
+> cultures, not the confidence: `organism_code.isolate_refined_code`, Issue
+> #3645). A less specific
 > or different condition (DKA -> hyperglycemia, acute pyelonephritis -> UTI
 > site not specified) is not. `discharge_code_is_admissible` is the canonical
 > predicate: the guard test

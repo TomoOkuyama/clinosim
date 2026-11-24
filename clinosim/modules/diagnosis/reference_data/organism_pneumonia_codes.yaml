@@ -1,0 +1,48 @@
+# The organism-specific discharge code of a pneumonia stay (Issue #3645).
+#
+# Read by clinosim/modules/diagnosis/organism_code.py and applied in
+# simulator/inpatient.py after the stay's cultures are derived.
+#
+# A pneumonia is coded to its organism only when the organism was isolated:
+# the diagnostic confidence alone never gives an organism-specific code.
+# `disease_ids` lists the protocols whose non-specific discharge code
+# (`refines`) an isolate refines. The organism of the stay is the first
+# positive culture, in `specimens` order (a sputum isolate before a blood
+# isolate), then by collection time; its SNOMED CT organism code (the codes of
+# observation/reference_data/microbiology.yaml `organisms`) selects the code in
+# `organisms`. A stay with no positive culture, or an organism with no code
+# here, keeps its non-specific code.
+#
+# Sources (read on 2026-11-24): ICD-10-CM FY2027 tabular order file (CMS,
+# icd10cm_order_2027.txt): J13 Pneumonia due to Streptococcus pneumoniae,
+# J14 Pneumonia due to Hemophilus influenzae, J15.0 Pneumonia due to Klebsiella
+# pneumoniae, J15.1 Pneumonia due to Pseudomonas, J15.5 Pneumonia due to
+# Escherichia coli (all billable); WHO ICD-10 via tx.fhir.org $lookup on
+# http://hl7.org/fhir/sid/icd-10 (2019-covid-expanded); MHLW ICD-10 2013 basic
+# classification (kihon2013.xlsx) for the Japanese names. The Staphylococcus
+# aureus code of ICD-10-CM depends on methicillin susceptibility (J15.211 /
+# J15.212) and is not derived here: a staphylococcal isolate keeps the
+# non-specific code.
+
+metadata:
+  kind: reference
+  name: organism_pneumonia_codes
+  source: clinosim
+
+disease_ids:
+  - bacterial_pneumonia
+
+refines:
+  - J18.9
+  - J18.1
+
+specimens:
+  - sputum
+  - blood
+
+organisms:
+  "9861002": J13    # Streptococcus pneumoniae
+  "44470000": J14   # Haemophilus influenzae
+  "56415008": J15.0 # Klebsiella pneumoniae
+  "52499004": J15.1 # Pseudomonas aeruginosa
+  "112283007": J15.5  # Escherichia coli

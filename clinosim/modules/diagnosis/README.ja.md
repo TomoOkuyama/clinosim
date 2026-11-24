@@ -10,6 +10,7 @@ Issue #551 で 6 sites に散在していた非特異 / fallback ICD-10 コー�
 named canonical 定数、FHIR emit 層が gate に使う ICD-10 code 分類
 predicate (Z-chapter visit-reason code、主診断不可 code)、および
 lab 由来 AKI (N17.9) working diagnosis を追記する RNG-free な
+  organism_code.py               `isolate_refined_code`: 菌種を示す肺炎コードは診断確信度ではなく入院中の培養の分離菌に従う (Issue #3645)
 POST_ENCOUNTER enricher 1 本 (`lab_derived_dx.py`、Issue #1326) も所有する。
 
 ## Scope
@@ -143,6 +144,7 @@ clinosim/modules/diagnosis/
   lab_derived_dx.py              POST_ENCOUNTER enricher: Creatinine peak -> N17.9 working dx (Issue #1326)
   reference_data/
     builtin_differentials.yaml   built-in 差別ライブラリ
+    organism_pneumonia_codes.yaml  肺炎の分離菌 (SNOMED 菌種) -> J13 / J14 / J15.x (Issue #3645)
   SPEC.md                        拡張設計参考 (runtime data ではない)
 ```
 

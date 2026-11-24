@@ -61,7 +61,7 @@ class TestDiagnosis:
         code, name = get_current_diagnosis_code(diff)
         assert code in ("J18.9", "J18.1")  # unspecified or lobar
 
-        # More findings → high confidence → most specific code
+        # More findings → high confidence → most specific non-organism code
         diff = update_differential(
             diff,
             [
@@ -70,7 +70,9 @@ class TestDiagnosis:
             ],
         )
         code, name = get_current_diagnosis_code(diff)
-        assert code == "J13"  # specific after high confidence
+        # Issue #3645: confidence alone never gives the organism-specific J13;
+        # that code follows a pneumococcal isolate (organism_pneumonia_codes.yaml).
+        assert code == "J18.1"
 
     def test_probabilities_always_sum_to_one(self):
         diff = initialize_differential()

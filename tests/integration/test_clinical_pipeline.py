@@ -102,7 +102,9 @@ class TestPneumoniaPipeline:
         assert diff.confirmed is True
 
         code, name = get_current_diagnosis_code(diff)
-        assert code == "J13"  # most specific code
+        # Confidence alone ends at J18.1; the organism-specific J13 needs a
+        # pneumococcal isolate (Issue #3645, diagnosis/organism_code.py).
+        assert code == "J18.1"
 
     def test_sudden_deterioration_produces_shock(self, profile, conditions):
         """Sudden deterioration should produce shock (low perfusion, high lactate)."""
