@@ -19,7 +19,7 @@ from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key
-from clinosim.modules.immunization.engine import vaccine_administration
+from clinosim.modules.immunization.engine import vaccine_administration, vaccine_program
 from clinosim.modules.observation.pediatric_ranges import age_in_completed_months
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -40,6 +40,13 @@ from clinosim.modules.output.fhir_r4.lib.profile_meta import profile_meta
 # round-trips on `.identifier[]` under IMMUNIZATION_KEY_SYSTEM.
 IMMUNIZATION_ID_PREFIX = "imm-"
 IMMUNIZATION_KEY_SYSTEM = structural_key_system("immunization-key")
+
+
+# Issue #3660: the reason text of a dose by its program (``engine.vaccine_program``).
+_PROGRAM_PHRASE = {
+    "routine": "immunization_fhir.vaccination_routine",
+    "voluntary": "immunization_fhir.vaccination_voluntary",
+}
 
 
 def _resolve_immunization_id(structural_key: str) -> str:
@@ -205,9 +212,13 @@ def _bb_immunizations(ctx: BundleContext) -> list[dict]:
             }
         # C3-05: reasonCode is universal — vaccination
         # is always the reason. text-only per AD-30 (no fabricated coding).
+        # Issue #3660: the JP program (定期接種 / 任意接種) of the vaccine at the
+        # age given; every other country keeps "routine".
+        _age_months = age_in_completed_months(birth_date, occurrence)
+        _program = vaccine_program(ctx.country, cvx, None if _age_months is None else _age_months // 12)
         resource["reasonCode"] = [
             {
-                "text": t("immunization_fhir.vaccination_routine", lang),
+                "text": t(_PROGRAM_PHRASE[_program], lang),
             }
         ]
         # Issue #917: pediatric-series entries carry a dose_number (1..N).

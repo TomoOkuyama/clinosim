@@ -17,6 +17,17 @@
 # make cumulative "≥1 record" match a per-season statistic — that would
 # under-represent per-season rates and misalign with MHLW targets.
 # See modules/immunization/README.md "Cumulative record vs per-season" note.
+# Issue #3660: 接種の区分 `program` (Immunization.reasonCode の文言に使う)。
+#   routine    定期接種 (省略時の既定)
+#   voluntary  任意接種
+#   routine_from_age  `voluntary` と併記: この年齢以上の接種は定期接種
+# インフルエンザ・新型コロナは予防接種法のB類疾病で、定期接種の対象は65歳以上
+# (厚生労働省「インフルエンザ」ページ: 65歳以上の方と、60～64歳で一定の基礎疾患が
+# ある方は定期の予防接種として毎年1回接種できる。同省 新型コロナ定期接種リーフレット:
+# 65歳以上を対象に10月から定期接種)。60～64歳の基礎疾患のある方は表現しない
+# (基礎疾患の程度の要件をモデル化していない)。新型コロナの 2024 年度より前の
+# 特例臨時接種も表現しない (65歳以上は定期、それ未満は任意として扱う)。
+# おたふくかぜは任意接種。
 # Issue #3005: 各ワクチンの接種経路・接種部位・接種量。`administration`:
 #   route    codes/data/snomed-maps.yaml `route` のキー (IM / SC / PO / PERCUTANEOUS)
 #   dose_ml  1回接種量 (添付文書に固定量がないものは省略、BCG)
@@ -38,6 +49,8 @@ administration_sites:
 vaccines:
   influenza:
     cvx: "150"
+    program: voluntary
+    routine_from_age: 65
     min_age: 18
     min_age_days: 182   # 接種可能な下限 (生後6か月、接種日で判定、Issue #2979)
     frequency: annual
@@ -63,6 +76,8 @@ vaccines:
   covid19:
     # 309 is the current active CVX representing a COVID-19 mRNA vaccination; availability anchors the program start.
     cvx: "309"
+    program: voluntary
+    routine_from_age: 65
     # Issue #3014: 接種日に国内で使われていた製剤 (Pfizer mRNA, 30 µg/0.3 mL;
     # CVX は codes/data/cvx.yaml で照合済み)。
     #   従来型 1価 (CVX 208): 2021-02-14 特例承認、初回接種・3回目・4回目
@@ -445,6 +460,7 @@ vaccines:
   # === 任意接種 (elective) — lower coverage ===
   pediatric_mumps:
     cvx: "07"
+    program: voluntary
     min_age: 0
     frequency: pediatric_series
     administration: {route: SC, dose_ml: 0.5}

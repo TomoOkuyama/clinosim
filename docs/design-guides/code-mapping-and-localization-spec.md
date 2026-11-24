@@ -206,6 +206,16 @@ A lab-list entry (`labs`, `add_labs`, `additional_labs`, and the `test` of a med
 
 Every lab a protocol orders has a US code or is a panel (`tests/unit/modules/observation/test_order_routing.py`). `ServiceRequest.code.text` is the lab's display (`lab_display`, `style="formal"`), never the order name.
 
+The reason text of a JP `Immunization` names the vaccine's program (Issue #3660). `locale/jp/immunization_schedule.yaml` gives each vaccine `program` (`routine`, the default, or `voluntary`) and, with `voluntary`, an optional `routine_from_age`; `engine.vaccine_program(country, cvx, age_years)` resolves it (the loader rejects any other value) and the FHIR builder renders `immunization_fhir.vaccination_routine` (予防接種（定期接種）) or `immunization_fhir.vaccination_voluntary` (予防接種（任意接種）). Any other country is `routine` and never reads the key.
+
+| JP vaccine | program |
+|---|---|
+| seasonal influenza, COVID-19 | `voluntary` below 65, `routine` from 65 (the 60-64 disability exception is not modelled) |
+| mumps | `voluntary` |
+| BCG, DPT-IPV(-Hib), MR, varicella, Japanese encephalitis, Hib, PCV, hepatitis B, rotavirus, PPSV23 | `routine` |
+
+Guard: `tests/unit/output/test_immunization_program_3660.py`.
+
 ## 4. Resolution functions
 
 Consumers resolve names only through these functions.
