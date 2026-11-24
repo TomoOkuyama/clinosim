@@ -112,6 +112,7 @@ def _run(orders=None):
         state=PhysiologicalState(),
         orders=orders or [],
         mars=[],
+        lab_results=[],
         active_complications=set(),
         complications=[],
         vitals=[],

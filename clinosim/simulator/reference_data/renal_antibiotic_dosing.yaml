@@ -1,0 +1,69 @@
+# Renal dose adjustment of inpatient antibiotics (Issue #3638).
+#
+# Read by clinosim/simulator/renal_antibiotic_dose.py and applied by the
+# inpatient MAR generator (simulator/medication_pipeline.py `_generate_mar`)
+# once per order, at its first dose, from the creatinine resulted by then. The
+# creatinine clearance is the Cockcroft-Gault estimate (`cockcroft_gault`).
+#
+# A drug is listed for a country only where the label of that country was read
+# and states creatinine-clearance bands. Each band applies to a rounded
+# clearance up to `max_crcl` (mL/min, inclusive); the order's dose becomes
+# `dose_factor` x the written dose and its interval `interval_hours`. A clearance
+# above the last band leaves the order unchanged. `reference_dose_mg`, when
+# set, limits the rule to an order written with exactly that dose (the dose
+# the label's table is stated for); an order written with another dose is not
+# adjusted.
+#
+# Sources (read on 2026-11-24):
+#   - US meropenem: openFDA drug label "Meropenem for injection" (api.fda.gov
+#     /drug/label.json, generic_name meropenem, intravenous), section 2.2
+#     "Dosage in Adults with Renal Impairment", Table 1: creatinine clearance
+#     > 50 mL/min recommended dose every 8 hours; 26 to 50 recommended dose
+#     every 12 hours; 10 to 25 one-half recommended dose every 12 hours; < 10
+#     one-half recommended dose every 24 hours.
+#   - US piperacillin / tazobactam: openFDA drug label "Piperacillin and
+#     Tazobactam for Injection" (api.fda.gov /drug/label.json), section 2.3,
+#     Table 1, nosocomial pneumonia column (initial dose 4.5 g every 6 hours,
+#     section 2.2): clearance > 40 mL/min 4.5 g every 6 hours; 20 to 40 3.375 g
+#     every 6 hours; < 20 2.25 g every 6 hours. The label states the rule for
+#     clearance <= 40 mL/min.
+#   - JP meropenem: PMDA package insert of meropenem for intravenous infusion
+#     (generic, Nichi-Iko; pmda.go.jp iyakuDetail 530169_6139400D1050_3_01),
+#     section 7 (用法及び用量に関連する注意), table by Ccr: 26-50 mL/min
+#     "1回あたりの投与量を減量せず12時間ごとに投与"; 10-25 "1回あたりの投与量を
+#     1/2に減量し12時間ごとに投与"; < 10 "1回あたりの投与量を1/2に減量し24時間ごと
+#     に投与".
+#   Not listed: JP piperacillin / tazobactam (the PMDA package insert of
+#     ゾシン静注用, 2023-02 revision, section 9.2, says only to reduce the dose or
+#     lengthen the interval by the degree of impairment, without Ccr bands),
+#     and every antibiotic whose label was not read (cefepime, ampicillin /
+#     sulbactam and others).
+metadata:
+  kind: reference
+  name: renal_antibiotic_dosing
+  source: clinosim
+
+# Cockcroft-Gault: (age_base - age) x weight_kg / (denominator x serum
+# creatinine mg/dL), x female_factor for a woman. Applied from min_age_years
+# (a child's renal dosing is weight-based, see pediatric_dosing.yaml).
+cockcroft_gault:
+  age_base: 140
+  denominator: 72
+  female_factor: 0.85
+  min_age_years: 18
+
+# Drug (catalog id) -> country code -> bands.
+drugs:
+  meropenem:
+    US: &meropenem
+      bands:
+        - {max_crcl: 9, dose_factor: 0.5, interval_hours: 24}
+        - {max_crcl: 25, dose_factor: 0.5, interval_hours: 12}
+        - {max_crcl: 50, dose_factor: 1.0, interval_hours: 12}
+    JP: *meropenem
+  piperacillin_tazobactam:
+    US:
+      reference_dose_mg: 4500
+      bands:
+        - {max_crcl: 19, dose_factor: 0.5, interval_hours: 6}
+        - {max_crcl: 40, dose_factor: 0.75, interval_hours: 6}

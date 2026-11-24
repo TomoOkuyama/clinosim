@@ -64,6 +64,7 @@ from clinosim.simulator.aki_response import (
 )
 from clinosim.simulator.helpers import _determine_route
 from clinosim.simulator.permissive_hypertension import permissive_hold_reason, permissive_windows
+from clinosim.simulator.renal_antibiotic_dose import RenalDoseContext, apply_renal_dose
 from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.encounter import (
     MedicationAdministration,
@@ -928,8 +929,14 @@ def _generate_mar(
     aki: AkiCourse | None = None,
     dose_floor: datetime | None = None,
     lactate: LactateCourse | None = None,
+    renal: RenalDoseContext | None = None,
 ) -> list[MedicationAdministration]:
     """Generate MAR entries for medication orders on this day.
+
+    ``renal`` (Issue #3638): the stay's results and the country; an antibiotic
+    order with a renal dosing rule (``renal_antibiotic_dose``) is dosed for the
+    creatinine clearance on the day it starts, before its first dose, and then
+    keeps that dose and interval.
 
     ``lactate`` (Issue #3539): metformin doses are held while the latest lactate
     resulted before the dose is at or above the hold threshold, with their own
@@ -1039,8 +1046,11 @@ def _generate_mar(
         # 0 / None is open-ended.
         if order.duration_days and day - max(order_day, _start_day(order, admission_time)) >= order.duration_days:
             continue
+        if renal is not None and day == order_day and child is None:
+            apply_renal_dose(order, patient, admission_time, not_before, renal)
         _drug = get_drug(order.drug_id or drug_ref(drug_name))
-        _scheduled_h = _drug.scheduled_interval_hours if _drug is not None else None
+        # A renally adjusted antibiotic keeps its own interval (Issue #3638).
+        _scheduled_h = _drug.scheduled_interval_hours if _drug is not None and not order.renal_dose_adjusted else None
         _freq_per_day = getattr(order, "frequency_per_day", None)
         # Issue #2982: a cadence longer than a day (weekly alendronate, a
         # monthly injection) is given on the day it is ordered and every

@@ -159,6 +159,7 @@ from clinosim.simulator.oral_intake import (
     oral_intake_rules,
 )
 from clinosim.simulator.oxygen_course import OxygenCourse, oxygen_course_rules
+from clinosim.simulator.renal_antibiotic_dose import RenalDoseContext
 from clinosim.simulator.vasoactive_support import (
     hospital_day_start,
     stop_weaned_vasoactive_infusions,
@@ -1586,6 +1587,7 @@ def _start_complication_antibiotic(
             roster=stay.roster,
             rng=determinism.default_rng(complication_antibiotic_seed(stay.encounter_id, day, comp_name)),
             child=stay.child,
+            renal=RenalDoseContext(run.lab_results, stay.country_key),
         )
     )
 
@@ -1976,6 +1978,7 @@ def _run_daily_loop(
             aki=run.aki,
             lactate=run.lactate,
             dose_floor=stay.ed_start,
+            renal=RenalDoseContext(run.lab_results, stay.country_key),
         )
         run.mars.extend(mars_today)
         _order_diet(stay, run, day)
