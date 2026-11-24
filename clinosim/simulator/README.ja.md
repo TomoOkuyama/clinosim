@@ -145,6 +145,15 @@ clinosim/simulator/
   emergency.py           ED エンカウンターシミュレータ
   discharge_gate.py      退院タイミング判定ロジック
   permissive_hypertension.py  許容性高血圧オーダーの期間と降圧薬の保留 (Issue #3557)
+  oral_intake.py         AVPU が P / U の間と人工呼吸管理中の絶飲食: 食事オーダーを NPO にし、
+                         その間の経口投与を保留。乱数なし (Issue #3552;
+                         reference_data/oral_intake.yaml)
+  oxygen_course.py       入院中の補助酸素の経過: オン/オフの状態・デバイス・流量を測定間で引き継ぎ、
+                         離脱、人工呼吸管理中の抜管、刻みの流量値を決める (Issue #3469;
+                         reference_data/oxygen_course.yaml)
+  stroke_onset.py        急性脳卒中入院の最終健常確認時刻: 来院時刻からハッシュで引いた発症から来院までの
+                         時間を引く。乱数ストリームは消費しない (Issue #3558;
+                         reference_data/stroke_onset_to_arrival.yaml)
   vasoactive_support.py  昇圧薬・強心薬の離脱 (MAP 目標達成かつショック離脱) と
                          離脱後に退院まで 1 病日観察する判定 (Issue #3270)
   maintenance_iv_fluid.py  入院時の維持輸液オーダーを、食事が経口になった後 (猶予 1 日)
@@ -190,7 +199,9 @@ clinosim/simulator/
                          (reference_data/diagnosis_rules.yaml を読む)
   chronic_reconcile.py   患者の慢性疾患の発症日を受診記録と整合させる (Issue #3263)
   implied_chronic.py     入院が含意する慢性疾患。エンカウンターのプロファイルと人物レコードで同じ規則を使う (Issue #3263;
-                         reference_data/implied_chronic_prevalence.yaml)
+                         reference_data/icu_step_down.yaml           ICU 滞在が一般病棟へ退室する条件 (icu_step_down.py)
+  reference_data/stroke_onset_to_arrival.yaml 国別の急性脳卒中の発症から来院までの時間 (stroke_onset.py)
+  reference_data/implied_chronic_prevalence.yaml)
   injury_coding.py       疾患 YAML からの外傷入院のコーディング: 診断・手術・外因 (Issue #3258)
   icu_step_down.py       ICU 滞在の一般病棟への退室 (ステップダウン): ICU 水準の支持が記録されなくなる最初の日、
                          無ければ退院前日。死亡や短い入院では無し (Issue #3555; reference_data/icu_step_down.yaml)
@@ -273,7 +284,7 @@ CLI サブコマンドハンドラ (11 ファイル):
   cli_test_encounter.py  `clinosim test-encounter` サブコマンド
 ```
 
-リファレンスデータ (`reference_data/`、17 YAML):
+リファレンスデータ (`reference_data/`、22 YAML):
 
 ```
   reference_data/adl_functional_ceilings.yaml  認知症 CDR 病期による病前 Barthel 上限 (adl_ceiling.py)
