@@ -37,7 +37,8 @@ def test_physical_exam_marks_room_air() -> None:
         format_vitals_line(_V, PHYSICAL_EXAM, "en") == "BP 130/80 mmHg, HR 88/min, T 37.5°C, SpO2 96% (RA), RR 20/min"
     )
     on_o2 = dict(_V, on_supplemental_oxygen=True)
-    assert "SpO2 96%," in format_vitals_line(on_o2, PHYSICAL_EXAM, "en")
+    # Issue #3682: an SpO2 on oxygen names the oxygen, never a bare value
+    assert "SpO2 96% (on O2)," in format_vitals_line(on_o2, PHYSICAL_EXAM, "en")
 
 
 def test_llm_styles_keep_recorded_values() -> None:

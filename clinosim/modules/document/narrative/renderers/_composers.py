@@ -781,16 +781,20 @@ def _vital_limit(ctx: NarrativeContext, vital: str, side: str, adult: float, chi
 
 
 def pe_vitals_reading(ctx: NarrativeContext) -> Any | None:
-    """The vital-sign record the physical-examination vitals line quotes: the
-    first reading of the note's day taken by its authored time (Issue #3241),
-    else the earliest reading taken by then; ``None`` when there is none."""
+    """The vital-sign set the physical-examination vitals line quotes (Issues
+    #3241, #3682): the latest recorded value of each vital over the readings
+    of the note's day taken by its authored time (a monitor-only reading
+    carries only HR and SpO2, the triage set the rest), else the earliest
+    reading taken by then. The record carries the latest reading's
+    ``timestamp`` and the oxygen of the SpO2 reading; ``None`` when there is
+    no reading."""
     vitals = recorded_by(list(ctx.vitals or []), getattr(ctx, "authored_datetime", None))
     if not vitals:
         return None
     picks = _filter_vitals_for_day(vitals, ctx.day_index, ctx.encounter)
     if not picks:
         picks = [vitals[0]]
-    return picks[0]
+    return {**latest_vitals_set(picks), "timestamp": _o(picks[-1], "timestamp", None)}
 
 
 def compose_pe_vitals_line(ctx: NarrativeContext) -> str:

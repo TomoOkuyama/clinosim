@@ -95,7 +95,9 @@ PROGRESS_DAY = VitalsLineStyle(
 )
 
 # Physical-examination vitals, as in JP acute-care admission notes:
-# "BP 130/80 mmHg, HR 88/min, T 37.5°C, SpO2 96% (RA), RR 20/min".
+# "BP 130/80 mmHg, HR 88/min, T 37.5°C, SpO2 96% (RA), RR 20/min"; an SpO2 taken
+# on oxygen names the device and flow, "SpO2 91% (non-rebreather 8 L/min)"
+# (Issue #3682).
 PHYSICAL_EXAM = VitalsLineStyle(
     order=("bp", "hr", "temp", "spo2", "rr"),
     formats={
@@ -107,6 +109,7 @@ PHYSICAL_EXAM = VitalsLineStyle(
     },
     separator=", ",
     room_air_format="SpO2 {spo2:.0f}% (RA)",
+    oxygen_format="SpO2 {spo2:.0f}% ({o2})",
 )
 
 # LLM prompt context: today's readings, values as recorded.
