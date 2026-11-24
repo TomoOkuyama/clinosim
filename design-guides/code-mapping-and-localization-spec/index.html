@@ -3085,7 +3085,7 @@
 <tr>
 <td>Procedures</td>
 <td><code>codes/data/clinosim-procedure-catalog.yaml</code></td>
-<td><code>bedside: [{type, cpt, k_code, name: {en, ja}, anesthesia}]</code>; <code>named: [{type, name: {en, ja}}]</code> (types recorded outside the bedside dispatch, named for <code>Procedure.code.text</code>); <code>specimens: {&lt;type&gt;: [&lt;specimen_type key&gt;]}</code> (tissue a resection sends to pathology, Issue #3284; <code>procedure_specimens</code>)</td>
+<td><code>bedside: [{type, cpt, k_code, name: {en, ja}, anesthesia, aftercare, emergent, duration_minutes: {mean, sd, min, max}}]</code> (<code>emergent</code> marks an emergency-by-nature type, <code>procedure_is_emergent</code>; <code>duration_minutes</code> is the duration distribution, <code>procedure_duration</code>; both Issue #3550); <code>named: [{type, name: {en, ja}}]</code> (types recorded outside the bedside dispatch, named for <code>Procedure.code.text</code>); <code>specimens: {&lt;type&gt;: [&lt;specimen_type key&gt;]}</code> (tissue a resection sends to pathology, Issue #3284; <code>procedure_specimens</code>)</td>
 </tr>
 <tr>
 <td>Staff roles</td>

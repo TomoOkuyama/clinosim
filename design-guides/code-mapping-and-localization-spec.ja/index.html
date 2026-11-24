@@ -3084,7 +3084,7 @@
 <tr>
 <td>処置</td>
 <td><code>codes/data/clinosim-procedure-catalog.yaml</code></td>
-<td><code>bedside: [{type, cpt, k_code, name: {en, ja}, anesthesia}]</code>、<code>named: [{type, name: {en, ja}}]</code> (bedside 以外で記録される処置種別の名称。<code>Procedure.code.text</code> に使う)</td>
+<td><code>bedside: [{type, cpt, k_code, name: {en, ja}, anesthesia, aftercare, emergent, duration_minutes: {mean, sd, min, max}}]</code> (<code>emergent</code> は性質上救急の処置種別、<code>procedure_is_emergent</code>。<code>duration_minutes</code> は所要時間の分布、<code>procedure_duration</code>。いずれも Issue #3550)、<code>named: [{type, name: {en, ja}}]</code> (bedside 以外で記録される処置種別の名称。<code>Procedure.code.text</code> に使う)、<code>specimens: {&lt;type&gt;: [&lt;specimen_type key&gt;]}</code> (切除が病理に送る組織、Issue #3284、<code>procedure_specimens</code>)</td>
 </tr>
 <tr>
 <td>職種</td>
