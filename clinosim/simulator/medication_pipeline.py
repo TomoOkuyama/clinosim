@@ -896,6 +896,13 @@ def missed_single_doses(
     return out
 
 
+def _start_day(order: Order, admission_time: datetime) -> int:
+    """Hospital day a scheduled order is first given: the day after a loading
+    dose for a maintenance order (``administer_from``, Issue #3002), else 0."""
+    first = getattr(order, "administer_from", None)
+    return max(0, (first.date() - admission_time.date()).days) if first is not None else 0
+
+
 def _first_dose_delay_min(patient_id: str, order_id: str, kind: str) -> int:
     """Minutes from the order (or admission) to a first dose: a hash of the
     patient, the order and the kind of dose (``single`` / ``stat`` / ``day0``)
@@ -1025,6 +1032,13 @@ def _generate_mar(
         not_before = max(getattr(order, "ordered_datetime", None) or admission_time, dose_floor or admission_time)
         # An order written in the ED the evening before is a day-0 order.
         order_day = max(0, (not_before.date() - admission_time.date()).days)
+        # Issue #3640: an order with a stated course (``duration_days``, set
+        # from the protocol or from the "xN days" of the dose text) is given
+        # for that many days from the day it starts and then ends; the order's
+        # end follows its last administration (``close_orders_at_discharge``).
+        # 0 / None is open-ended.
+        if order.duration_days and day - max(order_day, _start_day(order, admission_time)) >= order.duration_days:
+            continue
         _drug = get_drug(order.drug_id or drug_ref(drug_name))
         _scheduled_h = _drug.scheduled_interval_hours if _drug is not None else None
         _freq_per_day = getattr(order, "frequency_per_day", None)
