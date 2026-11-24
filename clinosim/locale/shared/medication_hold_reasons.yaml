@@ -20,34 +20,34 @@ reasons:
     ja: "急性腎障害 (NSAID — 輸入細動脈収縮のため腎機能低下下では禁忌)"
   "AKI — lactic acidosis risk, renal clearance impaired":
     en: "acute kidney injury (lactic acidosis + impaired renal clearance risk)"
-    ja: "急性腎障害 (乳酸アシドーシス・腎排泄障害のリスクのため保留)"
+    ja: "急性腎障害 (乳酸アシドーシス・腎排泄障害のリスク)"
   "AKI: NSAIDs held (worsen renal perfusion)":
     en: "AKI (NSAID renal-perfusion hold)"
     ja: "急性腎障害 (NSAID による腎灌流悪化)"
   "AKI: RAAS blockade held per KDIGO 2012 § 3.5.2":
     en: "AKI (KDIGO 2012 § 3.5.2 RAAS hold)"
-    ja: "急性腎障害 (KDIGO 2012 § 3.5.2 RAAS 抑制保留)"
+    ja: "急性腎障害 (KDIGO 2012 § 3.5.2 に基づく RAAS 阻害薬)"
   # Issue #3281: the MAR / discharge reason of a drug held during acute kidney
   # injury (simulator/reference_data/aki_response.yaml).
   "Acute kidney injury: nephrotoxic or renally cleared drug held (KDIGO 2012)":
     en: "acute kidney injury (nephrotoxic or renally cleared drug held, KDIGO 2012)"
-    ja: "急性腎障害 (腎毒性または腎排泄性の薬剤のため保留、KDIGO 2012)"
+    ja: "急性腎障害 (腎毒性または腎排泄性の薬剤、KDIGO 2012)"
   # Issue #3641: a home NSAID / alendronate not ordered at an admission with
   # already-impaired kidneys (simulator/reference_data/renal_medication_rules.yaml).
   "Renal impairment at admission: nephrotoxic or renally cleared drug held":
     en: "renal impairment at admission (nephrotoxic or renally cleared drug held)"
-    ja: "入院時の腎機能障害 (腎毒性または腎排泄性の薬剤のため保留)"
+    ja: "入院時の腎機能障害 (腎毒性または腎排泄性の薬剤)"
   # Issue #3539: metformin held while the latest lactate is high
   # (simulator/reference_data/aki_response.yaml `lactate_hold`).
   "Lactate at or above the threshold: metformin held (lactic acidosis risk)":
     en: "elevated lactate (metformin held, lactic acidosis risk)"
-    ja: "乳酸値上昇 (乳酸アシドーシスのリスクのためメトホルミンを保留)"
+    ja: "乳酸値上昇 (メトホルミンの乳酸アシドーシスのリスク)"
   "Active intracranial hemorrhage — anticoagulation contraindicated":
     en: "active intracranial hemorrhage (anticoagulant contraindicated)"
-    ja: "頭蓋内出血の活動性 (抗凝固薬は禁忌のため保留)"
+    ja: "頭蓋内出血の活動性 (抗凝固薬は禁忌)"
   "Active intracranial hemorrhage — antiplatelet contraindicated":
     en: "active intracranial hemorrhage (antiplatelet contraindicated)"
-    ja: "頭蓋内出血の活動性 (抗血小板薬は禁忌のため保留)"
+    ja: "頭蓋内出血の活動性 (抗血小板薬は禁忌)"
   "Acute HF exacerbation — oral diuretic replaced by IV furosemide":
     en: "acute HF exacerbation (oral diuretic held, IV furosemide substituted)"
     ja: "急性心不全増悪 (内服利尿薬を静注フロセミドに変更)"
@@ -62,13 +62,13 @@ reasons:
       ja: "急性心不全増悪"
   "Acute illness with lactic acidosis risk + NPO status":
     en: "acute illness (lactic acidosis risk + NPO)"
-    ja: "急性疾患 (乳酸アシドーシスリスク + 絶食状態のため保留)"
+    ja: "急性疾患 (乳酸アシドーシスリスク + 絶食状態)"
   "Acute stroke — dysphagia / NG-tube risk contraindicates PO bisphosphonates (aspiration esophagitis)":
     en: "acute stroke (PO bisphosphonate aspiration-esophagitis risk with dysphagia / NG tube)"
     ja: "急性期脳卒中 (嚥下障害・経鼻胃管留置により経口ビスホスホネートは誤嚥性食道炎リスクのため禁忌)"
   "DKA — lactic acidosis risk; resume after metabolic stabilization":
     en: "DKA (lactic acidosis risk — resume after metabolic stabilisation)"
-    ja: "糖尿病性ケトアシドーシス (乳酸アシドーシスリスクのため保留、代謝改善後再開予定)"
+    ja: "糖尿病性ケトアシドーシス (乳酸アシドーシスリスク、代謝改善後再開予定)"
   "Metformin held for renal function":
     en: "acute kidney injury / renal impairment"
     ja: "急性腎障害 / 腎機能低下"
@@ -81,10 +81,10 @@ reasons:
   # permissive hypertension (simulator/reference_data/permissive_hypertension_hold.yaml).
   "Permissive hypertension (acute stroke)":
     en: "permissive hypertension (acute stroke), systolic pressure below the limit"
-    ja: "許容性高血圧 (急性期脳卒中) のため、収縮期血圧が上限未満の間は降圧薬を保留"
+    ja: "許容性高血圧 (急性期脳卒中)、収縮期血圧が上限未満"
   "Sepsis — lactic acidosis risk, potential renal impairment":
     en: "sepsis (lactic acidosis + renal impairment risk)"
-    ja: "敗血症 (乳酸アシドーシス・腎機能悪化リスクのため保留)"
+    ja: "敗血症 (乳酸アシドーシス・腎機能悪化のリスク)"
   "Stroke: PO bisphosphonates held (aspiration risk)":
     en: "acute stroke (PO bisphosphonate aspiration risk)"
     ja: "急性期脳卒中 (経口ビスホスホネートの誤嚥リスク)"
@@ -92,7 +92,7 @@ reasons:
   # swallow (simulator/reference_data/oral_intake.yaml).
   "Nil by mouth: level of consciousness reduced (oral dose held)":
     en: "nil by mouth, level of consciousness reduced (oral dose held)"
-    ja: "意識レベル低下のため絶飲食 (経口投与を保留)"
+    ja: "意識レベル低下のため絶飲食 (経口投与不可)"
   "Nil by mouth: on mechanical ventilation (oral dose held)":
     en: "nil by mouth, on mechanical ventilation (oral dose held)"
-    ja: "人工呼吸管理中のため絶飲食 (経口投与を保留)"
+    ja: "人工呼吸管理中のため絶飲食 (経口投与不可)"

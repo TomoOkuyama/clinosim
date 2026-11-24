@@ -1579,7 +1579,13 @@ def _compose_safety_hold_lines(ctx: NarrativeContext) -> list[str]:
             phrase = "outpatient_results.hold_continued"
         else:
             continue
-        lines.append(t(phrase, lang, drug=drug, date=hold["held_on"], reason=reason))
+        # Issue #3699: the drug was held for the whole admission, so the line
+        # cites its span; without one (or a one-day stay) the log date is stated.
+        start, end = str(hold.get("admitted_on") or ""), str(hold.get("discharged_on") or "")
+        if start and end and start != end:
+            lines.append(t(f"{phrase}_span", lang, drug=drug, start=start, end=end, reason=reason))
+        else:
+            lines.append(t(phrase, lang, drug=drug, date=hold["held_on"], reason=reason))
     return lines
 
 
