@@ -222,7 +222,7 @@ def test_discharged_patient_gets_instructions_and_follow_up_en() -> None:
     text, facts = build_ed_disposition(_GEN, _ctx("minor_laceration", encounter=_encounter(level="4")))
     assert text.startswith("Discharged home (ESI level 4, Laceration requiring sutures). Discharge instructions: ")
     assert "Keep wound clean and dry for 24 hours; " in text
-    assert text.endswith("Follow-up: suture removal in 7-10 days (face 5 days).")
+    assert text.endswith("Follow-up: wound check in 2-3 days or sooner for signs of infection.")  # no closure ordered
     assert {"encounter_protocol.discharge_instructions", "encounter_protocol.follow_up"} <= set(facts)
 
 
@@ -231,7 +231,7 @@ def test_discharged_patient_gets_instructions_and_follow_up_ja() -> None:
     text, _ = build_ed_disposition(_GEN, _ctx("minor_laceration", "ja", encounter=enc))
     assert text.startswith("帰宅（JTAS レベル 4、裂傷（縫合が必要））。")  # Issue #3266
     assert "。帰宅時指導: 24時間は創部を清潔・乾燥に保つ。" in text
-    assert text.endswith("フォローアップ: 7〜10日後に抜糸（顔面は5日後）。")
+    assert text.endswith("フォローアップ: 2〜3日後に創部の確認（感染徴候があれば早めに受診）。")  # no closure ordered
     assert re.search(r"[A-Za-z]", text.replace("JTAS", "")) is None
 
 
