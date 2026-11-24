@@ -203,7 +203,7 @@ clinosim/modules/document/
     narrative_extras_whitelists.yaml narrative extra-context whitelist (narrative/_extra_context_builder.py)
     ja_only_fallback_sections.yaml   US H&P の JA 文字 audit 対象外 section (audit.py)
     chronic_soap_templates.yaml      慢性疾患 SOAP note template (受診の診断コードの項目、指示ではなく所見を記載。記録にない家庭記録・症状否定・身体所見は書かない)
-    visit_reason_soap.yaml           受診理由別の外来 SOAP: 受診種別、種別ごとの S/O/A/P 文、バイタル異常の所見と計画、接種記録、乳幼児健診の発達と保健指導 (narrative/_visit_reason.py)
+    visit_reason_soap.yaml           受診理由別の外来 SOAP: 受診種別、種別ごとの S/O/A/P 文、バイタル異常の所見と計画、接種記録、乳幼児健診の発達と保健指導、妊婦健診・産後健診の文 (narrative/_visit_reason.py)
     interval_events.yaml             外来 SOAP が前回受診以降の事象として記載する入院・救急受診 (narrative/_interval_events.py)
     (プランの次回受診は narrative/_next_visit.py が読む)
     outpatient_results.yaml          外来 SOAP の検査結果: 過去の検査を引く項目、CKD G 分類、スクリーニングスコア (narrative/_outpatient_results.py)
