@@ -421,6 +421,18 @@ maternal_vitals:
     cesarean: [0, 0.5, 1, 1.5, 2, 4, 8, 12, 16, 20]
   later_day_hours: [6, 14, 22]
 
+# Outcome of the delivery recorded on the delivery procedure and the mother's
+# ``extensions["delivery"]`` (Issue #3663). ``ebl_ml``: estimated blood loss
+# per mode of delivery, normal around ``mean`` / ``sd`` clamped to
+# [``min``, ``max``] (mL), drawn from a sub-seed keyed on the encounter.
+# MODEL CHOICE: typical blood loss of an uncomplicated delivery; not taken
+# from a guideline read for this project. The band stays below a haemorrhage
+# threshold: postpartum haemorrhage is not modelled.
+delivery_outcome:
+  ebl_ml:
+    vaginal: {mean: 400, sd: 120, min: 150, max: 800}
+    cesarean: {mean: 800, sd: 200, min: 400, max: 1400}
+
 # Barthel Index of the mother on each hospital day of a delivery stay (Issue
 # #3665), from which the nursing enricher derives the daily Braden and Morse
 # scores. The list is indexed by hospital day (the admission date is day 0);

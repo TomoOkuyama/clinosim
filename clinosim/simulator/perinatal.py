@@ -619,6 +619,18 @@ def _maternal_adl(patient: PatientProfile, admission: datetime, discharge: datet
     ]
 
 
+def _estimated_blood_loss_ml(encounter_id: str, cesarean: bool) -> int:
+    """The delivery's estimated blood loss in mL (Issue #3663): normal around
+    the mode's ``delivery_outcome.ebl_ml`` mean, clamped to its band. Drawn
+    from a sub-seed keyed on the encounter, so no shared stream moves."""
+    band = ((load_perinatal_config().get("delivery_outcome") or {}).get("ebl_ml") or {})[
+        "cesarean" if cesarean else "vaginal"
+    ]
+    rng = determinism.default_rng(text_seed(f"delivery-ebl|{encounter_id}"))
+    value = float(rng.normal(float(band["mean"]), float(band["sd"])))
+    return int(round(max(float(band["min"]), min(float(band["max"]), value))))
+
+
 def _gestational_days(mother: PatientProfile, delivered_at: datetime) -> int | None:
     """The delivery date minus the LMP of the pregnancy period that delivers on
     it; ``None`` when no period gives an LMP. No random draw."""
@@ -883,6 +895,7 @@ def simulate_delivery_encounter(
         end_datetime=visit_date + timedelta(minutes=proc_duration_min),
         primary_surgeon_id=encounter.attending_physician_id,
         anesthesia_type=proc_anesthesia,
+        estimated_blood_loss_ml=_estimated_blood_loss_ml(encounter.encounter_id, is_cesarean),
     )
 
     # Issue #1285: emit the full cesarean intraoperative medication
@@ -1232,6 +1245,7 @@ def simulate_delivery_encounter(
                 "mode": "cesarean" if is_cesarean else "vaginal",
                 "gestational_age_days": gestational_days,
                 "complication_codes": list(complications),
+                "estimated_blood_loss_ml": procedure.estimated_blood_loss_ml,
             }
         },
     )

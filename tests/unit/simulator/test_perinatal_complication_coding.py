@@ -113,7 +113,9 @@ def test_obstructed_labor_is_dropped_on_a_vaginal_delivery_and_kept_on_a_cesarea
 
 def test_delivery_extension_records_mode_age_and_complications() -> None:
     vaginal = _deliver(_VAGINAL, ["O14.9", "O60.1"], ga_days=277)
-    assert vaginal.extensions["delivery"] == {
+    ext = dict(vaginal.extensions["delivery"])
+    ext.pop("estimated_blood_loss_ml")  # tested with the delivery blood loss
+    assert ext == {
         "mode": "vaginal",
         "gestational_age_days": 277,
         "complication_codes": ["O14.9"],
