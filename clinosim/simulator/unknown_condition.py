@@ -79,6 +79,7 @@ from clinosim.simulator.encounter_setup import attach_orders, encounter_diagnosi
 from clinosim.simulator.hospital_ops import pick_ward, resolve_department
 from clinosim.simulator.lab_pipeline import patient_true_labs, relate_egfr_to_creatinine
 from clinosim.simulator.oxygen_course import OxygenCourse
+from clinosim.simulator.renal_antibiotic_dose import RenalDoseContext
 from clinosim.types.clinical import ConditionEvent
 from clinosim.types.config import HealthcareSystemConfig, SimulatorConfig
 from clinosim.types.encounter import (
@@ -364,7 +365,14 @@ def _simulate_unknown_condition(
 
         # MAR for supportive medications
         mars_today = _generate_mar(
-            patient, all_orders, day, admission_time, department=department, roster=roster, rng=rng
+            patient,
+            all_orders,
+            day,
+            admission_time,
+            department=department,
+            roster=roster,
+            rng=rng,
+            renal=RenalDoseContext(all_lab_results, config.country if config else "US"),
         )
         # Issue #3233: vital-sign holds read the vital signs recorded before each dose.
         apply_vital_holds(mars_today, all_vitals, patient.baseline_vitals, all_orders)

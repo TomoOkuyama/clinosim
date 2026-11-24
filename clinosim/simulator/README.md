@@ -323,6 +323,7 @@ Reference data (`reference_data/`, 22 YAMLs):
   reference_data/icd10_sex_restrictions.yaml  ICD-10 sex gates (sex_gating.py)
   reference_data/permissive_hypertension_hold.yaml  antihypertensives held during permissive hypertension while SBP is below the limit (permissive_hypertension.py)
   reference_data/renal_medication_rules.yaml  renal dosing rules (medication_pipeline.py, discharge_rx.py)
+  reference_data/renal_antibiotic_dosing.yaml  antibiotic renal dose bands (renal_antibiotic_dose.py)
   reference_data/statin_monitoring.yaml       lipid monitoring / statin titration (statin_monitoring.py)
   reference_data/vasoactive_hold.yaml         drugs held during vasopressor / inotrope infusions (medication_pipeline.py)
   reference_data/complication_actions.yaml    canonical complication action keys and the empirical-regimen protocol of each infectious complication (complication_actions.py)

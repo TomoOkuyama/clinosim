@@ -3765,6 +3765,10 @@ order_intent:
   dose_reduced_renal:
     ja: " [腎機能低下のため減量]"
     en: " [dose reduced for renal impairment]"
+  # Issue #3638: an antibiotic dosed for the creatinine clearance.
+  dose_adjusted_crcl:
+    ja: " [腎機能 (CCr {crcl} mL/分) に応じて用量・投与間隔を調整]"
+    en: " [dose and interval adjusted for renal function (CrCl {crcl} mL/min)]"
   chronic_monitoring:
     ja: "慢性モニタリング: {test}"
     en: "Chronic monitoring: {test}"

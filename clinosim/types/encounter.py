@@ -266,6 +266,11 @@ class Order:
     # order written with a loading dose starts the day after the load.
     # ``None``: from the day it is ordered.
     administer_from: datetime | None = None
+    # Issue #3638: the creatinine clearance (mL/min) an antibiotic order's renal
+    # dose was decided on, at its first dose (``None``: not yet decided or not
+    # applicable), and whether the dose or interval was changed for it.
+    renal_crcl_ml_min: float | None = None
+    renal_dose_adjusted: bool = False
     # Issue #2606: when a medication order ended (its last administration, or
     # discharge when it was never given); set once the stay is over.
     end_datetime: datetime | None = None
