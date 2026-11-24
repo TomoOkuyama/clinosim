@@ -23,6 +23,8 @@ module-scope constants.
 from __future__ import annotations
 
 __all__ = [
+    "ADL_ACUITY_FULL_AT",
+    "ADL_MAX_GAIN_PER_ASSESSMENT",
     "ADL_ASSESSMENT_INTERVAL_DAYS",
     "ADL_BARTHEL_MAX",
     "ADL_BARTHEL_MIN",
@@ -44,8 +46,6 @@ __all__ = [
     "ADL_OLDER_AGE_PENALTY",
     "ADL_OLDER_AGE_THRESHOLD",
     "ADL_PERFUSION_PENALTY_SCALE",
-    "ADL_RECOVERY_MAX_TOTAL",
-    "ADL_RECOVERY_PER_DAY",
     "ADL_RENAL_PENALTY_SCALE",
     "ADL_RATIO_OFFSET_BLADDER",
     "ADL_RATIO_OFFSET_BOWEL",
@@ -128,31 +128,31 @@ immobility) rather than immediate."""
 
 
 # ---------------------------------------------------------------------------
-# Admission-day extra penalty + recovery trajectory
+# Acute-illness penalty (full on admission day, scaled by acuity later) and the
+# per-assessment gain cap
 # ---------------------------------------------------------------------------
 
 ADL_DAY0_ACUTE_PENALTY: int = 15
-"""Additional Barthel-point penalty applied only on admission day
-(day 0), on top of the state-based penalties.
+"""Additional Barthel-point penalty applied in full on admission day
+(day 0), and scaled by the state's acuity on later days (Issue #3647), on top
+of the state-based penalties.
 
 Empirical tuning for the synthetic simulator: acute-admission-day
 ADL is systematically lower than any post-admission day at the same
 physiological state — captures the "just arrived, disoriented" effect
 that resolves within 24 hours."""
 
-ADL_RECOVERY_PER_DAY: int = 3
-"""Barthel points recovered per hospital day past day 0.
+ADL_ACUITY_FULL_AT: float = 0.5
+"""Acuity (the worst of the inflammation level, the oxygenation impairment and
+the perfusion deficit) at or above which the full acute-illness penalty
+(``ADL_DAY0_ACUTE_PENALTY``) applies to a later assessment; below it the penalty
+scales down linearly to zero as the state resolves (Issue #3647). A modelling
+choice: function recovers with the clinical state, not with elapsed days."""
 
-Empirical tuning for the synthetic simulator: ~3 points/day gives a
-plausible 21-point improvement over a typical 7-day stay, matching
-observed inpatient ADL recovery trajectories."""
-
-ADL_RECOVERY_MAX_TOTAL: int = 30
-"""Ceiling on the cumulative recovery bonus.
-
-Empirical tuning for the synthetic simulator: capping recovery at
-+30 points (reached at day 10) prevents extended stays from producing
-implausibly super-normal ADL scores through pure day-count."""
+ADL_MAX_GAIN_PER_ASSESSMENT: int = 20
+"""Largest Barthel gain, in points, between one assessment and the next of
+the same stay (Issue #3647). A modelling choice that stops a single step of
+30-45 points; the drop of a worsening patient is not capped."""
 
 ADL_BARTHEL_NOISE_SD: int = 5
 """Standard deviation of the normal-noise jitter applied to the

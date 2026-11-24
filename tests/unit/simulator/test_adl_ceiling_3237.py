@@ -69,13 +69,15 @@ def test_stage_ceilings_are_monotonic_in_cdr() -> None:
     assert totals[0] == 100
 
 
-# Outputs of master before Issue #3237 (seeded) — a patient without a
-# staged functional condition is unchanged, draw for draw.
+# Seeded outputs (day 0 as on master before Issue #3237; later days re-pinned for
+# the state-based recovery of Issue #3647) — a patient without a staged
+# functional condition scores the same as one with a non-limiting condition, and
+# the draws are unchanged.
 _PINNED = [
     (82, 0, 1, (65, 5, 5, 5, 5, 10, 5, 5, 10, 10, 5), 0.9504636963259353),
-    (82, 7, 2, (100, 10, 5, 5, 10, 10, 10, 10, 15, 15, 10), 0.2984911434141233),
-    (90, 14, 3, (100, 10, 5, 5, 10, 10, 10, 10, 15, 15, 10), 0.2368105065960997),
-    (60, 21, 4, (95, 10, 5, 5, 10, 10, 10, 10, 15, 15, 5), 0.5113275528143616),
+    (82, 7, 2, (70, 5, 5, 5, 5, 10, 10, 5, 10, 10, 5), 0.2984911434141233),
+    (90, 14, 3, (70, 5, 5, 5, 5, 10, 10, 5, 10, 10, 5), 0.2368105065960997),
+    (60, 21, 4, (75, 10, 5, 5, 5, 10, 10, 5, 10, 10, 5), 0.5113275528143616),
 ]
 
 
