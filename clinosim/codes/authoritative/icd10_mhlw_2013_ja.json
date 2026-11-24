@@ -5,7 +5,7 @@
     "source_file": "kihon2013.xlsx (sheet 基本分類表データ, columns コード / コード名)",
     "extracted_at": "2026-11-01",
     "note": "Japanese official names of the ICD-10 codes clinosim emits for JP, filtered from the full table (15,296 codes).",
-    "later_additions": "E11.2, E11.3 and E11.4 (Issue #3259), G35, I69.1 and I69.3 (Issue #3327) were added on 2026-11-16 from the same kihon2013.xlsx table. T20.0-T25.0 (Issue #3258) were added on 2026-11-18 from the same kihon2013.xlsx table. F05 (Issue #3519) was added on 2026-11-21 from the same kihon2013.xlsx table."
+    "later_additions": "E11.2, E11.3 and E11.4 (Issue #3259), G35, I69.1 and I69.3 (Issue #3327) were added on 2026-11-16 from the same kihon2013.xlsx table. T20.0-T25.0 (Issue #3258) were added on 2026-11-18 from the same kihon2013.xlsx table. F05 (Issue #3519) was added on 2026-11-21 from the same kihon2013.xlsx table. J14 and J15.5 (Issue #3645) were added on 2026-11-24 from the same kihon2013.xlsx table."
   },
   "concept": [
     {
@@ -613,6 +613,10 @@
       "display": "肺炎連鎖球菌による肺炎"
     },
     {
+      "code": "J14",
+      "display": "インフルエンザ菌による肺炎"
+    },
+    {
       "code": "J15",
       "display": "細菌性肺炎，他に分類されないもの"
     },
@@ -623,6 +627,10 @@
     {
       "code": "J15.1",
       "display": "緑膿菌による肺炎"
+    },
+    {
+      "code": "J15.5",
+      "display": "大腸菌による肺炎"
     },
     {
       "code": "J15.7",

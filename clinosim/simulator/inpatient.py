@@ -19,6 +19,7 @@ from clinosim.modules.diagnosis.engine import (
     initialize_differential,
 )
 from clinosim.modules.diagnosis.nonspecific_codes import UNRESOLVED_DIAGNOSIS_ICD
+from clinosim.modules.diagnosis.organism_code import isolate_refined_code
 from clinosim.modules.disease.acuity import (
     EMERGENCY_PRIORITY_DISEASES,
 )
@@ -1199,6 +1200,11 @@ def _simulate_patient(
         config=config,
         snapshot_dt=snapshot_dt,
         orders=all_orders,
+    )
+    # Issue #3645: an organism-specific pneumonia code follows an isolate of the
+    # stay's cultures (not the diagnostic confidence).
+    clinical_diagnosis.discharge_diagnosis_code = isolate_refined_code(
+        disease_id, clinical_diagnosis.discharge_diagnosis_code, microbiology
     )
 
     # seed=400 verification: propagate in-hospital death to the

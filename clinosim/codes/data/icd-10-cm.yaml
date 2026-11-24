@@ -397,10 +397,14 @@ codes:
     en: Viral pneumonia, unspecified
   J13:
     en: Pneumonia due to Streptococcus pneumoniae
+  J14:
+    en: Pneumonia due to Hemophilus influenzae
   J15.0:
     en: Pneumonia due to Klebsiella pneumoniae
   J15.1:
     en: Pneumonia due to Pseudomonas
+  J15.5:
+    en: Pneumonia due to Escherichia coli
   J15.9:
     en: "Unspecified bacterial pneumonia"
   J18.0:

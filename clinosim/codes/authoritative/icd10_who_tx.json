@@ -13,7 +13,7 @@
       "S67.2"
     ],
     "note": "WHO ICD-10 authoritative displays for the codes clinosim emits.",
-    "later_additions": "T22.2 and T23.2 (Issue #3279), E11.2, E11.3 and E11.4 (Issue #3259), G35, I69.1 and I69.3 (Issue #3327), R57.2 (Issue #3269) were added on 2026-11-16 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded). T20.0, T21.0, T22.0, T23.0, T24.0, T25.0 (Issue #3258, tx.fhir.org $lookup 2026-11-18)."
+    "later_additions": "T22.2 and T23.2 (Issue #3279), E11.2, E11.3 and E11.4 (Issue #3259), G35, I69.1 and I69.3 (Issue #3327), R57.2 (Issue #3269) were added on 2026-11-16 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded). T20.0, T21.0, T22.0, T23.0, T24.0, T25.0 (Issue #3258, tx.fhir.org $lookup 2026-11-18). J14 and J15.5 (Issue #3645) were added on 2026-11-24 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded)."
   },
   "concept": [
     {
@@ -3332,6 +3332,29 @@
       ]
     },
     {
+      "code": "J14",
+      "display": "Pneumonia due to Haemophilus influenzae",
+      "definition": "Pneumonia due to Haemophilus influenzae",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "J09-J18"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Bronchopneumonia due to H. influenzae"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "congenital pneumonia due to H. influenzae[P23.6]"
+        }
+      ]
+    },
+    {
       "code": "J15",
       "display": "Bacterial pneumonia, not elsewhere classified",
       "definition": "Bacterial pneumonia, not elsewhere classified",
@@ -3421,6 +3444,21 @@
       "code": "J15.1",
       "display": "Pneumonia due to Pseudomonas",
       "definition": "Pneumonia due to Pseudomonas",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "J15"
+        }
+      ]
+    },
+    {
+      "code": "J15.5",
+      "display": "Pneumonia due to Escherichia coli",
+      "definition": "Pneumonia due to Escherichia coli",
       "property": [
         {
           "code": "kind",

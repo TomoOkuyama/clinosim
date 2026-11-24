@@ -494,8 +494,6 @@ diagnosis_progression:
     - J18.9
   - - 0.7
     - J18.1
-  - - 0.9
-    - J13
   heart_failure_exacerbation:
   - - 0.0
     - I50.9

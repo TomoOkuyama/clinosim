@@ -152,9 +152,11 @@ clinosim/modules/diagnosis/
   engine.py                      initialize_differential + update_differential + get_current_diagnosis_code
   nonspecific_codes.py           Issue #551 named ICD-10 fallback constants
   _diagnosis_thresholds.py       working / confirmed cutoffs + age priors + neutral LR fallbacks (Issue #637)
+  organism_code.py               `isolate_refined_code`: the organism-specific pneumonia code follows an isolate of the stay's cultures, never the confidence alone (Issue #3645)
   lab_derived_dx.py              POST_ENCOUNTER enricher: Creatinine peak -> N17.9 working dx (Issue #1326)
   reference_data/
     builtin_differentials.yaml   built-in differential library
+    organism_pneumonia_codes.yaml  isolate (SNOMED organism) -> J13 / J14 / J15.x for a pneumonia stay (Issue #3645)
   SPEC.md                        extended design reference (not runtime)
 ```
 

@@ -245,6 +245,9 @@ codes:
   J13:
     en: Pneumonia due to Streptococcus pneumoniae
     ja: "肺炎連鎖球菌による肺炎"
+  J14:
+    en: Pneumonia due to Haemophilus influenzae
+    ja: "インフルエンザ菌による肺炎"
   J15:
     en: Bacterial pneumonia, not elsewhere classified
     ja: "細菌性肺炎，他に分類されないもの"
@@ -254,6 +257,9 @@ codes:
   J15.1:
     en: Pneumonia due to Pseudomonas
     ja: "緑膿菌による肺炎"
+  J15.5:
+    en: Pneumonia due to Escherichia coli
+    ja: "大腸菌による肺炎"
   J15.9:
     en: Bacterial pneumonia, unspecified
     ja: "細菌性肺炎，詳細不明"
