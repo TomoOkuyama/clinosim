@@ -192,11 +192,11 @@ clinosim/modules/document/
     disease_exam.yaml                疾患ごとの入院時身体所見 (疾患が及ぶ系統の所見、英語・日本語)、AVPU による意識の句、心房細動の脈の規則、急性期脳卒中の局所神経症状と NIHSS の範囲、分娩入院の分娩様式別の産科所見 (分娩処置の終了前は分娩前、終了後は産褥の所見、Issue #3403) (load_disease_exam)
     ed_note_admitted.yaml            ED 経由入院の ED 記録: 来院時バイタルの成人の判定範囲とバイタルを述べる所見語 (来院時の測定値と矛盾する day-0 身体所見の句は書かない)、トリアージの来院手段と照合する救急搬入の HPI 表現 (load_ed_note_admitted)
     hpi_pertinent_negatives.yaml     HPI pertinent negative、疾患ごとに言語別の文言と否定する症状語 (hpi_pertinent_negatives(disease_id, lang)、英語にフォールバック)。主訴の症状を否定する negative は出力しない
+    administered_drug_name.yaml      投薬行のオーダー文から投与薬を読む規則: 監視対象の句を切り落とすパターン (narrative/_drug_names.py)
     bedside_procedure_codes.yaml     bedside procedure code (load_bedside_procedure_codes)
     death_cause_chain.yaml           死亡診断書の死因の連鎖: 直接死因になりうる合併症・終末期経過の機序・検査値で定義する発症時刻・続発コード・影響を及ぼした傷病名の区分 (load_death_cause_chain)
     death_course.yaml                死亡退院サマリーの死亡時状況と経過: 蘇生処置を行わない方針のコード・死亡時の生命維持・心肺蘇生の判定・列挙数・時間/日/週の境界・発症時期が既知の疾患型 (load_death_course)
     nutrition_care_plan.yaml         栄養管理計画書・入院診療計画書の栄養欄: 帳票が参照する食事制限を要する疾患と嚥下に関わる診断のカテゴリ (load_nutrition_care_plan)
-    death_course.yaml                死亡退院サマリーの死亡時状況と経過: 蘇生処置を行わない方針のコード・死亡時の生命維持・心肺蘇生の判定・列挙数・日/週の境界 (load_death_course)
     narrative_extras_whitelists.yaml narrative extra-context whitelist (narrative/_extra_context_builder.py)
     ja_only_fallback_sections.yaml   US H&P の JA 文字 audit 対象外 section (audit.py)
     chronic_soap_templates.yaml      慢性疾患 SOAP note template (受診の診断コードの項目、指示ではなく所見を記載。記録にない家庭記録・症状否定・身体所見は書かない)

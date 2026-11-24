@@ -57,13 +57,13 @@ from clinosim.locale.text import (
 )
 ```
 
-上記はよく使う部分集合: `clinosim.locale.loader` は `__all__` に 79 名
-— `load_*` 関数 50 個と表示 / コード lookup ヘルパー (`drug_code` /
+上記はよく使う部分集合: `clinosim.locale.loader` は `__all__` に 96 名
+— `load_*` 関数 60 個と表示 / コード lookup ヘルパー (`drug_code` /
 `lab_code` / `map_diagnosis_code` / `department_display` /
 `lab_display` / `lab_result_display` (定性結果、`shared/lab_result_terms.yaml`、
 Issue #3031) / `condition_stage_display` (病期ラベル、
 `shared/condition_stage_labels.yaml`、Issue #3032) 等) — を再 export しており、実装は `clinosim/locale/loaders/`
-(`clinical.py` / `demographics.py` / `fhir_identity.py` /
+(`clinical.py` / `country_parameters.py` / `demographics.py` / `fhir_identity.py` /
 `medical_display.py` / `narrative.py`) にある。
 
 表示名は `clinosim/codes/` にある。`load_med_terms_ja` は `load_med_terms` の
@@ -122,13 +122,13 @@ Issue #3031) / `condition_stage_display` (病期ラベル、
 clinosim/locale/
   __init__.py                     (意図的に空 — .loader / .text から
                                    直接 import)
-  loader.py                       再 export facade (79 名、うち公開
-                                   load_* 関数 50)
+  loader.py                       再 export facade (96 名、うち公開
+                                   load_* 関数 60)
   _io.py                          共有 YAML プリミティブ (_LOCALE_DIR /
                                    _country_dir /
                                    _load_yaml / fallback 既定値)
   loaders/                        トピック別 @lru_cache YAML ローダー:
-                                   clinical / demographics / fhir_identity
+                                   clinical / country_parameters / demographics / fhir_identity
                                    / medical_display / narrative
   text.py                         resolve_text (多言語テキスト解決
                                    ヘルパー)
@@ -148,20 +148,22 @@ clinosim/locale/
                                    (Issue #3140。clinosim.country_profile が
                                    読み込み・検証する。
                                    docs/design-guides/country-profile-spec.ja.md)
-  us/                             US 固有バンドル (19 YAML):
+  us/                             US 固有バンドル (22 YAML):
                                    addresses / ambulatory_visit_length /
-                                   ckd_under60_prevalence / clinic_calendar /
+                                   care_practice / ckd_under60_prevalence /
+                                   clinic_calendar /
                                    country (プロファイルの上書き) /
-                                   code_mapping_{diagnosis,drug,lab,procedure}
+                                   code_mapping_{diagnosis,discharge_disposition,drug,lab,procedure}
                                    / code_status_rates / demographics /
                                    egfr_equation /
                                    family_history_prevalence / formatting
                                    / identity / immunization_schedule /
+                                   population_genetics /
                                    marital_status (性・年齢階級別の
                                    国勢調査の配偶関係と、それに条件付けた
                                    緊急連絡先の続柄、Issue #3189) /
                                    names / reference_range_lab
-  jp/                             JP 固有バンドル (26 YAML — US 集合から
+  jp/                             JP 固有バンドル (31 YAML — US 集合から
                                    ckd_under60_prevalence と
                                    code_mapping_drug を除き、
                                    care_level_rates /
@@ -175,8 +177,10 @@ clinosim/locale/
                                    facility_identity (病院の医療機関コード、
                                    Issue #3129) /
                                    patient_instructions_ja /
-                                   practitioner_qualifications を追加)
-  shared/                         locale 間共有データ (38 YAML)。例:
+                                   practitioner_qualifications /
+                                   checkup_questionnaire /
+                                   encounter_type_profiles を追加)
+  shared/                         locale 間共有データ (42 YAML)。例:
                                    actuarial_life_table / chemo_regimens
                                    (化学療法 regimen ライブラリ) /
                                    chronic_followup / chronic_medications
