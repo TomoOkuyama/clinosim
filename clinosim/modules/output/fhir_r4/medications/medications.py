@@ -139,10 +139,11 @@ def _course_for_discharge(is_discharge: bool, duration_days: int | None, course:
     An item marked as a short course for an acute illness (``course`` ==
     ``ACUTE_COURSE``, Issue #2873) is acute. Otherwise a non-discharge
     script (i.e. an outpatient renewal) is continuous by definition. A
-    discharge script with an open-ended supply (no ``duration_days``) or a
-    supply longer than the acute-course ceiling (the 28-day renewal supply
-    of a maintenance drug, Issue #3265) is maintenance therapy handed over at
-    discharge — continuous. A discharge script with a shorter duration is a
+    hand-over script (inpatient discharge or ED take-home, Issue #3674) with
+    an open-ended supply (no ``duration_days``) or a supply longer than the
+    acute-course ceiling (the 28-day renewal supply of a maintenance drug,
+    Issue #3265) is maintenance therapy handed over at
+    discharge — continuous. A hand-over script with a shorter duration is a
     short course — acute.
     """
     if course == ACUTE_COURSE and duration_days is not None:
@@ -1384,7 +1385,10 @@ def _build_discharge_medication_request(
     # this path used a 2-branch inline decision that silently misclassified
     # emergency-encounter discharge scripts as `community` instead of the
     # HL7-canonical `outpatient`; the unified helper now emits the correct value.
-    _is_discharge = encounter_type == "inpatient"
+    # Issue #3674: an ED take-home script is a hand-over at the end of the
+    # visit like an inpatient discharge script, so a short supply is an acute
+    # course. Only the course rule uses this; the category stays `outpatient`.
+    _is_discharge = encounter_type in ("inpatient", "emergency")
     cat_code, cat_display = _derive_mr_category(
         encounter_type=encounter_type,
         is_home_med=False,
