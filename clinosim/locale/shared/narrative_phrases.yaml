@@ -1889,11 +1889,18 @@ outpatient_results:
     en: "not on today's prescription {list}"
   # Issue #3250: a drug held for a safety reason during an earlier encounter.
   hold_resumed:
-    ja: "{drug}: {date} の入院で{reason}のため保留、本日の処方で再開。"
+    ja: "{drug}: {date} に{reason}のため保留、本日の処方で再開。"
     en: "{drug}: held on {date} for {reason}, resumed on today's prescription."
   hold_continued:
-    ja: "{drug}: {date} の入院で{reason}のため保留、本日も保留を継続。"
+    ja: "{drug}: {date} に{reason}のため保留、本日も保留を継続。"
     en: "{drug}: held on {date} for {reason}, hold continued today."
+  # Issue #3699: the drug was held for the whole earlier admission.
+  hold_resumed_span:
+    ja: "{drug}: {start}〜{end} の入院中に保留 ({reason})、本日の処方で再開。"
+    en: "{drug}: held during the admission {start} to {end} ({reason}), resumed on today's prescription."
+  hold_continued_span:
+    ja: "{drug}: {start}〜{end} の入院中に保留 ({reason})、本日も保留を継続。"
+    en: "{drug}: held during the admission {start} to {end} ({reason}), hold continued today."
   med_unchanged:
     ja: "来院時の内服から処方の変更なし。"
     en: "Prescription unchanged from the medications at the start of the visit."
