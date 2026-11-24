@@ -71,7 +71,7 @@ from clinosim.modules.staff.engine import (
     StaffRoster,
     assign_staff,
 )
-from clinosim.seeding import complication_antibiotic_seed, vasopressor_start_seed
+from clinosim.seeding import adl_discharge_seed, complication_antibiotic_seed, vasopressor_start_seed
 from clinosim.simulator._daily_loop_thresholds import (
     AIRWAY_CONSCIOUSNESS_MIN,
     AIRWAY_ESCALATION_HOUR,
@@ -1408,8 +1408,27 @@ def _record_bedside_observations(stay: _Stay, run: _Run, day: int) -> None:
     apply_state_delta(run.state, "volume_status", volume_status_shift(io.net_balance_ml, patient.weight_kg))
 
     # ADL assessment (admission, weekly, discharge approach)
-    adl = _generate_adl_assessment(run.state, patient, day, stay.admission_time, rng)
+    previous_adl = run.adl_assessments[-1].barthel_score if run.adl_assessments else None
+    adl = _generate_adl_assessment(run.state, patient, day, stay.admission_time, rng, previous_score=previous_adl)
     if adl:
+        run.adl_assessments.append(adl)
+
+
+def _assess_adl_at_discharge(stay: _Stay, run: _Run, actual_los: int) -> None:
+    """Issue #3647: an alive discharge has a Barthel assessment on the discharge
+    date (admission date + ``actual_los``), from the final state. The noise comes
+    from a per-encounter sha256 sub-seed, so the stay's stream is untouched;
+    skipped when an assessment already exists that date."""
+    adl = _generate_adl_assessment(
+        run.state,
+        stay.patient,
+        actual_los,
+        stay.admission_time,
+        determinism.default_rng(adl_discharge_seed(stay.encounter_id)),
+        previous_score=run.adl_assessments[-1].barthel_score if run.adl_assessments else None,
+        at_discharge=True,
+    )
+    if adl is not None and all(a.date != adl.date for a in run.adl_assessments):
         run.adl_assessments.append(adl)
 
 
@@ -2032,6 +2051,8 @@ def _run_daily_loop(
         # Issue #3450: the discharge day starts like any day, so a resolved
         # ketoacidosis goes home on subcutaneous insulin, not on the infusion.
         _transition_ketoacidosis_to_subcutaneous(stay, run, day + 1)
+    if not run.death_occurred:
+        _assess_adl_at_discharge(stay, run, actual_los)
     icu_discharge_day = None
     if run.icu_transferred:
         icu_discharge_day, _basis = step_down_day(

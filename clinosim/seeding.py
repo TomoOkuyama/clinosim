@@ -475,6 +475,12 @@ def avpu_day_seed(patient_id: str, day: int) -> int:
     return _digest_int(f"avpu:{patient_id}:{day}", 8)
 
 
+def adl_discharge_seed(encounter_id: str) -> int:
+    """Per-encounter seed of the discharge-day Barthel assessment noise (Issue
+    #3647, 64-bit); the stay's own RNG is not read."""
+    return _digest_int(f"adl-discharge:{encounter_id}", 8)
+
+
 def complication_avpu_seed(patient_id: str, day: int, complication: str) -> int:
     """Per-(patient, hospital day, complication) seed of the AVPU level a
     consciousness-lowering complication sets on the readings from its onset

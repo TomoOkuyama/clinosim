@@ -83,6 +83,7 @@ from clinosim.modules.physiology._vital_signs_thresholds import (
 from clinosim.modules.physiology.engine import derive_observed_vitals, room_air_saturation
 from clinosim.seeding import avpu_day_seed, complication_avpu_seed, daily_output_seed
 from clinosim.simulator._adl_thresholds import (
+    ADL_ACUITY_FULL_AT,
     ADL_ASSESSMENT_INTERVAL_DAYS,
     ADL_BARTHEL_MAX,
     ADL_BARTHEL_MIN,
@@ -99,6 +100,7 @@ from clinosim.simulator._adl_thresholds import (
     ADL_COMP_TRANSFERS_MAX,
     ADL_DAY0_ACUTE_PENALTY,
     ADL_INFLAMMATION_PENALTY_SCALE,
+    ADL_MAX_GAIN_PER_ASSESSMENT,
     ADL_OLDER_AGE_PENALTY,
     ADL_OLDER_AGE_THRESHOLD,
     ADL_OLDEST_AGE_PENALTY,
@@ -109,8 +111,6 @@ from clinosim.simulator._adl_thresholds import (
     ADL_RATIO_OFFSET_FEEDING,
     ADL_RATIO_OFFSET_GROOMING,
     ADL_RATIO_OFFSET_STAIRS_DEFICIT,
-    ADL_RECOVERY_MAX_TOTAL,
-    ADL_RECOVERY_PER_DAY,
     ADL_RENAL_PENALTY_SCALE,
 )
 from clinosim.simulator._daily_io_thresholds import (
@@ -243,19 +243,13 @@ def _barthel_items(raw: dict[str, tuple[float, int]], target: int) -> dict[str, 
     return items
 
 
-def _generate_adl_assessment(
-    state: PhysiologicalState,
-    patient: PatientProfile,
-    day: int,
-    admission_time: datetime,
-    rng: np.random.Generator,
-) -> ADLAssessment | None:
-    """Generate ADL (Barthel Index) assessment. Done on admission, weekly, and discharge."""
-    # ADL assessed on admission (day 0), weekly (day 7, 14...), and approaching discharge
-    if day != 0 and day % ADL_ASSESSMENT_INTERVAL_DAYS != 0:
-        return None
-
-    # Base score depends on age and clinical state
+def _barthel_expected(state: PhysiologicalState, patient: PatientProfile, day: int) -> tuple[int, int]:
+    """The noise-free Barthel score of ``state`` on hospital day ``day`` and the
+    patient's premorbid ceiling (Issue #3647). Every assessment uses the same
+    state penalties (inflammation, perfusion, renal); the acute-illness penalty
+    is full on admission day and later scales with the state's acuity, so a
+    patient who is still febrile or hypoxemic does not recover with elapsed
+    days alone. Draws nothing."""
     age = patient.age
     base = ADL_BARTHEL_MAX
     if age >= ADL_OLDEST_AGE_THRESHOLD:
@@ -272,16 +266,38 @@ def _generate_adl_assessment(
     infl_penalty = int(state.inflammation_level * ADL_INFLAMMATION_PENALTY_SCALE)
     perf_penalty = int((1.0 - state.perfusion_status) * ADL_PERFUSION_PENALTY_SCALE)
     renal_penalty = int((1.0 - state.renal_function) * ADL_RENAL_PENALTY_SCALE)
-
-    # Day 0: worst ADL (acute admission)
     if day == 0:
-        total = max(ADL_BARTHEL_MIN, base - infl_penalty - perf_penalty - renal_penalty - ADL_DAY0_ACUTE_PENALTY)
+        acuity = 1.0
     else:
-        # Gradual recovery
-        recovery = min(day * ADL_RECOVERY_PER_DAY, ADL_RECOVERY_MAX_TOTAL)
-        total = max(ADL_BARTHEL_MIN, min(ceiling, base - infl_penalty - perf_penalty + recovery))
+        worst = max(state.inflammation_level, state.oxygenation_impairment, 1.0 - state.perfusion_status)
+        acuity = max(0.0, min(1.0, worst / ADL_ACUITY_FULL_AT))
+    acute_penalty = int(round(ADL_DAY0_ACUTE_PENALTY * acuity))
+    total = max(ADL_BARTHEL_MIN, min(ceiling, base - infl_penalty - perf_penalty - renal_penalty - acute_penalty))
+    return total, ceiling
+
+
+def _generate_adl_assessment(
+    state: PhysiologicalState,
+    patient: PatientProfile,
+    day: int,
+    admission_time: datetime,
+    rng: np.random.Generator,
+    *,
+    previous_score: int | None = None,
+    at_discharge: bool = False,
+) -> ADLAssessment | None:
+    """Generate ADL (Barthel Index) assessment on admission, weekly, and (with
+    ``at_discharge``) on the discharge day. ``previous_score`` is the stay's
+    previous assessment, which the gain is capped against (Issue #3647)."""
+    if not at_discharge and day != 0 and day % ADL_ASSESSMENT_INTERVAL_DAYS != 0:
+        return None
+
+    total, ceiling = _barthel_expected(state, patient, day)
+    caps = barthel_item_caps(patient)
 
     total = int(rng.normal(total, ADL_BARTHEL_NOISE_SD))
+    if previous_score is not None:
+        total = min(total, previous_score + ADL_MAX_GAIN_PER_ASSESSMENT)
     total = max(ADL_BARTHEL_MIN, min(ceiling, total))
 
     return barthel_assessment(total, caps, (admission_time + timedelta(days=day)).date())

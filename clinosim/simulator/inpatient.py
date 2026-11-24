@@ -1171,6 +1171,8 @@ def _simulate_patient(
         all_vitals = [v for v in all_vitals if v.timestamp <= snapshot_dt]
         all_lab_results = [r for r in all_lab_results if r.result_datetime <= snapshot_dt]
         all_mars = [m for m in all_mars if (m.actual_datetime or m.scheduled_datetime) <= snapshot_dt]
+        # An assessment dated after the snapshot (the discharge-day Barthel, Issue #3647) is not yet made.
+        all_adl = [a for a in all_adl if a.date <= snapshot_dt.date()]
         # Discharge prescription not yet issued
         discharge_rx = None
     else:
