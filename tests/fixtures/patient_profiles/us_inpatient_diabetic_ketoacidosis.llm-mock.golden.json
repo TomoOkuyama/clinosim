@@ -218,7 +218,7 @@
       },
       "sections": {
         "admission_summary": "Chief complaint: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Admitted for inpatient care.",
-        "discharge_diagnoses": "Type 2 diabetes mellitus with ketoacidosis without coma (E11.10). Secondary diagnoses: aspiration pneumonia, DVT.",
+        "discharge_diagnoses": "Type 2 diabetes mellitus with ketoacidosis without coma (E11.10). Secondary diagnoses: Pneumonitis due to inhalation of food and vomit (J69.0), Acute embolism and thrombosis of unspecified deep veins of unspecified lower extremity (I82.409).",
         "discharge_instructions": "[Mock LLM response #5 — discharge_instructions]",
         "discharge_medications": "Insulin Glargine 11U SC daily x28d",
         "follow_up": "Follow up with PCP in 7-10 days.",

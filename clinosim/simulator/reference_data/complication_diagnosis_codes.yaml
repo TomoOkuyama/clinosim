@@ -1,0 +1,48 @@
+# Which in-hospital complications are a coded diagnosis of the stay (Issue #3673).
+#
+# `complications_occurred` tokens (the names disease protocols fire, with the
+# onset of the event) that name a disease. The inpatient simulator turns each
+# one into a dated `clinical_diagnosis.working_diagnoses` entry (source
+# `in_hospital_complication`), which the FHIR output emits as a secondary
+# encounter-diagnosis Condition with the onset of the complication, so the
+# Condition, Encounter.diagnosis and the discharge summary agree with the
+# narrated course. A token absent here is an event with no diagnosis code (an
+# intubation, a bleeding event, an arrhythmia, a mechanism) and stays a
+# narrative-only complication. The delirium tokens are coded by the delirium
+# rule (`delirium_derivation.yaml`), not here.
+#
+# Codes are the internal diagnosis codes the rest of the simulator uses
+# (ICD-10-CM granularity); the locale mapping (`locale/<cc>/code_mapping_
+# diagnosis.yaml`, `map_diagnosis_code`) turns them into the US ICD-10-CM leaf
+# or the JP WHO ICD-10 code at output time. Every code is already registered in
+# `codes/data/icd-10-cm.yaml` and `icd-10.yaml` after that mapping; a token
+# whose code would need a new registered code (for example C. difficile
+# enterocolitis, A04.7) is left out until the code table carries it with its
+# verified Japanese display. Where `death_cause_chain.yaml`
+# `immediate_cause_complications` names a token, the code is the same (guard
+# test).
+metadata:
+  kind: reference
+  name: complication_diagnosis_codes
+  source: clinosim
+
+codes:
+  acute_kidney_injury: N17.9
+  dvt: I82.40
+  pulmonary_embolism: I26.99
+  recurrent_pe: I26.99
+  respiratory_failure: J96.00
+  respiratory_failure_requiring_niv: J96.00
+  acute_respiratory_distress_syndrome: J80
+  ards: J80
+  ARDS: J80
+  disseminated_intravascular_coagulation: D65
+  sepsis: A41.9
+  urinary_tract_infection: N39.0
+  aspiration_pneumonia: J69.0
+  hospital_acquired_pneumonia: J18.9
+  pneumothorax: J93.9
+  acute_heart_failure: I50.9
+  cardiogenic_shock: R57.0
+  cerebral_edema: G93.6
+  hepatorenal_syndrome: K76.7
