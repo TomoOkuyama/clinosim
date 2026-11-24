@@ -47,8 +47,8 @@ every previously-inline scalar so a single edit propagates.
   `_reference_ranges_by_sex`; `get_lab_unit`;
   `compute_news2` / `compute_gcs` / `compute_braden` /
   `compute_morse_fall_risk` (nursing scores);
-  `enrich_nursing` POST_RECORDS enricher (fills NEWS2/GCS on each
-  vital, generates daily Braden/Morse);
+  `enrich_nursing` POST_RECORDS enricher (fills GCS on each
+  vital and NEWS2 on each complete vital set, generates daily Braden/Morse);
   `has_microbiology(disease_id)` + `culture_draws(...)` / `culture_results(...)` +
   `antibiotic_loinc_lookup()`; the threshold sub-modules with
   clinical citations.
@@ -267,8 +267,10 @@ Registered in
 
 - **`nursing`** — `stage=POST_RECORDS`, `order=20`, always-on. Entry
   point: `clinosim.modules.observation.nursing_enricher.enrich_nursing`.
-  Fills NEWS2 + GCS on every vital record; generates daily Braden +
-  Morse risk assessments.
+  Fills GCS on every vital record and NEWS2 on every complete vital set
+  (all `news2.required_inputs` of `nursing_scores.yaml` recorded: not on
+  temperature-only rechecks or HR/SpO2 monitor rows, Issue #3644); generates
+  daily Braden + Morse risk assessments.
 
 The `nursing_assignment` enricher registered by
 [`clinosim.modules.nursing`](../nursing/README.md) (POST_ENCOUNTER

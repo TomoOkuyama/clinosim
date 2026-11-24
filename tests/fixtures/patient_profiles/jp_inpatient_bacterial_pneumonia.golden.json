@@ -1312,6 +1312,7 @@
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
         "ctx.medications.today",
@@ -1326,7 +1327,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 5 日目\n記録者: 若林 淳\n患者状態: BP 121/72, HR 101, SpO2 94%, T 37.9°C、酸素投与: 鼻カニューラ 1 L/分。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 2。\n38.9°Cの発熱あり、経過観察。\n前日 (6/18) の水分出納: 摂取 1166 mL、排出 1115 mL (うち尿 331 mL)、バランス +51 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 1166 mL。\nADL: Barthel 指数 60/100 (中等度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(日勤)】 入院 5 日目\n記録者: 若林 淳\n患者状態: BP 121/72, HR 101, SpO2 94%, T 37.9°C、酸素投与: 鼻カニューラ 1 L/分。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 2。\n38.9°Cの発熱あり、経過観察。\n前日 (6/18) の水分出納: 摂取 1166 mL、排出 1115 mL (うち尿 331 mL)、バランス +51 mL。\n酸素: 鼻カニューラ 1 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 1166 mL。\nADL: Barthel 指数 60/100 (中等度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-34-evening": {
@@ -1340,6 +1341,7 @@
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
         "ctx.medications.today",
@@ -1354,7 +1356,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 5 日目\n記録者: 若林 淳\n患者状態: BP 122/71, HR 100, SpO2 92%, T 38.1°C、酸素投与: 鼻カニューラ 2 L/分。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 最大 3、最終 2。\n38.9°Cの発熱あり、経過観察。\n前日 (6/18) の水分出納: 摂取 1166 mL、排出 1115 mL (うち尿 331 mL)、バランス +51 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 1166 mL。\nADL: Barthel 指数 60/100 (中等度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(準夜)】 入院 5 日目\n記録者: 若林 淳\n患者状態: BP 122/71, HR 100, SpO2 92%, T 38.1°C、酸素投与: 鼻カニューラ 2 L/分。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 最大 3、最終 2。\n38.9°Cの発熱あり、経過観察。\n前日 (6/18) の水分出納: 摂取 1166 mL、排出 1115 mL (うち尿 331 mL)、バランス +51 mL。\n酸素: 鼻カニューラ 2 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 1166 mL。\nADL: Barthel 指数 60/100 (中等度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-35-night": {
@@ -2262,6 +2264,7 @@
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
         "ctx.medications.today",
@@ -2276,7 +2279,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 16 日目\n記録者: 若林 淳\n患者状態: BP 117/73, HR 102, SpO2 95%, T 37.5°C、酸素投与: 鼻カニューラ 1 L/分。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 1。\n38.6°Cの発熱あり、経過観察。\n前日 (6/29) の水分出納: 摂取 1194 mL、排出 1211 mL (うち尿 537 mL)、バランス -17 mL。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 1194 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
+      "text": "【看護記録(日勤)】 入院 16 日目\n記録者: 若林 淳\n患者状態: BP 117/73, HR 102, SpO2 95%, T 37.5°C、酸素投与: 鼻カニューラ 1 L/分。\n与薬: メロペネム 1g 静注 8時間毎、ヘパリン。\n疼痛あり、NRS 1。\n38.6°Cの発熱あり、経過観察。\n前日 (6/29) の水分出納: 摂取 1194 mL、排出 1211 mL (うち尿 537 mL)、バランス -17 mL。\n酸素: 鼻カニューラ 1 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 1194 mL。\nADL: Barthel 指数 95/100 (自立)、移動は自立、排泄は自立。必要な介助を実施。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-67-evening": {

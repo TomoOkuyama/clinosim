@@ -761,6 +761,9 @@ def _generate_vitals(
                 spo2=round(raw["spo2"], 1) if "spo2" in fields else None,
                 pain_score=pain,
                 consciousness_level=loc,
+                # Issue #3644: a row that did not measure SpO2 did not measure oxygen,
+                # so it does not assert the patient is off oxygen.
+                on_supplemental_oxygen=False if "spo2" in fields else None,
                 nursing_note=note,
                 measured_by=nurse_id,
                 data_source="manual",

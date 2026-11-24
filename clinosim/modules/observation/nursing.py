@@ -68,6 +68,16 @@ def _band_points(value, bands) -> int:
     return 0
 
 
+def news2_inputs_complete(vs: dict) -> bool:
+    """True when ``vs`` records every parameter NEWS2 aggregates (the
+    ``required_inputs`` of ``nursing_scores.yaml``; RCP 2017: respiratory rate,
+    SpO2, temperature, systolic BP, pulse, consciousness). A temperature-only
+    recheck or an HR/SpO2 monitor row is not a NEWS2 set (Issue #3644); the
+    supplemental-oxygen flag is a measured yes/no on every SpO2 row, so it is
+    not listed."""
+    return all(vs.get(name) not in (None, "") for name in _scores()["news2"]["required_inputs"])
+
+
 def compute_news2(vs: dict) -> int:
     cfg = _scores()["news2"]
     total = 0

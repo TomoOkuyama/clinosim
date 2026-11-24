@@ -112,6 +112,7 @@ def _check_ascending(name: str, lows: list[float]) -> None:
 class _News2(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+    required_inputs: list[str] = Field(min_length=1)
     respiratory_rate: list[_Band] = Field(min_length=1)
     spo2_scale1: list[_Band] = Field(min_length=1)
     on_supplemental_oxygen: _NonNegInt

@@ -41,7 +41,7 @@ previously-inline scalar を全て lift し、単一 edit が全経路に伝播�
   `_generate_qualitative_result`, `_reference_ranges_by_sex`、
   `get_lab_unit`、`compute_news2` / `compute_gcs` / `compute_braden`
   / `compute_morse_fall_risk` (看護スコア)、`enrich_nursing`
-  POST_RECORDS enricher (各 vital record に NEWS2/GCS を埋め、
+  POST_RECORDS enricher (各 vital record に GCS を、全項目がそろった測定セットに NEWS2 を埋め、
   日次 Braden/Morse を生成)、`has_microbiology(disease_id)` +
   `culture_draws(...)` / `culture_results(...)` + `antibiotic_loinc_lookup()`、
   臨床引用付きの threshold sub-module 群。
