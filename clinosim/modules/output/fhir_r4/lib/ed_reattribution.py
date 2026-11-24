@@ -115,13 +115,46 @@ def reattribute_encounter_to_ed_bridge(resource: dict, ctx: Any) -> None:
 def vital_sign_encounter_id(vs: Any, ctx: Any) -> str:
     """CIF encounter id a vital-sign set's Observations reference: the ED
     bridge ``{IMP}-ED`` for the ED arrival set of a via-ED admission
-    (``data_source == ED_TRIAGE_DATA_SOURCE``, Issue #3243), else the
-    record's primary encounter (``ctx.primary_enc_id``)."""
+    (``data_source == ED_TRIAGE_DATA_SOURCE``, Issue #3243); else, when the
+    set was taken outside the primary encounter's period, the record's other
+    outpatient encounter (the companion vaccination visit) whose period
+    holds its timestamp (Issue #3656); else the record's primary encounter
+    (``ctx.primary_enc_id``)."""
     if get_attr_or_key(vs, "data_source", "") == ED_TRIAGE_DATA_SOURCE:
         imp_id = _resolve_ed_imp_id(ctx)
         if imp_id is not None:
             return f"{imp_id}-ED"
-    return str(getattr(ctx, "primary_enc_id", "") or "")
+    primary = str(getattr(ctx, "primary_enc_id", "") or "")
+    at = _as_datetime(get_attr_or_key(vs, "timestamp", None))
+    record = getattr(ctx, "record", None)
+    encounters = record.get("encounters", []) if isinstance(record, dict) else []
+    if at is None or not encounters:
+        return primary
+    held: list[str] = []
+    for enc in encounters:
+        eid = str(get_attr_or_key(enc, "encounter_id", "") or "")
+        start = _as_datetime(get_attr_or_key(enc, "admission_datetime", None))
+        end = _as_datetime(get_attr_or_key(enc, "discharge_datetime", None))
+        if not eid or start is None or end is None or not start <= at <= end:
+            continue
+        if eid == primary:
+            return primary
+        etype = str(get_attr_or_key(enc, "encounter_type", "") or "").lower()
+        if etype in ("outpatient", "amb", "ambulatory"):
+            held.append(eid)
+    return held[0] if held else primary
+
+
+def _as_datetime(value: Any) -> datetime | None:
+    """``value`` (a datetime or an ISO string, tz dropped) as a naive datetime."""
+    if isinstance(value, str):
+        try:
+            value = datetime.fromisoformat(value)
+        except ValueError:
+            return None
+    if not isinstance(value, datetime):
+        return None
+    return value.replace(tzinfo=None)
 
 
 def _resolve_ed_imp_id(ctx: Any) -> str | None:

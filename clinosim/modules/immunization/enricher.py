@@ -66,6 +66,26 @@ def _febrile_celsius() -> float:
     return float(data.get("febrile_celsius", _FALLBACK_FEBRILE_CELSIUS))
 
 
+class _VaccinationVisit(BaseModel):
+    """Shape of ``reference_data/vaccination_visit.yaml``."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    duration_minutes: int = Field(gt=0)
+
+
+_VISIT_PATH = Path(__file__).parent / "reference_data" / "vaccination_visit.yaml"
+_FALLBACK_VISIT_MINUTES = 15
+
+
+@lru_cache(maxsize=1)
+def vaccination_visit_minutes() -> int:
+    """Length of a synthesised vaccination visit in minutes (Issue #3656)."""
+    data = load_validated_yaml(_VISIT_PATH, _VaccinationVisit)
+    return int(data.get("duration_minutes", _FALLBACK_VISIT_MINUTES))
+
+
 def acute_visit_encounter_ids(records: list) -> set[str]:
     """Ids of the encounters a routine dose is not given at (Issue #3655): a
     pediatric acute-illness visit (``condition_event.visit_condition_id``) and
@@ -410,7 +430,7 @@ def _synthesize_vaccination_encounter(
         department_id="primary_care",
         attending_physician_id=attending_physician_id,
         admission_datetime=adm,
-        discharge_datetime=adm,
+        discharge_datetime=adm + timedelta(minutes=vaccination_visit_minutes()),
         chief_complaint=chief_en,
         chief_complaint_ja=chief_ja if is_jp(country) else "",
         priority="R",  # routine

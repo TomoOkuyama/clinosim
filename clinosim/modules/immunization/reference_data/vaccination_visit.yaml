@@ -1,0 +1,10 @@
+# The companion vaccination visit the immunization enricher synthesises for a
+# dose no simulated visit holds (Issue #3656). The visit covers the
+# pre-vaccination check, the dose and the observation after it; 15 minutes is
+# a clinosim modelling choice (no source read in this work fixes it).
+metadata:
+  kind: reference
+  name: vaccination_visit
+  source: clinosim
+
+duration_minutes: 15

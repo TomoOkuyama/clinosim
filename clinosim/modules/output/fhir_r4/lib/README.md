@@ -94,7 +94,7 @@ rename).
     procedures dated in the ED window `[admission - admitted_ed_stay(), admission)` go to the bridge),
     and `vital_sign_encounter_id(vs, ctx)`, which
     places the ED arrival vital-sign set (`data_source == "ed_triage"`)
-    and its NEWS2 / GCS on that bridge (Issue #3243).
+    and its NEWS2 / GCS on that bridge (Issue #3243), and a set taken outside the primary encounter's period on the record's other outpatient encounter whose period holds it (the companion vaccination visit, Issue #3656).
   - `ids.py` — opaque Resource.id derivation (Issue #349):
     `CLINOSIM_IDENTIFIER_SYSTEM_PREFIX = "urn:clinosim:identifier:"`,
     `structural_key_system(kind)` (returns

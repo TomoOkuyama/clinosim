@@ -192,6 +192,8 @@ physician roster), hosted once per patient. When any `ENC-VAX-*`
 encounter exists, `document.engine.document_enricher` is re-invoked so
 those encounters get their document stubs.
 
+A synthesised `ENC-VAX-*` encounter lasts `duration_minutes` (15, `reference_data/vaccination_visit.yaml`; Issue #3656), so its pre-vaccination check and the dose fall inside its period; the FHIR builder gives a vital-sign set taken outside the primary encounter's period the record's other outpatient encounter whose period holds it (`ed_reattribution.vital_sign_encounter_id`).
+
 Each synthesised `ENC-VAX-*` encounter also gets the visit's pre-vaccination
 vital signs (Issue #3464): one `VitalSignRecord` at the visit instant,
 temperature and pulse for a child and additionally blood pressure for an
@@ -290,6 +292,7 @@ clinosim/modules/immunization/
   enricher.py                     POST_RECORDS enrichment (patient-scoped sub-RNG)
   visits.py                       doses given at vaccination (Z23) visits
   reference_data/
+    vaccination_visit.yaml        duration_minutes of a synthesised vaccination visit
     vaccination_precautions.yaml  febrile_celsius: visits a routine dose is not given at
 ```
 
