@@ -4,6 +4,7 @@ Issue #2530)."""
 
 from __future__ import annotations
 
+import re
 from datetime import date, datetime
 from typing import Any
 
@@ -68,6 +69,19 @@ def _append_tz_if_missing(s: str) -> str:
     return s + _JST_TZ_SUFFIX
 
 
+_FRACTION_RE = re.compile(r"(T\d{2}:\d{2}:\d{2})\.\d+")
+
+
+def truncate_fraction(s: str) -> str:
+    """Drop fractional seconds from an ISO datetime string (truncate, never round).
+
+    The record keeps whole seconds at best (Issue #3698); six fractional digits
+    are false precision and make the same clinical time differ between
+    resources. A rounding rule would cross minute / day boundaries.
+    """
+    return _FRACTION_RE.sub(r"\1", s)
+
+
 def to_fhir_datetime(value: Any) -> str:
     """Normalize a datetime-like value to a FHIR R4 ``dateTime`` string with TZ.
 
@@ -90,7 +104,7 @@ def to_fhir_datetime(value: Any) -> str:
         s = str(value)
         if len(s) >= 11 and s[10] == " ":
             s = s[:10] + "T" + s[11:]
-    return _append_tz_if_missing(s)
+    return _append_tz_if_missing(truncate_fraction(s))
 
 
 def _with_country_tz(s: str, tz: str) -> str:
@@ -123,7 +137,7 @@ def to_fhir_deceased_datetime(value: Any, country: str) -> str:
     tz = tz_suffix_for_country(country)
     # Full datetime object → its ISO form, at the country's TZ when naive.
     if isinstance(value, datetime):
-        return _with_country_tz(value.isoformat(), tz)
+        return _with_country_tz(truncate_fraction(value.isoformat()), tz)
     # date object → end-of-day at the country's TZ.
     if isinstance(value, date) and not isinstance(value, datetime):
         return f"{value.isoformat()}T23:59:59{tz}"
@@ -133,10 +147,10 @@ def to_fhir_deceased_datetime(value: Any, country: str) -> str:
     # country's TZ (Issue #2984: the post-emit TZ walker does not visit
     # ``deceasedDateTime``, so the JST default must not leak into US).
     if "T" in s and len(s) >= 11:
-        return _with_country_tz(s, tz)
+        return _with_country_tz(truncate_fraction(s), tz)
     # Space-separated datetime → normalize the separator then forward.
     if len(s) >= 11 and s[10] == " ":
-        return _with_country_tz(s[:10] + "T" + s[11:], tz)
+        return _with_country_tz(truncate_fraction(s[:10] + "T" + s[11:]), tz)
     # Date-only string (``YYYY-MM-DD``) → expand to end-of-day.
     if len(s) == 10 and s[4] == "-" and s[7] == "-":
         return f"{s}T23:59:59{tz}"
@@ -153,7 +167,7 @@ def to_fhir_instant(value: Any) -> str:
     if value is None or value == "":
         return ""
     if isinstance(value, datetime):
-        s = value.isoformat()
+        s = truncate_fraction(value.isoformat())
         # ensure seconds present
         if "." not in s.split("T", 1)[1] and s.count(":") == 2:
             pass  # already has seconds
@@ -170,6 +184,7 @@ def to_fhir_instant(value: Any) -> str:
     # date-only string → append midnight
     if "T" not in s and len(s) == 10:
         return f"{s}T00:00:00{_JST_TZ_SUFFIX}"
+    s = truncate_fraction(s)
     # ensure seconds present
     if s.count(":") == 1:
         s += ":00"
