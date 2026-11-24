@@ -183,6 +183,17 @@ their records, then binds each dose (deterministic, no rng):
    (`enricher.acute_visit_encounter_ids`); the dose takes a well, vaccination
    or follow-up visit, else its own `ENC-VAX-*` visit.
 
+A tetanus toxoid dose given in the emergency department (a one-time order
+whose administration the ED records) is also an Immunization (Issue #3685):
+`enricher.ed_vaccine_doses` adds, for each given administration of a drug of
+`reference_data/ed_vaccine_doses.yaml` `drug_cvx` (`tetanus_toxoid` -> CVX 35),
+a completed dose on the administration's date, bound to its order's
+encounter, with a synthetic lot and the administering nurse, once per patient
+however many records carry it. A scheduled tetanus-containing dose
+(`tetanus_containing_cvx`: 35, 113, 115) within `after_wound_dose_days` (1826,
+5 years) after it is not given (`drop_wound_covered_doses`; maternal Tdap and
+the paediatric series are untouched). No rng draw.
+
 A dose still unbound and dated before the simulation window start
 (`config.time_range[0]`) is marked `primary_source=False` and left
 unlinked. An in-window orphan gets a synthesised outpatient
@@ -280,7 +291,7 @@ encounter documents).
   | `coverage_by_age_sex` | `{"age_band": {sex: rate}}` in [0, 1] (non-paediatric branches). |
 - CVX code table:
   [`clinosim/codes/data/cvx.yaml`](../../codes/data/cvx.yaml)
-  — 38 codes.
+  — 39 codes.
   FHIR system URI `http://hl7.org/fhir/sid/cvx`.
 
 ## Directory contents
@@ -292,6 +303,7 @@ clinosim/modules/immunization/
   enricher.py                     POST_RECORDS enrichment (patient-scoped sub-RNG)
   visits.py                       doses given at vaccination (Z23) visits
   reference_data/
+    ed_vaccine_doses.yaml         ED one-time vaccine drug -> CVX; tetanus booster reset
     vaccination_visit.yaml        duration_minutes of a synthesised vaccination visit
     vaccination_precautions.yaml  febrile_celsius: visits a routine dose is not given at
 ```

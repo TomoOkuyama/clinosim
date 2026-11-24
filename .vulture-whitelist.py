@@ -1039,3 +1039,5 @@ generate_immunizations  # public API without a country (Issue #3683); the enrich
 bind_to_vaccination_visits  # public API without a country (Issue #3684); the enricher calls bind_to_vaccination_visits_for_country, tests call this
 _.febrile_celsius  # _VaccinationPrecautions field (validated yaml key, read by key in _febrile_celsius, Issue #3655)
 _.required_inputs  # modules/observation/_reference_models.py _News2 (read via the yaml dict, Issue #3644)
+_.tetanus_containing_cvx  # _EdVaccineDoses field (validated yaml key, read by key in drop_wound_covered_doses, Issue #3685)
+_.after_wound_dose_days  # _EdVaccineDoses field (validated yaml key, read by key in drop_wound_covered_doses, Issue #3685)
