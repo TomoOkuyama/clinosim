@@ -393,7 +393,7 @@ def test_delivery_encounter_surfaces_complications_as_working_dx_1285() -> None:
             "lmp": lmp,
             "edd": lmp + timedelta(days=280),
             "planned_delivery_date": delivery_dt.date(),
-            "complications": ["O24.9", "O60.1"],
+            "complications": ["O24.9", "O14.9"],
         },
         period_seq=0,
     )
@@ -407,11 +407,13 @@ def test_delivery_encounter_surfaces_complications_as_working_dx_1285() -> None:
         hospital_ops={},
     )
     mother_rec = records[0]
+    # Issue #3661: the first complication is the principal diagnosis, the
+    # others are working diagnoses.
+    assert mother_rec.clinical_diagnosis.admission_diagnosis_code == "O24.9"
     wd_codes = {d.get("disease_id") for d in mother_rec.clinical_diagnosis.working_diagnoses}
-    assert "O24.9" in wd_codes, "GDM must land in working_diagnoses"
-    assert "O60.1" in wd_codes, "preterm labor must land in working_diagnoses"
+    assert wd_codes == {"O14.9"}, "the other complication must land in working_diagnoses"
     assert "O24.9" in mother_rec.condition_event.ground_truth_diseases
-    assert "O60.1" in mother_rec.condition_event.ground_truth_diseases
+    assert "O14.9" in mother_rec.condition_event.ground_truth_diseases
     # Z37.0 (single liveborn outcome) is still present
     assert "Z37.0" in mother_rec.condition_event.ground_truth_diseases
     assert mother_rec.condition_event.condition_type == "mixed"

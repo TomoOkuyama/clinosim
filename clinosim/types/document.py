@@ -263,6 +263,12 @@ class NarrativeContext:
     # since the previous visit.
     interval_encounters: list[dict[str, Any]] = field(default_factory=list)
 
+    # Issue #3661: the structured facts of a delivery stay (the mother's record
+    # ``extensions["delivery"]``: mode, gestational_age_days, complication_codes);
+    # empty for any other record. A note states the delivery from this, not from
+    # the admission diagnosis (a complicated delivery is not admitted as O80 / O82).
+    delivery: dict[str, Any] = field(default_factory=dict)
+
     # === chain 1a adv-1 (I-1): discharge prescription, separated ===
     # Normalized discharge_prescription.items ({"drug_name", "dose"} per
     # entry). ONLY source for the discharge_medications narrative section —

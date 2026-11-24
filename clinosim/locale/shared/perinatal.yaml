@@ -163,6 +163,18 @@ lifecycle:
 complications:
   # ICD-10 code, human-readable name (JA/EN), Bernoulli probability.
   # Each row is one complication.
+  #
+  # A drawn code is kept on the delivery only when it fits the birth the
+  # record describes (Issue #3661; the draw itself is never skipped, so the
+  # sampler's random stream does not move):
+  #   gestational_weeks_below: the code applies only to a delivery before this
+  #     many completed weeks (O60.1 is a preterm delivery: below 37 weeks, the
+  #     ICD-10 / WHO definition of preterm). Every simulated delivery is at
+  #     term (280 days +- 7), so it is never kept until preterm births are
+  #     modelled.
+  #   modes: the delivery modes the code applies to (obstructed labor ends in
+  #     a cesarean; it is incoherent with a spontaneous vaginal delivery).
+  # A row with neither key applies to every delivery.
   bernoulli_draws:
     - code: "O24.9"     # Diabetes mellitus in pregnancy, unspecified
       probability: 0.06
@@ -172,8 +184,10 @@ complications:
       probability: 0.05
     - code: "O60.1"     # Preterm labor with preterm delivery
       probability: 0.10
+      gestational_weeks_below: 37
     - code: "O64.9"     # Obstructed labor due to malposition, unspecified
       probability: 0.04
+      modes: [cesarean]
 
 # ---------------------------------------------------------------------------
 # Cesarean-section share (session 98 F7 fix — Incr 1.5 clinical realism).

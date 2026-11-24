@@ -110,6 +110,8 @@ def build_narrative_context(
         # Vitamin K / ophthalmic prophylaxis MAR flags). Empty for
         # non-newborn records.
         newborn_workup=newborn_workup,
+        # Issue #3661: the structured delivery facts of a mother's record.
+        delivery=_delivery_extension(record),
         # Issue #3256: code status and ICU transfer (death summary).
         code_status=str(_o(record, "code_status", "") or ""),
         icu_transferred=bool(_o(record, "icu_transferred", False)),
@@ -230,6 +232,14 @@ def icu_transfer_day(value: Any) -> int:
     """``record.icu_transferred_day`` (or ``icu_discharge_day``) as an int, -1
     when the record has none."""
     return int(value) if isinstance(value, int) else -1
+
+
+def _delivery_extension(record: Any) -> dict[str, Any]:
+    """``record.extensions["delivery"]`` (Issue #3661) as a dict; ``{}`` for a
+    record that is not a delivery stay."""
+    extensions = _o(record, "extensions", None) or {}
+    delivery = extensions.get("delivery") if isinstance(extensions, dict) else None
+    return dict(delivery) if isinstance(delivery, dict) else {}
 
 
 def _build_newborn_workup(record: Any, patient: Any) -> dict[str, Any]:
