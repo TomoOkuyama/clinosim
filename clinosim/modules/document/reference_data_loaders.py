@@ -666,6 +666,7 @@ class DeliveryExam(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     admission_codes: dict[str, str] = Field(min_length=1)
+    outcome_prefixes: list[str] = Field(min_length=1)
     modes: dict[str, DeliveryModeExam] = Field(min_length=1)
 
     @model_validator(mode="after")

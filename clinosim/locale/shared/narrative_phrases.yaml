@@ -551,6 +551,11 @@ ap_assessment:
   disease_severity_line:
     ja: "病態: {disease} ({severity})。"
     en: "Working diagnosis: {disease} (severity: {severity})."
+  # A working diagnosis with no recorded severity (a diagnosis code of a
+  # delivery stay, Issue #3671).
+  disease_line:
+    ja: "病態: {disease}。"
+    en: "Working diagnosis: {disease}."
   comorbidities_line:
     ja: "併存疾患: {list}。"
     en: "Comorbidities: {list}."

@@ -104,6 +104,9 @@ stroke:
 # an LMP. Contractions are written only for the spontaneous delivery.
 delivery:
   admission_codes: {O80: vaginal, O82: cesarean}
+  # ICD-10 prefixes of the birth outcome (Z37 outcome of delivery): recorded
+  # with the delivery, not a working diagnosis of the admission (Issue #3671).
+  outcome_prefixes: [Z37]
   modes:
     vaginal:
       general:
