@@ -76,6 +76,7 @@ from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.modules.output.fhir_r4.lib.ed_reattribution import (
     reattribute_encounter_to_ed_bridge as _reattribute_encounter_to_ed_bridge,
 )
+from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_deceased_datetime
 from clinosim.modules.output.fhir_r4.lib.generator_metadata import write_generator_metadata as _write_generator_metadata
 from clinosim.modules.output.fhir_r4.lib.inline_bb import (
     _bb_conditions,
@@ -877,7 +878,13 @@ def _build_bundle(
     # after it (``Observation.issued``) and stay in the record.
     _pat_dod_str = patient_data.get("date_of_death") or patient_data.get("dod")
     if _pat_dod_str:
-        entries = _drop_entries_after_death(entries, str(_pat_dod_str)[:10], lang_for(country), country)
+        entries = _drop_entries_after_death(
+            entries,
+            str(_pat_dod_str)[:10],
+            lang_for(country),
+            country,
+            death_iso=to_fhir_deceased_datetime(patient_data.get("death_datetime"), country) or None,
+        )
 
     # Issue #945 (2026-08-30): post-snapshot event gate. Universal
     # bundle-finalize filter mirroring #928 death filter — for inpatients
@@ -1392,7 +1399,44 @@ def _drop_entries_after_snapshot(entries: list[dict], snapshot_iso: str) -> tupl
     return kept, dropped, total_scrubbed
 
 
-def _drop_entries_after_death(entries: list[dict], dod_iso: str, lang: str, country: str) -> list[dict]:
+def _clip_period_to_death(period: dict, death_end: str, dod_iso: str) -> bool:
+    """Clip a ``period`` that ends after the death date to ``death_end`` (a full dateTime).
+
+    Returns True when the period ended after the death date (Issue #3633).
+    """
+    end = period.get("end", "")
+    if isinstance(end, str) and end and end[:10] > dod_iso:
+        period["end"] = death_end
+        return True
+    return False
+
+
+def _clip_encounter_history_to_death(res: dict, death_end: str, dod_iso: str) -> None:
+    """Clip ``classHistory`` and ``location`` periods of an Encounter to the death.
+
+    An entry that starts after the death date is dropped; one that ends after it
+    ends at the death (Issue #3633: the Encounter's ``period`` and its history
+    must tell one story).
+    """
+    for key in ("classHistory", "location"):
+        items = res.get(key)
+        if not isinstance(items, list):
+            continue
+        kept_items = []
+        for item in items:
+            per = item.get("period") if isinstance(item, dict) else None
+            if isinstance(per, dict):
+                start = per.get("start", "")
+                if isinstance(start, str) and start and start[:10] > dod_iso:
+                    continue
+                _clip_period_to_death(per, death_end, dod_iso)
+            kept_items.append(item)
+        res[key] = kept_items
+
+
+def _drop_entries_after_death(
+    entries: list[dict], dod_iso: str, lang: str, country: str, death_iso: str | None = None
+) -> list[dict]:
     """Filter out bundle entries whose timestamp is after the patient's date of death.
 
     Issue #926: universal safety gate applied per-record in `_build_bundle`.
@@ -1415,6 +1459,10 @@ def _drop_entries_after_death(entries: list[dict], dod_iso: str, lang: str, coun
     """
     kept: list[dict] = []
     dropped_ids: set[str] = set()
+    # Issue #3633: a clipped Encounter end stays a full dateTime — the time of
+    # death when known, otherwise the end of the death day (as the Patient's
+    # deceasedDateTime does).
+    death_end = to_fhir_deceased_datetime(death_iso or dod_iso, country)
     for e in entries:
         res = e.get("resource", {}) if isinstance(e, dict) else {}
         rtype = res.get("resourceType", "")
@@ -1460,9 +1508,7 @@ def _drop_entries_after_death(entries: list[dict], dod_iso: str, lang: str, coun
             # to dod, and flip a non-exp `dischargeDisposition` to `exp`
             # so the resource's active period ends at the death event.
             if rtype == "Encounter":
-                end = p.get("end", "")
-                if isinstance(end, str) and end and end[:10] > dod_iso:
-                    p["end"] = dod_iso
+                if _clip_period_to_death(p, death_end, dod_iso):
                     res["period"] = p
                     hospitalization = res.get("hospitalization") or {}
                     disp = hospitalization.get("dischargeDisposition") or {}
@@ -1477,6 +1523,7 @@ def _drop_entries_after_death(entries: list[dict], dod_iso: str, lang: str, coun
                         if _death:
                             hospitalization["dischargeDisposition"] = _death
                             res["hospitalization"] = hospitalization
+                _clip_encounter_history_to_death(res, death_end, dod_iso)
             kept.append(e)
             continue
         after_death = False

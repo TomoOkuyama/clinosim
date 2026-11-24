@@ -268,4 +268,5 @@ def _dispatch_one_life_event(event: LifeEvent, ctx: ForwardContext) -> None:
         config=ctx.config,
         master_seed=ctx.master_seed,
         demo=ctx.demo,
+        cutoff=ctx.cutoff,
     )

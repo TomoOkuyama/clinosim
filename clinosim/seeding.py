@@ -364,6 +364,7 @@ PHASE_INPATIENT_SIM = 0x50494E50  # "PINP"
 PHASE_READMISSION = 0x50524541  # "PREA"
 PHASE_OUTPATIENT_CAL = 0x504F5054  # "POPT"
 PHASE_ED_VISIT = 0x50454456  # "PEDV"
+PHASE_DEATH_DEFERRAL = 0x50444546  # "PDEF"
 
 _PHASE_OFFSETS = {
     "life_event": PHASE_LIFE_EVENT,
@@ -371,6 +372,7 @@ _PHASE_OFFSETS = {
     "readmission": PHASE_READMISSION,
     "outpatient_calendar": PHASE_OUTPATIENT_CAL,
     "ed_visit": PHASE_ED_VISIT,
+    "death_deferral": PHASE_DEATH_DEFERRAL,
 }
 
 assert len(set(_PHASE_OFFSETS.values())) == len(_PHASE_OFFSETS), f"phase offset collision: {_PHASE_OFFSETS!r}"

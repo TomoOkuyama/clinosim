@@ -15,12 +15,12 @@ helper here.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import Any
 
 from clinosim.modules.order.engine import replay_order_to_state
 from clinosim.modules.population.engine import LifeEvent
-from clinosim.modules.population.vital_status import record_hospital_death
+from clinosim.modules.population.vital_status import defer_death_past_stay, known_death_date, record_hospital_death
 from clinosim.seeding import PHASE_INPATIENT_SIM, derive_phase_rng
 from clinosim.simulator.complications import build_complication
 from clinosim.simulator.helpers import _deactivate_to_layer1, _select_secondary_disease
@@ -402,6 +402,7 @@ def _dispatch_hospital_events(
     config: SimulatorConfig,
     master_seed: int,
     demo: dict[str, Any],
+    cutoff: date | None = None,
 ) -> None:
     """Dispatch a chunk of hospital-admit life events through the
     full inpatient / unknown-condition pipeline.
@@ -479,6 +480,8 @@ def _dispatch_hospital_events(
                 patient_records.append(record)
                 person.has_visited_hospital = True
                 person.visit_count += 1
+                # Issue #3633: a stay without a death course keeps the death out.
+                defer_death_past_stay(person, record, master_seed)
             continue
 
         protocol = protocols.get(disease_id)
@@ -513,6 +516,7 @@ def _dispatch_hospital_events(
                 readmission_number=event.readmission_number,
                 hospital_state=hospital_state,
                 hospital_ops=hospital_ops,
+                population_death_date=known_death_date(person, cutoff),
             )
         _post_hoc_overlap = _verify_no_actual_overlap(patient_records, record)
         if _post_hoc_overlap is not None:
@@ -526,3 +530,4 @@ def _dispatch_hospital_events(
             dc_date = record.encounters[0].discharge_datetime.date()
             state.active_discharges.append((dc_date, 1.0 / beds_total))
         record_hospital_death(person, record)
+        defer_death_past_stay(person, record, master_seed)

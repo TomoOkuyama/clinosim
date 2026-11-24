@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import Any
 
 import numpy as np
@@ -653,8 +653,13 @@ def _simulate_patient(
     readmission_number: int = 0,
     hospital_state: Any = None,
     hospital_ops: dict | None = None,
+    population_death_date: date | None = None,
 ) -> CIFPatientRecord:
     """Simulate one patient's complete hospital encounter.
+
+    ``population_death_date`` is the person's death date from the population
+    (Issue #3633): a stay that runs up to it ends as an in-hospital death on
+    that date, so no survivor stay holds a death inside it.
 
     For mixed conditions, secondary_protocol provides the second disease's
     state impact and a secondary diagnosis to track.
@@ -1018,6 +1023,7 @@ def _simulate_patient(
         surgery=surgery_pain,
         prior_procedures=procedures,
         co_disease=co_course,
+        population_death_date=population_death_date,
     )
 
     # Unpack results
