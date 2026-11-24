@@ -39,6 +39,22 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+## [0.7.3] - 2026-11-24
+
+### Highlights
+
+About 55 commits since v0.7.2, from a review of the template narratives of the v0.7.2 sample cohorts (five patients per country, document by document) and two external fix requests. The entries below were written as the changes landed; this summary lists the main areas.
+
+- **Clinical course.** An intubated stay is ventilated until extubation; emergency intubation follows the code status (a patient who declined intubation is not intubated); an ICU stay records its step-down to the ward; consciousness falls from the onset of a consciousness-lowering complication; a patient at AVPU P / U is nil by mouth and oral doses are held; an infectious complication starts an antibiotic; AKI-held drugs stay held while the AKI lasts; oxygen flows are recorded in flowmeter steps.
+- **Records.** Acute stroke admissions record when the patient was last known well; chemotherapy visits follow the regimen route (oral, subcutaneous, intravesical, IV) with a pre-treatment blood count and the cycle number; procedures record side, PCI vessel and access site; the emergency contact carries sex, relationship and name parts; severity scales are valid R4 Observations.
+- **Narrative documents.** Progress notes, nursing shift notes, discharge summaries, ED notes, H&Ps, outpatient SOAPs and newborn documents follow the record more closely (ICU transfer and dates, HPI negatives and onset, imaging reads and vitals by authored time, drug names of supportive orders, catheter aftercare instead of surgical-wound lines).
+- **CLI.** Without `--end`, the simulation window now ends yesterday, so no record is dated in the future.
+- **Documentation.** CHANGELOG, module READMEs and design guides were brought back in line with the code.
+
+### CIF drift (why this release is numbered as a PATCH)
+
+Many of the fixes below change structured CIF for the same `(seed, hospital_config, country, start, end, population)` and are marked "CIF drift, a MINOR-class change". Under the versioning policy above this release would be a MINOR bump; it is numbered 0.7.3 by maintainer decision, as a corrective release of the v0.7.2 narrative review. CIF ↔ narrative-CIF consistency is broken all the same: narrative CIF generated with v0.7.2 must be regenerated (`narrate`) against structured CIF from v0.7.3.
+
 ### Fixed
 
 - A patient whose latest consciousness reading is "responds to pain" or "unresponsive" (AVPU P / U) is now nil by mouth: an NPO diet order is placed at the first such reading (and the next day's diet order re-advances it once the level recovers), and every oral (PO) dose scheduled while the patient is in that state or on the ventilator is held with a reason, instead of an oral diet and oral doses continuing (`reference_data/oral_intake.yaml`). The nursing shift note says "Oral medications given with sips of water" when oral doses are given under the nil-by-mouth order of the first hospital day. CIF drift (diet orders, MAR statuses), a MINOR-class change (#3552).
