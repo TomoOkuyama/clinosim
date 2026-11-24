@@ -90,7 +90,9 @@ rename).
   - `ed_reattribution.py` — the `reattribute_encounter_to_ed_bridge`
     helper used by `convert_cif_to_fhir` when reattributing
     via-ED IMP encounters to a synthetic ED bridge encounter
-    (N-3 PR #810 chain), and `vital_sign_encounter_id(vs, ctx)`, which
+    (N-3 PR #810 chain), `reattribute_ed_phase_by_time` (Issue #3672: orders, results, doses and
+    procedures dated in the ED window `[admission - admitted_ed_stay(), admission)` go to the bridge),
+    and `vital_sign_encounter_id(vs, ctx)`, which
     places the ED arrival vital-sign set (`data_source == "ed_triage"`)
     and its NEWS2 / GCS on that bridge (Issue #3243).
   - `ids.py` — opaque Resource.id derivation (Issue #349):
