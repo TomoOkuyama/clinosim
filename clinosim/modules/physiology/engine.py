@@ -1117,8 +1117,10 @@ def _add_perfusion_labs(labs: dict[str, float], state: PhysiologicalState) -> No
     labs["Lactate"] = LACTATE_BASELINE_MMOL_L + (1 - perfusion) * LACTATE_PERFUSION_SCALE
 
 
-def _add_blood_gas_labs(labs: dict[str, float], state: PhysiologicalState) -> None:
-    """HCO3, pCO2, pH and pO2."""
+def _add_blood_gas_labs(labs: dict[str, float], state: PhysiologicalState, sao2_pct: float | None = None) -> None:
+    """HCO3, pCO2, pH and pO2. ``sao2_pct`` (Issue #3649) is the arterial
+    saturation on supplemental oxygen when the patient is on oxygen at the time
+    of the draw; the pO2 follows it instead of the room-air saturation."""
     ph = state.ph_status
     # `ph` is the acid-base disturbance magnitude (neg = acidemia); respiratory_fraction
     # routes it between the metabolic (bicarbonate) and respiratory (CO2) axes. pH then
@@ -1154,9 +1156,10 @@ def _add_blood_gas_labs(labs: dict[str, float], state: PhysiologicalState) -> No
     )
     # pO2 from the same room-air saturation the SpO2 vital uses, inverted through
     # the oxyhemoglobin dissociation curve, so SpO2 and pO2 agree (Issue #2088).
-    labs["pO2"] = clamp(
-        po2_from_saturation(room_air_saturation(state, LAB_REFERENCE_SAO2_PCT)), PO2_CLAMP_MIN, PO2_CLAMP_MAX
-    )  # mm[Hg]
+    # On supplemental oxygen the caller passes the saturation the oxygen state
+    # gives, so the blood gas and the oximeter describe the same patient (Issue #3649).
+    saturation = sao2_pct if sao2_pct is not None else room_air_saturation(state, LAB_REFERENCE_SAO2_PCT)
+    labs["pO2"] = clamp(po2_from_saturation(saturation), PO2_CLAMP_MIN, PO2_CLAMP_MAX)  # mm[Hg]
 
 
 def _add_electrolyte_labs(labs: dict[str, float], state: PhysiologicalState) -> None:
@@ -1272,6 +1275,7 @@ def derive_lab_values(
     has_dyslipidemia: bool = False,
     hba1c_latent: float | None = None,
     ldl_reduction: float = 0.0,
+    sao2_pct: float | None = None,
 ) -> dict[str, float]:
     """Derive lab values from physiological state. Returns 'true' values before noise.
 
@@ -1294,7 +1298,7 @@ def derive_lab_values(
     _add_blood_count_labs(labs, state, sex)
     _add_coagulation_labs(labs, state, age, causes_vte)
     _add_perfusion_labs(labs, state)
-    _add_blood_gas_labs(labs, state)
+    _add_blood_gas_labs(labs, state, sao2_pct)
     _add_electrolyte_labs(labs, state)
     _add_glucose(labs, state, has_diabetes, hour)
     # The only random draw (HbA1c measurement noise).

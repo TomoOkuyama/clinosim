@@ -67,14 +67,19 @@ def patient_true_labs(
     flags: dict[str, Any],
     *,
     hour: int | None = None,
+    sao2_pct: float | None = None,
 ) -> dict[str, float]:
     """True lab values of ``patient`` in physiological ``state`` at ``at``:
     the one call every encounter kind uses (inpatient daily loop, ED,
     outpatient, unknown condition; Issue #2521). ``flags`` are the scenario
     and medication flags (``scenario_flags_from_protocol`` +
     ``medication_flags_from_context``); ``hour`` drives circadian analytes
-    when the caller samples at a known time. Draws no randomness."""
+    when the caller samples at a known time. ``sao2_pct`` is the saturation on
+    oxygen when the patient is on oxygen at ``at`` (the blood-gas pO2 follows it,
+    Issue #3649). Draws no randomness."""
     kwargs: dict[str, Any] = {"hour": hour} if hour is not None else {}
+    if sao2_pct is not None:
+        kwargs["sao2_pct"] = sao2_pct
     labs = derive_lab_values(
         state,
         sex=patient.sex,

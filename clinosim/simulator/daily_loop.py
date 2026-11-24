@@ -176,6 +176,7 @@ from clinosim.simulator.vitals_pipeline import (
     _generate_daily_io,
     _generate_vitals,
     lower_consciousness_from,
+    oxygen_saturation_for_lab,
     put_on_ventilator,
 )
 from clinosim.types.clinical import PhysiologicalState
@@ -657,7 +658,9 @@ def _result_labs(stay: _Stay, run: _Run, day: int, lab_state_pre_update: Physiol
     # presentation rather than ~1 day of recovery.
     true_labs_state = lab_state_pre_update if lab_state_pre_update is not None else run.state
     lab_at = admission_time + timedelta(days=day)
-    true_labs = patient_true_labs(true_labs_state, patient, lab_at, flags, hour=lab_hour)
+    # Issue #3649: a blood gas drawn on oxygen reflects the saturation on oxygen.
+    sao2 = oxygen_saturation_for_lab(run.oxygen, lab_at, true_labs_state, stay.disease_id)
+    true_labs = patient_true_labs(true_labs_state, patient, lab_at, flags, hour=lab_hour, sao2_pct=sao2)
 
     # Apply temporal lag: CRP reflects inflammation from ~1 day ago
     if len(run.state_history) >= 2 and "CRP" in true_labs:
