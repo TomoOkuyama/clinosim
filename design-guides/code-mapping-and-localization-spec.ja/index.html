@@ -3259,6 +3259,11 @@
 <td>キー / <code>None</code> / <code>None</code> / <code>None</code> / <code>None</code></td>
 </tr>
 <tr>
+<td><code>locale.loader.resident_insurer_number(country, scheme, prefecture, city)</code></td>
+<td>居住地を担当する保険者の JP 保険者番号 (Issue #3015): <code>identity.yaml</code> の <code>payers[scheme]</code> の各エントリが担当する <code>prefecture</code> (国民健康保険は <code>city</code> も) を持ち、identity provider と FHIR Coverage builder の両方がこの関数で解決する</td>
+<td><code>""</code></td>
+</tr>
+<tr>
 <td><code>modules.document.narrative.renderers._shared_helpers</code>: <code>chronic_condition_code(code, country, sex)</code>, <code>chronic_condition_label(code, country, lang, sex)</code>, <code>diagnosis_coded(code, country, lang, sex)</code></td>
 <td>ナラティブと LLM コンテキストでの CIF 診断コード (慢性疾患と受診の診断。どちらも内部コード。Issue #2994、#3259): 出力するコード (<code>map_diagnosis_code</code>) / 文章中の名称 (<code>condition_label</code>。SOAP の問題、併存疾患、救急外来診断、入院理由) / コード付き一覧 (既往歴、入院・退院時診断、死亡診断書・死亡時サマリー) の <code>(出力コード, 名称)</code>。名称は <code>narrative_labels.coded_diagnosis_name</code> で言語ごとに選ぶ (英語: 正式表示名、日本語: 臨床名)。ナラティブは内部コード、内部キーのカテゴリ名、MHLW 分類表の名称を出さない</td>
 <td>コード / <code>None</code> / <code>(code, code)</code></td>
@@ -3277,6 +3282,11 @@
 <td><code>codes.ucum</code>: <code>ucum_code</code>, <code>ucum_quantity</code>, <code>ucum_prose</code></td>
 <td>UCUM コード / FHIR Quantity / 文章中の単位表記 (<code>mm[Hg]</code> → <code>mmHg</code>、<code>{INR}</code> → <code>""</code>)</td>
 <td>単位をそのまま返す</td>
+</tr>
+<tr>
+<td><code>modules.observation.engine.reported_lab_value(lab_name, value, unit, country)</code>, <code>reported_lab_results(lab_results, country)</code></td>
+<td>国が報告する単位での検査値 (Issue #3011): <code>locale/&lt;cc&gt;/reference_range_lab.yaml</code> の <code>reporting_units</code> (<code>{unit, from, factor, decimals}</code>、例: JP の CRP mg/L → mg/dL) が内部値を換算し、その検査項目の <code>ranges</code> は報告単位で書く。CIF・フラグ・閾値は内部単位のまま、FHIR Observation・叙述の文脈・入院経過の要約は換算後の値を報告する</td>
+<td>値と単位はそのまま</td>
 </tr>
 <tr>
 <td><code>codes.prefectures.prefecture_code(name)</code></td>
