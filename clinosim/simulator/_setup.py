@@ -68,11 +68,14 @@ def _pediatric_visit_reason(disease_id: str, entry_key: str = "") -> str | dict[
     from clinosim.modules.pediatric.calendar import load_pediatric_schedule
 
     schedule = load_pediatric_schedule()
-    # A fixed-age visit has its own label although it shares the disease id of
-    # a routine entry (Issue #3566: the 1-month check and the infant
-    # well-child visit). Other entries keep the first-match label below.
+    # An entry that generated the visit has its own label although it shares
+    # the disease id of sibling entries (Issue #3566: the 1-month check and the
+    # infant well-child visit; Issue #3654: the school-age and adolescent bands
+    # of a disease whose first entry is the under-6 band). The label of the
+    # entry key wins whenever its disease id matches; the disease-id scan below
+    # serves callers without a key.
     keyed = schedule.get(entry_key) if entry_key else None
-    if keyed and keyed.get("fixed_age_days") and keyed.get("disease_id") == disease_id and keyed.get("visit_reason"):
+    if keyed and keyed.get("disease_id") == disease_id and keyed.get("visit_reason"):
         return keyed["visit_reason"]
     entry = schedule.get(disease_id)
     if entry and entry.get("visit_reason"):
