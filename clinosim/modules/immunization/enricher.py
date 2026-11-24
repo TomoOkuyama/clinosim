@@ -31,7 +31,7 @@ from clinosim.modules.immunization.engine import (
     series_allows,
 )
 from clinosim.modules.immunization.visits import (
-    bind_to_vaccination_visits,
+    bind_to_vaccination_visits_for_country,
     flu_season_months,
     is_flu_visit_candidate,
     vaccination_visits_by_patient,
@@ -551,7 +551,8 @@ def enrich_immunizations(ctx) -> None:
         # Issue #2868: doses given at the patient's vaccination visits are
         # bound there before the nearest-encounter alignment.
         _bind_stay_doses(recs, pool)
-        recs = bind_to_vaccination_visits(
+        recs = bind_to_vaccination_visits_for_country(
+            country_upper,
             recs,
             visits_by_patient.get(pid, []),
             patient,

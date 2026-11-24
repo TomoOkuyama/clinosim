@@ -440,6 +440,13 @@ vaccines:
     season_month: 10
     available_from: "2010-08-01"    # universal ≥ 6 mo recommendation
     history_years: 5
+    # Issue #3684: a child with fewer than two lifetime doses, aged under 9
+    # years (max_age_months 107 = the last completed month before the 9th
+    # birthday), gets a second dose at least `min_interval_days` after the first
+    # in the same season (ACIP: children 6 months through 8 years who need two
+    # doses; the 4-week interval). Applied only when the child's licensure
+    # floor lies inside `history_years`, so no earlier dose is unknown.
+    first_season_second_dose: {max_age_months: 107, min_interval_days: 28}
     seasonal_distribution:
       "9":  0.10
       "10": 0.35
