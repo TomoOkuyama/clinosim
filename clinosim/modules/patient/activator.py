@@ -519,6 +519,18 @@ def _baseline_spo2_mean_and_ceiling(age_months: int) -> tuple[float, float]:
     return BASELINE_SPO2_MEAN, BASELINE_SPO2_CEILING
 
 
+def _emergency_contact_phone(person: PersonRecord, country: str) -> str:
+    """The adult emergency contact's own mobile number (Issue #3695): drawn
+    from the country's mobile pattern with a stream seeded by the person id
+    and birth date, so every record of the person carries the same number."""
+    from clinosim.locale.loader import load_addresses
+    from clinosim.modules.population._identity import _generate_phone
+    from clinosim.seeding import emergency_contact_phone_seed
+
+    rng = determinism.default_rng(emergency_contact_phone_seed(person.person_id, str(person.date_of_birth)))
+    return _generate_phone(load_addresses(country), "mobile", rng)
+
+
 def _draw_emergency_contact(
     relationships: tuple[list[str], list[float]],
     sex: str,
@@ -850,8 +862,6 @@ def activate_patient(
         emergency_family = str(getattr(person, "guardian_contact_family_name", "") or "")
         emergency_given = str(getattr(person, "guardian_contact_given_name", "") or "")
     elif age >= adult_age:
-        # Reuse home phone as a household contact for spouse/family
-        emergency_phone = phone_home or phone_mobile
         # Issue #3186: the activation stream sits at a position that differs
         # between the per-year activations of one person, so the contact is
         # drawn once from a person-scoped stream and kept on the person. The
@@ -883,6 +893,11 @@ def activate_patient(
             person.emergency_contact_role = emergency_role
             person.emergency_contact_family_name = emergency_family
             person.emergency_contact_given_name = emergency_given
+
+    if age >= adult_age and emergency_name:
+        # Issue #3695: an adult's contact has a phone of their own (a mobile
+        # drawn from a person-scoped stream), never the patient's number.
+        emergency_phone = _emergency_contact_phone(person, country)
 
     contact = ContactInfo(
         phone_home=phone_home,

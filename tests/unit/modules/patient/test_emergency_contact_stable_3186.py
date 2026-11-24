@@ -48,7 +48,7 @@ def test_same_person_gets_the_same_emergency_contact_in_every_record(country: st
     contacts = {_contact(activate_patient(person, default_rng(seed), demo)) for seed in range(12)}
     assert len(contacts) == 1
     name, rel, phone = next(iter(contacts))
-    assert name and rel and phone == "03-1234-5678"
+    assert name and rel and phone and phone != "03-1234-5678"
 
 
 def test_contact_does_not_depend_on_the_activation_stream() -> None:

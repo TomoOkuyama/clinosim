@@ -526,6 +526,14 @@ def emergency_contact_seed(person_id: str, date_of_birth: str) -> int:
     return _digest_int(f"clinosim:emergency-contact:v1|{person_id}|{date_of_birth}", 6) % (2**32)
 
 
+def emergency_contact_phone_seed(person_id: str, date_of_birth: str) -> int:
+    """Per-person seed of an adult emergency contact's own phone number, in
+    ``[0, 2**32)`` (Issue #3695). Keyed like :func:`emergency_contact_seed`
+    with its own salt, so the number is stable across a person's records and
+    shifts no existing stream."""
+    return _digest_int(f"clinosim:emergency-contact-phone:v1|{person_id}|{date_of_birth}", 6) % (2**32)
+
+
 def marital_status_seed(person_id: str, date_of_birth: str) -> int:
     """Per-person seed of the marital-status draw, in ``[0, 2**32)`` (Issue
     #3189). Keyed like :func:`emergency_contact_seed`; separate from the

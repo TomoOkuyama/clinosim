@@ -21,7 +21,7 @@ divorced or widowed person names no spouse). The contact keeps its sex,
 a specific v3-RoleCode (FTH/MTH, BRO/SIS, SON/DAU, HUSB/WIFE, from the
 relationship slug and the sex) and the family/given name parts (Issue
 #3599); the sex is the one the already-drawn given name was chosen for, so
-no draw is added. The
+no draw is added. An adult's named contact has a phone of their own: a mobile drawn from the country's pattern with a stream seeded by the person id and birth date (`seeding.emergency_contact_phone_seed`, Issue #3695), never the patient's own number; a minor keeps the guardian's number. The
 simulator activates each person once per `(person_id, as_of_year)`
 cache key — the returned profile is what every downstream encounter
 simulator consumes.
