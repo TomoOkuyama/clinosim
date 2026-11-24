@@ -85,11 +85,12 @@ def _normalize_dt(v, country: str, want_instant: bool = False):
     ``Z`` (UTC neutral). Other pre-existing TZ suffixes (e.g. ``-05:00``) are
     preserved as-is.
     """
-    from clinosim.modules.output.fhir_r4.lib.fhir_time import tz_suffix_for_country
+    from clinosim.modules.output.fhir_r4.lib.fhir_time import truncate_fraction, tz_suffix_for_country
 
     tz = tz_suffix_for_country(country)
     if not isinstance(v, str) or not v:
         return v
+    v = truncate_fraction(v)  # whole seconds only (Issue #3698)
     # date-only YYYY-MM-DD は通す(FHIR date 型として valid)
     if len(v) == 10 and v[4] == "-" and v[7] == "-":
         if want_instant:

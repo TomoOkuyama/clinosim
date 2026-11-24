@@ -40,15 +40,15 @@ class TestToFhirDatetime:
 
         assert to_fhir_datetime("2024-01-01 08:30:00") == "2024-01-01T08:30:00+09:00"
 
-    def test_microseconds_preserved(self) -> None:
+    def test_microseconds_truncated(self) -> None:
         from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
 
-        assert to_fhir_datetime("2024-01-01T08:30:00.123456") == "2024-01-01T08:30:00.123456+09:00"
+        assert to_fhir_datetime("2024-01-01T08:30:00.123456") == "2024-01-01T08:30:00+09:00"
 
     def test_space_separated_with_microseconds_normalized(self) -> None:
         from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
 
-        assert to_fhir_datetime("2024-01-01 08:30:00.123456") == "2024-01-01T08:30:00.123456+09:00"
+        assert to_fhir_datetime("2024-01-01 08:30:00.123456") == "2024-01-01T08:30:00+09:00"
 
     def test_timezone_passthrough(self) -> None:
         from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
@@ -152,3 +152,56 @@ class TestFhirR4DateTimeRegex:
         assert re.match(self.FHIR_DATETIME_RE, out), (
             f"to_fhir_datetime({value!r}) = {out!r} is not a valid FHIR R4 dateTime"
         )
+
+
+class TestWholeSecondTimestamps3698:
+    """Issue #3698: emitted dateTime / instant values carry whole seconds."""
+
+    def test_datetime_object_microseconds_dropped(self) -> None:
+        from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
+
+        out = to_fhir_datetime(datetime(2026, 11, 3, 15, 5, 5, 149650))
+        assert out == "2026-11-03T15:05:05+09:00"
+
+    def test_truncates_not_rounds(self) -> None:
+        from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
+
+        assert to_fhir_datetime("2026-11-03T23:59:59.999999") == "2026-11-03T23:59:59+09:00"
+
+    def test_string_fraction_truncated_tz_kept(self) -> None:
+        from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
+
+        assert to_fhir_datetime("2026-03-10T12:05:08.309067+09:00") == "2026-03-10T12:05:08+09:00"
+        assert to_fhir_datetime("2026-03-10T12:05:08.3Z") == "2026-03-10T12:05:08Z"
+
+    def test_string_without_fraction_unchanged(self) -> None:
+        from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
+
+        assert to_fhir_datetime("2026-03-10T12:05:08+09:00") == "2026-03-10T12:05:08+09:00"
+        assert to_fhir_datetime("2026-03-10T12:05") == "2026-03-10T12:05+09:00"
+
+    def test_instant_and_deceased_truncated(self) -> None:
+        from clinosim.modules.output.fhir_r4.lib.fhir_time import (
+            to_fhir_deceased_datetime,
+            to_fhir_instant,
+        )
+
+        assert to_fhir_instant(datetime(2026, 1, 9, 18, 7, 40, 148134)) == "2026-01-09T18:07:40+09:00"
+        assert to_fhir_instant("2026-01-09T18:07:40.148134") == "2026-01-09T18:07:40+09:00"
+        assert to_fhir_deceased_datetime(datetime(2026, 1, 9, 18, 7, 40, 5), "US") == "2026-01-09T18:07:40Z"
+
+    def test_normalizer_strips_fraction_in_nested_period(self) -> None:
+        from clinosim.modules.output.fhir_r4.post_process.datetime_normalize import _normalize_dt_fields
+
+        res = {
+            "resourceType": "Encounter",
+            "period": {"start": "2026-11-03T09:42:00Z", "end": "2026-11-03T15:05:05.149650Z"},
+            "date": "2026-08-06T22:34:33.211742",
+            "issued": "2026-08-06T22:34:33.211742+09:00",
+            "note": [{"time": "2026-08-06T22:34:33.9"}],
+        }
+        _normalize_dt_fields(res, "US")
+        assert res["period"]["end"] == "2026-11-03T15:05:05Z"
+        assert res["date"] == "2026-08-06T22:34:33Z"
+        assert res["issued"] == "2026-08-06T22:34:33Z" or res["issued"] == "2026-08-06T22:34:33+09:00"
+        assert "." not in str(res)
