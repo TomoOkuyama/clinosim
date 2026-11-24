@@ -1185,6 +1185,11 @@ icu_stay:
 # Nursing items of a shift note (Issue #3478); the ordered list and the rule of
 # each item is reference_data/nursing_shift_items.yaml of the document module.
 nursing_shift_items:
+  # Delivery stay, after the birth (Issue #3664).
+  postpartum:
+    line:
+      ja: "産褥{day}日。産科: {finding}。授乳、排尿は記録なし。"
+      en: "Postpartum day {day}. Obstetric: {finding}. Breastfeeding and voiding not recorded."
   icu:
     transfer:
       ja: "当シフト中にICUへ転棟。"
