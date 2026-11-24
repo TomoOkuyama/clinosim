@@ -421,6 +421,20 @@ maternal_vitals:
     cesarean: [0, 0.5, 1, 1.5, 2, 4, 8, 12, 16, 20]
   later_day_hours: [6, 14, 22]
 
+# Barthel Index of the mother on each hospital day of a delivery stay (Issue
+# #3665), from which the nursing enricher derives the daily Braden and Morse
+# scores. The list is indexed by hospital day (the admission date is day 0);
+# the last value holds for every later day. A cesarean starts lower (post-
+# operative day 0) and regains independence over the stay. MODEL CHOICE: not
+# taken from a guideline; a healthy mother is independent apart from the
+# delivery itself. A staged chronic functional condition still caps each item
+# (simulator/adl_ceiling.py).
+maternal_adl:
+  vaginal:
+    barthel_by_day: [95, 100]
+  cesarean:
+    barthel_by_day: [70, 80, 90, 95, 100]
+
 newborn:
   baseline_vitals:
     temperature: 36.7                   # °C — neutral thermal environment target

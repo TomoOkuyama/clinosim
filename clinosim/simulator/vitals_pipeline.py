@@ -39,7 +39,7 @@ Supporting sets:
 from __future__ import annotations
 
 from dataclasses import replace
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 import numpy as np
 
@@ -284,6 +284,12 @@ def _generate_adl_assessment(
     total = int(rng.normal(total, ADL_BARTHEL_NOISE_SD))
     total = max(ADL_BARTHEL_MIN, min(ceiling, total))
 
+    return barthel_assessment(total, caps, (admission_time + timedelta(days=day)).date())
+
+
+def barthel_assessment(total: int, caps: dict[str, int], on_date: date) -> ADLAssessment:
+    """The Barthel assessment of ``on_date`` for a target ``total`` within the
+    per-item ``caps``. No RNG."""
     # Distribute across components proportionally (Issue #2693): each item
     # takes a score on its published scale (0/5/10[/15]; 0/5 for bathing and
     # grooming), apportioned by largest remainder so the items sum to the
@@ -302,11 +308,7 @@ def _generate_adl_assessment(
         "stairs": (ADL_COMP_STAIRS_MAX * max(0, ratio - ADL_RATIO_OFFSET_STAIRS_DEFICIT), caps["stairs"]),
     }
     items = _barthel_items(raw, 5 * round(total / 5))
-    return ADLAssessment(
-        date=(admission_time + timedelta(days=day)).date(),
-        barthel_score=sum(items.values()),
-        **items,
-    )
+    return ADLAssessment(date=on_date, barthel_score=sum(items.values()), **items)
 
 
 def _generate_daily_io(
