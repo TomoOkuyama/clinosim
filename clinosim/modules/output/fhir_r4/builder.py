@@ -114,6 +114,7 @@ from clinosim.modules.output.fhir_r4.post_process import (
 # Post-emit helpers (fhir_r4/post_process/).
 # Imported for use inside `_build_bundle` (see finalize pass).
 from clinosim.modules.output.fhir_r4.post_process.populate import _conform_checkup_report_observation
+from clinosim.modules.output.fhir_r4.post_process.profile import fill_ecs_department_from_encounters
 from clinosim.modules.output.fhir_r4.procedures.device import (
     _bb_device,
     _bb_device_use,
@@ -868,6 +869,9 @@ def _build_bundle(
 
     # Issue #3690: the MAR category follows the final Encounter class.
     align_ma_category_with_encounters(entries)
+    # Issue #3692: JP_eCS_Department names the department of the referenced
+    # Encounter; needs the final Encounter refs (after the ED routing above).
+    fill_ecs_department_from_encounters(entries, country)
 
     # Issue #926 (2026-08-29): after-death event gate. At v0.5.0 (p=10000)
     # 1,869 clinical events were emitted with a timestamp after the
