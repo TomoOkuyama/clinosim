@@ -153,6 +153,46 @@ def _course_for_discharge(is_discharge: bool, duration_days: int | None, course:
     return _COURSE_ACUTE
 
 
+def ma_category_block(encounter_type: str) -> dict:
+    """``MedicationAdministration.category`` for a dose given in an Encounter
+    of class ``encounter_type`` (Issue #3690), via ``_derive_mr_category``."""
+    code, display = _derive_mr_category(encounter_type, False, False, False, administered_in_facility=True)
+    return {
+        "coding": [
+            {
+                "system": get_system_uri("hl7-medication-admin-category"),
+                "code": code,
+                "display": display,
+            }
+        ],
+    }
+
+
+_ENCOUNTER_CLASS_TO_TYPE = {"IMP": "inpatient", "EMER": "emergency", "AMB": "outpatient"}
+
+
+def align_ma_category_with_encounters(entries: list[dict]) -> None:
+    """Set each MedicationAdministration's category from the class of the
+    Encounter it references in the final bundle (Issue #3690): a dose moved to
+    an ED bridge Encounter (Issue #3672) or given at a clinic is ``outpatient``.
+    Runs once per bundle after every reference is final."""
+    cls_by_enc: dict[str, str] = {}
+    for e in entries:
+        res = e.get("resource") if isinstance(e, dict) else None
+        if isinstance(res, dict) and res.get("resourceType") == "Encounter":
+            cls = _ENCOUNTER_CLASS_TO_TYPE.get(str((res.get("class") or {}).get("code") or ""))
+            if cls and res.get("id"):
+                cls_by_enc[str(res["id"])] = cls
+    for e in entries:
+        res = e.get("resource") if isinstance(e, dict) else None
+        if not isinstance(res, dict) or res.get("resourceType") != "MedicationAdministration":
+            continue
+        ref = (res.get("context") or {}).get("reference") or ""
+        enc_type = cls_by_enc.get(ref.rsplit("/", 1)[-1])
+        if enc_type:
+            res["category"] = ma_category_block(enc_type)
+
+
 def _derive_mr_category(
     encounter_type: str,
     is_home_med: bool,
@@ -1670,8 +1710,13 @@ def _build_medication_admin(
     chronic_condition_codes: list[str] | None = None,
     parent_order: dict | None = None,
     patient_sex: str = "",  # Issue #957: threads sex to sex-conditional ICD-10-CM mapping (C50)
+    encounter_type: str = "inpatient",
 ) -> dict:
     """Build FHIR MedicationAdministration resource.
+
+    ``encounter_type`` is the class of the context Encounter; it decides the
+    HL7 ``medication-admin-category`` (Issue #3690: inpatient stay → inpatient,
+    ED / clinic → outpatient).
 
     rp_number / order_in_rp (clinosim_feedback P1-4): 対応する
     parent MedicationRequest と同じ値を渡すことで JP Core
@@ -1727,18 +1772,11 @@ def _build_medication_admin(
         "effectiveDateTime": mar.get("actual_datetime") or mar.get("scheduled_datetime", ""),
     }
     # CY6-23 (Chain-6): MedicationAdministration.category — HL7 medication-
-    # admin-category (inpatient / outpatient / community). clinosim MAR is
-    # nurse-administered inpatient dosing (encounter_id-scoped), so default
-    # to "inpatient".
-    resource["category"] = {
-        "coding": [
-            {
-                "system": get_system_uri("hl7-medication-admin-category"),
-                "code": "inpatient",
-                "display": "Inpatient",
-            }
-        ],
-    }
+    # admin-category (inpatient / outpatient / community): where the dose was
+    # given. Issue #3690: derived from the context Encounter class through the
+    # helper the MedicationRequest category uses (IMP inpatient, EMER / AMB
+    # outpatient).
+    resource["category"] = ma_category_block(encounter_type)
 
     # Encounter context
     if encounter_id:

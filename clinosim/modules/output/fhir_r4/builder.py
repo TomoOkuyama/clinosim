@@ -94,6 +94,7 @@ from clinosim.modules.output.fhir_r4.lib.inline_bb import (
     _bb_procedures,
     _bb_vitals,
 )
+from clinosim.modules.output.fhir_r4.medications.medications import align_ma_category_with_encounters
 from clinosim.modules.output.fhir_r4.post_process import (
     _apply_jp_clins_profile,
     _apply_jp_core_profile,
@@ -864,6 +865,9 @@ def _build_bundle(
             # the ED window belong to the ED Encounter as well.
             _reattribute_ed_phase_by_time(resource, ctx)
             entries.append(entry(resource))
+
+    # Issue #3690: the MAR category follows the final Encounter class.
+    align_ma_category_with_encounters(entries)
 
     # Issue #926 (2026-08-29): after-death event gate. At v0.5.0 (p=10000)
     # 1,869 clinical events were emitted with a timestamp after the
