@@ -19,6 +19,7 @@ from clinosim.countries import country_code, has_authored_narrative
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._as_of import recorded_by
+from clinosim.modules.document.narrative._delivery import delivery_mode, postpartum_day
 from clinosim.modules.document.narrative._localization import (
     _localize_complication,
 )
@@ -185,6 +186,12 @@ def compose_progress_subjective_from_state(ctx: NarrativeContext) -> str:
         # stooling and the jaundice of the bilirubin measured so far, not by
         # the adult stable-day pool.
         parts.extend(_newborn_subjective_parts(ctx))
+    elif delivery_mode(ctx) is not None:
+        # Issue #3687: a postpartum day is stated as the day, not by the adult
+        # stable-day pool (rehabilitation, "ADL retraining"); the record holds
+        # no complaint of the mother, so none is written.
+        day = postpartum_day(ctx)
+        parts.append(t("progress.postpartum_day", lang, day=day) if day is not None else t("progress.in_labor", lang))
     elif not abnormal_added:
         phrase = pick_stable_progress_phrase(ctx, lang=lang)
         parts.append(phrase)
@@ -710,12 +717,33 @@ def compose_progress_plan_from_state(ctx: NarrativeContext) -> str:
     )
 
     as_of = getattr(ctx, "authored_datetime", None)
-    for line in (diet_line(ctx, as_of), rehab_line(ctx, as_of), discharge_planning_line(ctx)):
+    planning = discharge_planning_line(ctx)
+    for line in (diet_line(ctx, as_of), rehab_line(ctx, as_of), planning):
         if line:
             parts.append(line)
+    if planning and delivery_mode(ctx) is not None:
+        # Issue #3687: a postpartum stay's discharge teaching.
+        parts.append(t("progress.postpartum_teaching", lang))
     if not parts:
         parts.append(t("progress.observation_fallback", lang))
     return t("list_sep.chunk", lang).join(parts)
+
+
+def compose_postpartum_exam_line(ctx: NarrativeContext) -> str:
+    """The postpartum finding of a delivery stay's note written after the birth
+    ("Obstetric: fundus firm ..."), from the exam text of the delivery block
+    of ``disease_exam.yaml`` that the H&P also uses (Issue #3687); ``""`` before
+    the birth and for any other stay."""
+    from clinosim.locale.loader import narrative_label
+    from clinosim.modules.document.narrative.renderers._disease_exam import postpartum_obstetric_exam
+
+    if postpartum_day(ctx) is None:
+        return ""
+    text = postpartum_obstetric_exam(ctx)
+    if not text:
+        return ""
+    lang = ctx.target_lang
+    return t("progress.postpartum_exam", lang, label=narrative_label("body_system", "obstetric", lang), text=text)
 
 
 def compose_today_vitals_line(ctx: NarrativeContext) -> str:

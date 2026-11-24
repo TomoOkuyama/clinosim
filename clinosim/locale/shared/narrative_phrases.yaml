@@ -37,6 +37,22 @@ progress:
   # From template_generator._compose_progress_assessment_from_state and
   # _compose_progress_plan_from_state — inpatient progress_note fallback
   # phrasing when no complications / labs / plan detail is available.
+  # Postpartum notes of a delivery stay (Issue #3687). The record holds no
+  # complaint, pain, voiding or feeding statement of the mother, so the
+  # subjective states only the day; the postpartum finding is the exam text of
+  # disease_exam.yaml delivery.modes.<mode>.obstetric_postpartum.
+  postpartum_day:
+    ja: "産褥{day}日。"
+    en: "Postpartum day {day}."
+  in_labor:
+    ja: "分娩進行中。"
+    en: "In labor."
+  postpartum_exam:
+    ja: "{label}: {text}"
+    en: "{label}: {text}"
+  postpartum_teaching:
+    ja: "退院前に産後の注意すべき症状と産後健診について説明する。"
+    en: "Discharge teaching on the postpartum warning signs and the postpartum visit before discharge."
   newborn_screening:
     ja: "新生児スクリーニング・予防投与（本記載時点まで）: {list}。"
     en: "Newborn screening and prophylaxis to date: {list}."
