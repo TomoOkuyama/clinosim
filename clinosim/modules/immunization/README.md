@@ -20,7 +20,10 @@ EHR documentation.
   coverage lookup (per-dose marginal `coverage_by_sex` for paediatric
   series, drawn conditionally on the previous dose — Issue #3288);
   occurrence-date placement (annual → month drawn from
-  `seasonal_distribution`, else fixed `season_month`; every-n-years →
+  `seasonal_distribution`, else fixed `season_month`, then the day: a
+  clinic day of that month within the eligible range, picked by sha256 of
+  patient, vaccine and season (no draw; `generate_immunizations_for_country`, the enricher's call, takes the country;
+  Issue #3683); every-n-years →
   step of `interval_years` from the eligible start; once → month drawn
   from `wave_epochs` when declared, else uniform in the eligible
   window; pediatric_series → per-dose `[age_days_min, age_days_max]`
@@ -50,6 +53,7 @@ directly:
 ```python
 from clinosim.modules.immunization.engine import (
     generate_immunizations,          # (patient, schedule, as_of, rng, nurse_ids=None)
+    generate_immunizations_for_country,  # (country, patient, schedule, as_of, rng, nurse_ids=None): flu dose on a clinic day (Issue #3683)
                                      #   -> list[ImmunizationRecord] (sorted by date)
     generate_pregnancy_tdap,         # (patient, as_of, rng, country, default_nurse="")
                                      #   -> list[ImmunizationRecord] (US only)

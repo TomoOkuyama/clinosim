@@ -22,7 +22,7 @@ from clinosim.modules.immunization.engine import (
     dose_intervals_by_cvx,
     dose_windows_by_cvx,
     flu_season_of,
-    generate_immunizations,
+    generate_immunizations_for_country,
     generate_pregnancy_tdap,
     licensed_from_by_cvx,
     load_schedule,
@@ -526,7 +526,7 @@ def enrich_immunizations(ctx) -> None:
             derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["immunization"], pid or "x")
         )
         as_of = _as_of(ctx, source)
-        recs = generate_immunizations(patient, schedule, as_of, rng, nurse_ids=nurse_ids)
+        recs = generate_immunizations_for_country(country_upper, patient, schedule, as_of, rng, nurse_ids=nurse_ids)
         # Issue #1283: append US maternal Tdap (CVX 115) for each
         # pregnancy period whose 27-36-week window overlaps the sim.
         # Uses the same per-patient sub-RNG the schedule pass just

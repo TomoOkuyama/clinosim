@@ -17,6 +17,8 @@
   (小児 series は dose 単位の周辺接種率 `coverage_by_sex` を前の回の接種に
   条件付けて抽選 — Issue #3288)、接種日配置 (annual →
   `seasonal_distribution` から月を抽選、無ければ固定 `season_month`、
+  その月の日は適格範囲内の診療日から患者・ワクチン・シーズンの sha256 で選ぶ
+  (draw なし。enricher が呼ぶ `generate_immunizations_for_country` が country を取る、Issue #3683)、
   every_n_years → `interval_years` step、once → `wave_epochs` があれば
   epoch/月を抽選、無ければ資格期間内で uniform、pediatric_series →
   dose ごとの `[age_days_min, age_days_max]` 窓を標準 well-child 受診
@@ -42,6 +44,7 @@
 ```python
 from clinosim.modules.immunization.engine import (
     generate_immunizations,          # (patient, schedule, as_of, rng, nurse_ids=None)
+    generate_immunizations_for_country,  # (country, patient, schedule, as_of, rng, nurse_ids=None); 接種を診療日に置く (#3683)
                                      #   -> list[ImmunizationRecord] (接種日昇順)
     generate_pregnancy_tdap,         # (patient, as_of, rng, country, default_nurse="")
                                      #   -> list[ImmunizationRecord] (US のみ)

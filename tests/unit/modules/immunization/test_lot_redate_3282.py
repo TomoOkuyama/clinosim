@@ -79,7 +79,7 @@ def test_clinic_day_hold_back_into_the_previous_month_relots(monkeypatch) -> Non
     # Saturday 31 October, and its lot is of October.
     due = date(2026, 11, 1)
     monkeypatch.setattr(
-        "clinosim.modules.immunization.enricher.generate_immunizations",
+        "clinosim.modules.immunization.enricher.generate_immunizations_for_country",
         lambda *_a, **_k: [
             ImmunizationRecord(vaccine_cvx="140", occurrence_date=due, lot_number=synthetic_lot_number("140", due))
         ],

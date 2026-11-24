@@ -60,10 +60,10 @@ def _mk_record(pid: str, encounters: list, documents: list | None = None) -> Sim
 def test_vax_encounter_gets_document_stub_when_appended(monkeypatch) -> None:
     """Fix core: `enrich_immunizations` triggers document dispatch for the new VAX encounter."""
 
-    def _fake_gen(patient, schedule, as_of, rng, nurse_ids=None):
+    def _fake_gen(country, patient, schedule, as_of, rng, nurse_ids=None):
         return [ImmunizationRecord(vaccine_cvx="140", occurrence_date=date(2026, 3, 15))]
 
-    monkeypatch.setattr("clinosim.modules.immunization.enricher.generate_immunizations", _fake_gen)
+    monkeypatch.setattr("clinosim.modules.immunization.enricher.generate_immunizations_for_country", _fake_gen)
     monkeypatch.setattr("clinosim.modules.immunization.enricher.load_schedule", lambda country: {})
 
     ctx = _StubCtx()
@@ -119,10 +119,10 @@ def test_vax_encounter_gets_document_stub_when_appended(monkeypatch) -> None:
 def test_no_dispatch_when_no_vax_encounter_appended(monkeypatch) -> None:
     """When immunization align finds real encounters (no VAX companion), no re-dispatch."""
 
-    def _fake_gen(patient, schedule, as_of, rng, nurse_ids=None):
+    def _fake_gen(country, patient, schedule, as_of, rng, nurse_ids=None):
         return [ImmunizationRecord(vaccine_cvx="140", occurrence_date=date(2026, 3, 15))]
 
-    monkeypatch.setattr("clinosim.modules.immunization.enricher.generate_immunizations", _fake_gen)
+    monkeypatch.setattr("clinosim.modules.immunization.enricher.generate_immunizations_for_country", _fake_gen)
     monkeypatch.setattr("clinosim.modules.immunization.enricher.load_schedule", lambda country: {})
 
     ctx = _StubCtx()
@@ -152,10 +152,10 @@ def test_no_dispatch_when_no_vax_encounter_appended(monkeypatch) -> None:
 def test_pre_sim_historical_dose_does_not_trigger_dispatch(monkeypatch) -> None:
     """Pre-sim historical dose leaves encounter empty, so no VAX encounter → no dispatch."""
 
-    def _fake_gen(patient, schedule, as_of, rng, nurse_ids=None):
+    def _fake_gen(country, patient, schedule, as_of, rng, nurse_ids=None):
         return [ImmunizationRecord(vaccine_cvx="140", occurrence_date=date(2015, 5, 1))]
 
-    monkeypatch.setattr("clinosim.modules.immunization.enricher.generate_immunizations", _fake_gen)
+    monkeypatch.setattr("clinosim.modules.immunization.enricher.generate_immunizations_for_country", _fake_gen)
     monkeypatch.setattr("clinosim.modules.immunization.enricher.load_schedule", lambda country: {})
 
     ctx = _StubCtx()

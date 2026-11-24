@@ -118,13 +118,13 @@ def _mk_record(pid: str, encounters: list) -> SimpleNamespace:
 
 
 def test_in_window_orphan_gets_companion_encounter(monkeypatch) -> None:
-    # Stub `generate_immunizations` to return an in-window orphan.
-    def _fake_gen(patient, schedule, as_of, rng, nurse_ids=None):
+    # Stub `generate_immunizations_for_country` to return an in-window orphan.
+    def _fake_gen(country, patient, schedule, as_of, rng, nurse_ids=None):
         return [
             ImmunizationRecord(vaccine_cvx="140", occurrence_date=date(2026, 3, 15)),
         ]
 
-    monkeypatch.setattr("clinosim.modules.immunization.enricher.generate_immunizations", _fake_gen)
+    monkeypatch.setattr("clinosim.modules.immunization.enricher.generate_immunizations_for_country", _fake_gen)
     monkeypatch.setattr("clinosim.modules.immunization.enricher.load_schedule", lambda country: {})
 
     ctx = _StubCtx()
@@ -152,13 +152,13 @@ def test_in_window_orphan_gets_companion_encounter(monkeypatch) -> None:
 
 
 def test_pre_sim_historical_gets_primary_source_false(monkeypatch) -> None:
-    def _fake_gen(patient, schedule, as_of, rng, nurse_ids=None):
+    def _fake_gen(country, patient, schedule, as_of, rng, nurse_ids=None):
         return [
             # Pre-sim historical dose (before window start).
             ImmunizationRecord(vaccine_cvx="140", occurrence_date=date(2015, 5, 1)),
         ]
 
-    monkeypatch.setattr("clinosim.modules.immunization.enricher.generate_immunizations", _fake_gen)
+    monkeypatch.setattr("clinosim.modules.immunization.enricher.generate_immunizations_for_country", _fake_gen)
     monkeypatch.setattr("clinosim.modules.immunization.enricher.load_schedule", lambda country: {})
 
     ctx = _StubCtx()
