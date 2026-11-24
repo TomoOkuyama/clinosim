@@ -51,7 +51,7 @@
 - **周産期分娩 Encounter** (母親側、IMP admission、admit dx `O80`、
   discharge dx `Z37.0`、LOS JP 5 日 / US 2 日、部門は `obstetrics_gynecology`、
   `department_rollup` で集約 (同梱の病院設定では `primary_care`)。delivery Procedure
-  US CPT `59400`、JP は正常分娩が保険外のため K コードなし)。
+  US CPT `59400`、JP は正常分娩が保険外のため K コードなし)。`O80` (帝王切開は `O82`) は合併症のない分娩のみ: 妊娠合併症を引いた分娩は最初の合併症を主病名として入院し (残りは working diagnosis)、出産に合わない合併症は落とす (`O60.1` は 37 週未満のみ、`O64.9` は帝王切開のみ。`perinatal.yaml complications.bernoulli_draws`)。母親の record は notes 用に `extensions["delivery"]` (`mode` / `gestational_age_days` / `complication_codes`) を持つ。
 - **新生児 Encounter** (IMP admission、`admit_source = "born"` —
   [`clinosim/codes/hl7_encounter.py`](../../codes/hl7_encounter.py) の
   `AdmitSource.BORN` の値で、

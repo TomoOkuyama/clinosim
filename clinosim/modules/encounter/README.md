@@ -57,6 +57,7 @@ and
   admit dx `O80`, discharge dx `Z37.0`, LOS 5 days JP / 2 days US,
   department `obstetrics_gynecology`, rolled up via `department_rollup`
   (`primary_care` in the bundled hospitals), delivery Procedure US CPT `59400`; JP has no K-code, 正常分娩 being uninsured).
+  `O80` (`O82` for a cesarean) stands only for an uncomplicated delivery: a delivery with a drawn pregnancy complication is admitted under the first complication (principal diagnosis, the others are working diagnoses), a complication that does not fit the birth is dropped (`O60.1` below 37 weeks only; `O64.9` for a cesarean only; `perinatal.yaml complications.bernoulli_draws`), and the mother's record carries `extensions["delivery"]` (`mode`, `gestational_age_days`, `complication_codes`) for the notes.
 - **Newborn Encounter** (IMP admission, `admit_source = "born"` — the
   `AdmitSource.BORN` value from
   [`clinosim/codes/hl7_encounter.py`](../../codes/hl7_encounter.py), stored in the

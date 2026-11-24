@@ -264,16 +264,21 @@ def _after_delivery(ctx: NarrativeContext) -> bool:
 
 
 def _delivery_exam(ctx: NarrativeContext, reading: Any | None) -> dict[str, str]:
-    """The exam of a delivery admission (admission diagnosis O80 / O82):
+    """The exam of a delivery admission (the delivery extension, else admission diagnosis O80 / O82):
     general appearance and the obstetric finding with the gestational age,
     ``{}`` for any other stay."""
     rule = load_disease_exam().delivery
-    code = ""
-    for dx in ctx.diagnoses or []:
-        code = str(_o(dx, "admission_diagnosis_code", "") or "")
-        if code:
-            break
-    mode = rule.admission_codes.get(code)
+    # The mode of the delivery is the record's (Issue #3661: a complicated
+    # delivery is admitted under its complication, not O80 / O82); a record
+    # without the delivery extension gives it by the admission diagnosis.
+    mode = (getattr(ctx, "delivery", None) or {}).get("mode")
+    if mode not in rule.modes:
+        code = ""
+        for dx in ctx.diagnoses or []:
+            code = str(_o(dx, "admission_diagnosis_code", "") or "")
+            if code:
+                break
+        mode = rule.admission_codes.get(code)
     if mode is None:
         return {}
     data = load_disease_exam()

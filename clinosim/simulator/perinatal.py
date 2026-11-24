@@ -570,12 +570,9 @@ def _maternal_vitals(
     return out
 
 
-def _birth_data(mother: PatientProfile, delivered_at: datetime, cesarean: bool) -> dict[str, Any]:
-    """What the mother's record says about the birth, for the newborn's H&P
-    (Issue #3245): ``gestational_age_days`` (the delivery date minus the LMP of
-    the pregnancy period that delivers on it; ``None`` when no period gives an
-    LMP), ``delivery_mode``, ``maternal_age`` and the mother's chronic
-    condition codes. No random draw."""
+def _gestational_days(mother: PatientProfile, delivered_at: datetime) -> int | None:
+    """The delivery date minus the LMP of the pregnancy period that delivers on
+    it; ``None`` when no period gives an LMP. No random draw."""
     delivery_day = delivered_at.date()
     gestational_days: int | None = None
     for period in getattr(mother, "state_periods", None) or []:
@@ -585,8 +582,43 @@ def _birth_data(mother: PatientProfile, delivered_at: datetime, cesarean: bool) 
         lmp_day = date.fromisoformat(str(lmp)[:10]) if lmp else None
         if lmp_day is not None and lmp_day <= delivery_day and period.is_active_at(delivery_day):
             gestational_days = (delivery_day - lmp_day).days
+    return gestational_days
+
+
+def _applicable_complications(
+    rows: list[dict[str, Any]], codes: list[str], gestational_days: int | None, is_cesarean: bool
+) -> list[str]:
+    """The drawn complication ``codes`` that fit this delivery (Issue #3661).
+
+    A row of ``perinatal.yaml complications.bernoulli_draws`` may restrict its
+    code to a gestational age (``gestational_weeks_below``) and to delivery
+    modes (``modes``). A code with no row, or a row without a restriction,
+    applies. A gestational-age restriction cannot be met when the record has
+    no gestational age. Pure filter: no random draw.
+    """
+    by_code = {str(r.get("code") or ""): r for r in rows}
+    mode = "cesarean" if is_cesarean else "vaginal"
+    kept: list[str] = []
+    for code in codes:
+        row = by_code.get(code) or {}
+        below = row.get("gestational_weeks_below")
+        if below is not None and (gestational_days is None or gestational_days >= float(below) * 7):
+            continue
+        modes = row.get("modes")
+        if modes and mode not in modes:
+            continue
+        kept.append(code)
+    return kept
+
+
+def _birth_data(mother: PatientProfile, delivered_at: datetime, cesarean: bool) -> dict[str, Any]:
+    """What the mother's record says about the birth, for the newborn's H&P
+    (Issue #3245): ``gestational_age_days`` (the delivery date minus the LMP of
+    the pregnancy period that delivers on it; ``None`` when no period gives an
+    LMP), ``delivery_mode``, ``maternal_age`` and the mother's chronic
+    condition codes. No random draw."""
     return {
-        "gestational_age_days": gestational_days,
+        "gestational_age_days": _gestational_days(mother, delivered_at),
         "delivery_mode": "cesarean" if cesarean else "vaginal",
         "maternal_age": age_at_measurement(mother, delivered_at)[0],
         "maternal_condition_codes": [c.code for c in mother.chronic_conditions if c.code],
@@ -732,8 +764,23 @@ def simulate_delivery_encounter(
             complications = [str(c) for c in (meta.get("complications") or []) if c]
             break
 
+    # Issue #3661: keep only the complications that fit this delivery (a
+    # preterm-delivery code needs a preterm gestational age, obstructed labor
+    # a cesarean). The draws were made at conception; this is a pure filter.
+    gestational_days = _gestational_days(patient, visit_date)
+    complications = _applicable_complications(
+        (cfg.get("complications") or {}).get("bernoulli_draws") or [], complications, gestational_days, is_cesarean
+    )
+    # A complicated delivery is not "uncomplicated": the first complication is
+    # the principal diagnosis (ICD convention) and the rest are working
+    # diagnoses; O80 / O82 stand only for an uncomplicated delivery.
+    if complications:
+        admit_dx, secondary = complications[0], complications[1:]
+    else:
+        secondary = []
+
     working_diagnoses: list[dict] = []
-    for code in complications:
+    for code in secondary:
         working_diagnoses.append(
             {
                 "disease_id": code,
@@ -1093,6 +1140,14 @@ def simulate_delivery_encounter(
         clinical_diagnosis=clinical_diagnosis,
         discharge_prescription=_mother_discharge_rx,
         physiological_states=[],
+        # Issue #3661: the structured facts of the delivery, read by the notes.
+        extensions={
+            "delivery": {
+                "mode": "cesarean" if is_cesarean else "vaginal",
+                "gestational_age_days": gestational_days,
+                "complication_codes": list(complications),
+            }
+        },
     )
 
     # ── Newborn-side chain (Slice 2 — Issue #957 Tier-3-B follow-up) ─
