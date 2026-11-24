@@ -122,7 +122,7 @@ PINNED: dict[tuple[str, str, str], tuple[int, str]] = {
     ("fhir_r4/medications/medications.py", "get", "en"): (2, MATCHING),
     ("fhir_r4/medications/medications.py", "get", "ja"): (1, MATCHING),
     # JP-CLINS eCS post-process (runs on JP output only).
-    ("fhir_r4/post_process/populate.py", "t", "ja"): (9, JP_PROFILE),
+    ("fhir_r4/post_process/populate.py", "t", "ja"): (11, JP_PROFILE),
     ("fhir_r4/post_process/populate.py", "registry_display", "ja"): (1, JP_PROFILE),
     ("fhir_r4/post_process/populate.py", "narrative_label", "ja"): (1, JP_PROFILE),
     ("fhir_r4/post_process/populate.py", "system_coding", "en"): (1, ENGLISH_ONLY),
