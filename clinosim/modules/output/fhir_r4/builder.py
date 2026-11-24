@@ -74,6 +74,9 @@ from clinosim.modules.output.fhir_r4.labs.stage_scale_observations import _bb_st
 from clinosim.modules.output.fhir_r4.lib.common import entry
 from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.modules.output.fhir_r4.lib.ed_reattribution import (
+    reattribute_ed_phase_by_time as _reattribute_ed_phase_by_time,
+)
+from clinosim.modules.output.fhir_r4.lib.ed_reattribution import (
     reattribute_encounter_to_ed_bridge as _reattribute_encounter_to_ed_bridge,
 )
 from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_deceased_datetime
@@ -857,6 +860,9 @@ def _build_bundle(
             # is active today; timestamp trigger is future-proof for when
             # the simulator emits ED-window vitals / meds / procedures.
             _reattribute_encounter_to_ed_bridge(resource, ctx)
+            # Issue #3672: orders, results, doses and procedures dated in
+            # the ED window belong to the ED Encounter as well.
+            _reattribute_ed_phase_by_time(resource, ctx)
             entries.append(entry(resource))
 
     # Issue #926 (2026-08-29): after-death event gate. At v0.5.0 (p=10000)

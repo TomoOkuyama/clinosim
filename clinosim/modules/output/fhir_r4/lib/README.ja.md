@@ -84,7 +84,8 @@ module から直接 import する (Issue #545 rename)。
     `_PR_NUMBER_RE = r"\(#(\d+)\)\s*$"`。
   - `ed_reattribution.py` — `convert_cif_to_fhir` が via-ED IMP
     encounter を合成 ED bridge encounter に再帰属する際に使う
-    `reattribute_encounter_to_ed_bridge` helper (N-3 PR #810 chain) と、
+    `reattribute_encounter_to_ed_bridge` helper (N-3 PR #810 chain)、ED 窓 `[入院 - admitted_ed_stay(), 入院)` に時刻が入るオーダー・結果・投与・処置を
+    bridge に載せる `reattribute_ed_phase_by_time` (Issue #3672) と、
     ED 来院時バイタルセット (`data_source == "ed_triage"`) とその
     NEWS2 / GCS を bridge に載せる `vital_sign_encounter_id(vs, ctx)`
     (Issue #3243)。
