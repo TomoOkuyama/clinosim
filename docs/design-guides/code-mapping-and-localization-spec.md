@@ -216,6 +216,16 @@ The reason text of a JP `Immunization` names the vaccine's program (Issue #3660)
 
 Guard: `tests/unit/output/test_immunization_program_3660.py`.
 
+An outpatient `Encounter.type` follows the visit's reason, not the encounter-type default (Issue #3657). `modules/output/fhir_r4/reference_data/encounter_visit_type.yaml` is the table, applied by `encounters/encounter.py` `_outpatient_type_code`; the first rule that matches wins:
+
+| Visit | SNOMED type |
+|---|---|
+| chief complaint (either language, case-insensitive) holds `vaccination`, `immunization`, `screening`, `予防接種` or `健康診断`, or the reason code is Z23-Z27 | 270427003 Patient-initiated encounter |
+| pediatric acute illness (`visit_condition_id` is a `presentations` entry of the pediatric schedule, `pediatric.calendar.is_acute_illness_condition`) | 11429006 Consultation |
+| chief complaint starting `Follow-up`, `フォローアップ` or `Post-discharge`, or any other visit with a diagnosis | 185349003 Encounter for check up |
+
+Guard: `tests/unit/output/test_encounter_type_3657.py`; `tests/unit/modules/pediatric/test_acute_illness_single_source_3657.py` keeps the visit-note reason table's acute-illness conditions equal to the pediatric presentations.
+
 ## 4. Resolution functions
 
 Consumers resolve names only through these functions.
