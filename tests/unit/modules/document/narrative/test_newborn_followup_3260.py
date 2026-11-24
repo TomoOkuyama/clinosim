@@ -1,7 +1,7 @@
 """Newborn progress-note subjective and discharge instructions (Issue #3260).
 
-A newborn's progress-note subjective is the day of life, feeding and
-elimination and the jaundice review of the bilirubin measured by the note's
+A newborn's progress-note subjective is the day of life and the jaundice review of the
+bilirubin measured by the note's
 time (not the adult stable-day pool, which speaks of rehabilitation and
 discharge training); its discharge instructions are written to the parents
 (feeding, diapers, jaundice, safe sleep, cord care, follow-up), not the adult
@@ -31,16 +31,18 @@ def _progress(lang: str, day: int = 2, **kw):
     return ctx
 
 
-def test_newborn_subjective_ja_has_feeding_elimination_and_jaundice() -> None:
+def test_newborn_subjective_ja_has_day_of_life_and_jaundice_but_no_feeding_claim() -> None:
     text = compose_progress_subjective_from_state(_progress("ja", day=2))
-    assert "日齢2" in text and "哺乳良好" in text and "排尿・排便" in text
+    assert "日齢2" in text
+    assert "哺乳良好" not in text and "排尿・排便あり" not in text
     assert "経皮ビリルビン 8.8 mg/dL (日齢2の測定)" in text
     assert "自立訓練" not in text and "リハビリ" not in text
 
 
 def test_newborn_subjective_en_has_no_japanese_and_no_adult_pool() -> None:
     text = compose_progress_subjective_from_state(_progress("en", day=3))
-    assert "Day of life 3" in text and "Feeding well" in text and "12.2 mg/dL" in text
+    assert "Day of life 3" in text and "12.2 mg/dL" in text
+    assert "Feeding well" not in text and "voiding and stooling" not in text
     assert not _CJK.search(text)
     assert "rehab" not in text.lower() and "discharge" not in text.lower()
 

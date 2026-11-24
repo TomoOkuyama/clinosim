@@ -192,17 +192,14 @@ def compose_progress_subjective_from_state(ctx: NarrativeContext) -> str:
 
 def _newborn_subjective_parts(ctx: NarrativeContext) -> list[str]:
     """The newborn progress-note subjective sentences (Issue #3260): the day of
-    life, the well-newborn feeding and elimination line, and the latest total
-    bilirubin measured by the note's time. Feeding and elimination are not
-    recorded in the simulation record; for a stay without complications they
-    are the neutral well-newborn observation, as the adult stable-day pool is
-    for an adult."""
+    life and the latest total bilirubin measured by the note's time. Feeding,
+    voiding and stooling are not recorded in the simulation record (the
+    nursing shift note says so), so the physician note does not assert them
+    (Issue #3670)."""
     from clinosim.modules.document.narrative.renderers._resolvers import latest_bilirubin_at
 
     lang = ctx.target_lang
     parts = [t("neonate_progress.day_of_life", lang, day=ctx.day_index)]
-    if not getattr(ctx, "complications_events", None):
-        parts.append(t("neonate_progress.feeding_elimination", lang))
     latest = latest_bilirubin_at(ctx, ctx.day_index)
     if latest is not None:
         day, value = latest
