@@ -4,9 +4,11 @@ A patient is on oxygen or not, and stays so until weaned: the on / off state,
 device and flow are carried across the readings of a stay instead of being
 decided afresh from each noisy room-air SpO2. Oxygen starts at the first
 reading below the target (device and flow from the draw that reading made),
-is titrated up only while the SpO2 on oxygen is still below the target, and
-is stopped once the room-air SpO2 has stayed at or above the target plus a
-margin for ``wean_hours`` (``reference_data/oxygen_course.yaml``). Everything
+is titrated up while the SpO2 on oxygen is still below the target and down
+(one flowmeter step, the device following the flow) while it stays above
+the target plus ``down_margin_spo2`` (Issue #3632), and is stopped once the
+room-air SpO2 has stayed at or above the target plus a margin for
+``wean_hours`` (``reference_data/oxygen_course.yaml``). Everything
 here is RNG-free: the caller keeps making the per-reading draw and passes it.
 """
 
@@ -21,6 +23,10 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict, Field
 
 from clinosim.datafiles import load_data_yaml
+from clinosim.simulator._oxygen_therapy_thresholds import (
+    O2_NASAL_CANNULA_FLOW_MAX_LPM,
+    O2_NON_REBREATHER_FLOW_MIN_LPM,
+)
 
 __all__ = ["OxygenCourse", "OxygenCourseRules", "VentilationRules", "oxygen_course_rules", "round_oxygen_flow"]
 
@@ -54,6 +60,10 @@ class OxygenCourseRules(BaseModel):
     wean_margin_spo2: float = Field(ge=0)
     wean_min_readings: int = Field(ge=1)
     flow_step_lpm: float = Field(gt=0)
+    down_margin_spo2: float = Field(gt=0)
+    down_hours: float = Field(gt=0)
+    down_min_readings: int = Field(ge=1)
+    min_flow_lpm: float = Field(gt=0)
     ventilation: VentilationRules
 
 
@@ -77,6 +87,16 @@ def round_oxygen_flow(flow: float | None) -> float | None:
     return max(step, round(round(flow / step) * step, 3))
 
 
+def device_for_flow(flow: float) -> str:
+    """The delivery device for ``flow`` L/min, by the same cut-offs as the
+    per-reading dispatcher (``_o2_for``): nasal cannula up to
+    ``O2_NASAL_CANNULA_FLOW_MAX_LPM``, non-rebreather from
+    ``O2_NON_REBREATHER_FLOW_MIN_LPM``, a simple mask between (Issue #3632)."""
+    if flow >= O2_NON_REBREATHER_FLOW_MIN_LPM:
+        return "non-rebreather"
+    return "nasal_cannula" if flow <= O2_NASAL_CANNULA_FLOW_MAX_LPM else "simple_mask"
+
+
 @dataclass
 class OxygenCourse:
     """Oxygen state carried across the readings of a stay (chronological)."""
@@ -86,6 +106,9 @@ class OxygenCourse:
     device: str = ""
     stable_since: datetime | None = None  # first of the current run of satisfactory room-air readings
     stable_readings: int = 0
+    # Issue #3632: the current run of readings whose SpO2 on oxygen is above the band.
+    high_since: datetime | None = None
+    high_readings: int = 0
     # Issue #3535: the ventilated period (intubation .. extubation); ``None``
     # until intubated / while not yet extubated.
     ventilated_since: datetime | None = None
@@ -110,6 +133,7 @@ class OxygenCourse:
         self.ventilated_since, self.ventilated_until = when, None
         self.on, self.flow, self.device = True, None, rules.device
         self.stable_since, self.stable_readings, self.extubation_ready_days = None, 0, 0
+        self.high_since, self.high_readings = None, 0
 
     def end_ventilation(self, when: datetime) -> None:
         """Extubated at ``when``: oxygen continues on the post-extubation
@@ -118,6 +142,7 @@ class OxygenCourse:
         self.ventilated_until = when
         self.on, self.flow, self.device = True, rules.post_extubation_flow_lpm, rules.post_extubation_device
         self.stable_since, self.stable_readings = None, 0
+        self.high_since, self.high_readings = None, 0
 
     def extubation_due(
         self, oxygenation_impairment: float, consciousness_impairment: float, days_after_intubation: int, *, force: bool
@@ -157,6 +182,7 @@ class OxygenCourse:
             if d_on:
                 self.on, self.flow, self.device = True, d_flow, d_device
                 self.stable_since, self.stable_readings = None, 0
+                self.high_since, self.high_readings = None, 0
             return self.state()
         rules = oxygen_course_rules()
         if room_air_spo2 >= target + rules.wean_margin_spo2:
@@ -168,6 +194,7 @@ class OxygenCourse:
             ):
                 self.on, self.flow, self.device = False, None, ""
                 self.stable_since, self.stable_readings = None, 0
+                self.high_since, self.high_readings = None, 0
         else:
             self.stable_since, self.stable_readings = None, 0
         return self.state()
@@ -181,8 +208,9 @@ class OxygenCourse:
         spo2_on_oxygen: Callable[[float, float], float],
     ) -> tuple[bool, float | None, str, float]:
         """:meth:`observe` plus the SpO2 recorded on oxygen: the flow is
-        raised to the draw's (never lowered) while the SpO2 on oxygen is still
-        below ``target``. Returns (on, flow, device, recorded SpO2). While
+        raised to the draw's while the SpO2 on oxygen is still below
+        ``target`` and lowered one step while it stays above the band
+        (Issue #3632). Returns (on, flow, device, recorded SpO2). While
         ventilated (Issue #3535) the device is the ventilator and the SpO2 is
         raised as by ``ventilation.equivalent_flow_lpm``."""
         if self.ventilated_at(when):
@@ -192,12 +220,37 @@ class OxygenCourse:
         if not on:
             return False, None, "", room_air_spo2
         spo2 = spo2_on_oxygen(room_air_spo2, flow or 0.0)
+        if self._lower_flow_due(when, spo2, target):
+            rules = oxygen_course_rules()
+            step = rules.flow_step_lpm
+            self.flow = max(rules.min_flow_lpm, round((flow or 0.0) / step) * step - step)
+            self.device = device_for_flow(self.flow)
+            self.high_since, self.high_readings = None, 0
+            flow, device = self.flow, self.device
+            spo2 = spo2_on_oxygen(room_air_spo2, flow)
         d_flow = draw[1]
         if spo2 < target and draw[0] and d_flow is not None and (flow is None or d_flow > flow):
             self.flow, self.device = d_flow, draw[2]
             flow, device = self.flow, self.device
             spo2 = spo2_on_oxygen(room_air_spo2, flow)
         return True, flow, device, spo2
+
+    def _lower_flow_due(self, when: datetime, spo2: float, target: float) -> bool:
+        """Stateful (Issue #3632): True once the SpO2 on oxygen has stayed above
+        ``target + down_margin_spo2`` for ``down_hours`` over at least
+        ``down_min_readings`` readings and the flow is above the minimum."""
+        rules = oxygen_course_rules()
+        if self.flow is None or spo2 <= target + rules.down_margin_spo2:
+            self.high_since, self.high_readings = None, 0
+            return False
+        if self.high_since is None:
+            self.high_since = when
+        self.high_readings += 1
+        return (
+            self.flow > rules.min_flow_lpm
+            and self.high_readings >= rules.down_min_readings
+            and when - self.high_since >= timedelta(hours=rules.down_hours)
+        )
 
     def state(self) -> O2Draw:
         return (True, self.flow, self.device) if self.on else (False, None, "")
