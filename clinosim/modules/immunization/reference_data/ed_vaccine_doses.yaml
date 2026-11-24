@@ -1,0 +1,21 @@
+# Vaccines given as a one-time order in the emergency department and recorded
+# as an Immunization as well as an administration (Issue #3685).
+#
+# drug_cvx: catalog drug id (codes/data/drugs.yaml) -> CVX code. CVX 35
+#   "tetanus toxoid, adsorbed" was read on the CDC CVX table (status Inactive
+#   there; see codes/data/cvx.yaml).
+# tetanus_containing_cvx: CVX codes whose dose covers tetanus; a scheduled dose
+#   of one of them within `after_wound_dose_days` after an ED dose is not
+#   given (the dose just given resets the booster clock). 1826 days (5 years)
+#   is the usual wound-management booster interval, a clinosim modelling
+#   choice: no source was read for it in this work. Maternal Tdap and the
+#   paediatric series are not dropped.
+metadata:
+  kind: reference
+  name: ed_vaccine_doses
+  source: clinosim
+
+drug_cvx:
+  tetanus_toxoid: "35"
+tetanus_containing_cvx: ["35", "113", "115"]
+after_wound_dose_days: 1826

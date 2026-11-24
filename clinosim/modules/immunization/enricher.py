@@ -34,6 +34,7 @@ from clinosim.modules.immunization.engine import (
     lot_cvx_by_cvx,
     redate,
     series_allows,
+    synthetic_lot_number,
 )
 from clinosim.modules.immunization.visits import (
     bind_to_vaccination_visits_for_country,
@@ -43,7 +44,13 @@ from clinosim.modules.immunization.visits import (
 )
 from clinosim.modules.pediatric.calendar import is_acute_illness_condition
 from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
-from clinosim.types.encounter import Encounter, EncounterStatus, EncounterType, VitalSignRecord
+from clinosim.types.encounter import (
+    Encounter,
+    EncounterStatus,
+    EncounterType,
+    ImmunizationRecord,
+    VitalSignRecord,
+)
 
 _PRECAUTIONS_PATH = Path(__file__).parent / "reference_data" / "vaccination_precautions.yaml"
 _FALLBACK_FEBRILE_CELSIUS = 38.0
@@ -84,6 +91,76 @@ def vaccination_visit_minutes() -> int:
     """Length of a synthesised vaccination visit in minutes (Issue #3656)."""
     data = load_validated_yaml(_VISIT_PATH, _VaccinationVisit)
     return int(data.get("duration_minutes", _FALLBACK_VISIT_MINUTES))
+
+
+class _EdVaccineDoses(BaseModel):
+    """Shape of ``reference_data/ed_vaccine_doses.yaml``."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    drug_cvx: dict[str, str]
+    tetanus_containing_cvx: list[str]
+    after_wound_dose_days: int = Field(gt=0)
+
+
+_ED_DOSES_PATH = Path(__file__).parent / "reference_data" / "ed_vaccine_doses.yaml"
+
+
+@lru_cache(maxsize=1)
+def _ed_vaccine_config() -> dict[str, Any]:
+    return load_validated_yaml(_ED_DOSES_PATH, _EdVaccineDoses)
+
+
+def ed_vaccine_doses(records: list) -> list[ImmunizationRecord]:
+    """The Immunizations of the vaccine doses a patient was given as one-time
+    orders in the emergency department (Issue #3685): each given
+    administration of a drug of ``drug_cvx`` across the patient's ``records``,
+    on the administration's date and its order's encounter, with a synthetic
+    lot and the administering nurse. A dose appears once however many records
+    carry it. Deterministic, no rng."""
+    drug_cvx: dict[str, str] = _ed_vaccine_config().get("drug_cvx", {})
+    out: dict[tuple[str, date, str], ImmunizationRecord] = {}
+    for rec in records:
+        enc_of = {
+            str(_get(o, "order_id", "") or ""): str(_get(o, "encounter_id", "") or "")
+            for o in _get(rec, "orders", []) or []
+        }
+        for mar in _get(rec, "medication_administrations", []) or []:
+            cvx = drug_cvx.get(str(_get(mar, "drug_id", "") or ""))
+            when = _get(mar, "actual_datetime", None)
+            if cvx is None or str(_get(mar, "status", "given") or "given") != "given" or not isinstance(when, datetime):
+                continue
+            eid = enc_of.get(str(_get(mar, "order_id", "") or ""), "")
+            key = (cvx, when.date(), eid)
+            if key not in out:
+                out[key] = ImmunizationRecord(
+                    vaccine_cvx=cvx,
+                    occurrence_date=when.date(),
+                    status="completed",
+                    primary_source=True,
+                    lot_number=synthetic_lot_number(cvx, when.date()),
+                    administered_by=str(_get(mar, "administered_by", "") or ""),
+                    encounter_id=eid,
+                )
+    return sorted(out.values(), key=lambda i: (i.occurrence_date, i.vaccine_cvx))
+
+
+def drop_wound_covered_doses(recs: list, ed_doses: list) -> list:
+    """``recs`` without the scheduled tetanus-containing doses that fall within
+    ``after_wound_dose_days`` after an ED tetanus dose (Issue #3685)."""
+    cfg = _ed_vaccine_config()
+    tetanus = set(cfg["tetanus_containing_cvx"])
+    window = timedelta(days=int(cfg["after_wound_dose_days"]))
+    given = [d.occurrence_date for d in ed_doses if str(d.vaccine_cvx) in tetanus]
+
+    def covered(imm: object) -> bool:
+        occ = _get(imm, "occurrence_date", None)
+        if str(_get(imm, "vaccine_cvx", "") or "") not in tetanus or not isinstance(occ, date):
+            return False
+        return any(day < occ <= day + window for day in given)
+
+    return [i for i in recs if not covered(i)]
 
 
 def acute_visit_encounter_ids(records: list) -> set[str]:
@@ -570,11 +647,13 @@ def enrich_immunizations(ctx) -> None:
     # the same dose two FHIR ids.
     _latest_rec: dict[str, Any] = {}
     _latest_at: dict[str, datetime] = {}
+    _records_by_patient: dict[str, list] = {}
     for rec in ctx.records:
         patient = _get(rec, "patient")
         pid = _get(patient, "patient_id", "") if patient else ""
         if not pid:
             continue
+        _records_by_patient.setdefault(pid, []).append(rec)
         _latest_rec.setdefault(pid, rec)
         for enc in _get(rec, "encounters", []) or []:
             _all_encs_by_patient.setdefault(pid, []).append(enc)
@@ -612,6 +691,11 @@ def enrich_immunizations(ctx) -> None:
         )
         as_of = _as_of(ctx, source)
         recs = generate_immunizations_for_country(country_upper, patient, schedule, as_of, rng, nurse_ids=nurse_ids)
+        # Issue #3685: the tetanus toxoid the ED gave is part of the history;
+        # a scheduled tetanus-containing dose soon after it is not given. Done
+        # after the draws above, with no draw of its own.
+        _ed_doses = [d for d in ed_vaccine_doses(_records_by_patient.get(pid, [rec])) if d.occurrence_date <= as_of]
+        recs = drop_wound_covered_doses(recs, _ed_doses)
         # Issue #1283: append US maternal Tdap (CVX 115) for each
         # pregnancy period whose 27-36-week window overlaps the sim.
         # Uses the same per-patient sub-RNG the schedule pass just
@@ -630,6 +714,7 @@ def enrich_immunizations(ctx) -> None:
                 default_nurse=_default_nurse,
             )
         )
+        recs.extend(_ed_doses)
         recs.sort(key=lambda r: r.occurrence_date)
         # Issue #1197 align — cross-record encounter pool.
         pool = _all_encs_by_patient.get(pid) or (_get(rec, "encounters", []) or [])

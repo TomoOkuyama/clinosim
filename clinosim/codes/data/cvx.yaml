@@ -1,7 +1,7 @@
 # CVX — Vaccine Administered codes.
 # AUTHORITATIVE SOURCE: CDC IIS (https://www2.cdc.gov/vaccines/iis/iisstandards/vaccines.asp?rpt=cvx).
 # Verified 2026-06 against the CDC CVX list (https://www2.cdc.gov/vaccines/iis/iisstandards/downloads/cvx.txt).
-# Only Active-status codes are included, plus (Issue #2629) the earlier products a
+# Only Active-status codes are included, plus (Issue #2629 / #3685) the earlier products a
 # historical dose is coded with in its era (CVX 140 / 208 / 300; displays checked
 # with tx.fhir.org $lookup 2026-11-05). Do not add a code without verifying
 # against CDC (no fabrication).
@@ -42,6 +42,13 @@ codes:
   "113":
     en: "Td (adult), 5 Lf tetanus toxoid, preservative free, adsorbed"
     ja: "破傷風・ジフテリア（Td成人用・保存剤なし）"
+  # Issue #3685: the ED tetanus toxoid dose. CDC lists CVX 35 "tetanus toxoid,
+  # adsorbed" with status Inactive (read on the CDC CVX table 2026-11); it is
+  # the code that names the product the ED orders, so it is kept as an
+  # historical code like CVX 140 / 208 / 300.
+  "35":
+    en: "tetanus toxoid, adsorbed"
+    ja: "破傷風トキソイド（沈降）"
 
   # === Zoster ===
   "187":

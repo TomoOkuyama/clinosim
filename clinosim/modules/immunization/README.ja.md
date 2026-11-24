@@ -158,6 +158,15 @@ in-progress snapshot でのバックデート出力を防ぐ。
 受診 (`enricher.acute_visit_encounter_ids`)。その接種は well・予防接種・
 フォローアップ受診に付くか、無ければ専用の `ENC-VAX-*` 受診になる。
 
+救急外来で行った破傷風トキソイド (1 回限りの指示で ED が投与を記録) も
+Immunization にする (Issue #3685): `enricher.ed_vaccine_doses` が、
+`reference_data/ed_vaccine_doses.yaml` の `drug_cvx` の薬 (`tetanus_toxoid` →
+CVX 35) の投与済み記録ごとに、投与日付・指示の encounter に紐付けた completed の
+接種を、合成ロットと投与した看護師付きで、複数レコードが持っていても患者ごとに 1 回だけ
+追加する。その後 `after_wound_dose_days` (1826 日 = 5 年) 以内の予定された破傷風含有
+接種 (`tetanus_containing_cvx`: 35・113・115) は行わない (`drop_wound_covered_doses`。
+母体 Tdap と小児系列は対象外)。rng draw なし。
+
 紐付かず simulation window 開始 (`config.time_range[0]`) より前の接種は
 `primary_source=False` とし未紐付けのまま残す。window 内の orphan には
 外来 `ENC-VAX-*` encounter (department `primary_care`、入院時診断 `Z23`、
@@ -249,7 +258,7 @@ Z26.9)。FHIR の Encounter・Procedure の `reasonCode` がこれを使い、US
   | `coverage_by_age_sex` | `{"age_band": {sex: rate}}` (0-1、小児 series 以外)。 |
 - CVX コード表:
   [`clinosim/codes/data/cvx.yaml`](../../codes/data/cvx.yaml)
-  — 38 コード。
+  — 39 コード。
   FHIR system URI: `http://hl7.org/fhir/sid/cvx`。
 
 ## ディレクトリ構造
@@ -261,6 +270,7 @@ clinosim/modules/immunization/
   enricher.py                     POST_RECORDS enrichment (患者単位サブ RNG)
   visits.py                       予防接種受診 (Z23) で行った接種の紐付け
   reference_data/
+    ed_vaccine_doses.yaml         ED 1 回限りワクチン薬 → CVX、破傷風追加接種のリセット
     vaccination_visit.yaml        合成する予防接種受診の duration_minutes
     vaccination_precautions.yaml  febrile_celsius: 定期接種を行わない受診の基準
 ```
