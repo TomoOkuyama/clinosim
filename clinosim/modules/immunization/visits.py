@@ -51,6 +51,7 @@ from clinosim.modules.immunization.engine import (
     _age_on,
     _coverage,
     _parse,
+    add_first_season_flu_doses,
     dose_intervals_by_cvx,
     flu_season_of,
     licensed_on,
@@ -452,10 +453,38 @@ def bind_to_vaccination_visits(
     flu_visit_candidate: bool,
     nurse: str = "",
 ) -> list:
+    """``bind_to_vaccination_visits_for_country`` without a country: the second
+    first-season flu dose (Issue #3684) is not placed on a clinic day."""
+    return bind_to_vaccination_visits_for_country(
+        None,
+        imms,
+        visits,
+        patient,
+        schedule,
+        as_of=as_of,
+        sim_start=sim_start,
+        flu_visit_candidate=flu_visit_candidate,
+        nurse=nurse,
+    )
+
+
+def bind_to_vaccination_visits_for_country(
+    country: str | None,
+    imms: list,
+    visits: list[VaccinationVisit],
+    patient: Any,
+    schedule: dict,
+    *,
+    as_of: date,
+    sim_start: date | None,
+    flu_visit_candidate: bool,
+    nurse: str = "",
+) -> list:
     """Give the doses at the patient's vaccination visits (module docstring).
 
     ``flu_visit_candidate``: the healthcare calendar offers this patient
-    flu vaccination visits (``is_flu_visit_candidate``). Returns the
+    flu vaccination visits (``is_flu_visit_candidate``). ``country`` gives the
+    clinic calendar the second first-season flu dose is placed on. Returns the
     patient's immunization list, sorted by date.
     """
     schedule = schedule_for_birth(schedule, _get(patient, "date_of_birth", None))
@@ -469,6 +498,9 @@ def bind_to_vaccination_visits(
         flu_visit_candidate=flu_visit_candidate,
         nurse=nurse,
     )
+    # Issue #3684: a young child's first flu season has two doses; the second
+    # follows the first wherever the binding put it.
+    imms = add_first_season_flu_doses(imms, patient, schedule, as_of, country)
     if visits:
         imms = _bind_pediatric(imms, visits, patient, schedule, nurse)
     imms.sort(key=lambda r: _get(r, "occurrence_date", date.min))

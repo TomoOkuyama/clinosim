@@ -1034,3 +1034,4 @@ _.not_executed_antibiotic_actions  # ComplicationActionRules field (validated ya
 _.declines_intubation  # _Tier field (validated yaml key, read by key in assign_tier / airway_declined_probability, Issue #3551)
 _.author_role  # DocumentTypeSpec field (validated yaml key, read by name in _pick_document_author, Issue #3703)
 generate_immunizations  # public API without a country (Issue #3683); the enricher calls generate_immunizations_for_country, tests call this
+bind_to_vaccination_visits  # public API without a country (Issue #3684); the enricher calls bind_to_vaccination_visits_for_country, tests call this

@@ -326,6 +326,20 @@ def _pick_flu_month(
     return date(yr, m, 1)
 
 
+def _clinic_day_in(lo: date, hi: date, country: str | None, *key: object) -> date | None:
+    """A clinic day of ``country`` within ``lo`` .. ``hi`` chosen by sha256 of
+    ``key`` (no rng draw); ``lo`` when the country is unknown; ``None`` when no
+    clinic day lies in the range."""
+    if lo > hi:
+        return None
+    if country is None:
+        return lo
+    from clinosim.locale.clinic_calendar import is_clinic_day
+
+    days = [d for d in (lo + timedelta(days=n) for n in range((hi - lo).days + 1)) if is_clinic_day(d, country)]
+    return days[_det_hash(*key) % len(days)] if days else None
+
+
 def _flu_clinic_day(month_day: date, lo: date, hi: date, country: str | None, *key: object) -> date:
     """The day of ``month_day``'s month a flu dose is given (Issue #3683): one
     of the month's clinic days within ``lo`` .. ``hi``, chosen by sha256 of
@@ -333,17 +347,83 @@ def _flu_clinic_day(month_day: date, lo: date, hi: date, country: str | None, *k
     country is unknown or no clinic day of the month lies in the range."""
     if country is None:
         return month_day
-    from clinosim.locale.clinic_calendar import is_clinic_day
-
     month_days = calendar.monthrange(month_day.year, month_day.month)[1]
-    days = [
-        d
-        for d in (month_day.replace(day=n) for n in range(1, month_days + 1))
-        if lo <= d <= hi and is_clinic_day(d, country)
-    ]
-    if not days:
-        return month_day
-    return days[_det_hash(*key, "flu-day") % len(days)]
+    first = month_day.replace(day=1)
+    day = _clinic_day_in(max(lo, first), min(hi, month_day.replace(day=month_days)), country, *key, "flu-day")
+    return day or month_day
+
+
+def add_first_season_flu_doses(imms: list, patient: Any, schedule: dict, as_of: date, country: str | None) -> list:
+    """``imms`` with the second first-season flu dose of a child (Issue #3684).
+
+    For the annual entry carrying ``first_season_second_dose``: a child whose
+    first completed flu dose is given under ``max_age_months`` and whose
+    licensure floor is inside the entry's ``history_years`` (so no earlier dose
+    is unknown) gets a second dose at least ``min_interval_days`` later on a
+    clinic day of the same flu season, not after ``as_of`` (none left: no
+    second dose). The pair carries ``dose_number`` 1 and 2. Deterministic, no
+    rng draw (the day is a sha256 pick); other children and countries are
+    returned unchanged."""
+    from clinosim.types.encounter import ImmunizationRecord
+
+    dob = _get(patient, "date_of_birth", None)
+    pid = str(_get(patient, "patient_id", "") or "")
+    if not isinstance(dob, date):
+        return imms
+    for v in schedule.values():
+        rule = v.get("first_season_second_dose")
+        if v.get("frequency") != "annual" or not rule:
+            continue
+        codes = {str(v["cvx"])} | {str(p["cvx"]) for p in v.get("products") or []}
+        flu = sorted(
+            (
+                i
+                for i in imms
+                if str(_get(i, "vaccine_cvx", "")) in codes
+                and (_get(i, "status", "completed") or "completed") == "completed"
+            ),
+            key=lambda i: _get(i, "occurrence_date"),
+        )
+        if not flu:
+            continue
+        first = flu[0]
+        day = _get(first, "occurrence_date")
+        months = (day.year - dob.year) * 12 + day.month - dob.month - (day.day < dob.day)
+        history_years = v.get("history_years")
+        floor = licensed_from(v, dob) or dob
+        if months > int(rule["max_age_months"]):
+            continue
+        if history_years is not None and floor < _safe_date(as_of.year - int(history_years), as_of.month, as_of.day):
+            continue
+        season = flu_season_of(day)
+        if any(flu_season_of(_get(i, "occurrence_date")) == season for i in flu[1:]):
+            continue
+        # The season runs to the day before the next season's anchor month.
+        season_end = date(season + 1, _SEASON_ANCHOR_MONTH, 1) - timedelta(days=1)
+        second_day = _clinic_day_in(
+            day + timedelta(days=int(rule["min_interval_days"])),
+            min(season_end, as_of),
+            country,
+            pid,
+            str(v["cvx"]),
+            season,
+            "flu-dose-2",
+        )
+        if second_day is None:
+            continue
+        _set(first, "dose_number", 1)
+        imms.append(
+            ImmunizationRecord(
+                vaccine_cvx=product_cvx(v, second_day),
+                occurrence_date=second_day,
+                dose_number=2,
+                primary_source=bool(_get(first, "primary_source", True)),
+                administered_by=str(_get(first, "administered_by", "") or ""),
+                lot_number=synthetic_lot_number(str(v["cvx"]), second_day),
+            )
+        )
+    imms.sort(key=lambda r: _get(r, "occurrence_date"))
+    return imms
 
 
 def _pick_wave_epoch_date(
@@ -480,6 +560,13 @@ def dose_intervals_by_cvx(schedule: dict) -> dict[str, dict[int, DoseInterval]]:
             continue
         for cvx in {str(v["cvx"])} | {str(p["cvx"]) for p in v.get("products") or []}:
             out.setdefault(cvx, {}).update(rules)
+    # Issue #3684: the first-season flu pair keeps its interval when the
+    # enricher moves the doses to visits.
+    for v in schedule.values():
+        rule = v.get("first_season_second_dose")
+        if v.get("frequency") == "annual" and rule:
+            for cvx in {str(v["cvx"])} | {str(p["cvx"]) for p in v.get("products") or []}:
+                out.setdefault(cvx, {})[2] = DoseInterval(1, int(rule["min_interval_days"]))
     return out
 
 
