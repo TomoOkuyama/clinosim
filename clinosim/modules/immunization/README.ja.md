@@ -165,6 +165,8 @@ attending は primary-care 医師 roster から決定論選出) を合成し、�
 あたり 1 回だけ host する。`ENC-VAX-*` が存在すれば
 `document.engine.document_enricher` を再実行して文書 stub を付与する。
 
+合成した `ENC-VAX-*` encounter は `duration_minutes` (15、`reference_data/vaccination_visit.yaml`、Issue #3656) の長さを持ち、接種前の確認と接種はその期間に入る。FHIR builder は、主 encounter の期間外に測定したバイタルセットを、その時刻を期間に含むレコード内の別の外来 encounter に付ける (`ed_reattribution.vital_sign_encounter_id`)。
+
 合成した各 `ENC-VAX-*` encounter には接種前のバイタルサイン (Issue #3464) も
 付く。受診時刻の `VitalSignRecord` 1 件で、小児は体温と脈拍、成人はさらに血圧
 (`locale/shared/chronic_followup.yaml` の `_visit_vitals`)。患者の生理状態から
@@ -259,6 +261,7 @@ clinosim/modules/immunization/
   enricher.py                     POST_RECORDS enrichment (患者単位サブ RNG)
   visits.py                       予防接種受診 (Z23) で行った接種の紐付け
   reference_data/
+    vaccination_visit.yaml        合成する予防接種受診の duration_minutes
     vaccination_precautions.yaml  febrile_celsius: 定期接種を行わない受診の基準
 ```
 

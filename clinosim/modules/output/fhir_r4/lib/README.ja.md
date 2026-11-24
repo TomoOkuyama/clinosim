@@ -88,7 +88,8 @@ module から直接 import する (Issue #545 rename)。
     bridge に載せる `reattribute_ed_phase_by_time` (Issue #3672) と、
     ED 来院時バイタルセット (`data_source == "ed_triage"`) とその
     NEWS2 / GCS を bridge に載せる `vital_sign_encounter_id(vs, ctx)`
-    (Issue #3243)。
+    (Issue #3243)。主 encounter の期間外のセットは、その時刻を期間に含む
+    レコード内の別の外来 encounter (予防接種受診) に付ける (Issue #3656)。
   - `ids.py` — opaque Resource.id 導出 (Issue #349):
     `CLINOSIM_IDENTIFIER_SYSTEM_PREFIX = "urn:clinosim:identifier:"`、
     `structural_key_system(kind)` (`urn:clinosim:identifier:<kind>`
