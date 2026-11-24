@@ -106,3 +106,40 @@ ventilation:
   max_days: 14
   post_extubation_device: nasal_cannula
   post_extubation_flow_lpm: 4.0
+
+# Non-invasive ventilation (Issue #3705). A stay whose `respiratory_failure_requiring_niv`
+# complication fires is put on NIV from its onset: the readings carry `device`
+# (no oxygen flow: NIV delivers a pressure support and a FiO2), the SpO2 is the
+# room-air value raised as by `equivalent_flow_lpm` of oxygen, the diet is `diet`
+# and oral doses are held while it lasts (`oral_intake.yaml`). NIV is weaned at
+# the start of the day after the first day on which `consecutive_days`
+# consecutive end-of-day states had an oxygenation impairment below
+# `oxygenation_impairment_below` and a consciousness impairment below
+# `consciousness_impairment_below`, at least `min_days_after_start` days after the
+# start day, or after `max_days` days on NIV; the patient is then on
+# `post_niv_device` at `post_niv_flow_lpm` and oxygen is weaned by the rules above.
+# An intubation during NIV (NIV failure) ends NIV at the intubation. No discharge
+# happens on a day on NIV.
+#
+# Source status: NONE of the values below is taken from a guideline read in the
+# session that wrote this block. They are clinosim modelling choices, parallel to
+# the `ventilation` block above (the SpO2 gain of a high-flow device, the day
+# counts and the weaning thresholds). Reviewers with an NIV weaning guideline at
+# hand should replace them.
+niv:
+  # The complication action (disease YAML `actions`) that starts NIV, and the name of its order.
+  start_action: initiate_NIV_BiPAP
+  order_name: Non-invasive ventilation (BiPAP)
+  # A procedure order of the stay whose name matches this (case-insensitive) is already an NIV order (a protocol's):
+  # no second one is placed.
+  existing_order_pattern: "\\bniv\\b|non-?invasive|bipap"
+  device: BiPAP
+  equivalent_flow_lpm: 8.0
+  diet: NPO
+  oxygenation_impairment_below: 0.5
+  consciousness_impairment_below: 0.4
+  consecutive_days: 1
+  min_days_after_start: 1
+  max_days: 5
+  post_niv_device: simple_mask
+  post_niv_flow_lpm: 6.0

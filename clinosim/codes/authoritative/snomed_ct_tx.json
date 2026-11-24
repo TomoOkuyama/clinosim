@@ -5,7 +5,7 @@
     "source_file": "https://tx.fhir.org/r4/CodeSystem/$lookup (preferred term, synonyms, FSN)",
     "extracted_at": "2026-11-10",
     "edition_version": "http://snomed.info/sct/900000000000207008/version/20250201",
-    "clinosim_codes_total": 287,
+    "clinosim_codes_total": 288,
     "clinosim_codes_missing_from_source": [
       "303408005"
     ],
@@ -3259,6 +3259,32 @@
         {
           "use": "900000000000003001",
           "value": "Percutaneous route (qualifier value)"
+        }
+      ]
+    },
+    {
+      "code": "428311008",
+      "display": "Non-invasive ventilation",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Non-invasive ventilation"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Noninvasive ventilation (procedure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Noninvasive ventilation"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Non-invasive ventilation (regime/therapy)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "NIV - non-invasive ventilation"
         }
       ]
     },

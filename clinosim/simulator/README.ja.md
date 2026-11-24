@@ -149,7 +149,7 @@ clinosim/simulator/
                          その間の経口投与を保留。乱数なし (Issue #3552;
                          reference_data/oral_intake.yaml)
   oxygen_course.py       入院中の補助酸素の経過: オン/オフの状態・デバイス・流量を測定間で引き継ぎ、
-                         増減量、離脱、人工呼吸管理中の抜管、刻みの流量値を決める (Issues #3469, #3632, #3643;
+                         増減量、離脱、人工呼吸管理中の抜管、呼吸不全合併症に対する非侵襲的陽圧換気、刻みの流量値を決める (Issues #3469, #3632, #3643, #3705;
                          reference_data/oxygen_course.yaml)
   stroke_onset.py        急性脳卒中入院の最終健常確認時刻: 来院時刻からハッシュで引いた発症から来院までの
                          時間を引く。乱数ストリームは消費しない (Issue #3558;

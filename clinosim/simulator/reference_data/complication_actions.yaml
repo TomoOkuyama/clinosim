@@ -48,7 +48,7 @@
 #     against intubation (Issue #3551) or is already intubated (Issue #3639).
 #     `not_executed_airway_actions` are conditional intentions ("consider
 #     intubation if severe"), which are not acted on. Non-invasive ventilation
-#     has no model yet (Issue #3705).
+#     is started by `oxygen_course.yaml niv.start_action` (Issue #3705).
 #   - `not_executed_antibiotic_actions`: antibiotic-related actions that are
 #     not a first antibiotic order (a change of a running antibiotic, a stop,
 #     a course length, a test) and so are not executed.

@@ -22,3 +22,10 @@ devices:
     # the consciousness / oxygenation state in the daily loop).
     placement_criteria:
       - any: ["intubated"]
+  # Issue #3705: non-invasive ventilation (BiPAP/CPAP mask). Not an ICU device: it is
+  # placed on the day the stay's readings first carry the NIV device and removed on
+  # the first day after the last such reading (simulator/device_removal.py
+  # `noninvasive_ventilation_dates`), so there is no placement criterion.
+  noninvasive_ventilator:
+    snomed_code: "706226000"
+    placement_criteria: []

@@ -88,6 +88,7 @@ procedures:
   # --- Ventilation / 呼吸管理 ---
   NIV_BiPAP: {ja: "非侵襲的陽圧換気 (BiPAP)"}
   NIV BiPAP: {ja: "非侵襲的陽圧換気 (BiPAP)"}
+  Non-invasive ventilation (BiPAP): {ja: "非侵襲的陽圧換気 (BiPAP)"}
   Intubation and mechanical ventilation: {ja: "気管挿管・人工呼吸管理"}
   # Issue #1701 Phase 4d.1 — chronic OSA follow-up (G47.30 cohort).
   CPAP therapy: {ja: "CPAP 療法"}

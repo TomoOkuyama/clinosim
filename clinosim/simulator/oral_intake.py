@@ -1,7 +1,7 @@
 """Oral intake of a patient who cannot swallow safely (Issue #3552).
 
 A patient whose latest recorded AVPU level is P or U is nil by mouth, and so
-is a ventilated one (``reference_data/oral_intake.yaml``): the diet order is
+is a ventilated one or one on non-invasive ventilation (``reference_data/oral_intake.yaml``): the diet order is
 NPO and every oral-route dose scheduled in that state is held with a reason.
 Everything here is RNG-free.
 """
@@ -30,10 +30,12 @@ class OralIntakeRules(BaseModel):
 
     npo_consciousness_levels: tuple[str, ...] = Field(min_length=1)
     npo_while_ventilated: bool
+    npo_while_niv: bool
     npo_diet: str = Field(min_length=1)
     oral_route: str = Field(min_length=1)
     hold_reason_consciousness: str = Field(min_length=1)
     hold_reason_ventilated: str = Field(min_length=1)
+    hold_reason_niv: str = Field(min_length=1)
 
     @field_validator("npo_consciousness_levels")
     @classmethod
@@ -47,7 +49,7 @@ class OralIntakeRules(BaseModel):
         from clinosim.locale.loader import load_medication_hold_reasons
 
         known = load_medication_hold_reasons()
-        for reason in (self.hold_reason_consciousness, self.hold_reason_ventilated):
+        for reason in (self.hold_reason_consciousness, self.hold_reason_ventilated, self.hold_reason_niv):
             if reason not in known:
                 raise ValueError(f"reason {reason!r} is not in medication_hold_reasons.yaml")
         return self
@@ -71,13 +73,20 @@ def _latest_level_at(vitals: Iterable[VitalSignRecord], at: datetime) -> str | N
 
 
 def npo_reason_at(
-    vitals: Iterable[VitalSignRecord], at: datetime, ventilated_at: Callable[[datetime], bool]
+    vitals: Iterable[VitalSignRecord],
+    at: datetime,
+    ventilated_at: Callable[[datetime], bool],
+    *,
+    niv_at: Callable[[datetime], bool] | None = None,
 ) -> str | None:
     """The reason the patient is nil by mouth at ``at`` (the latest AVPU
-    reading is P / U, or on the ventilator), else None."""
+    reading is P / U, or on the ventilator or non-invasive ventilation, Issue
+    #3705), else None."""
     rules = oral_intake_rules()
     if rules.npo_while_ventilated and ventilated_at(at):
         return rules.hold_reason_ventilated
+    if rules.npo_while_niv and niv_at is not None and niv_at(at):
+        return rules.hold_reason_niv
     if _latest_level_at(vitals, at) in rules.npo_consciousness_levels:
         return rules.hold_reason_consciousness
     return None
@@ -94,6 +103,8 @@ def apply_oral_intake_holds(
     mars: Iterable[MedicationAdministration],
     vitals: Iterable[VitalSignRecord],
     ventilated_at: Callable[[datetime], bool],
+    *,
+    niv_at: Callable[[datetime], bool] | None = None,
 ) -> int:
     """Hold, in place, each given oral dose of ``mars`` scheduled while the
     patient is nil by mouth (``npo_reason_at``, judged at the dose time).
@@ -104,7 +115,7 @@ def apply_oral_intake_holds(
     for mar in mars:
         if mar.status != "given" or mar.route != rules.oral_route:
             continue
-        reason = npo_reason_at(records, mar.actual_datetime or mar.scheduled_datetime, ventilated_at)
+        reason = npo_reason_at(records, mar.actual_datetime or mar.scheduled_datetime, ventilated_at, niv_at=niv_at)
         if reason:
             mar.status, mar.hold_reason, mar.actual_datetime = "held", reason, None
             held += 1

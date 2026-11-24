@@ -11,7 +11,7 @@ from clinosim.locale.loader import hold_reason_display
 from clinosim.simulator import daily_loop as dl
 from clinosim.simulator.oral_intake import apply_oral_intake_holds, oral_intake_rules
 from clinosim.types.clinical import PhysiologicalState
-from clinosim.types.encounter import MedicationAdministration, OrderType, VitalSignRecord
+from clinosim.types.encounter import MedicationAdministration, OrderStatus, OrderType, VitalSignRecord
 
 pytestmark = pytest.mark.unit
 
@@ -125,7 +125,12 @@ def test_diet_ordered_earlier_in_the_day_than_the_reading_is_overridden() -> Non
     stay, run = _stay_and_run(PhysiologicalState())
     run.prev_diet = "soft_diet"
     run.orders = [
-        SimpleNamespace(order_type=OrderType.DIET, display_name="soft_diet", ordered_datetime=T0 + timedelta(hours=5))
+        SimpleNamespace(
+            order_type=OrderType.DIET,
+            display_name="soft_diet",
+            ordered_datetime=T0 + timedelta(hours=5),
+            status=OrderStatus.PLACED,
+        )
     ]
     run.vitals = [_reading(4, "A"), _reading(6, "P")]
     dl._hold_oral_intake(stay, run, 0)

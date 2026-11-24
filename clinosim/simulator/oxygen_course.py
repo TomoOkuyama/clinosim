@@ -29,7 +29,14 @@ from clinosim.simulator._oxygen_therapy_thresholds import (
     O2_NON_REBREATHER_FLOW_MIN_LPM,
 )
 
-__all__ = ["OxygenCourse", "OxygenCourseRules", "VentilationRules", "oxygen_course_rules", "round_oxygen_flow"]
+__all__ = [
+    "NivRules",
+    "OxygenCourse",
+    "OxygenCourseRules",
+    "VentilationRules",
+    "oxygen_course_rules",
+    "round_oxygen_flow",
+]
 
 # (on, flow L/min, device) as _o2_for returns them.
 O2Draw = tuple[bool, float | None, str]
@@ -52,6 +59,26 @@ class VentilationRules(BaseModel):
     post_extubation_flow_lpm: float = Field(gt=0)
 
 
+class NivRules(BaseModel):
+    """Non-invasive ventilation of a respiratory-failure complication (Issue #3705)."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    start_action: str = Field(min_length=1)
+    order_name: str = Field(min_length=1)
+    existing_order_pattern: str = Field(min_length=1)
+    device: str = Field(min_length=1)
+    equivalent_flow_lpm: float = Field(gt=0)
+    diet: str = Field(min_length=1)
+    oxygenation_impairment_below: float = Field(gt=0, le=1)
+    consciousness_impairment_below: float = Field(gt=0, le=1)
+    consecutive_days: int = Field(ge=1)
+    min_days_after_start: int = Field(ge=0)
+    max_days: int = Field(ge=1)
+    post_niv_device: str = Field(min_length=1)
+    post_niv_flow_lpm: float = Field(gt=0)
+
+
 class OxygenCourseRules(BaseModel):
     """Schema of ``reference_data/oxygen_course.yaml`` (Issues #3469, #3535)."""
 
@@ -68,6 +95,7 @@ class OxygenCourseRules(BaseModel):
     down_min_readings: int = Field(ge=1)
     min_flow_lpm: float = Field(gt=0)
     ventilation: VentilationRules
+    niv: NivRules
 
 
 @functools.cache
@@ -117,6 +145,59 @@ class OxygenCourse:
     ventilated_since: datetime | None = None
     ventilated_until: datetime | None = None
     extubation_ready_days: int = 0
+    # Issue #3705: the non-invasive-ventilation period (start .. wean); ``None``
+    # until started / while still on NIV.
+    niv_since: datetime | None = None
+    niv_until: datetime | None = None
+    niv_ready_days: int = 0
+
+    def niv_at(self, when: datetime) -> bool:
+        """True while the patient is on non-invasive ventilation at ``when``."""
+        return (
+            self.niv_since is not None and when >= self.niv_since and (self.niv_until is None or when < self.niv_until)
+        )
+
+    def niv_during(self, start: datetime) -> bool:
+        """True when the patient is, or was after ``start``, on NIV."""
+        return self.niv_since is not None and (self.niv_until is None or self.niv_until > start)
+
+    def start_niv(self, when: datetime) -> None:
+        """NIV started at ``when`` (no effect on the ventilator): on NIV until :meth:`end_niv`."""
+        if self.ventilated_at(when):
+            return
+        rules = oxygen_course_rules().niv
+        self.niv_since, self.niv_until, self.niv_ready_days = when, None, 0
+        self.on, self.flow, self.device = True, None, rules.device
+        self.stable_since, self.stable_readings = None, 0
+        self.high_since, self.high_readings = None, 0
+
+    def end_niv(self, when: datetime) -> None:
+        """NIV weaned (or replaced by intubation) at ``when``. Oxygen continues on the
+        post-NIV device unless the patient is ventilated."""
+        rules = oxygen_course_rules().niv
+        self.niv_until = when
+        if not self.ventilated_at(when):
+            self.on, self.flow, self.device = True, rules.post_niv_flow_lpm, rules.post_niv_device
+            self.stable_since, self.stable_readings = None, 0
+            self.high_since, self.high_readings = None, 0
+
+    def niv_wean_due(
+        self, oxygenation_impairment: float, consciousness_impairment: float, days_after_start: int, *, force: bool
+    ) -> bool:
+        """Evaluate the NIV weaning rule on one end-of-day state (stateful: counts
+        consecutive satisfactory days). ``force`` ends NIV regardless (the end of the
+        simulated stay)."""
+        rules = oxygen_course_rules().niv
+        if (
+            oxygenation_impairment < rules.oxygenation_impairment_below
+            and consciousness_impairment < rules.consciousness_impairment_below
+        ):
+            self.niv_ready_days += 1
+        else:
+            self.niv_ready_days = 0
+        if force or days_after_start >= rules.max_days:
+            return True
+        return days_after_start >= rules.min_days_after_start and self.niv_ready_days >= rules.consecutive_days
 
     def ventilated_at(self, when: datetime) -> bool:
         """True while the patient is on the ventilator at ``when``."""
@@ -133,6 +214,8 @@ class OxygenCourse:
     def start_ventilation(self, when: datetime) -> None:
         """Intubated at ``when``: ventilated until :meth:`end_ventilation`."""
         rules = oxygen_course_rules().ventilation
+        if self.niv_since is not None and self.niv_until is None:
+            self.niv_until = when  # NIV failure: intubated during NIV (Issue #3705)
         self.ventilated_since, self.ventilated_until = when, None
         self.on, self.flow, self.device = True, None, rules.device
         self.stable_since, self.stable_readings, self.extubation_ready_days = None, 0, 0
@@ -219,6 +302,9 @@ class OxygenCourse:
         if self.ventilated_at(when):
             vent = oxygen_course_rules().ventilation
             return True, None, vent.device, spo2_on_oxygen(room_air_spo2, vent.equivalent_flow_lpm)
+        if self.niv_at(when):
+            niv = oxygen_course_rules().niv
+            return True, None, niv.device, spo2_on_oxygen(room_air_spo2, niv.equivalent_flow_lpm)
         on, flow, device = self.observe(when, room_air_spo2, target, draw)
         if not on:
             return False, None, "", room_air_spo2

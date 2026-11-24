@@ -78,3 +78,7 @@ kinds:
     procedure_types: [intubation]
     order_patterns: []
     indications: {}
+  noninvasive_ventilator:
+    procedure_types: []
+    order_patterns: []
+    indications: {}

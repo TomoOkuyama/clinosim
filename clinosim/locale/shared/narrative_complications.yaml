@@ -175,7 +175,7 @@ complications:
   renal_failure: {en: renal failure, ja: 腎不全}
   respiratory_acidosis: {en: respiratory acidosis, ja: 呼吸性アシドーシス}
   respiratory_failure: {en: respiratory failure, ja: 呼吸不全}
-  respiratory_failure_requiring_niv: {en: respiratory failure requiring NIV, ja: 呼吸不全 (NPPV 適応)}
+  respiratory_failure_requiring_niv: {en: respiratory failure requiring non-invasive ventilation, ja: 非侵襲的陽圧換気を要する呼吸不全}
   retained_cbd_stone: {en: retained common bile duct stone, ja: 遺残総胆管結石}
   rhabdomyolysis: {en: rhabdomyolysis, ja: 横紋筋融解症}
   rhabdomyolysis_aki: {en: rhabdomyolysis-induced acute kidney injury, ja: 横紋筋融解症による急性腎障害}

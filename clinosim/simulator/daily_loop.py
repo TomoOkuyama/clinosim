@@ -11,6 +11,7 @@ Function bodies moved verbatim; byte-diff-neutral vs pre-extraction.
 
 from __future__ import annotations
 
+import re
 from copy import deepcopy
 from dataclasses import dataclass, field, replace
 from datetime import date, datetime, timedelta
@@ -181,6 +182,7 @@ from clinosim.simulator.vitals_pipeline import (
     _generate_vitals,
     lower_consciousness_from,
     oxygen_saturation_for_lab,
+    put_on_niv,
     put_on_ventilator,
 )
 from clinosim.types.clinical import PhysiologicalState
@@ -1288,7 +1290,9 @@ def _order_diet(stay: _Stay, run: _Run, day: int) -> None:
     order_time = stay.admission_time + timedelta(days=day, hours=7)
     if run.oxygen.ventilated_at(order_time):
         diet = oxygen_course_rules().ventilation.diet
-    elif npo_reason_at(run.vitals, order_time, run.oxygen.ventilated_at):
+    elif run.oxygen.niv_at(order_time):
+        diet = oxygen_course_rules().niv.diet
+    elif npo_reason_at(run.vitals, order_time, run.oxygen.ventilated_at, niv_at=run.oxygen.niv_at):
         # Issue #3552: the latest reading is P / U, the patient cannot swallow.
         diet = oral_intake_rules().npo_diet
     elif day == 0:
@@ -1317,20 +1321,20 @@ def _hold_oral_intake(stay: _Stay, run: _Run, day: int) -> None:
     course can change them). Draws nothing."""
     day_start = hospital_day_start(stay.admission_time, day)
     npo = oral_intake_rules().npo_diet
-    diets = [o for o in run.orders if o.order_type == OrderType.DIET]
+    diets = [o for o in run.orders if o.order_type == OrderType.DIET and o.status != OrderStatus.CANCELLED]
     for at in sorted(first_npo_readings(run.vitals, day_start)):
         in_force = max((o for o in diets if o.ordered_datetime <= at), key=lambda o: o.ordered_datetime, default=None)
         if in_force is not None and in_force.display_name == npo:
             continue
         run.prev_diet = in_force.display_name if in_force is not None else ""
         _append_diet_order(stay, run, day, npo, at, suffix=f"-LOC{at:%H%M}")
-        diets = [o for o in run.orders if o.order_type == OrderType.DIET]
+        diets = [o for o in run.orders if o.order_type == OrderType.DIET and o.status != OrderStatus.CANCELLED]
         run.oral_diet_since_day = None
     if diets:
         run.prev_diet = max(diets, key=lambda o: o.ordered_datetime).display_name
     day_end = day_start + timedelta(days=1)
     todays = [m for m in run.mars if day_start <= m.scheduled_datetime < day_end]
-    apply_oral_intake_holds(todays, run.vitals, run.oxygen.ventilated_at)
+    apply_oral_intake_holds(todays, run.vitals, run.oxygen.ventilated_at, niv_at=run.oxygen.niv_at)
 
 
 def _ventricular_rate_course(stay: _Stay, run: _Run) -> VentricularRateCourse | None:
@@ -1483,6 +1487,8 @@ def _apply_complications(stay: _Stay, run: _Run, day: int, comp_list: list) -> N
             )
         for antibiotic_action in antibiotic_actions_of(comp):
             _start_complication_antibiotic(stay, run, day, comp_name, antibiotic_action, onset_dt)
+        if oxygen_course_rules().niv.start_action in comp.get("actions", []):
+            _start_niv(stay, run, day, onset_dt)
         # Issue #3639: a complication that requires intubation secures the airway
         # at its onset (the patient is then ventilated and in the ICU), unless
         # the patient is already intubated or has declined intubation.
@@ -1609,6 +1615,67 @@ def _start_ventilation(stay: _Stay, run: _Run, day: int, intubated_at: datetime)
     put_on_ventilator(run.vitals, intubated_at, run.state, stay.disease_id)
     _append_diet_order(stay, run, day, oxygen_course_rules().ventilation.diet, intubated_at, suffix="-VENT")
     run.oral_diet_since_day = None
+
+
+def _start_niv(stay: _Stay, run: _Run, day: int, started_at: datetime) -> None:
+    """A complication that requires non-invasive ventilation (Issue #3705): from
+    its onset the readings carry the NIV device, a NIV order is placed (it also
+    gives the FHIR Procedure) and the diet is NPO while on NIV. Nothing happens
+    when the patient is already ventilated or on NIV. Draws nothing."""
+    if run.oxygen.ventilated_at(started_at) or run.oxygen.niv_at(started_at):
+        return
+    run.oxygen.start_niv(started_at)
+    put_on_niv(run.vitals, started_at, run.state, stay.disease_id)
+    niv = oxygen_course_rules().niv
+    already_ordered = any(
+        o.order_type == OrderType.PROCEDURE
+        and o.status != OrderStatus.CANCELLED
+        and re.search(niv.existing_order_pattern, o.display_name or "", re.IGNORECASE)
+        for o in run.orders
+    )
+    if not already_ordered:
+        run.orders.append(
+            Order(
+                order_id=f"ORD-{stay.encounter_id}-NIV-D{day}",
+                patient_id=stay.patient.patient_id,
+                order_type=OrderType.PROCEDURE,
+                display_name=niv.order_name,
+                urgency="urgent",
+                clinical_intent=t("order_intent.niv", "en", day=day),
+                clinical_intent_ja=t("order_intent.niv", "ja", day=day),
+                ordered_datetime=started_at,
+                ordered_by=stay.attending_id,
+                status=OrderStatus.PLACED,
+            )
+        )
+    # The day's diet order was placed before the complication (later in the day than its
+    # onset): an oral diet ordered after NIV started is cancelled.
+    cancelled = False
+    for o in run.orders:
+        if o.order_type == OrderType.DIET and o.ordered_datetime >= started_at and o.display_name != niv.diet:
+            o.status = OrderStatus.CANCELLED
+            cancelled = True
+    if cancelled:
+        kept = [o for o in run.orders if o.order_type == OrderType.DIET and o.status != OrderStatus.CANCELLED]
+        run.prev_diet = max(kept, key=lambda o: o.ordered_datetime).display_name if kept else ""
+    _append_diet_order(stay, run, day, niv.diet, started_at, suffix="-NIV")
+    run.oral_diet_since_day = None
+
+
+def _update_niv(stay: _Stay, run: _Run, day: int, *, last_day: bool) -> None:
+    """End of day: wean NIV (at the start of the next hospital day) when the weaning
+    rule of ``reference_data/oxygen_course.yaml`` is met. Draws nothing."""
+    oxygen = run.oxygen
+    if oxygen.niv_since is None or oxygen.niv_until is not None:
+        return
+    started_day = (oxygen.niv_since.date() - stay.admission_time.date()).days
+    if oxygen.niv_wean_due(
+        run.state.oxygenation_impairment,
+        run.state.consciousness_impairment,
+        day - started_day,
+        force=last_day,
+    ):
+        oxygen.end_niv(hospital_day_start(stay.admission_time, day + 1))
 
 
 def _update_ventilation(stay: _Stay, run: _Run, day: int, *, last_day: bool) -> None:
@@ -2020,7 +2087,9 @@ def _run_daily_loop(
         # met; no discharge on a day the patient was ventilated.
         _record_icu_support(stay, run, day)
         _update_ventilation(stay, run, day, last_day=day + 1 >= loop_days)
-        ventilated = run.oxygen.ventilated_during(hospital_day_start(stay.admission_time, day))
+        _update_niv(stay, run, day, last_day=day + 1 >= loop_days)
+        day_start_dt = hospital_day_start(stay.admission_time, day)
+        ventilated = run.oxygen.ventilated_during(day_start_dt) or run.oxygen.niv_during(day_start_dt)
         # Issue #3270: no discharge on or within the observation day after
         # vasopressor / inotrope support.
         on_support = _on_vasoactive_support(stay, run, day)

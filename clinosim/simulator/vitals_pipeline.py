@@ -482,6 +482,26 @@ def put_on_ventilator(vitals: list[VitalSignRecord], since: datetime, state, dis
         )
 
 
+def put_on_niv(vitals: list[VitalSignRecord], since: datetime, state, disease_id: str) -> None:
+    """Rewrite, in place, the readings with an SpO2 timed at or after ``since``
+    (an NIV decided after they were generated, Issue #3705) as readings on
+    non-invasive ventilation: the NIV device, no flow, and an SpO2 at least as
+    high as charted (raised as by the NIV's equivalent oxygen flow). Draws
+    nothing."""
+    niv = oxygen_course_rules().niv
+    for i, v in enumerate(vitals):
+        if v.timestamp < since or v.spo2 is None:
+            continue
+        spo2 = max(v.spo2, spo2_on_oxygen(v.spo2, niv.equivalent_flow_lpm, state, disease_id))
+        vitals[i] = replace(
+            v,
+            spo2=round(spo2, 1),
+            on_supplemental_oxygen=True,
+            oxygen_flow_rate_lpm=None,
+            oxygen_delivery_device=niv.device,
+        )
+
+
 _AVPU_SEVERITY = {"A": 0, "V": 1, "P": 2, "U": 3}
 
 

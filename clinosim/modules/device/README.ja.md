@@ -66,9 +66,11 @@ from clinosim.modules.device.enricher import enrich_device
 
 ## 定数と設定
 
+`noninvasive_ventilator` entry (Issue #3705) は配置基準を持たない: ICU デバイスではなく、入院の測定が最初に NIV デバイスを持った日に配置し、最後の NIV 測定の次の測定の日に外す (`simulator/device_removal.py::noninvasive_ventilation_dates`)。
+
 - [`reference_data/devices.yaml`](reference_data/devices.yaml) —
   デバイスカタログ (`cvc`, `indwelling_catheter`,
-  `mechanical_ventilator`)。各 entry は `snomed_code`、
+  `mechanical_ventilator`、`noninvasive_ventilator`)。各 entry は `snomed_code`、
   `any: [token, ...]` 節の list である
   `placement_criteria` を持つ (いずれかの節のいずれかの token が
   成立すれば配置)。現状の条件: CVC ← `severity_moderate_plus`、

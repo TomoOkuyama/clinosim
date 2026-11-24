@@ -96,3 +96,6 @@ reasons:
   "Nil by mouth: on mechanical ventilation (oral dose held)":
     en: "nil by mouth, on mechanical ventilation (oral dose held)"
     ja: "人工呼吸管理中のため絶飲食 (経口投与不可)"
+  "Nil by mouth: on non-invasive ventilation (oral dose held)":
+    en: "nil by mouth, on non-invasive ventilation (oral dose held)"
+    ja: "非侵襲的陽圧換気中のため絶飲食 (経口投与不可)"

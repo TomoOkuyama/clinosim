@@ -69,9 +69,11 @@ Internal helpers (in `engine.py`): `_evaluate_indications`,
 
 ## Constants and configuration
 
+The `noninvasive_ventilator` entry (Issue #3705) has no placement criterion: it is not an ICU device but is placed on the date of the stay's first reading that carries the NIV device and removed on the first day after the last such reading (`simulator/device_removal.py::noninvasive_ventilation_dates`).
+
 - [`reference_data/devices.yaml`](reference_data/devices.yaml) —
   device catalog (`cvc`, `indwelling_catheter`,
-  `mechanical_ventilator`). Each entry carries `snomed_code`,
+  `mechanical_ventilator`, `noninvasive_ventilator`). Each entry carries `snomed_code`,
   and `placement_criteria` as a list of
   `any: [token, ...]` clauses (a device is placed when any token of
   any clause is met). Current criteria: CVC ←
