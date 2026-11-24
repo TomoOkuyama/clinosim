@@ -97,6 +97,7 @@ Governing spec: [`code-mapping-and-localization-spec.md`](code-mapping-and-local
 | `clinosim/locale/table.py` `localized_table(name)` / `LocalizedTable` | Named display and translation tables keyed by internal slug. |
 | `clinosim/locale/i18n.py` `t(key, lang, **params)` | A phrase by key in the target language, with parameters interpolated. |
 | `clinosim/locale/text.py` `resolve_text(value, language, country)` | A YAML text field (plain string or language map) in the right language. |
+| `clinosim/locale/ordinal.py` `ordinal_suffix(n, lang)` | The English ordinal suffix of a number (st/nd/rd/th, 11-13 th); empty for other languages. |
 | `clinosim/locale/loaders/narrative.py` `vocab_display(...)` / `load_narrative_display_dict(...)` | Narrative vocabulary displays. |
 | `clinosim/locale/loaders/medical_display.py` `hold_reason_display(reason, lang)` | A medication hold reason (disease-protocol `reason`, MAR `hold_reason`) in a language; a measured value ("SBP < 90") as stored. |
 | `clinosim/locale/loaders/medical_display.py` `load_med_terms_ja()` | Japanese medical term dictionary. |
