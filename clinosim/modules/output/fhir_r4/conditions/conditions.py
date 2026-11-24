@@ -181,6 +181,9 @@ class _ConditionContext:
     encounters: list[dict]
     deceased: bool
     patient_sex: str
+    # The record has at least one resulted laboratory order (Issue #3693):
+    # the principal diagnosis cites laboratory results only then.
+    has_labs: bool = False
 
     @property
     def country_code(self) -> str:
@@ -248,6 +251,19 @@ def _condition_skeleton(
         ),
         "subject": patient_ref(ctx.patient_id),
     }
+
+
+def _record_has_lab_results(record: dict) -> bool:
+    """Whether the record carries a resulted laboratory order (the source of
+    the lab Observations of the stay; blood-bank typing is emitted separately
+    and does not count)."""
+    for order in record.get("orders") or []:
+        order_type = get_attr_or_key(order, "order_type", "")
+        if str(getattr(order_type, "value", order_type)).lower() != "lab":
+            continue
+        if get_attr_or_key(order, "result") and get_attr_or_key(order, "display_name", "") != "Type_and_screen":
+            return True
+    return False
 
 
 def _evidence(ctx: _ConditionContext, label_key: str) -> list[dict]:
@@ -324,6 +340,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         # (C50.929) billable leaves, so every ``map_diagnosis_code`` call is
         # per-person. JP C50 is identity-mapped, so the sex is a no-op there.
         patient_sex=str(record.get("patient", {}).get("sex", "") or ""),
+        has_labs=_record_has_lab_results(record),
     )
     dx = record.get("clinical_diagnosis", {})
     chronic_list = record.get("patient", {}).get("chronic_conditions", [])
@@ -431,7 +448,10 @@ def _primary_condition(
 
     # Clinical presentation + supporting labs (a chronic primary is carried by
     # the chronic Condition and never reaches here).
-    cond["evidence"] = _evidence(ctx, "condition_evidence.clinical_and_labs")
+    cond["evidence"] = _evidence(
+        ctx,
+        "condition_evidence.clinical_and_labs" if ctx.has_labs else "condition_evidence.clinical_presentation",
+    )
 
     if ctx.admission_dt:
         # Encounter-diagnosis onset = admission time (full datetime). Issue #821

@@ -4297,6 +4297,9 @@ condition_evidence:
   clinical_and_labs:
     ja: "臨床所見および検査結果"
     en: "Clinical presentation and supporting laboratory results"
+  clinical_presentation:
+    ja: "臨床所見"
+    en: "Clinical presentation"
   admission_assessment:
     ja: "入院時所見および初期評価"
     en: "Admission presentation and initial assessment"
