@@ -422,7 +422,7 @@ def _bb_medication_requests(ctx: BundleContext) -> list[dict]:
                     order_in_rp=str(_order_in_rp_by_oid.get(_oid, 1)),
                     chronic_condition_codes=_chronic_codes,
                     earliest_admin_dt=_earliest_admin_by_oid.get(_oid, ""),
-                    body=_patient_body(ctx.patient_data),
+                    body=_encounter_body(ctx, order.get("encounter_id", "") or ctx.primary_enc_id),
                 )
             )
     # Chain the two guards:
@@ -625,7 +625,7 @@ def _bb_discharge_medication_requests(ctx: BundleContext) -> list[dict]:
                 seq,
                 authored_on,
                 prescriber_id=prescriber_id,
-                body=_patient_body(ctx.patient_data),
+                body=_encounter_body(ctx, str(enc_id)),
             )
         )
     # #1176 / #1179 follow-up (S104 verify): the discharge-Rx builder
@@ -646,6 +646,23 @@ def _patient_body(patient_data: dict | None) -> tuple[float, float] | None:
     except (TypeError, ValueError):
         return None
     return (height, weight) if weight > 0 else None
+
+
+def _encounter_body(ctx: BundleContext, encounter_id: str) -> tuple[float, float] | None:
+    """The ``(height_cm, weight_kg)`` a weight-based dose is written for
+    (Issue #3636): a child's body charted on the prescribing encounter (the
+    weight Observation of that encounter), otherwise the profile body."""
+    from clinosim.modules.population.encounter_anthropometry import child_encounter_body
+
+    for enc in ctx.record.get("encounters") or []:
+        if str(get_attr_or_key(enc, "encounter_id", "") or "") == str(encounter_id):
+            charted = child_encounter_body(
+                ctx.patient_data, str(encounter_id), get_attr_or_key(enc, "admission_datetime", None), ctx.country
+            )
+            if charted is not None:
+                return charted
+            break
+    return _patient_body(ctx.patient_data)
 
 
 def build_order_in_rp_map(orders: list) -> dict[str, int]:

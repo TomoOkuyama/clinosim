@@ -22,7 +22,8 @@ eCS profile で許可されない。`statusReason` は emit しない)。
 体重 (または体表面積) で、記載された上限で頭打ちにし、MedicationAdministration
 が記録する量と一致する。text は処方量を根拠として残す ("540mg (45mg/kg)
 経口 1日2回")。速度指定・持続投与は変更しない。両 builder は患者の
-`body=(height_cm, weight_kg)` を受け取り、共通規則は
+`body=(height_cm, weight_kg)` を受け取り (小児は処方した encounter で記録された
+体重 = その encounter の体重 Observation、Issue #3636。成人は profile の値)、共通規則は
 `lib/dosage.prescribed_absolute_dose`。
 
 ## Scope

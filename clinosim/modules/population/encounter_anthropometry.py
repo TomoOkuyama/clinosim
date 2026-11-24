@@ -357,6 +357,21 @@ def encounter_weight_kg(patient: Any, encounter_id: str, encounter_datetime: Any
     return encounter_anthropometrics(patient, encounter_id, encounter_datetime, country)["weight_kg"]
 
 
+def child_encounter_body(
+    patient: Any, encounter_id: str, encounter_datetime: Any, country: str
+) -> tuple[float, float] | None:
+    """``(height_cm, weight_kg)`` charted on the encounter for a child
+    (Issue #3636), the body a weight-based dose is written for. ``None`` for
+    an adult or a patient whose age at the encounter is unknown: their dose
+    keeps the profile body."""
+    data = {k: get_attr_or_key(patient, k, None) for k in _PATIENT_FIELDS}
+    age_years, age_months = age_at_measurement(data, encounter_datetime)
+    if age_months is None or age_years >= int(_load_reference().get("adult_path_min_age_years", 18)):
+        return None
+    values = _derive_anthropometrics(data, str(encounter_id or ""), age_years, country, age_months)
+    return (values["height_cm"], values["weight_kg"])
+
+
 def growth_percentiles(patient: Any, encounter_id: str, encounter_datetime: Any, country: str) -> dict[str, int]:
     """Percentile of each body measurement charted on the encounter for a
     child (Issue #3252): ``{"height_cm", "weight_kg", "head_circumference_cm"?}``

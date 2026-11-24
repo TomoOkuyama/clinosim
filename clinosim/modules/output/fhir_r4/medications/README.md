@@ -25,7 +25,9 @@ the patient's profile weight (or body surface area), capped by a written
 maximum, the amount the MedicationAdministration records; the text keeps
 the written dose as its basis ("540mg (45mg/kg) PO BID"). Rates and
 continuous infusions are unchanged. Both builders take the patient's
-`body=(height_cm, weight_kg)`; `lib/dosage.prescribed_absolute_dose` is
+`body=(height_cm, weight_kg)` (a child's body is the one charted on the
+prescribing encounter, the weight Observation of that encounter, Issue
+#3636; an adult keeps the profile body); `lib/dosage.prescribed_absolute_dose` is
 the shared rule.
 
 ## Scope
