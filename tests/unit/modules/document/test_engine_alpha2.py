@@ -256,7 +256,8 @@ def test_clinical_impression_only_for_inpatient() -> None:
 
 
 def test_encounter_once_frequency_emits_at_day_0() -> None:
-    """encounter_once frequency emits exactly 1 document with authored_datetime = admission_dt."""
+    """encounter_once frequency emits exactly 1 document covering the visit, authored at its
+    end (Issue #3650; the period starts at admission_dt)."""
     encounter = _make_encounter(enc_type="outpatient", discharge_dt=LOS_1_DT)
     record = _make_record(encounter)
     ctx = _make_ctx(record)
@@ -265,9 +266,9 @@ def test_encounter_once_frequency_emits_at_day_0() -> None:
     docs = record.documents
     assert len(docs) == 1
     soap = docs[0]
-    # authored_datetime should be the admission datetime (day 0)
-    assert soap.authored_datetime == ADMISSION_DT.isoformat(), (
-        f"encounter_once doc authored_datetime must be admission_dt, got '{soap.authored_datetime}'"
+    # authored_datetime is the visit end (Issue #3650)
+    assert soap.authored_datetime == LOS_1_DT.isoformat(), (
+        f"outpatient SOAP authored_datetime must be the visit end, got '{soap.authored_datetime}'"
     )
     assert soap.period_start == ADMISSION_DT.isoformat()
 

@@ -168,4 +168,5 @@ def test_oncology_visit_note_is_authored_at_the_end_of_the_visit() -> None:
     assert plan.authored == enc.discharge_datetime.isoformat()
     enc.service_line = ""
     [plan] = _plan_encounter_once(spec, facts)  # type: ignore[arg-type]
-    assert plan.authored == enc.admission_datetime.isoformat()
+    # Issue #3650: every outpatient visit note is authored at the visit end now
+    assert plan.authored == enc.discharge_datetime.isoformat()

@@ -55,7 +55,7 @@ def test_the_ed_note_spec_is_authored_at_the_end_of_the_visit() -> None:
     specs = load_document_type_specs()
     assert specs[DocumentType.ED_NOTE].authored_at == "period_end"
     assert specs[DocumentType.ED_TRIAGE_NOTE].authored_at == "admission"
-    assert specs[DocumentType.OUTPATIENT_SOAP].authored_at == "admission"
+    assert specs[DocumentType.OUTPATIENT_SOAP].authored_at == "period_end"  # Issue #3650
 
 
 def test_a_result_reported_after_the_note_is_not_quoted() -> None:

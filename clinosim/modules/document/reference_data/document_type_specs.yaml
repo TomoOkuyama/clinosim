@@ -178,6 +178,12 @@ specs:
     # structured vitals / exam findings that should stay deterministic.
     stage2_strategy: template_seed_bundle
     llm_enabled_sections: [subjective, assessment, plan]
+    # The visit note records what the visit did (the vitals taken minutes
+    # after the arrival, the vaccine given, the results back during the visit),
+    # so it is authored at the end of the visit (Issue #3650) like the ED
+    # physician note and the oncology visit note; the as-of gate then lets
+    # those through.
+    authored_at: period_end
 
   ed_note:
     loinc_code: "34878-9"

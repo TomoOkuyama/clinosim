@@ -184,7 +184,7 @@ clinosim/modules/document/
   audit.py                           AD-60 audit plug-in #5 — 49-check lift_firing_proof
   referral_recipient.py              pick_external_hospital — 診療情報提供書の宛先 (reference_data/referral_recipients.yaml)、narrative と FHIR で共有
   reference_data/
-    document_type_specs.yaml         文書種別 registry (ed_note は authored_at: period_end で ED 受診の終了時点に記載し、その時点で存在したものだけを書く。nutrition_care_plan は入院8時間後、初日の食事オーダー後に作成し、食事内容と補給方法は有効な食事オーダーに従う: narrative/_progress_course.py diet_order_at)
+    document_type_specs.yaml         文書種別 registry (ed_note と outpatient_soap は authored_at: period_end で受診の終了時点に記載し、その時点で存在したもの (その受診のバイタルを含む、#3650) だけを書く。nutrition_care_plan は入院8時間後、初日の食事オーダー後に作成し、食事内容と補給方法は有効な食事オーダーに従う: narrative/_progress_course.py diet_order_at)
     section_catalog.yaml             Composition section slug catalog (narrative/registry.py, composition.py)
     physical_exam_findings.yaml      per-disease PE 所見 (baseline + 新生児セット + override)
     clinosim-discharge-instruction.yaml  退院指導 (load_discharge_instructions、旧 discharge_instructions.yaml、#1862)。各項目に `applies_when` 条件 (性別・喫煙/飲酒状況・疾患群・退院処方薬、該当薬は `{drugs}` に展開、最終クレアチニンが AKI 定義を満たす `aki_at_discharge` (#3281)、発熱が続いたまま終わった滞在の `fever_at_discharge` (#3637)、喘息増悪のピークフロー・長期管理薬・コントロール評価文の `age_min` / `age_max` (#3264)) を付けられ、renderers/_resolvers.py resolve_discharge_instructions が評価し重複文を除く (#3254)。`setting` (自宅/施設退院)・`drug_course: chronic` (日数固定の処方は「毎日内服」に含めない) の条件と、トップレベルの `slots` (救急受診・食事は層やキーが違っても 1 件だけ表示、施設退院は施設職員宛の文に置換) (#3554)。`neonatal` と `obstetric` (#3663、`delivery_mode` 条件で会陰部/創部のケアを選ぶ) の集合は、新生児と分娩入院の母について `baseline` を置き換える
