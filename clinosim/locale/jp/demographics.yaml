@@ -335,6 +335,33 @@ chronic_prevalence:
 #   - 25-44 slightly lowered — adult primary care is currently under-
 #     represented (25-34 emits at 0.44× MHLW target).
 #   - 45+ keeps the 0.20 baseline that already matched MHLW well.
+# Lifestyle -> disease risk multipliers (Issue #3648). Only smoking x COPD (J44)
+# is modelled for JP; the acute-event keys of the US block (bacterial_pneumonia,
+# acute_mi, cerebral_infarction, ...) are left out because the monthly acute
+# event rate is multiplied without rescaling, which would lift JP incidence
+# above its calibrated target. The chronic path rescales by the expected
+# multiplier, so the J44 prevalence target above is unchanged and only WHICH
+# patients carry J44 shifts toward smokers.
+# Source: Kojima S et al., "Incidence of chronic obstructive pulmonary disease,
+# and the relationship between age and smoking in a Japanese population",
+# J Epidemiol 2007;17(2):54-60 (Toyota health-check cohort, 17,106 people aged
+# 25-74, GOLD spirometric COPD, 466 incident cases), Table 2, men:
+# incidence per 100 person-years 0.44 in non-smokers (52 cases), 0.70 in
+# former smokers (111) and 1.14 in current smokers (224). The multipliers are
+# those crude incidence ratios, current 1.14 / 0.44 = 2.6 and former
+# 0.70 / 0.44 = 1.6 (the paper's adjusted IRR by Brinkman index in current
+# smokers is 1.2 / 2.7 / 4.6). The women's data were too sparse in the paper
+# (5.5% current smokers, 79 cases) to estimate separately, so the male ratios
+# apply to both sexes. They are lower than the US values (10.0 / 3.0)
+# because the cohort is a working-age health-check population with mostly mild
+# (GOLD stage 1-2) disease.
+lifestyle_risk_multipliers:
+  smoking:
+    current:
+      J44: 2.6
+    former:
+      J44: 1.6
+
 # Issue #2245: preventive-care participation.
 # annual_screening_participation: 特定健診 実施率 58.1% (FY2022, 厚生労働省
 # 「特定健康診査・特定保健指導の実施状況」). Applied to the calendar's whole
