@@ -14,7 +14,7 @@ vital signs as a finding linked to the known diagnosis with a plan line, and
 from __future__ import annotations
 
 from collections.abc import Sequence
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
@@ -45,6 +45,8 @@ Kind = Literal[
     "screening",
     "vaccination",
     "well_child",
+    "prenatal",
+    "postpartum",
 ]
 
 # A language map with English text (the fallback language).
@@ -65,6 +67,9 @@ class _VisitKinds(BaseModel):
 
     by_visit_type: dict[str, Kind]
     by_condition: dict[str, Kind]
+    # chronic ICD code of the visit (``visit_condition_id`` of a chronic
+    # follow-up visit) -> kind: the pregnancy visits (Issue #3666)
+    by_chronic_code: dict[str, Kind] = Field(default_factory=dict)
     post_operative_conditions: list[str]
 
 
@@ -134,6 +139,7 @@ class VisitReasonSoap(BaseModel):
     kinds: dict[Kind, _Lines]
     conditions: dict[str, _Lines] = Field(default_factory=dict)
     retinopathy_codes: list[str] = Field(min_length=1)
+    prenatal_fundal_exam_from_weeks: int = Field(ge=0)
     vaccine_detail: dict[Literal["dose", "lot", "route", "site"], _LangText]
     vaccine_routes: dict[str, _LangText]
     vaccine_sites: dict[str, _LangText]
@@ -178,6 +184,11 @@ def _validate_condition_ids(data: VisitReasonSoap) -> None:
             raise ValueError(f"visit_reason_soap.yaml: unknown visit condition {cid!r}") from exc
     for disease_id in data.visit_kinds.post_operative_conditions:
         load_disease_protocol(disease_id)
+    from clinosim.locale.loader import load_chronic_followup
+
+    for code in data.visit_kinds.by_chronic_code:
+        if code not in load_chronic_followup():
+            raise ValueError(f"visit_reason_soap.yaml: by_chronic_code {code!r} is not in chronic_followup.yaml")
 
 
 @lru_cache(maxsize=1)
@@ -201,7 +212,12 @@ def visit_kind(ctx: Any) -> str:
     if not visit_type:
         return ""
     kinds = load_visit_reason_soap().visit_kinds
-    kind = kinds.by_condition.get(condition) or kinds.by_visit_type.get(visit_type) or ""
+    kind = (
+        kinds.by_condition.get(condition)
+        or (kinds.by_chronic_code.get(condition) if visit_type == "chronic_followup" else None)
+        or kinds.by_visit_type.get(visit_type)
+        or ""
+    )
     if kind == "post_discharge" and condition in kinds.post_operative_conditions:
         return "post_operative"
     return kind
@@ -598,6 +614,82 @@ def _growth_values(ctx: Any, values: dict[str, Any]) -> None:
         values["growth"] = t("list_sep.serial", lang).join(parts)
 
 
+def _as_day(value: Any) -> date | None:
+    """A date from a ``date``, ``datetime`` or ISO string, None otherwise."""
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    if isinstance(value, str) and value:
+        try:
+            return date.fromisoformat(value[:10])
+        except ValueError:
+            return None
+    return None
+
+
+def _pregnancy_period(ctx: Any, kind: str, visit_day: date) -> tuple[date, date | None] | None:
+    """``(lmp, delivery date)`` of the pregnancy the visit belongs to: for a
+    prenatal visit the period open at the visit day, for a postpartum visit
+    the latest period delivered on or before it; None when the record holds
+    none."""
+    best: tuple[date, date | None] | None = None
+    for period in (_o(ctx.patient, "state_periods", None) or []) if ctx.patient is not None else []:
+        if str(_o(period, "state_type", "") or "") != "pregnancy":
+            continue
+        meta = _o(period, "metadata", None) or {}
+        lmp = _as_day(meta.get("lmp")) or _as_day(_o(period, "start_date", None))
+        if lmp is None:
+            continue
+        delivered = _as_day(meta.get("delivered_on")) or _as_day(_o(period, "end_date", None))
+        if kind == "prenatal" and lmp <= visit_day and (delivered is None or visit_day < delivered):
+            return lmp, delivered
+        if kind == "postpartum" and delivered is not None and delivered <= visit_day:
+            if best is None or delivered > (best[1] or delivered):
+                best = (lmp, delivered)
+    return best
+
+
+def _pregnancy_values(ctx: Any, values: dict[str, Any], kind: str) -> None:
+    """Placeholders of a prenatal / postpartum visit (Issue #3666), from the
+    pregnancy period of the record: ``{ga}`` (gestational age at the visit; ``{pregnancy_known}`` and, from
+    ``prenatal_fundal_exam_from_weeks``, ``{fundal_exam}`` are its empty flags),
+    ``{next_prenatal}`` (the next scheduled prenatal visit, in weeks of
+    gestation), ``{days_pp}`` (days since delivery) and ``{next_postpartum}``
+    (days since delivery of the next postpartum visit). Scheduled visits come
+    from ``perinatal.yaml`` lifecycle. A value the record cannot give is left
+    out, with the lines that use it."""
+    from clinosim.locale.loader import load_perinatal_config
+
+    enc = ctx.encounter
+    visit_day = _as_day(_o(enc, "admission_datetime", None)) if enc is not None else None
+    if visit_day is None:
+        return
+    period = _pregnancy_period(ctx, kind, visit_day)
+    if period is None:
+        return
+    lmp, delivered = period
+    lifecycle = load_perinatal_config().get("lifecycle") or {}
+    lang = ctx.target_lang
+    if kind == "prenatal":
+        weeks, days = divmod((visit_day - lmp).days, 7)
+        values["ga"] = _phrase("gestational_age", lang, weeks=weeks, days=days)
+        values["pregnancy_known"] = ""
+        if weeks >= load_visit_reason_soap().prenatal_fundal_exam_from_weeks:
+            values["fundal_exam"] = ""
+        later = [int(w) for w in lifecycle.get("prenatal_visit_gestational_weeks") or [] if int(w) > weeks]
+        if later and delivered is not None and lmp + timedelta(weeks=min(later)) < delivered:
+            values["next_prenatal"] = min(later)
+        return
+    if delivered is None:
+        return
+    elapsed = (visit_day - delivered).days
+    values["days_pp"] = elapsed
+    offsets = [int(o) for o in lifecycle.get("postpartum_visit_offsets_days") or [] if int(o) > elapsed]
+    if offsets:
+        values["next_postpartum"] = min(offsets)
+
+
 def _is_child_visit(ctx: Any) -> bool:
     from clinosim.modules.observation.pediatric_ranges import PEDIATRIC_UPPER_AGE_MONTHS, age_in_completed_months
 
@@ -650,6 +742,8 @@ def kind_values(ctx: Any, kind: str) -> dict[str, Any]:
         _imaging_values(ctx, values)
     elif kind == "well_child":
         _well_child_values(ctx, values)
+    elif kind in ("prenatal", "postpartum"):
+        _pregnancy_values(ctx, values, kind)
     _vaccine_values(ctx, values)
     if kind != "well_child" and "vaccine_names" in values and _is_child_visit(ctx):
         # Issue #3464: a child's vaccination visit records growth (the visit

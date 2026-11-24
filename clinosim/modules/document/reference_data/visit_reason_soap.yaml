@@ -55,6 +55,11 @@ visit_kinds:
     pediatric_otitis_media: acute_illness
     pediatric_uri: acute_illness
     pediatric_injury: acute_illness
+  # chronic ICD code of a chronic follow-up visit -> kind (Issue #3666): the
+  # scheduled pregnancy visits, emitted by the pregnancy lifecycle
+  by_chronic_code:
+    Z34: prenatal
+    Z39: postpartum
   # A post-discharge visit after one of these admissions is a post-operative
   # visit (the admission's treatment is an operation).
   post_operative_conditions: [hip_fracture, acute_appendicitis, acute_cholecystitis]
@@ -72,6 +77,8 @@ next_visit:
   vaccination: chronic
   well_child: schedule
   acute_illness: none
+  prenatal: none
+  postpartum: none
 
 # The next visit of one visit condition, when it differs from its kind's.
 next_visit_by_condition:
@@ -207,6 +214,50 @@ kinds:
       - en: "Anticipatory guidance given: {guidance}."
         ja: "保健指導: {guidance}。"
 
+  # Pregnancy visits (Issue #3666). {ga}: gestational age at the visit from
+  # the pregnancy period (LMP); {next_prenatal}: the next scheduled prenatal
+  # visit in weeks of gestation (perinatal.yaml lifecycle); {days_pp}: days
+  # since delivery; {next_postpartum}: days since delivery of the next
+  # postpartum visit. The record holds no fundal height, fetal heart rate,
+  # lochia or wound finding and no depression-screening result, so the
+  # objective lines are the generic normal-course findings of an uncomplicated
+  # pregnancy / puerperium (clinosim modelling wording, not a measurement, as
+  # ``well_child.exam``); no screening score is written. A line whose
+  # placeholder has no value is left out. {pregnancy_known} / {fundal_exam}
+  # have empty values: the line is written when the record holds the pregnancy
+  # period / the visit is at or after ``prenatal_fundal_exam_from_weeks``
+  # (fundal height and fetal movements are not examined earlier; clinosim
+  # modelling choice, not sourced to a guideline).
+  prenatal:
+    subjective:
+      - en: "Prenatal visit at {ga} of gestation."
+        ja: "妊娠{ga}の妊婦健診。"
+    objective:
+      - en: "Fetal heart tones present{pregnancy_known}."
+        ja: "胎児心拍あり{pregnancy_known}。"
+      - en: "Fundal height consistent with gestational age; fetal movements felt{fundal_exam}."
+        ja: "子宮底長は妊娠週数相当、胎動を自覚{fundal_exam}。"
+    assessment:
+      - en: "Supervision of normal pregnancy at {ga}."
+        ja: "妊娠{ga}、正常妊娠の経過観察。"
+    plan:
+      - en: "Next prenatal visit at {next_prenatal} weeks of gestation."
+        ja: "次回の妊婦健診は妊娠{next_prenatal}週。"
+
+  postpartum:
+    subjective:
+      - en: "Postpartum visit, {days_pp} days after delivery."
+        ja: "産後健診、分娩後{days_pp}日。"
+    objective:
+      - en: "Uterus involuting; wound healing without erythema or discharge; no heavy vaginal bleeding."
+        ja: "子宮復古は経過良好、創部は発赤・滲出液なく治癒経過良好、多量の出血なし。"
+    assessment:
+      - en: "Postpartum care, {days_pp} days after delivery: recovery on course."
+        ja: "産褥管理、分娩後{days_pp}日: 回復は順調。"
+    plan:
+      - en: "Next postpartum visit {next_postpartum} days after delivery."
+        ja: "次回の産後健診は分娩後{next_postpartum}日。"
+
 # The kind of treatment of a chemotherapy-visit regimen, by the drug classes the
 # regimen contains (chemo_regimens.yaml ``contains_drug_classes``); any other
 # regimen is cytotoxic chemotherapy. A GnRH agonist is androgen-deprivation
@@ -329,6 +380,10 @@ vaccine_detail:
   site:
     en: " ({site})"
     ja: " ({site})"
+
+# Gestational age (weeks) from which a prenatal visit states the fundal height
+# and fetal movements (Issue #3666); a clinosim modelling choice.
+prenatal_fundal_exam_from_weeks: 20
 
 # Prose of the route and site of a dose (the schedule's ``administration``
 # route and ``administration_sites`` SNOMED site, as the FHIR Immunization
@@ -470,6 +525,10 @@ vital_links:
 
 # Shared phrases.
 phrases:
+  # {ga} of a prenatal visit (Issue #3666)
+  gestational_age:
+    en: "{weeks}w{days}d"
+    ja: "{weeks}週{days}日"
   known_conditions:
     en: " Known conditions: {list}."
     ja: "既往: {list}。"

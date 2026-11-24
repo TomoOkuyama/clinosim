@@ -207,7 +207,7 @@ clinosim/modules/document/
     asthma-control-instruments.yaml  asthma control instrument by age: ACT 12+, Childhood ACT 4-11, caregiver symptom review under 4 (Issue #3264, GINA 2024); the wording states that a review was done and claims no ACT / C-ACT score, which a visit does not record (Issue #3652)
     chronic-med-class-hints.yaml     chronic-assessment medication-class hints (narrative/renderers/section_builders/outpatient_soap.py)
     chronic_soap_templates.yaml      chronic-condition SOAP note templates (the visit diagnosis's entry; findings, not instructions; no home log, symptom denial or examination finding the record does not hold)
-    visit_reason_soap.yaml           outpatient SOAP by visit reason: visit kinds, per-kind S/O/A/P lines, vital-sign findings with plan lines, vaccine record, well-child development and guidance (narrative/_visit_reason.py)
+    visit_reason_soap.yaml           outpatient SOAP by visit reason: visit kinds, per-kind S/O/A/P lines, vital-sign findings with plan lines, vaccine record, well-child development and guidance, prenatal and postpartum visit lines (narrative/_visit_reason.py)
     interval_events.yaml             admissions / emergency visits an outpatient note states since the previous visit (narrative/_interval_events.py)
     (the plan's next visit is read by narrative/_next_visit.py)
     outpatient_results.yaml          outpatient SOAP results: prior-lab analytes, CKD G categories, screening scores (narrative/_outpatient_results.py)
