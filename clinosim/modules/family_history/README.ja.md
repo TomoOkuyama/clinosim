@@ -20,6 +20,11 @@
   保持し、表示は下流で lookup 解決 (AD-30)。
 - **性別制限**: 前立腺は男性近親のみ、乳がんは女性近親のみ
   (reference YAML の per-condition `sex` フィールドで強制)。
+- **新生児の母**: 新生児の母は既知の人物なので、その児の record の母
+  近親には、分娩時点の母の record の慢性疾患の ICD 基底コード
+  (`extensions["newborn"]["birth"]["maternal_condition_codes"]`、Z コード
+  除く) も加える (その児のすべての record で同じ)。乱数は引かない
+  (Issue #3689)。
 - **Out of scope**: 家族歴を本人の疾患サンプリングに逆流させる処理
   (Phase 2+ で
   [`clinosim.modules.population`](../population/README.ja.md) の
@@ -39,6 +44,7 @@ from clinosim.modules.family_history.engine import (
     load_prevalence,             # (country) -> {icd_code: {age_band: {sex: rate}}}
     SIBLING_COUNT_OPTIONS,       # (0, 1, 2)
     SIBLING_SEX_MALE_PROBABILITY, # 0.5
+    with_maternal_conditions,    # (fams, maternal_codes) -> 母の疾患を MTH に加えた fams
 )
 from clinosim.modules.family_history.enricher import enrich_family_history
 ```

@@ -162,3 +162,21 @@ def generate_family_history(
         age = max(0, patient_age + int(rng.integers(so["min"], so["max"] + 1)))
         out.append(_relative(prev, conditions, patient_codes, "NSIB", sex, age, False, rng))
     return out
+
+
+def with_maternal_conditions(
+    fams: list[FamilyMemberHistoryRecord], maternal_codes: list[str]
+) -> list[FamilyMemberHistoryRecord]:
+    """``fams`` with the mother's known chronic conditions on the mother
+    relative (Issue #3689): a newborn's mother is a known person whose
+    conditions are on her record, not a relative sampled from prevalence. The
+    ICD base codes of her conditions are added to the sampled ones; a Z-code
+    (status, not a disease of hers) is not carried. Nothing is drawn, so the
+    other relatives and the stream stay as sampled."""
+    base = [b for c in maternal_codes if (b := _condition_code(c).split(".")[0].upper()) and not b.startswith("Z")]
+    if not base:
+        return fams
+    for rel in fams:
+        if rel.relationship == "MTH":
+            rel.condition_codes = list(dict.fromkeys([*base, *rel.condition_codes]))
+    return fams
