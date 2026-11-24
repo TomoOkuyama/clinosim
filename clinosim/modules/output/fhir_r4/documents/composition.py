@@ -910,6 +910,11 @@ def _build_composition_generic(
             # with the same localized display so the dual-slot pattern
             # (coding.display=EN-canonical-or-stripped + text=locale)
             # holds (AGENTS.md dual-slot convention).
+            # Issue #3697: the text names the SECTION (its localized title), not
+            # the LOINC display of the code, which is the name of another use of
+            # the code (18776-5 "入院診療計画書" for every plan / follow-up
+            # section). The LOINC display is the fallback for an empty title;
+            # the document-level type text keeps the LOINC display.
             entry["code"] = {
                 "coding": [
                     {
@@ -918,7 +923,7 @@ def _build_composition_generic(
                         **display_entry(registry_display("loinc", loinc_section, "en") or ""),
                     }
                 ],
-                "text": _loinc_disp,
+                "text": entry["title"] or _loinc_disp,
             }
         # Issue #925: populate `section.entry[]` in the SAME walk that
         # writes `section.text.div` (single-walk pattern per
