@@ -713,6 +713,14 @@ def simulate_delivery_encounter(
         encounter.chief_complaint_ja = ja_reason
     encounter.encounter_type = EncounterType.INPATIENT
     encounter.status = EncounterStatus.COMPLETED
+    # Issue #3686: admitted in labor, before the delivery (the encounter id,
+    # derived from the delivery time above, and every sub-seed keyed on it
+    # stay as they were). The procedure, the newborn's admission and the
+    # delivery-time orders are anchored on ``visit_date``, the delivery.
+    labor_hours = float(
+        (enc_cfg.get("labor_hours_before_delivery") or {}).get("cesarean" if is_cesarean else "vaginal") or 0
+    )
+    encounter.admission_datetime = visit_date - timedelta(hours=labor_hours)
     if is_cesarean:
         cs_los = int(cs_cfg["length_of_stay_days"][country_slot(country)])
         los_days = cs_los
@@ -1110,13 +1118,9 @@ def simulate_delivery_encounter(
     from clinosim.modules.order.placed_order_mar import administrations_for, stable_nurse
 
     _bundle_nurse = stable_nurse(roster, encounter.encounter_id, ward=encounter.ward_id or "", department=dept)
-    # An order anchored before admission (labor IV, pre-incision antibiotic)
-    # is given no earlier than the admission, inside the encounter period.
-    _bundle_mars = [
-        m
-        for o in orders
-        for m in administrations_for(o, [max(o.ordered_datetime, encounter.admission_datetime)], _bundle_nurse)
-    ]
+    # Every order lies inside the stay (the admission is in labor, Issue
+    # #3686), so each is given at its ordered time.
+    _bundle_mars = [m for o in orders for m in administrations_for(o, [o.ordered_datetime], _bundle_nurse)]
 
     attach_orders(orders, encounter)  # every encounter kind links its orders the same way
     mother_record = CIFPatientRecord(
