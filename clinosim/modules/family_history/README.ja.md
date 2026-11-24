@@ -21,7 +21,7 @@
 - **性別制限**: 前立腺は男性近親のみ、乳がんは女性近親のみ
   (reference YAML の per-condition `sex` フィールドで強制)。
 - **新生児の母**: 新生児の母は既知の人物なので、その児の record の母
-  近親には、分娩時点の母の record の慢性疾患の ICD 基底コード
+  近親には、分娩時点の母の record の慢性疾患の ICD コード (母の record の記録どおり)
   (`extensions["newborn"]["birth"]["maternal_condition_codes"]`、Z コード
   除く) も加える (その児のすべての record で同じ)。乱数は引かない
   (Issue #3689)。
