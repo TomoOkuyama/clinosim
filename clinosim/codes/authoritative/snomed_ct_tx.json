@@ -5,11 +5,11 @@
     "source_file": "https://tx.fhir.org/r4/CodeSystem/$lookup (preferred term, synonyms, FSN)",
     "extracted_at": "2026-11-10",
     "edition_version": "http://snomed.info/sct/900000000000207008/version/20250201",
-    "clinosim_codes_total": 280,
+    "clinosim_codes_total": 287,
     "clinosim_codes_missing_from_source": [
       "303408005"
     ],
-    "note": "SNOMED CT codes in codes/data/snomed-ct.yaml with their English preferred term, synonyms and FSN (Issue #3127). Codes missing from the source are unknown to the International Edition."
+    "note": "SNOMED CT codes in codes/data/snomed-ct.yaml with their English preferred term, synonyms and FSN (Issue #3127). Codes missing from the source are unknown to the International Edition. Issue #3680 added seven body-structure concepts (looked up on tx.fhir.org 2026-11-24, edition 20260701; display and active English designations)."
   },
   "concept": [
     {
@@ -733,6 +733,24 @@
         {
           "use": "900000000000003001",
           "value": "Structure of large intestine (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "14975008",
+      "display": "Forearm structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Forearm structure"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Forearm"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Forearm structure (body structure)"
         }
       ]
     },
@@ -1677,6 +1695,36 @@
         {
           "use": "900000000000013009",
           "value": "Hip structure"
+        }
+      ]
+    },
+    {
+      "code": "30021000",
+      "display": "Lower leg structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Lower leg structure"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Lower leg"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Crural region"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Structure of lower extremity from knee to ankle"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Structure of lower limb from knee to ankle"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Structure of lower limb from knee to ankle (body structure)"
         }
       ]
     },
@@ -2975,6 +3023,24 @@
       ]
     },
     {
+      "code": "41695006",
+      "display": "Scalp structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Scalp structure"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Scalp"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Scalp structure (body structure)"
+        }
+      ]
+    },
+    {
       "code": "41801008",
       "display": "Coronary artery structure",
       "designation": [
@@ -3573,6 +3639,24 @@
       ]
     },
     {
+      "code": "48477009",
+      "display": "Lip structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Lip structure"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Lip"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Lip structure (body structure)"
+        }
+      ]
+    },
+    {
       "code": "49076000",
       "display": "Knee joint structure",
       "designation": [
@@ -3699,6 +3783,28 @@
         {
           "use": "900000000000013009",
           "value": "Pyo"
+        }
+      ]
+    },
+    {
+      "code": "52795006",
+      "display": "Forehead structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Forehead structure"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Forehead"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Frontal region"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Forehead structure (body structure)"
         }
       ]
     },
@@ -3931,6 +4037,28 @@
         {
           "use": "900000000000013009",
           "value": "Topical"
+        }
+      ]
+    },
+    {
+      "code": "60819002",
+      "display": "Cheek structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Cheek structure"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Buccal region of face"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Cheek"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Cheek structure (body structure)"
         }
       ]
     },
@@ -4583,6 +4711,24 @@
         {
           "use": "900000000000003001",
           "value": "Closure of skin wound (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "7569003",
+      "display": "Finger structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Finger structure"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Finger"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Finger structure (body structure)"
         }
       ]
     },

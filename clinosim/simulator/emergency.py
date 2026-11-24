@@ -22,6 +22,7 @@ from clinosim.modules.encounter.protocol import (
     imaging_red_flag,
     prescription_dose,
     study_in_country,
+    study_in_site,
 )
 from clinosim.modules.imaging.engine import load_impression_templates
 from clinosim.modules.observation.engine import get_lab_unit
@@ -141,28 +142,36 @@ def ed_disposition(protocol: dict | None, severity: str) -> DischargeDisposition
     return _ED_DISPOSITIONS.get(key, DischargeDisposition.HOME)
 
 
+def ed_diagnosis_variant(spec: dict, encounter_id: str) -> dict | None:
+    """The weighted ``diagnosis_variants`` entry of an ED visit (Issue #3279:
+    the site and side of a minor burn; Issue #3680: the site of a laceration),
+    ``None`` for a protocol without variants. Drawn from a SHA of the encounter
+    id, so it takes nothing from the visit's RNG stream and the same visit
+    picks the same variant in every country."""
+    variants = spec.get("diagnosis_variants") or []
+    if not variants:
+        return None
+    index = determinism.sha_weighted_choice(
+        f"{encounter_id}|ed_diagnosis_variant",
+        tuple(str(i) for i in range(len(variants))),
+        tuple(float(v["weight"]) for v in variants),
+    )
+    return dict(variants[int(index)])
+
+
 def ed_diagnosis_code(spec: dict, patient: PatientProfile, *, country: str, encounter_id: str) -> str:
     """ICD-10 code of an ED visit: the first ``by_chronic_prefix`` entry whose
     prefix the patient carries (e.g. recurrent vs single-episode depression,
-    Issue #2124), else one of the protocol's weighted ``diagnosis_variants``
-    in ``country``'s code (Issue #3279: the site and side of a minor burn),
-    else ``icd10_code``. Same key and helper as the disease protocols'
-    ``icd_codes.by_chronic_prefix`` (Issue #2290).
-
-    The variant is drawn from a SHA of the encounter id, so it takes nothing
-    from the visit's RNG stream and the same visit picks the same variant in
-    every country."""
+    Issue #2124), else the code in ``country`` of the protocol's drawn
+    ``diagnosis_variants`` entry (:func:`ed_diagnosis_variant`), else
+    ``icd10_code``. Same key and helper as the disease protocols'
+    ``icd_codes.by_chronic_prefix`` (Issue #2290)."""
     refined = code_by_chronic_prefix(spec.get("by_chronic_prefix"), patient)
     if refined:
         return refined
-    variants = spec.get("diagnosis_variants") or []
-    if variants:
-        index = determinism.sha_weighted_choice(
-            f"{encounter_id}|ed_diagnosis_variant",
-            tuple(str(i) for i in range(len(variants))),
-            tuple(float(v["weight"]) for v in variants),
-        )
-        return str(variants[int(index)]["codes"][country_slot(country)])
+    variant = ed_diagnosis_variant(spec, encounter_id)
+    if variant is not None:
+        return str(variant["codes"][country_slot(country)])
     return str(spec.get("icd10_code") or "R69")  # R69 = Illness, unspecified
 
 
@@ -774,6 +783,9 @@ def _simulate_ed_visit(
         # Issue #3294: a study listed for other countries is not ordered here
         # (after the draws above, so the visit stream does not depend on it).
         if not study_in_country(img_spec, country):
+            continue
+        # Issue #3680: a study listed for a wound site is ordered only for it.
+        if not study_in_site(img_spec, ed_diagnosis_variant(protocol or {}, encounter.encounter_id)):
             continue
         orders.append(
             Order(

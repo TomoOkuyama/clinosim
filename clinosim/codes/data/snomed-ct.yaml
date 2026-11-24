@@ -124,6 +124,29 @@ codes:
   '955009':
     en: Bronchial structure
     ja: 気管支
+  # Issue #3680: body structure of the wound of a minor laceration (the
+  # Procedure bodySite); each concept checked via tx.fhir.org $lookup 2026-11-24.
+  '41695006':
+    en: Scalp structure
+    ja: 頭皮
+  '52795006':
+    en: Forehead structure
+    ja: 前額部
+  '60819002':
+    en: Cheek structure
+    ja: 頬部
+  '48477009':
+    en: Lip structure
+    ja: 口唇
+  '14975008':
+    en: Forearm structure
+    ja: 前腕
+  '7569003':
+    en: Finger structure
+    ja: 指
+  '30021000':
+    en: Lower leg structure
+    ja: 下腿
   '304582006':                       # Issue #3127: was 80581009 ("Upper abdomen structure")
     en: Structure of upper urinary tract
     ja: 上部尿路

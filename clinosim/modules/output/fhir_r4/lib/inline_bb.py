@@ -20,6 +20,8 @@ Contains:
 
 from __future__ import annotations
 
+import functools
+
 from clinosim.codes.hl7_encounter import ActPriority
 from clinosim.codes.snomed import snomed_for_phrase
 from clinosim.countries import lang_for
@@ -961,11 +963,18 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
         # CY7-18 (Chain-7): text-only bodySite fallback for order-derived
         # Procedures — the Order carries display_name but not a SNOMED site
         # code, so text is defensible.
-        procedure_res["bodySite"] = [
-            {
-                "text": t("fhir_text.body_site_unspecified", _lang),
-            }
-        ]
+        # Issue #3680: a wound-care Procedure of an ED visit whose protocol
+        # codes the wound site (a laceration) carries that site.
+        _wound_site = _visit_wound_site(ctx.record, enc_id)
+        procedure_res["bodySite"] = (
+            [dual_slot_concept("snomed-ct", _wound_site, _lang)]
+            if _wound_site
+            else [
+                {
+                    "text": t("fhir_text.body_site_unspecified", _lang),
+                }
+            ]
+        )
         # CY7-19 (Chain-7): outcome default = Successful for completed status.
         procedure_res["outcome"] = dual_slot_concept("snomed-ct", "385669000", _cat_lang, fallback_display="Successful")
         out.append(procedure_res)
@@ -994,6 +1003,33 @@ def reset_practitioner_cache() -> None:
     second export in the same process rebuilds the roster from scratch.
     """
     _PRACTITIONER_EMITTED.clear()
+
+
+@functools.cache
+def _encounter_diagnosis_variants(condition_id: str) -> tuple[dict, ...]:
+    """The ``diagnosis_variants`` of the encounter protocol ``condition_id``
+    (empty for a disease id or a protocol without variants)."""
+    from clinosim.modules.encounter.protocol import load_encounter_condition
+
+    try:
+        return tuple(load_encounter_condition(condition_id).get("diagnosis_variants") or ())
+    except FileNotFoundError:
+        return ()
+
+
+def _visit_wound_site(record: dict, encounter_id: str) -> str:
+    """SNOMED CT body structure of the wound of the ED visit ``encounter_id``
+    (Issue #3680): the visit's encounter protocol (the record's ground-truth
+    condition) lists ``diagnosis_variants`` with a ``body_site_snomed`` and the
+    visit's primary diagnosis code names one of them. ``""`` otherwise."""
+    from clinosim.modules.diagnosis.nonspecific_codes import encounter_primary_dx_code
+    from clinosim.modules.encounter.protocol import visit_body_site
+
+    names = ((record.get("condition_event") or {}).get("ground_truth_diseases")) or []
+    if not names or not encounter_id:
+        return ""
+    variants = _encounter_diagnosis_variants(str(names[0]))
+    return visit_body_site(variants, encounter_primary_dx_code(record, encounter_id)) if variants else ""
 
 
 def _bb_practitioners(ctx: BundleContext) -> list[dict]:

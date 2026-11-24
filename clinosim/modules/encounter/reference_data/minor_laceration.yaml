@@ -7,7 +7,28 @@ metadata:
   source: clinosim
 
 condition_id: minor_laceration
-icd10_code: "T14.90"
+# Issue #3680: a laceration has a site. Each visit draws one variant from a SHA
+# of its encounter id; ``codes`` holds the code in each country's diagnosis
+# system (us: ICD-10-CM FY2027 laceration without foreign body, initial
+# encounter "A"; jp: MHLW ICD-10 2013 open wound of the site), ``site`` the site
+# group the workup is gated on and ``body_site_snomed`` the SNOMED CT body
+# structure of the wound (the Procedure bodySite). Every variant has its own JP
+# code, so the site is recoverable from the diagnosis code. Index i of the
+# ``wound__*`` lists in the ED note template is variant i. The weights are
+# clinosim estimates (no published site shares for ED lacerations were found);
+# the codes, the SNOMED concepts and the JP titles were each checked against
+# NLM Clinical Tables (ICD-10-CM), tx.fhir.org $lookup (WHO ICD-10, SNOMED CT)
+# and the MHLW 内容例示表 chapter XIX. Left/right is not modelled for the
+# paired sites: the US code is the right side, the note says "right".
+diagnosis_variants:
+  - {weight: 0.10, site: scalp, body_site_snomed: "41695006", codes: {us: "S01.01XA", jp: "S01.0"}}      # scalp
+  - {weight: 0.12, site: face, body_site_snomed: "52795006", codes: {us: "S01.81XA", jp: "S01.8"}}       # forehead (other part of head)
+  - {weight: 0.06, site: face, body_site_snomed: "60819002", codes: {us: "S01.411A", jp: "S01.4"}}       # right cheek
+  - {weight: 0.04, site: face, body_site_snomed: "48477009", codes: {us: "S01.511A", jp: "S01.5"}}       # lip
+  - {weight: 0.12, site: forearm, body_site_snomed: "14975008", codes: {us: "S51.811A", jp: "S51.8"}}    # right forearm
+  - {weight: 0.20, site: hand, body_site_snomed: "85562004", codes: {us: "S61.411A", jp: "S61.8"}}       # right hand
+  - {weight: 0.26, site: finger, body_site_snomed: "7569003", codes: {us: "S61.210A", jp: "S61.0"}}      # right index finger
+  - {weight: 0.10, site: leg, body_site_snomed: "30021000", codes: {us: "S81.811A", jp: "S81.8"}}        # right lower leg
 chief_complaint:
   en: "Laceration requiring sutures"
   ja: "裂傷（縫合が必要）"
@@ -35,7 +56,10 @@ workup:
   labs:
     - {test: "Tetanus_status", probability: 0.6}
   imaging:
-    - {test: "Hand_Xray", probability: 0.15}  # Issue #2699: the hand, the most common laceration site  # foreign body or fracture concern
+    # Issue #2699 / #3680: a hand or finger wound (foreign body or fracture
+    # concern); the draw is made for every visit, the study is ordered only
+    # for these sites (about 14% of visits, as before).
+    - {test: "Hand_Xray", probability: 0.30, sites: [hand, finger]}
 
 treatment:
   - {name: "Lidocaine 1% local infiltration", probability: 0.9, route: "infiltration", intent: "local anesthesia"}
@@ -69,15 +93,22 @@ narrative:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: "Sustained a laceration {onset_en}; bleeding controlled with direct pressure."
-      ja: "{onset_ja}に裂傷を受傷し、圧迫で止血。"
+      en: "Sustained a laceration of the {wound__site_en} {onset_en}; bleeding controlled with direct pressure."
+      ja: "{onset_ja}に{wound__site_ja}に裂傷を受傷し、圧迫で止血。"
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
-        skin: "Laceration with clean edges, no active bleeding after pressure; no foreign body or tendon exposure seen; sensation and capillary refill distal to the wound intact"
+        skin: "Laceration of the {wound__site_en} with clean edges, no active bleeding after pressure; no foreign body or tendon exposure seen; sensation and capillary refill distal to the wound intact"
       ja:
         general: '意識清明、{appearance_ja}'
-        skin: "辺縁の整った裂創、圧迫後の活動性出血なし、異物・腱露出なし、創より末梢の感覚・毛細血管再充満は正常"
+        skin: "{wound__site_ja}に辺縁の整った裂創、圧迫後の活動性出血なし、異物・腱露出なし、創より末梢の感覚・毛細血管再充満は正常"
+    # Index i of the wound__site lists is diagnosis_variants[i]: the site the
+    # note states is the site of the coded diagnosis (Issue #3680).
+    variants_by_diagnosis: [wound]
+    variants:
+      wound__site:
+        en: ["scalp", "forehead", "right cheek", "lip", "right forearm", "right hand", "right index finger", "right lower leg"]
+        ja: ["頭皮", "前額部", "右頬部", "口唇", "右前腕", "右手", "右示指", "右下腿"]
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

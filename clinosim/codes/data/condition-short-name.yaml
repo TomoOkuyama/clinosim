@@ -287,6 +287,17 @@ codes:
   T31: {en: "Burn by extent of body surface", ja: "熱傷の体表面積"}
   T22.2: {en: "Second-degree burn of the upper limb", ja: "上肢の第2度熱傷"}
   T23.2: {en: "Second-degree burn of the hand", ja: "手の第2度熱傷"}
+  S01.01: {en: "Laceration of the scalp", ja: "頭皮の開放創"}
+  S01.0: {en: "Open wound of the scalp", ja: "頭皮の開放創"}
+  S01.4: {en: "Laceration of the cheek", ja: "頬部の開放創"}
+  S01.5: {en: "Laceration of the lip", ja: "口唇の開放創"}
+  S01.8: {en: "Laceration of the head", ja: "頭部の開放創"}
+  S51.8: {en: "Laceration of the forearm", ja: "前腕の開放創"}
+  S61.0: {en: "Laceration of a finger", ja: "指の開放創"}
+  S61.2: {en: "Laceration of a finger", ja: "指の開放創"}
+  S61.4: {en: "Laceration of the hand", ja: "手の開放創"}
+  S61.8: {en: "Laceration of the hand", ja: "手の開放創"}
+  S81.8: {en: "Laceration of the lower leg", ja: "下腿の開放創"}
   T30: {en: "Burn", ja: "熱傷"}
   T54: {en: "Corrosive substance poisoning", ja: "腐食性物質中毒"}
   T78: {en: "Adverse effect", ja: "有害作用"}

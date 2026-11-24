@@ -145,7 +145,7 @@ from clinosim.modules.encounter.discharge_outcome import discharge_outcome
 - Protocol loaders are pure. `EncounterConditionProtocol` requires
   `condition_id`, `chief_complaint`, `encounter_type`, `department` and
   exactly one of `icd10_code` and `diagnosis_variants` (weighted
-  per-country codes for a diagnosis that varies per visit, Issue #3279), declares every optional section (workup, treatment,
+  per-country codes for a diagnosis that varies per visit, Issue #3279; a variant may also carry a `site` group and a SNOMED CT `body_site_snomed`: a minor laceration is coded by site, its wound-care Procedures take the site as `bodySite` through `visit_body_site`, and a workup imaging entry with `sites: [...]` is ordered only for those sites, Issue #3680), declares every optional section (workup, treatment,
   discharge prescriptions, narrative, ...) as a typed field, and rejects
   unknown keys (`extra="forbid"`). Every `route:` value is also checked against the shared
   route vocabulary at load time.
