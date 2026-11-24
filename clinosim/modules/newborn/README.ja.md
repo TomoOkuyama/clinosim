@@ -34,7 +34,7 @@ Issue #1252 で起票。module 境界の根拠と、`perinatal.py` や
     N6 / N6b)。report と result の `performer` は国別のスクリーニング
     検査機関 `Organization` (YAML の
     `metabolic_screen.performer_organization`)。
-  - 経皮ビリルビン (新生児 1 人につき 1 本の推移: 1-3 日目に共通の個体レベル `bilirubin.level_correlation`、各日の周辺分布は設定の正規分布。Issue #3668)、CCHD パルスオキシメトリスクリーニング
+  - 経皮ビリルビン (新生児 1 人につき 1 本の推移: 1-3 日目に共通の個体レベル `bilirubin.level_correlation`、各日の周辺分布は設定の正規分布。Issue #3668。ピークが `bilirubin.documentation_threshold_mg_dl` 以上なら出生入院の診断に P59.9 新生児黄疸を追加。Issue #3669)、CCHD パルスオキシメトリスクリーニング
     (`Observation`)、US のエリスロマイシン眼軟膏予防投与
     (`MedicationAdministration`。JP config は薬剤を宣言しないため
     何も emit されない) — N7。

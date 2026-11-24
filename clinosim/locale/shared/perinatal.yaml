@@ -307,11 +307,23 @@ abortion:
 newborn_conditions:
   # Very common transient conditions — most resolve within days-weeks
   # of birth but appear on the delivery-encounter Condition list.
+  # Issue #3669: a row may carry
+  #   derived_from: the condition is derived from the record, not sampled (the
+  #     draw is still consumed so the stream's later draws do not move, and its
+  #     result is ignored). P59.9 comes from the measured bilirubin, see
+  #     newborn_screening.yaml bilirubin.documentation_threshold_mg_dl.
+  #   gestational_weeks_below: the condition (and the triggers under it)
+  #     applies only to a birth before this many completed weeks (P07.3 is a
+  #     preterm newborn: below 37 weeks). Every simulated birth is at term, so
+  #     these never fire until preterm births are modelled; a record without
+  #     a gestational age is not asserted preterm.
   - code: P59.9                         # Neonatal jaundice, unspecified
-    probability: 0.20                   # ~20 % require documentation (transient physiological jaundice, higher in Asian populations)
+    probability: 0.20                   # unused draw (derived from the bilirubin reading)
+    derived_from: bilirubin
 
   - code: P07.3                         # Preterm newborn (28-<37 wk)
     probability: 0.07                   # ~7 % of live births per MHLW / CDC natality
+    gestational_weeks_below: 37
     triggers:                           # conditions gated on this flag
       - code: P22.0                     # RDS — only meaningful on preterm
         conditional_probability: 0.35   # ~35 % of preterm 28-37wk newborns develop RDS

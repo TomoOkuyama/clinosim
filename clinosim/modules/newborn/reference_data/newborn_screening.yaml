@@ -49,6 +49,13 @@ bilirubin:
   # CHOICE: 0.98 keeps a fall of more than 1 mg/dL between days out of a
   # cohort of 600; not taken from a guideline.
   level_correlation: 0.98
+  # A baby whose peak reading is at or above this level (mg/dL) carries
+  # P59.9 neonatal jaundice on the birth encounter (Issue #3669). MODEL
+  # CHOICE: not taken from a guideline (the AAP and JSN thresholds depend on
+  # age in hours, gestational age and risk factors, and the AAP text could
+  # not be read for this project); a level at which a reading is charted as
+  # jaundice. About a quarter of simulated babies reach it.
+  documentation_threshold_mg_dl: 12.0
   clamp_min: 2.0
   clamp_max: 20.0
 
