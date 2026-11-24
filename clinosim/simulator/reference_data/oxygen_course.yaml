@@ -39,6 +39,26 @@ wean_min_readings: 2
 # a guideline read in the session that wrote it).
 flow_step_lpm: 0.5
 
+# Downward titration (Issue #3632). The flow was only ever raised, so a stay
+# that started on a 8-10 L/min mask stayed there until the room-air SpO2 had
+# recovered, leaving ICU-level oxygen on the ward. When the SpO2 recorded on
+# oxygen stays above `target + down_margin_spo2` (96 % for the 92 % target,
+# 92 % for the COPD 88 % target, so the BTS target bands quoted above still
+# bracket the result) for `down_hours` over at least `down_min_readings`
+# readings, the flow is lowered by one `flow_step_lpm` (never below
+# `min_flow_lpm`) and the device follows the flow (nasal cannula / simple
+# mask / non-rebreather by the same flow cut-offs as the per-reading
+# dispatcher). The span restarts after each step. One step lowers the SpO2 by
+# at most `flow_step_lpm * 1.5` (< `down_margin_spo2`), so the SpO2 on oxygen
+# stays at or above the target. The BTS guideline quoted above says only that
+# oxygen "should be reduced and eventually discontinued in stable patients";
+# the margin, span, reading count and minimum flow are clinosim modelling
+# choices.
+down_margin_spo2: 4.0
+down_hours: 4
+down_min_readings: 2
+min_flow_lpm: 1.0
+
 # Mechanical ventilation after an intubation (Issue #3535). The stay is
 # ventilated from the intubation until the extubation rule below is met, or
 # until death. While ventilated the recorded oxygen device is the ventilator

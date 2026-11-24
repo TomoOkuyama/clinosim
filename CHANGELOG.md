@@ -42,6 +42,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 ### Fixed
 
 - A population death date no longer falls inside a survivor inpatient stay: a stay that runs up to the death date ends as an in-hospital death on that date, a stay without a death course moves the death to after the discharge, and the FHIR post-mortem clip keeps `Encounter.period.end` a full dateTime and clips `classHistory` and `location` too (#3633).
+- Supplemental oxygen is titrated down as well as up: once the SpO2 on oxygen stays above the target band the flow is lowered one flowmeter step at a time and the device follows (mask to nasal cannula), so a stepped-down ICU patient no longer stays on 8-10 L/min on the ward and the step-down follows the criteria more often (#3632).
 
 ## [0.7.3] - 2026-11-24
 
