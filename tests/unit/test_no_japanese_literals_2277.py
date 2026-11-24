@@ -78,7 +78,6 @@ _ALLOWED: dict[str, set[str]] = {
     # keywords that classify protocol text
     "modules/order/treatment_classifier.py": {"parkland式", "抗凝固療法 (置換", "治療的抗凝固療法", "置換 予防投与"},
     # keywords matched against input text
-    "modules/output/fhir_r4/encounters/encounter.py": {"フォローアップ", "予防接種", "健康診断"},
     # keywords matched against input text
     "modules/output/fhir_r4/encounters/facility.py": {"回復期"},
     # keywords matched against input text

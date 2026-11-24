@@ -9,7 +9,11 @@ adapter facade.
 from __future__ import annotations
 
 import uuid
+from functools import lru_cache
+from pathlib import Path
 from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field
 
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
@@ -17,6 +21,7 @@ from clinosim.codes.hl7_encounter import ActPriority
 from clinosim.codes.snomed import snomed_for
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
+from clinosim.datafiles import load_validated_yaml
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import map_diagnosis_code, vocab_display
 from clinosim.locale.localized import localized_field
@@ -42,6 +47,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
 )
 from clinosim.modules.output.fhir_r4.lib.localization import _dept_display
 from clinosim.modules.output.fhir_r4.lib.profile_meta import profile_meta
+from clinosim.modules.pediatric.calendar import is_acute_illness_condition
 
 # === Issue #854 Bucket B (PR-encounter): opaque Encounter.id ===
 # LEAK ROOT of the compound-id anti-pattern — the pre-#854 shape
@@ -166,7 +172,60 @@ def _compute_encounter_length(start_iso: str, end_iso: str) -> dict[str, Any] | 
     return ucum_quantity(total_min, "min")
 
 
-def _set_type(resource: dict[str, Any], enc: dict, enc_type: str, primary_dx_code: str, country: str) -> None:
+class _VisitTypes(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    generic: str
+    check_up: str
+    consultation: str
+
+
+class _VisitTypeTable(BaseModel):
+    """Shape of ``reference_data/encounter_visit_type.yaml``."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    types: _VisitTypes
+    generic_keywords: list[str]
+    generic_reason_prefixes: list[str]
+    check_up_prefixes: list[str]
+
+
+_VISIT_TYPE_PATH = Path(__file__).resolve().parents[1] / "reference_data" / "encounter_visit_type.yaml"
+
+
+@lru_cache(maxsize=1)
+def _visit_type_table() -> dict[str, Any]:
+    return load_validated_yaml(_VISIT_TYPE_PATH, _VisitTypeTable)
+
+
+def _outpatient_type_code(enc: dict, primary_dx_code: str, visit_condition_id: str) -> str:
+    """SNOMED type of an outpatient visit by its reason (Issue #3657), from
+    ``encounter_visit_type.yaml``; ``""`` keeps the generic encounter-type code."""
+    table = _visit_type_table()
+    types = table["types"]
+    texts = [str(enc.get(k, "") or "") for k in ("chief_complaint", "chief_complaint_ja")]
+    codes = [str(c or "").split(".", 1)[0] for c in (primary_dx_code, enc.get("admission_diagnosis_code", ""))]
+    if any(kw in text.lower() for text in texts for kw in table["generic_keywords"]) or any(
+        c in table["generic_reason_prefixes"] for c in codes
+    ):
+        return str(types["generic"])
+    if is_acute_illness_condition(visit_condition_id):
+        return str(types["consultation"])
+    if any(text.startswith(prefix) for text in texts for prefix in table["check_up_prefixes"]) or primary_dx_code:
+        return str(types["check_up"])
+    return ""
+
+
+def _set_type(
+    resource: dict[str, Any],
+    enc: dict,
+    enc_type: str,
+    primary_dx_code: str,
+    country: str,
+    visit_condition_id: str = "",
+) -> None:
     """Encounter.type (SNOMED), specific for outpatient visits."""
     # Type (SNOMED). C1-05: outpatient AMB no longer
     # uniformly "Patient-initiated encounter". Use existing context to pick a
@@ -176,19 +235,7 @@ def _set_type(resource: dict[str, Any], enc: dict, enc_type: str, primary_dx_cod
     # patient-initiated code.
     type_code = snomed_for("encounter_type", enc_type)
     if enc_type == "outpatient":
-        _cc = str(enc.get("chief_complaint", "") or "")
-        # Health screening / annual check / immunization → keep the generic
-        # patient-initiated code (270427003) — not a disease-specific visit.
-        if any(kw in _cc for kw in ("健康診断", "screening", "予防接種", "vaccination")):
-            type_code = "270427003"
-        elif _cc.startswith("Follow-up") or _cc.startswith("フォローアップ") or _cc.startswith("Post-discharge"):
-            type_code = "185349003"  # Encounter for check up (SNOMED canonical, no hyphen)
-        elif primary_dx_code:
-            # Default for chronic-condition outpatient visits: check-up
-            # (follow-up). Consultation (11429006) reserved for the rare
-            # first-visit path — detected via encounter YAML flags in a
-            # future cycle (needs new CIF field).
-            type_code = "185349003"
+        type_code = _outpatient_type_code(enc, primary_dx_code, visit_condition_id) or type_code
     if type_code:
         # C2-01: use dual_slot_concept so codes lacking a
         # codes/data entry emit without display=code fallback (FHIR interop).
@@ -758,6 +805,7 @@ def _build_encounter(
     patient_sex: str = "",  # Issue #957: threads sex to sex-conditional ICD-10-CM mapping (C50)
     visit_reason_codes: list[str] | None = None,  # Issue #3008: vaccination-visit reason codes
     diagnosis_condition_ids: list[str] | None = None,  # Issue #3597: emitted encounter-diagnosis Condition ids
+    visit_condition_id: str = "",  # Issue #3657: the outpatient visit's condition (types an acute-illness visit)
 ) -> dict:
     """Build FHIR Encounter resource."""
     encounter_id = enc.get("encounter_id", str(uuid.uuid4()))
@@ -785,7 +833,7 @@ def _build_encounter(
         "subject": patient_ref(patient_id),
     }
 
-    _set_type(resource, enc, enc_type, primary_dx_code, country)
+    _set_type(resource, enc, enc_type, primary_dx_code, country, visit_condition_id)
     _set_priority(resource, enc, country)
     # Service type (department)
     # feedback FB-F7: hl7-service-type CodeSystem は診療科 code の canonical

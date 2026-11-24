@@ -215,6 +215,16 @@ JP の `Immunization` の理由文言は、そのワクチンの接種区分を�
 
 Guard: `tests/unit/output/test_immunization_program_3660.py`。
 
+外来の `Encounter.type` は encounter 種別の既定ではなく受診理由で決まる (Issue #3657)。表は `modules/output/fhir_r4/reference_data/encounter_visit_type.yaml`、適用は `encounters/encounter.py` の `_outpatient_type_code`。最初に一致した規則が勝つ:
+
+| 受診 | SNOMED type |
+|---|---|
+| 主訴 (どちらの言語も、大文字小文字を区別しない) に `vaccination`・`immunization`・`screening`・`予防接種`・`健康診断` を含む、または理由コードが Z23-Z27 | 270427003 Patient-initiated encounter |
+| 小児の急性疾患 (`visit_condition_id` が小児スケジュールの `presentations` の項目、`pediatric.calendar.is_acute_illness_condition`) | 11429006 Consultation |
+| 主訴が `Follow-up`・`フォローアップ`・`Post-discharge` で始まる、または診断のあるその他の受診 | 185349003 Encounter for check up |
+
+Guard: `tests/unit/output/test_encounter_type_3657.py`。`tests/unit/modules/pediatric/test_acute_illness_single_source_3657.py` は、受診記録の理由表の急性疾患 condition を小児 presentations と一致させる。
+
 ## 4. 解決関数
 
 利用側は、名称をこれらの関数でのみ解決する。

@@ -1,0 +1,27 @@
+# SNOMED Encounter.type of an outpatient visit by its reason (Issue #3657;
+# code-mapping spec, encounter-type table). First match wins:
+#   1. a visit whose chief complaint (either language, case-insensitive) holds
+#      a `generic_keywords` entry, or whose reason code is in
+#      `generic_reason_prefixes`  -> generic    (vaccination, screening: not
+#      a disease-specific visit)
+#   2. a pediatric acute-illness visit (modules/pediatric `presentations`)
+#                                  -> consultation
+#   3. a chief complaint starting with a `check_up_prefixes` entry, or any
+#      other visit with a diagnosis -> check_up (follow-up)
+# generic = SNOMED 270427003 Patient-initiated encounter; check_up = 185349003
+# Encounter for check up; consultation = 11429006 Consultation (all in
+# codes/data/snomed-ct.yaml).
+metadata:
+  kind: reference
+  name: encounter_visit_type
+  source: clinosim
+
+types:
+  generic: "270427003"
+  check_up: "185349003"
+  consultation: "11429006"
+generic_keywords: [vaccination, immunization, screening, 予防接種, 健康診断]
+# ICD-10 bases of the need-for-immunization visit reasons (Z23 encounter for
+# immunization; Z24-Z27 need for immunization against ...).
+generic_reason_prefixes: [Z23, Z24, Z25, Z26, Z27]
+check_up_prefixes: [Follow-up, フォローアップ, Post-discharge]

@@ -1041,3 +1041,8 @@ _.febrile_celsius  # _VaccinationPrecautions field (validated yaml key, read by 
 _.required_inputs  # modules/observation/_reference_models.py _News2 (read via the yaml dict, Issue #3644)
 _.tetanus_containing_cvx  # _EdVaccineDoses field (validated yaml key, read by key in drop_wound_covered_doses, Issue #3685)
 _.after_wound_dose_days  # _EdVaccineDoses field (validated yaml key, read by key in drop_wound_covered_doses, Issue #3685)
+_.check_up  # _VisitTypes / _VisitTypeTable field (validated yaml key, read by key in _outpatient_type_code, Issue #3657)
+_.consultation  # _VisitTypes / _VisitTypeTable field (validated yaml key, read by key in _outpatient_type_code, Issue #3657)
+_.generic_keywords  # _VisitTypes / _VisitTypeTable field (validated yaml key, read by key in _outpatient_type_code, Issue #3657)
+_.generic_reason_prefixes  # _VisitTypes / _VisitTypeTable field (validated yaml key, read by key in _outpatient_type_code, Issue #3657)
+_.check_up_prefixes  # _VisitTypes / _VisitTypeTable field (validated yaml key, read by key in _outpatient_type_code, Issue #3657)
