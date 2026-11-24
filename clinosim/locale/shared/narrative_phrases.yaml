@@ -1496,9 +1496,6 @@ neonate_progress:
   day_of_life:
     ja: "日齢{day}。"
     en: "Day of life {day}."
-  feeding_elimination:
-    ja: "哺乳良好、排尿・排便あり。"
-    en: "Feeding well; voiding and stooling."
   bilirubin_dated:
     ja: "黄疸の評価: 経皮ビリルビン {v:.1f} mg/dL (日齢{day}の測定)。"
     en: "Jaundice review: transcutaneous bilirubin {v:.1f} mg/dL (day of life {day})."
