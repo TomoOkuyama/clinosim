@@ -1035,3 +1035,4 @@ _.declines_intubation  # _Tier field (validated yaml key, read by key in assign_
 _.author_role  # DocumentTypeSpec field (validated yaml key, read by name in _pick_document_author, Issue #3703)
 generate_immunizations  # public API without a country (Issue #3683); the enricher calls generate_immunizations_for_country, tests call this
 bind_to_vaccination_visits  # public API without a country (Issue #3684); the enricher calls bind_to_vaccination_visits_for_country, tests call this
+_.febrile_celsius  # _VaccinationPrecautions field (validated yaml key, read by key in _febrile_celsius, Issue #3655)

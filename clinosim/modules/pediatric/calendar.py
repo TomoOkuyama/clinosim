@@ -316,6 +316,14 @@ def _fixed_age_visit_day(person: Any, key: str, window: dict[str, Any], dob: dat
     return dob + timedelta(days=lo + sha_index(f"{salt}|day", hi - lo + 1))
 
 
+def is_acute_illness_condition(condition_id: str) -> bool:
+    """Whether ``condition_id`` (a pediatric visit's ``visit_condition_id``) is
+    an acute illness: a schedule ``disease_id`` with a ``presentations`` entry
+    (Issue #3655). The one definition shared by the immunization enricher, the
+    encounter-type mapping and the visit-note reason table."""
+    return bool(condition_id) and condition_id in _load_schedule().presentations
+
+
 def pediatric_presentation(visit_id: str) -> Presentation | None:
     """The clinical picture of the acute pediatric visit ``visit_id`` (a
     schedule ``disease_id``), or None for a preventive visit."""
