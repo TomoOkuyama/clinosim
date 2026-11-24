@@ -83,7 +83,13 @@ The simulation advances month by month in one forward loop
    expired encounter's discharge), which `Patient.deceasedDateTime` emits; a
    community death needs no hospital visit and is known by date alone
    (`deceasedDateTime` at 23:59:59 of that day). Every later event is gated
-   by `in_population_at(date)`.
+   by `in_population_at(date)`. A death date never falls inside a survivor
+   stay: a stay that runs up to a known community death date ends as an
+   in-hospital death on that date (the daily loop takes
+   `population_death_date`; the usual mortality draw is made either way), and
+   a stay without a death course (unknown condition) moves the death to 1-30
+   days after the discharge (`vital_status.defer_death_past_stay`, a
+   dedicated sub-seed; Issue #3633).
 5. **Birth** — a delivery registers the newborn (`newborn.register_newborn`);
    the newborn enrolls the day after the birth-stay discharge
    (`PersonRecord.enrolled_from`), gets a rest-of-year calendar, and from

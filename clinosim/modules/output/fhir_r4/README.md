@@ -61,7 +61,10 @@ plus private names re-exported from `builder.py` for tests
 `_AFTER_DEATH_START_GATED_RESOURCE_TYPES`, `_BUNDLE_BUILDERS`,
 `_POST_SNAPSHOT_ALLOWED_RESOURCE_TYPES`, `_build_bundle`,
 `_drop_entries_after_death`, `_drop_entries_after_snapshot`,
-`_fhir_id_is_spec_valid` — the NDJSON-writer id guard). The `lib/`
+`_fhir_id_is_spec_valid` — the NDJSON-writer id guard). The after-death gate is
+a guard: an Encounter that still ends after the death keeps a full dateTime
+`period.end` (the time of death, else the end of the death day) and its
+`classHistory` / `location` periods are clipped the same way (Issue #3633). The `lib/`
 helper modules each declare their own `__all__`; see
 [`lib/README.md`](lib/README.md).
 
