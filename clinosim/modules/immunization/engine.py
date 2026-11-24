@@ -7,6 +7,7 @@ Codes (CVX) live in clinosim.codes; schedules in clinosim/locale/<country>/.
 
 from __future__ import annotations
 
+import calendar
 import hashlib
 from dataclasses import dataclass
 from datetime import date, timedelta
@@ -323,6 +324,26 @@ def _pick_flu_month(
     idx = int(rng.choice(len(candidates), p=probs))
     yr, m = candidates[idx]
     return date(yr, m, 1)
+
+
+def _flu_clinic_day(month_day: date, lo: date, hi: date, country: str | None, *key: object) -> date:
+    """The day of ``month_day``'s month a flu dose is given (Issue #3683): one
+    of the month's clinic days within ``lo`` .. ``hi``, chosen by sha256 of
+    ``key`` so no rng stream gains a draw. ``month_day`` itself when the
+    country is unknown or no clinic day of the month lies in the range."""
+    if country is None:
+        return month_day
+    from clinosim.locale.clinic_calendar import is_clinic_day
+
+    month_days = calendar.monthrange(month_day.year, month_day.month)[1]
+    days = [
+        d
+        for d in (month_day.replace(day=n) for n in range(1, month_days + 1))
+        if lo <= d <= hi and is_clinic_day(d, country)
+    ]
+    if not days:
+        return month_day
+    return days[_det_hash(*key, "flu-day") % len(days)]
 
 
 def _pick_wave_epoch_date(
@@ -652,6 +673,22 @@ def conditional_dose_coverage(marginal: float, previous: float | None) -> float:
 def generate_immunizations(
     patient, schedule: dict, as_of: date, rng: np.random.Generator, nurse_ids: list[str] | None = None
 ) -> list:
+    """``generate_immunizations_for_country`` without a country: a flu dose keeps
+    the first of its month (no clinic calendar to place it on)."""
+    return generate_immunizations_for_country(None, patient, schedule, as_of, rng, nurse_ids)
+
+
+def generate_immunizations_for_country(
+    country: str | None,
+    patient,
+    schedule: dict,
+    as_of: date,
+    rng: np.random.Generator,
+    nurse_ids: list[str] | None = None,
+) -> list:
+    """The patient's vaccine history up to ``as_of``. ``country`` gives the
+    clinic calendar a flu dose is placed on (Issue #3683: a clinic day of its
+    month, picked by sha256, no rng draw); ``None`` leaves it on the 1st."""
     from clinosim.types.encounter import ImmunizationRecord
 
     dob = getattr(patient, "date_of_birth", None)
@@ -733,6 +770,10 @@ def generate_immunizations(
                 given: date | None = occ
                 if floor is not None and occ < floor:
                     given = _first_licensed_season_day(seasonal_dist, yr, floor, as_of) if seasonal_dist else None
+                # Issue #3683: the dose is given on a clinic day of its month, not on
+                # the 1st (no rng draw: a sha256 pick keyed by patient and season).
+                if given is not None:
+                    given = _flu_clinic_day(given, max(start, floor or start), as_of, country, pid, cvx, yr)
                 if rng.random() < _coverage(cov, age_at, sex):
                     if given is not None:
                         out.append(

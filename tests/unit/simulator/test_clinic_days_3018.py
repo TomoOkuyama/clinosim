@@ -64,7 +64,7 @@ def test_an_orphan_vaccination_due_on_a_sunday_is_given_on_monday(monkeypatch) -
     )
 
     monkeypatch.setattr(
-        "clinosim.modules.immunization.enricher.generate_immunizations",
+        "clinosim.modules.immunization.enricher.generate_immunizations_for_country",
         lambda *_a, **_k: [ImmunizationRecord(vaccine_cvx="140", occurrence_date=date(2026, 3, 15))],
     )
     monkeypatch.setattr("clinosim.modules.immunization.enricher.load_schedule", lambda country: {})

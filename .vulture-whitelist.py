@@ -1032,3 +1032,4 @@ _.no_regimen  # ComplicationActionRules field (validated yaml key, read by the g
 _.not_executed_antibiotic_actions  # ComplicationActionRules field (validated yaml key, read by the guard test, Issue #3543)
 _.declines_intubation  # _Tier field (validated yaml key, read by key in assign_tier / airway_declined_probability, Issue #3551)
 _.author_role  # DocumentTypeSpec field (validated yaml key, read by name in _pick_document_author, Issue #3703)
+generate_immunizations  # public API without a country (Issue #3683); the enricher calls generate_immunizations_for_country, tests call this
