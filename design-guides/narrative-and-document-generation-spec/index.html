@@ -2679,6 +2679,11 @@
 <td><code>clinosim/modules/document/referral_recipient.py</code>, <code>clinosim/modules/document/reference_data/referral_recipients.yaml</code></td>
 <td><code>tests/unit/modules/document/narrative/test_referral_recipient_3460.py</code></td>
 </tr>
+<tr>
+<td>An English ordinal in narrative text ("71<sup>st</sup> percentile") takes its suffix from one helper, never a fixed "th" in a template: the template carries <code>{suffix}</code> and the caller passes <code>ordinal_suffix(n, lang)</code>; other languages get an empty suffix.</td>
+<td><code>clinosim/locale/ordinal.py::ordinal_suffix</code> (rule in <code>locale/shared/ordinal_suffixes.yaml</code>)</td>
+<td><code>tests/unit/locale/test_ordinal_suffix_3701.py</code></td>
+</tr>
 </tbody>
 </table>
 <h2 id="4-not-in-scope-here">4. Not in scope here<a class="headerlink" href="#4-not-in-scope-here" title="Permanent link">&para;</a></h2>

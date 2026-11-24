@@ -2679,6 +2679,11 @@
 <td><code>clinosim/modules/document/referral_recipient.py</code>、<code>clinosim/modules/document/reference_data/referral_recipients.yaml</code></td>
 <td><code>tests/unit/modules/document/narrative/test_referral_recipient_3460.py</code></td>
 </tr>
+<tr>
+<td>narrative 内の英語の序数 ("71<sup>st</sup> percentile") の接尾辞は 1 つのヘルパーから取り、テンプレートに固定の "th" を書かない。テンプレートは <code>{suffix}</code> を持ち、呼び出し側が <code>ordinal_suffix(n, lang)</code> を渡す。英語以外の言語は空の接尾辞になる。</td>
+<td><code>clinosim/locale/ordinal.py::ordinal_suffix</code> (規則は <code>locale/shared/ordinal_suffixes.yaml</code>)</td>
+<td><code>tests/unit/locale/test_ordinal_suffix_3701.py</code></td>
+</tr>
 </tbody>
 </table>
 <h2 id="4-本書の対象外">4. 本書の対象外<a class="headerlink" href="#4-本書の対象外" title="Permanent link">&para;</a></h2>

@@ -2539,6 +2539,11 @@
 <td><code>tests/unit/test_prn_from_state.py</code>, <code>tests/unit/test_prn_inhaler_cadence_1318.py</code></td>
 </tr>
 <tr>
+<td>投与期間が明示された指示(<code>duration_days</code>、または用量文の「xN days」。「x5-7 days」は上限を採り、「x21 days, then ...」のようにその後も続く投与は期間を持たない)は、開始日(維持量は負荷量の翌日)からその日数だけ投与して終了する。<code>_generate_mar</code> は期間後の投与を作らず、指示の終了は最後の投与になる。期間のない指示は退院まで続く。</td>
+<td><code>modules/order/engine.py::parse_dose_string</code>, <code>enrich_medication_order</code>, <code>protocol_medication_orders</code>; <code>medication_pipeline.py::_generate_mar</code></td>
+<td><code>tests/unit/simulator/test_stated_duration_stops_mar_3640.py</code></td>
+</tr>
+<tr>
 <td>血清カリウムが治療閾値以上になると、薬剤を二つの範囲で保留する。<code>hold_classes</code> (ACE 阻害薬・ARB・カリウム保持性利尿薬) は結果が出てから退院まで、<code>hold_while_high_classes</code> (ジゴキシン) は投与前の直近のカリウムが閾値以上である間だけ保留する。保留した投与の理由は、その投与前に結果が出た直近のカリウムとする。オーダーセットは、インスリンと併用するデキストロースを単回投与として別に記録する。溶血したカリウム (flag <code>H*</code> / <code>L*</code>、<code>is_hemolyzed</code>) は、保留の契機にも治療の値にもカリウム履歴の値にもしない。日次ループはその <code>delay_minutes</code> 後に stat の再採血をオーダーし (<code>_redraw_hemolyzed</code>、<code>hemolysis_redraw.yaml</code>)、上限 <code>max_redraws</code> まで繰り返し、治療は再採血の結果に従う (Issue #3452)。</td>
 <td><code>modules/drug_safety/hyperkalemia.py</code> (<code>PotassiumHold.high_at</code>, <code>reason_at</code>, <code>hyperkalemia_treatment_orders</code>)、<code>modules/observation/hemolysis_redraw.py</code> (<code>is_hemolyzed</code>, <code>hemolysis_redraw_rules</code>)、<code>simulator/daily_loop.py::_redraw_hemolyzed</code>。データは <code>modules/drug_safety/reference_data/hyperkalemia_response.yaml</code>、<code>modules/observation/reference_data/hemolysis_redraw.yaml</code>。適用は <code>simulator/daily_loop.py::_respond_to_hyperkalemia</code> と <code>medication_pipeline.py::_generate_mar</code></td>
 <td><code>tests/unit/drug_safety/test_hyperkalemia_response_2981.py</code>, <code>tests/unit/drug_safety/test_hyperkalemia_dextrose_digoxin_3232.py</code>, <code>tests/unit/drug_safety/test_hemolyzed_potassium_redraw_3452.py</code></td>
