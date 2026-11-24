@@ -143,7 +143,7 @@ CRP: "5C070"
 | Catalog | File | Entry shape |
 |---|---|---|
 | Drugs | `codes/data/drugs.yaml` | `<drug_id>: {names: {en, ja}, codes: {rxnorm, yj: {<route_class>: <YJ12>}}, classes: [...], aliases: [...]}` |
-| Procedures | `codes/data/clinosim-procedure-catalog.yaml` | `bedside: [{type, cpt, k_code, name: {en, ja}, anesthesia}]`; `named: [{type, name: {en, ja}}]` (types recorded outside the bedside dispatch, named for `Procedure.code.text`); `specimens: {<type>: [<specimen_type key>]}` (tissue a resection sends to pathology, Issue #3284; `procedure_specimens`) |
+| Procedures | `codes/data/clinosim-procedure-catalog.yaml` | `bedside: [{type, cpt, k_code, name: {en, ja}, anesthesia, aftercare, emergent, duration_minutes: {mean, sd, min, max}}]` (`emergent` marks an emergency-by-nature type, `procedure_is_emergent`; `duration_minutes` is the duration distribution, `procedure_duration`; both Issue #3550); `named: [{type, name: {en, ja}}]` (types recorded outside the bedside dispatch, named for `Procedure.code.text`); `specimens: {<type>: [<specimen_type key>]}` (tissue a resection sends to pathology, Issue #3284; `procedure_specimens`) |
 | Staff roles | `codes/data/clinosim-clinician-role.yaml` | `<role>: {title: {en, ja}, staff_prefix, suffix: {en, ja}, practitioner_role, qualification: {code, display: {en, ja}}}` |
 | Departments | `locale/shared/department_display.yaml` | `<dept>: {en, ja, specialty_snomed}` |
 

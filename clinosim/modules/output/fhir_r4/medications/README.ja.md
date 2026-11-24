@@ -117,7 +117,9 @@ fragment builder のみを移し、`_bb_*` 登録は inline_bb に残した。
 - `clinosim.modules.output.fhir_r4.conditions.primary_ref` —
   `MedicationRequest.reasonReference` /
   `MedicationAdministration.reasonReference` 用
-  `primary_condition_ref_from_codes` (lazy import)。
+  `primary_condition_ref_from_codes` (lazy import)。主診断が visit-reason の Z コード
+  (Condition が存在しない) の場合は両者とも `reasonReference` を省略し、コード化した理由は
+  `reasonCode` に残す (Issue #3597)。
 - `..demographics.patient.patient_ref`、
   `..encounters.encounter.encounter_ref`。
 - `clinosim.codes` — RxNorm / YJ / HOT 表示 lookup、

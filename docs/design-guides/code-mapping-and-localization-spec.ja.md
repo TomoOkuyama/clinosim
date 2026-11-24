@@ -142,7 +142,7 @@ CRP: "5C070"
 | カタログ | ファイル | エントリの形 |
 |---|---|---|
 | 薬 | `codes/data/drugs.yaml` | `<drug_id>: {names: {en, ja}, codes: {rxnorm, yj: {<route_class>: <YJ12>}}, classes: [...], aliases: [...]}` |
-| 処置 | `codes/data/clinosim-procedure-catalog.yaml` | `bedside: [{type, cpt, k_code, name: {en, ja}, anesthesia}]`、`named: [{type, name: {en, ja}}]` (bedside 以外で記録される処置種別の名称。`Procedure.code.text` に使う) |
+| 処置 | `codes/data/clinosim-procedure-catalog.yaml` | `bedside: [{type, cpt, k_code, name: {en, ja}, anesthesia, aftercare, emergent, duration_minutes: {mean, sd, min, max}}]` (`emergent` は性質上救急の処置種別、`procedure_is_emergent`。`duration_minutes` は所要時間の分布、`procedure_duration`。いずれも Issue #3550)、`named: [{type, name: {en, ja}}]` (bedside 以外で記録される処置種別の名称。`Procedure.code.text` に使う)、`specimens: {<type>: [<specimen_type key>]}` (切除が病理に送る組織、Issue #3284、`procedure_specimens`) |
 | 職種 | `codes/data/clinosim-clinician-role.yaml` | `<role>: {title: {en, ja}, staff_prefix, suffix: {en, ja}, practitioner_role, qualification: {code, display: {en, ja}}}` |
 | 診療科 | `locale/shared/department_display.yaml` | `<dept>: {en, ja, specialty_snomed}` |
 

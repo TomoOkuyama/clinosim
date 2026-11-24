@@ -20,7 +20,9 @@ FHIR taxonomy が Immunization を Procedure ファミリに配置している
   (`k-codes`)。registry wrapper `_bb_procedures` は
   [`../lib/inline_bb.py`](../lib/inline_bb.py));
   `procedure_type` が phrase に一致したときに `_build_procedure` が
-  付与する副 SNOMED coding (`codes/data/procedure-phrase-to-snomed.yaml`
+  付与する副 SNOMED coding (これとは別に CIF の `target_vessel` (SNOMED CT の血管) と
+  `laterality` (SNOMED CT の laterality qualifier) を `bodySite` に追加し、
+  `access_site` は `note` に出す、Issue #3549) (`codes/data/procedure-phrase-to-snomed.yaml`
   を引く `clinosim.codes.snomed.snomed_for_phrase`、Issue #2363 — 旧
   `procedure_name_snomed.py` / `.yaml` と `resolve_procedure_snomed` は
   現存しない);

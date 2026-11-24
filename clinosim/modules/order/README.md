@@ -98,7 +98,10 @@ existing `chronic_medications.yaml` home-medication path — those
 ARE daily home meds, not cycle drugs. The MRs / MARs carry
 `intent="order"` / `status="completed"` on the day the
 administration happens; a follow-up slice will expand multi-day
-infusion drugs (FOLFOX's 46-h 5-FU) into per-day records.
+infusion drugs (FOLFOX's 46-h 5-FU) into per-day records. A regimen with
+`administration: oral` (Temozolomide) has no administration procedure or
+administration record, and a cytotoxic regimen's `pretreatment_labs: [CBC]`
+orders a blood count resulted before dosing (Issue #3568).
 
 ## Public API
 

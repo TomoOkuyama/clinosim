@@ -16,7 +16,9 @@ MedicationRequest の reasonReference 等が encounter primary reason
 
 - **In scope**: `_build_conditions` (primary + secondary + chronic
   Condition builder。registry wrapper `_bb_conditions` は
-  [`../lib/inline_bb.py`](../lib/inline_bb.py))、`_bb_allergy_intolerances`、
+  [`../lib/inline_bb.py`](../lib/inline_bb.py)。急性期脳卒中入院の主病名・入院時
+  Condition は `onsetDateTime` を `Encounter.last_known_well` から取り、
+  `recordedDate` は入院時刻のまま、`_apply_last_known_well`、Issue #3558)、`_bb_allergy_intolerances`、
   `_bb_clinical_impressions`、`_bb_hai_conditions`
   (`extensions["hai"]` 由来 HAI Condition)、`_bb_code_status`
   (custom survey `Observation`、JP encounter は

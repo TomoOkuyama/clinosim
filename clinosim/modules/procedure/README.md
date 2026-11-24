@@ -248,8 +248,10 @@ clinosim/modules/procedure/
   _bedside_thresholds.py             bedside proc probability + timing (Issue #637)
   _rehab_thresholds.py               rehab session shape + pain model (Issue #637)
   _surgery_thresholds.py             surgery timing / duration / state-impact (Issue #637)
+  details.py                         side / PCI vessel + access site / central-line vein per (encounter, procedure type), validated at load (Issue #3549)
   reference_data/
     procedure_rules.yaml             bedside_rules + isolated_rules (disease → procedure base probability, Issue #2525)
+    procedure_details.yaml           side, PCI vessel / access-site and central-line vein weights (Issue #3549)
   SPEC.md                            extended design reference (not runtime)
 ```
 
