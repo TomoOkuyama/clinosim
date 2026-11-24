@@ -2394,6 +2394,18 @@ cut before this policy was formally documented and has been renumbered
 to v0.4.1 to align with the new policy — the Bucket A+B changes are
 FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
+<h2 id="073---2026-11-24">[0.7.3] - 2026-11-24<a class="headerlink" href="#073---2026-11-24" title="Permanent link">&para;</a></h2>
+<h3 id="highlights">Highlights<a class="headerlink" href="#highlights" title="Permanent link">&para;</a></h3>
+<p>About 55 commits since v0.7.2, from a review of the template narratives of the v0.7.2 sample cohorts (five patients per country, document by document) and two external fix requests. The entries below were written as the changes landed; this summary lists the main areas.</p>
+<ul>
+<li><strong>Clinical course.</strong> An intubated stay is ventilated until extubation; emergency intubation follows the code status (a patient who declined intubation is not intubated); an ICU stay records its step-down to the ward; consciousness falls from the onset of a consciousness-lowering complication; a patient at AVPU P / U is nil by mouth and oral doses are held; an infectious complication starts an antibiotic; AKI-held drugs stay held while the AKI lasts; oxygen flows are recorded in flowmeter steps.</li>
+<li><strong>Records.</strong> Acute stroke admissions record when the patient was last known well; chemotherapy visits follow the regimen route (oral, subcutaneous, intravesical, IV) with a pre-treatment blood count and the cycle number; procedures record side, PCI vessel and access site; the emergency contact carries sex, relationship and name parts; severity scales are valid R4 Observations.</li>
+<li><strong>Narrative documents.</strong> Progress notes, nursing shift notes, discharge summaries, ED notes, H&amp;Ps, outpatient SOAPs and newborn documents follow the record more closely (ICU transfer and dates, HPI negatives and onset, imaging reads and vitals by authored time, drug names of supportive orders, catheter aftercare instead of surgical-wound lines).</li>
+<li><strong>CLI.</strong> Without <code>--end</code>, the simulation window now ends yesterday, so no record is dated in the future.</li>
+<li><strong>Documentation.</strong> CHANGELOG, module READMEs and design guides were brought back in line with the code.</li>
+</ul>
+<h3 id="cif-drift-why-this-release-is-numbered-as-a-patch">CIF drift (why this release is numbered as a PATCH)<a class="headerlink" href="#cif-drift-why-this-release-is-numbered-as-a-patch" title="Permanent link">&para;</a></h3>
+<p>Many of the fixes below change structured CIF for the same <code>(seed, hospital_config, country, start, end, population)</code> and are marked "CIF drift, a MINOR-class change". Under the versioning policy above this release would be a MINOR bump; it is numbered 0.7.3 by maintainer decision, as a corrective release of the v0.7.2 narrative review. CIF ↔ narrative-CIF consistency is broken all the same: narrative CIF generated with v0.7.2 must be regenerated (<code>narrate</code>) against structured CIF from v0.7.3.</p>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
 <li>A patient whose latest consciousness reading is "responds to pain" or "unresponsive" (AVPU P / U) is now nil by mouth: an NPO diet order is placed at the first such reading (and the next day's diet order re-advances it once the level recovers), and every oral (PO) dose scheduled while the patient is in that state or on the ventilator is held with a reason, instead of an oral diet and oral doses continuing (<code>reference_data/oral_intake.yaml</code>). The nursing shift note says "Oral medications given with sips of water" when oral doses are given under the nil-by-mouth order of the first hospital day. CIF drift (diet orders, MAR statuses), a MINOR-class change (#3552).</li>
@@ -2435,14 +2447,14 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <li>A once-only <code>well_child_one_month</code> infant visit (fixed age 21-45 days, day and attendance from a hash sub-seed) so the one-month check named in newborn discharge instructions exists in the schedule (#3566).</li>
 </ul>
 <h2 id="072---2026-11-22">[0.7.2] - 2026-11-22<a class="headerlink" href="#072---2026-11-22" title="Permanent link">&para;</a></h2>
-<h3 id="highlights">Highlights<a class="headerlink" href="#highlights" title="Permanent link">&para;</a></h3>
+<h3 id="highlights_1">Highlights<a class="headerlink" href="#highlights_1" title="Permanent link">&para;</a></h3>
 <p>Performance release. The template narrative pass had become quadratic in the cohort size after v0.7.0 (about 20 times slower for a p=10000 cohort); it is linear again. CIF, narratives and FHIR are byte-identical to v0.7.1 for the same parameters (only <code>clinosim_version</code> and the wall-clock timestamps in the metadata differ), so this is a PATCH release and narrative CIF generated with v0.7.1 stays valid.</p>
 <h3 id="fixed_1">Fixed<a class="headerlink" href="#fixed_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li>The template narrative pass is linear in the cohort size again: the lookup of a patient's other structural records lists the structural directory once per directory state instead of once per document, and the condition stage label table is parsed once instead of on every stage a note prints. A US p=1000 pass takes 22 s instead of 83 s with byte-identical narratives; the p=10000 release cohort pass had grown to about 20 times the v0.7.0 time.</li>
 </ul>
 <h2 id="071---2026-11-22">[0.7.1] - 2026-11-22<a class="headerlink" href="#071---2026-11-22" title="Permanent link">&para;</a></h2>
-<h3 id="highlights_1">Highlights<a class="headerlink" href="#highlights_1" title="Permanent link">&para;</a></h3>
+<h3 id="highlights_2">Highlights<a class="headerlink" href="#highlights_2" title="Permanent link">&para;</a></h3>
 <p>About 160 commits since v0.7.0 (about 150 fixes), almost all from two rounds of reviewing the template narratives of the v0.7.0 sample cohorts patient by patient. The entries below this summary were written as the changes landed; this summary lists the main areas.</p>
 <ul>
 <li><strong>Narrative documents.</strong> Every note states only what was known at its authored time (results, procedures, complications, home medications), and documents are stamped with the encounter's time. Progress notes follow the period's vitals, labs, exam and medication plan; nursing shift notes carry data-driven items (pain, fever, oxygen, consciousness, held and refused doses, intake / output, devices, meals, skin, mobility, fall risk, newborn care); ED notes, the admission H&amp;P, outpatient SOAP, discharge and death summaries, the death certificate, the referral letter and newborn documents were completed and made consistent with the record.</li>
@@ -2451,7 +2463,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <li><strong>Japanese output.</strong> Order, dose and supportive-care text, diagnosis names, complication names and imaging exam names read as Japanese phrases instead of word-by-word substitution or English slugs.</li>
 <li><strong>Documentation.</strong> CHANGELOG, module READMEs and the design guides were brought back in line with the code.</li>
 </ul>
-<h3 id="cif-drift-why-this-release-is-numbered-as-a-patch">CIF drift (why this release is numbered as a PATCH)<a class="headerlink" href="#cif-drift-why-this-release-is-numbered-as-a-patch" title="Permanent link">&para;</a></h3>
+<h3 id="cif-drift-why-this-release-is-numbered-as-a-patch_1">CIF drift (why this release is numbered as a PATCH)<a class="headerlink" href="#cif-drift-why-this-release-is-numbered-as-a-patch_1" title="Permanent link">&para;</a></h3>
 <p>Many of the fixes below change structured CIF for the same <code>(seed, hospital_config, country, start, end, population)</code> and are marked "CIF drift, a MINOR-class change". Under the versioning policy above this release would be a MINOR bump; it is numbered 0.7.1 by maintainer decision, as a corrective release of the v0.7.0 narrative review. CIF ↔ narrative-CIF consistency is broken all the same: narrative CIF generated with v0.7.0 must be regenerated with <code>clinosim narrate</code>, and v0.7.0 and v0.7.1 cohorts with the same parameters are not byte-identical.</p>
 <h3 id="fixed_2">Fixed<a class="headerlink" href="#fixed_2" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2579,7 +2591,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <li>A discharge supply longer than the acute course ceiling is emitted as a continuous course of therapy in FHIR (#3264, #3265).</li>
 </ul>
 <h2 id="070---2026-11-11">[0.7.0] - 2026-11-11<a class="headerlink" href="#070---2026-11-11" title="Permanent link">&para;</a></h2>
-<h3 id="highlights_2">Highlights<a class="headerlink" href="#highlights_2" title="Permanent link">&para;</a></h3>
+<h3 id="highlights_3">Highlights<a class="headerlink" href="#highlights_3" title="Permanent link">&para;</a></h3>
 <p>About 1,090 commits since v0.6.5 (about 430 fixes, 300 refactors and 175 features). The entries below this summary were written as the changes landed; this summary lists the main areas.</p>
 <ul>
 <li><strong>Country profile.</strong> Country differences are expressed through a validated country profile (<code>clinosim/locale/_root/country.yaml</code> deep-merged with <code>locale/&lt;cc&gt;/country.yaml</code>, <code>clinosim/country_profile.py</code>): values live in locale YAML, country algorithms are registered implementations under <code>clinosim/countries/</code>, and FHIR structure is gated by <code>profile.uses(...)</code>. <code>country</code> is a required parameter throughout; an unknown country raises instead of borrowing US values. Design: <code>docs/design-guides/country-profile-spec.md</code>. A code/data-separation ratchet test (<code>tests/unit/test_code_data_separation_3137.py</code>) keeps country branches and numeric literals from growing.</li>
