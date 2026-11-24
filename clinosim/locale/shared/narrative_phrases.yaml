@@ -3494,6 +3494,7 @@ fallback:
 immunization_fhir:
   patient_refused: {ja: "患者拒否", en: "Patient refused"}
   vaccination_routine: {ja: "予防接種（定期接種）", en: "Vaccination (routine)"}
+  vaccination_voluntary: {ja: "予防接種（任意接種）", en: "Vaccination (voluntary)"}
   # Issue #1766: EN displays must match SNOMED CT canonical preferred terms.
   # Verified against tx.fhir.org $lookup for SNOMED CT International
   # Edition. The validator rejected the short vernacular form

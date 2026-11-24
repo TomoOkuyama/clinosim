@@ -205,6 +205,16 @@ lab リストの各要素 (`labs`、`add_labs`、`additional_labs`、薬剤モ�
 
 プロトコルがオーダーする検査はすべて US コードを持つかパネルである (`tests/unit/modules/observation/test_order_routing.py`)。`ServiceRequest.code.text` は検査の表示名 (`lab_display`、`style="formal"`) で、オーダー名は出さない。
 
+JP の `Immunization` の理由文言は、そのワクチンの接種区分を表す (Issue #3660)。`locale/jp/immunization_schedule.yaml` が各ワクチンに `program` (`routine` が既定、または `voluntary`) と、`voluntary` の場合の任意の `routine_from_age` を与え、`engine.vaccine_program(country, cvx, age_years)` が解決する (他の値は loader が拒否)。FHIR builder は `immunization_fhir.vaccination_routine` (予防接種（定期接種）) または `immunization_fhir.vaccination_voluntary` (予防接種（任意接種）) を出力する。JP 以外の国は `routine` で、このキーを読まない。
+
+| JP ワクチン | program |
+|---|---|
+| 季節性インフルエンザ、新型コロナ | 65 歳未満は `voluntary`、65 歳以上は `routine` (60-64 歳の障害による例外は表現しない) |
+| おたふくかぜ | `voluntary` |
+| BCG、四種混合 (五種混合)、MR、水痘、日本脳炎、Hib、肺炎球菌 (小児)、B 型肝炎、ロタ、PPSV23 | `routine` |
+
+Guard: `tests/unit/output/test_immunization_program_3660.py`。
+
 ## 4. 解決関数
 
 利用側は、名称をこれらの関数でのみ解決する。

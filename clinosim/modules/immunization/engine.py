@@ -187,7 +187,41 @@ def load_schedule(country: str) -> dict:
     if not (is_us(country) or is_jp(country)):
         return {}
     key = "jp" if is_jp(country) else "us"
-    return (load_data_yaml(_LOCALE / key / "immunization_schedule.yaml") or {}).get("vaccines", {})
+    vaccines = (load_data_yaml(_LOCALE / key / "immunization_schedule.yaml") or {}).get("vaccines", {})
+    _check_programs(vaccines)
+    return vaccines
+
+
+_PROGRAMS = ("routine", "voluntary")
+
+
+def _check_programs(vaccines: dict) -> None:
+    """Typo guard for the ``program`` / ``routine_from_age`` keys (Issue #3660)."""
+    for name, v in vaccines.items():
+        program = v.get("program", "routine")
+        if program not in _PROGRAMS:
+            raise ValueError(f"immunization schedule {name!r}: program {program!r} not in {_PROGRAMS}")
+        if "routine_from_age" in v and (program != "voluntary" or int(v["routine_from_age"]) < 0):
+            raise ValueError(f"immunization schedule {name!r}: routine_from_age needs program voluntary and age >= 0")
+
+
+def vaccine_program(country: str, cvx: str, age_years: int | None) -> str:
+    """The program of a ``cvx`` dose given at ``age_years`` (Issue #3660):
+    ``"voluntary"`` for a schedule entry marked so and, with
+    ``routine_from_age``, below that age; else ``"routine"`` (also for a
+    vaccine the schedule does not list). Only the JP schedule carries
+    ``program``, so every other country is ``"routine"``."""
+    for vaccine in load_schedule(country).values():
+        codes = {str(vaccine.get("cvx"))} | {str(p["cvx"]) for p in vaccine.get("products") or []}
+        if str(cvx) not in codes:
+            continue
+        if vaccine.get("program", "routine") != "voluntary":
+            return "routine"
+        from_age = vaccine.get("routine_from_age")
+        if from_age is not None and age_years is not None and age_years >= int(from_age):
+            return "routine"
+        return "voluntary"
+    return "routine"
 
 
 @lru_cache(maxsize=2)
