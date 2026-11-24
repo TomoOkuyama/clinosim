@@ -26,6 +26,12 @@ and CSV adapters emit `FamilyMemberHistory` resources and a
 - **Sex restrictions**: prostate on male relatives only, breast cancer
   on female relatives only (enforced by the per-condition `sex` field
   in the reference YAML).
+- **Newborn mother**: a newborn's mother is a known person, so the
+  mother relative of a baby's record also carries the ICD base codes of the
+  chronic conditions of her record at delivery
+  (`extensions["newborn"]["birth"]["maternal_condition_codes"]`, Z-codes
+  excluded), for every record of that baby; nothing is drawn for it
+  (Issue #3689).
 - **Out of scope**: propagating family-history back into the patient's
   own disease sampling (a Phase 2+ concern that would live in
   [`clinosim.modules.population`](../population/README.md) risk-factor
@@ -47,6 +53,7 @@ from clinosim.modules.family_history.engine import (
     load_prevalence,             # (country) -> {icd_code: {age_band: {sex: rate}}}
     SIBLING_COUNT_OPTIONS,       # (0, 1, 2)
     SIBLING_SEX_MALE_PROBABILITY, # 0.5
+    with_maternal_conditions,    # (fams, maternal_codes) -> fams with the mother's conditions on MTH
 )
 from clinosim.modules.family_history.enricher import enrich_family_history
 ```
