@@ -231,6 +231,7 @@ clinosim/modules/document/narrative/
   lab_timeseries.py                        lab time-series helpers for narrative rendering; group_draws (rows of one analyte close in time are one draw, Issue #3457); select_notable_labs (the abnormal labs a note cites, Issue #3230)
   _notable_labs.py                         notable_lab_entries: wording of those labs for the template Assessment and the LLM context
   _hospital_course.py                      退院時サマリーの入院経過の各文 (治療・処置・合併症・主な異常検査値・薬剤変更・退院時の状態・再入院; Issue #3246)
+  _drug_names.py                           administered_drug_key / administered_drug_label / administered_drug_name — 投薬行から薬を読む唯一の処理。MAR・退院時・外来の記録で共有 (Issue #3560)
   _icu_stay.py                             経過記録・看護シフト記録・退院時サマリー経過の ICU 滞在の記載 (Issue #3555)
   _localization.py                         JA/EN narrative-token localization helpers (META #1633 P6 slice 1)
   _template_helpers.py                     Template-rendering primitives (_label / _resolve_staff_name / _render_home_med_name / _pick_localized / _fill_template_placeholders / vital-placeholder resolution / fallback constants — META #1633 P6 slice 2)

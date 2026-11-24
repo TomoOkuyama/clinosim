@@ -62,14 +62,14 @@ from clinosim.locale.text import (
 ```
 
 The list above is a commonly used subset: `clinosim.locale.loader`
-re-exports 79 names in its `__all__` — 50 `load_*` functions plus
+re-exports 96 names in its `__all__` — 60 `load_*` functions plus
 display / code-lookup helpers (`drug_code`, `lab_code`,
 `map_diagnosis_code`, `department_display`, `lab_display`,
 `lab_result_display` (qualitative results from `shared/lab_result_terms.yaml`,
 Issue #3031), `condition_stage_display` (stage labels from
 `shared/condition_stage_labels.yaml`, Issue #3032), …) —
 implemented in
-`clinosim/locale/loaders/` (`clinical.py`, `demographics.py`,
+`clinosim/locale/loaders/` (`clinical.py`, `country_parameters.py`, `demographics.py`,
 `fhir_identity.py`, `medical_display.py`, `narrative.py`).
 
 Display names live in `clinosim/codes/`. `load_med_terms_ja` is a deprecated `ja`-only
@@ -130,13 +130,13 @@ via `yaml.safe_load`, which is deterministic byte-in → dict-out.
 clinosim/locale/
   __init__.py                     (empty by design — import direct
                                    from .loader / .text)
-  loader.py                       re-export facade (79 names, 50 of
+  loader.py                       re-export facade (96 names, 60 of
                                    them public load_* functions)
   _io.py                          shared YAML primitives (_LOCALE_DIR,
                                    _country_dir,
                                    _load_yaml, fallback defaults)
   loaders/                        @lru_cache YAML loaders by topic:
-                                   clinical, demographics, fhir_identity,
+                                   clinical, country_parameters, demographics, fhir_identity,
                                    medical_display, narrative
   text.py                         resolve_text (multi-language text
                                    resolution helper)
@@ -157,19 +157,21 @@ clinosim/locale/
                                    inherits (Issue #3140; loaded and
                                    validated by clinosim.country_profile;
                                    docs/design-guides/country-profile-spec.md)
-  us/                             US-specific bundle (19 YAMLs):
+  us/                             US-specific bundle (22 YAMLs):
                                    addresses, ambulatory_visit_length,
-                                   ckd_under60_prevalence, clinic_calendar,
+                                   care_practice, ckd_under60_prevalence,
+                                   clinic_calendar,
                                    country (profile overrides),
-                                   code_mapping_{diagnosis,drug,lab,procedure},
+                                   code_mapping_{diagnosis,discharge_disposition,drug,lab,procedure},
                                    code_status_rates, demographics, egfr_equation,
                                    family_history_prevalence, formatting,
                                    identity, immunization_schedule,
+                                   population_genetics,
                                    marital_status (census marital status by
                                    sex and age band, and the emergency-contact
                                    relationship conditional on it,
                                    Issue #3189), names, reference_range_lab
-  jp/                             JP-specific bundle (26 YAMLs — the US
+  jp/                             JP-specific bundle (31 YAMLs — the US
                                    set minus ckd_under60_prevalence and
                                    code_mapping_drug, plus
                                    care_level_rates,
@@ -184,8 +186,10 @@ clinosim/locale/
                                    facility_identity (the hospital's
                                    医療機関コード, Issue #3129),
                                    patient_instructions_ja,
-                                   practitioner_qualifications)
-  shared/                         cross-locale data (38 YAMLs), e.g.
+                                   practitioner_qualifications,
+                                   checkup_questionnaire,
+                                   encounter_type_profiles)
+  shared/                         cross-locale data (42 YAMLs), e.g.
                                    actuarial_life_table, chemo_regimens
                                    (chemo regimen library), chronic_followup,
                                    chronic_medications, chronic_onset_min_age,
