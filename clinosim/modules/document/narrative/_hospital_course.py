@@ -34,6 +34,7 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from clinosim.countries import country_code
 from clinosim.datafiles import load_validated_yaml
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
@@ -237,6 +238,41 @@ def procedures_sentence(ctx: NarrativeContext) -> tuple[str, str]:
         for name, date in first.items()
     ]
     return t("hospital_course.procedures_line", lang, list=t("list_sep.serial", lang).join(items)), "ctx.procedures"
+
+
+def delivery_sentence(ctx: NarrativeContext) -> tuple[str, str]:
+    """The delivery of a delivery stay: mode, gestational age and estimated
+    blood loss, then the complications of the pregnancy (Issue #3663); each
+    part only when the record holds it. ``""`` for any other stay."""
+    from clinosim.modules.document.narrative._delivery import (
+        blood_loss_ml,
+        complication_codes,
+        delivery_mode,
+        gestational_age,
+    )
+    from clinosim.modules.document.narrative.renderers._shared_helpers import chronic_condition_label
+
+    mode = delivery_mode(ctx)
+    if mode is None:
+        return "", ""
+    lang = ctx.target_lang
+    age = gestational_age(ctx)
+    ml = blood_loss_ml(ctx)
+    sentences = [
+        t(
+            "delivery.course",
+            lang,
+            mode=t(f"delivery.mode.{mode}", lang),
+            age=t("delivery.course_age", lang, weeks=age[0], days=age[1]) if age else "",
+            ebl=t("delivery.course_ebl", lang, ml=ml) if ml else "",
+        )
+    ]
+    country = country_code(ctx.locale)
+    sex = str(_o(ctx.patient, "sex", "") or "") if ctx.patient is not None else ""
+    labels = [label for c in complication_codes(ctx) if (label := chronic_condition_label(c, country, lang, sex))]
+    if labels:
+        sentences.append(t("delivery.course_complications", lang, list=t("list_sep.serial", lang).join(labels)))
+    return t("list_sep.sentence_gap", lang).join(sentences), "ctx.delivery"
 
 
 def complications_sentence(ctx: NarrativeContext) -> tuple[str, str]:

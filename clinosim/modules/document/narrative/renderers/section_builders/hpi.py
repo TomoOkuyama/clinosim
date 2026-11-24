@@ -67,6 +67,7 @@ def build_hpi(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> t
     text, facts = _build_hpi_core(generator, ctx)
     text, facts = _maybe_append_last_known_well(text, facts, ctx)
     text, facts = _maybe_append_readmission(text, facts, ctx)
+    text, facts = _maybe_append_delivery(text, facts, ctx)
     return _maybe_append_newborn_workup(text, facts, ctx)
 
 
@@ -101,6 +102,40 @@ def _maybe_append_readmission(text: str, facts: list[str], ctx: NarrativeContext
     if not text:
         return sentence, facts
     return f"{text}{t('list_sep.sentence_gap', ctx.target_lang)}{sentence}", facts
+
+
+def _maybe_append_delivery(text: str, facts: list[str], ctx: NarrativeContext) -> tuple[str, list[str]]:
+    """Issue #3663: the admission H&P of a delivery states how the mother was
+    admitted: in labor (a cesarean: for the cesarean delivery), at the
+    gestational age of the record, with the complications of the pregnancy.
+    Gravidity and parity are not recorded, so none is stated."""
+    from clinosim.modules.document.narrative._delivery import (
+        complication_codes,
+        delivery_mode,
+        gestational_age,
+    )
+    from clinosim.modules.document.narrative.renderers._shared_helpers import chronic_condition_label
+
+    if ctx.document_type != DocumentType.ADMISSION_HP:
+        return text, facts
+    mode = delivery_mode(ctx)
+    if mode is None:
+        return text, facts
+    lang = ctx.target_lang
+    age = gestational_age(ctx)
+    prefix = "hpi_cesarean" if mode == "cesarean" else "hpi_labor"
+    if age is not None:
+        sentences = [t(f"delivery.{prefix}", lang, weeks=age[0], days=age[1])]
+    else:
+        sentences = [t(f"delivery.{prefix}_no_age", lang)]
+    country = country_code(ctx.locale)
+    sex = str(_o(ctx.patient, "sex", "") or "") if ctx.patient is not None else ""
+    labels = [label for c in complication_codes(ctx) if (label := chronic_condition_label(c, country, lang, sex))]
+    if labels:
+        sentences.append(t("delivery.hpi_complications", lang, list=t("list_sep.serial", lang).join(labels)))
+    facts.append("ctx.delivery")
+    gap = t("list_sep.sentence_gap", lang)
+    return gap.join([text, *sentences]) if text else gap.join(sentences), facts
 
 
 def _maybe_append_newborn_workup(text: str, facts: list[str], ctx: NarrativeContext) -> tuple[str, list[str]]:

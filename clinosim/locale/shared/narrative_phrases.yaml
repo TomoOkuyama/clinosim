@@ -2488,6 +2488,46 @@ hpi_core:
     ja: "受診となった。"
     en: "Patient presented for evaluation."
 
+# Delivery admission (Issue #3663): the present illness of the admission H&P
+# and the delivery sentence of the discharge summary, from the delivery facts
+# of the mother's record (gestational age, mode, blood loss, complications).
+delivery:
+  # The mode of delivery as the course names it.
+  mode:
+    vaginal:
+      ja: "経腟分娩"
+      en: "vaginal delivery"
+    cesarean:
+      ja: "帝王切開"
+      en: "cesarean delivery"
+  hpi_labor:
+    ja: "妊娠{weeks}週{days}日、陣痛のため入院。"
+    en: "Admitted in labor at {weeks}w{days}d of gestation."
+  hpi_labor_no_age:
+    ja: "陣痛のため入院。"
+    en: "Admitted in labor."
+  hpi_cesarean:
+    ja: "妊娠{weeks}週{days}日、帝王切開のため入院。"
+    en: "Admitted at {weeks}w{days}d of gestation for cesarean delivery."
+  hpi_cesarean_no_age:
+    ja: "帝王切開のため入院。"
+    en: "Admitted for cesarean delivery."
+  hpi_complications:
+    ja: "今回の妊娠は{list}を合併。"
+    en: "The pregnancy was complicated by {list}."
+  course:
+    ja: "分娩: {mode}{age}{ebl}。"
+    en: "Delivery: {mode}{age}{ebl}."
+  course_age:
+    ja: " (妊娠{weeks}週{days}日)"
+    en: " at {weeks}w{days}d of gestation"
+  course_ebl:
+    ja: "、推定出血量 {ml} mL"
+    en: ", estimated blood loss {ml} mL"
+  course_complications:
+    ja: "妊娠合併症: {list}。"
+    en: "Complications of the pregnancy: {list}."
+
 # NCP composite lines (Phase 1d-29).
 ncp:
   special_reason_high_risk:

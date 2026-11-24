@@ -275,7 +275,8 @@ class DischargeInstructionGate(BaseModel):
     conditions and the encounter's diagnoses; ``discharge_drugs`` lists
     catalog drug ids or classes of which at least one must be on the
     discharge prescription — the drugs matched fill ``{drugs}``;
-    ``aki_at_discharge`` keeps the instruction for a patient whose final
+    ``delivery_mode`` keeps the instruction for a delivery stay of one of the
+    modes listed; ``aki_at_discharge`` keeps the instruction for a patient whose final
     creatinine still meets the AKI definition (Issue #3281);
     ``fever_at_discharge`` keeps it for a patient still febrile (a temperature
     at or above the gate's fever threshold in the last day, Issue #3637)."""
@@ -291,6 +292,9 @@ class DischargeInstructionGate(BaseModel):
     exclude_conditions: Annotated[list[str], AfterValidator(_known_condition_groups)] = Field(default_factory=list)
     discharge_drugs: Annotated[list[str], AfterValidator(_known_drugs)] = Field(default_factory=list)
     vitamin_k_given: bool | None = None
+    # Issue #3663: the modes of delivery ("vaginal" / "cesarean") of the stay
+    # the instruction is for.
+    delivery_mode: list[Literal["vaginal", "cesarean"]] | None = None
     # Issue #3281: the stay's final creatinine still meets the KDIGO AKI definition.
     aki_at_discharge: bool = False
     # Issue #3637: the stay reached its extension cap still febrile.
@@ -364,6 +368,7 @@ class DischargeInstructions(BaseModel):
 
     baseline: dict[str, _BilingualText] = Field(min_length=1)
     neonatal: dict[str, _BilingualText] | None = Field(default=None, min_length=1)
+    obstetric: dict[str, _BilingualText] | None = Field(default=None, min_length=1)
     disease_specific: dict[str, dict[str, _BilingualText] | None] | None
     # Issue #3554: slots, the discharge dispositions that are a facility, and
     # the longest prescription (days) that is a fixed course, not a chronic drug.

@@ -13,6 +13,7 @@ from clinosim.modules.document.narrative.renderers.section_builders.patient_hist
 )
 from clinosim.modules.document.narrative.template_generator import TemplateNarrativeGenerator
 from clinosim.modules.document.reference_data_loaders import load_disease_exam
+from clinosim.types.document import DocumentType
 from tests.unit.modules.document.narrative.test_admission_hp_complete_3245 import _delivery_ctx
 
 pytestmark = pytest.mark.unit
@@ -31,6 +32,8 @@ def _with_delivery(lang: str, code: str, authored: datetime | None):
         )
     ]
     ctx.authored_datetime = authored
+    # A progress note (Issue #3663: the admission H&P always describes the state on admission).
+    ctx.document_type = DocumentType.PROGRESS_NOTE
     return ctx
 
 

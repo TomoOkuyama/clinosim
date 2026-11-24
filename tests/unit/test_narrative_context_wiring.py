@@ -463,3 +463,12 @@ def test_per_stub_authored_datetime_via_run(tmp_path: Path):
         generator=CapturingGenerator(),
     ).run()
     assert captured == [datetime(2025, 6, 1, 9, 30), datetime(2025, 6, 2, 9, 30)]
+
+
+def test_delivery_extension_reaches_the_production_context():
+    """Issues #3661, #3663: the mother's ``extensions["delivery"]`` is on the
+    context the narrative pass builds (the test factory had it, the pass did not)."""
+    delivery = {"mode": "cesarean", "gestational_age_days": 270, "estimated_blood_loss_ml": 800}
+    ctx = _build_ctx(_patient_dict(extensions={"delivery": delivery}))
+    assert ctx.delivery == delivery
+    assert _build_ctx(_patient_dict()).delivery == {}

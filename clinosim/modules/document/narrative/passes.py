@@ -31,6 +31,7 @@ from clinosim.modules.document import specs_for_country
 from clinosim.modules.document.narrative.context import (
     _build_newborn_workup,
     _build_safety_skips,
+    _delivery_extension,
     build_devices,
     build_prior_safety_holds,
     encounter_microbiology,
@@ -706,6 +707,9 @@ class NarrativePass(ABC):
             safety_skips=_build_safety_skips(patient_dict.get("patient"), encounter_dict),
             prior_safety_holds=build_prior_safety_holds(patient_dict.get("patient"), encounter_dict),
             newborn_workup=_build_newborn_workup(patient_dict, patient_dict.get("patient")),
+            # Issues #3661, #3663: the structured delivery facts of a mother's
+            # record (``extensions["delivery"]``).
+            delivery=_delivery_extension(patient_dict),
             # Issue #2995: the home medications at admission (admission H&P);
             # the same field the ``build_narrative_context`` factory reads.
             home_medications_at_admission=patient_dict.get("home_medications_at_admission"),

@@ -22,6 +22,7 @@ from clinosim.codes.valuesets import concept_group, iter_chronic_codes
 from clinosim.locale.i18n import t
 from clinosim.locale.localized import localized
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules.document.narrative._delivery import delivery_mode, postpartum_visit_days
 from clinosim.modules.document.narrative._drug_names import administered_drug_key, administered_drug_label
 from clinosim.modules.document.narrative._narrative_utils import _age_at, is_neonate
 from clinosim.modules.document.reference_data_loaders import (
@@ -232,11 +233,14 @@ def generic_trajectory(ctx: NarrativeContext) -> dict[str, str]:
 def baseline_instruction_set(ctx: NarrativeContext) -> dict[str, Any]:
     """The base layer of a discharge instruction sheet: the YAML ``baseline``
     (adult) set. The one place a population-specific set replaces it — the
-    newborn set of Issue #3260 is selected here when ``is_neonate(ctx)`` — so the
+    newborn set of Issue #3260 is selected here when ``is_neonate(ctx)``, the
+    obstetric set of Issue #3663 for a delivery stay — so the
     disease layers and the patient gates apply to it unchanged."""
     data = load_discharge_instructions()
     if is_neonate(ctx) and data.get("neonatal"):
         return data["neonatal"]
+    if delivery_mode(ctx) is not None and data.get("obstetric"):
+        return data["obstetric"]
     return data.get("baseline") or {}
 
 
@@ -311,6 +315,8 @@ def _instruction_applies(gate: dict[str, Any] | None, ctx: NarrativeContext) -> 
     for group in gate.get("exclude_conditions") or ():
         if any(concept_group(group).contains(c) for c in codes):
             return False
+    if gate.get("delivery_mode") and delivery_mode(ctx) not in gate["delivery_mode"]:
+        return False
     if gate.get("vitamin_k_given") and not (getattr(ctx, "newborn_workup", None) or {}).get("has_vitamin_k"):
         return False
     if gate.get("aki_at_discharge"):
@@ -347,6 +353,18 @@ def _fill_drugs(entry: dict[str, Any], ctx: NarrativeContext) -> dict[str, str]:
         lang: text.replace("{drugs}", t("list_sep.serial", lang).join(administered_drug_label(m, lang) for m in names))
         for lang, text in texts.items()
     }
+
+
+def _fill_postpartum_days(texts: dict[str, str]) -> dict[str, str] | None:
+    """``texts`` with ``{postpartum_days}`` replaced by the days of the first
+    scheduled postpartum visit (Issue #3663); ``None`` (the instruction is
+    left out) when it needs the days and none is scheduled."""
+    if not any("{postpartum_days}" in text for text in texts.values()):
+        return texts
+    days = postpartum_visit_days()
+    if days is None:
+        return None
+    return {lang: text.replace("{postpartum_days}", str(days)) for lang, text in texts.items()}
 
 
 def _split_sentences(text: str) -> list[str]:
@@ -409,8 +427,11 @@ def resolve_discharge_instructions(ctx: NarrativeContext) -> dict[str, dict[str,
 
     def _layer(layer: str, entries: dict[str, Any]) -> None:
         for key, entry in entries.items():
-            if isinstance(entry, dict) and _instruction_applies(entry.get("applies_when"), ctx):
-                layered.append((layer, key, _fill_drugs(entry, ctx)))
+            if not (isinstance(entry, dict) and _instruction_applies(entry.get("applies_when"), ctx)):
+                continue
+            filled = _fill_postpartum_days(_fill_drugs(entry, ctx))
+            if filled is not None:
+                layered.append((layer, key, filled))
 
     _layer("baseline", baseline_instruction_set(ctx))
 

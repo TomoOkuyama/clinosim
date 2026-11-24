@@ -21,6 +21,7 @@ from clinosim.locale.i18n import t
 from clinosim.locale.localized import localized, normalize_lang
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.disease.laterality import stroke_weakness_side
+from clinosim.modules.document.narrative._delivery import delivery_mode
 from clinosim.modules.document.narrative._narrative_utils import is_neonate
 from clinosim.modules.document.narrative.renderers._exam_agreement import agreeing_clauses
 from clinosim.modules.document.reference_data_loaders import load_disease_exam
@@ -246,6 +247,7 @@ def _after_delivery(ctx: NarrativeContext) -> bool:
     birth, so it is after the birth; a stay with no delivery procedure keeps
     the antepartum exam."""
     from clinosim.timeutil import parse_iso_datetime
+    from clinosim.types.document import DocumentType
 
     enc_id = _o(ctx.encounter, "encounter_id", "") if ctx.encounter is not None else ""
     ends = []
@@ -259,6 +261,11 @@ def _after_delivery(ctx: NarrativeContext) -> bool:
             ends.append(end)
     if not ends:
         return False
+    # The admission H&P records the state on admission: a mother admitted in
+    # labor is described as in labor even when the note is signed after the
+    # birth (Issue #3663).
+    if ctx.document_type == DocumentType.ADMISSION_HP:
+        return False
     authored = ctx.authored_datetime
     return authored is None or authored >= min(ends)
 
@@ -271,14 +278,7 @@ def _delivery_exam(ctx: NarrativeContext, reading: Any | None) -> dict[str, str]
     # The mode of the delivery is the record's (Issue #3661: a complicated
     # delivery is admitted under its complication, not O80 / O82); a record
     # without the delivery extension gives it by the admission diagnosis.
-    mode = (getattr(ctx, "delivery", None) or {}).get("mode")
-    if mode not in rule.modes:
-        code = ""
-        for dx in ctx.diagnoses or []:
-            code = str(_o(dx, "admission_diagnosis_code", "") or "")
-            if code:
-                break
-        mode = rule.admission_codes.get(code)
+    mode = delivery_mode(ctx)
     if mode is None:
         return {}
     data = load_disease_exam()

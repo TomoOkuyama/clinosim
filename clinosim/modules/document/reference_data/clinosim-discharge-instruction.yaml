@@ -185,6 +185,40 @@ neonatal:
     en: "Take your baby to the pediatrician for the follow-up visit arranged at discharge."
     ja: "退院時に案内した時期に、小児科で赤ちゃんの診察 (1か月健診を含む) を受けてください。"
 
+# Obstetric set (Issue #3663): replaces `baseline` for the mother of a
+# delivery stay (renderers/_resolvers.baseline_instruction_set). The adult
+# baseline sends her to a primary care physician within 7-10 days and tells her
+# to drink plenty of fluids. Warning signs: CDC "Urgent Maternal Warning Signs
+# and Symptoms" (https://www.cdc.gov/hearher/maternal-warning-signs/index.html,
+# page dated 2024-05-15, read 2026-11-24), which lists them for pregnancy and
+# the year after delivery; the fever threshold is the page's 100.4 F (38.0 C).
+# The Japanese text is a translation of the same list. Wound and perineal care
+# and the rest advice are general postpartum guidance with no numeric
+# threshold. `{postpartum_days}`: the first scheduled postpartum visit
+# (perinatal.yaml lifecycle.postpartum_visit_offsets_days). No statement of
+# breastfeeding or contraception: the record holds neither.
+obstetric:
+  recovery:
+    en: "Rest when you can and increase your activity gradually as you feel able."
+    ja: "休める時には休み、体調に合わせて徐々に活動量を増やしてください。"
+  perineal_care:
+    en: "Keep the perineal area clean and dry."
+    ja: "会陰部は清潔にして乾いた状態を保ってください。"
+    applies_when: {delivery_mode: [vaginal]}
+  incision_care:
+    en: "Keep the abdominal incision clean and dry."
+    ja: "腹部の手術創は清潔にして乾いた状態を保ってください。"
+    applies_when: {delivery_mode: [cesarean]}
+  medications:
+    en: "Take all prescribed medications as directed. Do not stop early without consulting your doctor."
+    ja: "処方された薬はすべて指示通りに内服してください。医師に相談なく中止しないでください。"
+  warning_signs:
+    en: "Call your doctor or go to the emergency department right away for heavy vaginal bleeding or discharge, a fever of 100.4°F (38.0°C) or higher, a headache that will not go away or changes in your vision, dizziness or fainting, trouble breathing, chest pain or a fast heartbeat, severe belly pain, severe swelling, redness or pain of a leg or arm, or thoughts about harming yourself or your baby."
+    ja: "多量の出血やおりもの、38.0°C 以上の発熱、続く頭痛や視覚の変化、めまいや失神、息苦しさ、胸の痛みや動悸、強い腹痛、足や腕の強い腫れ・赤み・痛み、自分や赤ちゃんを傷つけたい気持ちがあるときは、すぐに医師へ連絡するか救急外来を受診してください。"
+  follow_up:
+    en: "Attend your postpartum visit about {postpartum_days} days after the birth."
+    ja: "産後{postpartum_days}日ごろの産後健診を受けてください。"
+
 # Per-disease overrides — supplement or replace baseline entries.
 
 disease_specific:
