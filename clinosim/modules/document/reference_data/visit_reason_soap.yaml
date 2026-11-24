@@ -144,8 +144,11 @@ kinds:
       - en: "{dx}: acute illness managed in clinic."
         ja: "{dx}: 外来で治療。"
     plan:
-      - en: "{dx}: supportive care (fluids, rest, antipyretic as needed){no_rx}."
-        ja: "{dx}: 対症療法 (水分補給・安静・必要時解熱薬){no_rx}。"
+      # No antipyretic is named: the visit orders none and a drug without a
+      # dose is not a plan (Issue #3651). A febrile visit's fever plan line is
+      # `vital_findings.fever`.
+      - en: "{dx}: supportive care (fluids, rest){no_rx}."
+        ja: "{dx}: 対症療法 (水分補給・安静){no_rx}。"
 
   screening:
     objective:
@@ -259,20 +262,52 @@ conditions:
     plan:
       - en: "Outpatient rehabilitation for gait continued."
         ja: "歩行訓練の外来リハビリテーションを継続。"
+  # The presenting symptoms and examination findings that go with each acute
+  # paediatric diagnosis (Issue #3651), written as clinical convention (no
+  # guideline is cited): they state the picture of the diagnosis the visit
+  # carries, no onset, duration or fever (the visit's temperature is its vital
+  # sign, the fever lines are `vital_findings.fever`). The injury lines name
+  # no injured site, since the record holds none.
   pediatric_uri:
+    subjective:
+      - en: "Presenting with cold symptoms (runny nose, cough, sore throat)."
+        ja: "鼻汁・咳嗽・咽頭痛などの感冒症状で受診。"
+    objective:
+      - en: "Pharynx mildly injected, tympanic membranes normal, lungs clear."
+        ja: "咽頭は軽度発赤、鼓膜は正常、肺音は清。"
     plan:
       - en: "Caregiver told to return if fever lasts more than 3 days, breathing becomes difficult or the child drinks poorly."
         ja: "発熱が3日以上続く、呼吸が苦しそう、水分がとれない場合は再診するよう保護者に説明。"
   pediatric_otitis_media:
+    subjective:
+      - en: "Presenting with ear pain and irritability."
+        ja: "耳痛と不機嫌を主訴に受診。"
+    objective:
+      - en: "Otoscopy: tympanic membrane red and bulging with reduced mobility."
+        ja: "鼓膜所見: 発赤・膨隆し、可動性の低下あり。"
     plan:
       - en: "Caregiver told to return if ear pain or fever persists after 48-72 hours of treatment."
         ja: "治療開始後 48-72 時間で耳痛・発熱が続く場合は再診するよう保護者に説明。"
   pediatric_bronchiolitis:
+    subjective:
+      - en: "Presenting with cough and fast breathing after a cold, with reduced feeding."
+        ja: "感冒症状に続く咳嗽と多呼吸、哺乳量の低下で受診。"
+    objective:
+      - en: "Lungs: diffuse wheeze and crackles with a prolonged expiratory phase."
+        ja: "肺音: びまん性の喘鳴と湿性ラ音、呼気延長あり。"
     plan:
       - en: "Caregiver told to return for laboured breathing, poor feeding or fewer wet nappies."
         ja: "呼吸が苦しそう、哺乳不良、尿量減少があれば再診するよう保護者に説明。"
   pediatric_injury:
+    subjective:
+      - en: "Presenting with pain after a fall or sports injury."
+        ja: "転倒またはスポーツ中の受傷後の疼痛で受診。"
+    objective:
+      - en: "Injured site: local tenderness and mild swelling, range of motion preserved, no deformity."
+        ja: "受傷部位: 限局した圧痛と軽度腫脹、可動域は保たれ、変形なし。"
     plan:
+      - en: "Injured site rested and activity limited."
+        ja: "受傷部位を安静にし、運動を制限。"
       - en: "Patient told to return for increasing pain, swelling or inability to bear weight."
         ja: "疼痛・腫脹の増悪や荷重できない場合は再診するよう説明。"
 
@@ -379,8 +414,8 @@ vital_findings:
         en: "Fever: T {temp:.1f}°C, attributable to {dx}."
         ja: "発熱: T {temp:.1f}°C、{dx}によるもの。"
       plan:
-        en: "Fever: antipyretic as needed and fluids."
-        ja: "発熱: 必要時解熱薬と水分補給。"
+        en: "Fever: fluids and fever care at home as needed."
+        ja: "発熱: 水分補給、必要に応じて自宅で解熱の対応。"
     default:
       assessment:
         en: "Fever: T {temp:.1f}°C, no localising source on examination."
