@@ -7,6 +7,7 @@ leaf data, shared helpers, and stdlib/first-party deps — never the adapter.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from functools import cache
 from typing import Any
 
@@ -18,7 +19,7 @@ from clinosim.countries import lang_for
 from clinosim.country_profile import country_profile
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import condition_stage_display, map_diagnosis_code
-from clinosim.modules._shared import get_attr_or_key
+from clinosim.modules._shared import admitted_via_ed, get_attr_or_key
 from clinosim.modules.diagnosis.nonspecific_codes import is_visit_reason_zcode
 from clinosim.modules.disease.protocol import working_diagnosis_code
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
@@ -49,6 +50,7 @@ from clinosim.modules.output.fhir_r4.lib.common import (
 from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_date, to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
 from clinosim.modules.output.fhir_r4.lib.profile_meta import profile_meta
+from clinosim.modules.triage.engine import admitted_ed_stay
 
 # Condition.stage.summary SNOMED coding for staging systems with an unambiguous,
 # authoritatively-verified (tx.fhir.org $lookup) SNOMED CT concept. Keys are the
@@ -184,6 +186,9 @@ class _ConditionContext:
     # The record has at least one resulted laboratory order (Issue #3693):
     # the principal diagnosis cites laboratory results only then.
     has_labs: bool = False
+    # Earliest Encounter start of the patient across all records (Issue #3694);
+    # empty when the caller did not compute it (single-record callers).
+    first_seen_dt: str = ""
 
     @property
     def country_code(self) -> str:
@@ -208,6 +213,18 @@ class _ConditionContext:
     @property
     def admission_dt(self) -> str:
         return self.encounter.get("admission_datetime", "")
+
+    @property
+    def recorded_dt(self) -> str:
+        """``recordedDate`` of a problem-list Condition: when it was first
+        entered in the record, i.e. the earliest Encounter start of the
+        patient (never later than this record's own start)."""
+        own = self.admission_dt
+        first = self.first_seen_dt
+        if not first or not own:
+            return own
+        a, b = _parse_naive(first), _parse_naive(own)
+        return first if a is not None and b is not None and a < b else own
 
     @property
     def discharge_dt(self) -> str:
@@ -251,6 +268,32 @@ def _condition_skeleton(
         ),
         "subject": patient_ref(ctx.patient_id),
     }
+
+
+def _parse_naive(value: str) -> datetime | None:
+    try:
+        return datetime.fromisoformat(str(value).replace("Z", "+00:00")).replace(tzinfo=None)
+    except ValueError:
+        return None
+
+
+def record_first_start(record: dict) -> str:
+    """Earliest Encounter start of one CIF record (ISO string, "" if none).
+
+    A via-ED stay starts at the ED arrival (the bridge Encounter's start),
+    ``admitted_ed_stay()`` before the admission (Issue #3694)."""
+    best: tuple[datetime, str] | None = None
+    for enc in record.get("encounters") or []:
+        raw = str(get_attr_or_key(enc, "admission_datetime", "") or "")
+        parsed = _parse_naive(raw) if raw else None
+        if parsed is None:
+            continue
+        if admitted_via_ed(enc):
+            parsed = parsed - admitted_ed_stay()
+            raw = parsed.isoformat()
+        if best is None or parsed < best[0]:
+            best = (parsed, raw)
+    return best[1] if best else ""
 
 
 def _record_has_lab_results(record: dict) -> bool:
@@ -320,7 +363,7 @@ def _chronic_fields(chronic: Any) -> tuple[str, str, str, str]:
     )
 
 
-def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]:
+def _build_conditions(record: dict, patient_id: str, country: str, first_seen_dt: str = "") -> list[dict]:
     """Build FHIR Condition resources from diagnosis and chronic conditions.
 
     Generates, in order: the primary encounter diagnosis, the admission
@@ -341,6 +384,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         # per-person. JP C50 is identity-mapped, so the sex is a no-op there.
         patient_sex=str(record.get("patient", {}).get("sex", "") or ""),
         has_labs=_record_has_lab_results(record),
+        first_seen_dt=first_seen_dt,
     )
     dx = record.get("clinical_diagnosis", {})
     chronic_list = record.get("patient", {}).get("chronic_conditions", [])
@@ -647,9 +691,11 @@ def _chronic_conditions(ctx: _ConditionContext, chronic_list: list, seen_codes: 
         # CY8-21: a patient with no encounter in the record falls back to the
         # hospital's primary-care physician as recorder / asserter.
         _set_recorder(cond, ctx.encounter.get("attending_physician_id", "") or _FALLBACK_RECORDER_ID)
-        # recordedDate: use admission datetime (full time) so time-series UIs sort correctly (Issue #821 / N-7).
-        if ctx.admission_dt:
-            cond["recordedDate"] = to_fhir_datetime(ctx.admission_dt)
+        # recordedDate: when the condition was first entered in the record =
+        # the patient's earliest Encounter start (full time so time-series UIs
+        # sort correctly, Issue #821 / N-7; first recording, Issue #3694).
+        if ctx.recorded_dt:
+            cond["recordedDate"] = to_fhir_datetime(ctx.recorded_dt)
         _set_bodysite(cond, code, ctx.country)
         conditions.append(cond)
     return conditions
@@ -711,7 +757,7 @@ def _past_birth_conditions(ctx: _ConditionContext, record: dict, seen_codes: set
         cond["onsetDateTime"] = to_fhir_date(end_date)
         cond["evidence"] = _evidence(ctx, "condition_evidence.problem_list_prior")
         _set_recorder(cond, ctx.encounter.get("attending_physician_id", "") or _FALLBACK_RECORDER_ID)
-        if ctx.admission_dt:
-            cond["recordedDate"] = to_fhir_datetime(ctx.admission_dt)
+        if ctx.recorded_dt:
+            cond["recordedDate"] = to_fhir_datetime(ctx.recorded_dt)
         conditions.append(cond)
     return conditions
