@@ -2502,7 +2502,7 @@
 <td><code>tests/unit/test_af_ventricular_rate_3274.py</code></td>
 </tr>
 <tr>
-<td>Hold rules come from one source at admission, administration and discharge: renal actions per drug, vital-sign hold parameters, the metformin renal threshold.</td>
+<td>Hold rules come from one source at admission, administration and discharge: renal actions per drug, vital-sign hold parameters, the metformin renal threshold. At admission a <code>hold</code> renal drug (NSAIDs, alendronate) is held, and logged, whenever the kidneys are already impaired (CKD diagnosis or low current renal function), whatever the static renal reserve; the reserve gates only the <code>reduce</code> annotation.</td>
 <td><code>medication_pipeline.py</code> (<code>renal_medication_rules</code>, <code>mar_vital_hold_reason</code>, <code>metformin_admission_hold_threshold</code>), <code>discharge_rx.py::renal_hold_drugs</code>; data <code>simulator/reference_data/renal_medication_rules.yaml</code>, <code>locale/shared/chronic_medications.yaml</code></td>
 <td><code>tests/unit/test_hold_rules_one_source_2296.py</code>, <code>tests/unit/test_medication_holds_acute_illness_1335.py</code></td>
 </tr>

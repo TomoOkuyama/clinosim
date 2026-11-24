@@ -2502,7 +2502,7 @@
 <td><code>tests/unit/test_af_ventricular_rate_3274.py</code></td>
 </tr>
 <tr>
-<td>保留規則は入院時・投与時・退院時で一つの出所から読む(薬剤ごとの腎機能対応、バイタルの保留条件、メトホルミンの腎機能閾値)。</td>
+<td>保留規則は入院時・投与時・退院時で一つの出所から読む(薬剤ごとの腎機能対応、バイタルの保留条件、メトホルミンの腎機能閾値)。入院時、<code>hold</code> の腎薬(NSAID、アレンドロン酸)は、静的な腎予備能にかかわらず、入院時にすでに腎機能が低下している(CKD の診断または現在の腎機能低下)場合に保留して記録する。予備能は <code>reduce</code> の注記だけを左右する。</td>
 <td><code>medication_pipeline.py</code>(<code>renal_medication_rules</code>, <code>mar_vital_hold_reason</code>, <code>metformin_admission_hold_threshold</code>)、<code>discharge_rx.py::renal_hold_drugs</code>。データ <code>simulator/reference_data/renal_medication_rules.yaml</code>, <code>locale/shared/chronic_medications.yaml</code></td>
 <td><code>tests/unit/test_hold_rules_one_source_2296.py</code>, <code>tests/unit/test_medication_holds_acute_illness_1335.py</code></td>
 </tr>
