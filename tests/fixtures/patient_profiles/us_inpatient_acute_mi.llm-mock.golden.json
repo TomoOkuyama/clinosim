@@ -750,6 +750,7 @@
         "ctx.procedures",
         "ctx.lab_results",
         "ctx.discharge_medications",
+        "ctx.vitals",
         "ctx.encounter.discharge_disposition",
         "ctx.los_days",
         "ctx.diagnoses",

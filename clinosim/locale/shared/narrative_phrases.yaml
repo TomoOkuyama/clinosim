@@ -1041,6 +1041,16 @@ hospital_course:
   med_unchanged:
     ja: "入院時の常用薬から変更なし。"
     en: "No changes to the medications taken at admission."
+  # Issue #3679: positive cultures and the last vital signs of the stay.
+  microbiology_line:
+    ja: "培養検査: {list}。"
+    en: "Cultures: {list}."
+  culture_growth_dated:
+    ja: "{specimen}培養 ({date} 採取) で{organism}を検出"
+    en: "{specimen} culture ({date}) grew {organism}"
+  discharge_vitals_line:
+    ja: "退院時のバイタルサイン: {vitals}。"
+    en: "Vital signs at discharge: {vitals}."
   discharge_condition_line:
     ja: "退院時の状態: {list}。"
     en: "Condition at discharge: {list}."

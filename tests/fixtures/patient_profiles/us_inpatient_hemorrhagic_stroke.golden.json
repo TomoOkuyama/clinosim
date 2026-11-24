@@ -700,6 +700,7 @@
         "ctx.medications",
         "ctx.procedures",
         "ctx.discharge_medications",
+        "ctx.vitals",
         "ctx.encounter.discharge_disposition",
         "ctx.los_days",
         "ctx.diagnoses",
@@ -720,7 +721,7 @@
         "discharge_instructions": "Drink plenty of fluids. Get adequate rest and avoid overexertion. Neurology/neurosurgery follow-up within 2-4 weeks. Repeat imaging per plan. Strict blood pressure control is essential. Do NOT restart anticoagulants without specialist approval. Strict blood pressure control (BP <140/90 target). Continue rehabilitation. Call ambulance immediately for severe headache, vomiting, weakness recurrence, or consciousness change. Activity restrictions per neurologist. Early rehabilitation as tolerated. Low-sodium diet. Blood pressure home monitoring twice daily.",
         "discharge_medications": "Amlodipine 5mg PO daily x90d; Levetiracetam 500mg PO BID x30d",
         "follow_up": "Neurology/neurosurgery follow-up within 2-4 weeks. Repeat imaging per plan.",
-        "hospital_course": "Length of stay: 13 days (primary reason: Sudden severe headache, vomiting, altered consciousness). Main treatment: other parenteral drugs (Nicardipine, Labetalol, Sodium Chloride 23.4% Injectable Solution). Key procedures: Urinary catheter insertion (2024-06-15), Nasogastric tube insertion (2024-06-15), Transthoracic echocardiography (2024-06-15), Central venous catheter insertion (2024-06-15), Craniotomy for intracranial hematoma evacuation (2024-06-15). Medication changes from admission: started Amlodipine, Levetiracetam. Condition at discharge: discharged home, Barthel Index 95/100."
+        "hospital_course": "Length of stay: 13 days (primary reason: Sudden severe headache, vomiting, altered consciousness). Main treatment: other parenteral drugs (Nicardipine, Labetalol, Sodium Chloride 23.4% Injectable Solution). Key procedures: Urinary catheter insertion (2024-06-15), Nasogastric tube insertion (2024-06-15), Transthoracic echocardiography (2024-06-15), Central venous catheter insertion (2024-06-15), Craniotomy for intracranial hematoma evacuation (2024-06-15). Medication changes from admission: started Amlodipine, Levetiracetam. Vital signs at discharge: BP 136/79 mmHg, HR 97 bpm, RR 20 /min, SpO2 95% (RA), T 37.0°C. Condition at discharge: discharged home, Barthel Index 95/100."
       },
       "text": ""
     }
