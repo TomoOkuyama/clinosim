@@ -3942,6 +3942,24 @@ perinatal_intent:
   VDOX:
     ja: "経腟分娩 分娩第3期 子宮収縮薬 (PPH予防、AWHONN / ACOG 推奨クラス IA)"
     en: "Vaginal delivery active 3rd-stage uterotonic (PPH prevention, AWHONN / ACOG Class IA)"
+  CXMG:
+    ja: "妊娠高血圧腎症 硫酸マグネシウム 初回負荷量"
+    en: "Pre-eclampsia magnesium sulfate loading dose"
+  CXMM:
+    ja: "妊娠高血圧腎症 硫酸マグネシウム 維持投与"
+    en: "Pre-eclampsia magnesium sulfate maintenance infusion"
+  CXLB:
+    ja: "妊娠高血圧腎症 降圧薬 (ラベタロール)"
+    en: "Pre-eclampsia antihypertensive (labetalol)"
+  CXLAB_O14_9:
+    ja: "妊娠高血圧腎症の評価 (血小板・肝酵素・クレアチニン)"
+    en: "Pre-eclampsia work-up (platelets, liver enzymes, creatinine)"
+  CXLAB_O24_9:
+    ja: "妊娠中の糖尿病 血糖管理"
+    en: "Diabetes in pregnancy glycemic assessment"
+  CXLAB_O42_9:
+    ja: "前期破水 感染徴候の評価"
+    en: "Premature rupture of membranes infection screen"
 
 # Health-checkup visit reasons and order intent (modules/health_checkup, Issue #2406).
 health_checkup:
