@@ -16,7 +16,10 @@ primary reason points at the SAME `Condition.id` everywhere.
 
 - **In scope**: `_build_conditions` (primary + secondary + chronic
   Condition builder; its registry wrapper `_bb_conditions` lives in
-  [`../lib/inline_bb.py`](../lib/inline_bb.py)); `_bb_allergy_intolerances`;
+  [`../lib/inline_bb.py`](../lib/inline_bb.py)); an acute stroke admission's
+  principal and admission Conditions take `onsetDateTime` from
+  `Encounter.last_known_well` (`_apply_last_known_well`, Issue #3558) while
+  `recordedDate` stays the admission time; `_bb_allergy_intolerances`;
   `_bb_clinical_impressions`; `_bb_hai_conditions` (HAI-derived
   Condition from `extensions["hai"]`); `_bb_code_status` (custom
   survey `Observation`, JP encounters carry

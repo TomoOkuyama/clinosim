@@ -35,7 +35,10 @@ effective at the specimen collection and `issued` at the report;
   "urn:dicom:uid"` (cross-verified by the `imaging` AD-60 audit),
   `_bb_blood_type` + `_build_blood_type_obs` +
   `_LOINC_ABO_GROUP = "883-9"` + `_LOINC_RH_GROUP = "10331-7"`
-  (Issue #795 RNG-neutral ABO/RhD observations),
+  (Issue #795 RNG-neutral ABO/RhD observations; the type-and-screen
+  antibody-screen Observation, id prefix `BLOOD_ANTIBODY_SCREEN_OBS_ID_PREFIX
+  = "blood-abs-"`, carries LOINC + SNOMED only and is kept out of JP-CLINS
+  eCS lab profile stacking by `post_process.profile._is_lab_observation`),
   `coding_package` (JP-CLINS `clinical-information-sharing`
   package + `jpfhir-terminology` package loader — env-overridable
   via `CLINOSIM_JP_CLINS_PKG_DIR`), `coding_strategy`

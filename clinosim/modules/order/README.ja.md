@@ -91,6 +91,9 @@ encounter builder が
 `intent="order"` / `status="completed"` を付与する。FOLFOX の 46 時間
 5-FU 持続投与のような複日 infusion 薬の per-day record 展開は follow-up
 slice。
+`administration: oral` の regimen (Temozolomide) は投与 Procedure も投与 record も持たず、
+細胞傷害性 regimen の `pretreatment_labs: [CBC]` は投与前に結果が出る血算を order する
+(Issue #3568)。
 
 ## Public API
 

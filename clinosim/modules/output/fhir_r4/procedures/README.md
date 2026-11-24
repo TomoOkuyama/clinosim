@@ -22,6 +22,9 @@ FHIR resource-family taxonomy.
   / bedside / rehab dispatch, CPT for US + MHLW 診療報酬 K-code
   (`k-codes`) for JP; registry wrapper `_bb_procedures` lives in
   [`../lib/inline_bb.py`](../lib/inline_bb.py));
+  the extra `bodySite` entries `_build_procedure` adds from the CIF
+  `target_vessel` (SNOMED CT vessel) and `laterality` (SNOMED CT
+  laterality qualifier) and the `note` for the `access_site` (Issue #3549);
   the secondary SNOMED coding `_build_procedure` attaches when
   `procedure_type` matches a phrase (`clinosim.codes.snomed.snomed_for_phrase`
   over `codes/data/procedure-phrase-to-snomed.yaml`, Issue #2363 —

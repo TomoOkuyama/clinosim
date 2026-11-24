@@ -149,7 +149,7 @@ clinosim/codes/
   ucum.py                         UCUM units for FHIR Quantities
   yj.py                           YJ / HOT JP drug code formats and the
                                   YJ master
-  data/                           75 YAMLs: code systems (see
+  data/                           85 YAMLs: code systems (see
                                   "Supported code systems" below) plus
                                   curated catalogs (drugs, frequency
                                   tokens, FHIR profile maps, value
@@ -225,7 +225,7 @@ here; count a system's entries with
 | `hl7-practitioner-role`, `hl7-subscriber-relationship` | 6 + 7 |
 | `hl7-v3-actreason`, `hl7-v3-administrativegender`, `hl7-v3-maritalstatus` | 4 + 3 + 6 |
 | `hl7-endpoint-connection-type`, `hl7-endpoint-payload-type` | 1 + 1 |
-| `hl7-v2-0131`, `hl7-v3-rolecode` | 1 + 7 |
+| `hl7-v2-0131`, `hl7-v3-rolecode` | 1 + 13 |
 
 ### JP-specific gap-fill and structural CodeSystems
 

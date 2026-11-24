@@ -11,7 +11,10 @@ custom JP `CareLevel` (要介護度) social-history `Observation`.
 
 ## Scope
 
-- **In scope**: `_build_encounter` (root Encounter builder); `_bb_care_teams`
+- **In scope**: `_build_encounter` (root Encounter builder; an ICU-transferred
+  inpatient stay's `classHistory` ends the ICU segment at the record's
+  `icu_discharge_day` and adds a ward segment after it, Issue #3555);
+  `_bb_care_teams`
   + `_build_care_team` + `CARE_TEAM_ID_PREFIX = "careteam-"` +
   `care_team_fhir.category_display` (YAML) — 2-name scope contract
   (participant[0] = attending, participant[1] = nurse only when

@@ -32,7 +32,10 @@ dispatcher (`coding_strategy`)。
   `DICOM_UID_SYSTEM = "urn:dicom:uid"` (`imaging` AD-60 audit が
   cross-verify)、`_bb_blood_type` + `_build_blood_type_obs` +
   `_LOINC_ABO_GROUP = "883-9"` + `_LOINC_RH_GROUP = "10331-7"`
-  (Issue #795 RNG-neutral な ABO/RhD Observation)、`coding_package`
+  (Issue #795 RNG-neutral な ABO/RhD Observation。type-and-screen の抗体スクリーニング
+  Observation (id prefix `BLOOD_ANTIBODY_SCREEN_OBS_ID_PREFIX = "blood-abs-"`) は
+  LOINC + SNOMED のみを持ち、`post_process.profile._is_lab_observation` により
+  JP-CLINS eCS lab profile の積み上げから除外される)、`coding_package`
   (JP-CLINS `clinical-information-sharing` package +
   `jpfhir-terminology` package loader、env `CLINOSIM_JP_CLINS_PKG_DIR`
   で override 可)、`coding_strategy` (JP-CLINS lab-code dispatch:

@@ -142,7 +142,7 @@ clinosim/codes/
   ucum.py                         FHIR Quantity 用 UCUM 単位
   yj.py                           YJ / HOT の JP 薬剤コード形式と
                                   YJ マスター
-  data/                           YAML 75 件: コードシステム (下の
+  data/                           YAML 85 件: コードシステム (下の
                                   「対応コードシステム」参照) と curated
                                   カタログ (drugs / frequency tokens /
                                   FHIR profile map / value set /
@@ -217,7 +217,7 @@ JP-only-display 検出、システム別データ形状不変条件を網羅。
 | `hl7-practitioner-role` / `hl7-subscriber-relationship` | 6 + 7 |
 | `hl7-v3-actreason` / `hl7-v3-administrativegender` / `hl7-v3-maritalstatus` | 4 + 3 + 6 |
 | `hl7-endpoint-connection-type` / `hl7-endpoint-payload-type` | 1 + 1 |
-| `hl7-v2-0131` / `hl7-v3-rolecode` | 1 + 7 |
+| `hl7-v2-0131` / `hl7-v3-rolecode` | 1 + 13 |
 
 ### JP 固有 gap-fill および構造 CodeSystem
 

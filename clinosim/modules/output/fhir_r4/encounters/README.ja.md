@@ -11,7 +11,9 @@ export 時に 1 回生成)、および JP `CareLevel` (要介護度) の custom 
 
 ## Scope
 
-- **In scope**: `_build_encounter` (root Encounter builder);
+- **In scope**: `_build_encounter` (root Encounter builder。ICU 転棟した入院の
+  `classHistory` は ICU 区間を record の `icu_discharge_day` で終え、その後に
+  病棟区間を加える、Issue #3555);
   `_bb_care_teams` + `_build_care_team` + `CARE_TEAM_ID_PREFIX =
   "careteam-"` + `care_team_fhir.category_display` (YAML) — 2-name scope
   契約 (participant[0] = attending、participant[1] = nurse は

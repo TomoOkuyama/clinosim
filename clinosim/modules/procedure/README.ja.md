@@ -226,8 +226,10 @@ clinosim/modules/procedure/
   _bedside_thresholds.py             bedside 処置確率 + timing (Issue #637)
   _rehab_thresholds.py               rehab session shape + 疼痛モデル (Issue #637)
   _surgery_thresholds.py             surgery timing / duration / state-impact (Issue #637)
+  details.py                         (encounter, 処置種別) ごとの左右 / PCI 血管・アクセス部位 / 中心静脈の挿入静脈、読込時に検証 (Issue #3549)
   reference_data/
     procedure_rules.yaml             bedside_rules + isolated_rules (疾患 → 処置 base 確率、Issue #2525)
+    procedure_details.yaml           左右、PCI 血管・アクセス部位、中心静脈の挿入静脈の重み (Issue #3549)
   SPEC.md                            拡張設計参考 (runtime data ではない)
 ```
 

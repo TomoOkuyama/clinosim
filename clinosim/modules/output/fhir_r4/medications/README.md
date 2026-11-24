@@ -122,7 +122,10 @@ Not applicable — pure builders over CIF orders + MAR records.
 - `clinosim.modules.output.fhir_r4.conditions.primary_ref` —
   `primary_condition_ref_from_codes` for
   `MedicationRequest.reasonReference` /
-  `MedicationAdministration.reasonReference` (lazy import).
+  `MedicationAdministration.reasonReference` (lazy import); both omit
+  `reasonReference` (the coded reason stays in `reasonCode`) when the
+  principal diagnosis is a visit-reason Z-code, which has no Condition
+  (Issue #3597).
 - `..demographics.patient.patient_ref`,
   `..encounters.encounter.encounter_ref`.
 - `clinosim.codes` — RxNorm / YJ / HOT display lookup;
