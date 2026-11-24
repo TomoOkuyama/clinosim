@@ -362,10 +362,19 @@ def _compose_outpatient_subjective_from_state(ctx: NarrativeContext) -> str:
         chronic_labels.append(disp)
     # Compose
     parts: list[str] = []
-    if age and sex_label:
-        parts.append(t("outpatient.subject_with_sex", lang, age=age, sex=sex_label))
-    elif age:
-        parts.append(t("outpatient.subject_no_sex", lang, age=age))
+    # Issue #3702: an age of 0 years is a valid age (a baby), not a missing one;
+    # a child under one year is named by age in months.
+    if age is not None and age >= 1:
+        if sex_label:
+            parts.append(t("outpatient.subject_with_sex", lang, age=age, sex=sex_label))
+        else:
+            parts.append(t("outpatient.subject_no_sex", lang, age=age))
+    elif age == 0:
+        months = _infant_months(ctx)
+        if months is not None:
+            kind = "newborn" if months == 0 else "infant"
+            suffix = "with_sex" if sex_label else "no_sex"
+            parts.append(t(f"outpatient.subject_{kind}_{suffix}", lang, months=months, sex=sex_label))
     if cc:
         parts.append(t("outpatient.visit_reason_with_cc", lang, cc=cc))
     else:
@@ -378,7 +387,18 @@ def _compose_outpatient_subjective_from_state(ctx: NarrativeContext) -> str:
         sep = t("list_sep.serial", lang)
         parts.append(t("outpatient.chronic_followup", lang, list=sep.join(chronic_labels)))
     text = "".join(parts).strip()
-    return text
+    # The visit-reason template is a fragment (" presenting for ..."), so a note
+    # without an age phrase would start in lower case (Issue #3702).
+    return text[:1].upper() + text[1:]
+
+
+def _infant_months(ctx: NarrativeContext) -> int | None:
+    """Completed months of age of the patient at the visit, ``None`` when the
+    birth or visit date is unknown (Issue #3702)."""
+    from clinosim.modules.document.narrative._narrative_utils import _birth_and_visit_dates
+
+    dates = _birth_and_visit_dates(ctx)
+    return age_in_completed_months(dates[0], dates[1]) if dates is not None else None
 
 
 # ─────────────────────────────────────────────────────────────────────
