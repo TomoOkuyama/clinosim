@@ -32,7 +32,10 @@
 #     have had; the discharge instructions then add an outpatient creatinine
 #     recheck and the restart of the held drugs after it
 #     (modules/document/reference_data/clinosim-discharge-instruction.yaml,
-#     `aki_recheck`).
+#     `aki_recheck`). A fever extends the stay up to `fever_max_extension_days`
+#     instead, and a patient still febrile then is discharged to a skilled
+#     nursing facility, not home, with a discharge instruction naming the
+#     fever (`fever_at_discharge`; Issue #3637).
 #
 # Sources (read in full text on 2026-11-18):
 #   - KDIGO Clinical Practice Guideline for Acute Kidney Injury, Kidney Int
@@ -96,6 +99,12 @@ reason: "Acute kidney injury: nephrotoxic or renally cleared drug held (KDIGO 20
 fever_celsius: 38.0
 fever_window_hours: 24
 max_extension_days: 5
+# A fever has its own, longer cap: a patient still febrile at the AKI cap is not
+# released (Issue #3637). A stay that reaches this cap still febrile is not sent
+# home: the disposition is a skilled nursing facility, and the discharge
+# instructions name the unresolved fever. The loop's own day limit still bounds
+# the stay.
+fever_max_extension_days: 10
 # Metformin is also held while the latest lactate is at or above the threshold
 # (mmol/L; see the lactate source note above). Only the lab name, the
 # threshold, the drugs and the reason are configurable here.

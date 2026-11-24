@@ -108,9 +108,10 @@ from clinosim.simulator.aki_response import (
     AkiCourse,
     LactateCourse,
     aki_course,
-    aki_response_rules,
     date_aki_complications,
+    discharge_extension_days,
     discharge_findings_unresolved,
+    fever_persists,
     lactate_course,
 )
 from clinosim.simulator.complication_actions import (
@@ -316,6 +317,8 @@ class DailyLoopResult:
     on_vasoactive_support: bool = False
     # Issue #3281: the final creatinine meets the AKI definition.
     aki_at_discharge: bool = False
+    # Issue #3637: the stay reached its extension cap still febrile.
+    fever_at_discharge: bool = False
     # Issue #3539: the final lactate is at or above the metformin hold threshold.
     lactate_high_at_discharge: bool = False
     # Issue #3551: the patient decided against intubation, so the airway escalation
@@ -2018,7 +2021,7 @@ def _run_daily_loop(
                 # Issue #3281: one more day (at most ``max_extension_days``
                 # past the sampled stay) while AKI is not recovering or a
                 # fever persists.
-                if not (unresolved and los_ceiling < target_los + aki_response_rules().max_extension_days):
+                if not (unresolved and los_ceiling < target_los + discharge_extension_days(run.aki, run.vitals)):
                     break
             los_ceiling += 1
 
@@ -2056,6 +2059,7 @@ def _run_daily_loop(
         actual_los=actual_los,
         on_vasoactive_support=on_support and not run.death_occurred,
         aki_at_discharge=run.aki.active and not run.death_occurred,
+        fever_at_discharge=fever_persists(run.vitals) and not run.death_occurred,
         airway_declined=run.airway_declined,
         lactate_high_at_discharge=bool(run.lactate.points)
         and run.lactate.active_at(run.lactate.points[-1][0])

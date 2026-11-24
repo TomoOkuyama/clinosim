@@ -184,12 +184,14 @@ def discharge_disposition_for(
     died: bool,
     *,
     on_vasoactive_support: bool = False,
+    findings_unresolved: bool = False,
 ) -> DischargeDisposition:
-    """Expired, skilled nursing facility (still unsafe at the end of the stay),
-    or home (Issue #2084)."""
+    """Expired, skilled nursing facility (still unsafe at the end of the stay,
+    or a fever still present at the extension cap, Issue #3637), or home
+    (Issue #2084)."""
     if died:
         return DischargeDisposition.EXP
-    if unsafe_for_home(final_state, symptom_floor, on_vasoactive_support=on_vasoactive_support):
+    if findings_unresolved or unsafe_for_home(final_state, symptom_floor, on_vasoactive_support=on_vasoactive_support):
         return DischargeDisposition.SNF
     return DischargeDisposition.HOME
 
