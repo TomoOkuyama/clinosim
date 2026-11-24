@@ -43,7 +43,8 @@ class DeviceKindRule(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    procedure_types: tuple[str, ...] = Field(min_length=1)
+    # Empty for a device placed by its own rule (non-invasive ventilation, Issue #3705).
+    procedure_types: tuple[str, ...]
     order_patterns: tuple[str, ...]
     indications: dict[str, IndicationRule]
 
@@ -169,15 +170,13 @@ def removal_date(
     return discharged, ""
 
 
-def extubation_date(record: Any, encounter: Any) -> date | None:
-    """Date the patient came off the ventilator (Issue #3535): the date of the
-    first reading of the encounter after the last ventilated one; ``None``
-    when the encounter has no ventilated reading or none after it (the
-    ventilator then stays until the discharge or death). RNG-free."""
-    from clinosim.simulator.oxygen_course import oxygen_course_rules
+def _off_device_date(record: Any, encounter: Any, device: str) -> date | None:
+    """Date of the first reading of the encounter after the last one that carries
+    ``device`` as its oxygen delivery device; ``None`` when the encounter has no such
+    reading or none after it (the device then stays until the discharge or death).
+    RNG-free."""
     from clinosim.timeutil import parse_iso_datetime
 
-    device = oxygen_course_rules().ventilation.device
     enc_id = str(_get(encounter, "encounter_id", "") or "")
     admitted = parse_iso_datetime(_get(encounter, "admission_datetime", None), lenient=True)
     discharged = parse_iso_datetime(_get(encounter, "discharge_datetime", None), lenient=True)
@@ -202,3 +201,38 @@ def extubation_date(record: Any, encounter: Any) -> date | None:
     if last_vent is None or last_vent + 1 >= len(timed):
         return None
     return timed[last_vent + 1][0].date()
+
+
+def extubation_date(record: Any, encounter: Any) -> date | None:
+    """Date the patient came off the ventilator (Issue #3535): the date of the
+    first reading of the encounter after the last ventilated one; ``None``
+    when the encounter has no ventilated reading or none after it (the
+    ventilator then stays until the discharge or death). RNG-free."""
+    from clinosim.simulator.oxygen_course import oxygen_course_rules
+
+    return _off_device_date(record, encounter, oxygen_course_rules().ventilation.device)
+
+
+def noninvasive_ventilation_dates(record: Any, encounter: Any) -> tuple[date, date | None] | None:
+    """(first date, removal date) of the encounter's non-invasive ventilation
+    (Issue #3705): the date of the first reading that carries the NIV device and the
+    date of the first reading after the last one (``None``: still on NIV at the
+    discharge or death). ``None`` when no reading carries the device. RNG-free."""
+    from clinosim.simulator.oxygen_course import oxygen_course_rules
+    from clinosim.timeutil import parse_iso_datetime
+
+    device = oxygen_course_rules().niv.device
+    enc_id = str(_get(encounter, "encounter_id", "") or "")
+    first: datetime | None = None
+    for v in _get(record, "vital_signs", []) or []:
+        if str(_get(v, "oxygen_delivery_device", "") or "") != device:
+            continue
+        if str(_get(v, "encounter_id", "") or "") not in ("", enc_id):
+            continue
+        ts = _get(v, "timestamp", None)
+        when = ts if isinstance(ts, datetime) else parse_iso_datetime(ts, lenient=True)
+        if when is not None and (first is None or when < first):
+            first = when
+    if first is None:
+        return None
+    return first.date(), _off_device_date(record, encounter, device)

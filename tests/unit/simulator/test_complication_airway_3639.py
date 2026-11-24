@@ -2,7 +2,7 @@
 airway is secured at its onset through the same path as the state-driven
 intubation, the patient is ventilated and in the ICU, and the respiratory
 failure is a coded diagnosis (through the in-hospital complication table of
-Issue #3673). Non-invasive ventilation is a separate Issue."""
+Issue #3673). Non-invasive ventilation is Issue #3705."""
 
 from __future__ import annotations
 

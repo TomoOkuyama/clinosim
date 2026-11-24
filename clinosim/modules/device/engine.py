@@ -53,7 +53,8 @@ class _Device(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     snomed_code: str
-    placement_criteria: list[_Criterion] = Field(min_length=1)
+    # Empty: not an ICU device (placed by its own rule, e.g. non-invasive ventilation, Issue #3705).
+    placement_criteria: list[_Criterion]
 
     @field_validator("snomed_code")
     @classmethod
@@ -174,6 +175,7 @@ def place_devices_for_encounter(
     from clinosim.simulator.device_removal import (
         device_removal_rules,
         extubation_date,
+        noninvasive_ventilation_dates,
         placing_date,
         removal_date,
         surgery_dates,
@@ -232,6 +234,14 @@ def place_devices_for_encounter(
                 continue
             placed = placing_date(rules[device_type], record, encounter) or icu_date
             _add(device_type, placed, ",".join(sorted(indications)), "icu_stay")
+    niv = noninvasive_ventilation_dates(record, encounter)
+    if niv is not None:
+        # Issue #3705: the BiPAP/CPAP device of a stay put on non-invasive ventilation.
+        placed, niv_removed = niv
+        _add("noninvasive_ventilator", placed, "respiratory_failure", "niv")
+        if niv_removed is not None:
+            out[-1].removal_date = max(placed, niv_removed).isoformat()
+            out[-1].removal_indication = "niv_weaned"
     placed_types = {d.device_type for d in out}
     for device_type, rule in rules.items():
         if device_type in placed_types or not rule.indications:

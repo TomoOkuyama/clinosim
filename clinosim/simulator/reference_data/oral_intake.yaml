@@ -29,7 +29,9 @@ metadata:
 
 npo_consciousness_levels: [P, U]
 npo_while_ventilated: true
+npo_while_niv: true
 npo_diet: NPO
 oral_route: PO
 hold_reason_consciousness: "Nil by mouth: level of consciousness reduced (oral dose held)"
 hold_reason_ventilated: "Nil by mouth: on mechanical ventilation (oral dose held)"
+hold_reason_niv: "Nil by mouth: on non-invasive ventilation (oral dose held)"

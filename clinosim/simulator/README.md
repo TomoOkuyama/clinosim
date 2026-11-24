@@ -154,7 +154,7 @@ clinosim/simulator/
                          reference_data/oral_intake.yaml)
   oxygen_course.py       the supplemental-oxygen course of a stay: on / off state, device and flow
                          carried across readings, titration up and down, weaning, extubation of a ventilated
-                         stay and stepped flow values (one flow step up per reading below the target, Issues #3469, #3632, #3643; reference_data/oxygen_course.yaml)
+                         stay, non-invasive ventilation of a respiratory-failure complication (Issue #3705) and stepped flow values (one flow step up per reading below the target, Issues #3469, #3632, #3643; reference_data/oxygen_course.yaml)
   stroke_onset.py        last known well of an acute stroke admission: arrival minus a hash-drawn
                          onset-to-arrival interval, no RNG stream (Issue #3558;
                          reference_data/stroke_onset_to_arrival.yaml)

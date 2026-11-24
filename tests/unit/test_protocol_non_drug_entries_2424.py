@@ -46,7 +46,7 @@ def test_loader_rejects_a_name_only_drug() -> None:
         ("Intubation_and_mechanical_ventilation (TV 6mL/kg, PEEP 5)", "1258985005"),
         ("Packed_RBC_transfusion (transfuse to Hb 7)", "116863004"),
         ("Emergent_hemodialysis (stat)", "302497006"),
-        ("NIV_BiPAP (IPAP 12 EPAP 5)", "47545007"),
+        ("NIV_BiPAP (IPAP 12 EPAP 5)", "428311008"),  # Issue #3705: the NIV concept, not CPAP ventilation
         ("Vertebroplasty Percutaneous vertebroplasty under fluoroscopy", "401226007"),
         ("Kyphoplasty Balloon kyphoplasty under fluoroscopy", "431995006"),
         ("Catheter-directed thrombolysis Alteplase 0.5-1mg/h via catheter x12-24h", "233428003"),

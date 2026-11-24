@@ -20,12 +20,13 @@ from clinosim.types.output import CIFPatientRecord
 pytestmark = pytest.mark.unit
 
 
-def test_load_devices_config_returns_three_devices():
+def test_load_devices_config_returns_the_devices():
     cfg = load_devices_config()
     assert set(cfg["devices"].keys()) == {
         "cvc",
         "indwelling_catheter",
         "mechanical_ventilator",
+        "noninvasive_ventilator",  # Issue #3705
     }
 
 

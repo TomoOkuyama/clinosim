@@ -3810,6 +3810,10 @@ narrative_text:
 # (clinical_intent / clinical_intent_ja, rationale_en / rationale_ja;
 # Issue #2405).
 order_intent:
+  # Issue #3705: the order that starts non-invasive ventilation for a respiratory-failure complication.
+  niv:
+    ja: "呼吸不全に対する非侵襲的陽圧換気の開始 (入院 {day} 日目)"
+    en: "start of non-invasive ventilation for respiratory failure (hospital day {day})"
   protocol_hold:
     ja: "プロトコルによる保留: {reason}"
     en: "held per protocol: {reason}"

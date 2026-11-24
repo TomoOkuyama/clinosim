@@ -705,6 +705,10 @@ codes:
   '706226000':
     en: Continuous positive airway pressure/Bilevel positive airway pressure mask
     ja: NPPVマスク
+  # Issue #3705: the procedure of a non-invasive ventilation order (tx.fhir.org $lookup 2026-11-24).
+  '428311008':
+    en: Non-invasive ventilation
+    ja: 非侵襲的陽圧換気
 
   # Blood group findings (ABO + RhD) — used by blood-type Observation
   # emit path (LOINC 883-9 for ABO, 10331-7 for Rh). Codes and English

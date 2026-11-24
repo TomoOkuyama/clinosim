@@ -151,11 +151,13 @@ def apply_terminal_course(
     course = OxygenCourse()
     if stay_oxygen is not None:
         course.ventilated_since, course.ventilated_until = stay_oxygen.ventilated_since, stay_oxygen.ventilated_until
+        course.niv_since, course.niv_until = stay_oxygen.niv_since, stay_oxygen.niv_until
     vent_device = oxygen_course_rules().ventilation.device
+    niv_device = oxygen_course_rules().niv.device
     before = [v for v in vitals if v.timestamp < start and v.spo2 is not None]
     if before:
         last = max(before, key=lambda v: v.timestamp)
-        if last.on_supplemental_oxygen and last.oxygen_delivery_device != vent_device:
+        if last.on_supplemental_oxygen and last.oxygen_delivery_device not in (vent_device, niv_device):
             course.on, course.flow, course.device = True, last.oxygen_flow_rate_lpm, last.oxygen_delivery_device
     target = o2_target(disease_id)
     for key, when, raw_spo2, draw in sorted(draws, key=lambda d: d[1]):

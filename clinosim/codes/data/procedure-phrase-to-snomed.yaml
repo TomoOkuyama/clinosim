@@ -63,6 +63,16 @@ entries:
   - match: "extracorporeal membrane"
     snomed: "233573008"
 
+  # Non-invasive ventilation (Issue #3705): SNOMED 428311008 "Non-invasive
+  # ventilation", verified with tx.fhir.org $lookup 2026-11-24. Above the broader
+  # CPAP / BiPAP entries below so a "BiPAP" NIV order takes the NIV concept.
+  - match: "non-invasive ventilation"
+    snomed: "428311008"
+  - match: "niv bipap"
+    snomed: "428311008"
+  - match: "niv_bipap"
+    snomed: "428311008"
+
   # CPAP / BiPAP non-invasive ventilation.
   - match: "cpap"
     snomed: "47545007"
