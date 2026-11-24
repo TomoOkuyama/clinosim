@@ -12,7 +12,7 @@ no shared global generator is read.
 from __future__ import annotations
 
 from datetime import date, datetime, timedelta
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from clinosim.locale.clinic_calendar import clinic_visit_day
 from clinosim.locale.i18n import t
@@ -42,16 +42,23 @@ if TYPE_CHECKING:
     from clinosim.simulator.phases._forward_loop import ForwardContext
 
 
-def specialty_departments_to_visit(primary_dept: str, specialties: list[tuple[str, str]]) -> list[tuple[str, str]]:
+_SpecialtyPlan = TypeVar("_SpecialtyPlan", bound=tuple[Any, ...])
+
+
+def specialty_departments_to_visit(primary_dept: str, specialties: list[_SpecialtyPlan]) -> list[_SpecialtyPlan]:
     """The specialty follow-ups that are separate visits (Issue #2645): one per
-    department other than the primary visit's, in order."""
+    department other than the primary visit's, in order. Each entry is a tuple
+    whose second item is its department (``(name, dept)``, or with the routing
+    condition code appended, ``(name, dept, code)``, Issue #3659); entries are
+    returned unchanged."""
     seen = {primary_dept}
-    out: list[tuple[str, str]] = []
-    for name, dept in specialties:
+    out: list[_SpecialtyPlan] = []
+    for entry in specialties:
+        dept = entry[1]
         if dept in seen:
             continue
         seen.add(dept)
-        out.append((name, dept))
+        out.append(entry)
     return out
 
 
@@ -380,12 +387,14 @@ def dispatch_calendar_event(event: LifeEvent, ctx: ForwardContext, visit_day: da
         # Issue #2645: a specialty follow-up whose department is the one the
         # patient is already seen in that day is the same visit; one in another
         # department starts after the previous visit ends.
+        # Issue #3659: each follow-up carries the condition that routed the
+        # patient to it, which codes the visit.
         specialties = [
-            (name, resolve_department(name, ctx.hospital_ops))
-            for name, _cadence, _period_key in _specialty_fanout_tick(patient, visit_time)
+            (tick.specialty, resolve_department(tick.specialty, ctx.hospital_ops), tick.chronic_code)
+            for tick in _specialty_fanout_tick(patient, visit_time)
         ]
         slot_end = opd_record.encounters[0].discharge_datetime if opd_record.encounters else None
-        for specialty_name, specialty_dept in specialty_departments_to_visit(chronic_dept, specialties):
+        for specialty_name, specialty_dept, specialty_code in specialty_departments_to_visit(chronic_dept, specialties):
             specialty_time = next_visit_start(slot_end) if slot_end else visit_time
             specialty_record = _simulate_outpatient_visit(
                 patient,
@@ -393,7 +402,7 @@ def dispatch_calendar_event(event: LifeEvent, ctx: ForwardContext, visit_day: da
                 specialty_time,
                 ctx.roster,
                 ev_rng,
-                chronic_code=event.disease_id,
+                chronic_code=specialty_code,
                 followup_spec={
                     "labs": [],
                     "visit_reason": _specialty_visit_reason.get(

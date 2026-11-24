@@ -359,6 +359,7 @@ def test_flu_vaccination_visit_starts_no_specialty_follow_up(monkeypatch, diseas
     import clinosim.simulator.hospital_ops as hospital_ops
     import clinosim.simulator.outpatient as outpatient
     from clinosim.modules.population.engine import LifeEvent
+    from clinosim.simulator.outpatient import SpecialtyTick
     from clinosim.simulator.phases import _healthcare_calendar as hc
 
     person = SimpleNamespace(in_population_at=lambda _d: True)
@@ -381,7 +382,9 @@ def test_flu_vaccination_visit_starts_no_specialty_follow_up(monkeypatch, diseas
     monkeypatch.setattr(hc, "_simulate_outpatient_visit", lambda *_a, **_k: SimpleNamespace(encounters=[]))
     monkeypatch.setattr(hc, "resolve_outpatient_department", lambda *_a, **_k: "internal_medicine")
     monkeypatch.setattr(monitoring, "monitoring_labs_for_patient", lambda *_a, **_k: [])
-    monkeypatch.setattr(outpatient, "_specialty_fanout_tick", lambda *_a: [("cardiology", "annual", (2025, None))])
+    monkeypatch.setattr(
+        outpatient, "_specialty_fanout_tick", lambda *_a: [SpecialtyTick("cardiology", "annual", (2025, None), "I48")]
+    )
     monkeypatch.setattr(hospital_ops, "resolve_department", lambda name, _ops: name)
     # A Monday: a visit planned on a Sunday is moved to the next clinic day (Issue #3018).
     event = LifeEvent(person_id="P1", event_type="chronic_visit", timestamp=date(2025, 11, 3), disease_id=disease_id)
