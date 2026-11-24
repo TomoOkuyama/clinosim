@@ -42,6 +42,13 @@ bilirubin:
   # samples via sub-seed. Peak day 3, so day 3 value skewed higher.
   mean_by_day: {1: 6.0, 2: 8.0, 3: 10.0}
   std_by_day: {1: 2.0, 2: 2.5, 3: 3.0}
+  # Correlation between the standardised readings of any two days of one baby
+  # (Issue #3668): a baby that is high on day 1 stays high, and consecutive
+  # readings differ by a plausible increment instead of falling and rising at
+  # random. Each day's marginal stays N(mean_by_day, std_by_day). MODEL
+  # CHOICE: 0.98 keeps a fall of more than 1 mg/dL between days out of a
+  # cohort of 600; not taken from a guideline.
+  level_correlation: 0.98
   clamp_min: 2.0
   clamp_max: 20.0
 

@@ -56,6 +56,7 @@ class _Bilirubin(_Strict):
     hour_of_day: int = Field(ge=0, le=23)
     mean_by_day: dict[int, float]
     std_by_day: dict[int, float]
+    level_correlation: float = Field(ge=0, lt=1)
     clamp_min: float
     clamp_max: float
 
@@ -790,8 +791,10 @@ def build_bilirubin_observations(record: Any) -> list[dict[str, Any]]:
 
     LOINC 58941-6. One reading per scheduled day (per
     `newborn_screening.yaml::bilirubin.schedule_days`, default day
-    1 / 2 / 3), sampled from a normal distribution keyed on
-    `patient_id`. Skipped for days that fall past discharge.
+    1 / 2 / 3), one trajectory per baby: a per-baby level correlated across
+    days (`bilirubin.level_correlation`, Issue #3668), each day's marginal the
+    configured normal. Keyed on `patient_id`. Skipped for days that fall past
+    discharge.
 
     Returns a list of `{"day": N, "timestamp": dt, "value_mg_dl": float,
     "loinc": <bilirubin LOINC>}` dicts. The FHIR emit layer walks this list.
@@ -820,6 +823,17 @@ def build_bilirubin_observations(record: Any) -> list[dict[str, Any]]:
     clamp_max = float(cfg.get("clamp_max", 20.0) or 20.0)
     loinc = loinc_for("newborn_screen", "bilirubin_transcutaneous")
 
+    # Issue #3668: one trajectory per baby. A single sub-seed gives the baby's
+    # level z (shared by every day) and one variation per scheduled day, drawn
+    # for every scheduled day in order whether or not the day falls past
+    # discharge, so a reading never depends on the stay length. Each day's
+    # standardised value is rho * z + sqrt(1 - rho^2) * eps, which keeps the
+    # day's marginal N(mean, std) while consecutive days stay close.
+    rho = float(cfg.get("level_correlation", 0.0) or 0.0)
+    rng = determinism.default_rng(text_seed(f"newborn-bilirubin|{pid}"))
+    level = float(rng.normal())
+    variation = {str(day): float(rng.normal()) for day in schedule_days}
+
     day_base = datetime(admit_dt.year, admit_dt.month, admit_dt.day, hour_of_day, 0)
     out: list[dict[str, Any]] = []
     for day in schedule_days:
@@ -834,9 +848,8 @@ def build_bilirubin_observations(record: Any) -> list[dict[str, Any]]:
             continue
         mean = float((mean_by_day or {}).get(d) or (mean_by_day or {}).get(str(d)) or 6.0 + d * 2.0)
         std = float((std_by_day or {}).get(d) or (std_by_day or {}).get(str(d)) or 2.0)
-        sub = text_seed(f"newborn-bilirubin|{pid}|{d}")
-        rng = determinism.default_rng(sub)
-        value = float(rng.normal(mean, std))
+        z = rho * level + (1.0 - rho * rho) ** 0.5 * variation[str(day)]
+        value = mean + std * z
         value = max(clamp_min, min(clamp_max, value))
         out.append({"day": d, "timestamp": ts, "value_mg_dl": round(value, 1), "loinc": loinc})
     return out
