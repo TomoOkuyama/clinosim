@@ -36,6 +36,8 @@ payers:
   #   千葉県: 千葉県「各市町村の国保事業費納付金等の状況」(令和7年度).
   #   神奈川県: 神奈川県国保連合会「神奈川県保険者コード一覧」(2012).
   #   広域連合: 神奈川県国保連合会「後期高齢者医療広域連合コード」(2012).
+  # `ward_suffix: "区"` (政令指定都市): the city's insurer serves every ward, whose
+  # addresses carry the ward form (横浜市西区; addresses.yaml, Issue #3696).
   national:        # 国民健康保険
     - {number: "130120", name: "世田谷区 国民健康保険", prefecture: "東京都", city: "世田谷区"}
     - {number: "130203", name: "練馬区 国民健康保険", prefecture: "東京都", city: "練馬区"}
@@ -43,11 +45,11 @@ payers:
     - {number: "130153", name: "杉並区 国民健康保険", prefecture: "東京都", city: "杉並区"}
     - {number: "130195", name: "板橋区 国民健康保険", prefecture: "東京都", city: "板橋区"}
     - {number: "130237", name: "江戸川区 国民健康保険", prefecture: "東京都", city: "江戸川区"}
-    - {number: "114009", name: "さいたま市 国民健康保険", prefecture: "埼玉県", city: "さいたま市"}
+    - {number: "114009", name: "さいたま市 国民健康保険", prefecture: "埼玉県", city: "さいたま市", ward_suffix: "区"}
     - {number: "110031", name: "川口市 国民健康保険", prefecture: "埼玉県", city: "川口市"}
     - {number: "110080", name: "所沢市 国民健康保険", prefecture: "埼玉県", city: "所沢市"}
-    - {number: "144006", name: "横浜市 国民健康保険", prefecture: "神奈川県", city: "横浜市"}
-    - {number: "145003", name: "川崎市 国民健康保険", prefecture: "神奈川県", city: "川崎市"}
+    - {number: "144006", name: "横浜市 国民健康保険", prefecture: "神奈川県", city: "横浜市", ward_suffix: "区"}
+    - {number: "145003", name: "川崎市 国民健康保険", prefecture: "神奈川県", city: "川崎市", ward_suffix: "区"}
     - {number: "140061", name: "藤沢市 国民健康保険", prefecture: "神奈川県", city: "藤沢市"}
     - {number: "120048", name: "船橋市 国民健康保険", prefecture: "千葉県", city: "船橋市"}
     - {number: "120030", name: "市川市 国民健康保険", prefecture: "千葉県", city: "市川市"}

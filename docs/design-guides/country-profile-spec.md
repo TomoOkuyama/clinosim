@@ -76,6 +76,8 @@ Address and phone formats are patterns in `clinosim/locale/<cc>/addresses.yaml`
 Patient's MRN system and national identifier are in
 `clinosim/locale/<cc>/identity.yaml` (`fhir_patient`).
 
+In the JP address table a designated city (政令指定都市) is listed as one entry per ward (`横浜市西区`), never as the bare city, because a postal address in such a city always names the ward; each ward's `zips` are 7-digit codes of that ward in the Japan Post `ken_all` data, and the ward weights sum to the city's weight. The city's 国民健康保険 entry in `identity.yaml` carries `ward_suffix` so a ward address still resolves to it. Guard: `tests/unit/locale/test_jp_designated_city_ward_3696.py`.
+
 Country-specific **parameters of a module** (for example discharge
 criteria or time to surgery) stay in that module's `reference_data/`
 or in `clinosim/locale/<cc>/<topic>.yaml`, keyed by country and read

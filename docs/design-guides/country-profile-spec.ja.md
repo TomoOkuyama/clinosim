@@ -66,6 +66,8 @@ YAML の読み込みと検証は
 (libaddressinput / libphonenumber 方式)。Patient の MRN の system と国の識別子は
 `clinosim/locale/<cc>/identity.yaml` (`fhir_patient`) に置く。
 
+JP の住所表では、政令指定都市は市単独でなく区ごとのエントリ (`横浜市西区`) で並べる。政令指定都市の郵便住所は必ず区を含むため。各区の `zips` は日本郵便 `ken_all` データでその区に属する 7 桁コードとし、区の重みの合計は市の重みに一致させる。`identity.yaml` の市の国民健康保険エントリは `ward_suffix` を持ち、区の住所でもその保険者に解決される。ガード: `tests/unit/locale/test_jp_designated_city_ward_3696.py`。
+
 モジュールの**国別パラメータ** (退院基準、手術までの時間など) は、そのモジュール
 の `reference_data/` または `clinosim/locale/<cc>/<topic>.yaml` に国をキーとして
 置き、モジュールのローダーで読む。プロファイルには重複して持たない。
