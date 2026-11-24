@@ -15,6 +15,7 @@ from clinosim.datafiles import load_data_yaml, load_validated_yaml
 from clinosim.simulator.adl_ceiling import AdlCeilingRules
 from clinosim.simulator.aki_response import AkiResponseRules
 from clinosim.simulator.complication_actions import ComplicationActionRules
+from clinosim.simulator.complication_dx import ComplicationDiagnosisCodes
 from clinosim.simulator.delirium import DeliriumRules
 from clinosim.simulator.device_removal import DeviceRemovalRules
 from clinosim.simulator.diagnosis_rules import DiagnosisRulesFile
@@ -42,6 +43,7 @@ _MODELS: dict[str, type[BaseModel]] = {
     "adl_functional_ceilings.yaml": AdlCeilingRules,
     "chronic_propagation.yaml": ChronicPropagationRules,
     "complication_actions.yaml": ComplicationActionRules,
+    "complication_diagnosis_codes.yaml": ComplicationDiagnosisCodes,
     "delirium_derivation.yaml": DeliriumRules,
     "device_removal.yaml": DeviceRemovalRules,
     "diagnosis_rules.yaml": DiagnosisRulesFile,
@@ -96,6 +98,7 @@ _NESTED: dict[str, Callable[[dict[str, Any]], None]] = {
     "adl_functional_ceilings.yaml": lambda d: d["conditions"][0].update(stage_atribute="x"),
     "chronic_propagation.yaml": lambda d: d["chronic_propagatable"].append("E11.9"),
     "complication_actions.yaml": lambda d: d.update(order_hour="noon"),
+    "complication_diagnosis_codes.yaml": lambda d: d["codes"].update(dvt=["I82.40"]),
     "delirium_derivation.yaml": lambda d: d.update(susceptibility_min="high"),
     "device_removal.yaml": lambda d: _rename(
         d["kinds"]["cvc"]["indications"]["hemodynamic_monitoring"], "anchor", "ancor"

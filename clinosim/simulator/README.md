@@ -177,6 +177,12 @@ clinosim/simulator/
                          high delirium_susceptibility: complication entry (onset,
                          duration, resolution) and ICD-10-CM / ICD-10 F05 as a
                          secondary diagnosis; no RNG (Issue #3519)
+  complication_dx.py     in-hospital complications that name a diagnosis become dated
+                         `working_diagnoses` entries (the complication's own onset,
+                         skipping codes the stay already carries), emitted as secondary
+                         encounter-diagnosis Conditions; table in
+                         `reference_data/complication_diagnosis_codes.yaml`; no RNG
+                         (Issue #3673)
   complication_actions.py  the antibiotic `actions` a disease YAML declares on a
                          complication: one canonical spelling, and the first-line
                          antibiotic of the protocol named for the complication,
@@ -325,6 +331,7 @@ Reference data (`reference_data/`, 22 YAMLs):
   reference_data/ketoacidosis_resolution.yaml DKA resolution criteria and the IV-to-subcutaneous insulin transition (ketoacidosis_resolution.py)
   reference_data/mixed_condition.yaml         late recognition, recovery and order merge of a mixed admission's co-disease (mixed_condition.py)
   reference_data/delirium_derivation.yaml     susceptibility cut, episode rule and code of a derived delirium (delirium.py)
+  reference_data/complication_diagnosis_codes.yaml  complication token -> diagnosis code of the stay (complication_dx.py)
   reference_data/aki_response.yaml            AKI detection, drugs held during AKI, discharge gate (aki_response.py)
   reference_data/device_removal.yaml          catheter placing events and the indications that end them (device_removal.py)
   reference_data/implied_chronic_prevalence.yaml  prevalence of the chronic conditions a stay implies (implied_chronic.py)

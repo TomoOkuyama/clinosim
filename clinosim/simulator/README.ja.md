@@ -167,6 +167,10 @@ clinosim/simulator/
   delirium.py            せん妄リスク (delirium_susceptibility) が高い患者の意識レベル低下
                          (AVPU) が数日続いた場合にせん妄を導出: 合併症エントリ (発症・
                          持続・回復) と副診断 ICD-10-CM / ICD-10 F05。乱数なし (Issue #3519)
+  complication_dx.py     診断名を持つ入院中の合併症を、その合併症自身の発症時刻を持つ
+                         `working_diagnoses` エントリにする (入院が既に持つコードは省く)。FHIR では
+                         副診断の encounter-diagnosis Condition になる。表は
+                         `reference_data/complication_diagnosis_codes.yaml`。乱数なし (Issue #3673)
   complication_actions.py  合併症に疾患 YAML が宣言する抗菌薬 `actions`: 表記を 1 つの正規
                          キーに統一し、合併症ごとに指定したプロトコルの第一選択抗菌薬を
                          発症時に薬剤安全性ゲート経由で発注。乱数なし (Issue #3543)
@@ -304,6 +308,7 @@ CLI サブコマンドハンドラ (11 ファイル):
   reference_data/ketoacidosis_resolution.yaml DKA の改善基準と静注から皮下インスリンへの移行 (ketoacidosis_resolution.py)
   reference_data/mixed_condition.yaml         混合入院の併存疾患の遅れた認識・回復・オーダー統合 (mixed_condition.py)
   reference_data/delirium_derivation.yaml     導出せん妄のリスク閾値・エピソード規則・コード (delirium.py)
+  reference_data/complication_diagnosis_codes.yaml  合併症トークン -> 入院の診断コード (complication_dx.py)
   reference_data/aki_response.yaml            AKI の判定・AKI 中に保留する薬剤・退院判定 (aki_response.py)
   reference_data/device_removal.yaml          カテーテルの留置契機と抜去の適応 (device_removal.py)
   reference_data/implied_chronic_prevalence.yaml  入院が含意する慢性疾患の有病率 (implied_chronic.py)

@@ -8,7 +8,7 @@ from typing import Any
 import numpy as np
 
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource
-from clinosim.codes.valuesets import code_by_chronic_prefix
+from clinosim.codes.valuesets import code_by_chronic_prefix, iter_chronic_codes
 from clinosim.modules._shared import CO_DISEASE_SEVERITY
 from clinosim.modules.clinical_course.engine import (
     select_archetype,
@@ -29,7 +29,7 @@ from clinosim.modules.disease.localization import (
     _disease_to_department,
     target_los_config,
 )
-from clinosim.modules.disease.protocol import DiseaseProtocol
+from clinosim.modules.disease.protocol import DiseaseProtocol, working_diagnosis_code
 from clinosim.modules.disease.severity import category_from_score
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.order.engine import (
@@ -76,6 +76,7 @@ from clinosim.simulator._stay_thresholds import (
     URGENT_ADMISSION_HOUR_MIN,
     URGENT_ADMISSION_HOUR_STD,
 )
+from clinosim.simulator.complication_dx import complication_diagnosis_entries
 from clinosim.simulator.complications import complication_names
 from clinosim.simulator.daily_loop import SYMPTOM_AXES, _run_daily_loop
 from clinosim.simulator.delirium import delirium_code, derive_delirium, has_delirium
@@ -1068,6 +1069,18 @@ def _simulate_patient(
         encounter_id=encounter.encounter_id,
         secondary_recognised_late=co_disease_recognised_late(encounter.encounter_id),
     )
+
+    # Issue #3673: every coded complication (acute kidney injury, deep vein
+    # thrombosis, delirium, ...) is a dated working diagnosis of the stay, with
+    # the onset of the complication, unless the stay already carries the code.
+    _carried = [
+        clinical_diagnosis.admission_diagnosis_code,
+        clinical_diagnosis.discharge_diagnosis_code,
+        *clinical_diagnosis.secondary_diagnosis_codes,
+        *(working_diagnosis_code(str(wd.get("disease_id") or "")) for wd in clinical_diagnosis.working_diagnoses),
+        *iter_chronic_codes(patient.chronic_conditions),
+    ]
+    clinical_diagnosis.working_diagnoses.extend(complication_diagnosis_entries(complications_occurred, _carried))
 
     # Issue #3519: a delirium of the stay (derived, or an ICU / postoperative
     # delirium complication) is a coded secondary diagnosis.

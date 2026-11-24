@@ -136,6 +136,7 @@ CRP: "5C070"
 - **内部名**を、その国が出力するコードに対応付ける。ドメインは `lab` / `drug` / `diagnosis` / `procedure`。
 - 値のコード体系は `codes.system_key_for(kind, country)` で決まる。例: `lab`/`US` は `loinc`、`lab`/`JP` は `jlac10`。
 - 値はすべて、その体系のレジストリファイルに登録されている。
+- 診断名を持つ合併症 (`complications_occurred` のトークン) は `simulator/reference_data/complication_diagnosis_codes.yaml` でコード化し、`simulator/complication_dx.py` が読む。コードは内部の診断コードで、この対応表が国別のコードに変換するため、表に国別のコードは置かない (Issue #3673、ガード: `tests/unit/simulator/test_complication_conditions_3673.py`)。
 
 ### 3.5 カタログ
 
