@@ -197,6 +197,54 @@ complications:
       probability: 0.04
       modes: [cesarean]
 
+  # What a kept complication leaves in the record (Issue #3662): vital signs,
+  # laboratory results and orders, applied by
+  # simulator/_perinatal_complications.py. Every value is drawn from a
+  # sub-seed keyed on the encounter and the code, so the delivery's shared
+  # random streams do not move, and a delivery with no kept complication is
+  # byte-identical.
+  #   vitals: blood pressure of every maternal vital-sign set within
+  #     ``duration_hours`` of the admission, uniform in the ranges
+  #     (pre-eclampsia is defined by a pressure of 140 / 90 mmHg or higher, so
+  #     the ranges start at or above it).
+  #   labs: one result per row, uniform in ``value`` (rounded to ``digits``),
+  #     ``offset_minutes`` after the admission, resulted 60 minutes later; the
+  #     lab name is the one of code_mapping_lab (US LOINC, JP JLAC10).
+  #   orders: a drug order ``offset_minutes`` after the ``anchor`` (admission
+  #     or delivery); ``suffix`` keys the order id and perinatal_intent text.
+  # MODEL CHOICE: the lab ranges and the O14.9 pressure ranges are not taken
+  # from a guideline. Drug doses are from the US labels read through openFDA
+  # (2026): magnesium sulfate in water for injection, loading dose 4 to 6 g
+  # over 15 minutes then 1 to 2 g per hour (section 2.2); labetalol tablets,
+  # initial dose 100 mg twice daily (Dosage and Administration). Premature
+  # rupture of membranes gets infection markers only: its antibiotic depends
+  # on a group B streptococcus status the record does not model. Diabetes in
+  # pregnancy gets glucose and HbA1c only: the insulin dose is individualised.
+  effects:
+    "O14.9":
+      vitals:
+        duration_hours: 48
+        systolic_bp: [142, 160]
+        diastolic_bp: [92, 106]
+      labs:
+        - {lab: Plt, value: [130, 260], digits: 0, offset_minutes: 15}
+        - {lab: AST, value: [25, 70], digits: 0, offset_minutes: 15}
+        - {lab: ALT, value: [20, 80], digits: 0, offset_minutes: 15}
+        - {lab: Creatinine, value: [0.6, 1.0], digits: 2, offset_minutes: 15}
+      orders:
+        - {suffix: CXMG, drug: Magnesium Sulfate, dose: 4.0, unit: g, route: IV, frequency: once, per_day: 1, anchor: admission, offset_minutes: 15, urgency: stat}
+        - {suffix: CXMM, drug: Magnesium Sulfate, dose: 1.0, unit: g/h, route: IV, frequency: continuous, per_day: 24, anchor: admission, offset_minutes: 30, urgency: stat}
+        - {suffix: CXLB, drug: Labetalol, dose: 100.0, unit: mg, route: PO, frequency: bid, per_day: 2, anchor: delivery, offset_minutes: 120, urgency: routine}
+    "O24.9":
+      labs:
+        - {lab: Glucose, value: [110, 190], digits: 0, offset_minutes: 15}
+        - {lab: HbA1c, value: [5.8, 7.2], digits: 1, offset_minutes: 15}
+        - {lab: Glucose, value: [100, 180], digits: 0, offset_minutes: 360}
+    "O42.9":
+      labs:
+        - {lab: WBC, value: [9000, 15000], digits: 0, offset_minutes: 15}
+        - {lab: CRP, value: [4.0, 20.0], digits: 1, offset_minutes: 15}
+
 # ---------------------------------------------------------------------------
 # Cesarean-section share (session 98 F7 fix — Incr 1.5 clinical realism).
 # Real-world: US CDC 2022 = 32.1 %, JP MHLW 2020 = ~20 %. Pre-fix all

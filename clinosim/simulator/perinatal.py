@@ -45,7 +45,7 @@ from clinosim.simulator.encounter_setup import attach_orders, encounter_diagnosi
 from clinosim.simulator.hospital_ops import perinatal_ward, resolve_department
 from clinosim.simulator.medication_pipeline import allergy_blocked
 from clinosim.types.clinical import ConditionEvent
-from clinosim.types.encounter import EncounterStatus, EncounterType
+from clinosim.types.encounter import EncounterStatus, EncounterType, OrderType
 from clinosim.types.output import CIFPatientRecord
 from clinosim.types.patient import ChronicCondition, PatientProfile
 
@@ -550,13 +550,21 @@ def _maternal_vital_times(admission: datetime, discharge: datetime, cesarean: bo
 
 
 def _maternal_vitals(
-    patient: PatientProfile, encounter_id: str, admission: datetime, discharge: datetime, cesarean: bool, nurse_id: str
+    patient: PatientProfile,
+    encounter_id: str,
+    admission: datetime,
+    discharge: datetime,
+    cesarean: bool,
+    nurse_id: str,
+    bp_override: dict | None = None,
 ) -> list:
     """The mother's vital signs over the delivery admission (Issue #3007):
     a full set at each ``_maternal_vital_times`` time, derived from a
     healthy postpartum physiological state through the shared vitals
     derivation. Drawn from a sub-RNG keyed on the encounter, so no shared
-    stream moves."""
+    stream moves. ``bp_override`` (a complication's effect, Issue #3662) sets
+    the blood pressure of the sets up to its ``until`` time from its own
+    sub-seed; every other value of the set is the healthy one."""
     from clinosim.modules.physiology.engine import derive_observed_vitals
     from clinosim.simulator.vitals_pipeline import _loc_for
     from clinosim.types.clinical import PhysiologicalState
@@ -567,6 +575,8 @@ def _maternal_vitals(
     out = []
     for at in _maternal_vital_times(admission, discharge, cesarean):
         raw = derive_observed_vitals(state, patient.baseline_vitals, at, rng)
+        if bp_override is not None and at < bp_override["until"]:
+            raw["systolic_bp"], raw["diastolic_bp"] = bp_override["draw"](at)
         out.append(
             VitalSignRecord(
                 timestamp=at,
@@ -877,7 +887,7 @@ def simulate_delivery_encounter(
     # timing anchors relative to visit_date). No RNG consumption.
     orders: list = []
     if is_cesarean:
-        from clinosim.types.encounter import Order, OrderStatus, OrderType
+        from clinosim.types.encounter import Order, OrderStatus
 
         _attending = encounter.attending_physician_id
         # Postop analgesic: the country's drug, or the allergy substitute
@@ -998,7 +1008,7 @@ def simulate_delivery_encounter(
         #
         # Order-id suffix scheme parallels the C-section CS* family:
         # VD*, encounter-scoped, byte-stable across re-runs.
-        from clinosim.types.encounter import Order, OrderStatus, OrderType
+        from clinosim.types.encounter import Order, OrderStatus
 
         _vd_attending = encounter.attending_physician_id
         _vd_ord_specs: list[tuple[str, str, str, str, float, str, str, timedelta]] = [
@@ -1046,6 +1056,30 @@ def simulate_delivery_encounter(
                     duration_days=1,
                 )
             )
+
+    # Issue #3662: what a kept complication leaves in the record (vital signs,
+    # laboratory results, drug orders), from perinatal.yaml complications.effects.
+    from clinosim.simulator import _perinatal_complications as _cx
+
+    _cx_effects = _cx.effects_for(cfg, complications)
+    _cx_labs = _cx.lab_orders(
+        _cx_effects,
+        patient=patient,
+        encounter=encounter,
+        country=country,
+        ordered_by=encounter.attending_physician_id,
+    )
+    _cx_drugs = _cx.drug_orders(
+        _cx_effects,
+        patient=patient,
+        encounter=encounter,
+        delivered_at=visit_date,
+        allowed=lambda drug: (
+            not allergy_blocked(patient, drug, encounter_id=encounter.encounter_id, timestamp=visit_date)
+        ),
+    )
+    orders.extend(_cx_drugs)
+    orders.extend(_cx_labs)
 
     # Issue #1313: postpartum discharge prescription. Real delivery
     # encounters (vaginal + cesarean both) send the mother home on a
@@ -1134,7 +1168,12 @@ def simulate_delivery_encounter(
     _bundle_nurse = stable_nurse(roster, encounter.encounter_id, ward=encounter.ward_id or "", department=dept)
     # Every order lies inside the stay (the admission is in labor, Issue
     # #3686), so each is given at its ordered time.
-    _bundle_mars = [m for o in orders for m in administrations_for(o, [o.ordered_datetime], _bundle_nurse)]
+    _bundle_mars = [
+        m
+        for o in orders
+        if o.order_type == OrderType.MEDICATION
+        for m in administrations_for(o, [o.ordered_datetime], _bundle_nurse)
+    ]
 
     attach_orders(orders, encounter)  # every encounter kind links its orders the same way
     mother_record = CIFPatientRecord(
@@ -1151,8 +1190,9 @@ def simulate_delivery_encounter(
             encounter.discharge_datetime or visit_date,
             is_cesarean,
             _bundle_nurse,
+            _cx.bp_override(_cx_effects, encounter.encounter_id, encounter.admission_datetime),
         ),
-        lab_results=[],
+        lab_results=[o.result for o in _cx_labs if o.result is not None],
         procedures=[procedure],
         condition_event=condition_event,
         clinical_diagnosis=clinical_diagnosis,
