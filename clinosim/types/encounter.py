@@ -87,6 +87,9 @@ class Encounter:
     priority: str = ""  # "EM" (emergency) | "UR" (urgent) | "R" (routine)
     # Tier 1 #3 additions
     primary_nurse_id: str = ""  # Set by nursing_enricher (inpatient only).
+    # The ED nurse who charted the triage vitals (ED visits only; Issue #3703):
+    # the author of the ED triage note.
+    triage_nurse_id: str = ""
     triage_data: TriageData | None = None  # Set by triage_enricher (ED visits and via-ED admissions).
     # AD-65 Bug C fix: severity sampled in emergency.py ("mild"/"moderate"/"severe"),
     # consumed by triage_enricher.pick_triage_level(). Previously sampled but never

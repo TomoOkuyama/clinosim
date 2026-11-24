@@ -245,6 +245,7 @@ class _DocumentTypeSpecEntry(BaseModel):
     structured_form_yaml: str | None = None
     authored_after_admission_hours: float = Field(default=0.0, ge=0, le=24)
     authored_at: Literal["admission", "period_end"] = "admission"
+    author_role: Literal["", "triage_nurse"] = ""
 
 
 class DocumentTypeSpecs(BaseModel):
@@ -284,6 +285,7 @@ def load_document_type_specs() -> dict[DocumentType, DocumentTypeSpec]:
             llm_enabled_sections_jp=tuple(entry.get("llm_enabled_sections_jp") or ()),
             authored_after_admission_hours=float(entry.get("authored_after_admission_hours") or 0.0),
             authored_at=str(entry.get("authored_at") or "admission"),
+            author_role=str(entry.get("author_role") or ""),
         )
     return result
 

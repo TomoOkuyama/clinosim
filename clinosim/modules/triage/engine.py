@@ -360,7 +360,8 @@ def _record_ed_arrival_vitals(ctx: Any, record: Any, enc: Any, arrival: datetime
     """Append the arrival vital-sign set of a stay ``enc`` admitted through
     the ED (Issue #3243), measured by an ED nurse at the triage-vitals offset
     after ``arrival`` from the state the patient was admitted in
-    (``physiological_states[0]``), with its GCS when AVPU is recorded, and
+    (``physiological_states[0]``; the nurse is also recorded as
+    ``enc.triage_nurse_id``, Issue #3703), with its GCS when AVPU is recorded, and
     the protocol's presenting ventricular rate (Issue #3274). No-op without a
     recorded state."""
     from clinosim.modules.observation.nursing import compute_gcs
@@ -377,6 +378,10 @@ def _record_ed_arrival_vitals(ctx: Any, record: Any, enc: Any, arrival: datetime
         if roster is not None
         else ""
     )
+    if nurse:
+        # Issue #3703: the nurse who charted the triage vitals authors the
+        # ED triage note of the ED phase.
+        enc.triage_nurse_id = nurse
     vitals = ed_arrival_vitals(
         states[0],
         _o(record, "patient", None),

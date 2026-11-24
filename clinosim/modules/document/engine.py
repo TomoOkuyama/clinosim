@@ -199,7 +199,17 @@ def _pick_document_author(spec: Any, encounter: Any) -> str:
     volume, but must not raise (blank author is worse than a physician author).
     """
     loinc = _o(spec, "loinc_code", "")
-    if loinc in NURSING_LOINCS:
+    # Issue #3703: a spec naming its author role (the ED triage note) is
+    # authored by that role's nurse, kept on the encounter.
+    if _o(spec, "author_role", "") == "triage_nurse":
+        triage_nurse = _o(encounter, "triage_nurse_id", "") or ""
+        if triage_nurse:
+            return triage_nurse
+        logger.warning(
+            "triage doc %s falling back to attending (triage_nurse_id missing)",
+            loinc,
+        )
+    elif loinc in NURSING_LOINCS:
         nurse = _o(encounter, "primary_nurse_id", "") or ""
         if nurse:
             return nurse

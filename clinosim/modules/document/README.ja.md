@@ -149,6 +149,9 @@ from clinosim.modules.document.engine import document_enricher
   code。`_pick_document_author` は文書 LOINC が本集合に含まれるとき
   `encounter.primary_nurse_id` に dispatch、含まれない場合は
   `attending_physician_id` (AD-65 Bug B fix)。
+  `author_role: triage_nurse` を持つ spec (ED triage note、Issue #3703) は
+  `encounter.triage_nurse_id` (トリアージのバイタルを記録した ED 看護師) に
+  dispatch し、無ければ attending に fallback する。
 - **Document-type spec**
   ([`reference_data/document_type_specs.yaml`](reference_data/document_type_specs.yaml))
   — 文書種別ごとの registry entry (`clinosim/types/document.py` の

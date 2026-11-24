@@ -213,6 +213,9 @@ specs:
     generation_frequency: encounter_once
     stage2_strategy: template_only
     llm_enabled_sections: []
+    # Triage is a nursing assessment: the note is written by the nurse who
+    # charted the triage vitals (Issue #3703).
+    author_role: triage_nurse
 
   # === chain 2 (厚労省4帳票, first sub-project, 2026-07-03) ===
   # LOINC 18776-5 verified via web search (loinc.org / findacode.com) —

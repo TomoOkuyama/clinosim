@@ -1031,6 +1031,8 @@ def _bb_practitioners(ctx: BundleContext) -> list[dict]:
     # ensure the nurse is emitted even when not the primary_nurse of encounter.
     for enc in ctx.record.get("encounters", []) or []:
         add(enc.get("primary_nurse_id", "") if isinstance(enc, dict) else getattr(enc, "primary_nurse_id", ""))
+        # Issue #3703: the ED nurse who authors the triage note.
+        add(enc.get("triage_nurse_id", "") if isinstance(enc, dict) else getattr(enc, "triage_nurse_id", ""))
     # C2-09: also emit every pharmacist in the roster so
     # CareTeam.participant refs to `Practitioner/PH-*` (C1-15 fix) resolve.
     # Pharmacists are assigned deterministically by encounter-id hash in

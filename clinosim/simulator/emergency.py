@@ -890,6 +890,7 @@ def _simulate_ed_visit(
     ed_nurse_id = assign_staff("medication_administration", "emergency_medicine", roster, rng).get(
         "administering_nurse", ""
     )  # noqa: E501
+    encounter.triage_nurse_id = ed_nurse_id  # Issue #3703: authors the triage note
     vit_time = visit_time + timedelta(minutes=ED_VITALS_OFFSET_MIN)
     # Issue #3063: a presentation defined by a fever charts a triage
     # temperature in the protocol's band, hashed from the encounter id (no draw).
