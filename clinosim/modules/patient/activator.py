@@ -67,7 +67,9 @@ from clinosim.modules.patient._patient_activator_thresholds import (
     DVT_ELDERLY_PREMIUM,
     E03_HR_REDUCTION_MAX_EXCLUSIVE,
     E03_HR_REDUCTION_MIN,
+    EMPLOYMENT_NOT_STATED_BELOW_AGE,
     EMPLOYMENT_RETIREMENT_AGE_MIN,
+    EMPLOYMENT_STUDENT_MAX_AGE,
     GENERIC_SEVERITY_UNIFORM_MAX,
     GENERIC_SEVERITY_UNIFORM_MIN,
     HEALTH_LITERACY_MEAN,
@@ -571,6 +573,21 @@ def _draw_emergency_contact(
         return rel, t("module_text.family_contact", lang_for(country), family=family_name), contact_sex, family_name, ""
 
 
+def _employment_status(age: int, demo: dict) -> str:
+    """The employment status coded for ``age``: a minor below the table's
+    ``not_stated_below_age`` has none (""), a school-age minor is a "student"
+    (Issue #3658, ``employment_status.minor`` of demographics.yaml); an adult
+    is "retired" from ``EMPLOYMENT_RETIREMENT_AGE_MIN``, else "employed"."""
+    minor = (demo.get("employment_status") or {}).get("minor") or {}
+    not_stated_below = int(minor.get("not_stated_below_age", EMPLOYMENT_NOT_STATED_BELOW_AGE))
+    student_max = int(minor.get("student_max_age", EMPLOYMENT_STUDENT_MAX_AGE))
+    if age < not_stated_below:
+        return ""
+    if age <= student_max:
+        return "student"
+    return "retired" if age >= EMPLOYMENT_RETIREMENT_AGE_MIN else "employed"
+
+
 def activate_patient(
     person: PersonRecord,
     rng: np.random.Generator,
@@ -851,6 +868,27 @@ def activate_patient(
         marital_status = _marital.person_marital_status(person, age, country)
     else:
         marital_status = _marital.minor_marital_status(country)
+    if age < adult_age and not (guardian_name or guardian_phone):
+        # Issue #3658: a minor with no recorded guardian (everyone but a child
+        # born in the simulation) names a parent, drawn once from a person-scoped
+        # stream of its own and kept on the person's guardian fields, so the
+        # activation stream makes no draw and the adult contact that follows at
+        # the adult age is not this one.
+        _minor_rels = _marital.minor_contact_relationships(country)
+        if _minor_rels[0]:
+            from clinosim.seeding import guardian_contact_seed
+
+            _guardian_rng = determinism.default_rng(guardian_contact_seed(person.person_id, str(person.date_of_birth)))
+            g_rel, g_name, g_sex, g_family, g_given = _draw_emergency_contact(
+                _minor_rels, person.sex, name.family_name, country, _guardian_rng
+            )
+            person.guardian_contact_name = guardian_name = g_name
+            person.guardian_contact_phone = guardian_phone = phone_home or phone_mobile
+            person.guardian_contact_relationship = g_rel
+            person.guardian_contact_sex = g_sex
+            person.guardian_contact_role = _marital.contact_role_code(g_rel, g_sex)
+            person.guardian_contact_family_name = g_family
+            person.guardian_contact_given_name = g_given
     if age < adult_age and (guardian_name or guardian_phone):
         # A child born in the simulation keeps its mother as the emergency
         # contact on every activation (Issue #2880); no draw is consumed.
@@ -981,7 +1019,7 @@ def activate_patient(
         contact=contact,
         marital_status=marital_status,
         preferred_language=preferred_language,
-        employment_status="retired" if age >= EMPLOYMENT_RETIREMENT_AGE_MIN else "employed",
+        employment_status=_employment_status(age, demo),
         occupation=getattr(person, "occupation", "other"),
         insurance_type=insurance_type,
         health_literacy=round(

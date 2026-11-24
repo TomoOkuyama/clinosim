@@ -63,7 +63,9 @@ __all__ = [
     "DVT_ELDERLY_PREMIUM",
     "E03_HR_REDUCTION_MAX_EXCLUSIVE",
     "E03_HR_REDUCTION_MIN",
+    "EMPLOYMENT_NOT_STATED_BELOW_AGE",
     "EMPLOYMENT_RETIREMENT_AGE_MIN",
+    "EMPLOYMENT_STUDENT_MAX_AGE",
     "GENERIC_SEVERITY_UNIFORM_MAX",
     "GENERIC_SEVERITY_UNIFORM_MIN",
     "HEALTH_LITERACY_MEAN",
@@ -458,6 +460,14 @@ EMPLOYMENT_RETIREMENT_AGE_MIN: int = 65
 ``"retired"`` in the synthetic simulator. Matches the standard
 retirement age used in both US Social Security and JP national
 pension eligibility."""
+
+EMPLOYMENT_NOT_STATED_BELOW_AGE: int = 6
+"""Fallback (the demographics ``employment_status.minor`` table is the data):
+below this age ``employment_status`` is left empty (Issue #3658)."""
+
+EMPLOYMENT_STUDENT_MAX_AGE: int = 17
+"""Fallback: up to this age a person from ``EMPLOYMENT_NOT_STATED_BELOW_AGE``
+on is a ``"student"`` (Issue #3658)."""
 
 HEALTH_LITERACY_MEAN: float = 0.6
 """Mean of the health-literacy score (``[0, 1]`` scale).

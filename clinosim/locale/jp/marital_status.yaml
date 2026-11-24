@@ -61,6 +61,11 @@ distribution:
 # and a widowed person names a child or a sibling. Order within a row is
 # load-bearing (it is the order of the weighted draw).
 emergency_contact:
+  # 未成年者 (adult_age_min 未満) の緊急連絡先は親 (Issue #3658)。法定後見人の
+  # 役割はモデル化していないため親とし、性別は父 (FTH) / 母 (MTH) になる。
+  # 人数分布の出典は無い (慣習として病院は未成年者を保護者の連絡先なしに登録
+  # しない)。専用の乱数 (guardian_contact_seed) で引く。
+  minor_relationships: {parent: 1.0}
   relationships:
     M:
       "18-74": {spouse: 0.55, parent: 0.20, sibling: 0.15, child: 0.10}

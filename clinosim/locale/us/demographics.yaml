@@ -667,6 +667,16 @@ mixed_conditions:
 ed_visit_not_admitted:
   rate_per_1000_person_years: 380
 
+# Employment status of a minor (Issue #3658): below `not_stated_below_age` the
+# status is left empty (a child's employment is not applicable, and an empty
+# value is not a false statement); from there to `student_max_age` it is
+# "student" (the school-age stages of the occupation below); a 16-17-year-old
+# who works is not modelled. Adults are "employed", or "retired" from 65.
+employment_status:
+  minor:
+    not_stated_below_age: 6
+    student_max_age: 17
+
 # Occupation distribution for working-age population (15-64)
 # Source: US BLS Occupational Employment Statistics
 occupation_distribution:

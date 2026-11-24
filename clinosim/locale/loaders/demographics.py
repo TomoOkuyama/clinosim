@@ -337,6 +337,9 @@ def load_marital_status(country: str) -> dict[str, Any]:
     contact = data["emergency_contact"]
     if contact.get("activation_stream_status") not in (contact.get("relationships") or {}):
         raise ValueError(f"marital_status.yaml ({country}): activation_stream_status has no relationship table")
+    minor = contact.get("minor_relationships")
+    if not isinstance(minor, dict) or not minor or any(float(w) <= 0 for w in minor.values()):
+        raise ValueError(f"marital_status.yaml ({country}): minor_relationships must be non-empty positive weights")
     return data
 
 
