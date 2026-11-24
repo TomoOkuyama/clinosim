@@ -25,6 +25,7 @@ from clinosim.locale.localized import normalize_lang
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._vitals_line import latest_vitals_set
 from clinosim.modules.observation.pediatric_ranges import age_in_completed_months, pediatric_vital_range
+from clinosim.timeutil import parse_iso_datetime
 
 if TYPE_CHECKING:
     from clinosim.types.document import NarrativeContext
@@ -572,6 +573,30 @@ def consciousness_assessment_line(daily: list[list], complications: list[str], l
             causes=causes,
         )
     return t("progress.consciousness_differential_workup", lang, a=levels[0], n=len(levels), causes=causes)
+
+
+def delirium_active(ctx: NarrativeContext) -> bool:
+    """Whether a delirium complication of the stay is active on the note's
+    hospital day (Issue #3678): its onset is at or before the day (and before
+    the authored time, when both are known) and its recorded resolution day,
+    if any, is after the day. A delirium without a recorded course lasts to
+    the end of the stay."""
+    names = set(progress_exam_rules().consciousness_course.delirium_complications)
+    as_of = getattr(ctx, "authored_datetime", None)
+    for event in getattr(ctx, "complications_events", None) or []:
+        if "_".join(str(_o(event, "name", "") or "").strip().lower().split()) not in names:
+            continue
+        onset_day = _o(event, "onset_day", None)
+        if onset_day is None or int(onset_day) > ctx.day_index:
+            continue
+        onset_at = parse_iso_datetime(_o(event, "onset_datetime", None), lenient=True)
+        if as_of is not None and onset_at is not None and onset_at > as_of:
+            continue
+        resolved = _o(event, "resolution_day", None)
+        if resolved is not None and int(resolved) <= ctx.day_index:
+            continue
+        return True
+    return False
 
 
 def _fmt(value: float, step: float) -> str:

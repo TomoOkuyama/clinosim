@@ -976,6 +976,7 @@ class CcPeConsistencyKeywords(BaseModel):
     negation_tokens: _NegationTokens
     pe_replacement_pool: _CcConditionLists
     pe_replacement_pool_by_avpu: dict[str, list[str]]
+    pe_replacement_pool_delirium: list[str] = Field(min_length=1)
 
 
 class _ChronicMedClassHint(BaseModel):

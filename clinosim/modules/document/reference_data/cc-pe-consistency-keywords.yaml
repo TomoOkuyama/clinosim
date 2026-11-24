@@ -74,3 +74,12 @@ pe_replacement_pool_by_avpu:
   U:
     - JCS III-300、痛み刺激に反応なし
     - JCS III-200、痛み刺激で四肢をわずかに動かすのみ
+
+# Issue #3678: PE consciousness clause while a delirium complication is active
+# and the day's AVPU is Alert (delirium is a disturbance of attention and
+# awareness, so "意識清明" cannot stand beside it). Chosen by the same SHA256
+# mechanism as the pools above.
+pe_replacement_pool_delirium:
+  - 覚醒しているが見当識障害・注意障害あり
+  - 覚醒しているが注意が持続せず、見当識障害を認める
+  - 開眼しているが場所・時間の見当識障害、注意散漫あり

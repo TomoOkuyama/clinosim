@@ -29,6 +29,7 @@ from clinosim.modules.document.narrative._narrative_utils import (
     _filter_vitals_for_day,
     _pe_altered_consciousness_pool_ja,
     _pe_consciousness_pool_by_avpu_ja,
+    _pe_delirium_pool_ja,
     _pe_severe_dyspnea_pool_ja,
     _pick_from_pool_by_encounter,
     _rewrite_pe_clause,
@@ -859,6 +860,20 @@ def apply_cc_pe_consistency(
             new_text = _rewrite_pe_clause(text, ("意識清明",), _pick_from_pool_by_encounter(pool, enc_id, "pe_avpu"))
             if new_text != text:
                 facts.append("ctx.vitals.consciousness_level:pe_consciousness")
+                text = new_text
+
+    # Issue #3678: an active delirium is a disturbance of attention and awareness,
+    # so the clear-consciousness clause gives way to it when the AVPU did not.
+    if not worst:
+        from clinosim.modules.document.narrative._progress_exam import delirium_active
+
+        pool = _pe_delirium_pool_ja()
+        if pool and delirium_active(ctx):
+            new_text = _rewrite_pe_clause(
+                text, ("意識清明",), _pick_from_pool_by_encounter(pool, enc_id, "pe_delirium")
+            )
+            if new_text != text:
+                facts.append("ctx.complications_events:pe_consciousness_delirium")
                 text = new_text
 
     cc = _o(enc, "chief_complaint_ja", None) or _o(enc, "chief_complaint", None) or ""
