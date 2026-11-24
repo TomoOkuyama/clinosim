@@ -461,7 +461,9 @@ def _build_newborn_patient(
         # modules/population/reference_data/anthropometric_reference.yaml handles per-age
         # medians on emit; here we set the Layer-2 profile fallback
         # values so any consumer reading patient.height_cm / weight_kg
-        # sees a plausible newborn (~50 cm / ~3.2 kg).
+        # sees a plausible newborn. The birth weight / length are replaced by
+        # the baby's own birth-day measurements once its birth encounter
+        # exists (Issue #3667); these are the placeholder until then.
         height_cm=50.0,
         weight_kg=3.2,
         bmi=12.8,  # neonate BMI is not clinically meaningful but keeps the float non-zero
@@ -1342,6 +1344,22 @@ def simulate_delivery_encounter(
     finalize_encounter(
         newborn_encounter, admit_source=AdmitSource.BORN, disposition=DischargeDisposition.HOME, priority=ActPriority.R
     )
+
+    # Issue #3667: the birth weight and length are the baby's own birth-day
+    # measurements, those of its body-weight / height Observations (the same
+    # function, so they agree by construction), not a constant profile default.
+    from clinosim.modules.population.encounter_anthropometry import encounter_anthropometrics
+
+    _birth_anthro = encounter_anthropometrics(
+        newborn, newborn_encounter.encounter_id, newborn_encounter.admission_datetime, country
+    )
+    newborn.height_cm = _birth_anthro["height_cm"]
+    newborn.weight_kg = _birth_anthro["weight_kg"]
+    newborn.bmi = _birth_anthro["bmi"]
+    if population_registry is not None:
+        _registered_baby = population_registry.persons.get(newborn.patient_id)
+        if _registered_baby is not None:
+            _registered_baby.bmi = newborn.bmi
 
     # Issue #1581 audit — write the birth admission to the newborn's
     # ``PersonRecord.hospitalization_history`` + ``last_encounter_id`` +
