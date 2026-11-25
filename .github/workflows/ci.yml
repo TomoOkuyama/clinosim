@@ -86,6 +86,9 @@ jobs:
           cache-dependency-glob: pyproject.toml
       - name: Install (with dev extras)
         run: uv pip install --system -e ".[dev]"
+      - name: Runner size
+        # Issue #3766: the shard layout below assumes this vCPU count.
+        run: echo "nproc=$(nproc) mem=$(free -g | awk '/^Mem:/{print $2}')G"
       - name: Run unit tests (shard ${{ matrix.shard }}/3)
         env:
           COVERAGE_FILE: ".coverage.shard-${{ matrix.shard }}"
@@ -232,6 +235,9 @@ jobs:
           cache-dependency-glob: pyproject.toml
       - name: Install (with dev extras)
         run: uv pip install --system -e ".[dev]"
+      - name: Runner size
+        # Issue #3766: the shard layout below assumes this vCPU count.
+        run: echo "nproc=$(nproc) mem=$(free -g | awk '/^Mem:/{print $2}')G"
       - name: Run integration tests (shard ${{ matrix.shard }}/10, xdist -n 2)
         run: >
           pytest tests/integration -q --tb=short
