@@ -2685,6 +2685,11 @@
 <td><code>tests/unit/modules/document/narrative/test_postpartum_shift_items_3664.py</code></td>
 </tr>
 <tr>
+<td>A vaccine given during a stay (the US hepatitis B birth dose) is ordered and named in the stay's documents (Issue #3688): the immunization enricher adds a medication order at the admission (<code>order_drug_id</code> of the vaccine in the schedule, here <code>hepatitis_b_vaccine</code>, RxNorm 797752), and no medication administration, because the <code>Immunization</code> is the administration record and a second one would duplicate the dose; the newborn H&amp;P plan states "Vaccine at birth: ..." and the discharge summary's "Given to the newborn" line lists the dose with its day of life.</td>
+<td><code>modules/immunization/enricher.py::_order_stay_doses</code>, <code>narrative/_hospital_course.py::stay_vaccines</code>, <code>renderers/section_builders/assessment_and_plan.py::newborn_plan_items</code></td>
+<td><code>tests/unit/modules/immunization/test_stay_dose_orders_3688.py</code>, <code>tests/unit/modules/document/narrative/test_stay_vaccine_notes_3688.py</code></td>
+</tr>
+<tr>
 <td>Sentences or body-system texts that already end in a terminator are joined with the idempotent <code>join_sentences(sentences, lang)</code>; a hard-coded separator join is a bug (a doubled terminator: JA "。。", EN ".."). <code>format_physical_exam</code> strips a terminator before it joins, and the ED exam joins its parts the same way (Issue #3410).</td>
 <td><code>clinosim/modules/document/narrative/_visit_reason.py::join_sentences</code>, <code>renderers/_shared_helpers.py::format_physical_exam</code>, <code>renderers/section_builders/ed_note.py</code></td>
 <td><code>tests/unit/modules/document/narrative/test_doubled_terminators_3410.py</code></td>
