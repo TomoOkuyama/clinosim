@@ -2465,6 +2465,7 @@ block します。</p>
 <ul>
 <li><strong>具体的なバグ報告 or 機能要望と紐づく</strong> (issue link)。動機となる
   問題が無い「Refactor X for readability」は通常良い PR ではない。</li>
+<li><strong>Issue は行ごとに書く</strong>: PR が完全に直す Issue は <code>Addresses #N</code>、一部だけ直す Issue は <code>Part of #N</code>。PR は必須チェック通過後に GitHub の auto-merge で merge され、<code>Close addressed Issues</code> ワークフローが <code>Addresses #N</code> の Issue を閉じる (<code>Part of #N</code> は開いたまま)。否定文でも発火するため GitHub の closing keyword (<code>Closes</code>、<code>Fixes</code>) は使わない。</li>
 <li><strong>無関係な変更を混ぜない</strong>。1 バグを直しつつ 400 file を reformat
   しない — pre-existing な lint / format 負債は別 issue で消化
   (<a href="https://github.com/TomoOkuyama/clinosim/labels/good%20first%20issue"><code>good first issue</code></a>)。</li>

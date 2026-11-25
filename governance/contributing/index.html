@@ -2486,6 +2486,7 @@ the trailer.</p>
 <li><strong>A concrete bug report or feature request tied to it</strong> (link the
   issue). "Refactor X for readability" without a motivating problem
   usually isn't a good PR.</li>
+<li><strong>Name the Issues on their own lines</strong>: <code>Addresses #N</code> for each Issue the PR fully fixes, <code>Part of #N</code> for one it only partly fixes. When the PR is merged (PRs are merged by GitHub auto-merge once the required checks pass), the <code>Close addressed Issues</code> workflow closes every <code>Addresses #N</code> Issue; <code>Part of #N</code> Issues stay open. GitHub's closing keywords (<code>Closes</code>, <code>Fixes</code>) are not used because they also fire on negated text.</li>
 <li><strong>No unrelated churn.</strong> Don't reformat 400 files while fixing one
   bug — pre-existing lint / format debt is being worked down in
   separate issues (see <a href="https://github.com/TomoOkuyama/clinosim/labels/good%20first%20issue"><code>good first issue</code></a>).</li>
