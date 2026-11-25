@@ -4,6 +4,8 @@
 #   - unit tests on Python 3.12 (tests/unit + tests/modules +
 #     tests/simulator; PR gate; 3.11 covered by the nightly cron)
 #   - integration tests on Python 3.12 (10 pytest-split shards × xdist -n 2)
+#   - a `CI result` job that needs every job above and fails if any of them
+#     did not succeed; the master ruleset requires it (Issue #3765)
 #   - fast end-to-end tests (tests/e2e/test_alpha_golden.py +
 #     test_identity_jp.py, ~1 min locally; Issue #3070). The slow e2e
 #     files (forced scenario ~3.5 min, US mode ~6 min, beta ~7.5 min
@@ -373,3 +375,24 @@ jobs:
           name: dist
           path: dist/*
           retention-days: 7
+
+  ci-result:
+    # Issue #3765: one aggregate check whose name never changes, so the master
+    # ruleset can require `CI result` instead of every shard name and the shard
+    # layout can change without editing the ruleset. It runs after every other
+    # job of this workflow (always(), so a failure or cancellation upstream is
+    # reported here as a failure rather than as a skipped check).
+    name: CI result
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [unit, integration, regression, e2e-fast, vulture-dead-code, quality, packaging]
+    if: always()
+    steps:
+      - name: Fail unless every required job succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "needed job results: $RESULTS"
+          for r in $RESULTS; do
+            if [ "$r" != "success" ]; then echo "a needed job ended with: $r"; exit 1; fi
+          done
