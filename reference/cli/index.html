@@ -1146,6 +1146,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#clinosim-catalog-codes--every-code-a-release-can-emit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clinosim catalog-codes — every code a release can emit
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#clinosim-test-disease-disease_id" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2589,6 +2600,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#clinosim-catalog-codes--every-code-a-release-can-emit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clinosim catalog-codes — every code a release can emit
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#clinosim-test-disease-disease_id" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2974,6 +2996,44 @@ promoted to <code>final</code> docStatus by the selected narrative version).</p>
 <td><code>--narrative-version ID</code></td>
 <td><code>current</code></td>
 <td>Narrative version id (default reads the <code>current_version.txt</code> pointer)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="clinosim-catalog-codes--every-code-a-release-can-emit"><code>clinosim catalog-codes</code> — every code a release can emit<a class="headerlink" href="#clinosim-catalog-codes--every-code-a-release-can-emit" title="Permanent link">&para;</a></h2>
+<p>Writes the catalog of every code this version can emit for a country, in the format of a dataset's <code>catalog/codes-used.ndjson</code> (<a href="../output-formats/#used-codes-catalog">Output formats</a>) without the <code>count</code> and <code>patients</code> fields. It resolves the reference data through the functions the simulator and the FHIR builders use (drug catalog and route classes, lab and microbiology code tables, code-system registries), so the list is an upper bound: what the reference data allows, not what one seed draws. A drug name is listed with every order route. The JP catalog follows the JP-CLINS package exactly as an export does (without the package, with <code>CLINOSIM_ALLOW_LEGACY_JP_CLINS_PKG=1</code>, the legacy JLAC10 codes). Each release attaches the US and JP files.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--country CODE</code></td>
+<td><strong>required</strong></td>
+<td><code>US</code> or <code>JP</code></td>
+</tr>
+<tr>
+<td><code>-o, --output FILE</code></td>
+<td><strong>required</strong></td>
+<td>Output NDJSON file</td>
+</tr>
+<tr>
+<td><code>--previous FILE</code></td>
+<td>none</td>
+<td>The same country's catalog of an earlier release, to compare</td>
+</tr>
+<tr>
+<td><code>--diff-label TEXT</code></td>
+<td><code>the previous release</code></td>
+<td>Name of the earlier release in the comparison</td>
+</tr>
+<tr>
+<td><code>--diff-output FILE</code></td>
+<td>stdout</td>
+<td>Write the comparison (codes added, removed, display or unit changed) here as Markdown</td>
 </tr>
 </tbody>
 </table>

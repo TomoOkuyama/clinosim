@@ -2357,6 +2357,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#clinosim-catalog-codes--リリースが出力しうる全コード" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clinosim catalog-codes — リリースが出力しうる全コード
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#clinosim-test-disease-disease_id" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2740,6 +2751,44 @@ version により <code>final</code> docStatus に昇格) から emit。</p>
 <td><code>--narrative-version ID</code></td>
 <td><code>current</code></td>
 <td>Narrative version id (default は <code>current_version.txt</code> を参照)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="clinosim-catalog-codes--リリースが出力しうる全コード"><code>clinosim catalog-codes</code> — リリースが出力しうる全コード<a class="headerlink" href="#clinosim-catalog-codes--リリースが出力しうる全コード" title="Permanent link">&para;</a></h2>
+<p>このバージョンが国ごとに出力しうる全コードのカタログを、データセットの <code>catalog/codes-used.ndjson</code> (<a href="../output-formats.ja/">出力形式</a>) と同じ形式 (<code>count</code> と <code>patients</code> を除く) で書く。参照データは simulator と FHIR builder が使う関数 (薬剤カタログと投与経路クラス、検査・微生物のコード表、コード体系レジストリ) を通して解決するため、一覧は上界であり、ある seed が引くコードではなく参照データが許すコードを示す。薬剤名は全ての指示経路と組で載る。JP カタログはエクスポートと同様に JP-CLINS パッケージに従う (パッケージ無しで <code>CLINOSIM_ALLOW_LEGACY_JP_CLINS_PKG=1</code> なら旧 JLAC10 コード)。各リリースは US と JP のファイルを添付する。</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Default</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--country CODE</code></td>
+<td><strong>必須</strong></td>
+<td><code>US</code> または <code>JP</code></td>
+</tr>
+<tr>
+<td><code>-o, --output FILE</code></td>
+<td><strong>必須</strong></td>
+<td>出力 NDJSON ファイル</td>
+</tr>
+<tr>
+<td><code>--previous FILE</code></td>
+<td>なし</td>
+<td>比較対象の以前のリリースの同国カタログ</td>
+</tr>
+<tr>
+<td><code>--diff-label TEXT</code></td>
+<td><code>the previous release</code></td>
+<td>比較で使う以前のリリース名</td>
+</tr>
+<tr>
+<td><code>--diff-output FILE</code></td>
+<td>stdout</td>
+<td>比較 (追加・削除・display / 単位の変更) を Markdown で書く先</td>
 </tr>
 </tbody>
 </table>

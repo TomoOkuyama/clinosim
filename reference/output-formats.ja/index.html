@@ -2548,6 +2548,7 @@ Reference integrity を維持。</p>
 </tbody>
 </table>
 <p>concept のコードを持つ coding はそれぞれ 1 行になる。kind 固有の属性は出力リソースが述べている場合のみ付く: 医薬品は <code>route_coding</code> (SNOMED 経路)、<code>dose_units</code> (UCUM)、<code>co_coded</code> (同じ concept の他の coding。例: RxNorm の製品と成分)、検査系 Observation は <code>value_types</code>、<code>units</code> (UCUM)、<code>reference_ranges</code>、<code>specimens</code> (紐づく Specimen の種別)、<code>components</code>、画像は <code>modalities</code> (DICOM) と <code>body_sites</code>。text のみでコードの無い concept は載せない。<code>MedicationAdministration</code>・<code>ServiceRequest</code>・<code>DiagnosticReport</code>・<code>Composition</code>・<code>Specimen</code> のコードはカタログ対象外。</p>
+<p>同じ形式 (<code>count</code> と <code>patients</code> なし) を <a href="../cli.ja/#clinosim-catalog-codes--リリースが出力しうる全コード"><code>clinosim catalog-codes</code></a> がリリースの出力しうる全コードについて書く。各リリースは <code>clinosim-codes-US-&lt;tag&gt;.ndjson</code> と <code>clinosim-codes-JP-&lt;tag&gt;.ndjson</code> を添付し、データセットのコードはその部分集合になる。</p>
 <h3 id="縦断サービスライン-emit-v05--v060">縦断サービスライン emit (v0.5 → v0.6.0)<a class="headerlink" href="#縦断サービスライン-emit-v05--v060" title="Permanent link">&para;</a></h3>
 <p>いずれのサービスラインも上記標準リソースファイルを通じて emit —
 新規リソース型は追加していない。サービスラインのスキーマ詳細は
