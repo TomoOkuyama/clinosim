@@ -2680,6 +2680,11 @@
 <td><code>tests/unit/modules/document/narrative/test_postpartum_progress_notes_3687.py</code></td>
 </tr>
 <tr>
+<td>分娩入院の看護 shift 記録は、産褥の観察を書く (Issue #3664)。登録項目 <code>postpartum</code> (<code>only_postpartum</code>) は、分娩手技の終了後に終わる shift に、産褥日数、<code>disease_exam.yaml</code> <code>delivery.modes.&lt;mode&gt;.obstetric_postpartum</code> の産科所見 (H&amp;P・経過記録と同じ文)、授乳と排尿が記録なしであること (記録にないので断定しない) を書く。疼痛と移動は、他の入院患者と同じく pain・mobility 項目が記録から書き、項目があるので定型の「特記事項なし」の行は書かない。</td>
+<td><code>narrative/_nursing_shift_items.py::_item_postpartum</code>, <code>modules/document/reference_data/nursing_shift_items.yaml</code></td>
+<td><code>tests/unit/modules/document/narrative/test_postpartum_shift_items_3664.py</code></td>
+</tr>
+<tr>
 <td>すでに文末記号で終わる文や身体部位別の文章は、冪等な <code>join_sentences(sentences, lang)</code> で連結する。区切り文字を直書きして連結するのは不具合である (文末記号が重なる: JA「。。」、EN「..」)。<code>format_physical_exam</code> は連結前に文末記号を取り除き、ED の身体所見も各部分を同じ方法で連結する (Issue #3410)。</td>
 <td><code>clinosim/modules/document/narrative/_visit_reason.py::join_sentences</code>、<code>renderers/_shared_helpers.py::format_physical_exam</code>、<code>renderers/section_builders/ed_note.py</code></td>
 <td><code>tests/unit/modules/document/narrative/test_doubled_terminators_3410.py</code></td>

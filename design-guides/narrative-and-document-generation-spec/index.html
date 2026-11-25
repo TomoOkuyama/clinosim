@@ -2680,6 +2680,11 @@
 <td><code>tests/unit/modules/document/narrative/test_postpartum_progress_notes_3687.py</code></td>
 </tr>
 <tr>
+<td>The nursing shift notes of a delivery stay record the postpartum observation (Issue #3664): the registry item <code>postpartum</code> (<code>only_postpartum</code>), in a shift that ends after the delivery procedure ended, states the postpartum day, the obstetric finding of <code>disease_exam.yaml</code> <code>delivery.modes.&lt;mode&gt;.obstetric_postpartum</code> (the text of the H&amp;P and the progress note) and that breastfeeding and voiding are not recorded (the record holds none, so none is asserted); the pain and mobility items state pain and mobility from the record as for any inpatient, and the stock "no significant findings" line is not written because the item exists.</td>
+<td><code>narrative/_nursing_shift_items.py::_item_postpartum</code>, <code>modules/document/reference_data/nursing_shift_items.yaml</code></td>
+<td><code>tests/unit/modules/document/narrative/test_postpartum_shift_items_3664.py</code></td>
+</tr>
+<tr>
 <td>Sentences or body-system texts that already end in a terminator are joined with the idempotent <code>join_sentences(sentences, lang)</code>; a hard-coded separator join is a bug (a doubled terminator: JA "。。", EN ".."). <code>format_physical_exam</code> strips a terminator before it joins, and the ED exam joins its parts the same way (Issue #3410).</td>
 <td><code>clinosim/modules/document/narrative/_visit_reason.py::join_sentences</code>, <code>renderers/_shared_helpers.py::format_physical_exam</code>, <code>renderers/section_builders/ed_note.py</code></td>
 <td><code>tests/unit/modules/document/narrative/test_doubled_terminators_3410.py</code></td>
