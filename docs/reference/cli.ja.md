@@ -97,6 +97,18 @@ version により `final` docStatus に昇格) から emit。
 | `--country CODE` | `US` | `US` または `JP` |
 | `--narrative-version ID` | `current` | Narrative version id (default は `current_version.txt` を参照) |
 
+## `clinosim catalog-codes` — リリースが出力しうる全コード
+
+このバージョンが国ごとに出力しうる全コードのカタログを、データセットの `catalog/codes-used.ndjson` ([出力形式](output-formats.ja.md)) と同じ形式 (`count` と `patients` を除く) で書く。参照データは simulator と FHIR builder が使う関数 (薬剤カタログと投与経路クラス、検査・微生物のコード表、コード体系レジストリ) を通して解決するため、一覧は上界であり、ある seed が引くコードではなく参照データが許すコードを示す。薬剤名は全ての指示経路と組で載る。JP カタログはエクスポートと同様に JP-CLINS パッケージに従う (パッケージ無しで `CLINOSIM_ALLOW_LEGACY_JP_CLINS_PKG=1` なら旧 JLAC10 コード)。各リリースは US と JP のファイルを添付する。
+
+| Option | Default | 説明 |
+| --- | --- | --- |
+| `--country CODE` | **必須** | `US` または `JP` |
+| `-o, --output FILE` | **必須** | 出力 NDJSON ファイル |
+| `--previous FILE` | なし | 比較対象の以前のリリースの同国カタログ |
+| `--diff-label TEXT` | `the previous release` | 比較で使う以前のリリース名 |
+| `--diff-output FILE` | stdout | 比較 (追加・削除・display / 単位の変更) を Markdown で書く先 |
+
 ## `clinosim test-disease [DISEASE_ID]`
 
 特定入院疾患の forced シナリオ生成 (デバッグ / golden fixture /

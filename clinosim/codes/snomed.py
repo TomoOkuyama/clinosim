@@ -59,6 +59,11 @@ def _phrase_entries() -> tuple[tuple[str, str], ...]:
     return tuple(out)
 
 
+def snomed_phrase_codes() -> tuple[str, ...]:
+    """Every SNOMED CT code ``snomed_for_phrase`` can return, in table order, without repeats."""
+    return tuple(dict.fromkeys(code for _match, code in _phrase_entries()))
+
+
 def snomed_for_phrase(text: str) -> str | None:
     """SNOMED CT code of a free-text procedure / order name: the first
     ``codes/data/procedure-phrase-to-snomed.yaml`` entry whose phrase occurs in

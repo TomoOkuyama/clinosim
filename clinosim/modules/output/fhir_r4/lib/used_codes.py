@@ -87,7 +87,10 @@ def _quantity_unit(q: Any) -> str | None:
 class UsedCodesCatalog:
     """Accumulates the codes of the emitted resources and writes the catalog."""
 
-    def __init__(self) -> None:
+    def __init__(self, *, release: bool = False) -> None:
+        # A release catalog (every code a version can emit) has the same lines
+        # without the usage fields ``count`` and ``patients``.
+        self._release = release
         self._entries: dict[Key, _Entry] = {}
         self._patient_ids: dict[str, int] = {}
         # Specimen type by id, and Observations seen before their Specimen, for
@@ -327,8 +330,9 @@ class UsedCodesCatalog:
                 line["text"] = entry.text
             if kind == "medication":
                 line["route"] = route
-            line["count"] = entry.count
-            line["patients"] = len(entry.patients)
+            if not self._release:
+                line["count"] = entry.count
+                line["patients"] = len(entry.patients)
             for name in sorted(entry.attrs):
                 values = [self._attr_value(name, v) for v in entry.attrs[name]]
                 line[name] = sorted(values, key=lambda v: json.dumps(v, sort_keys=True, ensure_ascii=False))

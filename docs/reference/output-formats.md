@@ -105,6 +105,8 @@ Each line has `kind`, `resource`, `element`, `system`, `code`, `display` (the em
 
 Every coding of a concept that carries a code gets its own line. Kind-specific attributes are present only when the emitted resource states them: medications carry `route_coding` (SNOMED route), `dose_units` (UCUM) and `co_coded` (the other codings of the same concept, e.g. the RxNorm product and its ingredient); observations carry `value_types`, `units` (UCUM), `reference_ranges`, `specimens` (type of the linked Specimen) and `components`; imaging carries `modalities` (DICOM) and `body_sites`. Concepts with text only (no code) are not listed. `MedicationAdministration`, `ServiceRequest`, `DiagnosticReport`, `Composition` and `Specimen` codes are not catalogued.
 
+The same format, without `count` and `patients`, is what [`clinosim catalog-codes`](cli.md#clinosim-catalog-codes--every-code-a-release-can-emit) writes for every code a release can emit; each release attaches `clinosim-codes-US-<tag>.ndjson` and `clinosim-codes-JP-<tag>.ndjson`, and a dataset's codes are a subset of them.
+
 ### Longitudinal service-line emit (v0.5 → v0.6.0)
 
 Both service lines emit through the standard resource files above —

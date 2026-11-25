@@ -99,6 +99,18 @@ promoted to `final` docStatus by the selected narrative version).
 | `--country CODE` | `US` | `US` or `JP` |
 | `--narrative-version ID` | `current` | Narrative version id (default reads the `current_version.txt` pointer) |
 
+## `clinosim catalog-codes` — every code a release can emit
+
+Writes the catalog of every code this version can emit for a country, in the format of a dataset's `catalog/codes-used.ndjson` ([Output formats](output-formats.md#used-codes-catalog)) without the `count` and `patients` fields. It resolves the reference data through the functions the simulator and the FHIR builders use (drug catalog and route classes, lab and microbiology code tables, code-system registries), so the list is an upper bound: what the reference data allows, not what one seed draws. A drug name is listed with every order route. The JP catalog follows the JP-CLINS package exactly as an export does (without the package, with `CLINOSIM_ALLOW_LEGACY_JP_CLINS_PKG=1`, the legacy JLAC10 codes). Each release attaches the US and JP files.
+
+| Option | Default | Description |
+|---|---|---|
+| `--country CODE` | **required** | `US` or `JP` |
+| `-o, --output FILE` | **required** | Output NDJSON file |
+| `--previous FILE` | none | The same country's catalog of an earlier release, to compare |
+| `--diff-label TEXT` | `the previous release` | Name of the earlier release in the comparison |
+| `--diff-output FILE` | stdout | Write the comparison (codes added, removed, display or unit changed) here as Markdown |
+
 ## `clinosim test-disease [DISEASE_ID]`
 
 Generate a forced scenario for a specific inpatient disease (debug /
