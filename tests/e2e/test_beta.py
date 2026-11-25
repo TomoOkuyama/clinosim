@@ -47,8 +47,21 @@ class TestBeta:
         (Issue #3037), and the stage identical across the records of one year — the
         stage may progress from one simulated year to the next (Issue #1581,
         year-aware stage snapshots). Guards against activate_patient being re-run
-        per encounter."""
+        per encounter.
+
+        A stage the stage_refresh enricher restates from the record's own labs
+        (CKD G category from eGFR, HbA1c stage; Issue #3250) follows the latest
+        lab of each record, so it may change between the records of one year
+        and is left out of the within-year check (Issue #3811); the
+        restatement itself is covered by the stage_refresh unit tests."""
         from collections import defaultdict
+
+        from clinosim.modules.longitudinal.stage_refresh import stage_from_labs_rules
+
+        rules = stage_from_labs_rules()
+
+        def lab_restated(code: str, stage: str) -> bool:
+            return code.upper().startswith(rules.ckd.icd_base) or str(stage or "").startswith(rules.hba1c.prefix)
 
         onsets = defaultdict(set)  # (patient_id, code) -> {onset_date}
         stages = defaultdict(set)  # (patient_id, code, year) -> {stage}
@@ -59,7 +72,8 @@ class TestBeta:
             year = rec.encounters[0].admission_datetime.year if rec.encounters else None
             for c in rec.patient.chronic_conditions:
                 onsets[(pid, c.code)].add(c.onset_date)
-                stages[(pid, c.code, year)].add(c.stage)
+                if not lab_restated(c.code, c.stage):
+                    stages[(pid, c.code, year)].add(c.stage)
         multi = [p for p, n in rec_count.items() if n > 1]
         assert multi, "test needs patients with >1 encounter to be meaningful"
         bad_onset = {k: v for k, v in onsets.items() if len(v) > 1}
