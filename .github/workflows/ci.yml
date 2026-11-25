@@ -253,7 +253,7 @@ jobs:
       - name: Run integration tests (shard ${{ matrix.shard }}/4, xdist -n 4)
         run: >
           pytest tests/integration -q --tb=short
-          -n 4 --dist=worksteal
+          -n 4 --dist=loadfile --durations=25
           --splits 4 --group ${{ matrix.shard }}
           --splitting-algorithm=least_duration
 
