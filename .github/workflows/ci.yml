@@ -33,14 +33,15 @@ on:
   pull_request:
     branches: [master]
 
-# Cancel an in-flight PR run when a newer push to the same PR arrives — no
-# point keeping a 20-minute integration job running on obsolete code. A
-# master run is never cancelled: it is the only run that tests the merged
-# combination of PRs that each passed CI on an older base, so a burst of
-# merges must not cancel the earlier ones.
+# Cancel an in-flight run when a newer push to the same ref arrives — on a
+# PR, no point testing obsolete code; on master (Issue #3770), the newest
+# run tests a tree that contains every earlier merge, so a burst of merges
+# keeps only the last run. The cost: when a master run fails, the commit
+# that broke it is found by bisecting between the last green master run
+# and the failing one, since the runs in between were cancelled.
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: true
 
 jobs:
   unit:
