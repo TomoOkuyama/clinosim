@@ -108,6 +108,8 @@ def _check_discharge_hgb(record: CIFPatientRecord, pid: str, report: Consistency
     """No patient should be discharged alive with Hgb < 7.0 g/dL."""
     if record.deceased or not record.physiological_states:
         return
+    if record.encounters and record.encounters[0].discharge_datetime is None:
+        return  # still in hospital at the snapshot: not discharged yet
     final_state = record.physiological_states[-1]
     anemia = final_state.anemia_level
     sex = record.patient.sex

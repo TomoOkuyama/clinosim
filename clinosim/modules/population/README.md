@@ -89,7 +89,10 @@ The simulation advances month by month in one forward loop
    `population_death_date`; the usual mortality draw is made either way), and
    a stay without a death course (unknown condition) moves the death to 1-30
    days after the discharge (`vital_status.defer_death_past_stay`, a
-   dedicated sub-seed; Issue #3633).
+   dedicated sub-seed; Issue #3633). A death after the snapshot (or window
+   end) is not known to the record, in hospital or not: the stay stays in
+   progress, and the patient has no death date, flag or death documents
+   (Issue #3759).
 5. **Birth** — a delivery registers the newborn (`newborn.register_newborn`);
    the newborn enrolls the day after the birth-stay discharge
    (`PersonRecord.enrolled_from`), gets a rest-of-year calendar, and from
