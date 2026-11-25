@@ -993,6 +993,9 @@ def _reconcile_encounters_at_snapshot(entries: list[dict], snapshot_iso: str) ->
         patient is still admitted.
       * ``period.end`` and ``length`` are removed — end date isn't
         known as of snapshot.
+      * ``hospitalization.dischargeDisposition`` is removed — the
+        destination or outcome of a stay that has not ended is not known
+        either (Issue #3760).
       * ``statusHistory`` entries whose ``period.start > snapshot`` are
         stripped and any surviving entry's ``period.end`` past snapshot
         is cleared, so the audit trail reflects the snapshot view.
@@ -1016,6 +1019,11 @@ def _reconcile_encounters_at_snapshot(entries: list[dict], snapshot_iso: str) ->
         res["status"] = "in-progress"
         per.pop("end", None)
         res.pop("length", None)
+        _hosp = res.get("hospitalization")
+        if isinstance(_hosp, dict):
+            _hosp.pop("dischargeDisposition", None)
+            if not _hosp:
+                res.pop("hospitalization")
         sh = res.get("statusHistory")
         if isinstance(sh, list):
             kept: list[dict] = []

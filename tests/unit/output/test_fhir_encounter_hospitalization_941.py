@@ -226,3 +226,44 @@ def test_ed_visit_without_admit_source_has_no_admit_source() -> None:
 def test_inpatient_without_admit_source_still_gets_the_fallback() -> None:
     r = _build_encounter(_build_imp(admit_source=""), patient_id="POP-000001", country="US")
     assert _admit_concept(r), "an IMP encounter keeps the yaml fallback admit source"
+
+
+# ---------- Issue #3760: an unfinished stay carries no explicit disposition ----------
+
+
+@pytest.mark.parametrize("encounter_type", ["inpatient", "emergency"])
+@pytest.mark.parametrize("disposition", ["home", "exp"])
+@pytest.mark.parametrize("country", ["US", "JP"])
+def test_in_progress_encounter_with_cif_disposition_omits_it(
+    encounter_type: str, disposition: str, country: str
+) -> None:
+    enc = _build_imp(
+        encounter_type=encounter_type, admit_source="emd", status="in_progress", discharge_disposition=disposition
+    )
+    enc.pop("discharge_datetime", None)
+    r = _build_encounter(enc, patient_id="POP-000001", country=country, deceased=disposition == "exp")
+    assert r["status"] == "in-progress"
+    assert not _dispo_concept(r)
+
+
+@pytest.mark.parametrize("encounter_type", ["inpatient", "emergency"])
+def test_finished_encounter_with_cif_disposition_keeps_it(encounter_type: str) -> None:
+    enc = _build_imp(encounter_type=encounter_type, admit_source="emd", discharge_disposition="home")
+    r = _build_encounter(enc, patient_id="POP-000001", country="US")
+    assert _dispo_concept(r)["coding"][0]["code"] == "home"
+
+
+def test_snapshot_reconcile_drops_the_disposition_of_a_stay_that_crosses_the_snapshot() -> None:
+    """Issue #3760: a stay ending after the snapshot reverts to in-progress and
+    loses its end, so it also loses the destination / outcome it would have had."""
+    from clinosim.modules.output.fhir_r4.builder import _reconcile_encounters_at_snapshot
+
+    for country in ("US", "JP"):
+        enc = _build_imp(admit_source="emd", discharge_disposition="home")
+        res = _build_encounter(enc, patient_id="POP-000001", country=country)
+        assert _dispo_concept(res)
+        entries = [{"resource": res}]
+        _reconcile_encounters_at_snapshot(entries, "2026-01-18")
+        assert res["status"] == "in-progress"
+        assert not _dispo_concept(res)
+        assert "admitSource" in _hosp(res)
