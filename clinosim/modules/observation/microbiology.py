@@ -178,6 +178,16 @@ def antibiotic_loinc_lookup() -> dict[str, str]:
     return {str(k): str(v) for k, v in (_load().get("antibiotics") or {}).items()}
 
 
+def culture_test_loincs() -> dict[str, str]:
+    """Culture specimen -> the LOINC of its culture test (``specimens`` in microbiology.yaml)."""
+    return {str(k): str(v["test_loinc"]) for k, v in (_load().get("specimens") or {}).items() if v.get("test_loinc")}
+
+
+def organism_snomed_codes() -> tuple[str, ...]:
+    """SNOMED CT code of every organism the cultures can grow (``organisms`` in microbiology.yaml)."""
+    return tuple(str(v["snomed"]) for v in (_load().get("organisms") or {}).values() if v.get("snomed"))
+
+
 def culture_order_names(specimen: str) -> frozenset[str]:
     """Canonical lab-order names that request a culture of ``specimen`` (Issue #2585)."""
     spec = (_load().get("specimens") or {}).get(specimen) or {}

@@ -181,6 +181,14 @@ def route_class(route: str) -> str:
     return _route_class_index().get((route or "").strip().casefold(), "")
 
 
+def class_routes() -> dict[str, tuple[str, ...]]:
+    """Order routes of each route class (``route_classes`` in drugs.yaml), as written there."""
+    return {
+        str(rc): tuple(str(r) for r in routes or ())
+        for rc, routes in (_raw_catalog().get("route_classes") or {}).items()
+    }
+
+
 def jp_drug_code(drug_ref: str, route: str = "") -> str | None:
     """JP YJ product code of a drug (catalog id, English name or alias) given by
     ``route``; ``None`` when the drug has no listed product for that route
@@ -472,6 +480,21 @@ def rxnorm_scd_codes(drug_id: str) -> tuple[str, ...]:
     """Every RxNorm SCD listed for a catalog drug (Issue #2614)."""
     routes = _scd_table().get(drug_id) or {}
     return tuple(str(e["rxcui"]) for entries in routes.values() for e in entries)
+
+
+def rxnorm_scd_products(drug_id: str) -> dict[str, tuple[tuple[str, float, str], ...]]:
+    """A drug's RxNorm SCDs by route class: ``(rxcui, first strength, strength unit)`` each."""
+    out: dict[str, tuple[tuple[str, float, str], ...]] = {}
+    for rc, entries in (_scd_table().get(drug_id) or {}).items():
+        out[str(rc)] = tuple(
+            (
+                str(e["rxcui"]),
+                float(e["strength"][0] if isinstance(e["strength"], list) else e["strength"]),
+                str(e["unit"]),
+            )
+            for e in entries
+        )
+    return out
 
 
 def rxnorm_scd_code(drug: str, route: str, dose_quantity: Any, dose_unit: str) -> str | None:

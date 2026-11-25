@@ -113,6 +113,8 @@ output/
 
 concept のコードを持つ coding はそれぞれ 1 行になる。kind 固有の属性は出力リソースが述べている場合のみ付く: 医薬品は `route_coding` (SNOMED 経路)、`dose_units` (UCUM)、`co_coded` (同じ concept の他の coding。例: RxNorm の製品と成分)、検査系 Observation は `value_types`、`units` (UCUM)、`reference_ranges`、`specimens` (紐づく Specimen の種別)、`components`、画像は `modalities` (DICOM) と `body_sites`。text のみでコードの無い concept は載せない。`MedicationAdministration`・`ServiceRequest`・`DiagnosticReport`・`Composition`・`Specimen` のコードはカタログ対象外。
 
+同じ形式 (`count` と `patients` なし) を [`clinosim catalog-codes`](cli.ja.md#clinosim-catalog-codes--リリースが出力しうる全コード) がリリースの出力しうる全コードについて書く。各リリースは `clinosim-codes-US-<tag>.ndjson` と `clinosim-codes-JP-<tag>.ndjson` を添付し、データセットのコードはその部分集合になる。
+
 ### 縦断サービスライン emit (v0.5 → v0.6.0)
 
 いずれのサービスラインも上記標準リソースファイルを通じて emit —

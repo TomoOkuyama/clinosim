@@ -112,6 +112,11 @@ def _ed_vaccine_config() -> dict[str, Any]:
     return load_validated_yaml(_ED_DOSES_PATH, _EdVaccineDoses)
 
 
+def ed_vaccine_cvx() -> tuple[str, ...]:
+    """CVX of every vaccine an emergency-department order can give (``drug_cvx``)."""
+    return tuple(dict.fromkeys(_ed_vaccine_config()["drug_cvx"].values()))
+
+
 def ed_vaccine_doses(records: list) -> list[ImmunizationRecord]:
     """The Immunizations of the vaccine doses a patient was given as one-time
     orders in the emergency department (Issue #3685): each given

@@ -136,6 +136,42 @@ jobs:
           done
           ls -la dataset-dist/
 
+      - name: Build the code catalogs and compare them with the previous release
+        # `clinosim catalog-codes` lists every code this version can emit for
+        # a country, in the format of a dataset's catalog/codes-used.ndjson
+        # (Issue #3763). It is attached to the release, and its difference
+        # from the previous release's file (codes added, removed, display or
+        # unit changed) is appended to the release notes. The comparison uses
+        # only `gh` (already on the runner) and the CLI; when the previous
+        # release has no catalog (the first release with this step), it is
+        # skipped. JP follows the same pkg-less posture as the dataset
+        # presets above.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CLINOSIM_ALLOW_LEGACY_JP_CLINS_PKG: "1"
+        run: |
+          mkdir -p catalog-dist previous-catalog
+          PREVIOUS_TAG=$(gh release list --exclude-pre-releases --limit 20 --json tagName --jq '.[].tagName' \
+            | grep -vx "${GITHUB_REF_NAME}" | head -n 1 || true)
+          for cc in US JP; do
+            OUT="catalog-dist/clinosim-codes-${cc}-${GITHUB_REF_NAME}.ndjson"
+            PREVIOUS=""
+            if [ -n "${PREVIOUS_TAG}" ]; then
+              gh release download "${PREVIOUS_TAG}" --pattern "clinosim-codes-${cc}-*.ndjson" \
+                --dir previous-catalog --clobber || true
+              PREVIOUS=$(ls previous-catalog/clinosim-codes-${cc}-*.ndjson 2>/dev/null | head -n 1 || true)
+            fi
+            if [ -n "${PREVIOUS}" ]; then
+              clinosim catalog-codes --country "${cc}" -o "${OUT}" \
+                --previous "${PREVIOUS}" --diff-label "${PREVIOUS_TAG}" --diff-output "diff-${cc}.md"
+              { echo; cat "diff-${cc}.md"; } >> release_notes.md
+            else
+              echo "No previous catalog for ${cc}; skipping the comparison."
+              clinosim catalog-codes --country "${cc}" -o "${OUT}"
+            fi
+          done
+          ls -la catalog-dist/
+
       - name: Create GitHub Release with artifacts
         env:
           GH_TOKEN: ${{ github.token }}
@@ -145,7 +181,8 @@ jobs:
             --notes-file release_notes.md \
             dist/clinosim-*.tar.gz \
             dist/clinosim-*.whl \
-            dataset-dist/clinosim-dataset-*.tar.gz
+            dataset-dist/clinosim-dataset-*.tar.gz \
+            catalog-dist/clinosim-codes-*.ndjson
 
       - name: Publish to PyPI (Trusted Publishing / OIDC)
         # Uploads dist/*.whl + dist/*.tar.gz to PyPI using OIDC token

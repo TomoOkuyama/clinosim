@@ -12,6 +12,7 @@ import argparse
 import sys
 
 from clinosim.simulator import (
+    cli_catalog_codes,
     cli_diff,
     cli_enumerate,
     cli_export_fhir,
@@ -42,6 +43,7 @@ def main() -> None:
     cli_list_diseases.register(sub)
     cli_narrate.register_narrate(sub)
     cli_export_fhir.register(sub)
+    cli_catalog_codes.register(sub)
     cli_test_encounter.register(sub)
     cli_enumerate.register(sub)
     cli_diff.register(sub)
