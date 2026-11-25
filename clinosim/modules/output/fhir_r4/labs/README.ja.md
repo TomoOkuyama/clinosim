@@ -14,6 +14,8 @@ dispatcher (`coding_strategy`)。
 する。`Specimen.receivedTime` は採取時刻 +
 `observation.microbiology.specimen_transport_minutes`。
 
+質問票の総合点 (`lib/common.py` の `QUESTIONNAIRE_SCORE_ANALYTES`: PHQ-9・GAD-7・C-SSRS・EPDS、Issue #3802) は `survey` の Observation で、`specimen`・分析器 `method`・companion Specimen を持たない。ServiceRequest と DiagnosticReport も検体検査ではなく評価手技 (SNOMED 386053000) で、レポートに検査用 profile は付けない。
+
 ## Scope
 
 - **In scope**: `_bb_labs` (lab Observation) + `_build_vital_observations`

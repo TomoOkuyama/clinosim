@@ -17,6 +17,8 @@ effective at the specimen collection and `issued` at the report;
 `Specimen.receivedTime` is the collection plus
 `observation.microbiology.specimen_transport_minutes`.
 
+Questionnaire total scores (`QUESTIONNAIRE_SCORE_ANALYTES` in `lib/common.py`: PHQ-9, GAD-7, C-SSRS, EPDS; Issue #3802) are `survey` Observations with no `specimen`, no analyzer `method` and no companion Specimen; their ServiceRequest and DiagnosticReport are evaluation procedures (SNOMED 386053000), not laboratory ones, and the report declares no lab profile.
+
 ## Scope
 
 - **In scope**: `_bb_labs` (lab Observation) + `_build_vital_observations`

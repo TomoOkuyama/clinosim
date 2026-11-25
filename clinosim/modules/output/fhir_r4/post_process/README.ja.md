@@ -31,7 +31,7 @@ builder が resource を返した直後に resource 単位で呼ばれる —
     `_encounter_satisfies_ecs`) も
     所有。未使用の `_FHIR_ID_PATTERN` local copy を持つ。
   - `specimen.py` — lab Observation (id prefix `lab-` で builder 側
-    `specimen` 未設定のもの。microbiology は自前 Specimen を持つ)
+    `specimen` 未設定のもの。microbiology は自前 Specimen を持つ。`survey` の質問票スコアとバイタルには作らない、Issue #3802)
     ごとに companion `Specimen` resource を合成。
     `_COMPANION_SPECIMEN_ID_PREFIX = "spec-"` (`lib/ids.py` で opaque
     id)、SNOMED type code `_SPECIMEN_SNOMED_BLOOD = "119297000"` /

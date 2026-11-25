@@ -34,7 +34,7 @@ resource — not as a separate pass over an assembled bundle.
     copy of `_FHIR_ID_PATTERN`.
   - `specimen.py` — synthesises a companion `Specimen` resource per
     lab Observation (id prefix `lab-`, no builder-set `specimen`;
-    microbiology carries its own Specimen) with
+    microbiology carries its own Specimen; a `survey` questionnaire score and a vital sign get none, Issue #3802) with
     `_COMPANION_SPECIMEN_ID_PREFIX = "spec-"` (opaque id via
     `lib/ids.py`) and SNOMED type codes `_SPECIMEN_SNOMED_BLOOD =
     "119297000"` / `_SPECIMEN_SNOMED_URINE = "122575003"` (displays

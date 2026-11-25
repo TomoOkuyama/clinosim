@@ -84,13 +84,17 @@ def _lab_observation_needs_specimen(resource: dict) -> bool:
     different prefixes and either have their own Specimen (microbiology) or
     require none. Detect by id prefix + absence of a builder-set `specimen`.
     A vital sign on a lab result id (a health-checkup body measurement,
-    Issue #3167) is measured on the body and has no specimen.
+    Issue #3167) is measured on the body and a questionnaire score (survey
+    category, Issue #3802) is administered; neither has a specimen.
     """
     if resource.get("resourceType") != "Observation":
         return False
     if resource.get("specimen"):
         return False
     if any(cd.get("code") == "vital-signs" for c in resource.get("category") or [] for cd in c.get("coding") or []):
+        return False
+    # A questionnaire score is administered, not drawn from a specimen (Issue #3802).
+    if any(cd.get("code") == "survey" for c in resource.get("category") or [] for cd in c.get("coding") or []):
         return False
     rid = resource.get("id", "")
     return isinstance(rid, str) and rid.startswith("lab-")
