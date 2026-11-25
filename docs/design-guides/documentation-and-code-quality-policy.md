@@ -205,11 +205,11 @@ profile or spec mandates stays a code branch (the grand design in
 ## 6. Dead-code hygiene
 
 - CI runs `ruff check` (which includes F401 unused import and F841 unused
-  local) as errors in the merge-blocking `Quality (ruff + format + mypy)`
+  local) as errors in the merge-blocking `Static checks (ruff, format, mypy, vulture, build)`
   job. This is baseline.
 - CI also runs `vulture` at 60 % confidence against a project-level
   by-design whitelist ([`.vulture-whitelist.py`](../../.vulture-whitelist.py))
-  on every PR (`vulture dead-code` job — merge-blocking). Any new finding
+  on every PR (a step of the merge-blocking `Static checks` job). Any new finding
   not covered by an existing whitelist entry fails the job.
 - The whitelist is categorised. When adding a new entry, place it under
   the correct category (dataclass / Pydantic fields; Protocol / ABC

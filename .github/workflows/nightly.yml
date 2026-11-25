@@ -27,7 +27,7 @@
 #
 #   - slow end-to-end tests (Issue #3070): tests/e2e/test_forced_scenario.py
 #     (~3.5 min locally), test_us_mode.py (~6 min), test_beta.py (~7.5 min).
-#     The fast e2e files run on every PR (ci.yml `e2e-fast`).
+#     The fast e2e files run on every PR (ci.yml `fast-tests`).
 #
 # Any failure here should be triaged the next morning: `git bisect` the
 # last night's merges to find the offender.

@@ -196,13 +196,13 @@ Python に置くと、型検査され、名前で辿れ、使う場所で文書�
 
 ## 6. Dead-code 衛生
 
-- CI は merge-blocking の `Quality (ruff + format + mypy)` ジョブで
+- CI は merge-blocking の `Static checks (ruff, format, mypy, vulture, build)` ジョブで
   `ruff check` (F401 未使用 import・F841 未使用 local を含む) を error として
   実行。これが baseline。
 - CI はまた `vulture` を 60% confidence で
   ([`.vulture-whitelist.py`](../../.vulture-whitelist.py) の
   プロジェクトレベル by-design whitelist に対して) 全 PR で実行
-  (`vulture dead-code` ジョブ — merge-blocking)。既存 whitelist エン
+  (merge-blocking の `Static checks` ジョブのステップ)。既存 whitelist エン
   トリでカバーされない新規 finding はジョブ fail。
 - Whitelist はカテゴリ分け。新規エントリ追加時は正しいカテゴリ
   (dataclass / Pydantic field; Protocol / ABC signature; test-only

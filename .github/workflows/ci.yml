@@ -6,14 +6,13 @@
 #   - integration tests on Python 3.12 (10 pytest-split shards × xdist -n 2)
 #   - a `CI result` job that needs every job above and fails if any of them
 #     did not succeed; the master ruleset requires it (Issue #3765)
-#   - fast end-to-end tests (tests/e2e/test_alpha_golden.py +
+#   - fast tests (Issue #3771, one job): narrative regression goldens and
+#     the fast end-to-end tests (tests/e2e/test_alpha_golden.py +
 #     test_identity_jp.py, ~1 min locally; Issue #3070). The slow e2e
 #     files (forced scenario ~3.5 min, US mode ~6 min, beta ~7.5 min
 #     locally) run nightly, see `nightly.yml`.
-#   - narrative regression goldens
-#   - quality: ruff check + ruff format --check + mypy strict (combined;
-#     the lint / type debt that once kept it informational is cleared)
-#   - vulture dead-code
+#   - static checks (Issue #3771, one job): ruff check, ruff format --check,
+#     mypy strict, vulture dead-code, sdist + wheel build and twine check
 #
 # Informational (does not block merge; master pushes only, Issue #3772):
 #   - unit test coverage combine (80 % soft floor)
@@ -239,14 +238,81 @@ jobs:
           --splits 10 --group ${{ matrix.shard }}
           --splitting-algorithm=least_duration
 
-  regression:
-    # Narrative goldens (tests/fixtures/patient_profiles/*.golden.json) for
-    # the template and mock-LLM generators. ~1 min; runs on every PR so a
-    # narrative change must regenerate the goldens in the same PR (AD-66,
-    # Issue #2442 — the opt-in suite had drifted for two months).
-    name: Narrative regression (goldens)
+  static-checks:
+    # Issue #3771: ruff, format, mypy, vulture and the package build used to be
+    # three jobs that each spent most of their run on checkout + install. One
+    # job, one install; each check is its own step, and every step after the
+    # install runs even when an earlier check failed (`!cancelled()`), so one
+    # run reports every failing check by name.
+    #
+    # ruff is exact-pinned (Issue #449): CI and local envs resolve to the same
+    # ruff version so lint failures reproduce byte-identically. Must equal
+    # pyproject.toml's dev-extras ruff pin (a guard test checks it).
+    #
+    # vulture (policy §6, docs/design-guides/documentation-and-code-quality-policy.md)
+    # runs at min-confidence 60 % against `.vulture-whitelist.py`; any new
+    # finding not covered by the whitelist fails the step. At 80 % the tree
+    # yields only 1 finding, so 60 % is the useful signal band, and the
+    # categorised whitelist holds the legitimate false positives.
+    name: Static checks (ruff, format, mypy, vulture, build)
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.13.7"  # pinned: an unpinned "latest" lookup can fail the job; bump on purpose
+          enable-cache: true
+          cache-dependency-glob: pyproject.toml
+      - name: Install (with dev extras) and pinned tools
+        run: |
+          uv pip install --system -e ".[dev]"
+          uv pip install --system "ruff==0.17.5" "vulture==2.16" build twine
+      - name: ruff check
+        if: ${{ !cancelled() }}
+        run: ruff check clinosim/ tests/
+      - name: ruff format --check
+        if: ${{ !cancelled() }}
+        run: ruff format --check clinosim/ tests/
+      - name: mypy
+        if: ${{ !cancelled() }}
+        run: mypy clinosim/
+      - name: vulture (with whitelist)
+        if: ${{ !cancelled() }}
+        run: vulture clinosim/ .vulture-whitelist.py --min-confidence 60
+      - name: Build sdist + wheel
+        if: ${{ !cancelled() }}
+        run: python -m build
+      - name: Verify PyPI-compatible metadata
+        if: ${{ !cancelled() }}
+        run: twine check dist/*
+      - name: Upload build artifacts
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist/*
+          retention-days: 7
+
+  fast-tests:
+    # Issue #3771: the narrative goldens and the fast e2e files, one install,
+    # each its own step (the second runs even when the first failed).
+    #
+    # Narrative goldens (tests/fixtures/patient_profiles/*.golden.json) for the
+    # template and mock-LLM generators run on every PR so a narrative change
+    # must regenerate the goldens in the same PR (AD-66, Issue #2442 — the
+    # opt-in suite had drifted for two months).
+    #
+    # Issue #3070: the e2e tier was run by no workflow, so two JP identity
+    # tests failed on master unnoticed. The fast files run on every PR; the
+    # slow ones nightly (nightly.yml `e2e-slow`).
+    name: Fast tests (narrative regression, e2e)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -261,125 +327,11 @@ jobs:
       - name: Install (with dev extras)
         run: uv pip install --system -e ".[dev]"
       - name: Run the narrative regression suite
+        if: ${{ !cancelled() }}
         run: pytest tests/regression -m regression -q --tb=short
-
-  e2e-fast:
-    # Issue #3070: the e2e tier was run by no workflow, so two JP identity
-    # tests failed on master unnoticed. The fast files run on every PR; the
-    # slow ones nightly (nightly.yml `e2e-slow`).
-    name: E2E tests (fast)
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.12"
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          version: "0.13.7"  # pinned: an unpinned "latest" lookup can fail the job; bump on purpose
-          enable-cache: true
-          cache-dependency-glob: pyproject.toml
-      - name: Install (with dev extras)
-        run: uv pip install --system -e ".[dev]"
       - name: Run the fast e2e tests
+        if: ${{ !cancelled() }}
         run: pytest tests/e2e/test_alpha_golden.py tests/e2e/test_identity_jp.py -q --tb=short
-
-
-  vulture-dead-code:
-    name: vulture dead-code
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    # Merge-blocking semantic dead-code guard (policy §6 — see
-    # docs/design-guides/documentation-and-code-quality-policy.md).
-    # Runs `vulture` at min-confidence 60 % against the project's
-    # `.vulture-whitelist.py`. Any new finding not covered by the
-    # whitelist fails the job. When adding a new whitelist entry,
-    # categorise it per the header comment inside `.vulture-whitelist.py`.
-    #
-    # Threshold is 60 % (not vulture's default 60 % nor a stricter 80 %):
-    # at 80 % the tree yields only 1 finding, so 60 % is the useful
-    # signal band for this codebase, and the categorised whitelist
-    # captures the (large) legitimate false-positive population.
-    #
-    # No `pip install -e ".[dev]"` step: vulture analyses source files
-    # directly and does not need the project's runtime dependencies.
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.12"
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          version: "0.13.7"  # pinned: an unpinned "latest" lookup can fail the job; bump on purpose
-          enable-cache: true
-          cache-dependency-glob: pyproject.toml
-      - name: Install pinned vulture
-        run: uv pip install --system "vulture==2.16"
-      - name: vulture (with whitelist)
-        run: vulture clinosim/ .vulture-whitelist.py --min-confidence 60
-
-  quality:
-    name: Quality (ruff + format + mypy)
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    # Merge-blocking: ruff check (all rules, which includes the former
-    # separate F401 / F841 dead-code job), ruff format --check and mypy
-    # strict. One runner, one install.
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.12"
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          version: "0.13.7"  # pinned: an unpinned "latest" lookup can fail the job; bump on purpose
-          enable-cache: true
-          cache-dependency-glob: pyproject.toml
-      - name: Install (with dev extras)
-        run: uv pip install --system -e ".[dev]"
-      - name: Install pinned ruff
-        # Exact-pinned (Issue #449): CI and local envs resolve to the same
-        # ruff version so lint failures reproduce byte-identically. Must
-        # equal pyproject.toml's dev-extras ruff pin (a guard test checks it).
-        run: uv pip install --system "ruff==0.17.5"
-      - name: ruff check
-        run: ruff check clinosim/ tests/
-      - name: ruff format --check
-        run: ruff format --check clinosim/ tests/
-      - name: mypy
-        run: mypy clinosim/
-
-  packaging:
-    name: Build sdist + wheel
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.12"
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          version: "0.13.7"  # pinned: an unpinned "latest" lookup can fail the job; bump on purpose
-          enable-cache: true
-          cache-dependency-glob: pyproject.toml
-      - name: Install build tools
-        run: uv pip install --system build twine
-      - name: Build sdist + wheel
-        run: python -m build
-      - name: Verify PyPI-compatible metadata
-        run: twine check dist/*
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: dist
-          path: dist/*
-          retention-days: 7
 
   ci-result:
     # Issue #3765: one aggregate check whose name never changes, so the master
@@ -390,7 +342,7 @@ jobs:
     name: CI result
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [unit, integration, regression, e2e-fast, vulture-dead-code, quality, packaging]
+    needs: [unit, integration, static-checks, fast-tests]
     if: always()
     steps:
       - name: Fail unless every required job succeeded
