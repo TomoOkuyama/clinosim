@@ -4,7 +4,9 @@
 by none until it joined the unit job, so failures there went unnoticed. This
 guard reads the `pytest` commands of the PR and nightly workflows and fails
 when a top-level test directory (or an e2e file, since e2e is split between
-the two workflows by file) is not on any of them.
+the two workflows by file) is not on any of them. A test shard that runs
+`pytest $(python scripts/ci_split_by_file.py --splits N --group G <dirs>)`
+runs the files of `<dirs>`, so those directories count as covered.
 """
 
 from __future__ import annotations
@@ -19,6 +21,8 @@ pytestmark = pytest.mark.unit
 _ROOT = Path(__file__).resolve().parents[3]
 _WORKFLOWS = ("ci.yml", "nightly.yml")
 _PYTEST_ARGS = re.compile(r"pytest((?:\s+tests/[\w./-]+)+)")
+# `pytest $(python scripts/ci_split_by_file.py --splits 4 --group ${{ matrix.shard }} tests/integration)`
+_SPLIT_ARGS = re.compile(r"ci_split_by_file\.py(?:\s+--[\w-]+\s+(?:\$\{\{[^}]*\}\}|\S+))*((?:\s+tests/[\w./-]+)+)")
 
 
 def _pytest_targets() -> set[str]:
@@ -27,8 +31,9 @@ def _pytest_targets() -> set[str]:
         text = (_ROOT / ".github" / "workflows" / name).read_text(encoding="utf-8")
         # Folded (`>`) run blocks put arguments on continuation lines.
         flat = re.sub(r"\n\s+", " ", text)
-        for match in _PYTEST_ARGS.finditer(flat):
-            targets.update(arg.rstrip("/") for arg in match.group(1).split())
+        for pattern in (_PYTEST_ARGS, _SPLIT_ARGS):
+            for match in pattern.finditer(flat):
+                targets.update(arg.rstrip("/").rstrip(")") for arg in match.group(1).split())
     return targets
 
 
