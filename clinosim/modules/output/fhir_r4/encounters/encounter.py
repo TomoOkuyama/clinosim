@@ -654,7 +654,11 @@ def _set_hospitalization(
     _lang = lang_for(country)
     if _emit_hospitalization and enc.get("admit_source"):
         hosp["admitSource"] = dual_slot_concept("hl7-admit-source", enc["admit_source"], _lang)
-    if _emit_hospitalization and enc.get("discharge_disposition"):
+    # Issue #3760: an encounter that has not ended has no discharge destination
+    # or outcome yet, whatever the CIF disposition says.
+    _cif_status = enc.get("status", "")
+    _is_finished = _cif_status in ("completed", "finished")
+    if _emit_hospitalization and enc.get("discharge_disposition") and _is_finished:
         # Issue #3150: the country's table decides what the element codes —
         # the destination (HL7) or the DPC discharge outcome of a JP stay.
         _dd = discharge_disposition_concept(enc, class_code, country, deceased=deceased)
@@ -692,8 +696,6 @@ def _set_hospitalization(
     # patient's final finished encounter is marked with the
     # yaml-configured "expired" code so hospital-mortality analytics do
     # not require a LEFT-JOIN with Patient.deceasedDateTime.
-    _cif_status = enc.get("status", "")
-    _is_finished = _cif_status in ("completed", "finished")
     if _emit_hospitalization and not hosp.get("dischargeDisposition") and _is_finished:
         _dd = discharge_disposition_concept(enc, class_code, country, deceased=deceased)
         if _dd:
