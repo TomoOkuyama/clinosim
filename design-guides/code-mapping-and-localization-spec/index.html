@@ -3172,6 +3172,30 @@
 </tbody>
 </table>
 <p>Guard: <code>tests/unit/output/test_immunization_program_3660.py</code>.</p>
+<p>An outpatient <code>Encounter.type</code> follows the visit's reason, not the encounter-type default (Issue #3657). <code>modules/output/fhir_r4/reference_data/encounter_visit_type.yaml</code> is the table, applied by <code>encounters/encounter.py</code> <code>_outpatient_type_code</code>; the first rule that matches wins:</p>
+<table>
+<thead>
+<tr>
+<th>Visit</th>
+<th>SNOMED type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>chief complaint (either language, case-insensitive) holds <code>vaccination</code>, <code>immunization</code>, <code>screening</code>, <code>予防接種</code> or <code>健康診断</code>, or the reason code is Z23-Z27</td>
+<td>270427003 Patient-initiated encounter</td>
+</tr>
+<tr>
+<td>pediatric acute illness (<code>visit_condition_id</code> is a <code>presentations</code> entry of the pediatric schedule, <code>pediatric.calendar.is_acute_illness_condition</code>)</td>
+<td>11429006 Consultation</td>
+</tr>
+<tr>
+<td>chief complaint starting <code>Follow-up</code>, <code>フォローアップ</code> or <code>Post-discharge</code>, or any other visit with a diagnosis</td>
+<td>185349003 Encounter for check up</td>
+</tr>
+</tbody>
+</table>
+<p>Guard: <code>tests/unit/output/test_encounter_type_3657.py</code>; <code>tests/unit/modules/pediatric/test_acute_illness_single_source_3657.py</code> keeps the visit-note reason table's acute-illness conditions equal to the pediatric presentations.</p>
 <h2 id="4-resolution-functions">4. Resolution functions<a class="headerlink" href="#4-resolution-functions" title="Permanent link">&para;</a></h2>
 <p>Consumers resolve names only through these functions.</p>
 <h3 id="41-code-systems-clinosimcodes">4.1 Code systems (<code>clinosim.codes</code>)<a class="headerlink" href="#41-code-systems-clinosimcodes" title="Permanent link">&para;</a></h3>
