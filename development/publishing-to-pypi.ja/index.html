@@ -2445,7 +2445,7 @@ Release を作成し、同じジョブ内で wheel + sdist を PyPI にアップ
 <li><code>nightly.yml</code> — master に対する reproducibility gate。リリース
   切り出し前に手動実行 (<code>workflow_dispatch</code>) して、前回 nightly から
   の silent determinism drift を検出する。</li>
-<li><code>jp-clins-lab-compliance-gate.yml</code> — JP-CLINS 不変条件 check。
+<li><code>jp-clins-lab-compliance-gate.yml</code> — JP-CLINS lab と JP Core narrow の不変条件 check。
   タグ push の前に release commit で green である必要あり。</li>
 </ul>
 
