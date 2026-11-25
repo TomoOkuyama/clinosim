@@ -2418,21 +2418,18 @@
 <li><strong><code>CHANGELOG.md</code> を更新</strong> — <code>[Unreleased]</code> 節にユーザー向け挙動
    変更の bullet を追記。docs-only PR のみ省略可。</li>
 <li><strong>PR を開く</strong> — PR テンプレートが checklist を案内。</li>
-<li><strong>merge 前に CI 必須 job がすべて green</strong>:</li>
-<li><code>Unit tests (Py 3.12 shard 1/3, 2/3, 3/3)</code></li>
-<li><code>Integration tests (shard 1/10 〜 10/10)</code></li>
-<li><code>Narrative regression (goldens)</code></li>
-<li><code>Build sdist + wheel</code></li>
+<li><strong>merge 前に CI が green</strong>。master の ruleset が必須とするチェックは 2 つ:</li>
+<li><code>CI result</code> — <a href="https://github.com/TomoOkuyama/clinosim/blob/master/.github/workflows/ci.yml"><code>ci.yml</code></a> の gate job
+     (unit / integration の各 shard、<code>Narrative regression (goldens)</code>、
+     <code>E2E tests (fast)</code>、<code>Quality (ruff + format + mypy)</code>、
+     <code>vulture dead-code</code>、<code>Build sdist + wheel</code>) がすべて成功したときだけ通る</li>
 <li><code>Signed-off-by check</code></li>
-<li><code>mkdocs build</code></li>
-<li><code>JP-CLINS lab compliance gate</code> / <code>JP Core narrow compliance gate</code> /
-     <code>US Core narrow compliance gate</code> (FHIR 出力に影響する path を変更した
-     PR のみ実行)</li>
-<li><code>E2E tests (fast)</code></li>
-<li><code>Quality (ruff + format + mypy)</code> — ruff check + ruff format --check + mypy</li>
-<li><code>vulture dead-code</code></li>
 </ol>
-<p>Informational (merge-block しない):
+<p>merge-block しないが実行されるもの:
+   - <code>mkdocs build</code> (docs サイトが読むファイルを変更した PR のみ)
+   - <code>JP-CLINS lab compliance gate</code> / <code>JP Core narrow compliance gate</code> /
+     <code>US Core narrow compliance gate</code> (FHIR 出力に影響する path を変更した
+     PR のみ実行)
    - <code>Unit test coverage combine (informational)</code></p>
 <p>Python 3.11 unit-test 互換性は nightly 実行
    (<a href="https://github.com/TomoOkuyama/clinosim/blob/master/.github/workflows/nightly.yml"><code>.github/workflows/nightly.yml</code></a>)。
