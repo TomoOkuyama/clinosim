@@ -2889,7 +2889,7 @@ that carries the rest.</em></p>
 </tr>
 <tr>
 <td>Postpartum encounters × 2</td>
-<td>7 d + 28 d after delivery date, <code>chronic_visit</code> with <code>disease_id="Z39"</code>, routed to <code>obstetrics_gynecology</code>. Year-boundary clamped (Dec 31) when the delivery is in December.</td>
+<td>7 d + 28 d after delivery date, <code>chronic_visit</code> with <code>disease_id="Z39"</code>, routed to <code>obstetrics_gynecology</code>. Year-boundary clamped (Dec 31) when the delivery is in December. Each visit records one Edinburgh Postnatal Depression Scale total score (lab-pipeline Observation, LOINC 99046-5, flagged H at or above the country cutoff: US 10, JP 9; positive share from <code>perinatal.yaml::postpartum_depression_screen</code>, drawn from a dedicated sub-seed of the encounter id); the note states it and a positive screen adds a referral / follow-up Plan line (Issue #3751).</td>
 <td><code>perinatal.yaml::lifecycle.postpartum_visit_offsets_days</code> + <code>population/_pregnancy.py::_pregnancy_lifecycle_events</code></td>
 </tr>
 <tr>

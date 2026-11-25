@@ -2655,7 +2655,7 @@
 </tr>
 <tr>
 <td>産褥 encounter × 2</td>
-<td>分娩日 + 7 d / + 28 d、<code>chronic_visit</code> with <code>disease_id="Z39"</code>、obstetrics_gynecology routing。12 月分娩の場合は Dec 31 に year-boundary clamp。</td>
+<td>分娩日 + 7 d / + 28 d、<code>chronic_visit</code> with <code>disease_id="Z39"</code>、obstetrics_gynecology routing。12 月分娩の場合は Dec 31 に year-boundary clamp。各受診でエジンバラ産後うつ病質問票 (EPDS) の総合スコアを 1 件記録する (検査パイプラインの Observation、LOINC 99046-5、国別カットオフ以上は H: US 10 / JP 9。陽性割合は <code>perinatal.yaml::postpartum_depression_screen</code>、encounter id の専用サブシードで抽選)。ノートがスコアを述べ、陽性なら紹介・フォローの Plan 行を加える (Issue #3751)。</td>
 <td><code>perinatal.yaml::lifecycle.postpartum_visit_offsets_days</code> + <code>population/_pregnancy.py::_pregnancy_lifecycle_events</code></td>
 </tr>
 <tr>
