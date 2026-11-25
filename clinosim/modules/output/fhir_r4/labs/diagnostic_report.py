@@ -51,6 +51,7 @@ from clinosim.modules.output.fhir_r4.labs.service_request import (
     LAB_CATEGORY_V2_0074,
     V2_0074_SYSTEM,
     _build_sr_code_field,
+    _evaluation_category,
     _order_to_sr_structural_key,
     _resolve_service_request_id,
     _to_naive_iso,
@@ -63,6 +64,7 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     build_presented_form,
     display_entry,
     dual_slot_concept,
+    is_questionnaire_score,
     system_coding,
 )
 from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
@@ -635,6 +637,7 @@ def _lab_report_resource(
     orders: list[Any] | None,
     presented_text: str,
     presented_title: str,
+    questionnaire: bool = False,
 ) -> dict:
     """The lab DiagnosticReport shared by panel and single-test reports.
 
@@ -649,24 +652,30 @@ def _lab_report_resource(
         "resourceType": "DiagnosticReport",
         "id": _resolve_lab_panel_dr_id(_lab_dr_structural_key),
         "identifier": [wrap_as_identifier(_lab_dr_structural_key, key_system)],
-        # chain #2: JP Core DiagnosticReport_LabResult profile.
-        **profile_meta("DiagnosticReport/LabResult", country),
+        # chain #2: JP Core DiagnosticReport_LabResult profile. A questionnaire
+        # score is no laboratory report (Issue #3802): no lab profile, and the
+        # category is the order's own evaluation procedure.
+        **({} if questionnaire else profile_meta("DiagnosticReport/LabResult", country)),
         "status": "final",
         "category": (
-            # Issue #3026: English LOINC display, the label in text.
-            [dual_slot_concept("loinc", JP_LAB_DR_CATEGORY_LOINC, lang_for(country))] if jp_core else []
-        )
-        + [
-            {
-                "coding": [
-                    {
-                        "system": V2_0074_SYSTEM,
-                        "code": LAB_CATEGORY_V2_0074,
-                        "display": "Laboratory",
-                    }
-                ],
-            }
-        ],
+            [{"coding": _evaluation_category(None, lang)[0], "text": _evaluation_category(None, lang)[1]}]
+            if questionnaire
+            else (
+                # Issue #3026: English LOINC display, the label in text.
+                [dual_slot_concept("loinc", JP_LAB_DR_CATEGORY_LOINC, lang_for(country))] if jp_core else []
+            )
+            + [
+                {
+                    "coding": [
+                        {
+                            "system": V2_0074_SYSTEM,
+                            "code": LAB_CATEGORY_V2_0074,
+                            "display": "Laboratory",
+                        }
+                    ],
+                }
+            ]
+        ),
         "code": code,
         "subject": patient_ref(patient_id),
         "encounter": encounter_ref(encounter_id),
@@ -864,6 +873,9 @@ def build_single_test_report(
         orders=orders,
         presented_text=_lab_panel_presented_text({}, title, report.group, lang),
         presented_title=title,
+        questionnaire=is_questionnaire_score(
+            _o(_o(anchor, "result"), "lab_name", "") or _o(anchor, "display_name", "")
+        ),
     )
 
 

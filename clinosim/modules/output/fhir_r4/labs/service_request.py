@@ -44,7 +44,12 @@ from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.observation.engine import canonical_lab_name
 from clinosim.modules.order.panel_grouping import load_panel_definitions
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
-from clinosim.modules.output.fhir_r4.lib.common import display_entry, system_coding, text_if_localized
+from clinosim.modules.output.fhir_r4.lib.common import (
+    display_entry,
+    is_questionnaire_score,
+    system_coding,
+    text_if_localized,
+)
 from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
@@ -1176,6 +1181,11 @@ def _build_sr_skeleton(
     if _eval_key:
         # Issue #2789: a bedside respiratory function test is not a specimen test.
         lab_category_coding, lab_category_text = _evaluation_category(_eval_lab[_eval_key], lang)
+    elif any(
+        is_questionnaire_score(c) for c in (_o(anchor, "order_code", "") or "", _o(anchor, "display_name", "") or "")
+    ):
+        # Issue #3802: a questionnaire score is administered, no specimen is taken.
+        lab_category_coding, lab_category_text = _evaluation_category(None, lang)
     # ordered_datetime may arrive as a datetime object (dataclass path) or an
     # ISO string (JSON-deserialized dict path). If None, authoredOn is omitted.
     # Issue #971: clamp authoredOn back to (min linked DR.issued − 1 min) so

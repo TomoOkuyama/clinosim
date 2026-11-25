@@ -55,6 +55,7 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     dual_slot_concept,
     english_display_concept,
     entry,
+    is_questionnaire_score,
     judged_reference_range,
 )
 from clinosim.modules.output.fhir_r4.lib.context import BundleContext
@@ -112,12 +113,6 @@ def _resolve_vital_sign_observation_id(structural_key: str) -> str:
     :data:`VITAL_SIGN_OBSERVATION_KEY_SYSTEM` for round-trip.
     """
     return derive_opaque_id(VITAL_SIGN_OBSERVATION_ID_PREFIX, structural_key)
-
-
-# Questionnaire total scores scheduled through the lab pipeline (chronic_followup
-# labs_quarterly). They are instrument scores, so FHIR category is survey and no
-# laboratory referenceRange applies.
-_QUESTIONNAIRE_SCORE_ANALYTES = frozenset({"PHQ-9", "GAD-7", "C-SSRS", "EPDS"})
 
 
 def lab_observation_coding(lab_name: str, order: dict, result: dict, country: str) -> tuple[list[dict], str]:
@@ -238,7 +233,7 @@ def _build_lab_observation(
     # table names, it carries the item code alone (a LOINC vital-sign code
     # would bring in the HL7 ``bmi`` / ``bp`` profiles, which one checkup
     # measurement cannot meet) and declares only the report profile.
-    _category = "survey" if lab_name in _QUESTIONNAIRE_SCORE_ANALYTES else "laboratory"
+    _category = "survey" if is_questionnaire_score(lab_name) else "laboratory"
     _measured_on_body = False
     if order.get("clinical_intent") == "health_checkup":
         _item_coding, _item_profile, _item_category = _checkup_report_item(lab_name, country)
@@ -392,8 +387,9 @@ def _build_lab_observation(
     # (system+code omitted intentionally — no authoritative universal
     # method-code exists for "automated bench analyzer" that fits every
     # analyte). Mirrors Coverage.type text-only precedent.
-    # A body measurement (Issue #3167) is not an analyzer result.
-    if not _measured_on_body:
+    # A body measurement (Issue #3167) and a questionnaire score (Issue #3802)
+    # are not analyzer results.
+    if not _measured_on_body and _category != "survey":
         _method_text = t("fhir_obs_text.automated_method", lang_for(country))
         resource["method"] = {"text": _method_text}
 

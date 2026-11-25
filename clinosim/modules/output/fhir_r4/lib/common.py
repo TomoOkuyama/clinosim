@@ -44,6 +44,8 @@ __all__ = [
     "map_encounter_status",
     "severity_coding",
     "survey_category",
+    "QUESTIONNAIRE_SCORE_ANALYTES",
+    "is_questionnaire_score",
 ]
 
 
@@ -125,6 +127,20 @@ def english_display_concept(system_key: str, code: str, lang: str) -> dict[str, 
     if label and label != coding.get("display"):
         concept["text"] = label
     return concept
+
+
+# Questionnaire total scores scheduled through the lab pipeline (chronic_followup
+# labs_quarterly, the postpartum EPDS). They are instrument scores completed by
+# the patient or administered by a clinician: FHIR category survey, no
+# laboratory referenceRange, no specimen, no analyzer method, and the order and
+# report are evaluation procedures, not laboratory ones (Issue #3802). The one
+# definition of the set; every builder asks it.
+QUESTIONNAIRE_SCORE_ANALYTES = frozenset({"PHQ-9", "GAD-7", "C-SSRS", "EPDS"})
+
+
+def is_questionnaire_score(lab_name: str) -> bool:
+    """True when the lab-pipeline analyte ``lab_name`` is a questionnaire total score."""
+    return lab_name in QUESTIONNAIRE_SCORE_ANALYTES
 
 
 def survey_category(lang: str) -> list[dict]:
