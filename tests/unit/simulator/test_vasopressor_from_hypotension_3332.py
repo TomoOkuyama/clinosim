@@ -156,7 +156,7 @@ def test_no_vasopressor_dose_is_charted_after_the_death() -> None:
     try:
         ds = run_forced(
             ForcedScenario(disease_id="sepsis", count=6, severity="severe", archetype="sudden_deterioration"),
-            SimulatorConfig(random_seed=23, country="JP"),
+            SimulatorConfig(random_seed=11, country="JP"),
         )
     finally:
         logging.disable(logging.NOTSET)

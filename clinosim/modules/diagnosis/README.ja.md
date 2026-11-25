@@ -18,7 +18,9 @@ POST_ENCOUNTER enricher 1 本 (`lab_derived_dx.py`、Issue #1326) も所有す�
 - **In scope**: `initialize_differential` (disease protocol の
   `diagnostic.differential` から seed、無ければ disease id キーの
   built-in table に fallback); `update_differential`
-  (`(finding, is_positive)` findings 単位の likelihood-ratio update);
+  (`(finding, is_positive)` findings 単位の likelihood-ratio update。
+  同じ検査の連続結果は独立した証拠ではないため、各 finding の尤度比は
+  differential ごとに最初の結果で 1 回だけ適用する — Issue #3820);
   `get_current_diagnosis_code` (working diagnosis — 未設定なら最上位
   候補 — を confidence キーの `diagnosis_progression` table で解決。
   敗血症は confidence 行を持たず、重症度コードは入院中の病態から

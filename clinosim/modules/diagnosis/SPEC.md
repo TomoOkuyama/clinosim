@@ -71,7 +71,10 @@ P(Disease|Test) ∝ P(Test|Disease) × P(Disease)
 > design. The shipped engine (`engine.py`) differs: the signatures are
 > `initialize_differential(disease_id, age, protocol_diagnostic=None)`,
 > `update_differential(diff, findings, confirmation_threshold=0.90,
-> protocol_lr_table=None)` with `findings: list[(name, is_positive)]`,
+> protocol_lr_table=None)` with `findings: list[(name, is_positive)]`
+> (each finding's likelihood ratio is applied once per differential, at
+> its first result; `DifferentialDiagnosis.applied_findings` records the
+> applied names, Issue #3820),
 > and `get_current_diagnosis_code(diff, protocol_progression=None,
 > patient_sex=None)`, which walks a confidence-keyed
 > `[(threshold, icd)]` progression table and sex-gates candidates.

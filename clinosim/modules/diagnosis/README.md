@@ -20,7 +20,9 @@ one RNG-free POST_ENCOUNTER enricher that appends a lab-derived AKI
   protocol's `diagnostic.differential` list, falling back to the
   built-in table keyed by disease id); `update_differential`
   (likelihood-ratio update per batch of `(finding, is_positive)`
-  findings); `get_current_diagnosis_code` (resolves the working
+  findings; a finding's ratio counts once per differential, at its
+  first result, because serial results of one test are not independent
+  evidence — Issue #3820); `get_current_diagnosis_code` (resolves the working
   diagnosis — or the top candidate when none is set — through the
   confidence-keyed `diagnosis_progression` table — sepsis has no
   confidence rows: its severity code is set from the stay's physiology by

@@ -23,6 +23,9 @@ class DifferentialDiagnosis:
     working_diagnosis: str | None = None
     confirmed: bool = False
     timestamp: datetime = field(default_factory=lambda: _UNSET_DATETIME)
+    # Findings whose likelihood ratio has been applied; each counts once
+    # (Issue #3820, ``update_differential``).
+    applied_findings: set[str] = field(default_factory=set)
 
     @property
     def top_candidate(self) -> DiagnosisCandidate | None:
