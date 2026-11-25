@@ -98,7 +98,7 @@ pytest tests/unit -q               # ~1 分、green 必須
 
    merge-block しないが実行されるもの:
    - `mkdocs build` (docs サイトが読むファイルを変更した PR のみ)
-   - `JP-CLINS lab compliance gate` / `JP Core narrow compliance gate` /
+   - `JP compliance gate (JP-CLINS lab + JP Core)` /
      `US Core narrow compliance gate` (FHIR 出力に影響する path を変更した
      PR のみ実行)
    - `Unit test coverage combine (informational)` (master への push のみ)

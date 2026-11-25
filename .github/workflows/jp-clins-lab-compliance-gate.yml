@@ -1,4 +1,5 @@
-# JP-CLINS lab compliance CI gate (Issue #410).
+# JP compliance CI gate: JP-CLINS lab (Issue #410) and JP Core narrow
+# (Issue #1418) on one cohort (Issue #3773).
 #
 # Enforces the JP-CLINS eCS invariant that every JP lab Observation
 # emitted by clinosim references a JP-CLINS-defined CodeSystem, carries
@@ -9,6 +10,13 @@
 # any FAIL check. That axis carries a threshold=1.0 gate on all three
 # of its metrics, so any regression that drops a metric below 100%
 # breaks the build.
+#
+# The same cohort is then evaluated on the ``jp_core_compliance`` axis
+# (every JP Patient / Encounter / MedicationRequest carries the narrow
+# subset of JP Core must-support elements, threshold=1.0, Issue #1418).
+# That axis needs no package; it used to run in its own workflow on a
+# second, package-less cohort. Both evaluations run even when the first
+# fails, so one run reports both axes.
 #
 # The JP-CLINS pkg is fetched from jpfhir.jp at run time (CC0-1.0,
 # publisher-hosted). SHA256 is pinned per-file so a same-version
@@ -23,7 +31,7 @@
 # published-canonical bytes, so a rename or repack upstream can never
 # be silently absorbed by a stale checked-in copy.
 
-name: JP-CLINS lab compliance gate
+name: JP compliance gate (JP-CLINS lab + JP Core)
 
 on:
   push:
@@ -50,7 +58,7 @@ concurrency:
 
 jobs:
   gate:
-    name: JP p=300 seed=300 → eval only jp_clins_lab_compliance
+    name: JP p=300 seed=300 → eval jp_clins_lab_compliance + jp_core_compliance
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -163,6 +171,7 @@ jobs:
             -o cohort
 
       - name: Run gate (clinosim eval --strict --only-axes jp_clins_lab_compliance)
+        id: clins
         run: |
           set -euo pipefail
           # --strict promotes any FAIL check in the selected axis to
@@ -176,3 +185,19 @@ jobs:
             --country JP \
             --strict \
             --only-axes jp_clins_lab_compliance
+
+      - name: Run gate (clinosim eval --strict --only-axes jp_core_compliance)
+        # Runs even when the JP-CLINS step failed (the cohort exists), so a
+        # run reports both axes; the job fails if either step failed.
+        if: ${{ !cancelled() && steps.clins.conclusion != 'skipped' }}
+        run: |
+          set -euo pipefail
+          # --strict promotes any FAIL check in the selected axis to exit
+          # code 1. --only-axes restricts scoring to the one axis whose
+          # checks all carry threshold=1.0. A drop below 100 % on any
+          # single check breaks the build.
+          clinosim eval \
+            -d cohort \
+            --country JP \
+            --strict \
+            --only-axes jp_core_compliance

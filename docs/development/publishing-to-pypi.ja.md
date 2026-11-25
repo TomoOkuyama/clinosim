@@ -57,5 +57,5 @@ PyPI は同一バージョンの再公開を許可しません。バグ入りリ
 - `nightly.yml` — master に対する reproducibility gate。リリース
   切り出し前に手動実行 (`workflow_dispatch`) して、前回 nightly から
   の silent determinism drift を検出する。
-- `jp-clins-lab-compliance-gate.yml` — JP-CLINS 不変条件 check。
+- `jp-clins-lab-compliance-gate.yml` — JP-CLINS lab と JP Core narrow の不変条件 check。
   タグ push の前に release commit で green である必要あり。

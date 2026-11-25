@@ -100,7 +100,7 @@ pytest tests/unit -q               # ~1 minute, must be green
 
    Also run, not merge-blocking:
    - `mkdocs build` (only on PRs that change a file the docs site reads)
-   - `JP-CLINS lab compliance gate` / `JP Core narrow compliance gate` /
+   - `JP compliance gate (JP-CLINS lab + JP Core)` /
      `US Core narrow compliance gate` (only on PRs that touch paths
      affecting FHIR output)
    - `Unit test coverage combine (informational)` (master pushes only)
