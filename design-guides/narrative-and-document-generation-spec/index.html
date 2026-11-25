@@ -2665,6 +2665,11 @@
 <td><code>tests/unit/modules/document/narrative/test_newborn_bilirubin_and_ap_3564.py</code></td>
 </tr>
 <tr>
+<td>The documents of a delivery stay state the obstetric content the mother's record holds (Issue #3663), from <code>NarrativeContext.delivery</code> (the mother's <code>extensions["delivery"]</code>: mode, gestational age, estimated blood loss, complication codes; helpers in <code>narrative/_delivery.py</code>). The admission H&amp;P says how she was admitted (in labor, or for the cesarean delivery) at the gestational age, with the complications of the pregnancy, and its exam is always the antepartum one, whenever the note is signed; gravidity and parity are not stated because the record holds neither. The discharge summary's course has a delivery sentence (mode, gestational age, estimated blood loss) and the complications; its discharge instructions are the <code>obstetric</code> set of <code>clinosim-discharge-instruction.yaml</code> (selected by <code>baseline_instruction_set</code>; perineal or incision care by mode, the CDC urgent maternal warning signs, the first scheduled postpartum visit), not the adult baseline. Breastfeeding and contraception are not stated: the record holds neither.</td>
+<td><code>narrative/_delivery.py</code>, <code>renderers/section_builders/hpi.py::_maybe_append_delivery</code>, <code>narrative/_hospital_course.py::delivery_sentence</code>, <code>renderers/_resolvers.py::baseline_instruction_set</code>, <code>renderers/_disease_exam.py::_after_delivery</code></td>
+<td><code>tests/unit/modules/document/narrative/test_delivery_notes_3663.py</code></td>
+</tr>
+<tr>
 <td>Sentences or body-system texts that already end in a terminator are joined with the idempotent <code>join_sentences(sentences, lang)</code>; a hard-coded separator join is a bug (a doubled terminator: JA "。。", EN ".."). <code>format_physical_exam</code> strips a terminator before it joins, and the ED exam joins its parts the same way (Issue #3410).</td>
 <td><code>clinosim/modules/document/narrative/_visit_reason.py::join_sentences</code>, <code>renderers/_shared_helpers.py::format_physical_exam</code>, <code>renderers/section_builders/ed_note.py</code></td>
 <td><code>tests/unit/modules/document/narrative/test_doubled_terminators_3410.py</code></td>
