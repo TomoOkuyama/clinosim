@@ -157,26 +157,29 @@ jobs:
           path: audit-cohort/**/*.md
           retention-days: 30
 
-  test-durations-regen:
-    name: Regenerate .test_durations on ubuntu (Py 3.12)
+  test-durations-shard:
+    # `.test_durations` drives pytest-split's bin packing in ci.yml, so it is
+    # measured on the same runner and with the same layout as the PR CI: one
+    # job per ci.yml shard (unit 2 x `-n 4 --dist=worksteal`, integration
+    # 4 x `-n 4 --dist=loadfile`), each storing only the durations of the
+    # tests it ran (`--clean-durations`). The tests run simulations that use
+    # several cores, so a duration measured under `-n 2` or on a maintainer's
+    # Mac (S115: sim-heavy tests ~2-3x slower on ubuntu) does not predict a
+    # ci.yml shard. Running both suites serially in one job exceeded its
+    # 45-minute limit and was cancelled every night from 2026-11-08 on.
+    name: Measure test durations (${{ matrix.suite }} ${{ matrix.group }}/${{ matrix.splits }})
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    permissions:
-      contents: write
-      pull-requests: write
-    # S115: `.test_durations` recorded on a maintainer's Mac (M-series) does
-    # not reflect ubuntu-latest CI runner cost for sim-heavy integration
-    # tests (~2-3x slower on ubuntu). That mismatch caused post-#1428
-    # integration-shard imbalance (shard 5 = 6m29s, shard 8 = 2m22s) even
-    # though single-thread bin-pack was 1.01x on paper — the recorded
-    # numbers under-estimated the ubuntu cost for shard 5's slow tests.
-    # Regenerating on the same runner infra as the PR CI closes the gap.
-    #
-    # If the regenerated file differs from master's committed copy, this
-    # job opens a PR ("chore: refresh .test_durations from nightly CI").
-    # The PR is a routine data refresh — approve + merge without ceremony
-    # unless the diff is drastic (which would signal test-suite churn
-    # worth investigating).
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {suite: unit, group: 1, splits: 2, paths: "tests/unit tests/modules tests/simulator", dist: worksteal}
+          - {suite: unit, group: 2, splits: 2, paths: "tests/unit tests/modules tests/simulator", dist: worksteal}
+          - {suite: integration, group: 1, splits: 4, paths: "tests/integration", dist: loadfile}
+          - {suite: integration, group: 2, splits: 4, paths: "tests/integration", dist: loadfile}
+          - {suite: integration, group: 3, splits: 4, paths: "tests/integration", dist: loadfile}
+          - {suite: integration, group: 4, splits: 4, paths: "tests/integration", dist: loadfile}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -190,14 +193,57 @@ jobs:
           cache-dependency-glob: pyproject.toml
       - name: Install (with dev extras)
         run: uv pip install --system -e ".[dev]"
-      - name: Regenerate unit test durations
+      - name: Run the shard and store its durations
+        # A test failure does not stop the measurement (a failing test still
+        # has a duration); `|| true` keeps the job green, the PR CI is the
+        # gate.
         run: |
-          pytest tests/unit --store-durations -n 2 --dist=worksteal \
-            -q --tb=no --no-cov
-      - name: Regenerate integration test durations
+          pytest ${{ matrix.paths }} -q --tb=no --no-cov \
+            -n 4 --dist=${{ matrix.dist }} \
+            --splits ${{ matrix.splits }} --group ${{ matrix.group }} \
+            --splitting-algorithm=least_duration \
+            --store-durations --clean-durations \
+            --durations-path durations-${{ matrix.suite }}-${{ matrix.group }}.json || true
+          test -s durations-${{ matrix.suite }}-${{ matrix.group }}.json
+      - uses: actions/upload-artifact@v7
+        with:
+          name: durations-${{ matrix.suite }}-${{ matrix.group }}
+          path: durations-${{ matrix.suite }}-${{ matrix.group }}.json
+          retention-days: 3
+
+  test-durations-regen:
+    name: Regenerate .test_durations on ubuntu (Py 3.12)
+    runs-on: ubuntu-latest
+    needs: test-durations-shard
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    # Merges the per-shard measurements into `.test_durations` (a test that
+    # no shard ran, i.e. a removed test, drops out) and opens a PR when the
+    # file changed. The PR is a routine data refresh; a drastic change in the
+    # number of entries signals test-suite churn worth a look.
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: durations-*
+          merge-multiple: true
+      - name: Merge the shard durations
         run: |
-          pytest tests/integration --store-durations -n 2 --dist=worksteal \
-            -q --tb=no --no-cov
+          python3 - <<'PY'
+          import glob, json
+          merged = {}
+          parts = sorted(glob.glob("durations-*.json"))
+          if len(parts) != 6:
+              raise SystemExit(f"expected 6 shard files, got {parts}")
+          for part in parts:
+              merged.update(json.load(open(part)))
+          with open(".test_durations", "w") as f:
+              json.dump(merged, f, sort_keys=True, indent=4)
+          print(f"{len(merged)} test durations from {len(parts)} shards")
+          PY
+          rm -f durations-*.json
       - name: Open PR if .test_durations changed
         id: create_pr
         # Issue #1500 governance: this step can fail with the message
@@ -205,11 +251,7 @@ jobs:
         # requests" when the repo setting
         # `Settings → Actions → General → Workflow permissions →
         # "Allow GitHub Actions to create and approve pull requests"`
-        # is OFF. That toggle is a one-time maintainer action but only
-        # the repo owner can flip it. Until then, we fall back to
-        # (a) surfacing the diff as a downloadable artifact and (b)
-        # emitting a WARN notice pointing at the setting — so the
-        # nightly job stops going red on this expected permission gap.
+        # is OFF. Then the refreshed file is uploaded as an artifact below.
         continue-on-error: true
         uses: peter-evans/create-pull-request@v8
         with:
@@ -220,34 +262,19 @@ jobs:
           commit-message: |
             chore(ci): refresh .test_durations from nightly ubuntu CI
 
-            Auto-generated by the `test-durations-regen` job in `.github/workflows/nightly.yml`. Uses ubuntu-latest runner timings so pytest-split bin-pack matches PR CI reality.
+            Auto-generated by the `test-durations-regen` job in `.github/workflows/nightly.yml` from per-shard measurements in the ci.yml layout, so pytest-split bin-packs with the durations the PR CI actually sees.
           branch: nightly/refresh-test-durations
           title: "chore(ci): refresh .test_durations from nightly ubuntu CI"
           body: |
-            Auto-generated by nightly `test-durations-regen` job.
+            Auto-generated by the nightly `test-durations-shard` / `test-durations-regen` jobs.
 
-            **Purpose**: keep `pytest-split`'s bin-pack aligned with ubuntu-latest runner cost, not maintainer-machine cost. Mismatch caused the post-#1428 integration-shard imbalance (6m29s vs 2m22s despite 1.01x paper bin-pack) because sim-heavy tests run ~2-3x slower on ubuntu than on maintainer M-series Macs.
+            **Purpose**: keep `pytest-split`'s bin packing aligned with the PR CI: durations are measured on ubuntu-latest in the same shard layout as `ci.yml` (unit 2 x `-n 4`, integration 4 x `-n 4 --dist=loadfile`), one job per shard, and merged.
 
-            Review focus: line-count delta on `.test_durations` should be roughly symmetric (few thousand adds/dels for numeric refresh). A drastic diff (e.g. new tests without entries, or vanished tests) signals test-suite churn to triage separately.
+            Review focus: the number of entries should track the test suite; a drastic change (tests without entries, vanished tests) signals test-suite churn to triage separately.
           delete-branch: true
-          # Automatically add the label so `.test_durations` refresh
-          # PRs are easy to filter in the PR list.
           labels: |
             ci
             test-durations
-      - name: Fallback — upload .test_durations diff as artifact
-        # Runs when the create-PR step failed (Issue #1500 permission gap)
-        # OR when the file changed but the PR create was skipped. Gives
-        # the maintainer a way to apply the refresh manually without
-        # needing to re-run the whole regen locally.
-        if: steps.create_pr.outcome == 'failure' || steps.create_pr.outcome == 'skipped'
-        run: |
-          if git diff --quiet -- .test_durations; then
-            echo "::notice::.test_durations unchanged — no refresh needed."
-            exit 0
-          fi
-          echo "::warning::Auto-PR creation failed (see Issue #1500 — repo owner needs to enable Settings → Actions → General → Workflow permissions → 'Allow GitHub Actions to create and approve pull requests'). The refreshed .test_durations is uploaded as an artifact below; maintainer can download and commit manually."
-          git diff --stat -- .test_durations
       - name: Upload refreshed .test_durations
         if: steps.create_pr.outcome == 'failure' || steps.create_pr.outcome == 'skipped'
         uses: actions/upload-artifact@v7
@@ -255,6 +282,7 @@ jobs:
           name: test-durations-refresh
           path: .test_durations
           retention-days: 14
+
   cohort-byte-diff-vs-master:
     name: Cohort byte-diff vs master (US p=100 seed=42)
     runs-on: ubuntu-latest
