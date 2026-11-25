@@ -78,7 +78,9 @@ calendar (月次 acute-disease event、慢性フォロー visit、screening、
    として終わる (日次ループが `population_death_date` を受け取り、通常の死亡
    抽選は従来どおり行う)。死亡経過を持たない入院 (原因不明) では、死亡日を
    退院の 1〜30 日後へ移す (`vital_status.defer_death_past_stay`、専用の
-   sub-seed、Issue #3633)。
+   sub-seed、Issue #3633)。スナップショット (または期間末) より後の死亡は、
+   院内・院外を問わず記録に含めない。入院は継続中のままで、患者の死亡日・
+   死亡フラグ・死亡関連文書も出さない (Issue #3759)。
 5. **出生** — 出産で新生児を登録し (`newborn.register_newborn`)、出生入院の
    退院翌日に集団へ加える (`PersonRecord.enrolled_from`)。その年の残りの
    受診予定を作り、以後は他の人と同じく加齢・疾患・受診・死亡の対象になる。

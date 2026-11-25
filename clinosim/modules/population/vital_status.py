@@ -74,12 +74,12 @@ def record_hospital_death(person: PersonRecord, record: CIFPatientRecord) -> dat
 def known_death_date(person: PersonRecord, cutoff: date | None) -> date | None:
     """The person's death date as far as the run knows it (Issue #3633).
 
-    A community death after ``cutoff`` (the snapshot or window end) is not known
-    to the record yet, so a stay must not end in it (the same rule as
-    :func:`sync_profile_death_dates`).
+    A death after ``cutoff`` (the snapshot or window end) is not known to the
+    record yet, in hospital or not (Issue #3759), so a stay must not end in it
+    (the same rule as :func:`sync_profile_death_dates`).
     """
     dod = person.date_of_death
-    if dod is None or (cutoff is not None and dod > cutoff and person.death_place != "hospital"):
+    if dod is None or (cutoff is not None and dod > cutoff):
         return None
     return dod
 
@@ -119,9 +119,10 @@ def sync_profile_death_dates(
 ) -> None:
     """Copy each person's recorded death onto every one of their profiles.
 
-    Community deaths after ``as_of`` (the snapshot or window end) are not yet
-    known to the record and are cleared from the profile. In-hospital deaths
-    are always kept: the expired stay itself is in the CIF. ``population`` is a
+    Deaths after ``as_of`` (the snapshot or window end) are not yet known to
+    the record and are cleared from the profile, in hospital or not (Issue
+    #3759: a stay whose death falls after the snapshot stays in progress).
+    ``population`` is a
     ``PopulationRegistry`` (typed loosely to avoid an import cycle).
     """
     persons = getattr(population, "persons", {})
@@ -131,9 +132,8 @@ def sync_profile_death_dates(
             continue
         dod = person.date_of_death
         death_dt = person.death_datetime
-        # A community death after the cutoff is not yet known; an
-        # in-hospital death is, because its expired stay is in the CIF.
-        if dod is not None and as_of is not None and dod > as_of and person.death_place != "hospital":
+        # A death after the cutoff is not yet known to the record.
+        if dod is not None and as_of is not None and dod > as_of:
             dod = death_dt = None
         record.patient.date_of_death = dod
         record.patient.death_datetime = death_dt

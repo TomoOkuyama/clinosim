@@ -1161,8 +1161,11 @@ def _simulate_patient(
             second=59,
         )
 
-    if snapshot_dt and planned_discharge > snapshot_dt and not death_occurred:
-        # Truncate: patient is currently admitted
+    if snapshot_dt and planned_discharge > snapshot_dt:
+        # Truncate: patient is currently admitted. Issue #3759: a death after
+        # the snapshot is not known to the record either, so the patient is
+        # alive in it (no death flag, date or documents).
+        death_occurred = False
         encounter.status = EncounterStatus.IN_PROGRESS
         encounter.discharge_datetime = None
         encounter.discharge_disposition = ""  # not yet discharged
