@@ -1,7 +1,8 @@
 # Documentation site — https://tomookuyama.github.io/clinosim/
 #
 # Two jobs:
-#   - build  (fires on PRs to master) — validates docs compile with
+#   - build  (fires on PRs to master that change a file the site reads,
+#            and on every master push) — validates docs compile with
 #            `mkdocs build --strict`: a broken link, missing page or bad
 #            anchor fails the PR
 #   - deploy (fires on master push)   — publishes to the gh-pages branch
@@ -17,6 +18,21 @@ on:
     branches: [master]
   pull_request:
     branches: [master]
+    # Issue #3774: build on a PR only when an input of the site changes —
+    # the pages, the config and its link hook, the root Markdown and the
+    # datasets READMEs the pages include (include-markdown), the docs
+    # extras in pyproject.toml and this workflow. A code-only PR that breaks
+    # a doc link to a source file is caught by
+    # tests/unit/docs/test_doc_path_references.py, and every master push
+    # still builds and deploys.
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
+      - "scripts/mkdocs_repo_links.py"
+      - "*.md"
+      - "datasets/README*.md"
+      - "pyproject.toml"
+      - ".github/workflows/docs.yml"
 
 concurrency:
   group: docs-${{ github.ref }}
