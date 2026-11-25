@@ -30,6 +30,7 @@ from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.immunization.visits import IMMUNIZATION_VISIT_DX, vaccination_visit_reason_codes
 from clinosim.modules.output.fhir_r4.conditions.conditions import _build_conditions
+from clinosim.modules.output.fhir_r4.conditions.hai import hai_condition_ids_by_encounter
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import encounter_diagnosis_condition_ids
 from clinosim.modules.output.fhir_r4.demographics.patient import (
     _build_coverage_resources,
@@ -203,6 +204,9 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
     # Issue #3597: the Condition builder decides which encounter-diagnosis
     # Conditions exist; every one of them is referenced from its Encounter.
     _emitted_conditions = _build_conditions(ctx.record, ctx.patient_id, ctx.country, ctx.first_seen_dt)
+    # Issue #3761: the in-stay HAI Conditions are built after the Encounters, so
+    # their ids come from the HAI builder's own guard, ranked after the rest.
+    _hai_ids_by_encounter = hai_condition_ids_by_encounter(ctx)
     _cond_event = ctx.record.get("condition_event") if isinstance(ctx.record, dict) else None
     _primary_visit_condition = (
         str(
@@ -269,9 +273,10 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
             chronic_condition_codes=_chronic_codes,
             record_orders=ctx.record.get("orders", []),
             patient_sex=str((ctx.patient_data or {}).get("sex", "") or ""),
-            diagnosis_condition_ids=encounter_diagnosis_condition_ids(
-                _emitted_conditions, encounter_ref(_enc_key)["reference"]
-            )
+            diagnosis_condition_ids=[
+                *encounter_diagnosis_condition_ids(_emitted_conditions, encounter_ref(_enc_key)["reference"]),
+                *_hai_ids_by_encounter.get(encounter_ref(_enc_key)["reference"], []),
+            ]
             if _enc_key
             else None,
             # Issue #3657: only the record's own (primary) encounter is the visit

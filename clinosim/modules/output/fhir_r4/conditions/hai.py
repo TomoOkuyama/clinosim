@@ -29,6 +29,30 @@ def _extensions_hai_list(ctx: BundleContext) -> list:
     return ext.get("hai", []) or []
 
 
+def hai_condition_ids_by_encounter(ctx: BundleContext) -> dict[str, list[str]]:
+    """Ids of the HAI Conditions ``_bb_hai_conditions`` emits, keyed by the
+    Encounter reference they point at (Issue #3761).
+
+    The Encounter is built before the HAI Conditions, so its
+    ``diagnosis[]`` takes the ids from here; ``_hai_event_ids`` is the one guard
+    both sides share, so the two cannot drift.
+    """
+    by_encounter: dict[str, list[str]] = {}
+    for h in _extensions_hai_list(ctx):
+        ids = _hai_event_ids(h)
+        if ids:
+            hai_id, enc_id = ids
+            by_encounter.setdefault(encounter_ref(enc_id)["reference"], []).append(hai_id)
+    return by_encounter
+
+
+def _hai_event_ids(h: Any) -> tuple[str, str] | None:
+    """(Condition id, encounter id) of an HAI event, or None when it emits no Condition."""
+    if not get_attr_or_key(h, "icd10_code", "") or not get_attr_or_key(h, "hai_id", ""):
+        return None
+    return str(get_attr_or_key(h, "hai_id", "")), str(get_attr_or_key(h, "encounter_id", ""))
+
+
 def _bb_hai_conditions(ctx: BundleContext) -> list[dict]:
     """Build FHIR Condition resources from CIF extensions['hai']."""
     hais = _extensions_hai_list(ctx)
@@ -43,7 +67,7 @@ def _bb_hai_conditions(ctx: BundleContext) -> list[dict]:
         hai_id = get_attr_or_key(h, "hai_id", "")
         enc_id = get_attr_or_key(h, "encounter_id", "")
         onset_date = get_attr_or_key(h, "onset_date", "")
-        if not icd_internal or not hai_id:
+        if _hai_event_ids(h) is None:
             continue
         icd_country = map_diagnosis_code(icd_internal, country)
         icd_sys_key = system_key_for("diagnosis", country)
