@@ -94,6 +94,7 @@ from clinosim.modules.output.fhir_r4.lib.inline_bb import (
     _bb_procedures,
     _bb_vitals,
 )
+from clinosim.modules.output.fhir_r4.lib.used_codes import UsedCodesCatalog, catalog_path_for, register_in_cif_metadata
 from clinosim.modules.output.fhir_r4.medications.medications import align_ma_category_with_encounters
 from clinosim.modules.output.fhir_r4.post_process import (
     _apply_jp_clins_profile,
@@ -215,6 +216,7 @@ def convert_cif_to_fhir(
     writers: dict[str, Any] = {}
     written_ids: dict[str, set[str]] = {}  # de-dup Patient and Practitioner
     invalid_id_counts: dict[str, int] = {}  # per-resource-type spec-violation tally
+    used_codes = UsedCodesCatalog()  # Issue #3762: codes of the emitted resources
 
     def write(resource: dict) -> None:
         rt = resource.get("resourceType", "")
@@ -237,6 +239,7 @@ def convert_cif_to_fhir(
             if rid in ids:
                 return
             ids.add(rid)
+        used_codes.observe(resource)
         if rt not in writers:
             path = os.path.join(output_dir, f"{rt}.ndjson")
             writers[rt] = open(path, "w", encoding="utf-8")
@@ -320,6 +323,7 @@ def convert_cif_to_fhir(
             for entry in bundle.get("entry", []):
                 write(entry["resource"])
                 n_resources += 1
+            used_codes.end_bundle()
             if n_patients % 1000 == 0:
                 print(
                     f"  FHIR export: {n_patients} patients, {n_resources} resources "
@@ -354,6 +358,12 @@ def convert_cif_to_fhir(
         # Soft-failure: any error is logged and swallowed inside
         # `write_generator_metadata` — the export loop continues.
         _write_generator_metadata(output_dir, cif_dir, country)
+
+        # Issue #3762: the used-codes catalog, written once from the
+        # accumulator fed by `write()`; it lives next to `fhir_r4/`, never in it.
+        _catalog_path = catalog_path_for(output_dir)
+        used_codes.write(_catalog_path)
+        register_in_cif_metadata(cif_dir, _catalog_path)
     finally:
         # F2: close writers, then rewrite each NDJSON file with
         # its resources sorted by id ascending. Row order is otherwise

@@ -216,6 +216,10 @@ Not applicable — this is a serialisation layer, not an enricher. It
 is not registered with `register_builtin_enrichers` and has no seed
 offset in `ENRICHER_SEED_OFFSETS`.
 
+## Used-codes catalog
+
+`convert_cif_to_fhir` feeds every resource it writes to a `UsedCodesCatalog` ([`lib/used_codes.py`](lib/used_codes.py)) and, once the export is done, writes `catalog/codes-used.ndjson` next to the output directory (never inside it) and records the path in `cif/metadata.json` as `used_codes_catalog`. The accumulator only reads the emitted resource, holds one entry per distinct `(kind, system, code[, route])` plus a set of interned patient ids, and changes nothing that is emitted (the NDJSON of `fhir_r4/` is byte-identical with and without it). One line per code: `kind`, `resource`, `element`, `system`, `code`, `display`, `count`, `patients`, plus the attributes the resource states for the kind (medication route and dose unit, observation value type / unit / reference range / specimen / components, imaging modality and body site). The kinds and their source elements are tabulated in [`docs/reference/output-formats.md`](../../../../docs/reference/output-formats.md) ("Used-codes catalog"); tests in `tests/unit/output/test_used_codes_catalog_3762.py` and `tests/integration/test_used_codes_catalog_3762.py` (catalog vs. a full scan of the data, both ways, US and JP).
+
 ## Output surfaces (consumers)
 
 | Consumer | Where | Role |

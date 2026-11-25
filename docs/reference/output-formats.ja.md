@@ -85,6 +85,34 @@ Reference integrity を維持。
 `Organization`) は US では常に、JP では保険有効時に emit
 (`--jp-insurance`、デフォルト on)。
 
+### 使用コードカタログ
+
+エクスポートは `fhir_r4/` の隣 (内側ではない) に `catalog/codes-used.ndjson` も書き、そのパスを `cif/metadata.json` の `used_codes_catalog` に記録する。データセットの FHIR リソースが使うコードの一覧で、取り込み側は NDJSON を読む前にマスタを確認できる。FHIR writer が各リソースを出力するたびに蓄積し、最後に 1 回書くため、常にデータと一致する。
+
+```
+output/
+├── cif/metadata.json     # "used_codes_catalog": "catalog/codes-used.ndjson"
+├── fhir_r4/              # 変更なし
+└── catalog/
+    └── codes-used.ndjson # (kind, system, code[, route]) ごとに 1 行
+```
+
+各行は `kind`、`resource`、`element`、`system`、`code`、`display` (出力された `coding.display`、無ければ `null`)、`text` (concept の text、display と異なる場合)、`count` (その element でコードを持つリソース数)、`patients` (患者の異なり数) を持つ。kind と出所:
+
+| kind | resource.element |
+|---|---|
+| `medication` | `MedicationRequest.medicationCodeableConcept`。投与経路 text (`dosageInstruction[0].route.text`、無ければ `null`) ごとに 1 行 |
+| `lab` / `vital-sign` / `nursing-score` / `observation` | `Observation.code`。category で区別: laboratory / vital-signs / 整数値の survey / それ以外 (社会歴・血液型など) |
+| `imaging` | `ImagingStudy.procedureCode` |
+| `diagnosis` | `Condition.code` |
+| `procedure` | `Procedure.code` |
+| `document-type` | `DocumentReference.type` |
+| `organism` | 培養分離菌 `Observation` の `valueCodeableConcept` (「発育なし」は organism ではない) |
+| `vaccine` | `Immunization.vaccineCode` |
+| `allergen` | `AllergyIntolerance.code` |
+
+concept のコードを持つ coding はそれぞれ 1 行になる。kind 固有の属性は出力リソースが述べている場合のみ付く: 医薬品は `route_coding` (SNOMED 経路)、`dose_units` (UCUM)、`co_coded` (同じ concept の他の coding。例: RxNorm の製品と成分)、検査系 Observation は `value_types`、`units` (UCUM)、`reference_ranges`、`specimens` (紐づく Specimen の種別)、`components`、画像は `modalities` (DICOM) と `body_sites`。text のみでコードの無い concept は載せない。`MedicationAdministration`・`ServiceRequest`・`DiagnosticReport`・`Composition`・`Specimen` のコードはカタログ対象外。
+
 ### 縦断サービスライン emit (v0.5 → v0.6.0)
 
 いずれのサービスラインも上記標準リソースファイルを通じて emit —

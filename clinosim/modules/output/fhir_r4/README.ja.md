@@ -211,6 +211,10 @@ clinosim/modules/output/fhir_r4/
 `register_builtin_enrichers` に登録なく、`ENRICHER_SEED_OFFSETS`
 にも seed 未登録。
 
+## 使用コードカタログ
+
+`convert_cif_to_fhir` は書き出す全リソースを `UsedCodesCatalog` ([`lib/used_codes.py`](lib/used_codes.py)) に渡し、エクスポート完了後に出力ディレクトリの隣 (内側ではない) へ `catalog/codes-used.ndjson` を書いて、そのパスを `cif/metadata.json` の `used_codes_catalog` に記録する。蓄積器は出力されたリソースを読むだけで、`(kind, system, code[, route])` ごとに 1 エントリと患者 ID (整数に intern) の集合だけを持ち、出力内容は変えない (`fhir_r4/` の NDJSON は有無でバイト一致)。1 コード 1 行: `kind`、`resource`、`element`、`system`、`code`、`display`、`count`、`patients`、および kind ごとにリソースが述べている属性 (医薬品の投与経路と用量単位、Observation の値型・単位・基準範囲・検体・component、画像の modality と部位)。kind と出所の表は [`docs/reference/output-formats.ja.md`](../../../../docs/reference/output-formats.ja.md) (「使用コードカタログ」)。テストは `tests/unit/output/test_used_codes_catalog_3762.py` と `tests/integration/test_used_codes_catalog_3762.py` (カタログとデータ全走査を双方向で照合、US/JP)。
+
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |

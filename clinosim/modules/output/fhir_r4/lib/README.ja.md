@@ -82,6 +82,9 @@ module から直接 import する (Issue #545 rename)。
     `_SIDECAR_FILENAME = "_generator_metadata.json"`,
     `_RECENT_MERGES_LIMIT = 30`,
     `_PR_NUMBER_RE = r"\(#(\d+)\)\s*$"`。
+  - `used_codes.py` — `UsedCodesCatalog`: エクスポート中に出力リソースの
+    コードを蓄積し、`fhir_r4/` の隣に `catalog/codes-used.ndjson` を書く
+    (Issue #3762)。
   - `ed_reattribution.py` — `convert_cif_to_fhir` が via-ED IMP
     encounter を合成 ED bridge encounter に再帰属する際に使う
     `reattribute_encounter_to_ed_bridge` helper (N-3 PR #810 chain)、ED 窓 `[入院 - admitted_ed_stay(), 入院)` に時刻が入るオーダー・結果・投与・処置を
@@ -205,6 +208,7 @@ clinosim/modules/output/fhir_r4/lib/
   reference_data.py                  profile URI + code-system URI
   inline_bb.py                       11 legacy _bb_* builder (拡張しない — 新規は domain subpackage へ)
   generator_metadata.py              _generator_metadata.json sidecar emission
+  used_codes.py                      使用コードカタログの蓄積器 (catalog/codes-used.ndjson)
   ed_reattribution.py                reattribute_encounter_to_ed_bridge (N-3 PR #810)
   ids.py                             CLINOSIM_IDENTIFIER_SYSTEM_PREFIX + structural_key_system + derive_opaque_id + wrap_as_identifier
 ```
