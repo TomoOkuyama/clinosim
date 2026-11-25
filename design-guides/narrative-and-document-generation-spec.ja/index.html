@@ -2600,6 +2600,11 @@
 <td><code>tests/unit/modules/document/narrative/test_ed_note_as_of_3397.py</code>, <code>test_ed_note_mar_3467.py</code></td>
 </tr>
 <tr>
+<td>外来の受診記録 (SOAP) も受診の終了時点で記載する (Issue #3650): <code>outpatient_soap</code> は <code>authored_at: period_end</code> で、到着の数分後に測るバイタル・実施したワクチン・受診中に返った結果が as-of ゲートを通る (従来は到着時に記載し、バイタルのある記録の 97% でバイタルが隠れていた)。受診後に返る結果は結果待ちのまま。</td>
+<td><code>reference_data/document_type_specs.yaml</code>, <code>engine.py::_plan_encounter_once</code></td>
+<td><code>tests/unit/modules/document/test_outpatient_soap_authored_at_end_3650.py</code></td>
+</tr>
+<tr>
 <td>入院時記録 (H&amp;P) は入院の原因疾患から書く (Issue #3245): 身体所見は疾患が及ぶ系統の所見を記録の言語で書く (<code>reference_data/disease_exam.yaml</code>: 英語・日本語。引用するバイタルと矛盾する句は書かず、意識の句はそのバイタルの AVPU に合わせ、疾患が関与しない系統に「正常」を作らない)。HPI は両言語で同じ構成 (年齢・性別、主訴、疾患の <code>onset_type</code> の発症文、既往、常用薬、ROS の陰性所見)。<code>admission_results</code> セクションは記録時点で得られている異常検査値と画像・心電図の所見を載せ、なければ結果待ちと書く。方針には、手術を要する疾患の予定手術と、記録された蘇生方針を加える。疾患 YAML に仮の評価 (「初期診断確定」) は置かず、評価と方針は記録から組み立てる。 混合診断の入院のアセスメントは、主たる疾患の行と併存疾患ごとの行を持つ (Issue #3392: <code>NarrativeContext.co_disease_ids</code>、重症度は <code>CO_DISEASE_SEVERITY</code>)。退院時診断はその入院の副診断コード (併存疾患を含む) を列挙する。</td>
 <td><code>renderers/_disease_exam.py</code>, <code>renderers/section_builders/patient_history.py::build_physical_examination</code> / <code>build_admission_results</code>, <code>renderers/section_builders/hpi.py</code>, <code>renderers/section_builders/assessment_and_plan.py::admission_plan_items</code>, <code>reference_data/disease_exam.yaml</code></td>
 <td><code>tests/unit/modules/document/narrative/test_admission_hp_exam_3245.py</code></td>
