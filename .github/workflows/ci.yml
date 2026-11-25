@@ -3,7 +3,7 @@
 # Hard gates (must be green to merge):
 #   - unit tests on Python 3.12 (tests/unit + tests/modules +
 #     tests/simulator; PR gate; 3.11 covered by the nightly cron)
-#   - integration tests on Python 3.12 (4 pytest-split shards × xdist -n 4)
+#   - integration tests on Python 3.12 (4 shards cut by whole test file × xdist -n 4)
 #   - a `CI result` job that needs every job above and fails if any of them
 #     did not succeed; the master ruleset requires it (Issue #3765)
 #   - fast tests (Issue #3771, one job): narrative regression goldens and
@@ -59,10 +59,11 @@ jobs:
     # shards × -n 2 summed about 1000 s of job time per run, 2 shards × -n 4
     # about 645 s.
     #
-    # `pytest-split` splits `tests/unit` + `tests/modules` (Issue #2497) +
-    # `tests/simulator` into 2 groups using
-    # `.test_durations` (shared with integration). Within each shard,
-    # `pytest-xdist -n 4 --dist=worksteal` runs one worker per vCPU.
+    # `scripts/ci_split_by_file.py` splits the test files of `tests/unit` +
+    # `tests/modules` (Issue #2497) + `tests/simulator` into 2 groups by
+    # whole file, bin-packed on the per-file sums of `.test_durations`
+    # (shared with integration; see the integration job). Within each
+    # shard, `pytest-xdist -n 4 --dist=worksteal` runs one worker per vCPU.
     #
     # Coverage (master pushes only, Issue #3772): each shard writes
     # `.coverage.shard-N` (isolated via `COVERAGE_FILE` env var) and
@@ -100,10 +101,9 @@ jobs:
           COVERAGE_FILE: ".coverage.shard-${{ matrix.shard }}"
           COV_ARGS: ${{ github.event_name == 'push' && '--cov=clinosim --cov-report=' || '' }}
         run: >
-          pytest tests/unit tests/modules tests/simulator -q --tb=short
+          pytest $(python scripts/ci_split_by_file.py --splits 2 --group ${{ matrix.shard }}
+          tests/unit tests/modules tests/simulator) -q --tb=short
           -n 4 --dist=worksteal
-          --splits 2 --group ${{ matrix.shard }}
-          --splitting-algorithm=least_duration
           $COV_ARGS
       - name: Upload coverage data (shard ${{ matrix.shard }})
         if: github.event_name == 'push'
@@ -189,47 +189,20 @@ jobs:
     # The notes below were written for the N=10 / -n 2 layout; the
     # reasoning on bin packing and the slowest single test still applies.
     #
-    # The `pytest-split` matrix splits tests[integration] into 10 groups
-    # using `.test_durations` (committed at repo root) so each shard runs
-    # ~1/10 of the wall-clock work. Within each shard, `pytest-xdist -n 2
-    # --dist=worksteal` fills both vCPUs. Combined parallelism = 10 × 2 =
-    # 20 concurrent workers — approaches the practical floor for this
-    # suite, since the slowest single integration test (~86 s,
-    # `test_all_resource_ids_are_spec_valid_jp`) sets a hard lower bound
-    # for any shard's wall time. Bin-packing simulation on the current
-    # `.test_durations`: N=10 max-bin single-thread ≈ 204 s per shard,
-    # 1.01× imbalance (essentially perfect), which becomes ~102 s under
-    # xdist -n 2 EXCEPT for the shard that lands the ~86 s test — that
-    # shard's wall time is bounded from below by ~86 s (one worker
-    # occupied by the slowest test; the other worker finishes the
-    # remaining ~59 s of tests well before). CI overhead (setup +
-    # install) adds ~90 s per shard.
+    # Shards are cut by whole test file (`scripts/ci_split_by_file.py`,
+    # 2026-11-26): a file's weight is the sum of its tests in
+    # `.test_durations`, and files are bin-packed longest first onto the
+    # least-loaded shard. pytest-split cut test by test, so the tests of one
+    # file could land in several shards, each of which built the file's
+    # module-scoped fixture (a simulated cohort) again while
+    # `.test_durations` charged that setup to one test; the shards ran
+    # 684-1347 s apart. Within a shard `--dist=loadfile` keeps a file on one
+    # worker, so the fixture is built once. The heaviest single file is the
+    # floor of a shard's wall time.
     #
-    # Why not N > 10: max-bin single-thread at N=15 is ~136 s (68 s ÷2
-    # workers), already below the 86 s slowest-test floor — every shard
-    # beyond N ≈ 12 pays overhead with zero test-time gain. Breaking
-    # through the 86 s floor requires optimizing the slow tests
-    # themselves (session-scoped fixture consolidation for the
-    # cohort-simulate-heavy tests) — tracked as follow-up.
-    #
-    # S115 (2026-09-14) 5 → 10 shard promotion: `--splitting-algorithm=
-    # least_duration` on the current `.test_durations` produces a
-    # perfectly balanced 10-way split (1.01 x max/min).
-    #
-    # `--splitting-algorithm=least_duration`: default is
-    # `duration_based_chunks` which groups tests in file order until a
-    # cumulative-duration limit is reached (preserves test order within
-    # a shard — safer for tests with setup/teardown but does NOT bin-pack
-    # for wall-time balance). `least_duration` uses greedy longest-first
-    # bin packing to explicitly minimize the max shard duration — the
-    # right knob for wall-time optimization when no test has cross-shard
-    # ordering dependencies (verified 2026-07-22, all 305 integration
-    # tests are parallel-safe).
-    #
-    # `.test_durations` seeded from a single-shot local run and refreshed
-    # by rerunning `pytest tests/integration --store-durations -n 2
-    # --dist=worksteal` when the test suite composition drifts noticeably
-    # (add/remove ~20% or more integration tests).
+    # `.test_durations` is measured nightly on ubuntu-latest in this layout
+    # (nightly.yml `test-durations-shard`, one job per shard, merged and
+    # proposed as a PR by `test-durations-regen`).
     #
     # No @pytest.mark.serial pass here — local xdist verify 2026-07-22
     # confirmed 0 collisions across all 305 integration tests. If a
@@ -258,10 +231,9 @@ jobs:
         run: uv pip install --system -e ".[dev]"
       - name: Run integration tests (shard ${{ matrix.shard }}/4, xdist -n 4)
         run: >
-          pytest tests/integration -q --tb=short
+          pytest $(python scripts/ci_split_by_file.py --splits 4 --group ${{ matrix.shard }}
+          tests/integration) -q --tb=short
           -n 4 --dist=loadfile
-          --splits 4 --group ${{ matrix.shard }}
-          --splitting-algorithm=least_duration
 
   static-checks:
     # Issue #3771: ruff, format, mypy, vulture and the package build used to be

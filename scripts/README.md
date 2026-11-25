@@ -11,6 +11,7 @@ without also updating the workflow.
 
 | Script | Called from | Purpose |
 | --- | --- | --- |
+| [`ci_split_by_file.py`](ci_split_by_file.py) | `.github/workflows/ci.yml`, `.github/workflows/nightly.yml` | Print the test files of one CI shard: test files bin-packed by whole file on the per-file sums of `.test_durations`, so a file's module-scoped fixtures are built in one shard only |
 | [`reproduce.sh`](reproduce.sh) | `.github/workflows/nightly.yml` | Regenerate a canonical cohort and diff against the reference — determinism regression gate |
 | [`validate_jp.sh`](validate_jp.sh) | maintainer + smoke-run | Wraps the JP cohort validator (JP-CLINS lab compliance) — the CI workflow calls it via `clinosim eval` directly, but the shell wrapper is kept for local repro |
 | [`pin_jp_validator.sh`](pin_jp_validator.sh) | maintainer + CI (SHA-pin refresh helper) | Refresh the SHA-256 pins on the `jpfhir.jp` JP-CLINS `.tgz` package. Run when a package rev bumps upstream |
