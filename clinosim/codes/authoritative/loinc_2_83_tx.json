@@ -4,7 +4,7 @@
     "source_url": "http://loinc.org",
     "source_file": "https://tx.fhir.org/r4/CodeSystem/$lookup (display + designations); $validate-code display where $lookup failed",
     "extracted_at": "2026-11-10",
-    "clinosim_codes_total": 370,
+    "clinosim_codes_total": 371,
     "clinosim_codes_missing_from_source": [],
     "note": "LOINC codes in codes/data/loinc.yaml with the LONG_COMMON_NAME (display), SHORTNAME and other English designations of LOINC 2.83 as served by tx.fhir.org, the terminology server of the HL7 FHIR validator (Issue #3127; replaces the 2.82 extract). Codes missing from the source are unknown to LOINC 2.83."
   },
@@ -4477,6 +4477,13 @@
           "value": "Grooming ability"
         }
       ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "99046-5",
+      "display": "Total score [EPDS]",
+      "short_display": null,
+      "designation": [],
       "status": "ACTIVE"
     },
     {

@@ -144,6 +144,53 @@ lifecycle:
   prenatal_supplement_postpartum_days: 84
 
 # ---------------------------------------------------------------------------
+# Postpartum depression screen (Issue #3751): an Edinburgh Postnatal
+# Depression Scale (EPDS) total score, 0-30, recorded as a lab-pipeline
+# Observation (LOINC 99046-5 "Total score [EPDS]") at a postpartum visit that
+# lists ``EPDS`` among its labs (chronic_followup.yaml Z39). The score is
+# drawn from a dedicated sub-seed of the encounter id
+# (``seeding.epds_screening_seed``), so no other stream moves.
+#
+# Per country:
+#   cutoff         a total score at or above it is a positive screen (the
+#                  Observation is flagged H; the note adds the follow-up plan
+#                  line).
+#   positive_rate  share of screened postpartum women at or above the cutoff.
+# The positive rates and cutoffs come from sources read for this change:
+#   US: Wisner KL et al., JAMA Psychiatry 2013;70(5):490-498 ("Onset timing,
+#       thoughts of self-harm, and diagnoses in postpartum women with
+#       screen-positive depression findings", PMID 23487258), abstract read at
+#       the Europe PMC record: urban academic women's hospital, screening 4 to
+#       6 weeks post partum, "A positive screen finding was an Edinburgh
+#       Postnatal Depression Scale (EPDS) score of 10 or higher", "Ten
+#       thousand mothers underwent screening, with positive findings in 1396
+#       (14.0%)".
+#   JP: Ogita K, MHLW research-grant report (成育疾患克服等次世代育成総合研究
+#       事業) 分担研究報告書「産後健診による育児困難事例の早期発見」, 研究要旨
+#       (https://mhlw-grants.niph.go.jp/system/files/2018/182011/
+#       201807007A_upload/201807007A0009.pdf): "産後 120 日以内の母子訪問に
+#       おいて、エジンバラ産後うつ病質問票（EPDS）9 点以上をカットオフとした
+#       場合、13.9％の褥婦が該当" (the 2001 MHLW study of 3,370 women, cited
+#       there); the same report's 考察 gives 13.5 % of the women screened
+#       with the EPDS in the post-partum health-check programme of Izumisano
+#       City.
+# Only the share at or above the cutoff is sourced. The SHAPE of the score
+# distribution on each side of the cutoff is a MODEL CHOICE (no distribution
+# table was read): below the cutoff the weight of score s is (s + 1) *
+# negative_ratio^s (a mode near 3, mean about 3.7), at or above it
+# positive_ratio^(s - cutoff) up to the scale maximum 30.
+postpartum_depression_screen:
+  max_score: 30
+  negative_ratio: 0.75
+  positive_ratio: 0.85
+  us:
+    cutoff: 10
+    positive_rate: 0.140
+  jp:
+    cutoff: 9
+    positive_rate: 0.139
+
+# ---------------------------------------------------------------------------
 # Pregnancy complications sampler — Issue #1285. Bernoulli draws per
 # complication at conception (per-pregnancy, per-mother sub-RNG derived
 # from `perinatal_delivery_seed`), stored on the pregnancy

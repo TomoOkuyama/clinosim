@@ -288,6 +288,15 @@ def individual_lab_seed(order_id: str) -> int:
     return int.from_bytes(digest, "big") % (2**32)
 
 
+def epds_screening_seed(encounter_id: str) -> int:
+    """Per-postpartum-visit sub-seed in ``[0, 2**32)`` for the Edinburgh
+    Postnatal Depression Scale score (Issue #3751), so recording the screen
+    moves no other stream."""
+    salt = "clinosim:epds-screening:v1"
+    digest = hashlib.sha256(f"{salt}|{encounter_id}".encode()).digest()[:6]
+    return int.from_bytes(digest, "big") % (2**32)
+
+
 # AD-55 Module enricher sub-seed offsets.
 #
 # Convention (PR1 2026-06-24): new modules MUST use a 16-bit hex ASCII

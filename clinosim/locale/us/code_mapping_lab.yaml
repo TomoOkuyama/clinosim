@@ -95,6 +95,13 @@ PHQ-9: "44249-1"
 # canonical.
 GAD-7: "70274-6"
 
+# Issue #3751 — Edinburgh Postnatal Depression Scale total score, recorded at
+# a postpartum visit. LOINC 99046-5 "Total score [EPDS]" (class SURVEY.EPDS,
+# ACTIVE; tx.fhir.org $lookup 2026-11-25). The panel 71354-5 "Edinburgh
+# Postnatal Depression Scale [EPDS]" is the instrument; the value is the
+# total score, so it carries the total-score code.
+EPDS: "99046-5"
+
 # Issue #1137 — C-SSRS Columbia Suicide Severity Rating Scale
 # ideation severity (score 0-5: none, then the five ideation types of
 # Posner 2011 Am J Psychiatry). LOINC 93293-9 "Most severe suicidal

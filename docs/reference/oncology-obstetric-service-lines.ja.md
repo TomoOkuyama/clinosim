@@ -51,7 +51,7 @@
 | 新生児 `Patient` チェーン | Baby id `<mother>-BABY` (同じ母親の N 人目は `<mother>-<N>-BABY`)、世帯継承、性別は per-mother sub-RNG、birthDate = 分娩日。新生児は出生入院の退院翌日にシミュレーション人口へ加入し (`PersonRecord.enrolled_from`)、以降は他の人と同様にシミュレーションされる。 | `simulator/perinatal.py` |
 | 新生児 Encounter | IMP、`admit_source = born` (`AdmitSource.BORN`) + `admit_source_encounter_id` → 新生児側 FHIR `Encounter.partOf` | `simulator/perinatal.py` + `codes/hl7_encounter.py::AdmitSource.BORN` |
 | 新生児側 Z38.0 | 新生児 discharge dx | `simulator/perinatal.py` |
-| 産褥 encounter × 2 | 分娩日 + 7 d / + 28 d、`chronic_visit` with `disease_id="Z39"`、obstetrics_gynecology routing。12 月分娩の場合は Dec 31 に year-boundary clamp。 | `perinatal.yaml::lifecycle.postpartum_visit_offsets_days` + `population/_pregnancy.py::_pregnancy_lifecycle_events` |
+| 産褥 encounter × 2 | 分娩日 + 7 d / + 28 d、`chronic_visit` with `disease_id="Z39"`、obstetrics_gynecology routing。12 月分娩の場合は Dec 31 に year-boundary clamp。各受診でエジンバラ産後うつ病質問票 (EPDS) の総合スコアを 1 件記録する (検査パイプラインの Observation、LOINC 99046-5、国別カットオフ以上は H: US 10 / JP 9。陽性割合は `perinatal.yaml::postpartum_depression_screen`、encounter id の専用サブシードで抽選)。ノートがスコアを述べ、陽性なら紹介・フォローの Plan 行を加える (Issue #3751)。 | `perinatal.yaml::lifecycle.postpartum_visit_offsets_days` + `population/_pregnancy.py::_pregnancy_lifecycle_events` |
 | 新生児 perinatal condition | P59.9 黄疸 ~20 %、P07.3 早産 ~7 % (→ 条件付き P22.0 RDS ~35 %)、L22 おむつかぶれ ~30 %、L20.9 アトピー ~15 % | `simulator/perinatal.py` (per-newborn sub-RNG) |
 | 中絶 outcome (age-gate) | 自然 O03.9 / 人工 O04.5 外来日帰り手術。年齢帯別確率 15-19: 40 % → 35-44: 7 %。発火時は妊娠週 ~10 (LMP+70±14 d) で period を `outcome="aborted"` close、delivery + newborn chain skip。 | `locale/shared/perinatal.yaml::abortion` + `population/_pregnancy.py::_pregnancy_lifecycle_events` (abortion 分岐) |
 

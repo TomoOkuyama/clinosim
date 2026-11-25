@@ -456,7 +456,9 @@ Z39:  # Encounter for maternal postpartum care.
     en: "Postpartum follow-up: wound check, breastfeeding support, mood screening"
     ja: "産後フォローアップ・創部確認・授乳支援・産後うつスクリーニング"
   follow_up_interval_months: 0    # event-scheduled, not periodic
-  labs: []
+  # Issue #3751: every postpartum visit records the Edinburgh Postnatal
+  # Depression Scale score (perinatal.yaml postpartum_depression_screen).
+  labs: [EPDS]
   labs_quarterly: [Hb]
   vitals: [systolic_bp, diastolic_bp, heart_rate, weight]
   prescriptions_renewed: false

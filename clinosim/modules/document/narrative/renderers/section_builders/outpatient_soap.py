@@ -1153,7 +1153,10 @@ def _result_lab_entries(ctx: NarrativeContext, *, uncited_only: bool) -> list[st
     from clinosim.modules.document.narrative._narrative_interpretation_thresholds import notable_lab_rules
     from clinosim.modules.document.narrative._notable_labs import notable_lab_entries
 
-    labs = known_labs(ctx)
+    # A screening score is reported as a score with its follow-up, not as an
+    # abnormal result to recheck (Issue #3751).
+    scored = outpatient_results().screening_scores
+    labs = [lab for lab in known_labs(ctx) if str(_o(lab, "lab_name", "") or "") not in scored]
     if uncited_only:
         cited = _chronic_assessment(ctx).cited
         labs = [lab for lab in labs if str(_o(lab, "lab_name", "") or "").lower() not in cited]

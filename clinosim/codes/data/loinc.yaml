@@ -908,6 +908,10 @@ codes:
   89204-2:
     en: "Patient Health Questionnaire-9: Modified for Teens total score [Reported.PHQ.Teen]"
     ja: PHQ-9 (青少年改訂版) 総合スコア
+  # Issue #3751: EPDS total score (tx.fhir.org $lookup 2026-11-25, ACTIVE).
+  99046-5:
+    en: "Total score [EPDS]"
+    ja: EPDS エジンバラ産後うつ病質問票 総合スコア
   55757-9:
     en: "Patient Health Questionnaire 2 item (PHQ-2) [Reported]"
     ja: PHQ-2 うつ病2項目版
