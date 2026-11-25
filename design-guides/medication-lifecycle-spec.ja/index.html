@@ -2579,6 +2579,11 @@
 <td><code>tests/unit/simulator/test_mechanical_ventilation_3535.py</code></td>
 </tr>
 <tr>
+<td>入院中の Barthel Index は経過日数でなく臨床状態に従う: 全ての評価(入院時、入院 7 日ごと、生存退院の退院日)で同じ状態ペナルティ(炎症・灌流・腎機能)を使い、急性疾患ペナルティは入院日は全量、以後は炎症レベル・酸素化障害・灌流低下の最大値に応じて縮小する(0.5 以上で全量、状態の改善に伴い線形にゼロへ)。前回評価からの上昇は 20 点までに制限する(<code>_adl_thresholds.py</code> のモデル上の選択、指針の出典なし)。退院日のノイズは入院ごとのサブシードから引くため、その入院の乱数列は動かない。死亡では評価せず、スナップショット日より後の評価は除く。</td>
+<td><code>simulator/vitals_pipeline.py</code> (<code>_barthel_expected</code>, <code>_generate_adl_assessment</code>)、<code>daily_loop.py</code> (<code>_assess_adl_at_discharge</code>)、<code>seeding.py</code> (<code>adl_discharge_seed</code>); データ <code>simulator/_adl_thresholds.py</code></td>
+<td><code>tests/unit/simulator/test_barthel_recovery_3647.py</code></td>
+</tr>
+<tr>
 <td>最新の AVPU 測定が P または U の患者、および人工呼吸管理中の患者は絶飲食とする。そのような測定の時点で経口の食事が出ている場合は NPO の食事オーダーを出し(翌日の食事オーダーで、最新の測定が改善していれば再開する)、その状態の間に予定された経口(PO)投与はすべて「意識レベル低下のため絶飲食」または「人工呼吸管理中のため絶飲食」を理由に保留する(他の投与経路への変換はせず、意識のない患者に「必須薬は少量の水で」の例外は適用しない)。入院初日の NPO オーダーだけの場合は投与を続け、看護の勤務記録に内服薬を少量の水で投与した旨を書く。モデル上の選択(ガイドライン出典なし)で、乱数は消費しない。</td>
 <td><code>simulator/oral_intake.py</code>(<code>npo_reason_at</code>, <code>apply_oral_intake_holds</code>)、<code>daily_loop.py</code>(<code>_order_diet</code>, <code>_hold_oral_intake</code>)、<code>_nursing_shift_items.py</code>(<code>_item_meal</code>)。データ <code>simulator/reference_data/oral_intake.yaml</code>, <code>locale/shared/medication_hold_reasons.yaml</code></td>
 <td><code>tests/unit/simulator/test_oral_intake_3552.py</code></td>
