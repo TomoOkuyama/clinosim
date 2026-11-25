@@ -1,0 +1,45 @@
+# Close the Issues a merged PR fully addresses.
+#
+# PRs in this repository name the Issues they fix with a line
+# `Addresses #N` (one per Issue) and the Issues they only partly fix with
+# `Part of #N`. GitHub's own closing keywords are not used because they also
+# fire on negated text. With auto-merge enabled, a PR is merged by GitHub when
+# its required checks pass, so the Issues must be closed on the server side
+# too: this job closes every `Addresses #N` Issue of a merged PR and leaves
+# `Part of #N` Issues open.
+name: Close addressed Issues
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  issues: write
+  pull-requests: read
+
+jobs:
+  close:
+    name: Close Addresses #N Issues
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Close Issues named on an Addresses line
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -euo pipefail
+          issues=$(printf '%s\n' "$PR_BODY" | grep -oE '^Addresses #[0-9]+' | grep -oE '[0-9]+' | sort -u || true)
+          if [ -z "$issues" ]; then echo "no Addresses lines"; exit 0; fi
+          for n in $issues; do
+            state=$(gh issue view "$n" -R "$REPO" --json state -q .state || echo MISSING)
+            if [ "$state" = OPEN ]; then
+              gh issue close "$n" -R "$REPO" --comment "Fixed by #$PR_NUMBER."
+              echo "closed #$n"
+            else
+              echo "#$n is $state, left as is"
+            fi
+          done

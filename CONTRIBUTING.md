@@ -154,6 +154,7 @@ the trailer.
 - **A concrete bug report or feature request tied to it** (link the
   issue). "Refactor X for readability" without a motivating problem
   usually isn't a good PR.
+- **Name the Issues on their own lines**: `Addresses #N` for each Issue the PR fully fixes, `Part of #N` for one it only partly fixes. When the PR is merged (PRs are merged by GitHub auto-merge once the required checks pass), the `Close addressed Issues` workflow closes every `Addresses #N` Issue; `Part of #N` Issues stay open. GitHub's closing keywords (`Closes`, `Fixes`) are not used because they also fire on negated text.
 - **No unrelated churn.** Don't reformat 400 files while fixing one
   bug — pre-existing lint / format debt is being worked down in
   separate issues (see [`good first issue`](https://github.com/TomoOkuyama/clinosim/labels/good%20first%20issue)).
