@@ -1163,6 +1163,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#used-codes-catalog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Used-codes catalog
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#longitudinal-service-line-emit-v05--v060" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2457,6 +2468,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#used-codes-catalog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Used-codes catalog
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#longitudinal-service-line-emit-v05--v060" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2584,6 +2606,62 @@ maintains). Without any narrative version present the remaining
 resource types are produced normally. <code>Coverage.ndjson</code> (+ insurer
 <code>Organization</code>) is emitted for US always and for JP when insurance
 is enabled (<code>--jp-insurance</code>, default on).</p>
+<h3 id="used-codes-catalog">Used-codes catalog<a class="headerlink" href="#used-codes-catalog" title="Permanent link">&para;</a></h3>
+<p>Every export also writes <code>catalog/codes-used.ndjson</code> next to <code>fhir_r4/</code> (never inside it) and records its path in <code>cif/metadata.json</code> as <code>used_codes_catalog</code>. It lists the codes the dataset's FHIR resources use, so a loader can check its master tables before reading the NDJSON. It is accumulated by the FHIR writer as each resource is emitted and written once at the end, so it always matches the data.</p>
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>output/
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>├── cif/metadata.json     # "used_codes_catalog": "catalog/codes-used.ndjson"
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>├── fhir_r4/              # unchanged
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>└── catalog/
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    └── codes-used.ndjson # one line per (kind, system, code[, route])
+</span></code></pre></div>
+<p>Each line has <code>kind</code>, <code>resource</code>, <code>element</code>, <code>system</code>, <code>code</code>, <code>display</code> (the emitted <code>coding.display</code>, <code>null</code> when absent), <code>text</code> (the concept text, when it differs), <code>count</code> (resources carrying the code at that element) and <code>patients</code> (distinct patients). Kinds and where they come from:</p>
+<table>
+<thead>
+<tr>
+<th>kind</th>
+<th>resource.element</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>medication</code></td>
+<td><code>MedicationRequest.medicationCodeableConcept</code>; one line per route text (<code>dosageInstruction[0].route.text</code>, <code>null</code> when absent)</td>
+</tr>
+<tr>
+<td><code>lab</code> / <code>vital-sign</code> / <code>nursing-score</code> / <code>observation</code></td>
+<td><code>Observation.code</code> by category: laboratory / vital-signs / survey with an integer value / everything else (social history, blood type, ...)</td>
+</tr>
+<tr>
+<td><code>imaging</code></td>
+<td><code>ImagingStudy.procedureCode</code></td>
+</tr>
+<tr>
+<td><code>diagnosis</code></td>
+<td><code>Condition.code</code></td>
+</tr>
+<tr>
+<td><code>procedure</code></td>
+<td><code>Procedure.code</code></td>
+</tr>
+<tr>
+<td><code>document-type</code></td>
+<td><code>DocumentReference.type</code></td>
+</tr>
+<tr>
+<td><code>organism</code></td>
+<td><code>valueCodeableConcept</code> of the culture-isolate <code>Observation</code> (a "no growth" result is not an organism)</td>
+</tr>
+<tr>
+<td><code>vaccine</code></td>
+<td><code>Immunization.vaccineCode</code></td>
+</tr>
+<tr>
+<td><code>allergen</code></td>
+<td><code>AllergyIntolerance.code</code></td>
+</tr>
+</tbody>
+</table>
+<p>Every coding of a concept that carries a code gets its own line. Kind-specific attributes are present only when the emitted resource states them: medications carry <code>route_coding</code> (SNOMED route), <code>dose_units</code> (UCUM) and <code>co_coded</code> (the other codings of the same concept, e.g. the RxNorm product and its ingredient); observations carry <code>value_types</code>, <code>units</code> (UCUM), <code>reference_ranges</code>, <code>specimens</code> (type of the linked Specimen) and <code>components</code>; imaging carries <code>modalities</code> (DICOM) and <code>body_sites</code>. Concepts with text only (no code) are not listed. <code>MedicationAdministration</code>, <code>ServiceRequest</code>, <code>DiagnosticReport</code>, <code>Composition</code> and <code>Specimen</code> codes are not catalogued.</p>
 <h3 id="longitudinal-service-line-emit-v05--v060">Longitudinal service-line emit (v0.5 → v0.6.0)<a class="headerlink" href="#longitudinal-service-line-emit-v05--v060" title="Permanent link">&para;</a></h3>
 <p>Both service lines emit through the standard resource files above —
 no new resource types were introduced; the service-line schema is
@@ -2703,16 +2781,16 @@ described in
 </tbody>
 </table>
 <h3 id="csv">CSV<a class="headerlink" href="#csv" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>output/csv/
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>├── patients.csv
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>├── encounters.csv
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>├── diagnoses.csv
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>├── lab_results.csv
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>├── vital_signs.csv
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>├── orders.csv
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>├── medication_administrations.csv
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>├── procedures.csv
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>└── ...
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>output/csv/
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>├── patients.csv
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>├── encounters.csv
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>├── diagnoses.csv
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>├── lab_results.csv
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>├── vital_signs.csv
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>├── orders.csv
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>├── medication_administrations.csv
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>├── procedures.csv
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>└── ...
 </span></code></pre></div>
 <hr />
 

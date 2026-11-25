@@ -2346,6 +2346,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#使用コードカタログ" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        使用コードカタログ
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#縦断サービスライン-emit-v05--v060" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2481,6 +2492,62 @@ Reference integrity を維持。</p>
 リソース型は通常通り生成。<code>Coverage.ndjson</code> (+ 保険者
 <code>Organization</code>) は US では常に、JP では保険有効時に emit
 (<code>--jp-insurance</code>、デフォルト on)。</p>
+<h3 id="使用コードカタログ">使用コードカタログ<a class="headerlink" href="#使用コードカタログ" title="Permanent link">&para;</a></h3>
+<p>エクスポートは <code>fhir_r4/</code> の隣 (内側ではない) に <code>catalog/codes-used.ndjson</code> も書き、そのパスを <code>cif/metadata.json</code> の <code>used_codes_catalog</code> に記録する。データセットの FHIR リソースが使うコードの一覧で、取り込み側は NDJSON を読む前にマスタを確認できる。FHIR writer が各リソースを出力するたびに蓄積し、最後に 1 回書くため、常にデータと一致する。</p>
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>output/
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>├── cif/metadata.json     # "used_codes_catalog": "catalog/codes-used.ndjson"
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>├── fhir_r4/              # 変更なし
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>└── catalog/
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    └── codes-used.ndjson # (kind, system, code[, route]) ごとに 1 行
+</span></code></pre></div>
+<p>各行は <code>kind</code>、<code>resource</code>、<code>element</code>、<code>system</code>、<code>code</code>、<code>display</code> (出力された <code>coding.display</code>、無ければ <code>null</code>)、<code>text</code> (concept の text、display と異なる場合)、<code>count</code> (その element でコードを持つリソース数)、<code>patients</code> (患者の異なり数) を持つ。kind と出所:</p>
+<table>
+<thead>
+<tr>
+<th>kind</th>
+<th>resource.element</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>medication</code></td>
+<td><code>MedicationRequest.medicationCodeableConcept</code>。投与経路 text (<code>dosageInstruction[0].route.text</code>、無ければ <code>null</code>) ごとに 1 行</td>
+</tr>
+<tr>
+<td><code>lab</code> / <code>vital-sign</code> / <code>nursing-score</code> / <code>observation</code></td>
+<td><code>Observation.code</code>。category で区別: laboratory / vital-signs / 整数値の survey / それ以外 (社会歴・血液型など)</td>
+</tr>
+<tr>
+<td><code>imaging</code></td>
+<td><code>ImagingStudy.procedureCode</code></td>
+</tr>
+<tr>
+<td><code>diagnosis</code></td>
+<td><code>Condition.code</code></td>
+</tr>
+<tr>
+<td><code>procedure</code></td>
+<td><code>Procedure.code</code></td>
+</tr>
+<tr>
+<td><code>document-type</code></td>
+<td><code>DocumentReference.type</code></td>
+</tr>
+<tr>
+<td><code>organism</code></td>
+<td>培養分離菌 <code>Observation</code> の <code>valueCodeableConcept</code> (「発育なし」は organism ではない)</td>
+</tr>
+<tr>
+<td><code>vaccine</code></td>
+<td><code>Immunization.vaccineCode</code></td>
+</tr>
+<tr>
+<td><code>allergen</code></td>
+<td><code>AllergyIntolerance.code</code></td>
+</tr>
+</tbody>
+</table>
+<p>concept のコードを持つ coding はそれぞれ 1 行になる。kind 固有の属性は出力リソースが述べている場合のみ付く: 医薬品は <code>route_coding</code> (SNOMED 経路)、<code>dose_units</code> (UCUM)、<code>co_coded</code> (同じ concept の他の coding。例: RxNorm の製品と成分)、検査系 Observation は <code>value_types</code>、<code>units</code> (UCUM)、<code>reference_ranges</code>、<code>specimens</code> (紐づく Specimen の種別)、<code>components</code>、画像は <code>modalities</code> (DICOM) と <code>body_sites</code>。text のみでコードの無い concept は載せない。<code>MedicationAdministration</code>・<code>ServiceRequest</code>・<code>DiagnosticReport</code>・<code>Composition</code>・<code>Specimen</code> のコードはカタログ対象外。</p>
 <h3 id="縦断サービスライン-emit-v05--v060">縦断サービスライン emit (v0.5 → v0.6.0)<a class="headerlink" href="#縦断サービスライン-emit-v05--v060" title="Permanent link">&para;</a></h3>
 <p>いずれのサービスラインも上記標準リソースファイルを通じて emit —
 新規リソース型は追加していない。サービスラインのスキーマ詳細は
@@ -2598,16 +2665,16 @@ Reference integrity を維持。</p>
 </tbody>
 </table>
 <h3 id="csv">CSV<a class="headerlink" href="#csv" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>output/csv/
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>├── patients.csv
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>├── encounters.csv
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>├── diagnoses.csv
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>├── lab_results.csv
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>├── vital_signs.csv
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>├── orders.csv
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>├── medication_administrations.csv
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>├── procedures.csv
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>└── ...
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>output/csv/
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>├── patients.csv
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>├── encounters.csv
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>├── diagnoses.csv
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>├── lab_results.csv
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>├── vital_signs.csv
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>├── orders.csv
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>├── medication_administrations.csv
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>├── procedures.csv
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>└── ...
 </span></code></pre></div>
 <hr />
 
