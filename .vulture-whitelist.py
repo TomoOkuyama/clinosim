@@ -19,7 +19,7 @@ comment naming the category and the reason. When adding a new entry:
 
 Referenced from CI as
 ``vulture clinosim/ .vulture-whitelist.py --min-confidence 60``. Any
-finding not covered by this file causes the ``vulture dead-code`` CI job
+finding not covered by this file causes the vulture step of the ``Static checks`` CI job
 to fail.
 
 Policy reference:

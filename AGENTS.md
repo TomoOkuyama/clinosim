@@ -157,7 +157,7 @@ Normative: [`narrative-and-document-generation-spec.md`](docs/design-guides/narr
 
 - **Rule 1**: editing `tests/fixtures/patient_profiles/<name>.yaml` requires regenerating its goldens (`clinosim regenerate-goldens --profile <name>` and `--profile <name> --provider mock`) and committing both together.
 - **Rule 2**: after an intentional template change, a golden diff in profiles you did not expect to change is a regression signal — investigate before committing. "I regenerated everything, so it is green" hides regressions.
-- **Rule 3**: CI runs the regression suite on every PR (`Narrative regression (goldens)` job). Any change that moves template or mock-LLM narrative output — simulation, catalog and localization changes included — regenerates the affected goldens in the same PR and explains the diff in the PR description. PRs that move goldens are serialized (rebase, then regenerate).
+- **Rule 3**: CI runs the regression suite on every PR (`Fast tests (narrative regression, e2e)` job). Any change that moves template or mock-LLM narrative output — simulation, catalog and localization changes included — regenerates the affected goldens in the same PR and explains the diff in the PR description. PRs that move goldens are serialized (rebase, then regenerate).
 
 ### Module independence and extension points (AD-55 / AD-56 / AD-58)
 

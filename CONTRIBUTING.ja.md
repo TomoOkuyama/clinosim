@@ -91,9 +91,8 @@ pytest tests/unit -q               # ~1 分、green 必須
 7. **PR を開く** — PR テンプレートが checklist を案内。
 8. **merge 前に CI が green**。master の ruleset が必須とするチェックは 2 つ:
    - `CI result` — [`ci.yml`](.github/workflows/ci.yml) の gate job
-     (unit / integration の各 shard、`Narrative regression (goldens)`、
-     `E2E tests (fast)`、`Quality (ruff + format + mypy)`、
-     `vulture dead-code`、`Build sdist + wheel`) がすべて成功したときだけ通る
+     (unit / integration の各 shard、`Static checks (ruff, format, mypy, vulture, build)`、
+     `Fast tests (narrative regression, e2e)`) がすべて成功したときだけ通る
    - `Signed-off-by check`
 
    merge-block しないが実行されるもの:

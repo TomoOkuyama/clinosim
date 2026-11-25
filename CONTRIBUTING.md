@@ -93,9 +93,8 @@ pytest tests/unit -q               # ~1 minute, must be green
 8. **CI must be green** before the PR merges. The master ruleset requires two checks:
    - `CI result` — passes only when every gating job of
      [`ci.yml`](.github/workflows/ci.yml) succeeded: the unit and
-     integration test shards, `Narrative regression (goldens)`,
-     `E2E tests (fast)`, `Quality (ruff + format + mypy)`,
-     `vulture dead-code` and `Build sdist + wheel`
+     integration test shards, `Static checks (ruff, format, mypy, vulture, build)`
+     and `Fast tests (narrative regression, e2e)`
    - `Signed-off-by check`
 
    Also run, not merge-blocking:
