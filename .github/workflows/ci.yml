@@ -15,7 +15,7 @@
 #     the lint / type debt that once kept it informational is cleared)
 #   - vulture dead-code
 #
-# Informational (does not block merge):
+# Informational (does not block merge; master pushes only, Issue #3772):
 #   - unit test coverage combine (80 % soft floor)
 #
 # Rate-of-change gates (moved off the PR path per session 82 CI review):
@@ -58,11 +58,13 @@ jobs:
     # `pytest-xdist -n 2 --dist=worksteal` fills both vCPUs. Combined
     # parallelism = 3 × 2 = 6 concurrent workers.
     #
-    # Coverage: each shard writes `.coverage.shard-N` (isolated via
-    # `COVERAGE_FILE` env var) and uploads it as an artifact. The
-    # `unit-coverage-combine` job (below) downloads all shard data,
-    # runs `coverage combine`, and produces the final XML — so the
-    # 80 % soft floor still reflects the full-suite exercised code.
+    # Coverage (master pushes only, Issue #3772): each shard writes
+    # `.coverage.shard-N` (isolated via `COVERAGE_FILE` env var) and
+    # uploads it as an artifact. The `unit-coverage-combine` job (below)
+    # downloads all shard data, runs `coverage combine`, and produces the
+    # final XML — so the 80 % soft floor still reflects the full-suite
+    # exercised code. Coverage is not a gate, so a PR run neither measures
+    # nor uploads it; the combined report of master is the one to read.
     #
     # `.test_durations` is seeded once and refreshed alongside the
     # integration regen described below when test-suite composition
@@ -84,17 +86,18 @@ jobs:
           cache-dependency-glob: pyproject.toml
       - name: Install (with dev extras)
         run: uv pip install --system -e ".[dev]"
-      - name: Run unit tests with coverage (shard ${{ matrix.shard }}/3)
+      - name: Run unit tests (shard ${{ matrix.shard }}/3)
         env:
           COVERAGE_FILE: ".coverage.shard-${{ matrix.shard }}"
+          COV_ARGS: ${{ github.event_name == 'push' && '--cov=clinosim --cov-report=' || '' }}
         run: >
           pytest tests/unit tests/modules tests/simulator -q --tb=short
           -n 2 --dist=worksteal
           --splits 3 --group ${{ matrix.shard }}
           --splitting-algorithm=least_duration
-          --cov=clinosim
-          --cov-report=
+          $COV_ARGS
       - name: Upload coverage data (shard ${{ matrix.shard }})
+        if: github.event_name == 'push'
         uses: actions/upload-artifact@v7
         with:
           name: coverage-data-${{ matrix.shard }}
@@ -107,6 +110,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: unit
     timeout-minutes: 5
+    if: github.event_name == 'push'
     # Coverage combine is informational — a shard failure blocks merge
     # via the `unit` job above, so this stage only exists to produce a
     # single combined XML artifact + summary. The 80 % floor stays soft

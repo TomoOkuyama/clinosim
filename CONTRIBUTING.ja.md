@@ -101,7 +101,7 @@ pytest tests/unit -q               # ~1 分、green 必須
    - `JP-CLINS lab compliance gate` / `JP Core narrow compliance gate` /
      `US Core narrow compliance gate` (FHIR 出力に影響する path を変更した
      PR のみ実行)
-   - `Unit test coverage combine (informational)`
+   - `Unit test coverage combine (informational)` (master への push のみ)
 
    Python 3.11 unit-test 互換性は nightly 実行
    ([`.github/workflows/nightly.yml`](.github/workflows/nightly.yml))。
