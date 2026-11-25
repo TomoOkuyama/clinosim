@@ -2985,7 +2985,9 @@ medications, allergies, baseline vitals.</p>
    <code>["icu_transfer"]</code> fires and triggers ICU transfer, and one that
    declares <code>start_antibiotic</code> (or <code>start_broad_spectrum_antibiotic</code>)
    gets the first-line antibiotic of its empirical-regimen protocol at
-   onset (<code>simulator/reference_data/complication_actions.yaml</code>); the
+   onset (<code>simulator/reference_data/complication_actions.yaml</code>); one that
+   declares <code>intubation</code> / <code>mechanical_ventilation</code> secures the airway at
+   onset through the state-driven path (ventilator, ICU, procedure); the
    other action strings are not executed.</li>
 <li><strong>Orders / labs / vitals / meds</strong>: physiology state drives
    <code>derive_lab_values</code> (30+ analytes) for lab values, vitals, and
