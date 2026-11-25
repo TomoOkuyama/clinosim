@@ -2675,6 +2675,11 @@
 <td><code>tests/unit/modules/document/narrative/test_delivery_notes_3663.py</code></td>
 </tr>
 <tr>
+<td>分娩入院の日々の経過記録は、産褥日数と産褥の所見を書く (Issue #3687)。主観は「産褥N日。」(分娩終了前は「分娩進行中。」) とし、産褥婦に当てはまらないリハビリの文言を含む成人用の安定日プールは使わない。記録に訴え・疼痛・排尿・哺乳がないので書かない。客観は、日本語・英語とも、<code>disease_exam.yaml</code> <code>delivery.modes.&lt;mode&gt;.obstetric_postpartum</code> の産科所見 (H&amp;P と同じ文、入院日も 1 回だけ) で終える。最終日近くの計画に、産後の注意すべき症状と産後健診についての退院前説明を加える。産褥日数は分娩手技の終了から数える (<code>narrative/_delivery.py::postpartum_day</code>)。</td>
+<td><code>narrative/_delivery.py::postpartum_day</code>, <code>renderers/_composers.py::compose_postpartum_exam_line</code>, <code>renderers/_composers.py::compose_progress_subjective_from_state</code>, <code>renderers/progress_note.py</code></td>
+<td><code>tests/unit/modules/document/narrative/test_postpartum_progress_notes_3687.py</code></td>
+</tr>
+<tr>
 <td>すでに文末記号で終わる文や身体部位別の文章は、冪等な <code>join_sentences(sentences, lang)</code> で連結する。区切り文字を直書きして連結するのは不具合である (文末記号が重なる: JA「。。」、EN「..」)。<code>format_physical_exam</code> は連結前に文末記号を取り除き、ED の身体所見も各部分を同じ方法で連結する (Issue #3410)。</td>
 <td><code>clinosim/modules/document/narrative/_visit_reason.py::join_sentences</code>、<code>renderers/_shared_helpers.py::format_physical_exam</code>、<code>renderers/section_builders/ed_note.py</code></td>
 <td><code>tests/unit/modules/document/narrative/test_doubled_terminators_3410.py</code></td>

@@ -2675,6 +2675,11 @@
 <td><code>tests/unit/modules/document/narrative/test_delivery_notes_3663.py</code></td>
 </tr>
 <tr>
+<td>The daily progress notes of a delivery stay state the postpartum day and the postpartum finding (Issue #3687): the subjective is "Postpartum day N." ("In labor." before the birth ended), not the adult stable-day pool, whose rehabilitation wording does not apply to a postpartum woman, and states no complaint, pain, voiding or feeding because the record holds none; the objective, in English and Japanese, ends with the obstetric finding of <code>disease_exam.yaml</code> <code>delivery.modes.&lt;mode&gt;.obstetric_postpartum</code> (the text the H&amp;P uses, written once even on the admission day); the plan of the last days adds the discharge teaching on the postpartum warning signs and the postpartum visit. The postpartum day is counted from the end of the delivery procedure (<code>narrative/_delivery.py::postpartum_day</code>).</td>
+<td><code>narrative/_delivery.py::postpartum_day</code>, <code>renderers/_composers.py::compose_postpartum_exam_line</code>, <code>renderers/_composers.py::compose_progress_subjective_from_state</code>, <code>renderers/progress_note.py</code></td>
+<td><code>tests/unit/modules/document/narrative/test_postpartum_progress_notes_3687.py</code></td>
+</tr>
+<tr>
 <td>Sentences or body-system texts that already end in a terminator are joined with the idempotent <code>join_sentences(sentences, lang)</code>; a hard-coded separator join is a bug (a doubled terminator: JA "。。", EN ".."). <code>format_physical_exam</code> strips a terminator before it joins, and the ED exam joins its parts the same way (Issue #3410).</td>
 <td><code>clinosim/modules/document/narrative/_visit_reason.py::join_sentences</code>, <code>renderers/_shared_helpers.py::format_physical_exam</code>, <code>renderers/section_builders/ed_note.py</code></td>
 <td><code>tests/unit/modules/document/narrative/test_doubled_terminators_3410.py</code></td>
