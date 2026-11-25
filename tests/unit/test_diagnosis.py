@@ -105,3 +105,34 @@ class TestDiagnosis:
         code, name = get_current_diagnosis_code(empty)
         assert code == "R69"
         assert name == _display("R69")
+
+
+@pytest.mark.unit
+class TestRepeatedFindings:
+    """A finding's likelihood ratio counts once per differential (Issue #3820).
+
+    The daily loop feeds every day's new draw of the same test. Serial
+    results of one test are not independent evidence, and a marker that
+    falls under treatment is a response, not a diagnosis: re-applying the
+    negative CRP ratio each day turned treated bacterial pneumonia into
+    viral pneumonia by day 4."""
+
+    def test_a_repeated_finding_does_not_move_the_posterior_again(self):
+        diff = update_differential(initialize_differential(), [("crp_above_100", False)])
+        once = {c.disease_code: c.probability for c in diff.candidates}
+        diff = update_differential(diff, [("crp_above_100", False)])
+        assert {c.disease_code: c.probability for c in diff.candidates} == pytest.approx(once)
+
+    def test_a_finding_repeated_in_one_update_counts_once(self):
+        single = update_differential(initialize_differential(), [("crp_above_100", False)])
+        double = update_differential(initialize_differential(), [("crp_above_100", False), ("crp_above_100", False)])
+        assert [c.probability for c in double.candidates] == pytest.approx([c.probability for c in single.candidates])
+
+    def test_treated_pneumonia_keeps_its_diagnosis_as_markers_fall(self):
+        diff = update_differential(
+            initialize_differential("bacterial_pneumonia", age=72),
+            [("chest_xray_consolidation", True), ("crp_above_100", True), ("wbc_above_15000", True)],
+        )
+        for _ in range(10):  # ten days of falling markers under antibiotics
+            diff = update_differential(diff, [("crp_above_100", False), ("wbc_above_15000", False)])
+        assert diff.working_diagnosis == "bacterial_pneumonia"

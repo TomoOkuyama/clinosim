@@ -165,12 +165,21 @@ def update_differential(
         protocol_lr_table: LR table from disease YAML. Falls back to built-in LR_TABLE.
         findings: List of (finding_name, is_positive) tuples
         confirmation_threshold: Probability at which diagnosis is confirmed
+
+    A finding's likelihood ratio is applied once per differential, at its
+    first result (Issue #3820). The daily loop passes each day's new draw of
+    the same test; serial results of one test are not independent evidence,
+    and a marker falling under treatment is a response, not a diagnosis
+    (re-applying the negative CRP ratio daily turned a treated bacterial
+    pneumonia into viral pneumonia by day 4, so its recovery was dampened as
+    if mistreated).
     """
     for finding_name, is_positive in findings:
         effective_lr = protocol_lr_table or LR_TABLE
         lr_entry = effective_lr.get(finding_name)
-        if lr_entry is None:
+        if lr_entry is None or finding_name in diff.applied_findings:
             continue
+        diff.applied_findings.add(finding_name)
 
         for candidate in diff.candidates:
             dx = candidate.disease_code

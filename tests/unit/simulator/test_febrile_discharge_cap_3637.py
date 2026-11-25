@@ -10,7 +10,7 @@ import pytest
 
 from clinosim.codes.hl7_encounter import DischargeDisposition
 from clinosim.simulator import aki_response as ar
-from clinosim.simulator import run_forced
+from clinosim.simulator import daily_loop, run_forced
 from clinosim.simulator.aki_response import (
     AkiCourse,
     aki_response_rules,
@@ -54,6 +54,8 @@ def test_unresolved_findings_are_not_released_home() -> None:
 
 def _stay(monkeypatch: pytest.MonkeyPatch, febrile: bool):
     monkeypatch.setattr(ar, "fever_persists", lambda vitals: febrile)
+    # The disposition reads the daily loop's own binding.
+    monkeypatch.setattr(daily_loop, "fever_persists", lambda vitals: febrile)
     scenario = ForcedScenario(disease_id="bacterial_pneumonia", count=1, severity="moderate")
     dataset = run_forced(scenario, SimulatorConfig(random_seed=42, country="US"))
     return dataset.patients[0]

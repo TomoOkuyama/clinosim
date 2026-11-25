@@ -5,7 +5,7 @@ country: JP
 severity: moderate
 archetype: smooth_recovery
 count: 1
-random_seed: 42
+random_seed: 1
 hospital_scale: medium
 
 patient_overrides:
