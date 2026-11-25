@@ -1651,6 +1651,14 @@ drugs:
       # 統一名収載 6322400X2013 沈降破傷風トキソイド).
       yj: {injection: "6322400X2072"}
     classes: ["vaccine"]
+  hepatitis_b_vaccine:
+    # Issue #3688: the hepatitis B birth dose ordered in the nursery (US). NLM
+    # RxNav RxCUI 797752 "hepatitis B surface antigen vaccine", TTY=IN (read
+    # 2026-11-25).
+    names: {en: "Hepatitis B vaccine", ja: "B型肝炎ワクチン"}
+    codes:
+      rxnorm: "797752"
+    classes: ["vaccine"]
   nab_paclitaxel:
     # Nab-paclitaxel is a specific albumin-bound formulation of paclitaxel
     # (Abraxane). Registered as its own drug_id because the chemo_regimens

@@ -245,6 +245,17 @@ class VaccineAdministration:
     dose_ml: float | None
 
 
+def vaccine_order_drug(country: str, cvx: str) -> str:
+    """The drug id (``codes/data/drugs.yaml``) of the order behind a dose of
+    ``cvx`` given during an inpatient stay (``order_drug_id`` of the vaccine in
+    ``country``'s schedule); ``""`` for a vaccine with none (Issue #3688)."""
+    for vaccine in load_schedule(country).values():
+        codes = {str(vaccine.get("cvx"))} | {str(p["cvx"]) for p in vaccine.get("products") or []}
+        if str(cvx) in codes and vaccine.get("order_drug_id"):
+            return str(vaccine["order_drug_id"])
+    return ""
+
+
 def vaccine_administration(country: str, cvx: str, age_months: int | None) -> VaccineAdministration | None:
     """The route, site and dose of a ``cvx`` dose given at ``age_months`` from
     ``country``'s schedule (``administration`` of the vaccine, sites from

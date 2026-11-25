@@ -259,6 +259,78 @@ def _give_stay_doses_by_ward_nurse(imm_recs: list, encounters: list, roster: Any
             _set(imm, "administered_by", nurses[sum(ord(c) for c in pid) % len(nurses)])
 
 
+def _order_stay_doses(rec: Any, imm_recs: list, country: str) -> None:
+    """Issue #3688: a vaccine given during an inpatient stay of ``rec`` (the
+    hepatitis B birth dose in the nursery) is ordered at the admission, as the
+    vitamin K and the eye prophylaxis of the stay are. The ``Immunization`` is
+    the administration record, so no medication administration is added (it
+    would duplicate the dose in FHIR). One order per dose, no RNG."""
+    from clinosim.codes import display as registry_display
+    from clinosim.codes.drugs import resolve_drug
+    from clinosim.modules.immunization.engine import vaccine_administration, vaccine_order_drug
+    from clinosim.modules.observation.pediatric_ranges import age_in_completed_months
+    from clinosim.types.encounter import Order, OrderStatus, OrderType
+
+    stays = {
+        str(_get(e, "encounter_id", "") or ""): e
+        for e in _get(rec, "encounters", []) or []
+        if str(getattr(_get(e, "encounter_type", ""), "value", _get(e, "encounter_type", ""))).lower()
+        in ("inpatient", "imp")
+    }
+    if not stays:
+        return
+    patient = _get(rec, "patient")
+    pid = str(_get(patient, "patient_id", "") or "")
+    orders = _get(rec, "orders", None)
+    if orders is None:
+        orders = []
+        _set(rec, "orders", orders)
+    have = {str(_get(o, "order_id", "") or "") for o in orders}
+    for imm in imm_recs:
+        enc = stays.get(str(_get(imm, "encounter_id", "") or ""))
+        if enc is None or str(_get(imm, "status", "completed") or "completed") != "completed":
+            continue
+        cvx = str(_get(imm, "vaccine_cvx", "") or "")
+        drug_id = vaccine_order_drug(country, cvx)
+        record = resolve_drug(drug_id) if drug_id else None
+        name = record.names.get("en", "") if record else ""
+        if not name:
+            # No catalog drug: the CVX display, without the comma the
+            # MedicationRequest builder reads the drug name up to.
+            head, sep, tail = (registry_display("cvx", cvx, "en") or "").partition(", ")
+            name = f"{head} ({tail})" if sep else head
+        dose = _get(imm, "dose_number", None)
+        oid = f"ORD-{_get(enc, 'encounter_id', '')}-IMM-{cvx}" + (f"-{dose}" if dose else "")
+        if not name or oid in have:
+            continue
+        have.add(oid)
+        admitted = _get(enc, "admission_datetime", None)
+        given = vaccine_administration(
+            country,
+            cvx,
+            age_in_completed_months(_get(patient, "date_of_birth", None), _get(imm, "occurrence_date", None)),
+        )
+        orders.append(
+            Order(
+                order_id=oid,
+                encounter_id=str(_get(enc, "encounter_id", "") or ""),
+                patient_id=pid,
+                order_type=OrderType.MEDICATION,
+                display_name=name,
+                drug_id=drug_id,
+                urgency="routine",
+                ordered_datetime=admitted,
+                ordered_by=str(_get(enc, "attending_physician_id", "") or ""),
+                status=OrderStatus.PLACED,
+                frequency="once",
+                frequency_per_day=1,
+                route=given.route if given else "",
+                dose_quantity=given.dose_ml if given else None,
+                dose_unit="mL" if given and given.dose_ml is not None else "",
+            )
+        )
+
+
 def _bind_stay_doses(imm_recs: list, encounters: list) -> None:
     """Issue #2168: a dose that falls inside an inpatient stay is given
     during that stay (the hepatitis B birth dose in the nursery), so it
@@ -787,6 +859,7 @@ def enrich_immunizations(ctx) -> None:
             _set(imm, "encounter_id", synth.encounter_id)
         _set(rec, "encounters", rec_encounters)
         _set(rec, "immunizations", recs)
+        _order_stay_doses(rec, recs, country_upper)
     # Issue #1228: dispatch document stubs for the companion vaccination
     # encounters just appended. `document_enricher` normally runs at
     # POST_ENCOUNTER (before this POST_RECORDS enricher), so any encounter

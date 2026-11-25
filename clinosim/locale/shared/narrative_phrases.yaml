@@ -1519,6 +1519,9 @@ neonate_ap:
   plan_observation:
     ja: "哺乳・排尿・排便・体重の経過を観察する。"
     en: "Monitor feeding, voiding, stooling and weight."
+  plan_vaccine:
+    ja: "出生時のワクチン接種: {list}。"
+    en: "Vaccine at birth: {list}."
   plan_vitamin_k:
     ja: "ビタミン K を予防投与する。"
     en: "Vitamin K prophylaxis."

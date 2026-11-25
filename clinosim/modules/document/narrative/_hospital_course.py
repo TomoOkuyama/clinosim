@@ -443,6 +443,41 @@ def medication_changes_sentence(ctx: NarrativeContext) -> tuple[str, str]:
     return line, "ctx.discharge_medications"
 
 
+def stay_vaccines(ctx: NarrativeContext) -> list[tuple[str, int | None]]:
+    """The vaccines given during the stay (the hepatitis B birth dose), as
+    ``(name, day of life)`` in the note language, from the ``Immunization``
+    records of the stay's encounter (Issue #3688); the day of life is ``None``
+    when the birth date or the dose date is missing. A dose dated after the
+    note's authored time is not yet given."""
+    from datetime import date
+
+    from clinosim.codes import display as registry_display
+    from clinosim.modules.document.narrative._narrative_utils import _birth_and_visit_dates
+
+    enc_id = str(_o(ctx.encounter, "encounter_id", "") or "") if ctx.encounter is not None else ""
+    dates = _birth_and_visit_dates(ctx)
+    out: list[tuple[str, int | None]] = []
+    for imm in getattr(ctx, "immunizations", None) or []:
+        if str(_o(imm, "status", "completed") or "completed") != "completed":
+            continue
+        if enc_id and str(_o(imm, "encounter_id", "") or "") != enc_id:
+            continue
+        name = registry_display("cvx", str(_o(imm, "vaccine_cvx", "") or ""), ctx.target_lang) or ""
+        if not name:
+            continue
+        given = _o(imm, "occurrence_date", None)
+        if isinstance(given, str):
+            try:
+                given = date.fromisoformat(given[:10])
+            except ValueError:
+                given = None
+        authored = getattr(ctx, "authored_datetime", None)
+        if isinstance(given, date) and authored is not None and given > authored.date():
+            continue
+        out.append((name, (given - dates[0]).days if isinstance(given, date) and dates is not None else None))
+    return out
+
+
 def newborn_prophylaxis_sentence(ctx: NarrativeContext) -> tuple[str, str]:
     """The doses given to a newborn during the stay (vitamin K, eye
     prophylaxis), each with its day of life, as the medication administration
@@ -466,6 +501,10 @@ def newborn_prophylaxis_sentence(ctx: NarrativeContext) -> tuple[str, str]:
             items.append(t("hospital_course.newborn_dose_on_day", lang, name=name, day=(when.date() - dates[0]).days))
         else:
             items.append(name)
+    for name, day in stay_vaccines(ctx):
+        item = t("hospital_course.newborn_dose_on_day", lang, name=name, day=day) if day is not None else name
+        if item not in items:
+            items.append(item)
     if not items:
         return "", ""
     return t("hospital_course.newborn_given_line", lang, list=t("list_sep.serial", lang).join(items)), "ctx.medications"
