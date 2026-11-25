@@ -77,6 +77,34 @@ resource types are produced normally. `Coverage.ndjson` (+ insurer
 `Organization`) is emitted for US always and for JP when insurance
 is enabled (`--jp-insurance`, default on).
 
+### Used-codes catalog
+
+Every export also writes `catalog/codes-used.ndjson` next to `fhir_r4/` (never inside it) and records its path in `cif/metadata.json` as `used_codes_catalog`. It lists the codes the dataset's FHIR resources use, so a loader can check its master tables before reading the NDJSON. It is accumulated by the FHIR writer as each resource is emitted and written once at the end, so it always matches the data.
+
+```
+output/
+├── cif/metadata.json     # "used_codes_catalog": "catalog/codes-used.ndjson"
+├── fhir_r4/              # unchanged
+└── catalog/
+    └── codes-used.ndjson # one line per (kind, system, code[, route])
+```
+
+Each line has `kind`, `resource`, `element`, `system`, `code`, `display` (the emitted `coding.display`, `null` when absent), `text` (the concept text, when it differs), `count` (resources carrying the code at that element) and `patients` (distinct patients). Kinds and where they come from:
+
+| kind | resource.element |
+|---|---|
+| `medication` | `MedicationRequest.medicationCodeableConcept`; one line per route text (`dosageInstruction[0].route.text`, `null` when absent) |
+| `lab` / `vital-sign` / `nursing-score` / `observation` | `Observation.code` by category: laboratory / vital-signs / survey with an integer value / everything else (social history, blood type, ...) |
+| `imaging` | `ImagingStudy.procedureCode` |
+| `diagnosis` | `Condition.code` |
+| `procedure` | `Procedure.code` |
+| `document-type` | `DocumentReference.type` |
+| `organism` | `valueCodeableConcept` of the culture-isolate `Observation` (a "no growth" result is not an organism) |
+| `vaccine` | `Immunization.vaccineCode` |
+| `allergen` | `AllergyIntolerance.code` |
+
+Every coding of a concept that carries a code gets its own line. Kind-specific attributes are present only when the emitted resource states them: medications carry `route_coding` (SNOMED route), `dose_units` (UCUM) and `co_coded` (the other codings of the same concept, e.g. the RxNorm product and its ingredient); observations carry `value_types`, `units` (UCUM), `reference_ranges`, `specimens` (type of the linked Specimen) and `components`; imaging carries `modalities` (DICOM) and `body_sites`. Concepts with text only (no code) are not listed. `MedicationAdministration`, `ServiceRequest`, `DiagnosticReport`, `Composition` and `Specimen` codes are not catalogued.
+
 ### Longitudinal service-line emit (v0.5 → v0.6.0)
 
 Both service lines emit through the standard resource files above —

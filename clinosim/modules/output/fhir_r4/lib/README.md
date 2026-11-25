@@ -87,6 +87,9 @@ rename).
     emission at cohort export time. Constants:
     `_SIDECAR_FILENAME = "_generator_metadata.json"`,
     `_RECENT_MERGES_LIMIT = 30`, `_PR_NUMBER_RE = r"\(#(\d+)\)\s*$"`.
+  - `used_codes.py` — `UsedCodesCatalog`: accumulates the codes of the
+    emitted resources while the export writes and writes
+    `catalog/codes-used.ndjson` next to `fhir_r4/` (Issue #3762).
   - `ed_reattribution.py` — the `reattribute_encounter_to_ed_bridge`
     helper used by `convert_cif_to_fhir` when reattributing
     via-ED IMP encounters to a synthetic ED bridge encounter
@@ -212,6 +215,7 @@ clinosim/modules/output/fhir_r4/lib/
   reference_data.py                  profile URIs + code-system URIs
   inline_bb.py                       11 legacy _bb_* builders (do not extend — split to domain subpackages instead)
   generator_metadata.py              _generator_metadata.json sidecar emission
+  used_codes.py                      used-codes catalog accumulator (catalog/codes-used.ndjson)
   ed_reattribution.py                reattribute_encounter_to_ed_bridge (N-3 PR #810)
   ids.py                             CLINOSIM_IDENTIFIER_SYSTEM_PREFIX + structural_key_system + derive_opaque_id + wrap_as_identifier
 ```
