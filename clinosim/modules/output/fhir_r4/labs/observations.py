@@ -125,7 +125,13 @@ def lab_observation_coding(lab_name: str, order: dict, result: dict, country: st
     _strategy_kwargs: dict[str, Any] = {"lab_name": lab_name, "order": order, "result": result, "country": country}
     codings = _strategy.emit_codings(**_strategy_kwargs)
     _localcode = _strategy.emit_localcode_coding(**_strategy_kwargs)
-    if _localcode is not None:
+    # Issue #3807: a questionnaire score is identified by its instrument code
+    # (LOINC) alone; the JP-CLINS laboratory codings (uncoded slice, local
+    # code) describe a laboratory analyte. The local code still supplies the
+    # code's text (the instrument's name) but is not emitted as a coding.
+    if is_questionnaire_score(lab_name):
+        codings = [c for c in codings if c.get("system") == get_system_uri("loinc")]
+    elif _localcode is not None:
         codings.append(_localcode)
     # Issue #777: `code.text` should carry a human-readable primary label,
     # not the standard-code display (which for CoreLabo_CS is an English
@@ -188,8 +194,13 @@ def _build_lab_observation(
     encounter_id: str = "",
     patient_medications: Any = None,
     patient_age: int | None = None,
+    encounter_clinician: str = "",
 ) -> dict | None:
-    """Build FHIR Observation resource for a lab result."""
+    """Build FHIR Observation resource for a lab result.
+
+    ``encounter_clinician`` is the practitioner the Encounter references (the
+    attending); a questionnaire score is attributed to the orderer, else to
+    this clinician, and never to the laboratory technician (Issue #3807)."""
     value = result.get("value")
     if value is None:
         return None
@@ -222,7 +233,11 @@ def _build_lab_observation(
     # single ``laboratory`` category (JP_Observation_LabResult_eCS allows one)
     # cannot carry the ``vital-signs`` category those profiles require, so a
     # health-checkup BMI here cannot meet ``bmi``.
-    _profiles: list[str] = declared_profiles("Observation/LabResult", country, "jp_core")
+    # A questionnaire score (category survey) is no laboratory result and
+    # declares no laboratory profile (Issue #3807).
+    _profiles: list[str] = (
+        [] if is_questionnaire_score(lab_name) else declared_profiles("Observation/LabResult", country, "jp_core")
+    )
 
     # Issue #3154: a health-checkup result is the report's Observation — it
     # carries the country's checkup item coding and declares the report
@@ -375,8 +390,13 @@ def _build_lab_observation(
     if enc_ref:
         resource["encounter"] = encounter_ref(enc_ref)
 
-    # Performer (lab technician or ordering physician)
-    performer_id = result.get("performed_by", "") or order.get("ordered_by", "")
+    # Performer (lab technician or ordering physician). A questionnaire score
+    # is administered or reviewed by the clinician (Issue #3807): the
+    # orderer, else the encounter's clinician; none when the record has neither.
+    if is_questionnaire_score(lab_name):
+        performer_id = order.get("ordered_by", "") or encounter_clinician
+    else:
+        performer_id = result.get("performed_by", "") or order.get("ordered_by", "")
     if performer_id:
         resource["performer"] = [{"reference": f"Practitioner/{performer_id}"}]
 
@@ -904,6 +924,14 @@ def _bb_labs(ctx: BundleContext) -> list[dict[str, Any]]:
     encounters = ctx.record.get("encounters") or []
     admission_date = _date_of(_o(encounters[0], "admission_datetime")) if encounters else None
 
+    # The practitioner each Encounter references, for a questionnaire score's performer.
+    _attending_by_enc: dict[str, str] = {}
+    for _enc in encounters:
+        _eid = _o(_enc, "encounter_id", "") or ""
+        _att = _o(_enc, "attending_physician_id", "") or ""
+        if _eid and _att:
+            _attending_by_enc[_eid] = _att
+
     out: list[dict[str, Any]] = []
     for i, order in enumerate(orders):
         # Single, shared filter condition (dual-access via _o) — a prior
@@ -943,6 +971,7 @@ def _bb_labs(ctx: BundleContext) -> list[dict[str, Any]]:
                 home_medications, medication_orders, admission_date, result_dict.get("result_datetime")
             ),
             patient_age=(ctx.patient_data or {}).get("age"),
+            encounter_clinician=_attending_by_enc.get(_o(order, "encounter_id", "") or ctx.primary_enc_id, ""),
         )
         if obs:
             if sr_id is not None:

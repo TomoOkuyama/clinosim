@@ -18,6 +18,7 @@ effective at the specimen collection and `issued` at the report;
 `observation.microbiology.specimen_transport_minutes`.
 
 Questionnaire total scores (`QUESTIONNAIRE_SCORE_ANALYTES` in `lib/common.py`: PHQ-9, GAD-7, C-SSRS, EPDS; Issue #3802) are `survey` Observations with no `specimen`, no analyzer `method` and no companion Specimen; their ServiceRequest and DiagnosticReport are evaluation procedures (SNOMED 386053000), not laboratory ones, and the report declares no lab profile.
+A questionnaire score is coded with its LOINC instrument code alone (no JP-CLINS uncoded or local-code codings, no laboratory profile), and its `performer` is the clinician: the orderer, else the attending of the Encounter, never the laboratory technician (Issue #3807).
 
 ## Scope
 
