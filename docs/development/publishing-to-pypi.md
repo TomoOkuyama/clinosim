@@ -53,5 +53,5 @@ version number.
 - `nightly.yml` — reproducibility gate on master. Run manually before a
   release cut (`workflow_dispatch`) to catch any silent determinism drift
   since the last nightly.
-- `jp-clins-lab-compliance-gate.yml` — JP-CLINS invariant check. Must be
+- `jp-clins-lab-compliance-gate.yml` — JP-CLINS lab and JP Core narrow invariant checks. Must be
   green on the release commit before the tag push.
