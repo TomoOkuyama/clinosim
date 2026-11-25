@@ -2420,9 +2420,8 @@
 <li><strong>PR を開く</strong> — PR テンプレートが checklist を案内。</li>
 <li><strong>merge 前に CI が green</strong>。master の ruleset が必須とするチェックは 2 つ:</li>
 <li><code>CI result</code> — <a href="https://github.com/TomoOkuyama/clinosim/blob/master/.github/workflows/ci.yml"><code>ci.yml</code></a> の gate job
-     (unit / integration の各 shard、<code>Narrative regression (goldens)</code>、
-     <code>E2E tests (fast)</code>、<code>Quality (ruff + format + mypy)</code>、
-     <code>vulture dead-code</code>、<code>Build sdist + wheel</code>) がすべて成功したときだけ通る</li>
+     (unit / integration の各 shard、<code>Static checks (ruff, format, mypy, vulture, build)</code>、
+     <code>Fast tests (narrative regression, e2e)</code>) がすべて成功したときだけ通る</li>
 <li><code>Signed-off-by check</code></li>
 </ol>
 <p>merge-block しないが実行されるもの:

@@ -2441,9 +2441,8 @@ properties the project relies on:</p>
 <li><strong>CI must be green</strong> before the PR merges. The master ruleset requires two checks:</li>
 <li><code>CI result</code> — passes only when every gating job of
      <a href="https://github.com/TomoOkuyama/clinosim/blob/master/.github/workflows/ci.yml"><code>ci.yml</code></a> succeeded: the unit and
-     integration test shards, <code>Narrative regression (goldens)</code>,
-     <code>E2E tests (fast)</code>, <code>Quality (ruff + format + mypy)</code>,
-     <code>vulture dead-code</code> and <code>Build sdist + wheel</code></li>
+     integration test shards, <code>Static checks (ruff, format, mypy, vulture, build)</code>
+     and <code>Fast tests (narrative regression, e2e)</code></li>
 <li><code>Signed-off-by check</code></li>
 </ol>
 <p>Also run, not merge-blocking:
