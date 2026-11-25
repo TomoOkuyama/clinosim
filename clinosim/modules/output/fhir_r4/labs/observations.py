@@ -117,7 +117,7 @@ def _resolve_vital_sign_observation_id(structural_key: str) -> str:
 # Questionnaire total scores scheduled through the lab pipeline (chronic_followup
 # labs_quarterly). They are instrument scores, so FHIR category is survey and no
 # laboratory referenceRange applies.
-_QUESTIONNAIRE_SCORE_ANALYTES = frozenset({"PHQ-9", "GAD-7", "C-SSRS"})
+_QUESTIONNAIRE_SCORE_ANALYTES = frozenset({"PHQ-9", "GAD-7", "C-SSRS", "EPDS"})
 
 
 def lab_observation_coding(lab_name: str, order: dict, result: dict, country: str) -> tuple[list[dict], str]:

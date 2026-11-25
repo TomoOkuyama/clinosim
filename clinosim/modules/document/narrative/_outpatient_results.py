@@ -34,6 +34,9 @@ class _Score(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     positive_from: float | None = None
+    # Issue #3751: a score whose cutoff differs by country is judged by the
+    # simulator (perinatal.yaml); the result's flag H is the positive screen.
+    positive_by_flag: bool = False
     follow_up: str | None = None
 
 
@@ -51,8 +54,11 @@ class OutpatientResults(BaseModel):
     @model_validator(mode="after")
     def _check(self) -> OutpatientResults:
         for name, score in self.screening_scores.items():
-            if (score.positive_from is None) != (score.follow_up is None):
-                raise ValueError(f"screening_scores {name}: positive_from and follow_up go together")
+            judged = score.positive_from is not None or score.positive_by_flag
+            if score.positive_from is not None and score.positive_by_flag:
+                raise ValueError(f"screening_scores {name}: positive_from and positive_by_flag are exclusive")
+            if judged != (score.follow_up is not None):
+                raise ValueError(f"screening_scores {name}: a positive screen and follow_up go together")
         return self
 
 
@@ -226,6 +232,9 @@ def screening_scores(lab_results: list[Any]) -> list[tuple[str, float, str | Non
         if name not in spec or isinstance(value, bool) or not isinstance(value, (int, float)):
             continue
         rule = spec[name]
-        positive = rule.positive_from is not None and float(value) >= rule.positive_from
+        if rule.positive_by_flag:
+            positive = str(_o(lab, "flag", "") or "") == "H"
+        else:
+            positive = rule.positive_from is not None and float(value) >= rule.positive_from
         seen[name] = (name, float(value), rule.follow_up if positive else None)
     return list(seen.values())

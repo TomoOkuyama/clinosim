@@ -174,6 +174,8 @@ precision:
   "GAD-7": 0
   # C-SSRS ideation severity is an integer 0-5.
   "C-SSRS": 0
+  # Issue #3751 — EPDS total score is an integer 0-30 (10 items x 0-3 points).
+  "EPDS": 0
   # Issue #2138: toxicology screen (integer reporting).
   Ethanol: 0
   Acetaminophen_level: 0
@@ -270,6 +272,8 @@ units:
   # score 0-21 emitted on OP follow-up for F41.1 cohort. Same
   # UCUM "{score}" convention as PHQ-9.
   "GAD-7": "{score}"
+  # Issue #3751 — EPDS total score, same UCUM "{score}" convention.
+  "EPDS": "{score}"
   # Issue #1137 — mental-health cluster axis 7: Columbia Suicide
   # Severity Rating Scale ideation severity (C-SSRS score 0-5).
   # 0 = no ideation; 1 = wish to be dead; 2 = non-specific active
@@ -322,6 +326,8 @@ physiologic_limits:
   # points). Scoring-rule invariant, same bound rationale as
   # PHQ-9.
   "GAD-7": [0.0, 21.0]
+  # Issue #3751 — EPDS total score lies in [0, 30] (10 items x 3 points).
+  "EPDS": [0.0, 30.0]
   # Issue #1137 — C-SSRS ideation severity score 0-5 (Posner 2011
   # Am J Psychiatry 168:1266). Scoring-rule invariant: 0 is "no
   # ideation", 5 is the maximum "active ideation with method,
@@ -382,6 +388,9 @@ baseline_normals:
   # conditioned value when the patient's PHQ-9 band is known
   # (axis 5 pattern) — baseline here is only used as a fallback.
   "C-SSRS": 1.0
+  # Issue #3751 — EPDS fallback baseline only: the postpartum-screen sampler
+  # (simulator/perinatal.py) draws the recorded score.
+  "EPDS": 4.0
   # Issue #2138: toxicology screen in medical clearance — not detected
   # without an ingestion (reported below the assay's detection limit).
   Ethanol: 0.0

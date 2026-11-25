@@ -59,6 +59,7 @@ from clinosim.simulator.encounter_setup import (
 )
 from clinosim.simulator.lab_pipeline import patient_true_labs, relate_egfr_to_creatinine
 from clinosim.simulator.medication_pipeline import allergy_blocked
+from clinosim.simulator.perinatal import epds_screening_cutoff, sample_epds_score
 from clinosim.types.clinical import ConditionEvent, PhysiologicalState
 from clinosim.types.config import SimulatorConfig
 from clinosim.types.encounter import (
@@ -178,6 +179,12 @@ _CSSRS_BAND_BASELINE: dict[str, float] = {
     "PHQ-9 moderately severe": 2.0,  # non-specific active ideation
     "PHQ-9 severe": 3.0,  # active ideation with method, no plan/intent
 }
+
+
+# Issue #3751: the postpartum depression screen (Edinburgh Postnatal Depression
+# Scale total score), listed by the Z39 postpartum visit and drawn by
+# ``simulator.perinatal.sample_epds_score`` rather than from a baseline.
+EPDS_LAB_NAME = "EPDS"
 
 
 # Dispatch table for ``_mental_health_score_baseline``:
@@ -557,6 +564,12 @@ def _result_followup_labs(
         if canon not in _true_labs and canon not in baseline_values and not is_qualitative_test(canon):
             continue
         order_id = f"ORD-{encounter.encounter_id}-{order_suffix}"
+        # Issue #3751: the postpartum depression screen is an instrument score
+        # drawn from its own sub-seed, not a measured value with lab noise; a
+        # country without a configured screen records none.
+        epds_score = sample_epds_score(encounter.encounter_id, country) if canon == EPDS_LAB_NAME else None
+        if canon == EPDS_LAB_NAME and epds_score is None:
+            continue
         lab_rng = determinism.default_rng(individual_lab_seed(order_id))
         order = Order(
             order_id=order_id,
@@ -593,6 +606,10 @@ def _result_followup_labs(
         flag = determine_flag(
             canon, observed, sex=patient.sex, country=country, medications=patient.current_medications, age=patient.age
         )
+        if epds_score is not None:
+            # A positive screen (the country's cutoff) is flagged H.
+            observed = float(epds_score)
+            flag = "H" if epds_score >= int(epds_screening_cutoff(country) or 0) else None
         result = OrderResult(
             result_datetime=visit_date + _lab_result_offset(spec),
             performed_by=lab_tech_id,

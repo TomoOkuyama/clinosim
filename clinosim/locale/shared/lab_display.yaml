@@ -240,6 +240,7 @@ lab_names:
   total_cholesterol: {en: TC, ja: TC}
   urinalysis_microscopy: {en: urinalysis, ja: 尿検査}
   eosinophil_count: {en: eosinophils, ja: 好酸球数}
+  epds: {en: EPDS, ja: EPDS}
   osmolality: {en: serum osmolality, ja: 血清浸透圧}
   pregnancy_test: {en: urine hCG, ja: 尿中hCG}
   reticulocyte_count: {en: reticulocytes, ja: 網状赤血球}

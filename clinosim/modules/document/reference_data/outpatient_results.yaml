@@ -19,6 +19,9 @@
 #   outpatient_results.follow_up_<follow_up>). The simulator records the C-SSRS
 #   as the ideation severity 0-5 (observation/reference_data/lab_constants.yaml),
 #   so any value >= 1 is a positive screen.
+#   positive_by_flag: the positive screen is the result's flag H, set by the
+#   simulator from a cutoff that differs by country (the EPDS, Issue #3751:
+#   perinatal.yaml postpartum_depression_screen).
 metadata:
   kind: reference
   name: outpatient_results
@@ -34,3 +37,4 @@ screening_scores:
   PHQ-9: {}
   GAD-7: {}
   C-SSRS: {positive_from: 1, follow_up: suicide_risk}
+  EPDS: {positive_by_flag: true, follow_up: postpartum_depression}

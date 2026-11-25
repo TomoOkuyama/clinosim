@@ -40,7 +40,13 @@ from clinosim.locale.loader import load_perinatal_config
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.population.encounter_anthropometry import age_at_measurement
 from clinosim.modules.staff.engine import FALLBACK_PHYSICIAN_ID, StaffRoster, assign_staff
-from clinosim.seeding import newborn_conditions_seed, newborn_seed, pregnancy_outcome_seed, text_seed
+from clinosim.seeding import (
+    epds_screening_seed,
+    newborn_conditions_seed,
+    newborn_seed,
+    pregnancy_outcome_seed,
+    text_seed,
+)
 from clinosim.simulator.encounter_setup import attach_orders, encounter_diagnosis, finalize_encounter
 from clinosim.simulator.hospital_ops import perinatal_ward, resolve_department
 from clinosim.simulator.medication_pipeline import allergy_blocked
@@ -1470,3 +1476,57 @@ def simulate_delivery_encounter(
             )
 
     return records
+
+
+def _epds_score_weights(cutoff: int, max_score: int, negative_ratio: float, positive_ratio: float) -> list[float]:
+    """Unnormalised weight of each EPDS total score ``0..max_score``: below
+    the cutoff ``(s + 1) * negative_ratio**s``, from it ``positive_ratio**(s -
+    cutoff)``. Built by repeated multiplication, so it is bit-identical on
+    every platform."""
+    weights: list[float] = []
+    power = 1.0
+    for s in range(cutoff):
+        weights.append((s + 1) * power)
+        power *= negative_ratio
+    power = 1.0
+    for _ in range(cutoff, max_score + 1):
+        weights.append(power)
+        power *= positive_ratio
+    return weights
+
+
+def epds_screening_cutoff(country: str) -> int | None:
+    """The EPDS total score at or above which a screen is positive in
+    ``country`` (``perinatal.yaml`` ``postpartum_depression_screen``); None
+    when the country has no screen configured."""
+    entry = (load_perinatal_config().get("postpartum_depression_screen") or {}).get(country.lower())
+    return int(entry["cutoff"]) if entry else None
+
+
+def sample_epds_score(encounter_id: str, country: str) -> int | None:
+    """The Edinburgh Postnatal Depression Scale total score (0-30) of a
+    postpartum visit (Issue #3751), or None when ``country`` has no screen
+    configured.
+
+    The share at or above the country's cutoff is its configured positive
+    rate; the score within each side follows the configured shape. Drawn from
+    a sub-RNG of the encounter id, so no other stream moves.
+    """
+    cfg = load_perinatal_config().get("postpartum_depression_screen") or {}
+    entry = cfg.get(country.lower())
+    if not entry:
+        return None
+    cutoff = int(entry["cutoff"])
+    top = int(cfg.get("max_score", 30))
+    weights = _epds_score_weights(cutoff, top, float(cfg["negative_ratio"]), float(cfg["positive_ratio"]))
+    rng = determinism.default_rng(epds_screening_seed(encounter_id))
+    positive = float(rng.random()) < float(entry["positive_rate"])
+    lo, hi = (cutoff, top) if positive else (0, cutoff - 1)
+    window = weights[lo : hi + 1]
+    point = float(rng.random()) * sum(window)
+    acc = 0.0
+    for offset, weight in enumerate(window):
+        acc += weight
+        if point < acc:
+            return lo + offset
+    return hi

@@ -1907,6 +1907,9 @@ outpatient_results:
   follow_up_suicide_risk:
     ja: "C-SSRS 陽性: 自殺リスクの評価と安全計画の作成を行い、危機相談窓口の情報を提供する。"
     en: "Positive C-SSRS screen: complete a suicide risk assessment and a safety plan, and provide crisis resources."
+  follow_up_postpartum_depression:
+    ja: "EPDS 陽性: 抑うつ症状と自傷念慮の有無を評価し、精神科・心療内科への紹介と産後の継続的なフォローを手配する。"
+    en: "Positive EPDS screen: assess depressive symptoms and thoughts of self-harm, and arrange referral to mental health care with close postpartum follow-up."
   plan_bp_above_target:
     ja: "血圧が目標を上回る: 次回受診時に血圧を再測定し、高値が続く場合は降圧薬の調整を検討する。"
     en: "Blood pressure above target: recheck at the next visit and adjust antihypertensive therapy if it stays above target."
