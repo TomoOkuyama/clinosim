@@ -143,7 +143,10 @@ during in-progress snapshots is not back-dated.
 their records, then binds each dose (deterministic, no rng):
 
 1. a dose dated inside an inpatient stay binds to that stay and keeps
-   its date (e.g. the hepatitis B birth dose in the nursery);
+   its date (e.g. the hepatitis B birth dose in the nursery); the dose is
+   also ordered at the admission (`_order_stay_doses`, Issue #3688: a
+   medication order of the vaccine's `order_drug_id`, no medication
+   administration, since the `Immunization` is the administration);
 2. `visits.bind_to_vaccination_visits` (Issue #2868): an outpatient
    visit with reason `Z23` records the doses given at it, re-dated to the
    visit. The season's flu dose goes to the season's first flu

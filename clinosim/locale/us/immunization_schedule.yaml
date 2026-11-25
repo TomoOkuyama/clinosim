@@ -226,6 +226,9 @@ vaccines:
   # rotavirus ("maximum age for the final dose is 8 months, 0 days").
   pediatric_hepb:
     cvx: "08"
+    # Issue #3688: the drug of the order behind a dose given during an
+    # inpatient stay (the birth dose in the nursery); drugs.yaml drug id.
+    order_drug_id: hepatitis_b_vaccine
     min_age: 0
     frequency: pediatric_series
     administration: {route: IM, dose_ml: 0.5}

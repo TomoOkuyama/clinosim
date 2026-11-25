@@ -7,6 +7,12 @@
  },
  "concept": [
   {
+   "code": "797752",
+   "status": "Active",
+   "name": "hepatitis B surface antigen vaccine",
+   "tty": "IN"
+  },
+  {
    "code": "1008377",
    "status": "Active",
    "name": "calcium chloride / lactate / potassium chloride / sodium chloride",

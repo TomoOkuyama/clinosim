@@ -366,6 +366,11 @@ def newborn_plan_items(ctx: NarrativeContext) -> list[str]:
         items.append(t("neonate_ap.plan_vitamin_k", lang))
     if workup.get("has_ophthalmic"):
         items.append(t("neonate_ap.plan_ophthalmic", lang))
+    from clinosim.modules.document.narrative._hospital_course import stay_vaccines
+
+    vaccines = [name for name, _day in stay_vaccines(ctx)]
+    if vaccines:
+        items.append(t("neonate_ap.plan_vaccine", lang, list=t("list_sep.serial", lang).join(vaccines)))
     screens = [
         t(f"neonate_ap.screen_{name}", lang)
         for name, held in (
