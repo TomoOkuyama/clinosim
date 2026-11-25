@@ -89,21 +89,18 @@ pytest tests/unit -q               # ~1 分、green 必須
 6. **`CHANGELOG.md` を更新** — `[Unreleased]` 節にユーザー向け挙動
    変更の bullet を追記。docs-only PR のみ省略可。
 7. **PR を開く** — PR テンプレートが checklist を案内。
-8. **merge 前に CI 必須 job がすべて green**:
-   - `Unit tests (Py 3.12 shard 1/3, 2/3, 3/3)`
-   - `Integration tests (shard 1/10 〜 10/10)`
-   - `Narrative regression (goldens)`
-   - `Build sdist + wheel`
+8. **merge 前に CI が green**。master の ruleset が必須とするチェックは 2 つ:
+   - `CI result` — [`ci.yml`](.github/workflows/ci.yml) の gate job
+     (unit / integration の各 shard、`Narrative regression (goldens)`、
+     `E2E tests (fast)`、`Quality (ruff + format + mypy)`、
+     `vulture dead-code`、`Build sdist + wheel`) がすべて成功したときだけ通る
    - `Signed-off-by check`
-   - `mkdocs build`
+
+   merge-block しないが実行されるもの:
+   - `mkdocs build` (docs サイトが読むファイルを変更した PR のみ)
    - `JP-CLINS lab compliance gate` / `JP Core narrow compliance gate` /
      `US Core narrow compliance gate` (FHIR 出力に影響する path を変更した
      PR のみ実行)
-   - `E2E tests (fast)`
-   - `Quality (ruff + format + mypy)` — ruff check + ruff format --check + mypy
-   - `vulture dead-code`
-
-   Informational (merge-block しない):
    - `Unit test coverage combine (informational)`
 
    Python 3.11 unit-test 互換性は nightly 実行

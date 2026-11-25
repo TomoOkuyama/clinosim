@@ -90,21 +90,19 @@ pytest tests/unit -q               # ~1 minute, must be green
 6. **Update `CHANGELOG.md`** — add a bullet under `[Unreleased]`
    describing user-facing behaviour changes. Skip only for docs-only PRs.
 7. **Open the PR** — the PR template walks you through the checklist.
-8. **CI must be green** on all required jobs before a maintainer merges:
-   - `Unit tests (Py 3.12 shard 1/3, 2/3, 3/3)`
-   - `Integration tests (shard 1/10 … 10/10)`
-   - `Narrative regression (goldens)`
-   - `Build sdist + wheel`
+8. **CI must be green** before the PR merges. The master ruleset requires two checks:
+   - `CI result` — passes only when every gating job of
+     [`ci.yml`](.github/workflows/ci.yml) succeeded: the unit and
+     integration test shards, `Narrative regression (goldens)`,
+     `E2E tests (fast)`, `Quality (ruff + format + mypy)`,
+     `vulture dead-code` and `Build sdist + wheel`
    - `Signed-off-by check`
-   - `mkdocs build`
-   - `JP-CLINS lab compliance gate` / `JP Core narrow compliance gate` /
-     `US Core narrow compliance gate` (run only on PRs that touch paths
-     affecting FHIR output)
-   - `E2E tests (fast)`
-   - `Quality (ruff + format + mypy)` — ruff check + ruff format --check + mypy
-   - `vulture dead-code`
 
-   Informational (not merge-blocking):
+   Also run, not merge-blocking:
+   - `mkdocs build` (only on PRs that change a file the docs site reads)
+   - `JP-CLINS lab compliance gate` / `JP Core narrow compliance gate` /
+     `US Core narrow compliance gate` (only on PRs that touch paths
+     affecting FHIR output)
    - `Unit test coverage combine (informational)`
 
    Python 3.11 unit-test compatibility runs nightly (see
