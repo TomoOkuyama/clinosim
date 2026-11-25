@@ -2521,6 +2521,11 @@
 <td><code>modules/order/dose_range.py::resolve_dose_ranges</code>, <code>modules/order/dose_range.py::resolve_protocol_dose_ranges</code> (called from <code>modules/disease/protocol.py</code>); data <code>modules/order/reference_data/dose_range_resolution.yaml</code></td>
 <td><code>tests/unit/test_dose_range_resolution_3265.py</code></td>
 </tr>
+<tr>
+<td>Meropenem (US and JP) and piperacillin / tazobactam (US) are dosed for the Cockcroft-Gault creatinine clearance, once per order, at its first dose, from the latest creatinine resulted by the order time (else the stay's first result): the order's dose, frequency and intent note are rewritten and the MAR keeps the adjusted interval, so the order, the administrations and the MedicationRequest agree. The bands are the label's (meropenem: &gt; 50 mL/min unchanged, 26-50 every 12 hours, 10-25 half dose every 12 hours, &lt; 10 half dose every 24 hours; piperacillin / tazobactam 4.5 g every 6 hours: 20-40 3.375 g, &lt; 20 2.25 g); an antibiotic or country whose label was not read is not adjusted (JP piperacillin / tazobactam: its label gives no clearance bands), and a minor is dosed by weight instead. A creatinine that changes later does not re-dose the order.</td>
+<td><code>simulator/renal_antibiotic_dose.py</code> (<code>apply_renal_dose</code>, <code>cockcroft_gault_ml_min</code>), applied in <code>medication_pipeline.py::_generate_mar</code>; data <code>simulator/reference_data/renal_antibiotic_dosing.yaml</code></td>
+<td><code>tests/unit/simulator/test_renal_antibiotic_dose_3638.py</code></td>
+</tr>
 </tbody>
 </table>
 <h2 id="4-administrations">4. Administrations<a class="headerlink" href="#4-administrations" title="Permanent link">&para;</a></h2>

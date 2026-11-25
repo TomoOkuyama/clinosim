@@ -2521,6 +2521,11 @@
 <td><code>modules/order/dose_range.py::resolve_dose_ranges</code>、<code>modules/order/dose_range.py::resolve_protocol_dose_ranges</code> (<code>modules/disease/protocol.py</code> から呼ぶ)。データは <code>modules/order/reference_data/dose_range_resolution.yaml</code></td>
 <td><code>tests/unit/test_dose_range_resolution_3265.py</code></td>
 </tr>
+<tr>
+<td>メロペネム(米国・日本)とピペラシリン・タゾバクタム(米国)は、Cockcroft-Gault のクレアチニンクリアランスに合わせて、指示ごとに最初の投与時に一度だけ、指示時刻までに結果が出た直近のクレアチニン(なければ入院中の最初の結果)から用量を決める。指示の用量・頻度・意図の注記を書き換え、MAR は調整後の間隔を保つので、指示・投与・MedicationRequest が一致する。区分は添付文書のもの(メロペネム: 50 mL/min 超は変更なし、26-50 は 12 時間毎、10-25 は半量を 12 時間毎、10 未満は半量を 24 時間毎。ピペラシリン・タゾバクタム 4.5 g 6 時間毎: 20-40 は 3.375 g、20 未満は 2.25 g)。添付文書を確認していない抗菌薬・国は調整しない(日本のピペラシリン・タゾバクタムの添付文書にはクリアランス別の区分がない)。未成年は体重で用量を決める。後でクレアチニンが変わっても指示は再調整しない。</td>
+<td><code>simulator/renal_antibiotic_dose.py</code>(<code>apply_renal_dose</code>, <code>cockcroft_gault_ml_min</code>)、<code>medication_pipeline.py::_generate_mar</code> で適用。データ <code>simulator/reference_data/renal_antibiotic_dosing.yaml</code></td>
+<td><code>tests/unit/simulator/test_renal_antibiotic_dose_3638.py</code></td>
+</tr>
 </tbody>
 </table>
 <h2 id="4-投与">4. 投与<a class="headerlink" href="#4-投与" title="Permanent link">&para;</a></h2>
