@@ -108,7 +108,9 @@ NDJSON を id で sort する。
   の `primary_condition_ref`。`encounter_diagnosis_condition_ids` は Condition
   builder が encounter ごとに emit した `encounter-diagnosis` Condition の id
   を列挙し、`Encounter.diagnosis[]` はその全てを参照する (副診断・入院中合併症・
-  外因 Condition は `CM`、principal の後ろの rank; Issue #3597)。
+  外因 Condition は `CM`、principal の後ろの rank; Issue #3597)。入院中の院内感染 Condition は Encounter の後に作られるため、
+  その id は `conditions.hai.hai_condition_ids_by_encounter` から取り、最後に
+  `CM` として追加する (Issue #3761)。
 - `clinosim.modules.output.fhir_r4.demographics.smoking_alcohol` —
   `_sdoh_effective_datetime` (care_level が SDOH anchor 再利用)。
 - `clinosim.codes` — LOINC + SNOMED 表示 lookup。

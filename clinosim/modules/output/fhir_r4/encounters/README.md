@@ -113,7 +113,10 @@ NDJSON by id.
   lists the `encounter-diagnosis` Conditions the Condition builder emitted for
   an encounter, and `Encounter.diagnosis[]` references every one of them
   (secondary / in-stay complication / external-cause Conditions as `CM`,
-  ranked after the principal diagnosis; Issue #3597).
+  ranked after the principal diagnosis; Issue #3597). The in-stay
+  hospital-acquired infection Conditions are built after the Encounters, so
+  their ids come from `conditions.hai.hai_condition_ids_by_encounter` and are
+  appended last as `CM` (Issue #3761).
 - `clinosim.modules.output.fhir_r4.demographics.smoking_alcohol` —
   `_sdoh_effective_datetime` (care_level reuses the SDOH anchor).
 - `clinosim.codes` — LOINC + SNOMED display lookup.
