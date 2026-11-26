@@ -407,6 +407,28 @@ def split_loading_dose(dose_str: str) -> tuple[str, str] | None:
     return (m.group("load").strip(), m.group("maint").strip()) if m else None
 
 
+# Issue #3865: "<bolus> bolus, then <infusion at a stated rate>" ("60U/kg bolus
+# (max 4000U), then 12U/kg/h IV (max 1000U/h)"). The infusion part must state a
+# per-time rate ("12U/kg/h", "5mg/h"): "10% bolus then 60min infusion"
+# (alteplase) and "400-800mg IV bolus then infusion" are one order.
+_BOLUS_THEN = re.compile(r"^(?P<bolus>.*?\bbolus\b[^,]*?)\s*,?\s*then\s+(?P<infusion>.+)$", re.IGNORECASE)
+_STATED_RATE = re.compile(
+    r"\d(?:\.\d+)?\s*(?:mg|mcg|ug|mL|U|units|IU|mEq)\s*/\s*(?:kg\s*/\s*)?(?:min|hr|h)\b", re.IGNORECASE
+)
+
+
+def split_bolus_then_infusion(dose_str: str) -> tuple[str, str] | None:
+    """``(bolus, infusion)`` of a "<bolus> bolus, then <infusion at a stated
+    rate>" dose string (Issue #3865); ``None`` for any other dose string."""
+    text = (dose_str or "").strip()
+    if split_loading_dose(text):
+        return None
+    m = _BOLUS_THEN.match(text)
+    if not m or not _STATED_RATE.search(m.group("infusion")):
+        return None
+    return m.group("bolus").strip(), m.group("infusion").strip()
+
+
 # Issue #3640: the course length a dose text states ("daily x5 days", "x5-7
 # days", "x 3-5 days"; a range gives its upper bound). A course that goes on
 # after it ("x21 days, then 20mg PO daily") is not a stop, so it gives none.
@@ -459,7 +481,7 @@ def parse_dose_string(dose_str: str) -> dict[str, Any]:
     )
     if not m:
         m = re.search(
-            r"(\d+(?:\.\d+)?)\s*(mg/m2|mg/kg|mcg/kg|mcg/m2|ug/kg)\b",
+            r"(\d+(?:\.\d+)?)\s*(mg/m2|mg/kg|mcg/kg|mcg/m2|ug/kg|U/kg|IU/kg|units/kg)\b",
             s,
             re.IGNORECASE,
         )
@@ -478,6 +500,13 @@ def parse_dose_string(dose_str: str) -> dict[str, Any]:
                 result["dose_unit"] = "puff"
         except ValueError:
             pass
+
+    # Issue #3865: the maximum written with the dose ("60U/kg bolus (max 4000U)").
+    from clinosim.modules.order.absolute_dose import written_maximum
+
+    _max = written_maximum(s)
+    if _max is not None:
+        result["dose_max_quantity"] = _max
 
     # Route (PO, IV, SC, IM, SL, topical, inhaled, PR, NG)
     route_match = re.search(r"\b(PO|IV|SC|IM|SL|PR|NG|inhaled|topical|nebulized)\b", s, re.IGNORECASE)
@@ -713,9 +742,42 @@ def protocol_medication_orders(
         frequency_per_day=parsed.get("frequency_per_day"),
         route=parsed.get("route") or med_spec.get("route", ""),
         duration_days=med_spec.get("duration_days", parsed.get("duration_days")),
+        dose_max_quantity=parsed.get("dose_max_quantity"),
         order_set=order_set,
     )
     out: list[Order] = []
+    _bolus = split_bolus_then_infusion(dose_str)
+    if _bolus:
+        # Issue #3865: a one-time bolus and the infusion that runs on from it
+        # at the rate the protocol states (never the infusion default of
+        # another indication). The infusion is given from the bolus, not the
+        # next day, and follows the bolus's drug-safety verdict
+        # (``prior_order_id``). No RNG draw.
+        bolus_parsed = parse_dose_string(_bolus[0])
+        infusion_parsed = parse_dose_string(_bolus[1])
+        bolus_order = replace(
+            order,
+            dose_quantity=bolus_parsed.get("dose_quantity"),
+            dose_unit=bolus_parsed.get("dose_unit", ""),
+            dose_max_quantity=bolus_parsed.get("dose_max_quantity"),
+            frequency="once",
+            frequency_per_day=1,
+            route=bolus_parsed.get("route") or order.route,
+            duration_days=None,
+            single_dose=True,
+            notes=[],
+        )
+        order.order_id = f"{order_id}-INFUSION"
+        order.urgency = "routine"
+        order.prior_order_id = bolus_order.order_id
+        order.dose_quantity = infusion_parsed.get("dose_quantity")
+        order.dose_unit = infusion_parsed.get("dose_unit", "")
+        order.dose_max_quantity = infusion_parsed.get("dose_max_quantity")
+        order.frequency = "CONTINUOUS"
+        order.frequency_per_day = _freq_per_day().get("continuous")
+        order.route = infusion_parsed.get("route") or order.route
+        order.duration_days = med_spec.get("duration_days", infusion_parsed.get("duration_days"))
+        return [bolus_order, order]
     _loading = split_loading_dose(dose_str)
     if _loading:
         # Issue #3002: "X loading, then Y" is a one-time loading order and

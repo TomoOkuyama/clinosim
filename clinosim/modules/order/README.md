@@ -52,6 +52,12 @@ ServiceRequest.
   `place_admission_orders` it becomes a one-time loading order X plus the
   maintenance order Y, which replaces it via `prior_order_id` and is given
   from the next day via `administer_from`, #3002; `split_loading_dose`);
+  a "X bolus, then Y at a stated rate" dose string ("60U/kg bolus (max
+  4000U), then 12U/kg/h IV (max 1000U/h)") becomes a one-time bolus order
+  and a continuous order at the stated rate, given from the bolus; a
+  bolus followed by an infusion with no stated rate ("10% bolus then
+  60min infusion") stays one order, #3865; `split_bolus_then_infusion`;
+  a maximum written with the dose is kept as `Order.dose_max_quantity`);
   `calculate_lab_result_time` (STAT / routine + night-shift
   deferral), `calculate_imaging_result_time` (scheduling + reporting
   delay), `calculate_result_time_from_state` (hospital-state-driven

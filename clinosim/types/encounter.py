@@ -272,6 +272,10 @@ class Order:
     # order written with a loading dose starts the day after the load.
     # ``None``: from the day it is ordered.
     administer_from: datetime | None = None
+    # Issue #3865: the maximum written with the dose ("60U/kg bolus (max
+    # 4000U)"), in the dose's mass or activity unit (an infusion rate's
+    # maximum is per hour or minute); ``None``: no maximum written.
+    dose_max_quantity: float | None = None
     # Issue #3638: the creatinine clearance (mL/min) an antibiotic order's renal
     # dose was decided on, at its first dose (``None``: not yet decided or not
     # applicable), and whether the dose or interval was changed for it.
