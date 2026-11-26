@@ -66,12 +66,12 @@ from clinosim.modules.observation.engine import (
     reported_lab_value,                  # (lab_name, value, unit, country) -> 国の報告単位の (value, unit) (Issue #3011)
     reported_lab_results,                # (lab_results, country) -> 報告単位に換算した複製 (ナラティブ用)
     clamp_to_physiologic_limits,         # (lab_name, value) -> float
-    apply_realistic_variability,         # (lab_name, true_value, rng) -> float
+    apply_realistic_variability,         # (lab_name, true_value, rng, *, serial=False) -> float; serial=True は serial_biological_cv を使う (入院中の連続採血、CRP のみ、#3870)
     round_to_precision,                  # (lab_name, value) -> float
     format_lab_value,                    # (lab_name, value, unit="") -> 報告桁数の文字列 (Issue #3230)
     panic_side,                          # (lab_name, value) -> "low" | "high" | None (パニック値の側)
     is_qualitative_test,                 # (lab_name) -> bool
-    generate_lab_result,                 # (lab_name, true_value, rng) -> float | str
+    generate_lab_result,                 # (lab_name, true_value, rng, *, serial=False) -> float | str
     determine_flag,                      # (lab_name, value, sex="F", *, country, medications=None, age=None) -> "L" | "H" | "critical" | None
     therapeutic_range,                   # (lab_name, country, *, medications, age) -> (low, high, text) | None
     medication_name,                     # (med) -> drug name of a home medication / order
