@@ -271,7 +271,11 @@ from clinosim.modules.order.label_dose import within_label  # (name, frequency, 
   `pediatric_dose.py` が読み、`PediatricDosingFile` (`extra="forbid"`) で
   検証): `adult_age_years` と薬剤ごとの `mg_per_kg` / `max_mg` /
   `min_age_months`。`adult_age_years` 未満の患者への ED 処方は、掲載薬なら
-  体重から用量を再計算し、最低年齢未満なら投与しない。`fluids` は IV 晶質液の
+  体重から用量を再計算し、最低年齢未満なら投与しない。`withheld_below_age_months` (Issue #3829) は
+小児用量のない薬剤 (シクロベンザプリン、ブチルスコポラミン) の投与禁止年齢。
+"875/125mg" のような配合strength は第 1 成分で再計算し、錠剤の比率を保つ
+("280/40mg")。どちらの表にもない薬剤は記載量のままで、小児が到達しうる
+該当薬剤を列挙するガードテストがあり、増やしてはならない。`fluids` は IV 晶質液の
   `ml_per_kg` (Issue #2977): 成人量で書かれた小児のボーラス
   ("IV normal saline 1000mL") は `ml_per_kg` × 体重とし、記載量を超えない。
   `country_overrides.<CC>` は国別に薬剤の rule を置き換える (Issue #3012:
