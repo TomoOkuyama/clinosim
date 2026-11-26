@@ -3921,6 +3921,9 @@ order_intent:
   complication_antibiotic_stop:
     ja: "第{day}病日 {complication}の発症に対し原因となった抗菌薬を中止"
     en: "Day {day}: inciting antibiotic stopped for {complication}"
+  complication_antibiotic_stop_no_replacement:
+    ja: "第{day}病日 {complication}の発症に対し原因となった抗菌薬を中止(プロトコルに CDI リスクの低い代替薬の記載がなく、代わりの抗菌薬は発注しない)"
+    en: "Day {day}: inciting antibiotic stopped for {complication}; no replacement antibiotic ordered (the protocol defines no lower-risk alternative)"
   complication_oral_antibiotic:
     ja: "第{day}病日 {complication}の発症に対し経口抗菌薬を開始"
     en: "Day {day}: oral antibiotic started for {complication}"

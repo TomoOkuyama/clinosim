@@ -120,3 +120,48 @@ def test_metronidazole_course_continues_at_discharge_and_is_not_held() -> None:
 
 def test_dl_module_still_exposes_the_loop() -> None:
     assert callable(dl._apply_complications)
+
+
+def test_no_protocol_defines_a_lower_cdi_risk_alternative_so_the_stopped_antibiotic_is_not_replaced() -> None:
+    """The stop of the inciting antibiotic orders a replacement only where the
+    protocol authors a lower-risk alternative (``replacement_block``). No
+    protocol does: when one adds the block this test fails, and the ordering of
+    the replacement has to be implemented with it, not left silent."""
+    from clinosim.simulator.complication_actions import complication_action_rules
+    from tests.unit.simulator.test_complication_treatment_3864 import _complications  # noqa: F401
+
+    block = complication_action_rules().stop_actions["stop_offending_antibiotic"].replacement_block
+    assert block == "lower_cdi_risk_alternative"
+    from pathlib import Path
+
+    from clinosim.datafiles import load_data_yaml
+
+    root = Path(__file__).resolve().parents[3] / "clinosim" / "modules" / "disease" / "reference_data"
+    defining = [p.stem for p in sorted(root.glob("*.yaml")) if block in (load_data_yaml(p).get("drugs") or {})]
+    assert defining == []
+
+
+def test_the_stop_marker_says_no_replacement_antibiotic_is_ordered(monkeypatch) -> None:
+    from clinosim.types.encounter import Order, OrderType
+
+    stay = _stay()
+    running = Order(
+        order_id="ORD-E1-ADM-M02",
+        order_type=OrderType.MEDICATION,
+        display_name="Levofloxacin",
+        drug_id="levofloxacin",
+        ordered_datetime=ADMIT,
+        status=OrderStatus.PLACED,
+        dose_quantity=750.0,
+        dose_unit="mg",
+        frequency="DAILY",
+        frequency_per_day=1,
+        route="IV",
+    )
+    run = _run([running], creatinine=0.9)
+    _fire(monkeypatch, stay, run, "c_diff_colitis", _CDIFF)
+    (marker,) = [o for o in run.orders if o.display_name == "DISCONTINUE: Levofloxacin"]
+    assert "no replacement antibiotic" in marker.clinical_intent
+    assert "代わりの抗菌薬は発注しない" in marker.clinical_intent_ja
+    # the hold of an anticoagulant keeps its own wording
+    assert "replacement" not in dl.t("order_intent.complication_anticoagulant_hold", "en", day=4, complication="x")
