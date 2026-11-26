@@ -200,7 +200,7 @@ from clinosim.modules.patient.activator import (
   - `DVT_{BETA_PARAMS,ELDERLY_AGE_THRESHOLD,ELDERLY_PREMIUM}` — DVT
     susceptibility.
   - `CHRONIC_{ONSET_YEAR_MIN,ONSET_YEAR_MAX_EXCLUSIVE,ONSET_MONTH_MIN,…}`
-    — chronic-condition onset date sampling.
+    — chronic-condition onset date sampling. The onset never precedes the birthday at the condition's minimum onset age (`locale/shared/chronic_onset_min_age.yaml`, taken in calendar years); a person still below that age at the anchor does not carry the condition (Issue #3834).
   - `CHRONIC_{CONTROLLED_PROBABILITY,SEVERITY_MILD_PROBABILITY}`.
 - **Stage + severity tables**: [`_severity_activation.py`](_severity_activation.py)
   (Issue #637 PR-D) —
