@@ -327,3 +327,50 @@ codes:
   L89: {en: "Pressure ulcer", ja: "褥瘡"}
   R56: {en: "Convulsions", ja: "けいれん"}
   A49.9: {en: "Bacteremia", ja: "菌血症"}  # WHO A49.9 includes "Bacteraemia NOS"; the JP code of R78.81
+  # Remaining in-hospital complication diagnoses (Issue #3872). A JP code is
+  # named here where its MHLW title carries classification notation or hides
+  # the disease; an ICD-10-CM code where its title carries "unspecified" or
+  # "initial encounter" noise or a broader key would name it wrongly (I82.8
+  # would call a splenic vein thrombosis "DVT").
+  D69.1: {en: "Platelet dysfunction", ja: "血小板機能異常症"}
+  E46: {en: "Malnutrition", ja: "低栄養"}
+  E87.8: {en: "Electrolyte imbalance", ja: "電解質異常"}
+  F06.3: {en: "Mood disorder due to a medical condition", ja: "器質性気分障害"}
+  G56.1: {en: "Median nerve lesion", ja: "正中神経障害"}
+  G62.8: {en: "Polyneuropathy", ja: "多発ニューロパチー"}
+  G62.81: {en: "Critical illness polyneuropathy", ja: "ICU獲得性多発ニューロパチー"}
+  G93.4: {en: "Encephalopathy", ja: "脳症"}
+  G93.41: {en: "Metabolic encephalopathy", ja: "代謝性脳症"}
+  I24.1: {en: "Dressler syndrome (post-MI pericarditis)", ja: "ドレスラー症候群（心筋梗塞後心膜炎）"}
+  I27.2: {en: "Secondary pulmonary hypertension", ja: "慢性血栓塞栓性肺高血圧症"}  # the JP code of I27.24 only
+  I27.24: {en: "Chronic thromboembolic pulmonary hypertension", ja: "慢性血栓塞栓性肺高血圧症"}
+  I47.2: {en: "Ventricular tachycardia", ja: "心室頻拍"}
+  I50.81: {en: "Right heart failure", ja: "右心不全"}
+  D75.82: {en: "Heparin-induced thrombocytopenia", ja: "ヘパリン起因性血小板減少症"}
+  D75.8: {en: "Other specified blood disease", ja: "ヘパリン起因性血小板減少症"}  # the JP code of D75.82 only
+  I51.81: {en: "Takotsubo syndrome", ja: "たこつぼ症候群"}
+  I51.8: {en: "Other ill-defined heart disease", ja: "たこつぼ症候群"}  # the JP code of I51.81 only
+  M62.82: {en: "Rhabdomyolysis", ja: "横紋筋融解症"}
+  M62.8: {en: "Other specified muscle disorder", ja: "横紋筋融解症"}  # the JP code of M62.82 only
+  I82.8: {en: "Venous thrombosis", ja: "静脈血栓症"}
+  I87.0: {en: "Postthrombotic syndrome", ja: "血栓後症候群"}
+  I89.0: {en: "Lymphedema", ja: "リンパ浮腫"}
+  J11.8: {en: "Influenza with other manifestations", ja: "インフルエンザ心筋炎"}  # the JP code of J11.82 only
+  J11.82: {en: "Influenza-associated myocarditis", ja: "インフルエンザ心筋炎"}
+  J70.5: {en: "Smoke inhalation lung injury", ja: "煙吸入による呼吸器障害"}
+  J70.8: {en: "Respiratory condition due to an external agent", ja: "吸入による呼吸器障害"}  # the JP code of J70.5 only
+  J86: {en: "Empyema", ja: "膿胸"}
+  J91: {en: "Pleural effusion", ja: "胸水"}
+  K65.1: {en: "Peritoneal abscess", ja: "腹腔内膿瘍"}
+  K65.2: {en: "Spontaneous bacterial peritonitis", ja: "特発性細菌性腹膜炎"}
+  K76.8: {en: "Liver dysfunction", ja: "肝機能障害"}
+  K76.82: {en: "Hepatic encephalopathy", ja: "肝性脳症"}
+  K83.0: {en: "Cholangitis", ja: "胆管炎"}
+  K86.3: {en: "Pancreatic pseudocyst", ja: "膵仮性嚢胞"}
+  K91.71: {en: "Accidental puncture or laceration during a digestive procedure", ja: "消化器処置中の偶発的穿刺・裂傷"}
+  K91.8: {en: "Postprocedural digestive complication", ja: "消化器系の処置後合併症"}
+  S06.5XAA: {en: "Traumatic subdural hemorrhage", ja: "外傷性硬膜下出血"}
+  T79.A: {en: "Compartment syndrome", ja: "コンパートメント症候群"}
+  T79.6: {en: "Traumatic muscle ischemia", ja: "筋の外傷性阻血（コンパートメント症候群）"}
+  T81.3: {en: "Surgical wound dehiscence", ja: "手術創離開"}
+  T81.4: {en: "Surgical site infection", ja: "手術部位感染"}

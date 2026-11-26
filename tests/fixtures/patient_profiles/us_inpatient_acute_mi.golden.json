@@ -770,7 +770,7 @@
       },
       "sections": {
         "admission_summary": "Chief complaint: Chest pain, diaphoresis, dyspnea. Admitted for inpatient care.",
-        "discharge_diagnoses": "Acute myocardial infarction, unspecified (I21.9). Secondary diagnoses: ventricular arrhythmia.",
+        "discharge_diagnoses": "Acute myocardial infarction, unspecified (I21.9). Secondary diagnoses: Ventricular tachycardia, unspecified (I47.20).",
         "discharge_instructions": "Get adequate rest and avoid overexertion. Cardiology follow-up within 1-2 weeks. Cardiac rehabilitation enrollment recommended. Take your heart medications (Aspirin, Ticagrelor, Atorvastatin) every day as prescribed. Do NOT stop them without consulting your cardiologist. Facility staff: contact the physician or call emergency services if the patient's symptoms worsen significantly. Restricted activity for 4-6 weeks. Avoid heavy lifting. Gradual return per cardiologist guidance. Low-fat, low-sodium diet. Weight management.",
         "discharge_medications": "Aspirin 81mg PO daily x365d; Ticagrelor 90mg PO BID x365d; Atorvastatin 80mg PO daily x365d",
         "follow_up": "Cardiology follow-up within 1-2 weeks. Cardiac rehabilitation enrollment recommended.",

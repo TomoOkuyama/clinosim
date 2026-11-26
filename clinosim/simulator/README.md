@@ -183,8 +183,9 @@ clinosim/simulator/
                          encounter-diagnosis Conditions; table in
                          `reference_data/complication_diagnosis_codes.yaml`; no RNG
                          (Issue #3673). Every complication token a protocol can fire is
-                         coded, a `non_diagnosis` event or a named `pending` token
-                         (guard test); `distinct_code_categories` (E87) key the
+                         coded or a `non_diagnosis` event (guard test; `pending` is empty
+                         and holds a new disease-like token until it is coded);
+                         `distinct_code_categories` (E87, F10, K86, T81) key the
                          first-onset rule on the full code (Issue #3872)
   sustained_complication.py  a complication's `sustained_state`: an effect on a state variable
                          held while its driver lasts (DIC consumption follows the septic

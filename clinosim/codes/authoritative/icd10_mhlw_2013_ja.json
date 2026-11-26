@@ -5,7 +5,7 @@
     "source_file": "kihon2013.xlsx (sheet 基本分類表データ, columns コード / コード名)",
     "extracted_at": "2026-11-01",
     "note": "Japanese official names of the ICD-10 codes clinosim emits for JP, filtered from the full table (15,296 codes).",
-    "later_additions": "E11.2, E11.3 and E11.4 (Issue #3259), G35, I69.1 and I69.3 (Issue #3327) were added on 2026-11-16 from the same kihon2013.xlsx table. T20.0-T25.0 (Issue #3258) were added on 2026-11-18 from the same kihon2013.xlsx table. F05 (Issue #3519) was added on 2026-11-21 from the same kihon2013.xlsx table. J14 and J15.5 (Issue #3645) were added on 2026-11-24 from the same kihon2013.xlsx table. A40.3, A41.3 and A41.8 (Issue #3833) were added on 2026-11-26 from the same kihon2013.xlsx table. A04.7, A49.9, E16.2, E87.5, E87.6, J98.1, L89.9, N15.1 and R56.8 (Issue #3872) were added on 2026-11-26 from the same kihon2013.xlsx table."
+    "later_additions": "E11.2, E11.3 and E11.4 (Issue #3259), G35, I69.1 and I69.3 (Issue #3327) were added on 2026-11-16 from the same kihon2013.xlsx table. T20.0-T25.0 (Issue #3258) were added on 2026-11-18 from the same kihon2013.xlsx table. F05 (Issue #3519) was added on 2026-11-21 from the same kihon2013.xlsx table. J14 and J15.5 (Issue #3645) were added on 2026-11-24 from the same kihon2013.xlsx table. A40.3, A41.3 and A41.8 (Issue #3833) were added on 2026-11-26 from the same kihon2013.xlsx table. A04.7, A49.9, E16.2, E87.5, E87.6, J98.1, L89.9, N15.1 and R56.8 (Issue #3872) were added on 2026-11-26 from the same kihon2013.xlsx table. D68.4, D69.1, D75.8, E46, E87.8, F06.3, G56.1, G62.8, G91.1, G93.4, I24.1, I27.2, I47.2, I51.8, I82.8, I87.0, I89.0, J11.8, J70.8, J81, J86.9, J91, K63.1, K76.8, K86.3, K86.8, K91.8, M62.8, R57.8, T79.6, T81.3 and T81.4 (Issue #3872, the remaining in-hospital complication diagnosis codes) were added on 2026-11-27 from the same kihon2013.xlsx table."
   },
   "concept": [
     {
@@ -169,6 +169,18 @@
       "display": "遺伝性第XI因子欠乏症"
     },
     {
+      "code": "D68.4",
+      "display": "後天性凝固因子欠乏症"
+    },
+    {
+      "code": "D69.1",
+      "display": "血小板機能異常症"
+    },
+    {
+      "code": "D75.8",
+      "display": "血液及び造血器のその他の明示された疾患"
+    },
+    {
       "code": "E03",
       "display": "その他の甲状腺機能低下症"
     },
@@ -229,6 +241,10 @@
       "display": "低血糖症，詳細不明"
     },
     {
+      "code": "E46",
+      "display": "詳細不明のタンパク＜蛋白＞エネルギー性栄養失調（症）"
+    },
+    {
       "code": "E66.0",
       "display": "過剰カロリーによる肥満（症）"
     },
@@ -273,6 +289,10 @@
       "display": "低カリウム＜K＞血症"
     },
     {
+      "code": "E87.8",
+      "display": "その他の電解質及び体液障害，他に分類されないもの"
+    },
+    {
       "code": "E88.8",
       "display": "その他の明示された代謝障害"
     },
@@ -283,6 +303,10 @@
     {
       "code": "F05",
       "display": "せん妄，アルコールその他の精神作用物質によらないもの"
+    },
+    {
+      "code": "F06.3",
+      "display": "器質性気分［感情］障害"
     },
     {
       "code": "F10",
@@ -389,6 +413,22 @@
       "display": "睡眠時無呼吸"
     },
     {
+      "code": "G56.1",
+      "display": "正中神経のその他の病変"
+    },
+    {
+      "code": "G62.8",
+      "display": "その他の明示された多発（性）ニューロパチ＜シ＞ー"
+    },
+    {
+      "code": "G91.1",
+      "display": "閉塞性水頭症"
+    },
+    {
+      "code": "G93.4",
+      "display": "脳症＜エンセファロパチ＜シ＞ー＞，詳細不明"
+    },
+    {
       "code": "G93.5",
       "display": "脳圧迫"
     },
@@ -437,6 +477,10 @@
       "display": "急性心筋梗塞，詳細不明"
     },
     {
+      "code": "I24.1",
+      "display": "ドレスラー＜Dressler＞症候群"
+    },
+    {
       "code": "I25",
       "display": "慢性虚血性心疾患"
     },
@@ -457,6 +501,10 @@
       "display": "急性肺性心の記載のない肺塞栓症"
     },
     {
+      "code": "I27.2",
+      "display": "その他の二次性＜続発性＞肺高血圧（症）"
+    },
+    {
       "code": "I30.9",
       "display": "急性心膜炎，詳細不明"
     },
@@ -467,6 +515,10 @@
     {
       "code": "I47.1",
       "display": "上室（性）頻拍（症）"
+    },
+    {
+      "code": "I47.2",
+      "display": "心室（性）頻拍（症）"
     },
     {
       "code": "I48",
@@ -507,6 +559,10 @@
     {
       "code": "I50.9",
       "display": "心不全，詳細不明"
+    },
+    {
+      "code": "I51.8",
+      "display": "その他の診断名不明確な心疾患"
     },
     {
       "code": "I60.9",
@@ -593,6 +649,10 @@
       "display": "その他の静脈の塞栓症及び血栓症"
     },
     {
+      "code": "I82.8",
+      "display": "その他の明示された静脈の塞栓症及び血栓症"
+    },
+    {
       "code": "I82.9",
       "display": "部位不明の静脈の塞栓症及び血栓症"
     },
@@ -601,8 +661,16 @@
       "display": "出血を伴う食道静脈瘤"
     },
     {
+      "code": "I87.0",
+      "display": "血栓後症候群"
+    },
+    {
       "code": "I88.0",
       "display": "非特異性腸間膜リンパ節炎"
+    },
+    {
+      "code": "I89.0",
+      "display": "リンパ浮腫，他に分類されないもの"
     },
     {
       "code": "J06.9",
@@ -635,6 +703,10 @@
     {
       "code": "J11.1",
       "display": "その他の呼吸器症状を伴うインフルエンザ，インフルエンザウイルスが分離されないもの"
+    },
+    {
+      "code": "J11.8",
+      "display": "その他の症状を伴うインフルエンザ，インフルエンザウイルスが分離されないもの"
     },
     {
       "code": "J12.9",
@@ -733,12 +805,28 @@
       "display": "油及びエッセンス剤による肺臓炎"
     },
     {
+      "code": "J70.8",
+      "display": "その他の明示された外的因子による呼吸器病態"
+    },
+    {
       "code": "J80",
       "display": "成人呼吸窮＜促＞迫症候群＜ARDS＞"
     },
     {
+      "code": "J81",
+      "display": "肺水腫"
+    },
+    {
       "code": "J85.1",
       "display": "肺炎を伴う肺膿瘍"
+    },
+    {
+      "code": "J86.9",
+      "display": "瘻（孔）を伴わない膿胸（症）"
+    },
+    {
+      "code": "J91",
+      "display": "他に分類される病態における胸水"
     },
     {
       "code": "J93.9",
@@ -869,6 +957,10 @@
       "display": "便秘"
     },
     {
+      "code": "K63.1",
+      "display": "腸穿孔（非外傷性）"
+    },
+    {
       "code": "K64.9",
       "display": "痔核，詳細不明"
     },
@@ -915,6 +1007,10 @@
     {
       "code": "K76.7",
       "display": "肝腎症候群"
+    },
+    {
+      "code": "K76.8",
+      "display": "その他の明示された肝疾患"
     },
     {
       "code": "K76.9",
@@ -979,6 +1075,18 @@
     {
       "code": "K85.9",
       "display": "急性膵炎，詳細不明"
+    },
+    {
+      "code": "K86.3",
+      "display": "膵仮性のう＜嚢＞胞"
+    },
+    {
+      "code": "K86.8",
+      "display": "その他の明示された膵疾患"
+    },
+    {
+      "code": "K91.8",
+      "display": "消化器系のその他の処置後障害，他に分類されないもの"
     },
     {
       "code": "K92",
@@ -1075,6 +1183,10 @@
     {
       "code": "M54.9",
       "display": "背部痛，詳細不明"
+    },
+    {
+      "code": "M62.8",
+      "display": "その他の明示された筋障害"
     },
     {
       "code": "M71.2",
@@ -1353,6 +1465,10 @@
       "display": "敗血症性ショック"
     },
     {
+      "code": "R57.8",
+      "display": "その他のショック"
+    },
+    {
       "code": "R65.1",
       "display": "感染症が原因の全身性炎症反応症候群，臓器不全を伴うもの"
     },
@@ -1593,8 +1709,20 @@
       "display": "アレルギー，詳細不明"
     },
     {
+      "code": "T79.6",
+      "display": "筋の外傷性阻血"
+    },
+    {
       "code": "T80.2",
       "display": "輸液，輸血及び治療用注射に続発する感染症"
+    },
+    {
+      "code": "T81.3",
+      "display": "手術創の離開，他に分類されないもの"
+    },
+    {
+      "code": "T81.4",
+      "display": "処置に続発する感染症，他に分類されないもの"
     },
     {
       "code": "T83.5",

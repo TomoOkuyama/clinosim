@@ -1462,3 +1462,93 @@ codes:
     en: Pressure ulcer of unspecified site, unspecified stage
   J98.11:
     en: Atelectasis
+  D68.4:
+    en: Acquired coagulation factor deficiency
+  D69.19:
+    en: Other qualitative platelet defects
+  D75.822:
+    en: Immune-mediated heparin-induced thrombocytopenia
+  E46:
+    en: Unspecified protein-calorie malnutrition
+  E87.21:
+    en: Acute metabolic acidosis
+  E87.8:
+    en: Other disorders of electrolyte and fluid balance, not elsewhere classified
+  F06.31:
+    en: Mood disorder due to known physiological condition with depressive features
+  G56.10:
+    en: Other lesions of median nerve, unspecified upper limb
+  G62.81:
+    en: Critical illness polyneuropathy
+  G91.1:
+    en: Obstructive hydrocephalus
+  G93.41:
+    en: Metabolic encephalopathy
+  I24.1:
+    en: Dressler's syndrome
+  I27.24:
+    en: Chronic thromboembolic pulmonary hypertension
+  I47.20:
+    en: Ventricular tachycardia, unspecified
+  I50.811:
+    en: Acute right heart failure
+  I51.81:
+    en: Takotsubo syndrome
+  I63.40:
+    en: Cerebral infarction due to embolism of unspecified cerebral artery
+  I82.890:
+    en: Acute embolism and thrombosis of other specified veins
+  I85.11:
+    en: Secondary esophageal varices with bleeding
+  I87.009:
+    en: Postthrombotic syndrome without complications of unspecified extremity
+  I89.0:
+    en: Lymphedema, not elsewhere classified
+  J11.82:
+    en: Influenza due to unidentified influenza virus with myocarditis
+  J70.5:
+    en: Respiratory conditions due to smoke inhalation
+  J81.0:
+    en: Acute pulmonary edema
+  J86.9:
+    en: Pyothorax without fistula
+  J91.8:
+    en: Pleural effusion in other conditions classified elsewhere
+  K56.50:
+    en: Intestinal adhesions [bands], unspecified as to partial versus complete obstruction
+  K63.1:
+    en: Perforation of intestine (nontraumatic)
+  K65.1:
+    en: Peritoneal abscess
+  K65.2:
+    en: Spontaneous bacterial peritonitis
+  K76.82:
+    en: Hepatic encephalopathy
+  K76.89:
+    en: Other specified diseases of liver
+  K80.51:
+    en: Calculus of bile duct without cholangitis or cholecystitis with obstruction
+  K85.92:
+    en: Acute pancreatitis with infected necrosis, unspecified
+  K86.3:
+    en: Pseudocyst of pancreas
+  K86.89:
+    en: Other specified diseases of pancreas
+  K91.71:
+    en: Accidental puncture and laceration of a digestive system organ or structure during a digestive system procedure
+  K91.89:
+    en: Other postprocedural complications and disorders of digestive system
+  M62.82:
+    en: Rhabdomyolysis
+  R57.8:
+    en: Other shock
+  S06.5XAA:
+    en: Traumatic subdural hemorrhage with loss of consciousness status unknown, initial encounter
+  T79.A0XA:
+    en: Compartment syndrome, unspecified, initial encounter
+  T81.31XA:
+    en: Disruption of external operation (surgical) wound, not elsewhere classified, initial encounter
+  T81.40XA:
+    en: Infection following a procedure, unspecified, initial encounter
+  T81.49XA:
+    en: Infection following a procedure, other surgical site, initial encounter

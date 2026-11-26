@@ -26,11 +26,16 @@
 # `non_diagnosis` token (an event, a treatment effect or a nonspecific term
 # that names no disease: it stays narrative-only), or a `pending` token (a
 # disease-like complication whose code is not yet chosen and verified; it stays
-# narrative-only until it moves to `codes`).
+# narrative-only until it moves to `codes`; none is pending now).
 #
 # `distinct_code_categories`: ICD-10 3-character categories whose members are
 # different diagnoses, so the first-onset-per-category rule keys on the full
-# code (E87: hypokalemia and hyperkalemia are two diagnoses of one category).
+# code (E87: hypokalemia and hyperkalemia are two diagnoses of one category;
+# F10: the withdrawal delirium F10.231 is a different diagnosis from the stay's
+# F10.23x withdrawal; K86: a pseudocyst K86.3 and a duct disruption K86.89;
+# T81: a wound infection T81.4-, a wound dehiscence T81.31XA). A category the
+# stay itself carries still blocks a complication of the same category when it
+# is not listed (a recurrent subdural hematoma, a stump appendicitis).
 metadata:
   kind: reference
   name: complication_diagnosis_codes
@@ -75,8 +80,82 @@ codes:
   atelectasis: J98.11
   venous_thromboembolism: I82.90
   recurrent_aspiration: J69.0
+  # Issue #3872, the remaining tokens. Each code is a CMS ICD-10-CM FY2027 leaf
+  # read in the order file, chosen from the tabular list and the alphabetic
+  # index (inclusion terms, "code also" and "use additional code" notes); the
+  # JP code of each is in locale/jp/code_mapping_diagnosis.yaml. Synonym tokens
+  # share one code.
+  abscess_formation: L02.91
+  adhesive_bowel_obstruction: K56.50
+  adjacent_vertebral_fracture: M48.50XA
+  bacterial_superinfection: J15.9
+  bile_duct_injury: K91.71
+  bile_leak: K91.89
+  bleeding_uremic_platelet_dysfunction: D69.19
+  bowel_perforation: K63.1
+  brain_herniation: G93.5
+  burn_wound_infection: L08.9
+  cardioembolic_stroke: I63.40
+  central_line_associated_bloodstream_infection: T80.211A
+  cerebral_herniation: G93.5
+  cholangitis: K83.09
+  chronic_thromboembolic_pulmonary_hypertension: I27.24
+  coagulopathy_bleeding: D68.4
+  compartment_syndrome: T79.A0XA
+  critical_illness_polyneuropathy: G62.81
+  delirium_tremens: F10.231
+  dressler_syndrome: I24.1
+  electrolyte_imbalance: E87.8
+  empyema: J86.9
+  gi_bleeding: K92.2
+  hemorrhagic_shock: R57.8
+  hemorrhagic_transformation: I61.9
+  heparin_induced_thrombocytopenia: D75.822
+  hepatic_dysfunction: K76.89
+  hepatic_encephalopathy: K76.82
+  hepatic_encephalopathy_worsening: K76.82
+  hydrocephalus: G91.1
+  infected_necrosis: K85.92
+  inhalation_injury_respiratory_failure: J70.5
+  intra_abdominal_abscess: K65.1
+  lung_abscess: J85.1
+  lymphedema: I89.0
+  malnutrition_worsening: E46
+  median_nerve_dysfunction: G56.10
+  metabolic_acidosis: E87.21
+  myocarditis: J11.82
+  necrotizing_fasciitis: M72.6
+  pancreatic_duct_disruption: K86.89
+  pancreatic_pseudocyst: K86.3
+  parapneumonic_effusion: J91.8
+  pericarditis: I24.1
+  peritonitis: K65.9
+  phlegmasia_cerulea_dolens: I80.209
+  post_stroke_depression: F06.31
+  post_thrombotic_syndrome: I87.009
+  postoperative_ileus: K91.89
+  postoperative_pancreatitis: K85.90
+  pulmonary_edema: J81.0
+  recurrent_hematoma: S06.5XAA
+  retained_cbd_stone: K80.51
+  rhabdomyolysis: M62.82
+  rhabdomyolysis_aki: M62.82
+  right_heart_failure: I50.811
+  splenic_vein_thrombosis: I82.890
+  spontaneous_bacterial_peritonitis: K65.2
+  stress_cardiomyopathy: I51.81
+  stroke: I63.40
+  stump_appendicitis: K35.80
+  surgical_site_infection: T81.40XA
+  uremic_encephalopathy: G93.41
+  variceal_hemorrhage: I85.11
+  ventricular_arrhythmia: I47.20
+  viral_pneumonia: J12.9
+  withdrawal_seizure: R56.9
+  wound_dehiscence: T81.31XA
+  wound_infection: T81.49XA
 
-distinct_code_categories: [E87]
+distinct_code_categories: [E87, F10, K86, T81]
 
 # Events, treatment effects and nonspecific terms: no disease to code.
 # "urosepsis" is a nonspecific term with no default code (ICD-10-CM Official
@@ -98,76 +177,7 @@ non_diagnosis:
   - thrombus_extension
   - transfusion_reaction
 
-# Disease-like complications still narrative-only: the code (and for several a
-# new registered ICD-10-CM / WHO code with its MHLW name) is not chosen and
-# verified yet. Move a token to `codes` when it is.
-pending:
-  - abscess_formation
-  - adhesive_bowel_obstruction
-  - adjacent_vertebral_fracture
-  - bacterial_superinfection
-  - bile_duct_injury
-  - bile_leak
-  - bleeding_uremic_platelet_dysfunction
-  - bowel_perforation
-  - brain_herniation
-  - burn_wound_infection
-  - cardioembolic_stroke
-  - central_line_associated_bloodstream_infection
-  - cerebral_herniation
-  - cholangitis
-  - chronic_thromboembolic_pulmonary_hypertension
-  - coagulopathy_bleeding
-  - compartment_syndrome
-  - critical_illness_polyneuropathy
-  - delirium_tremens
-  - dressler_syndrome
-  - electrolyte_imbalance
-  - empyema
-  - gi_bleeding
-  - hemorrhagic_shock
-  - hemorrhagic_transformation
-  - heparin_induced_thrombocytopenia
-  - hepatic_dysfunction
-  - hepatic_encephalopathy
-  - hepatic_encephalopathy_worsening
-  - hydrocephalus
-  - infected_necrosis
-  - inhalation_injury_respiratory_failure
-  - intra_abdominal_abscess
-  - lung_abscess
-  - lymphedema
-  - malnutrition_worsening
-  - median_nerve_dysfunction
-  - metabolic_acidosis
-  - myocarditis
-  - necrotizing_fasciitis
-  - pancreatic_duct_disruption
-  - pancreatic_pseudocyst
-  - parapneumonic_effusion
-  - pericarditis
-  - peritonitis
-  - phlegmasia_cerulea_dolens
-  - post_stroke_depression
-  - post_thrombotic_syndrome
-  - postoperative_ileus
-  - postoperative_pancreatitis
-  - pulmonary_edema
-  - recurrent_hematoma
-  - retained_cbd_stone
-  - rhabdomyolysis
-  - rhabdomyolysis_aki
-  - right_heart_failure
-  - splenic_vein_thrombosis
-  - spontaneous_bacterial_peritonitis
-  - stress_cardiomyopathy
-  - stroke
-  - stump_appendicitis
-  - surgical_site_infection
-  - uremic_encephalopathy
-  - variceal_hemorrhage
-  - ventricular_arrhythmia
-  - viral_pneumonia
-  - withdrawal_seizure
-  - wound_dehiscence
-  - wound_infection
+# Disease-like complications still narrative-only: none (every disease-like
+# token is coded above). A new disease-like token goes here until its code is
+# chosen and verified.
+pending: []

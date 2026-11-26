@@ -7,13 +7,13 @@
     "source_content_note": "The source CodeSystem is marked content=complete (all 13,831 WHO ICD-10 concepts). The snapshot filters to codes clinosim emits (320) so shipped size stays small; unlike the fragment-content YJ snapshot, missing codes here mean clinosim references a WHO code that does not exist upstream (typically ICD-10-CM-only sub-granularity or legacy codes), not an incomplete fragment. Session 59 #284: I84 → K64.9, R33.9 → R33, S62.9 → S62.8 to align with HAPI ICD-10 2019-covid-expanded (86 v5 errors closed).",
     "fetched_from": "https://github.com/iryohjoho/fhir-jp-validator tx-server-build/",
     "extracted_at": "2026-07-19",
-    "clinosim_codes_total": 329,
-    "clinosim_codes_in_source": 328,
+    "clinosim_codes_total": 361,
+    "clinosim_codes_in_source": 360,
     "clinosim_codes_missing_from_source": [
       "S67.2"
     ],
     "note": "WHO ICD-10 authoritative displays for the codes clinosim emits.",
-    "later_additions": "T22.2 and T23.2 (Issue #3279), E11.2, E11.3 and E11.4 (Issue #3259), G35, I69.1 and I69.3 (Issue #3327), R57.2 (Issue #3269) were added on 2026-11-16 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded). T20.0, T21.0, T22.0, T23.0, T24.0, T25.0 (Issue #3258, tx.fhir.org $lookup 2026-11-18). J14 and J15.5 (Issue #3645) were added on 2026-11-24 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded). A40.3, A41.3 and A41.8 (Issue #3833) were added on 2026-11-26 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded). A04.7, A49.9, E16.2, E87.5, E87.6, J98.1, L89.9, N15.1 and R56.8 (Issue #3872) were added on 2026-11-26 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded)."
+    "later_additions": "T22.2 and T23.2 (Issue #3279), E11.2, E11.3 and E11.4 (Issue #3259), G35, I69.1 and I69.3 (Issue #3327), R57.2 (Issue #3269) were added on 2026-11-16 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded). T20.0, T21.0, T22.0, T23.0, T24.0, T25.0 (Issue #3258, tx.fhir.org $lookup 2026-11-18). J14 and J15.5 (Issue #3645) were added on 2026-11-24 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded). A40.3, A41.3 and A41.8 (Issue #3833) were added on 2026-11-26 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded). A04.7, A49.9, E16.2, E87.5, E87.6, J98.1, L89.9, N15.1 and R56.8 (Issue #3872) were added on 2026-11-26 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded). D68.4, D69.1, D75.8, E46, E87.8, F06.3, G56.1, G62.8, G91.1, G93.4, I24.1, I27.2, I47.2, I51.8, I82.8, I87.0, I89.0, J11.8, J70.8, J81, J86.9, J91, K63.1, K76.8, K86.3, K86.8, K91.8, M62.8, R57.8, T79.6, T81.3 and T81.4 (Issue #3872, the remaining in-hospital complication diagnosis codes) were added on 2026-11-27 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded)."
   },
   "concept": [
     {
@@ -798,6 +798,91 @@
       ]
     },
     {
+      "code": "D68.4",
+      "display": "Acquired coagulation factor deficiency",
+      "definition": "Acquired coagulation factor deficiency",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "D68"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Deficiency of coagulation factor due to:liver disease"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Deficiency of coagulation factor due to:vitamin K deficiency"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "vitamin K deficiency of newborn[P53]"
+        }
+      ]
+    },
+    {
+      "code": "D69.1",
+      "display": "Qualitative platelet defects",
+      "definition": "Qualitative platelet defects",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "D69"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Bernard-Soulier [giant platelet] syndrome"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Glanzmann disease"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Grey platelet syndrome"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Thromboasthenia (haemorrhagic)(hereditary)"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Thrombocytopathy"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "von Willebrand disease[D68.0]"
+        }
+      ]
+    },
+    {
+      "code": "D75.8",
+      "display": "Other specified diseases of blood and blood-forming organs",
+      "definition": "Other specified diseases of blood and blood-forming organs",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "D75"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Basophilia"
+        }
+      ]
+    },
+    {
       "code": "E03",
       "display": "Other hypothyroidism",
       "definition": "Other hypothyroidism",
@@ -1103,6 +1188,29 @@
       ]
     },
     {
+      "code": "E46",
+      "display": "Unspecified protein-energy malnutrition",
+      "definition": "Unspecified protein-energy malnutrition",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "E40-E46"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Malnutrition NOS"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Protein-energy imbalance NOS"
+        }
+      ]
+    },
+    {
       "code": "E66.0",
       "display": "Obesity due to excess calories",
       "definition": "Obesity due to excess calories",
@@ -1342,6 +1450,33 @@
       ]
     },
     {
+      "code": "E87.8",
+      "display": "Other disorders of electrolyte and fluid balance, not elsewhere classified",
+      "definition": "Other disorders of electrolyte and fluid balance, not elsewhere classified",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "E87"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Electrolyte imbalance NOS"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Hyperchloraemia"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Hypochloraemia"
+        }
+      ]
+    },
+    {
       "code": "E88.8",
       "display": "Other specified metabolic disorders",
       "definition": "Other specified metabolic disorders",
@@ -1390,6 +1525,25 @@
     {
       "code": "F05",
       "display": "Delirium, not induced by alcohol and other psychoactive substances"
+    },
+    {
+      "code": "F06.3",
+      "display": "Organic mood [affective] disorders",
+      "definition": "Organic mood [affective] disorders",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "F06"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "mood disorders, nonorganic or unspecified[F30-F39]"
+        }
+      ]
     },
     {
       "code": "F10",
@@ -1724,6 +1878,78 @@
         {
           "code": "parent",
           "valueCode": "G47"
+        }
+      ]
+    },
+    {
+      "code": "G56.1",
+      "display": "Other lesions of median nerve",
+      "definition": "Other lesions of median nerve",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "G56"
+        }
+      ]
+    },
+    {
+      "code": "G62.8",
+      "display": "Other specified polyneuropathies",
+      "definition": "Other specified polyneuropathies",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "G62"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Radiation-induced polyneuropathy"
+        }
+      ]
+    },
+    {
+      "code": "G91.1",
+      "display": "Obstructive hydrocephalus",
+      "definition": "Obstructive hydrocephalus",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "G91"
+        }
+      ]
+    },
+    {
+      "code": "G93.4",
+      "display": "Encephalopathy, unspecified",
+      "definition": "Encephalopathy, unspecified",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "G93"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "encephalopathy:alcoholic[G31.2]"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "encephalopathy:toxic[G92]"
         }
       ]
     },
@@ -2113,6 +2339,25 @@
       ]
     },
     {
+      "code": "I24.1",
+      "display": "Dressler syndrome",
+      "definition": "Dressler syndrome",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "I24"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Postmyocardial infarction syndrome"
+        }
+      ]
+    },
+    {
       "code": "I25",
       "display": "Chronic ischaemic heart disease",
       "definition": "Chronic ischaemic heart disease",
@@ -2249,6 +2494,21 @@
       ]
     },
     {
+      "code": "I27.2",
+      "display": "Other secondary pulmonary hypertension",
+      "definition": "Other secondary pulmonary hypertension",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "I27"
+        }
+      ]
+    },
+    {
       "code": "I30.9",
       "display": "Acute pericarditis, unspecified",
       "definition": "Acute pericarditis, unspecified",
@@ -2338,6 +2598,21 @@
         {
           "code": "inclusion",
           "valueString": "Tachycardia (paroxysmal):nodal"
+        }
+      ]
+    },
+    {
+      "code": "I47.2",
+      "display": "Ventricular tachycardia",
+      "definition": "Ventricular tachycardia",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "I47"
         }
       ]
     },
@@ -2576,6 +2851,29 @@
         {
           "code": "inclusion",
           "valueString": "Cardiac, heart or myocardial failure NOS"
+        }
+      ]
+    },
+    {
+      "code": "I51.8",
+      "display": "Other ill-defined heart diseases",
+      "definition": "Other ill-defined heart diseases",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "I51"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Carditis (acute)(chronic)"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Pancarditis (acute)(chronic)"
         }
       ]
     },
@@ -3129,6 +3427,21 @@
       ]
     },
     {
+      "code": "I82.8",
+      "display": "Embolism and thrombosis of other specified veins",
+      "definition": "Embolism and thrombosis of other specified veins",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "I82"
+        }
+      ]
+    },
+    {
       "code": "I82.9",
       "display": "Embolism and thrombosis of unspecified vein",
       "definition": "Embolism and thrombosis of unspecified vein",
@@ -3167,6 +3480,25 @@
       ]
     },
     {
+      "code": "I87.0",
+      "display": "Postthrombotic syndrome",
+      "definition": "Postthrombotic syndrome",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "I87"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Postphlebitic syndrome"
+        }
+      ]
+    },
+    {
       "code": "I88.0",
       "display": "Nonspecific mesenteric lymphadenitis",
       "definition": "Nonspecific mesenteric lymphadenitis",
@@ -3182,6 +3514,25 @@
         {
           "code": "inclusion",
           "valueString": "Mesenteric lymphadenitis (acute)(chronic)"
+        }
+      ]
+    },
+    {
+      "code": "I89.0",
+      "display": "Lymphoedema, not elsewhere classified",
+      "definition": "Lymphoedema, not elsewhere classified",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "I89"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Lymphangiectasis"
         }
       ]
     },
@@ -3430,6 +3781,33 @@
         {
           "code": "inclusion",
           "valueString": "Influenzal:pleural effusionunspecified or specific virus not identified"
+        }
+      ]
+    },
+    {
+      "code": "J11.8",
+      "display": "Influenza with other manifestations, virus not identified",
+      "definition": "Influenza with other manifestations, virus not identified",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "J11"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Encephalopathy due to influenzaunspecified or specific virus not identified"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Influenzal:gastroenteritisunspecified or specific virus not identified"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Influenzal:myocarditis (acute)unspecified or specific virus not identified"
         }
       ]
     },
@@ -4142,6 +4520,21 @@
       ]
     },
     {
+      "code": "J70.8",
+      "display": "Respiratory conditions due to other specified external agents",
+      "definition": "Respiratory conditions due to other specified external agents",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "J70"
+        }
+      ]
+    },
+    {
       "code": "J80",
       "display": "Adult respiratory distress syndrome",
       "definition": "Adult respiratory distress syndrome",
@@ -4161,6 +4554,45 @@
       ]
     },
     {
+      "code": "J81",
+      "display": "Pulmonary oedema",
+      "definition": "Pulmonary oedema",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "J80-J84"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Acute oedema of lung"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Pulmonary congestion (passive)"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "hypostatic pneumonia[J18.2]"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "pulmonary oedema:chemical (acute)[J68.1]"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "pulmonary oedema:due to external agents[J60-J70]"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "pulmonary oedema:with mention of heart disease NOS or heart failure[I50.1]"
+        }
+      ]
+    },
+    {
       "code": "J85.1",
       "display": "Abscess of lung with pneumonia",
       "definition": "Abscess of lung with pneumonia",
@@ -4176,6 +4608,36 @@
         {
           "code": "exclusion",
           "valueString": "with pneumonia due to specified organism[J09-J16]"
+        }
+      ]
+    },
+    {
+      "code": "J86.9",
+      "display": "Pyothorax without fistula",
+      "definition": "Pyothorax without fistula",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "J86"
+        }
+      ]
+    },
+    {
+      "code": "J91",
+      "display": "Pleural effusion in conditions classified elsewhere",
+      "definition": "Pleural effusion in conditions classified elsewhere",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "J90-J94"
         }
       ]
     },
@@ -4959,6 +5421,33 @@
       ]
     },
     {
+      "code": "K63.1",
+      "display": "Perforation of intestine (nontraumatic)",
+      "definition": "Perforation of intestine (nontraumatic)",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "K63"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "perforation (nontraumatic) of:appendix[K35.2][K35.3]"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "perforation (nontraumatic) of:duodenum[K26.-]"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "with diverticular disease[K57.-]"
+        }
+      ]
+    },
+    {
       "code": "K64.9",
       "display": "Haemorrhoids, unspecified",
       "definition": "Haemorrhoids, unspecified",
@@ -5295,6 +5784,37 @@
         {
           "code": "exclusion",
           "valueString": "following labour and delivery[O90.4]"
+        }
+      ]
+    },
+    {
+      "code": "K76.8",
+      "display": "Other specified diseases of liver",
+      "definition": "Other specified diseases of liver",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "K76"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Acquired intrahepatic vascular shunt"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Focal nodular hyperplasia of liver"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Hepatoptosis"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Simple cyst of liver"
         }
       ]
     },
@@ -5771,6 +6291,83 @@
         {
           "code": "parent",
           "valueCode": "K85"
+        }
+      ]
+    },
+    {
+      "code": "K86.3",
+      "display": "Pseudocyst of pancreas",
+      "definition": "Pseudocyst of pancreas",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "K86"
+        }
+      ]
+    },
+    {
+      "code": "K86.8",
+      "display": "Other specified diseases of pancreas",
+      "definition": "Other specified diseases of pancreas",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "K86"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Atrophyof pancreas"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Calculusof pancreas"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Cirrhosisof pancreas"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Fibrosisof pancreas"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Pancreatic:infantilism"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Pancreatic:necrosis:NOS"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Pancreatic:necrosis:aseptic"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Pancreatic:necrosis:fat"
+        }
+      ]
+    },
+    {
+      "code": "K91.8",
+      "display": "Other postprocedural disorders of digestive system, not elsewhere classified",
+      "definition": "Other postprocedural disorders of digestive system, not elsewhere classified",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "K91"
         }
       ]
     },
@@ -6407,6 +7004,25 @@
         {
           "code": "exclusion",
           "valueString": "lumbago:with sciatica[M54.4]"
+        }
+      ]
+    },
+    {
+      "code": "M62.8",
+      "display": "Other specified disorders of muscle",
+      "definition": "Other specified disorders of muscle",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "M62"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Muscle (sheath) hernia"
         }
       ]
     },
@@ -8046,6 +8662,25 @@
       ]
     },
     {
+      "code": "R57.8",
+      "display": "Other shock",
+      "definition": "Other shock",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "R57"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Endotoxic shock"
+        }
+      ]
+    },
+    {
       "code": "R65.1",
       "display": "Systemic Inflammatory Response Syndrome of infectious origin with organ failure",
       "definition": "Systemic Inflammatory Response Syndrome of infectious origin with organ failure",
@@ -9487,6 +10122,33 @@
       ]
     },
     {
+      "code": "T79.6",
+      "display": "Traumatic ischaemia of muscle",
+      "definition": "Traumatic ischaemia of muscle",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "T79"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Compartment syndrome"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Volkmann ischaemic contracture"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "anterior tibial syndrome[M76.8]"
+        }
+      ]
+    },
+    {
       "code": "T80.2",
       "display": "Infections following infusion, transfusion and therapeutic injection",
       "definition": "Infections following infusion, transfusion and therapeutic injection",
@@ -9522,6 +10184,84 @@
         {
           "code": "exclusion",
           "valueString": "the listed conditions when specified as:postprocedural[T81.4]"
+        }
+      ]
+    },
+    {
+      "code": "T81.3",
+      "display": "Disruption of operation wound, not elsewhere classified",
+      "definition": "Disruption of operation wound, not elsewhere classified",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "T81"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Dehiscenceof operation wound"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Ruptureof operation wound"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "disruption of:caesarean-section wound[O90.0]"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "disruption of:perineal obstetric wound[O90.1]"
+        }
+      ]
+    },
+    {
+      "code": "T81.4",
+      "display": "Infection following a procedure, not elsewhere classified",
+      "definition": "Infection following a procedure, not elsewhere classified",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "T81"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Abscess:intra-abdominalpostprocedural"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Abscess:stitchpostprocedural"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Abscess:subphrenicpostprocedural"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Abscess:woundpostprocedural"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Sepsispostprocedural"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "infection due to:infusion, transfusion and therapeutic injection[T80.2]"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "infection due to:prosthetic devices, implants and grafts[T82.6-T82.7][T83.5-T83.6][T84.5-T84.7][T85.7]"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "obstetric surgical wound infection[O86.0]"
         }
       ]
     },

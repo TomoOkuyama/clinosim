@@ -240,3 +240,45 @@ R56.9: "R56.8"      # Unspecified convulsions → その他及び詳細不明の
 R78.81: "A49.9"     # Bacteremia → 細菌感染症，詳細不明 (WHO A49.9 includes "Bacteraemia NOS").
 L89.90: "L89.9"     # Pressure ulcer of unspecified site, unspecified stage → じょく＜褥＞瘡性潰瘍及び圧迫領域，詳細不明.
 J98.11: "J98.1"     # Atelectasis → 肺虚脱.
+# === Remaining in-hospital complication diagnoses (Issue #3872) ===
+# The ICD-10-CM leaf the simulator codes the complication with → the WHO ICD-10 (2013) code of the MHLW table (the parent category where ICD-10-CM subdivides it; the WHO sibling where WHO 2013 has no such code: K91.71 → K91.8, K65.1 and K65.2 → K65.0, J70.5 → J70.8).
+D69.19: "D69.1"         # Other qualitative platelet defects → 血小板機能異常症.
+D75.822: "D75.8"        # Immune-mediated heparin-induced thrombocytopenia → 血液及び造血器のその他の明示された疾患.
+E87.21: "E87.2"         # Acute metabolic acidosis → アシドーシス.
+F06.31: "F06.3"         # Mood disorder due to known physiological condition with depressive features → 器質性気分［感情］障害.
+G56.10: "G56.1"         # Other lesions of median nerve, unspecified upper limb → 正中神経のその他の病変.
+G62.81: "G62.8"         # Critical illness polyneuropathy → その他の明示された多発（性）ニューロパチ＜シ＞ー.
+G93.41: "G93.4"         # Metabolic encephalopathy → 脳症＜エンセファロパチ＜シ＞ー＞，詳細不明.
+I27.24: "I27.2"         # Chronic thromboembolic pulmonary hypertension → その他の二次性＜続発性＞肺高血圧（症）.
+I47.20: "I47.2"         # Ventricular tachycardia, unspecified → 心室（性）頻拍（症）.
+I50.811: "I50.0"        # Acute right heart failure → うっ血性心不全.
+I51.81: "I51.8"         # Takotsubo syndrome → その他の診断名不明確な心疾患.
+I63.40: "I63.4"         # Cerebral infarction due to embolism of unspecified cerebral artery → 脳動脈の塞栓症による脳梗塞.
+I80.209: "I80.2"        # Phlebitis and thrombophlebitis of unspecified deep vessels of unspecified lower extremity → 下肢のその他の深在血管の静脈炎及び血栓（性）静脈炎.
+I82.890: "I82.8"        # Acute embolism and thrombosis of other specified veins → その他の明示された静脈の塞栓症及び血栓症.
+I85.11: "I85.0"         # Secondary esophageal varices with bleeding → 出血を伴う食道静脈瘤.
+I87.009: "I87.0"        # Postthrombotic syndrome without complications of unspecified extremity → 血栓後症候群.
+J11.82: "J11.8"         # Influenza due to unidentified influenza virus with myocarditis → その他の症状を伴うインフルエンザ，インフルエンザウイルスが分離されないもの.
+J70.5: "J70.8"          # Respiratory conditions due to smoke inhalation → その他の明示された外的因子による呼吸器病態.
+J81.0: "J81"            # Acute pulmonary edema → 肺水腫.
+J91.8: "J91"            # Pleural effusion in other conditions classified elsewhere → 他に分類される病態における胸水.
+K56.50: "K56.5"         # Intestinal adhesions [bands], unspecified as to partial versus complete obstruction → 閉塞を伴う腸癒着［索条物］.
+K65.1: "K65.0"          # Peritoneal abscess → 急性腹膜炎.
+K65.2: "K65.0"          # Spontaneous bacterial peritonitis → 急性腹膜炎.
+K76.82: "K72.9"         # Hepatic encephalopathy → 肝不全，詳細不明.
+K76.89: "K76.8"         # Other specified diseases of liver → その他の明示された肝疾患.
+K80.51: "K80.5"         # Calculus of bile duct without cholangitis or cholecystitis with obstruction → 胆管炎及び胆のう＜嚢＞炎を伴わない胆管結石.
+K83.09: "K83.0"         # Other cholangitis → 胆管炎.
+K85.90: "K85.9"         # Acute pancreatitis without necrosis or infection, unspecified → 急性膵炎，詳細不明.
+K85.92: "K85.9"         # Acute pancreatitis with infected necrosis, unspecified → 急性膵炎，詳細不明.
+K86.89: "K86.8"         # Other specified diseases of pancreas → その他の明示された膵疾患.
+K91.71: "K91.8"         # Accidental puncture and laceration of a digestive system organ or structure during a digestive system procedure → 消化器系のその他の処置後障害，他に分類されないもの.
+K91.89: "K91.8"         # Other postprocedural complications and disorders of digestive system → 消化器系のその他の処置後障害，他に分類されないもの.
+L02.91: "L02.9"         # Cutaneous abscess, unspecified → 皮膚膿瘍，せつ＜フルンケル＞及びよう＜カルブンケル＞，部位不明.
+M48.50XA: "M48.5"       # Collapsed vertebra, not elsewhere classified, site unspecified, initial encounter for fracture → 圧潰脊椎，他に分類されないもの.
+M62.82: "M62.8"         # Rhabdomyolysis → その他の明示された筋障害.
+S06.5XAA: "S06.5"       # Traumatic subdural hemorrhage with loss of consciousness status unknown, initial encounter → 外傷性硬膜下出血.
+T79.A0XA: "T79.6"       # Compartment syndrome, unspecified, initial encounter → 筋の外傷性阻血.
+T81.31XA: "T81.3"       # Disruption of external operation (surgical) wound, not elsewhere classified, initial encounter → 手術創の離開，他に分類されないもの.
+T81.40XA: "T81.4"       # Infection following a procedure, unspecified, initial encounter → 処置に続発する感染症，他に分類されないもの.
+T81.49XA: "T81.4"       # Infection following a procedure, other surgical site, initial encounter → 処置に続発する感染症，他に分類されないもの.
