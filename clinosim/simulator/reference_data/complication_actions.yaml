@@ -49,7 +49,7 @@
 #     `not_executed_airway_actions` are conditional intentions ("consider
 #     intubation if severe"), which are not acted on. Non-invasive ventilation
 #     is started by `oxygen_course.yaml niv.start_action` (Issue #3705).
-#   - `treatment_actions` / `hold_actions` / `not_executed_treatment_actions`
+#   - `treatment_actions` / `stop_actions` / `not_executed_treatment_actions`
 #     (Issue #3864): the executed anticoagulation and acid-suppression actions.
 #       start_anticoagulation  a deep vein thrombosis / pulmonary embolism gets
 #                              therapeutic anticoagulation: the first agent of
@@ -74,10 +74,9 @@
 #                              IV entry; the oral step-down entry is not
 #                              ordered), for `course_days` (the regimen text
 #                              "x 72h").
-#       hold_anticoagulation   the running anticoagulants (every drug of class
-#                              `hold_classes`, and the planned VTE prophylaxis)
-#                              are stopped at the onset order time; the doses
-#                              charted after it are removed.
+#       start_oral_vancomycin  C. difficile colitis: the oral regimen authored
+#                              under the action (below), 10 days.
+#       hold_anticoagulation   see `stop_actions` below.
 #     An action that only considers or conditions the treatment ("start
 #     anticoagulation cautiously", "anticoagulation if safe") or changes a
 #     running regimen (increase, optimize, intensify) is not executed.
@@ -107,6 +106,8 @@ aliases:
   anticoagulation: start_anticoagulation
   anticoagulation_with_renal_dosing: start_anticoagulation
   anticoagulation_renal_adjusted: start_anticoagulation
+  start_oral_vancomycin_125mg_qid: start_oral_vancomycin
+  stop_offending_antibiotic_if_possible: stop_offending_antibiotic
 
 airway_actions:
   - intubate
@@ -145,8 +146,6 @@ not_executed_antibiotic_actions:
   - escalate_antibiotics
   - prolonged_antibiotics_4_6_weeks
   - prophylactic_antibiotic_discussion
-  - stop_offending_antibiotic
-  - stop_offending_antibiotic_if_possible
   - targeted_antibiotic
 
 treatment_actions:
@@ -154,6 +153,7 @@ treatment_actions:
     protocol: deep_vein_thrombosis
     block: first_line
     drug_class: anticoagulant
+    intent: complication_anticoagulation
     discharge_block: discharge_oral
     lead_in_days: 5
     blocked_by:
@@ -162,19 +162,64 @@ treatment_actions:
       - major_bleeding
       - bleeding_complication
       - bleeding_uremic_platelet_dysfunction
+  start_oral_vancomycin:
+    drug_class: antibiotic.glycopeptide
+    intent: complication_oral_antibiotic
+    regimen:
+      us:
+        - {drug_id: vancomycin, dose: "125mg PO QID x10 days", route: PO, duration_days: 10}
+      japan:
+        - {drug_id: vancomycin, dose: "125mg PO QID x10 days", route: PO, duration_days: 10}
+    blocked_by: []
   IV_PPI:
     protocol: gi_bleeding
     block: first_line
     drug_class: ppi
+    intent: complication_ppi
     route: IV
     course_days: 3
     first_only: true
 
-hold_actions:
-  - hold_anticoagulation
+# Executed stop actions (Issue #3864): every running drug of `classes` (but
+# those of `spared_classes`) gets a `DISCONTINUE:` stop marker at the onset
+# order time; the doses charted from it on are cut after the stay, and an
+# antibiotic stopped this way is not prescribed at discharge (it is held there
+# and logged: `complication_actions.complication_stopped_antibiotics`).
+#   hold_anticoagulation       a bleed holds the running anticoagulants, and the
+#                              planned VTE prophylaxis (`planned_prophylaxis`).
+#   stop_offending_antibiotic  C. difficile colitis: the inciting antibiotic is
+#                              stopped. IDSA/SHEA 2017: "Discontinue therapy with
+#                              the inciting antibiotic agent(s) as soon as
+#                              possible". Every running systemic antibiotic is
+#                              taken as inciting, except the nitroimidazole
+#                              (metronidazole is itself active against C.
+#                              difficile); no replacement is ordered (the
+#                              regimen of the underlying infection is not
+#                              re-planned).
+stop_actions:
+  hold_anticoagulation:
+    classes: [anticoagulant]
+    intent: complication_anticoagulant_hold
+    planned_prophylaxis: true
+  stop_offending_antibiotic:
+    classes: [antibiotic]
+    spared_classes: [antibiotic.nitroimidazole]
+    intent: complication_antibiotic_stop
 
-hold_classes:
-  - anticoagulant
+# C. difficile infection regimen (Issue #3864). No disease protocol carries
+# one, so it is authored here: oral vancomycin 125 mg four times daily for 10
+# days, the standard regimen of the IDSA/SHEA guideline (2017 update: "vancomycin
+# 125 mg orally 4 times per day or fidaxomicin 200 mg twice daily for 10 days";
+# the 2021 focused update: "a standard regimen (200 mg orally twice daily for 10
+# days)" of fidaxomicin, and the vancomycin comparator "125 mg orally 4 times
+# daily for 10 days") and of the Japanese guideline (Clostridioides difficile
+# infection guideline 2022, Japanese Society of Chemotherapy and Japanese
+# Association for Infectious Diseases: "バンコマイシンを 1 回 125 mg 1 日 4 回 10
+# 日間経口投与する"). The disease protocols declare oral vancomycin
+# (`start_oral_vancomycin`); fidaxomicin (the 2021 suggestion for an initial
+# episode, and the Japanese choice when recurrence risk exists) and the
+# Japanese first choice of metronidazole for a non-severe first episode are not
+# modelled (neither agent is in the drug catalog).
 
 not_executed_treatment_actions:
   - anticoagulation_consideration

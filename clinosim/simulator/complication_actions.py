@@ -21,12 +21,14 @@ RNG-free.
 from __future__ import annotations
 
 import functools
+import math
 import re
 from collections.abc import Iterable
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, StrictStr
+from pydantic import BaseModel, ConfigDict, Field, StrictStr, model_validator
 
 from clinosim.codes.drugs import drug_classes
 from clinosim.datafiles import load_data_yaml
@@ -37,13 +39,17 @@ _Slug = StrictStr
 
 
 class TreatmentAction(BaseModel):
-    """One executed treatment action (Issue #3864): the protocol block its
-    regimen is read from and which of the block's entries are candidates."""
+    """One executed treatment action (Issue #3864): the regimen is the entries
+    of a protocol block (``protocol`` + ``block``) or, where no protocol has
+    one, ``regimen`` (country -> entries, authored in the reference data), and
+    ``drug_class`` / ``route`` choose among them."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    protocol: _Slug
-    block: _Slug
+    protocol: _Slug | None = None
+    block: _Slug | None = None
+    regimen: dict[_Slug, tuple[dict[str, Any], ...]] | None = None
+    intent: _Slug
     drug_class: _Slug
     route: _Slug | None = None
     discharge_block: _Slug | None = None
@@ -51,6 +57,24 @@ class TreatmentAction(BaseModel):
     first_only: bool = False
     lead_in_days: int | None = Field(default=None, gt=0)
     blocked_by: tuple[_Slug, ...] = ()
+
+    @model_validator(mode="after")
+    def _one_regimen_source(self) -> TreatmentAction:
+        if (self.regimen is None) == (self.protocol is None or self.block is None):
+            raise ValueError("a treatment action names either protocol + block or an own regimen")
+        return self
+
+
+class StopAction(BaseModel):
+    """One executed stop action (Issue #3864): the running drugs of ``classes``
+    (not those of ``spared_classes``) are stopped at the onset order time."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    classes: tuple[_Slug, ...] = Field(min_length=1)
+    spared_classes: tuple[_Slug, ...] = ()
+    intent: _Slug
+    planned_prophylaxis: bool = False
 
 
 class ComplicationActionRules(BaseModel):
@@ -66,8 +90,7 @@ class ComplicationActionRules(BaseModel):
     airway_actions: tuple[_Slug, ...] = Field(min_length=1)
     not_executed_airway_actions: tuple[_Slug, ...]
     treatment_actions: dict[_Slug, TreatmentAction]
-    hold_actions: tuple[_Slug, ...] = Field(min_length=1)
-    hold_classes: tuple[_Slug, ...] = Field(min_length=1)
+    stop_actions: dict[_Slug, StopAction] = Field(min_length=1)
     not_executed_treatment_actions: tuple[_Slug, ...]
 
 
@@ -146,13 +169,14 @@ def treatment_actions_of(complication: dict[str, Any]) -> list[str]:
     return list(out)
 
 
-def hold_actions_of(complication: dict[str, Any]) -> list[str]:
-    """The canonical executed hold actions a complication declares
-    (``hold_anticoagulation``), in order and without repeats (Issue #3864)."""
+def stop_actions_of(complication: dict[str, Any]) -> list[str]:
+    """The canonical executed stop actions a complication declares
+    (``hold_anticoagulation``, ``stop_offending_antibiotic``), in order and
+    without repeats (Issue #3864)."""
     rules = complication_action_rules()
     out: dict[str, None] = {}
     for action in complication.get("actions", []) or []:
-        if isinstance(action, str) and canonical_action(action) in rules.hold_actions:
+        if isinstance(action, str) and canonical_action(action) in rules.stop_actions:
             out.setdefault(canonical_action(action))
     return list(out)
 
@@ -188,9 +212,13 @@ def treatment_candidates(action: str, country_key: str) -> list[dict[str, Any]]:
     from clinosim.modules.disease.protocol import load_disease_protocol
 
     spec = complication_action_rules().treatment_actions[action]
-    entries = (load_disease_protocol(spec.protocol).drugs.get(spec.block) or {}).get(country_key, [])
-    if isinstance(entries, dict):
-        entries = [entries]
+    if spec.regimen is not None:
+        entries: Any = list(spec.regimen.get(country_key, ()))
+    else:
+        assert spec.protocol is not None and spec.block is not None
+        entries = (load_disease_protocol(spec.protocol).drugs.get(spec.block) or {}).get(country_key, [])
+        if isinstance(entries, dict):
+            entries = [entries]
     out = [
         e
         for e in entries
@@ -216,7 +244,65 @@ def is_therapeutic_anticoagulant_order(order: Order) -> bool:
     )
 
 
-def complication_discharge_specs(orders: Iterable[Order], country_key: str) -> list[dict[str, Any]]:
+def complication_discharge_specs(
+    orders: Iterable[Order], country_key: str, *, discharge_time: datetime | None = None
+) -> list[dict[str, Any]]:
+    """The discharge prescription entries for the treatment a complication
+    started and that still runs at discharge (Issue #3864): the anticoagulant
+    (:func:`_anticoagulant_discharge_specs`) and the rest of a C. difficile
+    course, which ends ``duration_days`` after its order (``discharge_time``
+    is needed for it); a held (stopped) order is not continued."""
+    orders = list(orders)
+    out = _anticoagulant_discharge_specs(orders, country_key)
+    if discharge_time is not None:
+        for o in orders:
+            if (
+                o.order_type == OrderType.MEDICATION
+                and COMPLICATION_TREATMENT_ORDER_ID_MARKER in o.order_id
+                and o.status == OrderStatus.PLACED
+                and o.duration_days
+                and o.route.upper() == "PO"
+                and "antibiotic" in drug_classes(o.drug_id or o.display_name or "")
+            ):
+                remaining = math.ceil(
+                    (o.ordered_datetime + timedelta(days=o.duration_days) - discharge_time).total_seconds() / 86400
+                )
+                if remaining > 0:
+                    out.append(
+                        {
+                            "drug_id": o.drug_id,
+                            "dose": f"{o.dose_quantity:g}{o.dose_unit} {o.route} {o.frequency}".strip(),
+                            "route": o.route,
+                            "duration_days": remaining,
+                            "from_complication": True,
+                        }
+                    )
+    return out
+
+
+def complication_stopped_antibiotic_classes(orders: Iterable[Order]) -> tuple[frozenset[str], frozenset[str]]:
+    """``(excluded classes, spared classes)`` of the discharge prescription of
+    a stay in which a complication stopped the inciting antibiotic (a
+    ``stop_offending_antibiotic`` marker, Issue #3864): the patient does not go
+    home on another systemic antibiotic (the classes the action stops, less
+    those it spares); the C. difficile course itself is a discharge spec of its
+    own. Empty when no antibiotic was stopped."""
+    from clinosim.modules._shared import COMPLICATION_HOLD_ORDER_ID_MARKER, MED_STOP_ORDER_ID_MARKER
+
+    for o in orders:
+        if (
+            o.order_type == OrderType.MEDICATION
+            and MED_STOP_ORDER_ID_MARKER in o.order_id
+            and COMPLICATION_HOLD_ORDER_ID_MARKER in o.order_id
+            and (o.display_name or "").startswith("DISCONTINUE:")
+            and "antibiotic" in drug_classes(o.display_name.removeprefix("DISCONTINUE:").strip())
+        ):
+            spec = complication_action_rules().stop_actions["stop_offending_antibiotic"]
+            return frozenset(spec.classes), frozenset(spec.spared_classes)
+    return frozenset(), frozenset()
+
+
+def _anticoagulant_discharge_specs(orders: list[Order], country_key: str) -> list[dict[str, Any]]:
     """The discharge prescription entries for the anticoagulant a complication
     started and that still runs at discharge (Issue #3864): the protocol's
     ``discharge_block`` entry of the same drug class, in the order's own
@@ -236,7 +322,7 @@ def complication_discharge_specs(orders: Iterable[Order], country_key: str) -> l
         and o.status == OrderStatus.PLACED
         and "anticoagulant" in drug_classes(o.drug_id or o.display_name or "")
     ]
-    if not started or spec.discharge_block is None:
+    if not started or spec.discharge_block is None or spec.protocol is None or spec.block is None:
         return []
     protocol = load_disease_protocol(spec.protocol)
     stay_drugs = {o.drug_id for o in started}

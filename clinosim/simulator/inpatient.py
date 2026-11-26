@@ -77,7 +77,10 @@ from clinosim.simulator._stay_thresholds import (
     URGENT_ADMISSION_HOUR_MIN,
     URGENT_ADMISSION_HOUR_STD,
 )
-from clinosim.simulator.complication_actions import complication_discharge_specs
+from clinosim.simulator.complication_actions import (
+    complication_discharge_specs,
+    complication_stopped_antibiotic_classes,
+)
 from clinosim.simulator.complication_dx import complication_diagnosis_entries
 from clinosim.simulator.complications import complication_names
 from clinosim.simulator.daily_loop import SYMPTOM_AXES, _run_daily_loop
@@ -458,6 +461,7 @@ def _finalize_discharge(
     (``docs/history/plans-archive/p6-god-function-split-plan.md``).
     """
     final_renal = state.renal_function if state else 1.0
+    _stopped_classes = complication_stopped_antibiotic_classes(all_orders)
     discharge_rx = (
         build_discharge_rx(
             patient,
@@ -475,7 +479,9 @@ def _finalize_discharge(
             ordered_drugs=[o.display_name for o in all_orders if o.order_type == OrderType.MEDICATION],
             severity=str(getattr(encounter, "severity", "") or ""),
             # Issue #3864: the anticoagulant a complication started continues.
-            extra_specs=complication_discharge_specs(all_orders, country_key),
+            extra_specs=complication_discharge_specs(all_orders, country_key, discharge_time=discharge_time),
+            excluded_classes=_stopped_classes[0],
+            spared_classes=_stopped_classes[1],
         )
         if not death_occurred
         else None

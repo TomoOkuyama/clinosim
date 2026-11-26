@@ -52,7 +52,12 @@ def test_aliases_resolve_to_one_canonical_key() -> None:
 
 def test_disease_yamls_use_only_known_antibiotic_action_keys() -> None:
     rules = complication_action_rules()
-    known = set(rules.antibiotic_actions) | set(rules.not_executed_antibiotic_actions)
+    known = (
+        set(rules.antibiotic_actions)
+        | set(rules.stop_actions)
+        | set(rules.treatment_actions)
+        | set(rules.not_executed_antibiotic_actions)
+    )
     for disease, comp in _complications():
         for action in comp.get("actions") or []:
             if isinstance(action, str) and _antibiotic_like(action):

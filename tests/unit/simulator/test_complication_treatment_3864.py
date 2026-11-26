@@ -21,9 +21,11 @@ from clinosim.simulator import daily_loop as dl
 from clinosim.simulator.complication_actions import (
     canonical_action,
     complication_action_rules,
-    hold_actions_of,
+    complication_stopped_antibiotic_classes,
     renal_decision,
+    stop_actions_of,
     treatment_actions_of,
+    treatment_candidates,
 )
 from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.encounter import Order, OrderResult, OrderStatus, OrderType
@@ -47,12 +49,12 @@ def _complications() -> list[tuple[str, dict]]:
 
 def _treatment_like(action: str) -> bool:
     low = action.lower()
-    return "anticoag" in low or "ppi" in low
+    return any(word in low for word in ("anticoag", "ppi", "vancomycin", "offending"))
 
 
 def test_every_anticoagulation_or_ppi_action_is_executed_or_listed() -> None:
     rules = complication_action_rules()
-    executed = set(rules.treatment_actions) | set(rules.hold_actions)
+    executed = set(rules.treatment_actions) | set(rules.stop_actions)
     known = executed | set(rules.not_executed_treatment_actions)
     assert executed.isdisjoint(rules.not_executed_treatment_actions)
     for disease, comp in _complications():
@@ -65,22 +67,19 @@ def test_every_anticoagulation_or_ppi_action_is_executed_or_listed() -> None:
 def test_the_regimen_protocols_have_a_regimen_for_both_countries() -> None:
     rules = complication_action_rules()
     for action, spec in rules.treatment_actions.items():
-        drugs = load_disease_protocol(spec.protocol).drugs
         for country in ("us", "japan"):
-            entries = [
-                e
-                for e in drugs[spec.block][country]
-                if spec.drug_class in drug_classes(e.get("drug_id", "")) and spec.route in (None, e.get("route"))
-            ]
-            assert entries, f"{action}: {spec.protocol}.{spec.block}.{country} has no {spec.drug_class} entry"
+            assert treatment_candidates(action, country), f"{action}: no {spec.drug_class} regimen for {country}"
 
 
 def test_action_selection() -> None:
     assert treatment_actions_of({"actions": ["start_anticoagulation", "icu_transfer"]}) == ["start_anticoagulation"]
     assert treatment_actions_of({"actions": ["start_anticoagulation_cautiously"]}) == []
     assert treatment_actions_of({"actions": ["hold_anticoagulation", "IV_PPI"]}) == ["IV_PPI"]
-    assert hold_actions_of({"actions": ["hold_anticoagulation", "IV_PPI"]}) == ["hold_anticoagulation"]
-    assert hold_actions_of({"actions": ["reassess_antiplatelet"]}) == []
+    assert stop_actions_of({"actions": ["hold_anticoagulation", "IV_PPI"]}) == ["hold_anticoagulation"]
+    assert stop_actions_of({"actions": ["reassess_antiplatelet"]}) == []
+    cdiff = {"actions": ["stop_offending_antibiotic_if_possible", "start_oral_vancomycin_125mg_qid"]}
+    assert stop_actions_of(cdiff) == ["stop_offending_antibiotic"]
+    assert treatment_actions_of(cdiff) == ["start_oral_vancomycin"]
 
 
 def test_renal_decision_reads_the_entry_thresholds() -> None:
@@ -449,3 +448,122 @@ def test_the_complication_anticoagulant_replaces_an_antiplatelet_the_safety_rule
     )
     names = [i["drug_name"] for i in rx.items]
     assert "Edoxaban" in names and "Aspirin" not in names  # aspirin + DOAC is contraindicated (doac-plus-aspirin)
+
+
+def _running_antibiotic(name: str, dose: str, order_id: str, drug_id: str = "") -> Order:
+    return Order(
+        order_id=order_id,
+        order_type=OrderType.MEDICATION,
+        display_name=name,
+        drug_id=drug_id,
+        ordered_datetime=ADMIT,
+        status=OrderStatus.PLACED,
+        dose_quantity=float(dose.split("mg")[0].split("g")[0] or 1),
+        dose_unit="mg",
+        frequency="DAILY",
+        frequency_per_day=1,
+        route="IV",
+    )
+
+
+_CDIFF = ("stop_offending_antibiotic", "start_oral_vancomycin", "contact_precautions")
+
+
+@pytest.mark.parametrize("country", ["us", "japan"])
+def test_c_difficile_colitis_gets_oral_vancomycin_125_mg_qid_for_10_days(monkeypatch, country) -> None:
+    stay, run = _stay(country), _run(creatinine=0.9)
+    _fire(monkeypatch, stay, run, "c_diff_colitis", _CDIFF)
+    (order,) = _meds(run, "antibiotic.glycopeptide")
+    assert order.drug_id == "vancomycin" and order.route == "PO" and order.status == OrderStatus.PLACED
+    assert (order.dose_quantity, order.dose_unit, order.frequency_per_day, order.duration_days) == (125.0, "mg", 4, 10)
+    assert order.ordered_datetime == ONSET_ORDER and "-COMPTX-D4-c-diff-colit-0" in order.order_id
+    assert _given(run, order)
+
+
+def test_the_offending_antibiotics_are_stopped_and_the_cdiff_agents_are_spared(monkeypatch) -> None:
+    stay = _stay()
+    levofloxacin = _running_antibiotic("Levofloxacin", "750mg", "ORD-E1-ADM-M01", "levofloxacin")
+    metronidazole = _running_antibiotic("Metronidazole", "500mg", "ORD-E1-ADM-M02", "metronidazole")
+    iv_vancomycin = _running_antibiotic("Vancomycin", "1g", "ORD-E1-ADM-M03", "vancomycin")
+    heparin = _running_enoxaparin()
+    run = _run([levofloxacin, metronidazole, iv_vancomycin, heparin], creatinine=0.9)
+    _fire(monkeypatch, stay, run, "c_diff_colitis", _CDIFF)
+    stops = {o.display_name for o in run.orders if o.display_name.startswith("DISCONTINUE:")}
+    assert stops == {"DISCONTINUE: Levofloxacin", "DISCONTINUE: Vancomycin"}
+    assert dl._running_order(run.orders, "metronidazole") is not None
+    assert dl._running_order(run.orders, "enoxaparin") is not None
+    # the IV vancomycin is stopped and the oral vancomycin is ordered after it
+    assert [o.route for o in _meds(run, "antibiotic.glycopeptide") if o.order_id.startswith("ORD-E1-COMPTX")] == ["PO"]
+
+
+def test_the_stopped_antibiotic_is_not_prescribed_at_discharge_and_the_cdiff_course_continues() -> None:
+    import numpy as np
+
+    from clinosim.modules._shared import COMPLICATION_HOLD_ORDER_ID_MARKER, MED_STOP_ORDER_ID_MARKER
+    from clinosim.simulator.complication_actions import complication_discharge_specs
+    from clinosim.simulator.discharge_rx import build_discharge_rx
+
+    marker = Order(
+        order_id=f"ORD-E1{MED_STOP_ORDER_ID_MARKER}D4{COMPLICATION_HOLD_ORDER_ID_MARKER}0-levoflox",
+        order_type=OrderType.MEDICATION,
+        display_name="DISCONTINUE: Levofloxacin",
+        ordered_datetime=ONSET_ORDER,
+        status=OrderStatus.PLACED,
+    )
+    vancomycin = Order(
+        order_id="ORD-E1-COMPTX-D4-c_diff_colitis-0",
+        order_type=OrderType.MEDICATION,
+        display_name="Vancomycin",
+        ordered_datetime=ONSET_ORDER,
+        status=OrderStatus.PLACED,
+        dose_quantity=125.0,
+        dose_unit="mg",
+        frequency="QID",
+        frequency_per_day=4,
+        route="PO",
+        duration_days=10,
+    )
+    assert complication_stopped_antibiotic_classes([marker]) == (
+        frozenset({"antibiotic"}),
+        frozenset({"antibiotic.nitroimidazole"}),
+    )
+    assert complication_stopped_antibiotic_classes([]) == (frozenset(), frozenset())
+    discharge = ONSET_ORDER + timedelta(days=3)
+    (spec,) = complication_discharge_specs([vancomycin], "us", discharge_time=discharge)
+    assert (spec["drug_id"], spec["route"], spec["duration_days"]) == ("vancomycin", "PO", 7)  # 10 - 3 days given
+    assert complication_discharge_specs([vancomycin], "us", discharge_time=ONSET_ORDER + timedelta(days=10)) == []
+    patient = PatientProfile(patient_id="P1", age=70, sex="M", weight_kg=70.0, height_cm=170.0)
+    pneumonia = load_disease_protocol("bacterial_pneumonia")
+    kwargs = dict(country_key="us", encounter_id="E1")
+    before = build_discharge_rx(
+        patient, "bacterial_pneumonia", pneumonia, "DR1", ADMIT, np.random.default_rng(0), **kwargs
+    )
+    antibiotics = [i["drug_name"] for i in before.items if "antibiotic" in drug_classes(i["drug_name"])]
+    assert antibiotics, "the pneumonia protocol sends the patient home on an antibiotic"
+    assert spec["from_complication"]
+    rx = build_discharge_rx(
+        patient,
+        "bacterial_pneumonia",
+        pneumonia,
+        "DR1",
+        ADMIT,
+        np.random.default_rng(0),
+        extra_specs=[spec],
+        excluded_classes=frozenset({"antibiotic"}),
+        spared_classes=frozenset({"antibiotic.nitroimidazole"}),
+        **kwargs,
+    )
+    names = [i["drug_name"] for i in rx.items]
+    assert not set(antibiotics) & set(names) and "Vancomycin" in names
+
+
+def test_an_antibiotic_whose_stated_course_is_over_is_not_stopped(monkeypatch) -> None:
+    stay = _stay()
+    finished = _running_antibiotic("Ceftriaxone", "1g", "ORD-E1-ADM-M01", "ceftriaxone")
+    finished.duration_days = 3  # ordered at admission, day 4 now: the course ended on day 3
+    running = _running_antibiotic("Levofloxacin", "750mg", "ORD-E1-ADM-M02", "levofloxacin")
+    run = _run([finished, running], creatinine=0.9)
+    _fire(monkeypatch, stay, run, "c_diff_colitis", _CDIFF)
+    assert {o.display_name for o in run.orders if o.display_name.startswith("DISCONTINUE:")} == {
+        "DISCONTINUE: Levofloxacin"
+    }
