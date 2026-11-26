@@ -56,6 +56,7 @@ def test_apply_complications_lowers_the_same_day_readings(monkeypatch) -> None:
         state=state,
         orders=[],
         active_complications=set(),
+        sustained={},
         complications=[],
         vitals=[_reading(2), _reading(14), _reading(22)],
         icu_transferred=False,
