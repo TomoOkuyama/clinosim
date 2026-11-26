@@ -56,7 +56,7 @@ from clinosim.modules.document.narrative.renderers._shared_helpers import (
 )
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section, section_builder
 from clinosim.modules.document.reference_data_loaders import load_ed_note_admitted
-from clinosim.modules.encounter.protocol import discharge_instructions_for_age
+from clinosim.modules.encounter.protocol import discharge_instructions_for_age, ordered_treatment_names
 from clinosim.modules.triage.engine import admitted_ed_stay
 from clinosim.timeutil import parse_iso_datetime
 from clinosim.types.document import DocumentType, NarrativeContext
@@ -782,7 +782,12 @@ def build_ed_disposition(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
     proto = ctx.encounter_protocol
     # Issue #2980: an age-gated instruction (honey for cough) has a variant
     # for a younger patient.
-    instructions = [localized(item, lang) for item in discharge_instructions_for_age(proto, _age_months_at(ctx))]
+    # Issue #3879: an instruction that states a treatment is printed only when
+    # the visit ordered it.
+    instructions = [
+        localized(item, lang)
+        for item in discharge_instructions_for_age(proto, _age_months_at(ctx), _visit_ordered_treatments(ctx))
+    ]
     instructions = [item for item in instructions if item]
     if instructions:
         sep = t("ed.instruction_sep", lang)
@@ -800,6 +805,14 @@ def build_ed_disposition(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
     return "".join(parts), facts
 
 
+def _visit_ordered_treatments(ctx: NarrativeContext) -> set[str]:
+    """Case-folded protocol treatment names this visit ordered (the one helper
+    behind the closure-dependent follow-up and the treatment-gated discharge
+    instructions, Issues #3681 / #3879)."""
+    enc_id = _o(ctx.encounter, "encounter_id", "") if ctx.encounter is not None else ""
+    return ordered_treatment_names(ctx.encounter_protocol, ctx.orders or [], str(enc_id or ""))
+
+
 def _visit_follow_up(ctx: NarrativeContext) -> Any:
     """The protocol's follow-up for this visit (Issue #3681): by the closure
     the visit ordered and the wound site, else the general one."""
@@ -807,12 +820,7 @@ def _visit_follow_up(ctx: NarrativeContext) -> Any:
     from clinosim.modules.encounter.protocol import visit_follow_up
 
     proto = ctx.encounter_protocol
-    enc_id = _o(ctx.encounter, "encounter_id", "") if ctx.encounter is not None else ""
-    ordered = [
-        str(_o(o, "display_name", "") or "")
-        for o in ctx.orders or []
-        if not enc_id or (_o(o, "encounter_id", "") or enc_id) == enc_id
-    ]
+    ordered = _visit_ordered_treatments(ctx)
     variants = _o(proto, "diagnosis_variants", None) or []
     matching = _diagnosis_variant_indices(ctx)
     sites = {str(_o(variants[i], "site", "") or "") for i in matching}

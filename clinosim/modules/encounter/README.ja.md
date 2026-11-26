@@ -136,7 +136,7 @@ from clinosim.modules.encounter.discharge_outcome import discharge_outcome
   と、`icd10_code` / `diagnosis_variants` (受診ごとに変わる診断の
   国別コードの重み付きリスト、Issue #3279。variant は `site` グループと SNOMED CT の `body_site_snomed` も持てる: 軽症裂傷は部位でコード化し、創処置の Procedure は `visit_body_site` で部位を `bodySite` に取り、workup の画像項目の `sites: [...]` はその部位の受診にだけ出す、Issue #3680) のちょうど一方を求め、optional section (workup, treatment, discharge
   prescriptions, narrative 等) をすべて型付き field で宣言し、未知の
-  key を拒否する (`extra="forbid"`)。プロトコルの `follow_up_by_closure` (Issue #3681: `treatments`・任意の `sites`・`en`・`ja` の項目) により、ED ノートの follow-up は受診で出した閉鎖処置に従う (最初に一致した項目、`visit_follow_up`)。どれも出さなかった受診には `follow_up` を使う。各 treatment はプロトコルが出すもの、各 site は `diagnosis_variants` の site グループでなければならない。load 時に全 `route:` 値を共有
+  key を拒否する (`extra="forbid"`)。プロトコルの `follow_up_by_closure` (Issue #3681: `treatments`・任意の `sites`・`en`・`ja` の項目) により、ED ノートの follow-up は受診で出した閉鎖処置に従う (最初に一致した項目、`visit_follow_up`)。どれも出さなかった受診には `follow_up` を使う。各 treatment はプロトコルが出すもの、各 site は `diagnosis_variants` の site グループでなければならない。治療を行ったと述べる `discharge_instructions` の項目には `when_ordered: [treatment 名]` (Issue #3879) を付け、その治療を出した受診にだけ表示する (`ordered_treatment_names` が注文 ID `...-ED-T<i>` と表示名から判定し、`visit_follow_up` と共用)。名前はプロトコルの treatment でなければならない。load 時に全 `route:` 値を共有
   route 語彙でも検査する。
 
 ## 依存

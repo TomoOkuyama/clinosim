@@ -49,10 +49,10 @@ treatment:
   - {name: "Morphine 4mg IV", probability: 0.2, route: "IV", intent: "severe pain or pre-reduction"}
 
 discharge_instructions:
-  - {en: "Keep splint/cast dry and elevated above heart level", ja: "副子／ギプスを濡らさず、心臓より高く挙上"}
+  - {en: "Keep splint/cast dry and elevated above heart level", ja: "副子／ギプスを濡らさず、心臓より高く挙上", when_ordered: ["Short arm splint", "Short arm cast"]}
   - {en: "Wiggle fingers frequently to maintain circulation", ja: "血流を保つため手指をこまめに動かす"}
   - {en: "Return if fingers become numb, blue, or very swollen", ja: "手指のしびれ・チアノーゼ・強い腫脹があれば再受診"}
-  - {en: "Ice over splint for 20 minutes every 2-3 hours for the first 48 hours", ja: "最初の48時間は2〜3時間ごとに20分間、副子の上から冷却"}
+  - {en: "Ice over splint for 20 minutes every 2-3 hours for the first 48 hours", ja: "最初の48時間は2〜3時間ごとに20分間、副子の上から冷却", when_ordered: ["Short arm splint", "Short arm cast"]}
 follow_up: {en: "orthopedics in 5-7 days for repeat X-ray", ja: "5〜7日後に整形外科で再度X線撮影"}
 
 discharge_prescriptions:

@@ -49,7 +49,7 @@ treatment:
 
 discharge_instructions:
   - {en: "Return immediately if worsening headache, dizziness, or vomiting", ja: "頭痛の増悪、めまい、嘔吐があれば直ちに受診"}
-  - {en: "Wear cervical collar as directed for 1-2 weeks", ja: "指示どおり1〜2週間頸椎カラーを装着"}
+  - {en: "Wear cervical collar as directed for 1-2 weeks", ja: "指示どおり1〜2週間頸椎カラーを装着", when_ordered: ["Cervical collar application"]}
   - {en: "Avoid driving for 24-48 hours", ja: "24〜48時間は運転を控える"}
   - {en: "Apply ice to painful areas for 20 minutes every 2-3 hours", ja: "痛む部位を2〜3時間ごとに20分間冷却"}
 follow_up: {en: "primary care physician or orthopedics in 5-7 days", ja: "5〜7日後にかかりつけ医または整形外科を受診"}

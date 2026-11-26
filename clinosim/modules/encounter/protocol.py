@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Mapping, Sequence
+from collections.abc import Collection, Iterable, Mapping, Sequence
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
@@ -557,10 +557,13 @@ class _InstructionText(BaseModel):
 class _DischargeInstruction(_InstructionText):
     """An ED discharge instruction (Issue #2871). With ``min_age_months`` a
     patient younger than that gets ``younger`` instead (Issue #2980: no honey
-    for cough under 12 months)."""
+    for cough under 12 months). With ``when_ordered`` (names of the protocol's
+    ``treatment``) the instruction states a treatment and is printed only for a
+    visit that ordered one of them (Issue #3879)."""
 
     min_age_months: int | None = Field(default=None, gt=0)
     younger: _InstructionText | None = None
+    when_ordered: list[str] | None = Field(default=None, min_length=1)
 
     @model_validator(mode="after")
     def _gate_has_a_younger_variant(self) -> _DischargeInstruction:
@@ -752,6 +755,17 @@ class EncounterConditionProtocol(BaseModel):
         return self
 
     @model_validator(mode="after")
+    def _discharge_instruction_treatments_exist(self) -> EncounterConditionProtocol:
+        ordered = {t.name for t in self.treatment}
+        for item in self.discharge_instructions:
+            unknown = sorted(set(getattr(item, "when_ordered", None) or []) - ordered)
+            if unknown:
+                raise ValueError(
+                    f"{self.condition_id}: discharge_instructions when_ordered names treatments {unknown} not ordered"
+                )
+        return self
+
+    @model_validator(mode="after")
     def _one_diagnosis_source(self) -> EncounterConditionProtocol:
         if bool(self.icd10_code) == bool(self.diagnosis_variants):
             raise ValueError(f"{self.condition_id}: give exactly one of icd10_code and diagnosis_variants")
@@ -830,11 +844,40 @@ def _validate_encounter_route_vocabulary(condition_id: str, data: Any) -> None:
         validate_yaml_route_value(raw, source=f"encounter {condition_id!r}")
 
 
-def discharge_instructions_for_age(protocol: Any, age_months: int | None) -> list[Any]:
+_ED_TREATMENT_ORDER_ID = re.compile(r"-ED-T(\d+)$")
+
+
+def ordered_treatment_names(protocol: Any, orders: Iterable[Any], encounter_id: str = "") -> set[str]:
+    """Case-folded names of the protocol ``treatment`` entries a visit ordered
+    (Issues #3681, #3879): the entry an ED treatment order id (``...-ED-T<i>``)
+    indexes, which survives a locale rename or a dose rewrite of the order's
+    display name, plus the display names themselves. ``orders`` are the
+    encounter's orders (those of another encounter are skipped when
+    ``encounter_id`` is given)."""
+    treatments = _get(protocol, "treatment") or []
+    names: set[str] = set()
+    for order in orders:
+        if encounter_id and (_get(order, "encounter_id") or encounter_id) != encounter_id:
+            continue
+        shown = str(_get(order, "display_name") or "")
+        if shown:
+            names.add(shown.casefold())
+        match = _ED_TREATMENT_ORDER_ID.search(str(_get(order, "order_id") or ""))
+        if match and int(match.group(1)) < len(treatments):
+            names.add(str(_get(treatments[int(match.group(1))], "name") or "").casefold())
+    return names
+
+
+def discharge_instructions_for_age(
+    protocol: Any, age_months: int | None, ordered: Collection[str] | None = None
+) -> list[Any]:
     """The protocol's discharge instructions for a patient ``age_months`` old
     (Issue #2980): an instruction with ``min_age_months`` is replaced by its
     ``younger`` variant below that age. Each item is an ``{en, ja}`` map (or
-    a plain string). An unknown age keeps the general instruction."""
+    a plain string). An unknown age keeps the general instruction. An
+    instruction with ``when_ordered`` is kept only when ``ordered`` (case-folded
+    treatment names the visit ordered, see :func:`ordered_treatment_names`)
+    holds one of them (Issue #3879)."""
     out: list[Any] = []
     raw = (
         protocol.get("discharge_instructions")
@@ -845,11 +888,14 @@ def discharge_instructions_for_age(protocol: Any, age_months: int | None) -> lis
         if not isinstance(item, Mapping):
             out.append(item)
             continue
+        needed = item.get("when_ordered")
+        if needed and not {str(n).casefold() for n in needed} & set(ordered or ()):
+            continue
         gate = item.get("min_age_months")
         if gate is not None and age_months is not None and age_months < int(gate):
             out.append(dict(item["younger"]))
         else:
-            out.append({k: v for k, v in item.items() if k not in ("min_age_months", "younger")})
+            out.append({k: v for k, v in item.items() if k not in ("min_age_months", "younger", "when_ordered")})
     return out
 
 

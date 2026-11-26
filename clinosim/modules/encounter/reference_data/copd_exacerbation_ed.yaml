@@ -63,7 +63,7 @@ treatment:
     intent: "anti-inflammatory"
 
 discharge_instructions:
-  - {en: "Improved after bronchodilator therapy, oxygen saturation stable on room air", ja: "気管支拡張薬で改善し、室内気で酸素飽和度は安定"}
+  - {en: "Improved after bronchodilator therapy, oxygen saturation stable on room air", ja: "気管支拡張薬で改善し、室内気で酸素飽和度は安定", when_ordered: ["Nebulized salbutamol 2.5mg", "Ipratropium bromide 0.5mg nebulized"]}
   - {en: "Complete the prednisone and antibiotic course as prescribed", ja: "処方されたプレドニゾロンと抗菌薬を最後まで内服"}
   - {en: "Continue maintenance inhalers; use rescue inhaler as needed", ja: "維持吸入薬を継続し、発作時は発作治療薬を使用"}
   - {en: "Return if breathing worsens, lips turn blue, or confusion develops", ja: "呼吸の悪化、口唇のチアノーゼ、意識の混乱があれば再受診"}
