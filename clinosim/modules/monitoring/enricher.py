@@ -40,6 +40,7 @@ from clinosim.codes.drugs import drug_display
 from clinosim.locale.i18n import t
 from clinosim.locale.localized import language_slot, localized_field
 from clinosim.modules._shared import get_attr_or_key as _get
+from clinosim.modules.monitoring.mapping import load_monitoring_timing
 from clinosim.modules.observation.engine import (
     canonical_lab_name,
     generate_lab_result,
@@ -306,11 +307,12 @@ def _inject_one_lab(
     if admit_dt is None:
         return
 
-    # Jitter kept small and enricher-scoped so master RNG is unaffected;
-    # 10-30 min post-admission mirrors the outpatient lab-draw pattern
-    # (a follow-up visit's PT-INR is drawn during the visit, not at hour 0).
-    jitter_min = int(enricher_rng.integers(10, 30))
-    ordered_dt = admit_dt + timedelta(minutes=jitter_min)
+    # One enricher-scoped draw per lab keeps the stream (and the master RNG)
+    # as before; where it lands is the encounter's business (Issue #3867).
+    timing = load_monitoring_timing()
+    draw = timing["draw_minutes"]
+    jitter_min = int(enricher_rng.integers(int(draw["low"]), int(draw["high"])))
+    ordered_dt, result_dt = _draw_times(encounter, admit_dt, jitter_min, timing)
 
     # Compute observed value via the shared 3-layer noise + physiologic-limit
     # clamp used everywhere else (`clinosim/modules/observation/engine.py`).
@@ -357,7 +359,7 @@ def _inject_one_lab(
         status=OrderStatus.RESULTED,
     )
     result = OrderResult(
-        result_datetime=ordered_dt + timedelta(hours=2),
+        result_datetime=result_dt,
         performed_by="",  # enricher-time synthesis; no per-tech staffing lookup
         lab_name=analyte,
         value=observed,
@@ -368,6 +370,32 @@ def _inject_one_lab(
 
     _append(record, "orders", order)
     _append(record, "lab_results", result)
+
+
+def _draw_times(
+    encounter: Any, admit_dt: datetime, jitter_min: int, timing: dict[str, Any]
+) -> tuple[datetime, datetime]:
+    """Order and result time of a monitoring lab.
+
+    An admission draws ``jitter_min`` minutes after admission (the outpatient
+    lab-draw pattern: a follow-up visit's PT-INR is drawn during the visit, not
+    at hour 0) and results after the delay. An outpatient or ED visit with a
+    known end maps the same draw onto a fraction of the visit and results
+    between the order and the end, so nothing falls after the Encounter's end
+    (Issue #3867).
+    """
+    end = getattr(encounter, "discharge_datetime", None)
+    ambulatory = getattr(encounter, "encounter_type", None) in (EncounterType.OUTPATIENT, EncounterType.EMERGENCY)
+    if ambulatory and isinstance(end, datetime) and end > admit_dt:
+        draw = timing["draw_minutes"]
+        u = (jitter_min - draw["low"]) / (draw["high"] - draw["low"])
+        frac = timing["ambulatory"]["order_at_fraction_of_visit"]
+        ordered = admit_dt + (end - admit_dt) * (frac["low"] + (frac["high"] - frac["low"]) * u)
+        ordered = ordered.replace(microsecond=0)
+        resulted = ordered + (end - ordered) * timing["ambulatory"]["result_at_fraction_of_remaining"]
+        return ordered, resulted.replace(microsecond=0)
+    ordered = admit_dt + timedelta(minutes=jitter_min)
+    return ordered, ordered + timedelta(hours=timing["admission_result_delay_hours"])
 
 
 def _lab_order_type():

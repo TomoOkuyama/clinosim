@@ -1052,3 +1052,5 @@ _.consultation  # _VisitTypes / _VisitTypeTable field (validated yaml key, read 
 _.generic_keywords  # _VisitTypes / _VisitTypeTable field (validated yaml key, read by key in _outpatient_type_code, Issue #3657)
 _.generic_reason_prefixes  # _VisitTypes / _VisitTypeTable field (validated yaml key, read by key in _outpatient_type_code, Issue #3657)
 _.check_up_prefixes  # _VisitTypes / _VisitTypeTable field (validated yaml key, read by key in _outpatient_type_code, Issue #3657)
+_.result_at_fraction_of_remaining  # _AmbulatoryTiming field (validated yaml key, read by key in _draw_times, Issue #3867)
+_.admission_result_delay_hours  # _Timing field (validated yaml key, read by key in _draw_times, Issue #3867)

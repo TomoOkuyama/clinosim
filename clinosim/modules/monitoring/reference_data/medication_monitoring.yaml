@@ -40,6 +40,18 @@ metadata:
   name: medication_monitoring
   source: clinosim
 
+# Draw time of an injected monitoring lab (Issue #3867). An admission keeps the
+# fixed offset after admission; an ambulatory visit (outpatient, ED) with a
+# known end draws inside the visit, so the order, the specimen and the result
+# never follow the Encounter's end. The enricher makes one integers(low, high)
+# draw per lab either way; `draw_minutes` is that draw's range.
+timing:
+  draw_minutes: {low: 10, high: 30}
+  admission_result_delay_hours: 2
+  ambulatory:
+    order_at_fraction_of_visit: {low: 0.2, high: 0.6}
+    result_at_fraction_of_remaining: 0.5
+
 mappings:
   Warfarin:
     per_visit_probability: 1.0
