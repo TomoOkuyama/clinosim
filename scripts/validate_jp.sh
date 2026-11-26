@@ -137,7 +137,11 @@ sample_dir = Path(sys.argv[2])
 picked: dict[str, dict] = {}
 targets = {
     "Condition": lambda r: True,
-    "AllergyIntolerance": lambda r: True,
+    # Only a record that declares JP_AllergyIntolerance_eCS: the No Known
+    # Allergies record has no JFAGY code and stays on JP Core by design
+    # (Issue #3128), so validating it against eCS reports a false failure.
+    "AllergyIntolerance": lambda r: "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_AllergyIntolerance_eCS"
+    in ((r.get("meta") or {}).get("profile") or []),
     "Observation": lambda r: any(
         cc.get("code") == "laboratory"
         for cat in r.get("category", []) or []
@@ -391,9 +395,30 @@ for sample in "$SAMPLES"/*.json; do
         *)
             echo "  validating $filename against $profile" ;;
     esac
+    # The JP-eCheckup and JP-CLINS packages both define the CodeSystem
+    # http://jpfhir.jp/fhir/Common/CodeSystem/doc-typecodes: JP-eCheckup
+    # 1.7.0 as version 1.0.0 with 53576-5 (the code its
+    # JP_Composition_eCheckupGeneral fixes), JP-CLINS 1.13.0 as version 5.11
+    # without it. The validator takes the later version, so a health-checkup
+    # report is validated without the JP-CLINS package.
+    SAMPLE_IG_ARGS=()
+    _skip_next=0
+    for _arg in ${IG_ARGS[@]+"${IG_ARGS[@]}"}; do
+        if [ "$filename" = "Composition_HealthCheckupReport.json" ] && [ "$_arg" = "-ig" ]; then
+            _skip_next=1; continue
+        fi
+        if [ "$_skip_next" = "1" ]; then
+            _skip_next=0
+            case "$_arg" in
+                */jp-clins.tgz) continue ;;
+                *) SAMPLE_IG_ARGS+=("-ig" "$_arg"); continue ;;
+            esac
+        fi
+        SAMPLE_IG_ARGS+=("$_arg")
+    done
     if java -Duser.home="$VAL_HOME" -jar "$VALIDATOR_JAR" \
             -version 4.0.1 \
-            ${IG_ARGS[@]+"${IG_ARGS[@]}"} \
+            ${SAMPLE_IG_ARGS[@]+"${SAMPLE_IG_ARGS[@]}"} \
             ${PROFILE_ARGS[@]+"${PROFILE_ARGS[@]}"} \
             "$sample" >"$TMP/val_${filename}.log" 2>&1; then
         PASSED=$((PASSED + 1))
