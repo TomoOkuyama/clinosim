@@ -27,7 +27,12 @@ anticoagulation (warfarin / DOAC / heparin drip), the admission dx is
 active bleeding / recent hemorrhagic stroke / GI bleed / delivery /
 active DVT-PE treatment, or Enoxaparin would form a major /
 contraindicated pair with an active medication
-(`drug_safety.check_candidate_against_active`, Issue #1087).
+(`drug_safety.check_candidate_against_active`, Issue #1087). A therapeutic
+anticoagulant a complication started during the stay (order id with
+`-COMPTX-`, Issue #3864) does not remove the prophylaxis given before it: the
+prophylaxis ends at that order (and is not given when it was earlier); a stop
+marker for the prophylaxis drug written by a bleeding complication cuts its
+doses after the stay (`order.supersede.drop_doses_after_hold`).
 
 **Out of scope (post-MVP)**:
 - Stress-ulcer prophylaxis (PPI on ICU) — separate protocol.

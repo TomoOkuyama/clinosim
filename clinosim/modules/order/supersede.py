@@ -27,7 +27,7 @@ from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
 
 from clinosim.codes.drugs import all_drug_ids, drug_classes, drug_ref, get_drug
 from clinosim.datafiles import load_validated_yaml
-from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER
+from clinosim.modules._shared import COMPLICATION_HOLD_ORDER_ID_MARKER, MED_STOP_ORDER_ID_MARKER
 from clinosim.modules.order._supersede_thresholds import SWITCH_SLOT_WINDOW_MIN
 from clinosim.types.encounter import OrderStatus, OrderType
 
@@ -132,6 +132,49 @@ def orders_replace_each_other(a: Any, b: Any) -> bool:
     the stay's active regimen already covers (Issue #3392)."""
     a_id, b_id = _drug_id(a), _drug_id(b)
     return bool(a_id and b_id and (_supersedes(a_id, b_id) or _supersedes(b_id, a_id)))
+
+
+def drop_doses_after_hold(orders: list[Any], administrations: list[Any]) -> list[Any]:
+    """Cut the doses of the anticoagulants a bleeding complication held (Issue
+    #3864): a stop marker the complication wrote (``MED_STOP_ORDER_ID_MARKER`` +
+    ``COMPLICATION_HOLD_ORDER_ID_MARKER``) ends every order of that drug placed
+    before it at the marker's time (``end_datetime``) and removes the doses
+    charted from then on. The daily MAR is generated before the hold is known
+    and is not re-drawn, so stopping here moves no random draw. Returns the
+    administrations kept; RNG-free."""
+    cuts: dict[str, Any] = {}
+    for o in orders:
+        oid = str(getattr(o, "order_id", ""))
+        display = str(getattr(o, "display_name", "") or "")
+        if (
+            getattr(o, "order_type", None) == OrderType.MEDICATION
+            and MED_STOP_ORDER_ID_MARKER in oid
+            and COMPLICATION_HOLD_ORDER_ID_MARKER in oid
+            and display.startswith("DISCONTINUE:")
+            and getattr(o, "ordered_datetime", None) is not None
+        ):
+            ref = drug_ref(display.removeprefix("DISCONTINUE:").strip())
+            if ref:
+                cuts[ref] = min(cuts.get(ref, o.ordered_datetime), o.ordered_datetime)
+    if not cuts:
+        return administrations
+    cut_of: dict[str, Any] = {}
+    for o in orders:
+        if not _is_prescription(o) or MED_STOP_ORDER_ID_MARKER in str(o.order_id):
+            continue
+        cut = cuts.get(_drug_id(o))
+        if cut is not None and o.ordered_datetime < cut:
+            cut_of[o.order_id] = cut
+            if getattr(o, "end_datetime", None) is None or o.end_datetime > cut:
+                o.end_datetime = cut
+    kept = []
+    for mar in administrations:
+        cut = cut_of.get(getattr(mar, "order_id", ""))
+        when = getattr(mar, "actual_datetime", None) or getattr(mar, "scheduled_datetime", None)
+        if cut is not None and when is not None and when >= cut:
+            continue
+        kept.append(mar)
+    return kept
 
 
 def supersede_orders(orders: list[Any], administrations: list[Any]) -> list[Any]:
@@ -252,5 +295,6 @@ def enrich_supersede_orders(ctx: Any) -> None:
     for record in ctx.records:
         orders = getattr(record, "orders", None) or []
         mars = getattr(record, "medication_administrations", None) or []
+        mars = drop_doses_after_hold(orders, mars)
         record.medication_administrations = supersede_orders(orders, mars)
         close_orders_at_discharge(getattr(record, "encounters", None) or [], orders, record.medication_administrations)

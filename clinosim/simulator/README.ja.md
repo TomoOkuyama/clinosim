@@ -180,7 +180,17 @@ clinosim/simulator/
                          発症時に薬剤安全性ゲート経由で発注。乱数なし (Issue #3543)。気道の action
                          (`intubation` / `mechanical_ventilation`) は発症時に状態駆動の経路で
                          気道を確保 (人工呼吸器・ICU・絶食・手技) (Issue #3639)。呼吸不全・ARDS の
-                         病名は complication_dx.py が日付付きの診断にする (Issue #3673)
+                         病名は complication_dx.py が日付付きの診断にする (Issue #3673)。
+                         抗凝固の action (Issue #3864): `start_anticoagulation` は DVT
+                         プロトコルの第一選択のうち、クレアチニンクリアランス (エントリの
+                         `renal_adjustment`) と薬剤安全性ゲートが許す最初の薬を発注し、
+                         予定していた VTE 予防をその時刻で置き換える。ブロックに経口薬が
+                         続く場合はヘパリンを導入期間だけ投与して経口薬へ移り、退院処方が
+                         これを継続する。`hold_anticoagulation` は実行中の抗凝固薬と予定の
+                         予防薬ごとに中止マーカーを書く (中止後の投与は退院後に
+                         `order/supersede.py` が除く)。`IV_PPI` は消化管出血プロトコルの
+                         静注 PPI を 3 日間発注する。スタッフの乱数は
+                         `complication_treatment_seed` を使う
   vasopressor_initiation.py  記録された平均血圧が輸液後も低い場合に昇圧薬を開始する
                          (固定病日ではなく生理状態駆動, Issue #3332)
   renal_replacement.py   内科的治療後もカリウム (治療閾値以上) または総 CO2 (10 以下) が続く AKI への間欠的血液透析: 1 回ごとに

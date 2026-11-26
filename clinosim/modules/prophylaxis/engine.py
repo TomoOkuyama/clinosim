@@ -13,8 +13,10 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from clinosim.codes.drugs import drug_classes
 from clinosim.datafiles import load_data_yaml
 from clinosim.locale.localized import language_slot, localized_field
+from clinosim.modules._shared import COMPLICATION_TREATMENT_ORDER_ID_MARKER
 
 _HERE = Path(__file__).resolve().parent
 _YAML_PATH = _HERE / "reference_data" / "prophylaxis_rules.yaml"
@@ -389,12 +391,23 @@ def build_dvt_prophylaxis_orders(
         getattr(m, "drug_name", None) or getattr(m, "drug", None) or ""
         for m in (getattr(patient, "current_medications", None) or [])
     ]
-    in_encounter = [
-        (getattr(o, "display_name", "") or "")
-        for o in (getattr(record, "orders", None) or [])
-        if getattr(o, "order_type", None) == OrderType.MEDICATION
-        and getattr(o, "status", None) not in (OrderStatus.CANCELLED, OrderStatus.STOPPED)
-    ]
+    # Issue #3864: a therapeutic anticoagulant a complication started during
+    # the stay (``COMPLICATION_TREATMENT_ORDER_ID_MARKER``) does not remove the
+    # prophylaxis given before it: the prophylaxis ends at that order.
+    started_for_complication: list[Any] = []
+    in_encounter = []
+    for o in getattr(record, "orders", None) or []:
+        if getattr(o, "order_type", None) != OrderType.MEDICATION or getattr(o, "status", None) in (
+            OrderStatus.CANCELLED,
+            OrderStatus.STOPPED,
+        ):
+            continue
+        if COMPLICATION_TREATMENT_ORDER_ID_MARKER in str(getattr(o, "order_id", "")) and "anticoagulant" in (
+            drug_classes(getattr(o, "drug_id", "") or getattr(o, "display_name", "") or "")
+        ):
+            started_for_complication.append(o)
+            continue
+        in_encounter.append(getattr(o, "display_name", "") or "")
     active_meds = [m for m in chronic + in_encounter if m]
 
     skip, reason = should_skip_dvt_prophylaxis(
@@ -424,6 +437,15 @@ def build_dvt_prophylaxis_orders(
     else:
         return []
 
+    # Issue #3864: the prophylaxis ends when the stay's therapeutic
+    # anticoagulation starts, and is not given at all when that was before it.
+    therapeutic_start = min(
+        (o.ordered_datetime for o in started_for_complication if getattr(o, "ordered_datetime", None) is not None),
+        default=None,
+    )
+    if therapeutic_start is not None and therapeutic_start <= ordered_dt:
+        return []
+
     # Dose tiers over the stay (Issue #3449): one period without a renal rule.
     periods: list[tuple[datetime, bool]] = [(ordered_dt, False)]
     renal = regimen.get("renal_adjustment")
@@ -440,6 +462,9 @@ def build_dvt_prophylaxis_orders(
                 crcl_of=crcl_of,
                 crcl_below=float(renal["crcl_below_ml_min"]),
             )
+
+    if therapeutic_start is not None:
+        periods = [p for p in periods if p[0] < therapeutic_start]
 
     # Emit as real Order dataclasses so downstream CLI debug printers and
     # any consumer expecting attribute access work uniformly.
@@ -472,4 +497,7 @@ def build_dvt_prophylaxis_orders(
             orders[-1].status = OrderStatus.STOPPED
             orders[-1].end_datetime = since
         orders.append(order)
+    if therapeutic_start is not None and orders:
+        orders[-1].status = OrderStatus.STOPPED
+        orders[-1].end_datetime = therapeutic_start
     return orders

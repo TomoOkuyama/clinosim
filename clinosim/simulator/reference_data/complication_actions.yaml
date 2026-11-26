@@ -3,8 +3,8 @@
 # Read by clinosim/simulator/complication_actions.py and applied in the
 # inpatient daily loop (simulator/daily_loop.py `_apply_complications`).
 #
-# Only `icu_transfer`, the antibiotic actions and the airway action below are
-# executed; every
+# Only `icu_transfer`, the antibiotic actions, the airway action and the
+# anticoagulation / PPI treatment actions below are executed; every
 # other action string of a complication is a clinical note that the loop does
 # not act on (that is a known limit, not a statement that the care is absent).
 #
@@ -49,6 +49,38 @@
 #     `not_executed_airway_actions` are conditional intentions ("consider
 #     intubation if severe"), which are not acted on. Non-invasive ventilation
 #     is started by `oxygen_course.yaml niv.start_action` (Issue #3705).
+#   - `treatment_actions` / `hold_actions` / `not_executed_treatment_actions`
+#     (Issue #3864): the executed anticoagulation and acid-suppression actions.
+#       start_anticoagulation  a deep vein thrombosis / pulmonary embolism gets
+#                              therapeutic anticoagulation: the first agent of
+#                              the regimen protocol's `first_line` block (class
+#                              `anticoagulant`) that the patient's creatinine
+#                              clearance (Cockcroft-Gault) allows by the entry's
+#                              `renal_adjustment` ("avoid" moves on to the next
+#                              entry) and the drug-safety gate passes. The order
+#                              replaces the planned VTE prophylaxis from its time
+#                              and the discharge prescription continues the
+#                              anticoagulant (`discharge_block`). `blocked_by`
+#                              lists the active bleeding complications that rule
+#                              it out; a therapeutic anticoagulant already
+#                              running is not doubled. When the agent is a
+#                              parenteral one (heparin) and the block has an
+#                              oral agent after it (Japan: "60mg PO daily (after
+#                              5+ days heparin)"), the heparin runs for
+#                              `lead_in_days` and the oral agent is ordered with
+#                              it, given from the day the lead-in ends.
+#       iv_ppi                 gastrointestinal bleeding: the IV high-dose PPI of
+#                              the gastrointestinal-bleeding protocol (its first
+#                              IV entry; the oral step-down entry is not
+#                              ordered), for `course_days` (the regimen text
+#                              "x 72h").
+#       hold_anticoagulation   the running anticoagulants (every drug of class
+#                              `hold_classes`, and the planned VTE prophylaxis)
+#                              are stopped at the onset order time; the doses
+#                              charted after it are removed.
+#     An action that only considers or conditions the treatment ("start
+#     anticoagulation cautiously", "anticoagulation if safe") or changes a
+#     running regimen (increase, optimize, intensify) is not executed.
 #   - `not_executed_antibiotic_actions`: antibiotic-related actions that are
 #     not a first antibiotic order (a change of a running antibiotic, a stop,
 #     a course length, a test) and so are not executed.
@@ -72,6 +104,9 @@ aliases:
   intubation_lung_protective_ventilation: intubate
   lung_protective_ventilation: intubate
   lung_protective_ventilation_6ml_kg: intubate
+  anticoagulation: start_anticoagulation
+  anticoagulation_with_renal_dosing: start_anticoagulation
+  anticoagulation_renal_adjusted: start_anticoagulation
 
 airway_actions:
   - intubate
@@ -113,3 +148,41 @@ not_executed_antibiotic_actions:
   - stop_offending_antibiotic
   - stop_offending_antibiotic_if_possible
   - targeted_antibiotic
+
+treatment_actions:
+  start_anticoagulation:
+    protocol: deep_vein_thrombosis
+    block: first_line
+    drug_class: anticoagulant
+    discharge_block: discharge_oral
+    lead_in_days: 5
+    blocked_by:
+      - gi_bleeding
+      - bleeding_on_anticoagulation
+      - major_bleeding
+      - bleeding_complication
+      - bleeding_uremic_platelet_dysfunction
+  IV_PPI:
+    protocol: gi_bleeding
+    block: first_line
+    drug_class: ppi
+    route: IV
+    course_days: 3
+    first_only: true
+
+hold_actions:
+  - hold_anticoagulation
+
+hold_classes:
+  - anticoagulant
+
+not_executed_treatment_actions:
+  - anticoagulation_consideration
+  - anticoagulation_if_safe
+  - avoid_anticoagulation_if_effusion
+  - evaluate_anticoagulation_vs_IVC_filter
+  - evaluate_bleeding_risk_vs_anticoagulation
+  - increase_anticoagulation
+  - intensify_anticoagulation
+  - optimize_anticoagulation
+  - start_anticoagulation_cautiously

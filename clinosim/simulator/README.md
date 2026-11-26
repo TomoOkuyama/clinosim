@@ -195,7 +195,18 @@ clinosim/simulator/
                          (Issue #3543); the airway action (`intubation` / `mechanical_ventilation`)
                          secures the airway at onset through the state-driven path (ventilator,
                          ICU, NPO diet, procedure) (Issue #3639); the respiratory failure / ARDS
-                         diagnosis is dated by complication_dx.py (Issue #3673)
+                         diagnosis is dated by complication_dx.py (Issue #3673); the
+                         anticoagulation actions (Issue #3864): `start_anticoagulation`
+                         orders the first agent of the DVT protocol's first line that the
+                         creatinine clearance (the entry's `renal_adjustment`) and the
+                         drug-safety gate allow, replacing the planned VTE prophylaxis from
+                         its time, heparin for a lead-in then the oral agent where the
+                         block lists one, and the discharge prescription continues it;
+                         `hold_anticoagulation` writes a stop marker per running
+                         anticoagulant and for the planned prophylaxis (the doses after it
+                         are cut after the stay by `order/supersede.py`); `IV_PPI` orders
+                         the gastrointestinal-bleeding protocol's IV PPI for 3 days; staff
+                         draws use `complication_treatment_seed`
   vasopressor_initiation.py  starts a vasopressor from the recorded mean arterial
                          pressure (low despite fluids) instead of a fixed day
                          (Issue #3332)

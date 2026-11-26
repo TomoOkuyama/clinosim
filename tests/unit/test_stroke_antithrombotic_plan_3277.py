@@ -330,7 +330,16 @@ def test_simulated_ischemic_stroke_stays_get_aspirin_within_48_hours_and_an_anti
         has_af = any(c["code"].startswith("I48") for c in _problem_list(record))
         n_anticoagulants = sum(any(a in n for a in _ANTICOAGULANTS) for n in names)
         n_antiplatelets = sum(any(a in n for a in _ANTIPLATELETS) for n in names)
-        if has_af:
+        # A venous thromboembolism of the stay is treated with an anticoagulant
+        # that is continued at discharge (Issue #3864): that anticoagulant is
+        # not the plan's, so the plan's own rule is asserted for the other stays.
+        vte = any(
+            c["name"] in ("dvt", "pulmonary_embolism", "venous_thromboembolism")
+            for c in record.get("complications_occurred") or []
+        )
+        if vte:
+            assert n_anticoagulants >= 1, names
+        elif has_af:
             assert n_anticoagulants == 1 and n_antiplatelets == 0, names
         else:
             assert n_anticoagulants == 0 and n_antiplatelets >= 1, names

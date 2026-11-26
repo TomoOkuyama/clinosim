@@ -1587,6 +1587,7 @@ def _apply_complications(stay: _Stay, run: _Run, day: int, comp_list: list) -> N
             )
         for antibiotic_action in antibiotic_actions_of(comp):
             _start_complication_antibiotic(stay, run, day, comp_name, antibiotic_action, onset_dt)
+        _treat_complication(stay, run, day, comp, onset_dt)
         if oxygen_course_rules().niv.start_action in comp.get("actions", []):
             _start_niv(stay, run, day, onset_dt)
         # Issue #3639: a complication that requires intubation secures the airway
@@ -1701,6 +1702,252 @@ def _start_complication_antibiotic(
             rng=determinism.default_rng(complication_antibiotic_seed(stay.encounter_id, day, comp_name)),
             child=stay.child,
             renal=RenalDoseContext(run.lab_results, stay.country_key),
+        )
+    )
+
+
+def _treat_complication(stay: _Stay, run: _Run, day: int, comp: dict, onset_dt: datetime) -> None:
+    """Execute the anticoagulation / acid-suppression actions a complication
+    declares (Issue #3864): the hold of a running anticoagulant first, then
+    the treatment orders (therapeutic anticoagulation, IV PPI)."""
+    from clinosim.simulator.complication_actions import hold_actions_of, treatment_actions_of
+
+    comp_name = comp.get("name", "unknown")
+    if hold_actions_of(comp):
+        _hold_anticoagulation(stay, run, day, comp_name, onset_dt)
+    for action in treatment_actions_of(comp):
+        _start_complication_treatment(stay, run, day, comp_name, action, onset_dt)
+
+
+def _hold_anticoagulation(stay: _Stay, run: _Run, day: int, comp_name: str, onset_dt: datetime) -> None:
+    """Stop the anticoagulants a bleeding complication holds (Issue #3864): a
+    ``DISCONTINUE`` marker (``MED_STOP_ORDER_ID_MARKER`` +
+    ``COMPLICATION_HOLD_ORDER_ID_MARKER``) at the onset order time for every
+    running drug of the rules' ``hold_classes`` and for the planned VTE
+    prophylaxis drug. The marker stops the running order for the later
+    actions at once; the post-stay steps flip its status and cut the doses
+    charted from the marker on (``supersede.drop_doses_after_hold``), so the
+    stay's MAR draws do not move. Draws nothing."""
+    from clinosim.codes.drugs import get_drug
+    from clinosim.modules._shared import COMPLICATION_HOLD_ORDER_ID_MARKER
+    from clinosim.modules.prophylaxis.engine import dvt_regimen
+    from clinosim.simulator.complication_actions import complication_action_rules
+
+    rules = complication_action_rules()
+    when = onset_dt.replace(hour=rules.order_hour)
+    held: dict[str, str] = {}
+    for order in run.orders:
+        if order.order_type != OrderType.MEDICATION or (order.display_name or "").startswith("DISCONTINUE:"):
+            continue
+        ref = order.drug_id or order.display_name
+        if not set(rules.hold_classes) & set(drug_classes(ref)) or _running_order(run.orders, ref) is None:
+            continue
+        record = get_drug(order.drug_id) if order.drug_id else None
+        held.setdefault(order.drug_id or ref, record.names.get("en", "") if record is not None else order.display_name)
+    if run.dvt_prophylaxis_planned:
+        prophylaxis = str(dvt_regimen(country_code(stay.country_key))["drug"])
+        if not any(same_drug(prophylaxis, key) for key in held):
+            held.setdefault(prophylaxis, prophylaxis)
+    complication = {lang: _localize_complication_name(comp_name, lang) for lang in ("en", "ja")}
+    for idx, (key, name) in enumerate(held.items()):
+        run.orders.append(
+            Order(
+                order_id=(
+                    f"ORD-{stay.encounter_id}{MED_STOP_ORDER_ID_MARKER}D{day}"
+                    f"{COMPLICATION_HOLD_ORDER_ID_MARKER}{idx}-{sanitize_id_token(key, 8)}"
+                ),
+                patient_id=stay.patient.patient_id,
+                order_type=OrderType.MEDICATION,
+                display_name=f"DISCONTINUE: {name or key}",
+                urgency="urgent",
+                clinical_intent=t(
+                    "order_intent.complication_anticoagulant_hold", "en", day=day, complication=complication["en"]
+                ),
+                clinical_intent_ja=t(
+                    "order_intent.complication_anticoagulant_hold", "ja", day=day, complication=complication["ja"]
+                ),
+                ordered_datetime=when,
+                status=OrderStatus.PLACED,
+            )
+        )
+
+
+def _localize_complication_name(comp_name: str, lang: str) -> str:
+    from clinosim.modules.document.narrative.template_generator import _localize_complication
+
+    return _localize_complication(comp_name, lang) or comp_name
+
+
+def _start_complication_treatment(
+    stay: _Stay, run: _Run, day: int, comp_name: str, action: str, onset_dt: datetime
+) -> None:
+    """Order the treatment of a complication on its onset day (Issue #3864):
+    therapeutic anticoagulation of a venous thromboembolism or the IV PPI of a
+    gastrointestinal bleed, from the protocol the reference data names
+    (``complication_actions.treatment_actions``).
+
+    The first candidate entry the creatinine clearance allows (the entry's
+    ``renal_adjustment``: "avoid" moves on to the next entry, a dose text
+    replaces the dose) and the drug-safety gate passes is ordered; the orders
+    are charted for the rest of the onset day with an own sub-RNG, so no draw
+    of the stay's stream is added. Nothing is ordered while an active bleeding
+    complication rules the anticoagulant out, or while a therapeutic
+    anticoagulant already runs."""
+    from clinosim.modules._shared import COMPLICATION_TREATMENT_ORDER_ID_MARKER
+    from clinosim.modules.order.engine import protocol_medication_orders
+    from clinosim.seeding import complication_treatment_seed
+    from clinosim.simulator.complication_actions import (
+        is_therapeutic_anticoagulant_order,
+        renal_decision,
+        treatment_candidates,
+    )
+    from clinosim.simulator.medication_pipeline import apply_drug_safety_gate_to_orders
+    from clinosim.simulator.renal_antibiotic_dose import creatinine_clearance
+
+    spec = complication_action_rules().treatment_actions[action]
+    if set(spec.blocked_by) & run.active_complications:
+        return
+    if spec.drug_class == "anticoagulant" and any(
+        is_therapeutic_anticoagulant_order(o)
+        and o.status == OrderStatus.PLACED
+        and _running_order(run.orders, o.drug_id or o.display_name) is not None
+        for o in run.orders
+        if o.order_type == OrderType.MEDICATION and not (o.display_name or "").startswith("DISCONTINUE:")
+    ):
+        return
+    when = onset_dt.replace(hour=complication_action_rules().order_hour)
+    renal = RenalDoseContext(run.lab_results, stay.country_key)
+    crcl = creatinine_clearance(stay.patient, stay.encounter_id, stay.admission_time, when, renal)
+    accepted = [
+        o.display_name
+        for o in run.orders
+        if o.order_type == OrderType.MEDICATION
+        and o.display_name
+        and not o.display_name.startswith("DISCONTINUE:")
+        and _running_order(run.orders, o.drug_id or o.display_name) is not None
+    ]
+    intent_key = (
+        "order_intent.complication_ppi" if spec.drug_class == "ppi" else "order_intent.complication_anticoagulation"
+    )
+    complication = {lang: _localize_complication_name(comp_name, lang) for lang in ("en", "ja")}
+    gated: list[Order] = []
+    chosen = 0
+    candidates_of = treatment_candidates(action, stay.country_key)
+    for idx, entry in enumerate(candidates_of):
+        if _running_order(run.orders, protocol_drug_name(entry)) is not None:
+            return
+        decision = renal_decision(entry.get("renal_adjustment"), crcl)
+        if decision == "avoid":
+            continue
+        if decision:
+            entry = {**entry, "dose": decision}
+        candidates: list[Order] = []
+        for order in protocol_medication_orders(
+            entry,
+            order_id=(
+                f"ORD-{stay.encounter_id}{COMPLICATION_TREATMENT_ORDER_ID_MARKER}"
+                f"D{day}-{sanitize_id_token(comp_name, 12)}-{idx}"
+            ),
+            encounter_id=stay.encounter_id,
+            patient_id=stay.patient.patient_id,
+            country=stay.country_key,
+            ordered_datetime=when,
+            ordered_by=stay.attending_id,
+            urgency="urgent",
+            order_set="",
+        ):
+            order.clinical_intent = t(intent_key, "en", day=day, complication=complication["en"])
+            order.clinical_intent_ja = t(intent_key, "ja", day=day, complication=complication["ja"])
+            if crcl is not None:
+                order.renal_crcl_ml_min = round(crcl, 1)
+            if spec.course_days and not order.single_dose:
+                order.duration_days = spec.course_days
+            candidates.append(order)
+        gated = apply_drug_safety_gate_to_orders(
+            candidates,
+            patient=stay.patient,
+            encounter_id=stay.encounter_id,
+            ordered_datetime=when,
+            attending_id=stay.attending_id,
+            protocol=stay.protocol,
+            country=stay.country_key,
+            already_accepted_meds=[
+                *(m.drug_name for m in stay.patient.current_medications or [] if m.drug_name),
+                *accepted,
+            ],
+        )
+        if gated:
+            chosen = idx
+            break
+    if not gated:
+        return
+    if spec.lead_in_days and str(candidates_of[chosen].get("route", "")).upper() == "IV":
+        # The parenteral agent runs for the lead-in; the oral agent the block
+        # lists after it is ordered with it and given from the lead-in's end.
+        for later in candidates_of[chosen + 1 :]:
+            if (
+                str(later.get("route", "")).upper() != "PO"
+                or renal_decision(later.get("renal_adjustment"), crcl) == "avoid"
+            ):
+                continue
+            decided = renal_decision(later.get("renal_adjustment"), crcl)
+            oral = [
+                replace(o, administer_from=when + timedelta(days=spec.lead_in_days))
+                for o in protocol_medication_orders(
+                    {**later, "dose": decided} if decided else later,
+                    order_id=(
+                        f"ORD-{stay.encounter_id}{COMPLICATION_TREATMENT_ORDER_ID_MARKER}"
+                        f"D{day}-{sanitize_id_token(comp_name, 12)}-{chosen + 1}"
+                    ),
+                    encounter_id=stay.encounter_id,
+                    patient_id=stay.patient.patient_id,
+                    country=stay.country_key,
+                    ordered_datetime=when,
+                    ordered_by=stay.attending_id,
+                    urgency="urgent",
+                    order_set="",
+                )
+            ]
+            for order in oral:
+                order.clinical_intent = t(intent_key, "en", day=day, complication=complication["en"])
+                order.clinical_intent_ja = t(intent_key, "ja", day=day, complication=complication["ja"])
+                if crcl is not None:
+                    order.renal_crcl_ml_min = round(crcl, 1)
+            accepted_oral = apply_drug_safety_gate_to_orders(
+                oral,
+                patient=stay.patient,
+                encounter_id=stay.encounter_id,
+                ordered_datetime=when,
+                attending_id=stay.attending_id,
+                protocol=stay.protocol,
+                country=stay.country_key,
+                already_accepted_meds=[
+                    *(m.drug_name for m in stay.patient.current_medications or [] if m.drug_name),
+                    *accepted,
+                    *(o.display_name for o in gated),
+                ],
+            )
+            if accepted_oral:
+                # The patient moves on to the oral agent: the parenteral one
+                # runs for the lead-in only. When the gate rules the oral agent
+                # out (aspirin with a DOAC), the heparin goes on.
+                for order in gated:
+                    if not order.single_dose:
+                        order.duration_days = spec.lead_in_days
+                gated.extend(accepted_oral)
+            break
+    run.orders.extend(gated)
+    run.mars.extend(
+        _generate_mar(
+            stay.patient,
+            gated,
+            day,
+            stay.admission_time,
+            department=stay.department,
+            roster=stay.roster,
+            rng=determinism.default_rng(complication_treatment_seed(stay.encounter_id, day, comp_name, action)),
+            child=stay.child,
+            renal=renal,
         )
     )
 
