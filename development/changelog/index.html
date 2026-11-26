@@ -2424,8 +2424,9 @@ cut before this policy was formally documented and has been renumbered
 to v0.4.1 to align with the new policy — the Bucket A+B changes are
 FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
+<h2 id="074---2026-11-26">[0.7.4] - 2026-11-26<a class="headerlink" href="#074---2026-11-26" title="Permanent link">&para;</a></h2>
 <h3 id="highlights">Highlights<a class="headerlink" href="#highlights" title="Permanent link">&para;</a></h3>
-<p>About 105 commits since v0.7.3, from a review of the v0.7.3 sample cohorts (a whole-cohort aggregate review and a per-patient review per country) and the slow end-to-end tests. The entries below were written as the changes landed; this summary lists the main areas.</p>
+<p>About 130 commits since v0.7.3, from a review of the v0.7.3 sample cohorts (a whole-cohort aggregate review and a per-patient review per country) and the slow end-to-end tests. The entries below were written as the changes landed; this summary lists the main areas.</p>
 <ul>
 <li><strong>Clinical course.</strong> Treated infections now settle: a finding's likelihood ratio counts once per stay, so a treated bacterial pneumonia keeps its diagnosis, and a recovering patient's temperature settles before CRP; a still-febrile patient is not sent home at the extension cap. Oxygen is titrated in steps both ways, complications that require intubation or non-invasive ventilation act on the stay, acute kidney injury is dated at the first diagnostic creatinine, renally cleared antibiotics and home NSAIDs follow the kidneys, and drug courses stop at their stated length.</li>
 <li><strong>Delivery, newborn and immunization records.</strong> Delivery stays carry obstetric content, complication data and blood loss; postpartum visits record an EPDS screen; newborns carry their sampled anthropometrics, bilirubin trajectory and P-chapter conditions; vaccines are kept off febrile visits, flu doses follow the two-dose rule for young children, and ED tetanus doses are Immunizations.</li>
