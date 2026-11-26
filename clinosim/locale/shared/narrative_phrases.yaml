@@ -3903,6 +3903,9 @@ order_intent:
   complication_antibiotic:
     ja: "第{day}病日 {complication}の発症に対し抗菌薬を開始"
     en: "Day {day}: antibiotic started for {complication}"
+  complication_workup:
+    ja: "第{day}病日 {complication}の経過観察のための検査"
+    en: "Day {day}: monitoring labs for {complication}"
   escalation:
     ja: "治療エスカレーション第{day}病日: {drug} ({indication})"
     en: "Escalation day {day}: {drug} ({indication})"

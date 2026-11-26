@@ -97,6 +97,9 @@ COMPLICATION_ENTRY_KEYS = frozenset(
         "risk_factors",
         "detection",
         "note",
+        # Effect held while its driver lasts, and the labs ordered meanwhile (Issue #3827)
+        "sustained_state",
+        "monitoring_labs",
         # Cascade / parent-triggered complications
         "cascade",
         "parent_complication",

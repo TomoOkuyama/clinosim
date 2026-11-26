@@ -162,6 +162,7 @@ from clinosim.simulator.oral_intake import (
 )
 from clinosim.simulator.oxygen_course import OxygenCourse, oxygen_course_rules
 from clinosim.simulator.renal_antibiotic_dose import RenalDoseContext
+from clinosim.simulator.sustained_complication import SustainedHold, advance_holds, start_holds
 from clinosim.simulator.vasoactive_support import (
     hospital_day_start,
     stop_weaned_vasoactive_infusions,
@@ -396,6 +397,8 @@ class _Run:
     adl_assessments: list = field(default_factory=list)
     state_history: list[PhysiologicalState] = field(default_factory=list)
     active_complications: set[str] = field(default_factory=set)
+    # Issue #3827: effects a complication holds while its driver lasts, by (complication, state variable)
+    sustained: dict[tuple[str, str], SustainedHold] = field(default_factory=dict)
     complications: list[dict[str, Any] | str] = field(default_factory=list)
     death_occurred: bool = False
     icu_transferred: bool = False
@@ -520,6 +523,7 @@ def _advance_state(stay: _Stay, run: _Run, day: int) -> PhysiologicalState | Non
     if stay.symptom_floor:
         apply_symptom_floor(run.state, stay.symptom_floor)
     apply_postoperative_pain(run.state, day, stay.surgery)
+    advance_holds(run.state, run.sustained)
     run.state_history.append(deepcopy(run.state))
     return lab_state_pre_update
 
@@ -591,6 +595,48 @@ def _place_daily_lab_and_imaging_orders(stay: _Stay, run: _Run, day: int) -> Non
         sequence_counter=stay.imaging_seq,
     )
     run.orders.extend(daily_imaging)
+    _place_complication_monitoring_orders(stay, run, day, lab_time)
+
+
+def _place_complication_monitoring_orders(stay: _Stay, run: _Run, day: int, lab_time: datetime) -> None:
+    """Issue #3827: the labs a complication names (``monitoring_labs``) are drawn
+    with the morning labs while its sustained effect lasts, so the course of the
+    complication (the DIC consumption) is measured. Nothing is added for a test
+    already ordered for the same draw."""
+    from clinosim.modules.document.narrative.template_generator import _localize_complication
+
+    active = {name for name, _var in run.sustained}
+    for comp in stay.protocol.complications or []:
+        name = comp.get("name", "")
+        if name not in active:
+            continue
+        for lab_name in comp.get("monitoring_labs", []) or []:
+            lab_token = sanitize_id_token(lab_name, 5)
+            targets = lab_order_targets(lab_name)
+            for idx, target in enumerate(targets):
+                if any(
+                    o.display_name == target.name and o.ordered_datetime == lab_time and o.status == OrderStatus.PLACED
+                    for o in run.orders
+                ):
+                    continue
+                label = {lang: _localize_complication(name, lang) or name for lang in ("en", "ja")}
+                run.orders.append(
+                    Order(
+                        order_id=f"ORD-{stay.encounter_id}-CMP-D{day}-{lab_token}"
+                        + (f"-{idx}" if len(targets) > 1 else ""),
+                        patient_id=stay.patient.patient_id,
+                        order_type=target.order_type,
+                        display_name=target.name,
+                        urgency="routine",
+                        clinical_intent=t("order_intent.complication_workup", "en", day=day, complication=label["en"]),
+                        clinical_intent_ja=t(
+                            "order_intent.complication_workup", "ja", day=day, complication=label["ja"]
+                        ),
+                        ordered_datetime=lab_time,
+                        ordered_by=stay.attending_id,
+                        status=OrderStatus.PLACED,
+                    )
+                )
 
 
 def _expand_panel_orders(orders: list[Order]) -> dict[str, list[Order]]:
@@ -1463,6 +1509,10 @@ def _apply_complications(stay: _Stay, run: _Run, day: int, comp_list: list) -> N
         for var, delta in comp.get("state_impact", {}).items():
             apply_state_delta(run.state, var, delta)
         comp_name = comp.get("name", "unknown")
+        # Issue #3827: an effect that lasts while its driver does (DIC consumption).
+        for var, hold in start_holds(comp, run.state).items():
+            run.sustained[(comp_name, var)] = hold
+        advance_holds(run.state, run.sustained)
         # Phase 1a: record the onset day + a canonical noon-of-day
         # timestamp so downstream (narrative context filter,
         # hospital_course_extractor ordering, future FHIR Condition

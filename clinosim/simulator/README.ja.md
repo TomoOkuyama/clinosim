@@ -171,6 +171,10 @@ clinosim/simulator/
                          `working_diagnoses` エントリにする (入院が既に持つコードは省く)。FHIR では
                          副診断の encounter-diagnosis Condition になる。表は
                          `reference_data/complication_diagnosis_codes.yaml`。乱数なし (Issue #3673)
+  sustained_complication.py  合併症の `sustained_state`: 原因が続く間保たれる状態変数への効果
+                         (DIC の消費は敗血症の炎症に従う)。`full_days` の間は全量、その後は
+                         解除点へ向けて減衰。その間は合併症の `monitoring_labs` を採血。
+                         乱数なし (Issue #3827)
   complication_actions.py  合併症に疾患 YAML が宣言する抗菌薬 `actions`: 表記を 1 つの正規
                          キーに統一し、合併症ごとに指定したプロトコルの第一選択抗菌薬を
                          発症時に薬剤安全性ゲート経由で発注。乱数なし (Issue #3543)。気道の action

@@ -962,9 +962,14 @@ complications:
       - {condition: "malignancy", multiplier: 2.0}
       - {condition: "coagulation_status > 0.3", multiplier: 2.0}
     state_impact:
-      coagulation_status: 0.20
       perfusion_status: -0.10
       renal_function: -0.05
+    # Consumption goes on while the septic inflammation lasts (Issue #3827): the platelet
+    # count falls toward 50-100 x10^3/uL, PT-INR and D-dimer rise and fibrinogen falls
+    # (ISTH overt-DIC criteria) for at least full_days, then fades as the inflammation resolves.
+    sustained_state:
+      coagulation_status: {level: 0.85, driver: inflammation_level, release_below: 0.30, full_days: 3}
+    monitoring_labs: ["DIC_panel"]
     detection:
       test: "DIC_panel"
       finding: "ISTH_DIC_score_gte_5"
