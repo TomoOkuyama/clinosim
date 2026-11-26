@@ -274,3 +274,35 @@ def test_a_non_numeric_supply_is_not_a_duration() -> None:
     rx = {"items": [{"drug_name": "Metformin", "dose": "500mg", "days_supply": "ongoing"}]}
     [med] = NarrativePass._collect_discharge_medications({"discharge_prescription": rx})
     assert "rx_duration_days" not in med
+
+
+def _crp_order() -> dict:
+    return {
+        "order_id": "L2",
+        "encounter_id": "ENC-1",
+        "order_type": "lab",
+        "display_name": "CRP",
+        "ordered_datetime": _WHEN.isoformat(),
+        "result": {
+            "lab_name": "CRP",
+            "value": 19.0,
+            "unit": "mg/L",
+            "flag": "H",
+            "result_datetime": _WHEN.isoformat(),
+        },
+    }
+
+
+def test_jp_ed_workup_states_crp_in_the_reporting_unit_once_3835() -> None:
+    """Issue #3835: the order result is held in mg/L; the JP note reports mg/dL,
+    like the context's lab results and the FHIR Observation, and a result
+    listed with its value is not repeated in the abnormal-value segment."""
+    abnormal = [{"lab_name": "CRP", "value": 1.9, "unit": "mg/dL", "flag": "H", "result_datetime": _WHEN.isoformat()}]
+    text, _ = build_ed_workup(_GEN, _ctx("low_back_pain", "ja", orders=[_crp_order()], lab_results=abnormal))
+    assert "mg/L" not in text, text
+    assert text.count("1.9 mg/dL") == 1, text
+
+
+def test_us_ed_workup_keeps_crp_in_the_cif_unit_3835() -> None:
+    text, _ = build_ed_workup(_GEN, _ctx("low_back_pain", "en", orders=[_crp_order()]))
+    assert "19.0 mg/L" in text, text

@@ -396,10 +396,11 @@ def _ed_imaging_display(order: Any, lang: str) -> str:
     return _localize_imaging(name, lang) if name else ""
 
 
-def _order_result_text(order: Any, lang: str, cutoff: str) -> str:
+def _order_result_text(order: Any, lang: str, cutoff: str, country: str) -> str:
     """``"WBC 8.2 10*3/uL"`` (with the flag, ``[H]``) for an ED lab order whose
     numeric or categorical result was available by ``cutoff``, else ``""``
-    (Issue #3244)."""
+    (Issue #3244). The value is stated in the country's reporting unit, as
+    the context's lab results and the FHIR Observation state it (Issue #3835)."""
     result = _o(order, "result", None)
     if not result:
         return ""
@@ -410,7 +411,10 @@ def _order_result_text(order: Any, lang: str, cutoff: str) -> str:
     when = _iso(_o(result, "result_datetime", ""))
     if cutoff and when and when > cutoff:
         return ""
-    unit_disp = ucum_prose(_o(result, "unit", "") or "")
+    from clinosim.modules.observation.engine import reported_lab_value
+
+    value, unit = reported_lab_value(str(name), value, str(_o(result, "unit", "") or ""), country)
+    unit_disp = ucum_prose(unit)
     disp_name = lab_display(name, lang)
     if unit_disp and unit_disp.lower() == str(disp_name).lower():
         unit_disp = ""
@@ -578,7 +582,7 @@ def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
             if key and str(key) not in seen_labs:
                 seen_labs.add(str(key))
                 lab_names.append(str(display))
-                resulted = _order_result_text(order, lang, cutoff)
+                resulted = _order_result_text(order, lang, cutoff, ctx.locale)
                 if resulted:
                     lab_values[str(display)] = resulted
         elif otype_str == "imaging":
