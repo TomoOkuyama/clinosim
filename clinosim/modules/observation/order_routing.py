@@ -9,7 +9,9 @@ named group is ordered as its component labs.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
+from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -17,7 +19,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, model_validator
 
 from clinosim.datafiles import load_validated_yaml
-from clinosim.types.encounter import OrderType
+from clinosim.types.encounter import OrderStatus, OrderType
 
 _REF_DIR = Path(__file__).resolve().parent / "reference_data"
 
@@ -80,3 +82,33 @@ def lab_order_targets(name: str) -> tuple[OrderTarget, ...]:
     if components:
         return tuple(OrderTarget(c, OrderType.LAB) for c in components)
     return (OrderTarget(name, OrderType.LAB),)
+
+
+def lab_analytes(name: str) -> frozenset[str]:
+    """The canonical analytes one lab order of ``name`` measures: the analyte
+    itself, or the components of a panel order (Issue #3869)."""
+    from clinosim.modules.observation.engine import canonical_lab_name, lab_panel_components
+
+    components = lab_panel_components(name)
+    return frozenset(components) if components else frozenset({canonical_lab_name(name)})
+
+
+def placed_lab_analytes(orders: Iterable[Any], draw_time: datetime) -> set[str]:
+    """Canonical analytes already ordered for the draw at ``draw_time`` (Issue #3869).
+
+    One analyte is measured once per draw: the protocol's daily labs, the
+    chronic-condition monitoring labs and the complication monitoring labs are
+    placed by separate paths, and each placed order is resulted with its own
+    noise, so a second order for an analyte already in the draw would give a
+    second, disagreeing value of one specimen. Only placed lab orders at exactly
+    ``draw_time`` count; scheduled repeats (qid/tid), hemolysis redraws and
+    stat add-ons are other draws and are not collapsed.
+    """
+    drawn: set[str] = set()
+    for order in orders:
+        if order.order_type != OrderType.LAB or order.status != OrderStatus.PLACED:
+            continue
+        if order.ordered_datetime != draw_time:
+            continue
+        drawn |= lab_analytes(order.display_name)
+    return drawn

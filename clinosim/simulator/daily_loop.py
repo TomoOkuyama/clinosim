@@ -48,7 +48,7 @@ from clinosim.modules.drug_safety.hyperkalemia import (
 from clinosim.modules.observation.engine import canonical_lab_name, lab_panel_components, medications_in_effect
 from clinosim.modules.observation.fluid_balance_model import fluid_params, volume_status_shift
 from clinosim.modules.observation.hemolysis_redraw import hemolysis_redraw_rules, is_hemolyzed
-from clinosim.modules.observation.order_routing import lab_order_targets
+from clinosim.modules.observation.order_routing import lab_analytes, lab_order_targets, placed_lab_analytes
 from clinosim.modules.order.engine import (
     parse_dose_string,
     place_daily_lab_orders,
@@ -623,10 +623,9 @@ def _place_complication_monitoring_orders(stay: _Stay, run: _Run, day: int, lab_
             lab_token = sanitize_id_token(lab_name, 5)
             targets = lab_order_targets(lab_name)
             for idx, target in enumerate(targets):
-                if any(
-                    o.display_name == target.name and o.ordered_datetime == lab_time and o.status == OrderStatus.PLACED
-                    for o in run.orders
-                ):
+                # One result per analyte per draw (Issue #3869): a panel order of
+                # the draw (BMP, CBC) already holds its components.
+                if lab_analytes(target.name) <= placed_lab_analytes(run.orders, lab_time):
                     continue
                 label = {lang: _localize_complication(name, lang) or name for lang in ("en", "ja")}
                 run.orders.append(
@@ -2130,6 +2129,7 @@ def _run_daily_loop(
                     rng,
                     encounter_id=encounter_id,
                     ordered_by=attending_id,
+                    already_drawn=placed_lab_analytes(run.orders, run.lab_time) if run.lab_time else None,
                 )
             )
         day_results_start = _result_labs(stay, run, day, lab_state_pre_update)

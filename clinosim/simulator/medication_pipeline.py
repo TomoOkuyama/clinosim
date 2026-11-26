@@ -41,7 +41,7 @@ from clinosim.locale.i18n import t
 from clinosim.locale.loader import hold_reason_display, load_medication_hold_reasons, order_test_display
 from clinosim.locale.localized import localized_field
 from clinosim.modules.drug_safety.hyperkalemia import PotassiumHold, holds_for_hyperkalemia, holds_while_hyperkalemic
-from clinosim.modules.observation.order_routing import lab_order_targets
+from clinosim.modules.observation.order_routing import lab_analytes, lab_order_targets
 from clinosim.modules.physiology.renal_thresholds import (
     METFORMIN_ADMISSION_HOLD_THRESHOLD,
     METFORMIN_RENAL_RESERVE_THRESHOLD,
@@ -574,8 +574,16 @@ def _place_chronic_monitoring_orders(
     rng: np.random.Generator,
     encounter_id: str = "",
     ordered_by: str = "",
+    already_drawn: set[str] | None = None,
 ) -> list[Order]:
-    """Place additional lab orders for chronic condition monitoring."""
+    """Place additional lab orders for chronic condition monitoring.
+
+    ``already_drawn`` is the set of canonical analytes ordered for the day's
+    morning draw (``placed_lab_analytes``): a once-daily monitoring test already
+    in it is not ordered a second time, since a second order is resulted with
+    independent noise (Issue #3869). The qid/tid schedules are deliberate
+    repeats and are kept.
+    """
     orders: list[Order] = []
 
     for i, mon in enumerate(monitoring):
@@ -661,7 +669,12 @@ def _place_chronic_monitoring_orders(
                 )
             continue
 
-        # Default: daily at 06:00
+        # Default: daily at 06:00. An analyte the morning draw already holds
+        # (protocol daily labs, complication monitoring) is measured once.
+        if already_drawn and all(
+            lab_analytes(target.name) <= already_drawn for target in lab_order_targets(mon["test"])
+        ):
+            continue
         order_time = datetime(
             admission_time.year,
             admission_time.month,
