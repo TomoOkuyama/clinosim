@@ -25,7 +25,7 @@ from typing import Any
 import numpy as np
 
 from clinosim import determinism
-from clinosim.codes.drugs import drug_classes, drug_key
+from clinosim.codes.drugs import drug_classes, drug_display, drug_key
 from clinosim.locale.i18n import t
 from clinosim.locale.localized import language_slot
 from clinosim.modules.disease.protocol import DiseaseProtocol
@@ -248,6 +248,7 @@ def build_discharge_rx(
     extra_specs: Iterable[dict[str, Any]] = (),
     excluded_classes: frozenset[str] = frozenset(),
     spared_classes: frozenset[str] = frozenset(),
+    held_anticoagulants: Iterable[str] = (),
 ) -> PrescriptionRecord:
     """Build discharge prescription from protocol.
 
@@ -274,6 +275,19 @@ def build_discharge_rx(
     antibiotic once the inciting one was stopped for C. difficile colitis, less
     the spared classes); such a drug is held and logged like any other discharge
     hold, except a ``from_complication`` entry (the C. difficile course).
+
+    ``held_anticoagulants`` (Issue #3896): the home anticoagulants a complication
+    held in hospital (``complication_actions.held_home_anticoagulants``). Each gets
+    an explicit decision, ACC 2020 expert consensus pathway on bleeding on oral
+    anticoagulants (point 10): once bleeding is controlled, "all other patients
+    should likely restart their anticoagulation as soon as it is medically safe to
+    do so". The item of a drug still on the prescription says ``reconciliation:
+    "resumed"``; a drug a discharge rule keeps off the prescription is stopped and
+    logged like any other discharge hold (renal, AKI, protocol, or, with none of
+    those, "not resumed"). Not modelled: discontinuation for a low thromboembolic
+    risk (the pathway's other branch; the simulator carries no CHA2DS2-VASc score)
+    and a changed agent (the anticoagulant a complication starts is refused beside
+    a home one by the safety rules, so the home drug stays). Draws nothing.
 
     ``discharge_time`` (Issue #3441): the discharge datetime, the timestamp of the
     discharge holds logged on ``patient.safety_skip_log`` (the admission time when
@@ -475,8 +489,6 @@ def build_discharge_rx(
             drug_name = _rec.names.get("en", "") or ""
             drug_name_ja = _rec.names.get("ja", "") or drug_name
         else:
-            from clinosim.codes.drugs import drug_display
-
             drug_name = drug_spec.get("drug", "")
             drug_name_ja = drug_display(drug_name, "ja") or drug_name
         if not drug_name:
@@ -777,6 +789,20 @@ def build_discharge_rx(
             ] + [items[-1]]
 
     limit_triple_antithrombotic(items, home_medications=[m.drug_name for m in patient.current_medications])
+    for held_name in held_anticoagulants:
+        held_key = drug_key(held_name)
+        same = [it for it in items if drug_key(str(it["drug_name"])) == held_key]
+        if same:
+            same[0]["reconciliation"] = "resumed"
+        elif not any(drug_key(h["held_drug_name"]) == held_key for h in pending_holds):
+            _record_hold(
+                encounter_id=encounter_id,
+                held_drug_name=held_name,
+                held_drug_name_ja=drug_display(held_name, "ja") or held_name,
+                hold_reason=t("order_intent.held_anticoagulant_not_resumed", "en"),
+                hold_reason_ja=t("order_intent.held_anticoagulant_not_resumed", "ja"),
+                taken=taken,
+            )
     # Issue #3004: a minor's discharge doses are weight-based (weight charted
     # at admission), like the inpatient orders.
     if encounter_id:

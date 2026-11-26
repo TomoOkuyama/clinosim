@@ -933,6 +933,9 @@ class NarrativePass(ABC):
                 # ``_prescription_line.prescription_bits``.
                 if _o(item, "route", None):
                     entry["route"] = str(_o(item, "route", ""))
+                # Issue #3896: the decision on a home anticoagulant held in hospital.
+                if _o(item, "reconciliation", None):
+                    entry["reconciliation"] = str(_o(item, "reconciliation", ""))
                 # Issue #3244: the schedule of the line (frequency and number of
                 # days), read by the ED disposition's take-home prescription.
                 schedule_days = _o(item, "duration_days", None) or _o(item, "days_supply", None)

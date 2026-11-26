@@ -239,6 +239,19 @@ stop_actions:
     # the day one does), so none is ordered and the stop marker says so.
     replacement_block: lower_cdi_risk_alternative
 
+# Discharge decision for a held home anticoagulant (Issue #3896): not a value
+# here but a rule, in discharge_rx.py (`held_anticoagulants`). ACC 2020 expert
+# consensus decision pathway on management of bleeding in patients on oral
+# anticoagulants, point 10 (read on the ACC "Ten Points to Remember" page): "Once
+# bleeding is controlled, patients should be assessed for restarting their
+# anticoagulant"; low thromboembolic risk -> "discontinuing anticoagulation is
+# recommended"; critical-organ or unidentified source -> "a delayed restart";
+# "All other patients should likely restart their anticoagulation as soon as it
+# is medically safe to do so". The decision is `resumed` (the discharge item says
+# so) unless a discharge rule (renal, AKI, protocol, allergy) keeps the drug off
+# the prescription, then `stopped` and logged. The low-risk branch needs a
+# CHA2DS2-VASc score the simulator does not carry and is not modelled.
+
 # C. difficile infection regimen (Issues #3864, #3896). No disease protocol
 # carries one, so it is authored here under `start_oral_vancomycin`, by severity
 # (`regimen_by_severity`) and country.
