@@ -1920,6 +1920,8 @@
       
         
       
+        
+      
     
     
     
@@ -2038,6 +2040,34 @@
     
   
     Reproducibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release-checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release checklist
   
 
     
@@ -2417,6 +2447,7 @@ Release を作成し、同じジョブ内で wheel + sdist を PyPI にアップ
 行います。ジョブの environment 名と PyPI 側の登録が一致しないと、PyPI
 は token 交換を拒否します。</p>
 <h2 id="リリースを切る">リリースを切る<a class="headerlink" href="#リリースを切る" title="Permanent link">&para;</a></h2>
+<p>先に <a href="../release-checklist.ja/">リリース前チェックリスト</a> を完了すること。タグの push 前にすべての項目が必須です。</p>
 <ol>
 <li><code>clinosim/__init__.py::__version__</code> を bump (例: <code>0.2.0 → 0.3.0</code>)</li>
 <li><code>CHANGELOG.md</code> の <code>## [Unreleased]</code> 内容を新しい
