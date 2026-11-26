@@ -69,6 +69,11 @@ class PhysiologicalState:
     # perfusion deficit (pre-renal), kept apart from intrinsic injury so it can
     # resolve when perfusion recovers. Already subtracted from renal_function.
     prerenal_loss: float = 0.0  # 0.0 - 0.15
+    # Issue #3830: the share of the kidney failure cleared by the latest renal
+    # replacement session (0.0 = none). It lifts the effective renal function and
+    # the acid-base balance the potassium, bicarbonate, creatinine and urea are
+    # derived from, and wears off day by day (simulator/renal_replacement.py).
+    dialysis_clearance: float = 0.0  # 0.0 - 1.0
 
 
 @dataclass

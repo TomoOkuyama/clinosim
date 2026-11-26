@@ -1,0 +1,71 @@
+# Renal replacement therapy (intermittent hemodialysis) for AKI whose
+# hyperkalemia or severe metabolic acidosis persists (Issue #3830).
+#
+# Read by clinosim/simulator/renal_replacement.py (`renal_replacement_rules`)
+# and applied in the inpatient daily loop (simulator/daily_loop.py).
+#
+# Rule. On a hospital day whose resulted potassium is at or above the
+# hyperkalemia treatment threshold (modules/drug_safety/reference_data/
+# hyperkalemia_response.yaml `treat_threshold_mmol_l`) or whose total CO2 is at or
+# below `unresolved_total_co2_mmol_l` (aki_response.yaml), in a stay with AKI whose
+# kidney function has not recovered (`renal_function_below`), an intermittent
+# hemodialysis session is performed that afternoon (a Procedure of type
+# `procedure_type`), provided the indication was already present at least
+# `medical_response_days` earlier, i.e. it persisted after the day the medical
+# response (calcium, insulin with dextrose, binder, bicarbonate) was ordered.
+# Sessions recur on every later day the indication is present again and stop
+# once the kidney function has recovered or the labs no longer show the
+# indication. A session sets the stay's `dialysis_clearance` to
+# `clearance_per_session`; the state's potassium, bicarbonate, creatinine and urea
+# derive from the effective renal function and acid-base balance, so they
+# improve after the session, and the effect wears off by `daily_decay` per day,
+# so the labs rebound between sessions. A patient who had a session in the last
+# `discharge_defer_days` days is kept in hospital by the discharge gate (within
+# its `max_extension_days` cap; at the cap the stay ends in a facility), because
+# the labs of a dialysed patient say nothing about the kidneys.
+#
+# Source (read on 2026-11-26, KDIGO Clinical Practice Guideline for Acute Kidney
+# Injury, Kidney Int Suppl 2012;2:1-138): Recommendation 5.1.1 "Initiate RRT
+# emergently when life-threatening changes in fluid, electrolyte, and acid-base
+# balance exist. (Not Graded)"; 5.1.2 "Consider the broader clinical context, the
+# presence of conditions that can be modified with RRT, and trends of laboratory
+# tests -- rather than single BUN and creatinine thresholds alone -- when making
+# the decision to start RRT. (Not Graded)"; 5.2.1 "Discontinue RRT when it is no
+# longer required, either because intrinsic kidney function has recovered to the
+# point that it is adequate to meet patient needs ..."; 5.6.1 intermittent and
+# continuous RRT as complementary therapies. Rationale of 5.1.1: "it is widely
+# accepted that patients with severe hyperkalemia, severe acidosis, pulmonary
+# edema, and uremic complications should be dialyzed emergently. In the absence
+# of kidney function, and when therapeutic measures that promote the
+# intracellular shift of potassium (such as correction of acidosis with
+# bicarbonate, glucose and insulin infusion, and beta-2 agonists) are exhausted,
+# an excess of potassium can only be eliminated with RRT" (so the medical
+# response comes first); on acidosis: "no standard criteria for initiating
+# dialysis for acidosis exist", and its Table: "Dialysis for hyperkalemia is
+# effective in removing potassium; however, it requires frequent monitoring of
+# potassium levels and adjustment of concurrent medical management to prevent
+# relapses" (the rebound). The guideline gives no numeric thresholds: the
+# potassium threshold is the repository's hyperkalemia treatment threshold, the
+# total CO2 limit is the one of aki_response.yaml (taken from Issue #3830).
+# `renal_function_below` (0.30, the kidney-function level below which the model
+# itself adds renal acidosis), `medical_response_days`, `clearance_per_session`,
+# `daily_decay`, `session_hour` and `discharge_defer_days` are clinosim modelling
+# choices; no source read in this work fixes them. The medical hyperkalemia response
+# does not lower the potassium in the model (the shift of potassium into the cells
+# is not modelled).
+metadata:
+  kind: reference
+  name: renal_replacement
+  source: clinosim
+
+procedure_type: dialysis_acute
+potassium_lab: K
+total_co2_lab: CO2
+renal_function_below: 0.30
+medical_response_days: 1
+session_hour: 14
+clearance_per_session: 0.7
+daily_decay: 0.5
+discharge_defer_days: 2
+# The clearance below which the effect is taken as gone.
+negligible_clearance: 0.001

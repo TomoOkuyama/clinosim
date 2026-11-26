@@ -183,6 +183,9 @@ clinosim/simulator/
                          病名は complication_dx.py が日付付きの診断にする (Issue #3673)
   vasopressor_initiation.py  記録された平均血圧が輸液後も低い場合に昇圧薬を開始する
                          (固定病日ではなく生理状態駆動, Issue #3332)
+  renal_replacement.py   内科的治療後もカリウム (治療閾値以上) または総 CO2 (10 以下) が続く AKI への間欠的血液透析: 1 回ごとに
+                         dialysis_acute の処置を記録し、状態の dialysis_clearance を通じてカリウム・重炭酸・クレアチニン・尿素が
+                         改善して戻る。直近の透析は退院を延期する (Issue #3830, KDIGO 2012 5.1.1)
   aki_response.py        急性腎障害 (KDIGO のクレアチニン基準): 活動期間中の薬剤保留
                          (最初に定義を満たしてからピークの 10% 低下まで継続, #3538)、
                          乳酸高値中のメトホルミン保留 (#3539)、退院判定 (Issue #3281)、
@@ -328,6 +331,7 @@ CLI サブコマンドハンドラ (12 ファイル):
   reference_data/mixed_condition.yaml         混合入院の併存疾患の遅れた認識・回復・オーダー統合 (mixed_condition.py)
   reference_data/delirium_derivation.yaml     導出せん妄のリスク閾値・エピソード規則・コード (delirium.py)
   reference_data/complication_diagnosis_codes.yaml  合併症トークン -> 入院の診断コード (complication_dx.py)
+  reference_data/renal_replacement.yaml       透析の適応・1 回の効果・戻り (renal_replacement.py)
   reference_data/aki_response.yaml            AKI の判定・AKI 中に保留する薬剤・退院判定 (aki_response.py)
   reference_data/device_removal.yaml          カテーテルの留置契機と抜去の適応 (device_removal.py)
   reference_data/implied_chronic_prevalence.yaml  入院が含意する慢性疾患の有病率 (implied_chronic.py)

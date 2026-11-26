@@ -72,7 +72,9 @@ def _final(patient, lab: str) -> float | None:
     return rows[-1][1] if rows else None
 
 
-def test_no_stay_is_discharged_home_with_the_potassium_or_acidosis_of_unrecovered_aki() -> None:
+def test_no_stay_is_discharged_home_with_the_potassium_or_acidosis_of_unrecovered_aki(monkeypatch) -> None:
+    # Without renal replacement (Issue #3830, tested separately) these stays reach the cap unresolved.
+    monkeypatch.setattr("clinosim.simulator.daily_loop.renal_replacement_due", lambda *a, **k: False)
     from clinosim.codes.hl7_encounter import DischargeDisposition
     from clinosim.simulator import run_forced
     from clinosim.types.config import ForcedScenario, SimulatorConfig

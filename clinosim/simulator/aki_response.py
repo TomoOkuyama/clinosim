@@ -293,16 +293,23 @@ def metabolic_findings_unresolved(results: Iterable[OrderResult]) -> bool:
 
 
 def discharge_findings_unresolved(
-    course: AkiCourse, vitals: Iterable[VitalSignRecord], results: Iterable[OrderResult] = ()
+    course: AkiCourse,
+    vitals: Iterable[VitalSignRecord],
+    results: Iterable[OrderResult] = (),
+    dialysis_recent: bool = False,
 ) -> bool:
     """True while the patient is not fit to go home for the kidneys or a
-    fever: AKI that has not begun to recover, a fever in the last day, or the
-    potassium / total CO2 of kidney failure (Issue #3830)."""
-    return course.not_improving or fever_persists(vitals) or metabolic_findings_unresolved(results)
+    fever: AKI that has not begun to recover, a fever in the last day, the
+    potassium / total CO2 of kidney failure, or a hemodialysis session in the
+    last days, whose labs say nothing about the kidneys (Issue #3830)."""
+    return course.not_improving or fever_persists(vitals) or metabolic_findings_unresolved(results) or dialysis_recent
 
 
 def discharge_extension_days(
-    course: AkiCourse, vitals: Iterable[VitalSignRecord], results: Iterable[OrderResult] = ()
+    course: AkiCourse,
+    vitals: Iterable[VitalSignRecord],
+    results: Iterable[OrderResult] = (),
+    dialysis_recent: bool = False,
 ) -> int:
     """How many days past the sampled stay the patient may be kept for the
     findings still unresolved (Issue #3637): ``fever_max_extension_days`` while
@@ -312,7 +319,9 @@ def discharge_extension_days(
     vitals = list(vitals)
     if fever_persists(vitals):
         return rules.fever_max_extension_days
-    return rules.max_extension_days if course.not_improving or metabolic_findings_unresolved(results) else 0
+    if course.not_improving or metabolic_findings_unresolved(results) or dialysis_recent:
+        return rules.max_extension_days
+    return 0
 
 
 def _field(rec: object, name: str) -> object:

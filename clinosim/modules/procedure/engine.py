@@ -511,6 +511,44 @@ def build_intubation_procedure(
     )
 
 
+def build_dialysis_session_procedure(
+    patient_id: str,
+    encounter_id: str,
+    start: datetime,
+    country: str,
+    procedure_id: str,
+    proc_type: str,
+    *,
+    performer_id: str,
+) -> ProcedureRecord:
+    """One intermittent hemodialysis session of an AKI stay (Issue #3830): the
+    catalogue's ``proc_type`` (``dialysis_acute``) for its mean duration, no
+    RNG draw, performed by ``performer_id``."""
+    spec = {p[0]: p for p in _BEDSIDE_PROCEDURES}[proc_type]
+    _, cpt, kcode, _name_en, _name_ja, anesthesia = spec
+    meta = _PROCEDURE_METADATA.get(proc_type)
+    duration = _bedside_mean_duration(proc_type)
+    return ProcedureRecord(
+        procedure_id=procedure_id,
+        patient_id=patient_id,
+        encounter_id=encounter_id,
+        procedure_type=proc_type,
+        procedure_code=country_procedure_code(country, {"k-codes": kcode, "cpt": cpt}),
+        procedure_code_jp=kcode,
+        procedure_code_us=cpt,
+        start_datetime=start,
+        end_datetime=start + timedelta(minutes=duration),
+        duration_minutes=duration,
+        primary_surgeon_id=performer_id,
+        anesthesia_type=anesthesia,
+        category_code=meta.category_code if meta else _SCT_CATEGORY_THERAPEUTIC,
+        body_site_code=meta.body_site_code if meta else "",
+        outcome_code=_SCT_OUTCOME_SUCCESS,
+        complication_codes=[],
+        location_id="",
+    )
+
+
 def _bedside_record(
     patient_id: str,
     encounter_id: str,

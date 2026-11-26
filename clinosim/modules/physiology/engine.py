@@ -833,10 +833,18 @@ def _add_inflammation_labs(labs: dict[str, float], state: PhysiologicalState, ha
     )
 
 
+def _dialysis_adjusted(value: float, normal: float, clearance: float) -> float:
+    """``value`` moved ``clearance`` of the way to ``normal`` (Issue #3830);
+    unchanged without a session."""
+    return value + clearance * (normal - value) if clearance > 0.0 else value
+
+
 def _add_renal_labs(labs: dict[str, float], state: PhysiologicalState, sex: str) -> None:
-    """Creatinine, BUN, eGFR, K and Na."""
-    renal = state.renal_function
-    ph = state.ph_status
+    """Creatinine, BUN, eGFR, K and Na. After a renal replacement session
+    (Issue #3830) creatinine, BUN and K follow the effective renal function and
+    acid-base balance (``dialysis_clearance``)."""
+    renal = _dialysis_adjusted(state.renal_function, 1.0, state.dialysis_clearance)
+    ph = _dialysis_adjusted(state.ph_status, 0.0, state.dialysis_clearance)
     # base_cr calibration (Issue #416):
     #   base = JCCLS ref center × E[reserve],  E[beta(30, 2)] = 30/32 = 0.9375
     #     Cre_M:  0.86  × 0.9375 = 0.80625
@@ -1122,7 +1130,10 @@ def _add_blood_gas_labs(labs: dict[str, float], state: PhysiologicalState, sao2_
     """HCO3, pCO2, pH and pO2. ``sao2_pct`` (Issue #3649) is the arterial
     saturation on supplemental oxygen when the patient is on oxygen at the time
     of the draw; the pO2 follows it instead of the room-air saturation."""
-    ph = state.ph_status
+    # Issue #3830: a renal replacement session corrects the metabolic disturbance.
+    ph = _dialysis_adjusted(
+        state.ph_status, 0.0, state.dialysis_clearance * (1.0 - clamp(state.respiratory_fraction, 0.0, 1.0))
+    )
     # `ph` is the acid-base disturbance magnitude (neg = acidemia); respiratory_fraction
     # routes it between the metabolic (bicarbonate) and respiratory (CO2) axes. pH then
     # follows Henderson-Hasselbalch on the resulting HCO3/pCO2, with partial compensation
