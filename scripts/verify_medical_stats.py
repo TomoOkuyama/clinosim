@@ -92,8 +92,15 @@ BENCH = {
         "chf_adult_prev_pct": (1.5, 4),
         "dyslipidemia_adult_prev_pct": (30, 50),
         "obesity_adult_prev_pct": (20, 30),  # MHLW 2019 JP adult ~25%
-        "tobacco_use_adult_prev_pct": (10, 20),  # MHLW JP adult current smoker ~15%
-        "alcohol_use_disorder_adult_prev_pct": (2, 8),  # JP AUD lower than US ~5%
+        # 令和元年国民健康・栄養調査結果の概要 (MHLW, 2020): current habitual smokers
+        # aged 20+ 16.7% (men 27.1%, women 7.6%).
+        "tobacco_use_adult_prev_pct": (10, 20),
+        # Osaki et al., Alcohol Alcohol 2016;51:465-73 (PMID 26873982, abstract read
+        # via Europe PMC): lifetime ICD-10 alcohol dependence in the 2013 national
+        # survey 1.9% of men, 0.2% of women. The band below is wider than the
+        # survey (a hospital cohort carries more diagnosed disorders) and is a
+        # sanity band, not a survey value.
+        "alcohol_use_disorder_adult_prev_pct": (2, 8),
         "depression_adult_prev_pct": (4, 8),  # MHLW lifetime 5% / elderly 8%
         "anxiety_adult_prev_pct": (2, 5),  # JP epi similar to US
         "cancer_any_active_prev_pct": (5, 10),
@@ -235,6 +242,17 @@ prefixes = {
     "anxiety": ("F41.1",),
     "cancer_any": tuple(f"C{n:02d}" for n in range(0, 100)) + tuple(f"D{n:02d}" for n in range(0, 49)),
 }
+# Issue #3839: a JP cohort emits WHO ICD-10 (JP diagnosis code mapping,
+# locale/jp/code_mapping_diagnosis.yaml), which has no 5-character
+# ICD-10-CM leaves: nicotine dependence is F17.2 and alcohol dependence F10.2.
+# Each metric counts the codes of the cohort's own code system.
+COUNTRY_PREFIXES = {
+    "JP": {
+        "tobacco_use": ("F17.2",),
+        "alcohol_use_disorder": ("F10.2",),
+    },
+}
+prefixes = {**prefixes, **COUNTRY_PREFIXES.get(COUNTRY, {})}
 adult_with_dx = {k: set() for k in prefixes}
 # also incidence tallies (encounters or conditions with dates in sim period)
 acute_prefixes = {
@@ -276,6 +294,10 @@ acute_prefixes = {
         + ("T79",)
     ),
 }
+# Issue #3839: the sepsis severity codes of a JP cohort are the WHO ones
+# (R65.20 -> R65.1, R65.21 -> R57.2 in locale/jp/code_mapping_diagnosis.yaml).
+if COUNTRY == "JP":
+    acute_prefixes["sepsis"] = ("A40", "A41", "R65.1", "R57.2")
 acute_cases = {k: set() for k in acute_prefixes}  # unique (patient, year, code_prefix)
 
 
