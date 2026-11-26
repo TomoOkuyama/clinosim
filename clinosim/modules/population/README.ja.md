@@ -323,7 +323,7 @@ clinosim/modules/population/
   person_init.py                       新生児の biology / identity / care-seeking + 出生年の死亡判定
   inheritance.py                       新生児血液型 / Rh 遺伝 (RNG 非消費)
   single_gene_inheritance.py           単一遺伝子疾患 carrier status (初期集団 + 新生児)
-  condition_mutex.py                   相互排他な慢性 code ルール
+  condition_mutex.py                   相互排他な慢性 code ルール; 合併症と並ぶ E11.9 の emit 解決 (Issue #3873)
   _chronic.py                          ChronicConditionSpec + marginal 保存 prevalence helper
   _demographics.py                     年齢 / 性別 / 人種 / 血液型 / care-seeking サンプリング
   _identity.py                         氏名 / 職業 / 住所 / 電話 サンプリング

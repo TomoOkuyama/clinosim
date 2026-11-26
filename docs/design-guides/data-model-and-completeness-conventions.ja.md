@@ -105,6 +105,10 @@ call-site は event 日(`event.timestamp`)を渡す。
 「近いから使う」を禁止。適切なコードが codes YAML に無ければ authoritative source(NLM/WHO)で
 検証して追加(`implementation-rules.md` §6、捏造禁止)。
 
+### 4.4 問題リストが否定する code は emit 時に単一の関数で解決する
+
+`E11.9` (合併症を伴わない 2 型糖尿病) は、同じ患者の `E11.2` / `E11.3` / `E11.4` 等の entry と矛盾する (Issue #3873)。CIF は `E11.9` を `chronic_conditions` に残す。糖尿病フォローアップ spec (完全一致 lookup)・基本処方・`has_condition(..., "diabetes")` を駆動するため、削除するとシミュレーション自体が変わる。全ての *emit* 箇所は `clinosim/modules/population/condition_mutex.py` (`redundant_uncomplicated_diabetes_indices`・`without_redundant_uncomplicated_diabetes`・`principal_code_for_problem_list`) を通して解決する: FHIR Condition 一覧 (index は維持するので他の id は動かない)、`Encounter.diagnosis`、主病名の照合、外来受診の主病名 (`_visit_diagnosis_code`: 合併症 code)、narrative の問題リスト (既往歴・A&P の整列済み問題リスト・JP-CLINS の既往歴・死亡診断書の併存症・LLM 向けの慢性疾患一覧)。`chronic_conditions` を列挙する新しい emit 箇所は同じ関数を呼ぶ。規則を各所で再実装しない。合併症が初めて記録される前に書かれたレコードは自身のスナップショットに合併症が無く、`E11.9` を列挙する。Condition builder はその問題リスト項目を `inactive` とし、`abatementDateTime` を合併症 code を持つ最初のレコード (`first_seen`) の日時にするので、合併症と並ぶ有効な `E11.9` は残らない。Guard: `tests/unit/test_e119_diabetes_mutex_3873.py`。
+
 ---
 
 ## 5. clinical authoring 規約(C3 対策)

@@ -355,7 +355,7 @@ clinosim/modules/population/
   person_init.py                       newborn biology / identity / care-seeking + birth-year death draw
   inheritance.py                       newborn blood type / Rh inheritance (RNG-neutral)
   single_gene_inheritance.py           single-gene carrier status (initial cohort + newborn)
-  condition_mutex.py                   mutually exclusive chronic-code rules
+  condition_mutex.py                   mutually exclusive chronic-code rules; the E11.9-beside-a-complication emit resolver (Issue #3873)
   _chronic.py                          ChronicConditionSpec + marginal-preserving prevalence helpers
   _demographics.py                     age / sex / race / blood-type / care-seeking sampling
   _identity.py                         name / occupation / address / phone sampling

@@ -156,6 +156,10 @@ close enough". If the correct code is not in the codes YAML, verify
 against an authoritative source (NLM / WHO) and add it
 (`implementation-rules.md` §6 — no fabrication).
 
+### 4.4 A code that the problem list contradicts is resolved at emit, through one function
+
+`E11.9` ("type 2 diabetes mellitus without complications") is contradicted by the patient's own `E11.2` / `E11.3` / `E11.4` ... entry (Issue #3873). The CIF keeps `E11.9` in `chronic_conditions` because it drives the diabetes follow-up spec (exact-code lookup), the base regimen and `has_condition(..., "diabetes")`; deleting it would change what the simulation does. Every *emit* site resolves through `clinosim/modules/population/condition_mutex.py` (`redundant_uncomplicated_diabetes_indices`, `without_redundant_uncomplicated_diabetes`, `principal_code_for_problem_list`): the FHIR Condition list (indices are kept, so other ids do not move), `Encounter.diagnosis`, the primary-condition match, the outpatient visit's principal diagnosis (`_visit_diagnosis_code`: the complication code) and the narrative problem lists (past medical history, the ordered problem list of the Assessment and Plan, the JP-CLINS history, the death-certificate comorbidities, the LLM chronic list). A new emit site that lists `chronic_conditions` calls the same function; no site re-implements the rule. A record written before the complication was first recorded has no complication in its own snapshot and still lists `E11.9`; the Condition builder marks that problem-list entry `inactive` with `abatementDateTime` = the first record that carries a complication code (`first_seen`), so no active `E11.9` stands beside the complication. Guard: `tests/unit/test_e119_diabetes_mutex_3873.py`.
+
 ---
 
 ## 5. Clinical authoring rules (C3 defense)

@@ -53,6 +53,7 @@ from clinosim.modules.document.narrative.renderers._shared_helpers import (
     diagnosis_coded,
 )
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section, section_builder
+from clinosim.modules.population.condition_mutex import without_redundant_uncomplicated_diabetes
 from clinosim.types.document import NarrativeContext
 
 if TYPE_CHECKING:
@@ -72,7 +73,8 @@ def build_past_medical_history(generator: TemplateNarrativeGenerator, ctx: Narra
     if patient is None:
         return none_text, facts
 
-    conditions = _o(patient, "chronic_conditions", []) or []
+    # Issue #3873: E11.9 is not listed beside a diabetic complication code.
+    conditions = without_redundant_uncomplicated_diabetes(_o(patient, "chronic_conditions", []) or [])
     if not conditions:
         return none_text, facts
 

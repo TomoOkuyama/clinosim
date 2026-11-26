@@ -46,6 +46,7 @@ from clinosim.modules.document.reference_data_loaders import (
     load_death_cause_chain,
     load_death_course,
 )
+from clinosim.modules.population.condition_mutex import without_redundant_uncomplicated_diabetes
 from clinosim.types.document import NarrativeContext
 
 if TYPE_CHECKING:
@@ -643,7 +644,9 @@ def build_dc_contributing_conditions(
         if chain is not None
         else set()
     )
-    conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
+    conds = (
+        without_redundant_uncomplicated_diabetes(_o(ctx.patient, "chronic_conditions", []) or []) if ctx.patient else []
+    )
     parts: list[str] = []
     # Issue #3537: the stay's secondary diagnoses that sit on no cause line.
     secondary = chain.contributing if chain is not None else ()
@@ -1226,7 +1229,9 @@ def build_dds_complications_and_comorbidities(
     facts: list[str] = []
     cap = load_death_course().treatment_course.max_named_comorbidities
     country = country_code(ctx.locale)
-    conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
+    conds = (
+        without_redundant_uncomplicated_diabetes(_o(ctx.patient, "chronic_conditions", []) or []) if ctx.patient else []
+    )
     cond_labels: list[str] = []
     for c in conds:
         code_val = _o(c, "code", "") or (c if isinstance(c, str) else "")

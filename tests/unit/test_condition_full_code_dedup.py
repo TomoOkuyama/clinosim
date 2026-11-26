@@ -42,8 +42,9 @@ def _record(chronic: list[str], primary: str = "", working: list[str] | None = N
 
 
 def test_us_chronic_codes_sharing_a_category_each_emit_a_condition() -> None:
-    conds = _build_conditions(_record(["E11.9", "E11.311", "E11.42"]), "pat-1", "US")
-    assert sorted(_codes(conds)) == ["E11.311", "E11.42", "E11.9"]
+    # (E11.9 is the exception: not listed beside a complication, Issue #3873.)
+    conds = _build_conditions(_record(["E11.65", "E11.311", "E11.42"]), "pat-1", "US")
+    assert sorted(_codes(conds)) == ["E11.311", "E11.42", "E11.65"]
 
 
 def test_identical_chronic_code_is_emitted_once() -> None:
@@ -53,8 +54,8 @@ def test_identical_chronic_code_is_emitted_once() -> None:
 
 def test_chronic_primary_keeps_every_chronic_of_the_category() -> None:
     """A primary that is one of the chronics merges into that entry only."""
-    conds = _build_conditions(_record(["E11.9", "E11.311"], primary="E11.311"), "pat-1", "US")
-    assert sorted(_codes(conds)) == ["E11.311", "E11.9"]
+    conds = _build_conditions(_record(["E11.65", "E11.311"], primary="E11.311"), "pat-1", "US")
+    assert sorted(_codes(conds)) == ["E11.311", "E11.65"]
 
 
 def test_specific_primary_does_not_merge_into_other_specific_chronic() -> None:
@@ -105,6 +106,6 @@ def test_jp_codes_mapping_to_one_emitted_code_collapse() -> None:
 def test_jp_distinct_mapped_codes_both_emit() -> None:
     from clinosim.locale.loaders.demographics import map_diagnosis_code
 
-    assert map_diagnosis_code("E11.9", "JP") != map_diagnosis_code("E11.311", "JP")
-    conds = _build_conditions(_record(["E11.9", "E11.311"]), "pat-1", "JP")
+    assert map_diagnosis_code("E11.65", "JP") != map_diagnosis_code("E11.311", "JP")
+    conds = _build_conditions(_record(["E11.65", "E11.311"]), "pat-1", "JP")
     assert len(conds) == 2

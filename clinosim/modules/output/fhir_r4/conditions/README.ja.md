@@ -119,9 +119,12 @@ sort するため line 順は決定論的。
   - **不一致** → encounter スコープ id (structural key
     `{encounter_id}-primary`) を返す。
   - `_build_conditions` の重複排除は 3 文字カテゴリではなく、出力される
-    (国別マップ後の) 完全コード単位 (Issue #3333)。同一患者の E11.9 /
+    (国別マップ後の) 完全コード単位 (Issue #3333)。同一患者の E11.65 /
     E11.311 / E11.42 は 3 件の Condition。JP で複数の元コードが同一の
-    出力コードに写る場合のみ 1 件にまとまる。
+    出力コードに写る場合のみ 1 件にまとまる。例外は E11.9 (合併症を伴わない):
+    合併症 code E11.x と並べて出力しない (Issue #3873、`condition_mutex`)。
+    他の慢性 Condition は index 由来の id を保ち、E11.9 の受診の主病名は
+    合併症の Condition に解決される。
   - id は opaque (Issue #854): `_resolve_condition_id` により
     `cond-` + sha256(structural key) の先頭 12 hex。
   - encounter primary reason を参照する全下流 builder は必ず

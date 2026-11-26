@@ -123,9 +123,13 @@ the emitted NDJSON by resource id so line order is deterministic.
   - **No match** → return the encounter-scoped id (structural key
     `{encounter_id}-primary`).
   - De-duplication in `_build_conditions` is by the full emitted
-    (country-mapped) code, not the 3-char category (Issue #3333): E11.9,
+    (country-mapped) code, not the 3-char category (Issue #3333): E11.65,
     E11.311 and E11.42 on one patient are three Conditions; two source
-    codes that map to one emitted code (JP) are one Condition.
+    codes that map to one emitted code (JP) are one Condition. The one
+    exception is E11.9 (without complications): it is not emitted beside
+    a complication code E11.x (Issue #3873, `condition_mutex`); the
+    other chronic Conditions keep their index-based ids and an E11.9
+    follow-up's primary resolves to the complication's Condition.
   - Ids are opaque (Issue #854): `cond-` + 12 hex chars of
     sha256(structural key), via `_resolve_condition_id`.
   - Every downstream builder that references the encounter's

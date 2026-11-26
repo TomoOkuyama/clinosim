@@ -257,6 +257,10 @@ def _apply_pattern(
         )
         if result.fired:
             if result.emits_icd:
+                # A diabetic complication code is appended beside the stored
+                # E11.9 on purpose: E11.9 stays the CIF driver of the diabetes
+                # follow-up spec and base regimen, and the emit sites hide it
+                # through ``condition_mutex`` (Issue #3873).
                 snapshot.new_complications.append(result.emits_icd)
                 if result.emits_icd not in person.chronic_conditions:
                     person.chronic_conditions.append(result.emits_icd)
