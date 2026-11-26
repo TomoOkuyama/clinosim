@@ -286,6 +286,10 @@ not FAILURE/CANCELLED. It does not depend on gh CLI streaming behavior.
 pushed directly to master, but you must leave a post-hoc Issue + explanatory comment
 within the same session.
 
+### Releases
+
+Before a release tag is pushed, every item of [`docs/development/release-checklist.md`](docs/development/release-checklist.md) must be complete: documentation matches the code, generation speed has not regressed, the quality gates are green on the release commit, changes against the previous release are explained, the package installs and runs, and issues and pull requests are settled. The version bump, the CHANGELOG heading and the tag push need the maintainer's explicit approval.
+
 ## When modifying a module
 
 1. Read the module's `README.md` first
