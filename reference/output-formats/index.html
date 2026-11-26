@@ -2629,6 +2629,7 @@
 </span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>└── Location.ndjson                  # Wards + beds + operating rooms
 </span></code></pre></div>
 <p>Each line = 1 FHIR resource. <code>Resource.id</code> is unique across all resource types. Reference integrity is maintained.</p>
+<p>Every export also writes <code>output/catalog/codes-used.ndjson</code> next to <code>fhir_r4/</code> (never inside it) — see <a href="#used-codes-catalog">Used-codes catalog</a>.</p>
 <p><code>DocumentReference.ndjson</code> is emitted whenever <code>--narrative-version</code>
 resolves to a version directory (default: <code>current</code>, backed by the
 <code>current_version.txt</code> pointer that Stage 1's <code>TemplateNarrativePass</code>

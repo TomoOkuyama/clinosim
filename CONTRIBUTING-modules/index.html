@@ -4294,7 +4294,7 @@ types are imported from <code>types</code>.</p>
 <p><code>disease/protocol.py</code> is the correct reference:
 <code>DiseaseProtocol(BaseModel)</code> is loaded via
 <code>load_disease_protocol()</code> with <code>model_validate()</code>.
-<code>encounter/protocol.py</code> follows the same pattern for the 51
+<code>encounter/protocol.py</code> follows the same pattern for the 52
 encounter-condition YAMLs (<code>EncounterConditionProtocol</code>; a
 validation failure is re-raised with the offending filename). <strong>Wrap
 every new YAML protocol in Pydantic</strong> with

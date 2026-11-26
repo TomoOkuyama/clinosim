@@ -2424,9 +2424,36 @@ cut before this policy was formally documented and has been renumbered
 to v0.4.1 to align with the new policy — the Bucket A+B changes are
 FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
+<h3 id="highlights">Highlights<a class="headerlink" href="#highlights" title="Permanent link">&para;</a></h3>
+<p>About 105 commits since v0.7.3, from a review of the v0.7.3 sample cohorts (a whole-cohort aggregate review and a per-patient review per country) and the slow end-to-end tests. The entries below were written as the changes landed; this summary lists the main areas.</p>
+<ul>
+<li><strong>Clinical course.</strong> Treated infections now settle: a finding's likelihood ratio counts once per stay, so a treated bacterial pneumonia keeps its diagnosis, and a recovering patient's temperature settles before CRP; a still-febrile patient is not sent home at the extension cap. Oxygen is titrated in steps both ways, complications that require intubation or non-invasive ventilation act on the stay, acute kidney injury is dated at the first diagnostic creatinine, renally cleared antibiotics and home NSAIDs follow the kidneys, and drug courses stop at their stated length.</li>
+<li><strong>Delivery, newborn and immunization records.</strong> Delivery stays carry obstetric content, complication data and blood loss; postpartum visits record an EPDS screen; newborns carry their sampled anthropometrics, bilirubin trajectory and P-chapter conditions; vaccines are kept off febrile visits, flu doses follow the two-dose rule for young children, and ED tetanus doses are Immunizations.</li>
+<li><strong>FHIR output.</strong> Questionnaire scores are not laboratory results, HAI Conditions are encounter diagnoses, in-progress encounters carry no discharge disposition, timestamps are whole seconds, and ED-phase resources belong to the ED encounter.</li>
+<li><strong>Code catalogs.</strong> Every export writes the catalog of the codes it uses, and <code>clinosim catalog-codes</code> lists every code a release can emit; the release attaches both country catalogs.</li>
+</ul>
+<h3 id="cif-drift-why-this-release-is-numbered-as-a-patch">CIF drift (why this release is numbered as a PATCH)<a class="headerlink" href="#cif-drift-why-this-release-is-numbered-as-a-patch" title="Permanent link">&para;</a></h3>
+<p>Many of the fixes below change structured CIF for the same <code>(seed, hospital_config, country, start, end, population)</code> and are marked "CIF drift, a MINOR-class change". Under the versioning policy above this release would be a MINOR bump; it is numbered 0.7.4 by maintainer decision, as a corrective release of the v0.7.3 cohort review. CIF ↔ narrative-CIF consistency is broken all the same: narrative CIF generated with v0.7.3 must be regenerated (<code>narrate</code>) against structured CIF from v0.7.4.</p>
+<h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Every postpartum (Z39) visit records one Edinburgh Postnatal Depression Scale total score as a survey Observation (LOINC 99046-5), drawn from a dedicated sub-seed of the encounter id so no other RNG stream moves; the positive rate and cut-off are per country in <code>perinatal.yaml</code> (US 14.0% at 10 or more, JP 13.9% at 9 or more), the postpartum SOAP states the score, and a positive screen adds a referral and follow-up plan line. CIF drift (a new screening Observation per postpartum visit), a MINOR-class change (#3751).</li>
+<li><code>clinosim simulate</code> and the FHIR export write <code>catalog/codes-used.ndjson</code> next to <code>fhir_r4/</code>, a catalog of every code the dataset uses (kinds: medication per route, lab, vital sign, nursing score, observation, imaging, diagnosis, procedure, document type, organism, vaccine, allergen) with counts and patient numbers, and <code>cif/metadata.json</code> points at it as <code>used_codes_catalog</code> (#3762).</li>
+<li>New command <code>clinosim catalog-codes --country US|JP -o FILE</code> lists every code the installed version can emit in the format of the used-codes catalog (without count and patients), and the release workflow attaches both country files to the GitHub Release and appends the codes added, removed and changed since the previous release to the release notes (#3763).</li>
+</ul>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
-<li>A child's per-kg prescription is dosed from the weight charted at the prescribing visit (the weight Observation of the same encounter) instead of the profile weight, so "432mg (45mg/kg)" no longer overdoses a young infant (#3636).</li>
+<li>A recovering patient's temperature now settles with the inflammation: below inflammation 0.5 the fever lift grows with its square instead of linearly (3 C per unit inflammation all the way down), so a treated pneumonia whose CRP is near normal no longer keeps charting 38 C and is no longer held for a week by the febrile discharge gate; at or above 0.5 the lift is unchanged, so presenting fevers stay as before. CIF drift (vital-sign temperature and every value that follows it), a MINOR-class change (#3818).</li>
+<li>A finding's likelihood ratio is counted once per differential, at its first result (<code>DifferentialDiagnosis.applied_findings</code> records the names), instead of being re-applied each day a test repeats, so falling CRP and WBC under antibiotics no longer turn a treated bacterial pneumonia into a viral pneumonia by day 4 with a treatment effectiveness of 0.17 and two febrile weeks. CIF drift (working diagnosis, treatment course and length of stay), a MINOR-class change (#3820).</li>
+<li>A death after the snapshot date is not known to the record wherever it happens: the vital-status cutoff now applies to every death place, so an in-hospital death after the snapshot leaves the stay in progress and the patient without a death flag, date or datetime; a death inside the window is unchanged. CIF drift, a MINOR-class change (#3759).</li>
+<li>An Encounter that has not ended no longer carries <code>hospitalization.dischargeDisposition</code>, so a current inpatient no longer reads as discharged or dead (#3760).</li>
+<li>The hospital-acquired infection Condition is now listed in <code>Encounter.diagnosis</code> as a complication (<code>CM</code>) entry ranked after the other diagnoses; it was the one encounter-diagnosis Condition no Encounter referenced (#3761).</li>
+<li>PHQ-9, GAD-7, C-SSRS and EPDS total scores are no longer built as laboratory results: the Observation has no analyzer method and no companion blood Specimen, its ServiceRequest and DiagnosticReport are evaluation procedures (SNOMED 386053000) without a laboratory profile (#3802).</li>
+<li>
+<p>A questionnaire-score Observation carries its LOINC instrument code only, with no JP-CLINS uncoded or local-code coding and no laboratory profile, and is performed by the orderer, else the attending of the Encounter (no performer when neither exists), instead of the laboratory technician; laboratory results and <code>jp_clins_lab_compliance</code> are unchanged (#3807).</p>
+</li>
+<li>
+<p>A child's per-kg prescription is dosed from the weight charted at the prescribing visit (the weight Observation of the same encounter) instead of the profile weight, so "432mg (45mg/kg)" no longer overdoses a young infant (#3636).</p>
+</li>
 <li>A patient who is still febrile is no longer discharged home at the extension cap: a fever has its own, longer cap (<code>fever_max_extension_days</code>), a patient still febrile at that cap is discharged to a skilled nursing facility, and the discharge instructions name the unresolved fever (#3637).</li>
 <li>Protocol antibiotic orders for meropenem (US and JP) and US piperacillin/tazobactam are now renally adjusted: once per order on the day it starts, the dose, frequency and intent note are rewritten from the Cockcroft-Gault clearance (latest creatinine resulted by the order time, else the stay's first) and the MAR keeps the adjusted interval, instead of every order getting the full standard dose whatever the clearance; JP piperacillin/tazobactam and other antibiotics are not adjusted (#3638).</li>
 <li>A complication that requires intubation or mechanical ventilation (COPD <code>intubation_required</code>, asthma and influenza respiratory failure / ARDS, sepsis and pancreatitis ARDS) now secures the airway at its onset through the state-driven path: intubation procedure, ventilator readings, ICU and NPO diet, unless the patient declined intubation or is already intubated; the respiratory failure / ARDS diagnosis comes from the in-hospital complication table, which now also maps <code>acute_respiratory_distress</code> to J80 (#3639).</li>
@@ -2500,7 +2527,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <li>Supplemental oxygen is titrated down as well as up: once the SpO2 on oxygen stays above the target band the flow is lowered one flowmeter step at a time and the device follows (mask to nasal cannula), so a stepped-down ICU patient no longer stays on 8-10 L/min on the ward and the step-down follows the criteria more often (#3632).</li>
 </ul>
 <h2 id="073---2026-11-24">[0.7.3] - 2026-11-24<a class="headerlink" href="#073---2026-11-24" title="Permanent link">&para;</a></h2>
-<h3 id="highlights">Highlights<a class="headerlink" href="#highlights" title="Permanent link">&para;</a></h3>
+<h3 id="highlights_1">Highlights<a class="headerlink" href="#highlights_1" title="Permanent link">&para;</a></h3>
 <p>About 55 commits since v0.7.2, from a review of the template narratives of the v0.7.2 sample cohorts (five patients per country, document by document) and two external fix requests. The entries below were written as the changes landed; this summary lists the main areas.</p>
 <ul>
 <li><strong>Clinical course.</strong> An intubated stay is ventilated until extubation; emergency intubation follows the code status (a patient who declined intubation is not intubated); an ICU stay records its step-down to the ward; consciousness falls from the onset of a consciousness-lowering complication; a patient at AVPU P / U is nil by mouth and oral doses are held; an infectious complication starts an antibiotic; AKI-held drugs stay held while the AKI lasts; oxygen flows are recorded in flowmeter steps.</li>
@@ -2509,7 +2536,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <li><strong>CLI.</strong> Without <code>--end</code>, the simulation window now ends yesterday, so no record is dated in the future.</li>
 <li><strong>Documentation.</strong> CHANGELOG, module READMEs and design guides were brought back in line with the code.</li>
 </ul>
-<h3 id="cif-drift-why-this-release-is-numbered-as-a-patch">CIF drift (why this release is numbered as a PATCH)<a class="headerlink" href="#cif-drift-why-this-release-is-numbered-as-a-patch" title="Permanent link">&para;</a></h3>
+<h3 id="cif-drift-why-this-release-is-numbered-as-a-patch_1">CIF drift (why this release is numbered as a PATCH)<a class="headerlink" href="#cif-drift-why-this-release-is-numbered-as-a-patch_1" title="Permanent link">&para;</a></h3>
 <p>Many of the fixes below change structured CIF for the same <code>(seed, hospital_config, country, start, end, population)</code> and are marked "CIF drift, a MINOR-class change". Under the versioning policy above this release would be a MINOR bump; it is numbered 0.7.3 by maintainer decision, as a corrective release of the v0.7.2 narrative review. CIF ↔ narrative-CIF consistency is broken all the same: narrative CIF generated with v0.7.2 must be regenerated (<code>narrate</code>) against structured CIF from v0.7.3.</p>
 <h3 id="fixed_1">Fixed<a class="headerlink" href="#fixed_1" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2547,19 +2574,19 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <li>The JP admission and nutrition care plans derive special nutrition management, dietitian, goal, dysphagia diet and final evaluation from one shared nutrition state of the record (#3553); discharge instructions fit the drugs and disposition with one emergency and one diet sentence, facility-addressed entries and a fixed-days gate (#3554); the death certificate and death summary include secondary diagnoses, hour-timed short stays and a surgery section (#3537).</li>
 <li>Nursing shift notes gate self-reported pain, independent feeding and mobility, and refused doses on consciousness: for a patient charted at AVPU P or U they state observed pain assessment, full assistance and doses not given because the patient could not take them (#3536).</li>
 </ul>
-<h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
+<h3 id="added_1">Added<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li>A once-only <code>well_child_one_month</code> infant visit (fixed age 21-45 days, day and attendance from a hash sub-seed) so the one-month check named in newborn discharge instructions exists in the schedule (#3566).</li>
 </ul>
 <h2 id="072---2026-11-22">[0.7.2] - 2026-11-22<a class="headerlink" href="#072---2026-11-22" title="Permanent link">&para;</a></h2>
-<h3 id="highlights_1">Highlights<a class="headerlink" href="#highlights_1" title="Permanent link">&para;</a></h3>
+<h3 id="highlights_2">Highlights<a class="headerlink" href="#highlights_2" title="Permanent link">&para;</a></h3>
 <p>Performance release. The template narrative pass had become quadratic in the cohort size after v0.7.0 (about 20 times slower for a p=10000 cohort); it is linear again. CIF, narratives and FHIR are byte-identical to v0.7.1 for the same parameters (only <code>clinosim_version</code> and the wall-clock timestamps in the metadata differ), so this is a PATCH release and narrative CIF generated with v0.7.1 stays valid.</p>
 <h3 id="fixed_2">Fixed<a class="headerlink" href="#fixed_2" title="Permanent link">&para;</a></h3>
 <ul>
 <li>The template narrative pass is linear in the cohort size again: the lookup of a patient's other structural records lists the structural directory once per directory state instead of once per document, and the condition stage label table is parsed once instead of on every stage a note prints. A US p=1000 pass takes 22 s instead of 83 s with byte-identical narratives; the p=10000 release cohort pass had grown to about 20 times the v0.7.0 time.</li>
 </ul>
 <h2 id="071---2026-11-22">[0.7.1] - 2026-11-22<a class="headerlink" href="#071---2026-11-22" title="Permanent link">&para;</a></h2>
-<h3 id="highlights_2">Highlights<a class="headerlink" href="#highlights_2" title="Permanent link">&para;</a></h3>
+<h3 id="highlights_3">Highlights<a class="headerlink" href="#highlights_3" title="Permanent link">&para;</a></h3>
 <p>About 160 commits since v0.7.0 (about 150 fixes), almost all from two rounds of reviewing the template narratives of the v0.7.0 sample cohorts patient by patient. The entries below this summary were written as the changes landed; this summary lists the main areas.</p>
 <ul>
 <li><strong>Narrative documents.</strong> Every note states only what was known at its authored time (results, procedures, complications, home medications), and documents are stamped with the encounter's time. Progress notes follow the period's vitals, labs, exam and medication plan; nursing shift notes carry data-driven items (pain, fever, oxygen, consciousness, held and refused doses, intake / output, devices, meals, skin, mobility, fall risk, newborn care); ED notes, the admission H&amp;P, outpatient SOAP, discharge and death summaries, the death certificate, the referral letter and newborn documents were completed and made consistent with the record.</li>
@@ -2568,7 +2595,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <li><strong>Japanese output.</strong> Order, dose and supportive-care text, diagnosis names, complication names and imaging exam names read as Japanese phrases instead of word-by-word substitution or English slugs.</li>
 <li><strong>Documentation.</strong> CHANGELOG, module READMEs and the design guides were brought back in line with the code.</li>
 </ul>
-<h3 id="cif-drift-why-this-release-is-numbered-as-a-patch_1">CIF drift (why this release is numbered as a PATCH)<a class="headerlink" href="#cif-drift-why-this-release-is-numbered-as-a-patch_1" title="Permanent link">&para;</a></h3>
+<h3 id="cif-drift-why-this-release-is-numbered-as-a-patch_2">CIF drift (why this release is numbered as a PATCH)<a class="headerlink" href="#cif-drift-why-this-release-is-numbered-as-a-patch_2" title="Permanent link">&para;</a></h3>
 <p>Many of the fixes below change structured CIF for the same <code>(seed, hospital_config, country, start, end, population)</code> and are marked "CIF drift, a MINOR-class change". Under the versioning policy above this release would be a MINOR bump; it is numbered 0.7.1 by maintainer decision, as a corrective release of the v0.7.0 narrative review. CIF ↔ narrative-CIF consistency is broken all the same: narrative CIF generated with v0.7.0 must be regenerated with <code>clinosim narrate</code>, and v0.7.0 and v0.7.1 cohorts with the same parameters are not byte-identical.</p>
 <h3 id="fixed_3">Fixed<a class="headerlink" href="#fixed_3" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2696,7 +2723,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <li>A discharge supply longer than the acute course ceiling is emitted as a continuous course of therapy in FHIR (#3264, #3265).</li>
 </ul>
 <h2 id="070---2026-11-11">[0.7.0] - 2026-11-11<a class="headerlink" href="#070---2026-11-11" title="Permanent link">&para;</a></h2>
-<h3 id="highlights_3">Highlights<a class="headerlink" href="#highlights_3" title="Permanent link">&para;</a></h3>
+<h3 id="highlights_4">Highlights<a class="headerlink" href="#highlights_4" title="Permanent link">&para;</a></h3>
 <p>About 1,090 commits since v0.6.5 (about 430 fixes, 300 refactors and 175 features). The entries below this summary were written as the changes landed; this summary lists the main areas.</p>
 <ul>
 <li><strong>Country profile.</strong> Country differences are expressed through a validated country profile (<code>clinosim/locale/_root/country.yaml</code> deep-merged with <code>locale/&lt;cc&gt;/country.yaml</code>, <code>clinosim/country_profile.py</code>): values live in locale YAML, country algorithms are registered implementations under <code>clinosim/countries/</code>, and FHIR structure is gated by <code>profile.uses(...)</code>. <code>country</code> is a required parameter throughout; an unknown country raises instead of borrowing US values. Design: <code>docs/design-guides/country-profile-spec.md</code>. A code/data-separation ratchet test (<code>tests/unit/test_code_data_separation_3137.py</code>) keeps country branches and numeric literals from growing.</li>
@@ -2737,7 +2764,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <li><strong>F10 (alcohol use disorder) + C16 (gastric cancer) chronic patients now receive MAT / adjuvant chemotherapy medications</strong> (partial #1701 — chronic → medication linking). Pre-fix, patients carrying <code>F10.2x</code> (alcohol UD) or <code>C16.x</code> (gastric cancer) in <code>chronic_conditions</code> emitted zero home medications over a 5y sim window because <code>clinosim/locale/shared/chronic_medications.yaml</code> had no entries for these ICD families. New F10 block: Naltrexone / Acamprosate / Disulfiram (SAMHSA TIP 49 2020 + 日本アルコール関連障害医学会 2018; MAT penetration ~26 % matching US SAMHSA N-SSATS band). New C16 block: Capecitabine (US first-line) + Tegafur-Gimeracil-Oteracil [S-1] (JP first-line via PMDA) tagged as <code>drug_class: fluoropyrimidine</code> so the active-regimen mutex (same guard C18 uses) prevents double 5-FU exposure when the patient is on a FOLFOX-type IV regimen. Chronic → surveillance / encounter-routing gaps (G47.30 sleep apnea CPAP + oncology surveillance paths) remain OUT of scope — tracked under #1701 remainder + #1698 specialty routing. MINOR-track CIF change for F10 / C16 chronic carriers only (new MedicationRequest resources appear in their history); other cohorts byte-identical.</li>
 <li><strong>Newborn Z38 / P-chapter codes no longer stored as chronic conditions</strong> (Issue #1699). <code>clinosim/simulator/perinatal.py::_build_newborn_patient</code> previously appended <code>Z38.0</code> (single-liveborn admission dx) + all sampled perinatal yaml entries (P07.x preterm, P22.x RDS, P59.x neonatal jaundice) to the newborn's <code>PatientProfile.chronic_conditions</code>, where downstream FHIR Condition emit stamped them as active indefinite problem-list items — clinically wrong (these are one-time episode codes, not persistent chronics). Phase 3.5 adds a new <code>PatientProfile.perinatal_history: list[ChronicCondition]</code> field that holds these perinatal-episode codes separately from <code>chronic_conditions</code>, and <code>_sample_newborn_conditions</code> returns a <code>(persistent, perinatal)</code> tuple classified by code prefix (P-chapter + Z38 → perinatal; everything else → chronic). L22 (diaper dermatitis) + L20.9 (atopic dermatitis) remain in <code>chronic_conditions</code> since they legitimately persist into infancy. Z38 remains on the delivery <code>Encounter.diagnosis</code> via the existing <code>ClinicalDiagnosis.admission_diagnosis_code</code> path, so FHIR output preserves the birth lineage without stamping Z38 as a chronic. The newborn's downstream <code>PersonRecord.chronic_conditions</code> (derived from <code>newborn.chronic_conditions</code> by <code>register_newborn</code>) is also cleaned up transitively. (Surfaced by the p=2000 5y audit on POP-000054-BABY carrying <code>chronic_conditions=[Z38.0, P07.3]</code> with <code>onset_date=2023-08-05</code>.) MINOR-track change per the CIF ↔ narrative-CIF consistency contract: <code>-BABY</code> CIF chronic_conditions value changes; adult cohorts stay byte-identical.</li>
 </ul>
-<h3 id="added_1">Added<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
+<h3 id="added_2">Added<a class="headerlink" href="#added_2" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Multi-chronic patients now see additional specialty encounters on top of their primary care / internal medicine chronic_followup stream</strong> (Issue #1698 — Phase 1 specialty routing fan-out). A new <code>clinosim/locale/shared/specialty_routing.yaml</code> declares (chronic → specialty + cadence) rows: C-codes → <code>oncology</code> annual (NCCN survivorship), <code>I48</code>/<code>I50</code>/<code>I25</code> → <code>cardiology</code> semi_annual (ACC/AHA stable follow-up), <code>F32</code>/<code>F33</code>/<code>F41.1</code> → <code>psychiatry</code> quarterly (APA 2010 / VA-DoD 2022 treatment-phase cadence), <code>J44</code> → <code>pulmonology</code> annual (GOLD 2024 stable COPD). A new <code>_specialty_fanout_tick</code> helper in <code>clinosim/simulator/outpatient.py</code> returns one <code>(specialty, cadence, period_key)</code> tuple per matching route whose cadence period hasn't been emitted yet for the patient (dedup via <code>patient._phase1_specialty_visits_emitted: set[(specialty, year, period_slot)]</code>); the engine's <code>_run_healthcare_calendar_phase</code> chronic_followup branch calls the helper after <code>patient_records.append(opd_record)</code> and synthesises each tuple as an additional <code>_simulate_outpatient_visit</code> routed to the specialty department via <code>resolve_department</code>. Multi-cancer-family patients (e.g. C50 + C18 both route to oncology) see ONE oncology visit per year — specialty-level dedup prevents multiplication. Non-affected cohorts (patients with zero routing-table chronics) consume zero additional RNG and stay byte-identical. The 50-bed community-hospital <code>hospital_operations.yaml</code> currently staffs <code>cardiology</code> + <code>oncology</code> as available departments but rolls <code>psychiatry</code> + <code>pulmonology</code> into <code>internal_medicine</code> per the existing design (see rollup block comment at lines 83-90) — Phase 1 preserves this: F32/F33/F41.1 + J44 patients get the additional encounters, just landing on <code>internal_medicine</code> dept via the rollup; Phase 2 will revisit with per-hospital staffing variation. Phase 2 also adds stage-gate (CCS I → PCP only vs CCS III → cardio every 6 mo), per-specialty chief-complaint catalog, JP locale split, and <code>ServiceRequest</code> / <code>Encounter.referralRequest</code> referral emits — all tracked under META #1694. MINOR-track CIF change for every patient carrying any Phase 1 routing-table chronic (new specialty-dept encounters appear on their outpatient stream); every other cohort member stays byte-identical.</li>
 <li><strong>C22 liver (HCC) abdominal ultrasound now fires per NCCN semi-annual cadence, not annual</strong> (Issue #1701 partial — Phase 4f, follow-on to Phase 4e horizontal). The chronic_followup <code>procedures:</code> schema gains a fourth <code>frequency</code> value <code>semi_annual</code> alongside <code>every_visit</code>, <code>baseline_only</code>, and <code>annual</code>. Dedup is tracked per-patient via a new attribute <code>_phase4f_semi_annual_procedures_emitted: dict[snomed, set[(year, half)]]</code> where <code>half</code> is 1 for Jan-Jun and 2 for Jul-Dec. <code>chronic_followup.yaml::C22.procedures</code> is upgraded from <code>annual</code> to <code>semi_annual</code> to match NCCN v2.2024 HCC §HCC-G (hepatocellular carcinoma post-dx surveillance imaging). C50/C34/C18/C16 annual surveillance (shipped in Phase 4e / horizontal) is unaffected — the <code>annual</code> branch keeps its calendar-year dedup unchanged. MINOR-track CIF change for C22 HCC patients only — follow-up visits in H2 of the same calendar year now carry a second abdominal US ProcedureRecord.</li>
@@ -2834,7 +2861,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <li><strong>Post-Phase-1d-81 full-corpus sweep</strong> of the p=10000 s=500 JP template narrative (80,248 docs) confirms 0 hits for every previously-detected EN leak: <code>mm[Hg]</code>, <code>{INR}</code>, <code>hospital day N</code>, <code>stabilisation phase</code>, <code>acute phase</code>, <code>pathway</code>, <code>1 shift</code>, <code>毎 shift</code>, <code>pH pH</code>, F17.210/E66.3/H26/K59/E79 raw code.</li>
 </ul>
 <h2 id="063---2026-09-21">[0.6.3] - 2026-09-21<a class="headerlink" href="#063---2026-09-21" title="Permanent link">&para;</a></h2>
-<h3 id="added_2">Added<a class="headerlink" href="#added_2" title="Permanent link">&para;</a></h3>
+<h3 id="added_3">Added<a class="headerlink" href="#added_3" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Length-truncation retry for bundle-strategy narrate</strong> in <code>clinosim/modules/document/narrative/replacement_strategy.py</code>. When a <code>template_seed_bundle</code> LLM response comes back with <code>finish_reason="length"</code> (max_tokens ceiling hit → JSON truncated mid-string), the strategy now re-issues the same prompt once with an expanded <code>max_tokens</code> derived from the remaining <code>_BUNDLE_RETRY_MAX_MODEL_LEN</code> budget (default 32768, matching the recommended vLLM <code>--max-model-len</code>). If the retry parses cleanly the bundle path continues without per-section fallback; the safety-net per-section retry remains for genuine parse errors or the degenerate "prompt fills context" case. <code>LLMResponse.finish_reason</code> is now forwarded end-to-end from <code>ProviderResponse.metadata</code> (previously dropped during the <code>_complete_with_retry</code> conversion). Two new unit tests cover the retry-success path and the double-truncation degenerate case.</li>
 </ul>
@@ -2861,7 +2888,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <li><strong>CI: nightly <code>.test_durations</code> regeneration from ubuntu runner</strong> (2026-09-14, follow-up to #1428). New <code>test-durations-regen</code> job in <code>nightly.yml</code> runs <code>pytest --store-durations</code> for unit + integration on ubuntu-latest and opens a routine "chore(ci): refresh .test_durations" PR when the file drifts. Motivation: post-#1428 install variance was solved by uv but the residual integration-shard imbalance (max 6m29s vs min 2m22s, gap ~4 min) was 100 % test-time distribution because <code>.test_durations</code> had been recorded on a maintainer M-series Mac where sim-heavy tests run ~2-3× faster than on ubuntu-latest — so <code>pytest-split</code>'s bin-pack looked perfect on paper (1.01× at N=10) but leaned heavy on the shards that landed the sim-bound tests. Regenerating from the same runner infra as PR CI aligns bin-pack with reality; expected max shard drop from ~6.5 min toward the theoretical floor once the first nightly refresh lands.</li>
 <li><strong>CI: introduce <code>uv</code> for dependency installation across all workflows</strong> (2026-09-14, follow-up to Issue #1420). Replace <code>pip install</code> with <code>uv pip install --system</code> in all 9 workflows (ci / nightly / release / docs / jp-clins-lab-compliance-gate / jp-core-compliance-gate / us-core-compliance-gate / jp-validate / us-validate). Each workflow now inserts an <code>astral-sh/setup-uv@v6</code> step immediately after <code>actions/setup-python</code>, with <code>enable-cache: true</code> and <code>cache-dependency-glob: pyproject.toml</code> so the wheel cache keys off the dependency spec. The unit-test shard imbalance observed post-#1426 (max 4m5s vs min 1m36s, gap ~2m30s) is dominated by pip-install runner-cache variance (~3m cold vs ~30s warm); <code>uv</code> installs the same wheels ~10× faster, so the install phase converges to ~30s regardless of cache state. Expected gap collapse: shard variance drops from 2-3 min to ~20-30s, so the max-shard wall matches the min-shard wall much more tightly. <code>cache: pip</code> on <code>setup-python</code> and any <code>python -m pip install --upgrade pip</code> steps are removed (uv owns its own cache and does not need a bootstrapped pip).</li>
 </ul>
-<h3 id="added_3">Added<a class="headerlink" href="#added_3" title="Permanent link">&para;</a></h3>
+<h3 id="added_4">Added<a class="headerlink" href="#added_4" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>US Core narrow-gate compliance axis + CI gate</strong>
   (2026-09-14, Issue #1418 Phase 1). New <code>clinosim.eval.axes.us_core_compliance</code>
@@ -3141,7 +3168,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   the five Rule 5 translation tables (their content IS the
   localization mapping — translating them would defeat their purpose).</li>
 </ul>
-<h3 id="added_4">Added<a class="headerlink" href="#added_4" title="Permanent link">&para;</a></h3>
+<h3 id="added_5">Added<a class="headerlink" href="#added_5" title="Permanent link">&para;</a></h3>
 <ul>
 <li>
 <p><strong>Drug-safety silent-events wire to <code>safety_skip_log</code></strong> (Issue #1403,
@@ -3342,7 +3369,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   <code>frequency: prn</code> chronic med (Nitroglycerin SL, Loperamide,
   etc.) if declared.</li>
 </ul>
-<h3 id="added_5">Added<a class="headerlink" href="#added_5" title="Permanent link">&para;</a></h3>
+<h3 id="added_6">Added<a class="headerlink" href="#added_6" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Acute-illness medication holds for AKI and acute ischemic stroke</strong>
   (Issue #1335, META #1392 Cluster A part 3). Extended
@@ -4358,7 +4385,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   cadence for sliding-scale prescriptions. Separate PR.</p>
 <p>FHIR-emit-only change: CIF is byte-unchanged; classified PATCH
   under the CIF-narrative consistency policy.</p>
-<h3 id="added_6">Added<a class="headerlink" href="#added_6" title="Permanent link">&para;</a></h3>
+<h3 id="added_7">Added<a class="headerlink" href="#added_7" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>US SEER-calibrated prevalences for C15 / C16 / C25 / C67 / C71</strong>
   (Issue #1311). 2026-09-12 PRs #1298 (C15/C16 → FOLFOX), #1303 (Gemcitabine
@@ -4725,7 +4752,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   no CIF change; RNG-neutral; sibling <code>_drop_entries_after_death</code>
   benefits from the same iterator improvement.</li>
 </ul>
-<h3 id="added_7">Added<a class="headerlink" href="#added_7" title="Permanent link">&para;</a></h3>
+<h3 id="added_8">Added<a class="headerlink" href="#added_8" title="Permanent link">&para;</a></h3>
 <ul>
 <li>
 <p><strong>BMI-derived <code>E66.3</code> (Overweight, BMI 25-29.9) Condition emit</strong>
@@ -4881,7 +4908,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   template-string fallback only; no CIF change; no RNG.</p>
 </li>
 </ul>
-<h3 id="added_8">Added<a class="headerlink" href="#added_8" title="Permanent link">&para;</a></h3>
+<h3 id="added_9">Added<a class="headerlink" href="#added_9" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Newborn bilirubin + CCHD SpO2 + US ophthalmic prophylaxis</strong> (#1252 →
   PR, sub-scope N7 — final slice of the newborn workup roadmap).</li>
@@ -4962,7 +4989,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   dict); narrative CIF unchanged.</p>
 </li>
 </ul>
-<h3 id="added_9">Added<a class="headerlink" href="#added_9" title="Permanent link">&para;</a></h3>
+<h3 id="added_10">Added<a class="headerlink" href="#added_10" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Newborn shift-cadence vital signs</strong> (#1252 → PR, sub-scope N3). The
   observation module's vitals engine is disease-anchored (needs a
@@ -4997,7 +5024,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   patient-attribute defaults; no CIF schema change; narrative CIF was
   never using the previous adult values.</li>
 </ul>
-<h3 id="added_10">Added<a class="headerlink" href="#added_10" title="Permanent link">&para;</a></h3>
+<h3 id="added_11">Added<a class="headerlink" href="#added_11" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong><code>clinosim/modules/newborn/</code> — birth-admission clinical workup</strong> (#1252 → PR,
   sub-scope N2). New module that fills the gap between <code>simulator/perinatal.py</code>
@@ -5244,7 +5271,7 @@ invariants required a MINOR bump per the versioning policy: seven of
 the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
 <code>narrate</code> run is required against the new structured CIF.</p>
 <h3 id="2026-09-06--2026-09-07-additions">(2026-09-06 → 2026-09-07) additions<a class="headerlink" href="#2026-09-06--2026-09-07-additions" title="Permanent link">&para;</a></h3>
-<h4 id="added_11">Added<a class="headerlink" href="#added_11" title="Permanent link">&para;</a></h4>
+<h4 id="added_12">Added<a class="headerlink" href="#added_12" title="Permanent link">&para;</a></h4>
 <ul>
 <li><strong>Patient-profile realism keys for LLM narrative prompts</strong> (PR
   <a href="https://github.com/TomoOkuyama/clinosim/pull/1164">#1164</a>). Three
@@ -5589,7 +5616,7 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
 <li>No new FHIR resource types emitted, no bundle-structural change, no
   DetectedIssue.</li>
 </ul>
-<h3 id="added_12">Added<a class="headerlink" href="#added_12" title="Permanent link">&para;</a></h3>
+<h3 id="added_13">Added<a class="headerlink" href="#added_13" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Pregnancy lifecycle refactor: <code>TemporalStatePeriod</code> framework +
   biology-consistent obstetric emit (META #957 Incr 1).</strong> Introduces a
@@ -5694,7 +5721,7 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
   the sim window is not preserved; a fresh <code>narrate</code> run is required.
   Author: Claude.</li>
 </ul>
-<h3 id="added_13">Added<a class="headerlink" href="#added_13" title="Permanent link">&para;</a></h3>
+<h3 id="added_14">Added<a class="headerlink" href="#added_14" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Issue #957 (male-C50 activation) — Breast cancer for male patients.</strong>
   Real-world male breast cancer is ~1 % of C50 total (MHLW 患者調査 2020 /
@@ -6177,7 +6204,7 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
   preserved; a fresh <code>narrate</code> run is required.
   Author: Claude.</li>
 </ul>
-<h3 id="added_14">Added<a class="headerlink" href="#added_14" title="Permanent link">&para;</a></h3>
+<h3 id="added_15">Added<a class="headerlink" href="#added_15" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Issue #961 — Death certificate (死亡診断書) Composition for deceased
   inpatients.</strong> Pre-fix, 47/6,389 deceased patients on the JP p=6,389
@@ -6535,7 +6562,7 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
   tests, and documented as public API — whitelist entry added to
   <code>vulture_whitelist.py</code>.</li>
 </ul>
-<h3 id="added_15">Added<a class="headerlink" href="#added_15" title="Permanent link">&para;</a></h3>
+<h3 id="added_16">Added<a class="headerlink" href="#added_16" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Issue #946 — Anthropometric vitals (height / weight / BMI /
   head-circumference).</strong> Pre-fix, not a single body-height /
@@ -7369,7 +7396,7 @@ regression).</p>
 <li><code>test_data/</code> (5392 files / 200 MB of accumulated LLM narrative eval
   outputs) untracked; <code>.gitignore</code> prevents re-add (PR #529).</li>
 </ul>
-<h3 id="added_16">Added<a class="headerlink" href="#added_16" title="Permanent link">&para;</a></h3>
+<h3 id="added_17">Added<a class="headerlink" href="#added_17" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Synthea comparison adapter</strong> (P1-10):
   <a href="../../eval/"><code>clinosim eval</code></a> can now score a
@@ -7535,7 +7562,7 @@ distribution work that makes it installable.</p>
 <li>New <code>LICENSE</code> file at repo root (prior state: <code>pyproject.toml</code> declared
   MIT but no LICENSE text shipped).</li>
 </ul>
-<h3 id="added_17">Added<a class="headerlink" href="#added_17" title="Permanent link">&para;</a></h3>
+<h3 id="added_18">Added<a class="headerlink" href="#added_18" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Population-driven, physiology-based synthetic EHR data simulation
   (13-variable hidden physiological state per patient).</li>

@@ -2498,6 +2498,8 @@ can script bulk-download and diff-across-releases:</p>
 </span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>fhir_r4/
 </span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>  *.ndjson                 (all FHIR R4 resources)
 </span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>  _generator_metadata.json (clinosim_version + nested cif_metadata mirror)
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>catalog/
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>  codes-used.ndjson        (every code the dataset's FHIR resources use)
 </span></code></pre></div>
 <p>Both metadata files pin <code>clinosim_version</code> to the release tag; the
 <code>_generator_metadata.json</code> also records the exact git commit + recent

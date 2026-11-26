@@ -2515,6 +2515,7 @@
 </span></code></pre></div>
 <p>各行 = 1 FHIR リソース。<code>Resource.id</code> は全 resource type 横断で一意。
 Reference integrity を維持。</p>
+<p>全ての export は <code>fhir_r4/</code> の隣 (内側ではない) に <code>output/catalog/codes-used.ndjson</code> も書く — <a href="#使用コードカタログ">使用コードカタログ</a> 参照。</p>
 <p><code>DocumentReference.ndjson</code> は <code>--narrative-version</code> が version
 ディレクトリに解決される時 (default: <code>current</code>、Stage 1 の
 <code>TemplateNarrativePass</code> が維持する <code>current_version.txt</code> ポインタ
