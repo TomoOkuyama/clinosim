@@ -14,6 +14,7 @@ minimal:
 
 from __future__ import annotations
 
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -60,11 +61,52 @@ class _MonitoringRule(BaseModel):
         return self
 
 
+class _Range(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    low: StrictFloat | StrictInt
+    high: StrictFloat | StrictInt
+
+    @model_validator(mode="after")
+    def _ordered(self) -> _Range:
+        if not self.low < self.high:
+            raise ValueError("low must be below high")
+        return self
+
+
+class _AmbulatoryTiming(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    order_at_fraction_of_visit: _Range
+    result_at_fraction_of_remaining: StrictFloat = Field(gt=0, le=1)
+
+    @model_validator(mode="after")
+    def _inside_the_visit(self) -> _AmbulatoryTiming:
+        r = self.order_at_fraction_of_visit
+        if r.low < 0 or r.high >= 1:
+            raise ValueError("order_at_fraction_of_visit must lie in [0, 1)")
+        return self
+
+
+class _Timing(BaseModel):
+    """Draw time of an injected monitoring lab (Issue #3867)."""
+
+    model_config = ConfigDict(extra="forbid")
+    draw_minutes: _Range
+    admission_result_delay_hours: StrictFloat | StrictInt = Field(gt=0)
+    ambulatory: _AmbulatoryTiming
+
+    @model_validator(mode="after")
+    def _draw_range_is_whole_minutes(self) -> _Timing:
+        if int(self.draw_minutes.low) != self.draw_minutes.low or int(self.draw_minutes.high) != self.draw_minutes.high:
+            raise ValueError("draw_minutes bounds must be whole minutes")
+        return self
+
+
 class _MonitoringFile(BaseModel):
     """Shape of ``medication_monitoring.yaml``, the one drug → monitoring-lab
     table of both monitoring paths (Issue #2786)."""
 
     model_config = ConfigDict(extra="forbid")
+    timing: _Timing
     mappings: dict[str, _MonitoringRule] = Field(min_length=1)
 
 
@@ -81,6 +123,12 @@ def load_medication_monitoring(path: Path | None = None) -> dict[str, Any]:
     lab with no code in the lab code mapping.
     """
     return load_validated_yaml(path or _YAML_PATH, _MonitoringFile)["mappings"]
+
+
+@lru_cache(maxsize=1)
+def load_monitoring_timing() -> dict[str, Any]:
+    """The draw-time block of ``medication_monitoring.yaml`` (Issue #3867)."""
+    return load_validated_yaml(_YAML_PATH, _MonitoringFile)["timing"]
 
 
 def monitoring_lab_code(lab: str) -> str:

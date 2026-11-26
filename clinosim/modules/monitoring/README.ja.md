@@ -23,6 +23,10 @@ discharge protocol、および antibiotic 起点 order の 3 系統だけで、
   走査)、per-encounter
   dedup により disease YAML flow (sepsis / PE / GI bleed) が正当に
   同 analyte を発注しているケースを尊重して二重発行しない。
+- **採取時刻** (Issue #3867): 入院は入院後 10-30 分に採取し 2 時間後に
+  結果、終了時刻が分かる外来・ED 受診は同じ 1 回の乱数を受診時間の
+  割合に写像し、結果は発注から受診終了までの間に置く。Encounter の
+  終了後に order / 結果が出ない (YAML の `timing` ブロック)。
 - **Out of scope**: 慢性薬付与
   ([`clinosim.modules.patient`](../patient/README.ja.md) activator)、
   disease YAML lab order
@@ -50,6 +54,7 @@ POST_RECORDS enricher 経路は submodule から直接参照する (re-export �
 ```python
 from clinosim.modules.monitoring.enricher import enrich_medication_monitoring
 from clinosim.modules.monitoring.mapping import (
+    load_monitoring_timing,          # () -> YAML の `timing` ブロック (採取時刻, Issue #3867)
     load_medication_monitoring,      # (path=None) -> {rule: {per_visit_probability, drugs, classes, monitoring: [...]}}
     match_drugs,                     # (current_medications, mapping) -> list[str] match した rule 名
     matched_medication_names,        # (current_medications, mapping) -> {rule: (name_en, name_ja)}

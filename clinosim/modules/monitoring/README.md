@@ -23,6 +23,11 @@ got no PT-INR at all.
   records are walked per patient in time order), per-encounter dedup so disease-YAML flows that legitimately order
   the same analyte (INR under sepsis / PE / GI bleed) are respected
   and not double-emitted.
+- **Draw time** (Issue #3867): an admission draws 10-30 minutes after
+  admission and results 2 hours later; an outpatient or ED visit with a
+  known end maps the same single draw onto a fraction of the visit and
+  results between the order and the visit end, so no order or result
+  follows the Encounter's end (the `timing` block of the YAML).
 - **Out of scope**: chronic-medication attachment
   ([`clinosim.modules.patient`](../patient/README.md) activator);
   disease-YAML lab orders
@@ -52,6 +57,7 @@ re-exported):
 ```python
 from clinosim.modules.monitoring.enricher import enrich_medication_monitoring
 from clinosim.modules.monitoring.mapping import (
+    load_monitoring_timing,          # () -> the YAML `timing` block (draw time, Issue #3867)
     load_medication_monitoring,      # (path=None) -> {rule: {per_visit_probability, drugs, classes, monitoring: [...]}}
     match_drugs,                     # (current_medications, mapping) -> list[str] matched rule names
     matched_medication_names,        # (current_medications, mapping) -> {rule: (name_en, name_ja)}
