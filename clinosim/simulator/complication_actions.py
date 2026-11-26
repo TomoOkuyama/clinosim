@@ -64,6 +64,18 @@ class SeverityRule(BaseModel):
     criteria: tuple[SeverityCriterion, ...] = Field(min_length=1)
 
 
+class DoseReduction(BaseModel):
+    """A drug's reduced dose by patient state (Issue #3896): ``dose`` replaces
+    the entry's dose when the body weight is at most ``weight_kg_at_most`` or
+    the patient takes one of ``interacting_drugs`` (catalog drug ids)."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    weight_kg_at_most: float = Field(gt=0)
+    interacting_drugs: tuple[_Slug, ...] = ()
+    dose: _Slug
+
+
 class StepDown(BaseModel):
     """The oral step-down that follows a ``course_days`` IV course (Issue #3896):
     the first ``route`` entry of the same block and class, given from the end of
@@ -98,6 +110,7 @@ class TreatmentAction(BaseModel):
     first_only: bool = False
     lead_in_days: int | None = Field(default=None, gt=0)
     step_down: StepDown | None = None
+    dose_reductions: dict[_Slug, DoseReduction] = Field(default_factory=dict)
     blocked_by: tuple[_Slug, ...] = ()
 
     @model_validator(mode="after")
@@ -317,6 +330,22 @@ def treatment_candidates(action: str, country_key: str, severity: str | None = N
     return out[:1] if spec.first_only else out
 
 
+def reduced_dose(action: str, drug_id: str, weight_kg: float | None, active_drugs: Iterable[str]) -> str | None:
+    """The reduced dose text of ``drug_id`` under a treatment action's
+    ``dose_reductions`` (Issue #3896): the body weight at or below the limit, or an
+    interacting drug among ``active_drugs`` (names or ids); ``None`` when the drug
+    has no rule or none applies. Draws nothing."""
+    from clinosim.codes.drugs import drug_key
+
+    rule = complication_action_rules().treatment_actions[action].dose_reductions.get(drug_id)
+    if rule is None:
+        return None
+    if weight_kg is not None and weight_kg <= rule.weight_kg_at_most:
+        return rule.dose
+    active = {drug_key(name) for name in active_drugs if name}
+    return rule.dose if active & {drug_key(d) for d in rule.interacting_drugs} else None
+
+
 def step_down_candidates(action: str, country_key: str) -> list[dict[str, Any]]:
     """The oral step-down entry of a treatment action with a ``step_down``
     (Issue #3896): the first entry of the action's block for the country whose
@@ -353,7 +382,12 @@ def is_therapeutic_anticoagulant_order(order: Order) -> bool:
 
 
 def complication_discharge_specs(
-    orders: Iterable[Order], country_key: str, *, discharge_time: datetime | None = None
+    orders: Iterable[Order],
+    country_key: str,
+    *,
+    discharge_time: datetime | None = None,
+    weight_kg: float | None = None,
+    active_drugs: Iterable[str] = (),
 ) -> list[dict[str, Any]]:
     """The discharge prescription entries for the treatment a complication
     started and that still runs at discharge (Issue #3864): the anticoagulant
@@ -361,7 +395,7 @@ def complication_discharge_specs(
     (C. difficile) or PPI (step-down, Issue #3896) course, which ends
     ``duration_days`` after it starts (``discharge_time`` is needed for it); a held (stopped) order is not continued."""
     orders = list(orders)
-    out = _anticoagulant_discharge_specs(orders, country_key)
+    out = _anticoagulant_discharge_specs(orders, country_key, weight_kg, active_drugs)
     if discharge_time is not None:
         for o in orders:
             if (
@@ -440,7 +474,9 @@ def complication_stopped_antibiotic_classes(orders: Iterable[Order]) -> tuple[fr
     return frozenset(), frozenset()
 
 
-def _anticoagulant_discharge_specs(orders: list[Order], country_key: str) -> list[dict[str, Any]]:
+def _anticoagulant_discharge_specs(
+    orders: list[Order], country_key: str, weight_kg: float | None = None, active_drugs: Iterable[str] = ()
+) -> list[dict[str, Any]]:
     """The discharge prescription entries for the anticoagulant a complication
     started and that still runs at discharge (Issue #3864): the protocol's
     ``discharge_block`` entry of the same drug class, in the order's own
@@ -478,6 +514,8 @@ def _anticoagulant_discharge_specs(orders: list[Order], country_key: str) -> lis
             out["dose"] = started_dose
         elif decision:
             out["dose"] = decision
+        elif reduction := reduced_dose("start_anticoagulation", str(entry.get("drug_id")), weight_kg, active_drugs):
+            out["dose"] = reduction  # Issue #3896: the weight / interaction dose of the label
         return [out]
     return []
 

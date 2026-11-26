@@ -319,3 +319,73 @@ def test_the_discharge_summary_says_the_held_anticoagulant_was_resumed() -> None
         ctx = SimpleNamespace(target_lang=lang, home_medications_at_admission=home, discharge_medications=discharge)
         line, _ = medication_changes_sentence(ctx)
         assert expected in line and "Warfarin" in line or "ワルファリン" in line, line
+
+
+# --- JP edoxaban against the PMDA package insert (Issue #3896) ---
+
+
+def _edoxaban_orders(run):
+    return [o for o in _meds(run, "anticoagulant") if o.drug_id == "edoxaban"]
+
+
+def _dvt_japan(monkeypatch, *, weight=70.0, creatinine=0.9, home=()):
+    from clinosim.types.patient import PatientProfile
+
+    stay, run = _stay("japan"), _run(creatinine=creatinine)
+    stay.patient = PatientProfile(
+        patient_id="P1", age=70, sex="M", weight_kg=weight, height_cm=170.0, current_medications=list(home)
+    )
+    _fire(monkeypatch, stay, run)
+    return stay, run
+
+
+def test_edoxaban_is_60_mg_above_60_kg_and_30_mg_at_or_below_60_kg(monkeypatch) -> None:
+    # PMDA insert, 6. 用法及び用量 (VTE): "体重60kg以下：30mg 体重60kg超：60mg"
+    _, heavy = _dvt_japan(monkeypatch, weight=61.0)
+    _, light = _dvt_japan(monkeypatch, weight=60.0)
+    assert [o.dose_quantity for o in _edoxaban_orders(heavy)] == [60.0]
+    assert [o.dose_quantity for o in _edoxaban_orders(light)] == [30.0]
+
+
+@pytest.mark.parametrize("drug", ["Verapamil", "Erythromycin", "Cyclosporine"])
+def test_edoxaban_is_30_mg_with_a_p_glycoprotein_inhibitor_the_insert_names(monkeypatch, drug) -> None:
+    # 7.2: "キニジン硫酸塩水和物、ベラパミル塩酸塩、エリスロマイシン、シクロスポリン ... 本剤30mgを1日1回"
+    _, run = _dvt_japan(monkeypatch, home=[drug])
+    assert [o.dose_quantity for o in _edoxaban_orders(run)] == [30.0]
+
+
+def test_edoxaban_renal_limits_follow_the_insert(monkeypatch) -> None:
+    # 7.1: CLcr 30-50 -> 30 mg; 15-<30 -> 30 mg if given; 2.4 / 9.2.2: CLcr < 15 contraindicated
+    _, moderate = _dvt_japan(monkeypatch, creatinine=1.9)  # CrCl about 38 mL/min for the test patient
+    assert [o.dose_quantity for o in _edoxaban_orders(moderate)] == [30.0]
+    _, severe = _dvt_japan(monkeypatch, creatinine=3.5)  # about 21 mL/min
+    assert [o.dose_quantity for o in _edoxaban_orders(severe)] == [30.0]
+    _, failure = _dvt_japan(monkeypatch, creatinine=6.0)  # about 12 mL/min
+    assert _edoxaban_orders(failure) == []
+
+
+def test_the_discharge_dose_of_edoxaban_follows_the_weight_and_the_renal_limit(monkeypatch) -> None:
+    from clinosim.simulator.complication_actions import complication_discharge_specs
+
+    def specs(run, weight, active=()):
+        return complication_discharge_specs(
+            run.orders, "japan", discharge_time=ONSET_ORDER + timedelta(days=8), weight_kg=weight, active_drugs=active
+        )
+
+    _, light = _dvt_japan(monkeypatch, weight=55.0)
+    (spec,) = specs(light, 55.0)
+    assert (spec["drug_id"], spec["dose"]) == ("edoxaban", "30mg PO daily")
+    _, heavy = _dvt_japan(monkeypatch, weight=80.0)
+    assert specs(heavy, 80.0)[0]["dose"] == "60mg PO daily"
+    assert specs(heavy, 80.0, ["Verapamil"])[0]["dose"] == "30mg PO daily"
+    _, renal = _dvt_japan(monkeypatch, weight=80.0, creatinine=1.9)
+    assert specs(renal, 80.0)[0]["dose"] == "30mg PO daily"  # the protocol's discharge entry has the renal limits too
+
+
+def test_the_dose_reduction_rule_is_validated_and_names_catalog_drugs() -> None:
+    from clinosim.codes.drugs import get_drug
+    from clinosim.simulator.complication_actions import complication_action_rules
+
+    rule = complication_action_rules().treatment_actions["start_anticoagulation"].dose_reductions["edoxaban"]
+    assert rule.weight_kg_at_most == 60.0 and rule.dose == "30mg PO daily"
+    assert all(get_drug(d) is not None for d in rule.interacting_drugs)

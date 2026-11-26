@@ -352,7 +352,7 @@ drugs:
       - drug_id: edoxaban
         dose: "60mg PO daily (after 5+ days heparin)"
         route: PO
-        note: "Start after initial heparin phase"
+        note: "Start after initial heparin phase; 30mg if body weight <=60kg or with verapamil/erythromycin/ciclosporin (PMDA insert, complication_actions.yaml dose_reductions)"
         renal_adjustment:
           eGFR_15_50: "30mg PO daily"
           eGFR_below_15: "avoid"
@@ -425,7 +425,11 @@ drugs:
       - drug_id: edoxaban
         dose: "60mg PO daily"
         duration_days: 90
-        note: "Minimum 3 months; extend if unprovoked or ongoing risk"
+        note: "Minimum 3 months; extend if unprovoked or ongoing risk; 30mg if body weight <=60kg (complication_actions.yaml dose_reductions)"
+        # PMDA edoxaban insert 7.1 and 2.4: CLcr 15-50 30 mg, under 15 contraindicated (Issue #3896).
+        renal_adjustment:
+          eGFR_15_50: "30mg PO daily"
+          eGFR_below_15: "avoid"
     us:
       - drug_id: rivaroxaban
         dose: "20mg PO daily with food"

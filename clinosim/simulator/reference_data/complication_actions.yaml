@@ -158,6 +158,23 @@ treatment_actions:
     intent: complication_anticoagulation
     discharge_block: discharge_oral
     lead_in_days: 5
+    # Issue #3896: dose reductions by patient state, from the PMDA package insert
+    # of edoxaban (Lixiana tablets, revised November 2025, 8th ed.; pmda.go.jp
+    # iyakuDetail 430574_3339002F1020_1_19), 6. 用法及び用量 for the treatment and
+    # recurrence prevention of venous thromboembolism: "体重60kg以下：30mg
+    # 体重60kg超：60mg なお、腎機能、併用薬に応じて1日1回30mgに減量する". 7.2:
+    # quinidine, verapamil, erythromycin, ciclosporin -> "本剤30mgを1日1回経口投与
+    # すること". Of these quinidine is not in the drug catalog. The second group of
+    # 7.2 (azithromycin, clarithromycin, itraconazole, diltiazem, amiodarone, HIV
+    # protease inhibitors: "30mgを1日1回経口投与することを考慮すること") is a
+    # consideration, not an instruction, and is not applied. The renal limits are
+    # the protocol entries' renal_adjustment (7.1: CLcr 30-50 30 mg; 15 to under 30
+    # 30 mg if given; 2.4: CLcr under 15 contraindicated).
+    dose_reductions:
+      edoxaban:
+        weight_kg_at_most: 60
+        interacting_drugs: [verapamil, erythromycin, ciclosporin]
+        dose: "30mg PO daily"
     blocked_by:
       - gi_bleeding
       - bleeding_on_anticoagulation
