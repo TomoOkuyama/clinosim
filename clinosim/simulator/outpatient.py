@@ -911,6 +911,56 @@ def _visit_diagnosis_code(
     return dx_code
 
 
+def _own_followup_block(code: str) -> dict:
+    """The chronic follow-up block of a condition code (the exact code, else
+    its three-character category), ``{}`` when the condition has none."""
+    from clinosim.locale.loader import load_chronic_followup
+
+    table = load_chronic_followup()
+    return table.get(code) or table.get(code.split(".")[0]) or {}
+
+
+def _indication_code(patient: PatientProfile, owner: str) -> str:
+    """The patient's chronic-condition code a follow-up procedure is done for
+    (Issue #3868): ``owner`` when the patient carries it, else empty (a visit
+    reason that is not a condition, e.g. a vaccination, indicates nothing)."""
+    for c in getattr(patient, "chronic_conditions", []) or []:
+        code = getattr(c, "code", None) or str(c)
+        if code and code.split(".")[0] == owner.split(".")[0]:
+            return str(code)
+    return ""
+
+
+def _own_visit_follows(patient: PatientProfile, visit_date: datetime, owner: str, visit_code: str) -> bool:
+    """Whether the specialty follow-up visit of the condition ``owner`` comes
+    right after this chronic visit (Issue #3868). The calendar adds one visit
+    per specialty and cadence period after the first chronic visit of the
+    period (``_specialty_fanout_tick``), for the condition the route matches;
+    until that visit is emitted (the ledger's ``specialty_visits``), a
+    procedure of the condition is left to it. A visit that starts no specialty
+    follow-up (a flu vaccination) leaves nothing pending."""
+    from clinosim.locale.loader import load_specialty_routing
+    from clinosim.modules.immunization.visits import FLU_VISIT_CONDITION
+
+    if visit_code == FLU_VISIT_CONDITION:
+        return False
+    chronic_codes = [
+        str(getattr(c, "code", None) or (c if isinstance(c, str) else ""))
+        for c in getattr(patient, "chronic_conditions", []) or []
+    ]
+    chronic_codes = [c for c in chronic_codes if c]
+    emitted = patient.visit_ledger.specialty_visits
+    for route in load_specialty_routing():
+        if _route_matching_code(route, chronic_codes) != owner:
+            continue
+        specialty, cadence = str(route.get("specialty") or ""), str(route.get("cadence") or "")
+        slot = _specialty_period_slot(cadence, visit_date.month)
+        if not specialty or slot is None:
+            continue
+        return (specialty, visit_date.year, slot[0]) not in emitted
+    return False
+
+
 def _followup_procedures(
     patient: PatientProfile,
     spec: dict,
@@ -947,13 +997,26 @@ def _followup_procedures(
     # construction consumes no draws from ``rng``), so the union only adds
     # records on affected visits and leaves cohorts without an unemitted
     # surveillance procedure byte-identical.
-    _chronic_procedures: list = list(spec.get("procedures") or []) if chronic_code else []
+    # Issue #3868: each procedure is paired with the chronic code of the block
+    # that owns it (its indication when that block is not the visit's own).
+    _chronic_procedures: list[tuple[dict, str]] = (
+        [(p, chronic_code) for p in (spec.get("procedures") or [])] if chronic_code else []
+    )
+    _on_followup = bool(chronic_code) and visit_type == "chronic_followup"
+    # Issue #3868: a specialty follow-up visit (the oncology survivorship visit
+    # the calendar adds after a chronic visit) carries no procedures in its
+    # spec; it takes the procedures of its own condition's follow-up block.
+    if _on_followup and spec.get("fanout") and not _chronic_procedures:
+        _own = _own_followup_block(chronic_code)
+        _chronic_procedures = [(p, chronic_code) for p in (_own.get("procedures") or [])]
     # Phase 4e cycle-2 union is scoped to chronic_followup visits so a
     # mammography_screening / annual_health_screening / pediatric_visit
     # (which already share this dispatcher) does not accidentally fire a
-    # survivorship Procedure under a screening-event banner.
-    if chronic_code and visit_type == "chronic_followup":
-        _seen_snomeds = {str(p.get("snomed") or "") for p in _chronic_procedures}
+    # survivorship Procedure under a screening-event banner. A specialty
+    # follow-up visit of another specialty is not an opportunity either
+    # (Issue #3868).
+    if _on_followup and not spec.get("fanout"):
+        _seen_snomeds = {str(p.get("snomed") or "") for p, _owner in _chronic_procedures}
         from clinosim.locale.loader import load_chronic_followup as _load_chronic_followup
 
         _fu_all = _load_chronic_followup()
@@ -964,10 +1027,14 @@ def _followup_procedures(
             _other_spec = _fu_all.get(_cc_code)
             if not _other_spec:
                 continue
+            # Issue #3868: a condition's procedures belong to its own visit when
+            # one follows this visit; only without one are they done here.
+            if _own_visit_follows(patient, visit_date, _cc_code, chronic_code):
+                continue
             for _other_proc in _other_spec.get("procedures") or []:
                 _other_snomed = str(_other_proc.get("snomed") or "")
                 if _other_snomed and _other_snomed not in _seen_snomeds:
-                    _chronic_procedures.append(_other_proc)
+                    _chronic_procedures.append((_other_proc, _cc_code))
                     _seen_snomeds.add(_other_snomed)
     if _chronic_procedures:
         from clinosim.types.procedure import ProcedureRecord
@@ -980,7 +1047,7 @@ def _followup_procedures(
         # H1 = Jan-Jun (months 1-6), H2 = Jul-Dec (months 7-12). Keyed as
         # (year, half) so a C22 patient re-fires in H2 of the same year.
         _visit_half_key = (_visit_year, 1 if visit_date.month <= 6 else 2)
-        for _proc in _chronic_procedures:
+        for _proc, _owner in _chronic_procedures:
             _snomed = str(_proc.get("snomed") or "")
             _frequency = str(_proc.get("frequency") or "")
             if _frequency == "baseline_only" and _snomed in _baseline_set:
@@ -1010,6 +1077,7 @@ def _followup_procedures(
                     + timedelta(minutes=int(_proc.get("duration_minutes") or OUTPATIENT_PROCEDURE_DEFAULT_MIN)),
                     primary_surgeon_id=encounter.attending_physician_id,
                     anesthesia_type=str(_proc.get("anesthesia") or ""),
+                    indication_code=_indication_code(patient, _owner) if _on_followup else "",
                 )
             )
             if _frequency == "baseline_only":
@@ -1539,6 +1607,19 @@ def _route_matching_code(route: dict[str, Any], chronic_codes: list[str]) -> str
     return ""
 
 
+def _specialty_period_slot(cadence: str, month: int) -> tuple[int | None] | None:
+    """The period slot of a specialty cadence in a month (``None`` slot for
+    annual, 1|2 half-year, 1..4 quarter), wrapped in a 1-tuple; ``None`` for an
+    unknown cadence."""
+    if cadence == "annual":
+        return (None,)
+    if cadence == "semi_annual":
+        return (1 if month <= 6 else 2,)
+    if cadence == "quarterly":
+        return ((month - 1) // 3 + 1,)
+    return None
+
+
 def _specialty_fanout_tick(patient: PatientProfile, chronic_event_time: datetime) -> list[SpecialtyTick]:
     """Return the ``SpecialtyTick`` list to synthesise at this chronic_followup
     tick. Updates per-patient dedup tracker in place."""
@@ -1575,14 +1656,10 @@ def _specialty_fanout_tick(patient: PatientProfile, chronic_event_time: datetime
         # the same tick — guard before computing period_key.
         if specialty in seen_specialty_this_tick:
             continue
-        if cadence == "annual":
-            period_slot: int | None = None
-        elif cadence == "semi_annual":
-            period_slot = 1 if month <= 6 else 2
-        elif cadence == "quarterly":
-            period_slot = (month - 1) // 3 + 1
-        else:
+        slot = _specialty_period_slot(cadence, month)
+        if slot is None:
             continue
+        period_slot = slot[0]
         key = (specialty, year, period_slot)
         if key in emitted:
             continue

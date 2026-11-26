@@ -17,6 +17,11 @@ The fix: the engine's chronic_visit branch now unions ``procedures:`` from
 every ``patient.chronic_conditions`` entry that has a chronic_followup
 block, not just the primary. Dedup still tracked per-patient per-year via
 the patient's ``visit_ledger.annual_procedures``.
+
+Issue #3868: when the patient's own oncology follow-up visit of the period is
+still to come, the cancer's procedure is left to that visit. These tests cover
+the case the #1701 fix is for — no oncology visit pending, so the comorbidity
+visit carries the procedure, with the cancer as its indication.
 """
 
 from __future__ import annotations
@@ -30,6 +35,14 @@ from clinosim.locale.loader import load_chronic_followup
 from clinosim.modules.staff.engine import StaffRoster
 from clinosim.simulator.outpatient import _simulate_outpatient_visit
 from clinosim.types.patient import ChronicCondition, PatientProfile
+
+
+def _no_oncology_visit_pending(monkeypatch) -> None:
+    """The patient's oncology follow-up of the period has already happened
+    (or none is routed), so nothing is left to it (Issue #3868)."""
+    import clinosim.simulator.outpatient as outpatient
+
+    monkeypatch.setattr(outpatient, "_own_visit_follows", lambda *args, **kwargs: False)
 
 
 def _patient(code: str, sex: str, age: int, extra_codes: list[str]) -> PatientProfile:
@@ -51,7 +64,9 @@ def _patient(code: str, sex: str, age: int, extra_codes: list[str]) -> PatientPr
         ("C16", "43235", "M", 62, "I10"),  # EGD during HTN-primary visit
     ],
 )
-def test_annual_cancer_surveillance_fires_when_primary_is_comorbidity(cancer_code, cpt, sex, age, primary_code):
+def test_annual_cancer_surveillance_fires_when_primary_is_comorbidity(
+    cancer_code, cpt, sex, age, primary_code, monkeypatch
+):
     """A chronic_visit whose primary disease_id is a non-cancer comorbidity
     (e.g. I10, E78) must still emit the patient's cancer annual-surveillance
     procedure. Pre-fix: 0 fires for the audit's p=2000 C34 cohort."""
@@ -61,6 +76,7 @@ def test_annual_cancer_surveillance_fires_when_primary_is_comorbidity(cancer_cod
     assert primary_spec, f"{primary_code} missing"
     assert cancer_spec, f"{cancer_code} missing"
     patient = _patient(cancer_code, sex, age, extra_codes=[primary_code])
+    _no_oncology_visit_pending(monkeypatch)
     rec = _simulate_outpatient_visit(
         patient=patient,
         visit_type="chronic_followup",
@@ -73,15 +89,18 @@ def test_annual_cancer_surveillance_fires_when_primary_is_comorbidity(cancer_cod
     )
     codes = {p.procedure_code for p in rec.procedures}
     assert cpt in codes, f"{cancer_code} patient on primary={primary_code} visit missing {cpt}; got {codes}"
+    # Issue #3868: the procedure's indication is the cancer, not the visit's diagnosis.
+    assert {p.indication_code for p in rec.procedures if p.procedure_code == cpt} == {cancer_code}
 
 
-def test_c34_ct_dedupes_within_same_year_across_nonprimary_visits():
+def test_c34_ct_dedupes_within_same_year_across_nonprimary_visits(monkeypatch):
     """Dedup still fires once per calendar year even when the carrier is a
     non-cancer primary — the dispatcher's per-patient per-year map tracks
     by SNOMED, not by visit disease_id."""
     fu = load_chronic_followup()
     i10_spec = fu.get("I10")
     patient = _patient("C34", "M", 67, extra_codes=["I10"])
+    _no_oncology_visit_pending(monkeypatch)
     rec1 = _simulate_outpatient_visit(
         patient=patient,
         visit_type="chronic_followup",
