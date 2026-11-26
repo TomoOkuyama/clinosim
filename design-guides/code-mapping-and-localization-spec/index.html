@@ -3225,6 +3225,7 @@
 </tr>
 </tbody>
 </table>
+<p>A visit typed 185349003 keeps the SNOMED coding and display, but <code>Encounter.type.text</code> names the visit by the simulator's visit type (<code>condition_event.visit_type</code> of the record's own encounter; Issue #3875). The <code>type_text</code> table of the same YAML holds the English and Japanese text per visit type (<code>chronic_followup</code>, <code>chemo_visit</code>, <code>post_discharge</code>, <code>health_screening</code>, <code>pediatric_visit</code>) and a neutral <code>default</code> for an unlisted type; a missing language falls back to English. 定期健診 (periodic health check) is the text of a well-child visit only; the check-up term's own Japanese display (定期健診外来受診) is not used as the text of a follow-up.</p>
 <p>Guard: <code>tests/unit/output/test_encounter_type_3657.py</code>; <code>tests/unit/modules/pediatric/test_acute_illness_single_source_3657.py</code> keeps the visit-note reason table's acute-illness conditions equal to the pediatric presentations.</p>
 <h2 id="4-resolution-functions">4. Resolution functions<a class="headerlink" href="#4-resolution-functions" title="Permanent link">&para;</a></h2>
 <p>Consumers resolve names only through these functions.</p>

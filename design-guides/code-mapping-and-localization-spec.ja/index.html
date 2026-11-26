@@ -3224,6 +3224,7 @@
 </tr>
 </tbody>
 </table>
+<p>185349003 とした受診は SNOMED の coding と display を保ったまま、<code>Encounter.type.text</code> を simulator の visit type (レコード自身の encounter の <code>condition_event.visit_type</code>、Issue #3875) で命名する。同 YAML の <code>type_text</code> 表が visit type (<code>chronic_followup</code>・<code>chemo_visit</code>・<code>post_discharge</code>・<code>health_screening</code>・<code>pediatric_visit</code>) ごとの英語・日本語の text と、未登録 type 用の中立な <code>default</code> を持つ。言語が欠ければ英語に fallback する。定期健診は小児の健診 (well-child) の text にのみ使い、check-up 語の日本語 display (定期健診外来受診) をフォローアップの text にしない。</p>
 <p>Guard: <code>tests/unit/output/test_encounter_type_3657.py</code>。<code>tests/unit/modules/pediatric/test_acute_illness_single_source_3657.py</code> は、受診記録の理由表の急性疾患 condition を小児 presentations と一致させる。</p>
 <h2 id="4-解決関数">4. 解決関数<a class="headerlink" href="#4-解決関数" title="Permanent link">&para;</a></h2>
 <p>利用側は、名称をこれらの関数でのみ解決する。</p>
