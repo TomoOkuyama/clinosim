@@ -186,7 +186,7 @@ from clinosim.modules.patient.activator import (
   - `DVT_{BETA_PARAMS,ELDERLY_AGE_THRESHOLD,ELDERLY_PREMIUM}` — DVT
     susceptibility。
   - `CHRONIC_{ONSET_YEAR_MIN,ONSET_YEAR_MAX_EXCLUSIVE,ONSET_MONTH_MIN,…}`
-    — 慢性疾患発症日サンプリング。
+    — 慢性疾患発症日サンプリング。発症日は疾患ごとの最低発症年齢の誕生日 (`locale/shared/chronic_onset_min_age.yaml`、暦年で計算) より前にならない。基準日時点でその年齢に達していない人は当該疾患を持たない (Issue #3834)。
   - `CHRONIC_{CONTROLLED_PROBABILITY,SEVERITY_MILD_PROBABILITY}`。
 - **Stage + severity 表**: [`_severity_activation.py`](_severity_activation.py)
   (Issue #637 PR-D) —

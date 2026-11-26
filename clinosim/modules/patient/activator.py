@@ -220,26 +220,36 @@ def _chronic_onset_min_age_table() -> tuple[dict[str, int], int]:
     return codes, default
 
 
+def _chronic_onset_floor(dob: date, code: str) -> date:
+    """The earliest onset date of ``code`` for a person born on ``dob``: the
+    birthday at the code's minimum onset age in calendar years (Issue #3834;
+    a 29 February birth turns the year on 1 March of a common year), and
+    ``dob + 1 day`` for a code without a floor so no Condition shares its
+    subject's birth date."""
+    codes, default_years = _chronic_onset_min_age_table()
+    min_years = int(codes.get(code.split(".")[0], default_years))
+    if min_years <= 0:
+        return date.fromordinal(dob.toordinal() + 1)
+    try:
+        return dob.replace(year=dob.year + min_years)
+    except ValueError:  # 29 February -> 1 March
+        return date(dob.year + min_years, 3, 1)
+
+
 def _clamp_chronic_onset(sampled: date, dob: date | None, code: str) -> date:
     """Clamp a sampled chronic-condition onset date so it never precedes
-    ``dob + min_onset_years[code]`` (Issue #968).
+    the birthday at the code's minimum onset age (Issue #968, calendar years
+    since Issue #3834).
 
     - When ``dob`` is unknown, returns ``sampled`` unchanged (activator
       caller guarantees dob is populated for real patients).
-    - The floor for a code without a yaml entry is ``dob + 1 day`` (so the
-      condition can never share a day with birth itself).
     - Sampled dates after the floor pass through unmodified — the clamp is
       a floor, not a redistribution, to preserve the RNG cascade (adult
       distributions are unchanged; only pediatric edge cases move).
     """
     if dob is None:
         return sampled
-    codes, default_years = _chronic_onset_min_age_table()
-    min_years = codes.get(code.split(".")[0], default_years)
-    # Approximate min_years by 365 * min_years days plus a 1-day floor for
-    # the default=0 case so no Condition shares its subject's birth date.
-    floor_days = max(1, int(min_years) * 365)
-    floor = date.fromordinal(dob.toordinal() + floor_days)
+    floor = _chronic_onset_floor(dob, code)
     return floor if sampled < floor else sampled
 
 
@@ -485,6 +495,11 @@ def _derive_chronic_conditions(
         _ref_ceiling = date(ceiling_year, 12, 31)
         if _clamped > _ref_ceiling and _dob is not None and _ref_ceiling >= _dob:
             _clamped = _ref_ceiling
+        # Issue #3834: a person still below the code's minimum onset age at the
+        # anchor cannot carry the condition yet (the draws above are taken, so
+        # no stream moves).
+        if _dob is not None and _clamped < _chronic_onset_floor(_dob, code):
+            continue
         # Issue #3037: the person's onset, once dated, is the same in every
         # record (the draws above are still taken, so no stream moves).
         _clamped = person.chronic_onset.setdefault(code, _clamped)

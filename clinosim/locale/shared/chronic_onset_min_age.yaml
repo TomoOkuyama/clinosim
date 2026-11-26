@@ -1,9 +1,10 @@
 # Minimum age (years) at which each chronic condition can plausibly present.
 # Used by :func:`clinosim.modules.patient.activator.activate_patient` to clamp
 # the randomly-sampled chronic-condition onset date so it never precedes
-# ``person.date_of_birth + min_years`` (Issue #968).
+# the birthday at ``min_years`` (Issue #968).
 #
-# Semantics: onset_date = max(sampled_onset, dob + min_onset_years).
+# Semantics: onset_date = max(sampled_onset, birthday at min_onset_years),
+# the birthday taken in calendar years (Issue #3834).
 # For codes not listed here, the default is `default_min_years` = 0 (any date
 # after birth is allowed; the day-after-birth floor is added by the activator).
 #
@@ -37,7 +38,7 @@ codes:
   J45: 2    # Asthma — commonly diagnosed from age 2 (before that = wheeze, not asthma dx)
 
   # === Renal ===
-  N18: 5    # CKD — pediatric CKD exists but rare < 5
+  N18: 12   # CKD — pediatric CKD exists (congenital) but this simulator models the adult-pattern chronic CKD; the floor equals the eval's pediatric ceiling because N18 is in adult_only_codes (Issue #3834)
 
   # === Neuro / psych ===
   F00: 50   # Dementia (Alzheimer's) — adult-onset
@@ -77,6 +78,9 @@ codes:
   F33: 12   # MDD recurrent — mirrors F32
   F41: 13   # Anxiety disorders (incl. F41.1 GAD) — childhood anxiety uses F93.0
 
+  # === Genitourinary ===
+  N40: 40   # BPH — adult male; same age as the implied-chronic gate below (listed in adult_only_codes, Issue #3834)
+
   # === Musculoskeletal ===
   M17: 40   # Knee OA — degenerative
 
@@ -109,4 +113,6 @@ implied_chronic_min_years:
 # Internal codes the eval age-condition check treats as implausible below
 # the pediatric ceiling; eval maps each through the country's diagnosis code
 # mapping to the emitted code (Issue #2283).
+# Every code listed here must have an onset floor (``codes``) at least the
+# eval's pediatric ceiling; a guard test enforces it (Issue #3834).
 adult_only_codes: [I10, I25, I48, I50, E11, N18, N40, F00]
