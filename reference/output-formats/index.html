@@ -1174,6 +1174,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#cohort-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cohort summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#longitudinal-service-line-emit-v05--v060" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2509,6 +2520,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#cohort-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cohort summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#longitudinal-service-line-emit-v05--v060" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2571,7 +2593,7 @@
 <h1 id="output-formats">Output Formats<a class="headerlink" href="#output-formats" title="Permanent link">&para;</a></h1>
 <h3 id="cif-clinosim-intermediate-format">CIF (Clinosim Intermediate Format)<a class="headerlink" href="#cif-clinosim-intermediate-format" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>output/cif/
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── metadata.json                             # Generation info, snapshot_date, etc.
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── metadata.json                             # Generation info, snapshot_date, total_patients, total_records, pointers to summary/ and catalog/
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├── hospital.json                             # Staff roster + hospital config
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── structural/                               # Stage 1 output (immutable)
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│   └── patients/
@@ -2589,6 +2611,7 @@
 </span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        └── ...
 </span></code></pre></div>
 <ul>
+<li><code>metadata.json</code> counts <code>total_patients</code> (distinct patients) and <code>total_records</code> (the files under <code>structural/patients/</code>; a patient has one file per encounter episode, so <code>total_patients &lt;= total_records</code>). It also holds the pointers <code>cohort_summary</code> (<a href="#cohort-summary">Cohort summary</a>) and, after an FHIR export, <code>used_codes_catalog</code>. The earlier <code>total_patients_generated</code> field, which counted records, is removed.</li>
 <li><code>structural/</code> is the <strong>immutable intermediate format</strong> of the simulation. All structural FHIR/CSV resources derive from this.</li>
 <li><code>narratives/&lt;version&gt;/documents/</code> is the <strong>narrative layer</strong> — one JSON per clinical document (the document type is recorded inside the file, not in the file name), conforming to the <code>ClinicalDocument</code> type in <code>clinosim/types/clinical.py</code>. Each file contains the LOINC code, plain-text content, references, and provenance (LLM model, tokens, cache hit, prompt version, generated_at).</li>
 <li>Multiple narrative versions can coexist: e.g. <code>template_v1</code>, <code>ollama_en_v1</code>, <code>bedrock_sonnet_en_v1</code> — all generated from the same structural CIF.</li>
@@ -2629,7 +2652,7 @@
 </span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>└── Location.ndjson                  # Wards + beds + operating rooms
 </span></code></pre></div>
 <p>Each line = 1 FHIR resource. <code>Resource.id</code> is unique across all resource types. Reference integrity is maintained.</p>
-<p>Every export also writes <code>output/catalog/codes-used.ndjson</code> next to <code>fhir_r4/</code> (never inside it) — see <a href="#used-codes-catalog">Used-codes catalog</a>.</p>
+<p>Every export also writes <code>output/catalog/codes-used.ndjson</code> next to <code>fhir_r4/</code> (never inside it) — see <a href="#used-codes-catalog">Used-codes catalog</a> — and every simulation writes <code>output/summary/cohort-summary.json</code> — see <a href="#cohort-summary">Cohort summary</a>.</p>
 <p><code>DocumentReference.ndjson</code> is emitted whenever <code>--narrative-version</code>
 resolves to a version directory (default: <code>current</code>, backed by the
 <code>current_version.txt</code> pointer that Stage 1's <code>TemplateNarrativePass</code>
@@ -2694,6 +2717,88 @@ is enabled (<code>--jp-insurance</code>, default on).</p>
 </table>
 <p>Every coding of a concept that carries a code gets its own line. Kind-specific attributes are present only when the emitted resource states them: medications carry <code>route_coding</code> (SNOMED route), <code>dose_units</code> (UCUM) and <code>co_coded</code> (the other codings of the same concept, e.g. the RxNorm product and its ingredient); observations carry <code>value_types</code>, <code>units</code> (UCUM), <code>reference_ranges</code>, <code>specimens</code> (type of the linked Specimen) and <code>components</code>; imaging carries <code>modalities</code> (DICOM) and <code>body_sites</code>. Concepts with text only (no code) are not listed. <code>MedicationAdministration</code>, <code>ServiceRequest</code>, <code>DiagnosticReport</code>, <code>Composition</code> and <code>Specimen</code> codes are not catalogued.</p>
 <p>The same format, without <code>count</code> and <code>patients</code>, is what <a href="../cli/#clinosim-catalog-codes--every-code-a-release-can-emit"><code>clinosim catalog-codes</code></a> writes for every code a release can emit; each release attaches <code>clinosim-codes-US-&lt;tag&gt;.ndjson</code> and <code>clinosim-codes-JP-&lt;tag&gt;.ndjson</code>, and a dataset's codes are a subset of them.</p>
+<h3 id="cohort-summary">Cohort summary<a class="headerlink" href="#cohort-summary" title="Permanent link">&para;</a></h3>
+<p>Every simulation also writes <code>summary/cohort-summary.json</code> next to <code>cif/</code> (and <code>fhir_r4/</code>, <code>catalog/</code>), and records its path in <code>cif/metadata.json</code> as <code>cohort_summary</code>. It is computed from the CIF records only, so CIF-only and FHIR outputs both have it, and it is not part of CIF. It is deterministic: no timestamp, sorted keys, explicit list order, so two runs on the same CIF give identical bytes.</p>
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>output/
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>├── cif/metadata.json     # "cohort_summary": "summary/cohort-summary.json"
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>└── summary/
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    └── cohort-summary.json
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>field</th>
+<th>content</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>schema_version</code></td>
+<td><code>1</code></td>
+</tr>
+<tr>
+<td><code>country</code>, <code>language</code>, <code>period</code> (<code>start</code>, <code>end</code>), <code>snapshot_date</code></td>
+<td>the inputs needed to read the file</td>
+</tr>
+<tr>
+<td><code>patients.total</code></td>
+<td>distinct patients (a patient counts once whatever the number of records)</td>
+</tr>
+<tr>
+<td><code>patients.by_sex</code></td>
+<td>patients per <code>sex</code> value</td>
+</tr>
+<tr>
+<td><code>patients.by_age_band</code></td>
+<td><code>[{band, patients}]</code>, in age order, empty bands included. Bands are the <code>age_distribution</code> bands of the country's <code>locale/&lt;country&gt;/demographics.yaml</code>, applied to the age on the snapshot date (an age above the last band counts in the last band)</td>
+</tr>
+<tr>
+<td><code>patients.deaths</code></td>
+<td><code>total</code> (patients whose date of death falls in the simulated period) and <code>in_hospital</code> (patients with a stay that ended in death)</td>
+</tr>
+<tr>
+<td><code>conditions.chronic</code></td>
+<td>chronic conditions of each patient's latest record, as <code>[{code, system, display, patients}]</code>, sorted by <code>patients</code> descending then <code>code</code></td>
+</tr>
+<tr>
+<td><code>conditions.inpatient_principal_diagnosis</code></td>
+<td>the same shape for the principal diagnosis (discharge, else admission) of inpatient stays; a patient with several stays of one diagnosis counts once</td>
+</tr>
+<tr>
+<td><code>encounters.total</code>, <code>encounters.by_type</code></td>
+<td>encounters per <code>encounter_type</code> (<code>inpatient</code>, <code>emergency</code>, <code>outpatient</code>, ...)</td>
+</tr>
+<tr>
+<td><code>encounters.inpatient</code></td>
+<td><code>stays</code>, <code>finished_stays</code> (with a discharge), <code>length_of_stay_days</code> (<code>mean</code>, <code>median</code>, 2 decimals, finished stays only, <code>null</code> with none) and <code>in_hospital_deaths</code></td>
+</tr>
+</tbody>
+</table>
+<p>Codes are in the country's diagnosis system as the FHIR <code>Condition</code> export emits them (<code>icd-10-cm</code> for US, the MHLW ICD-10 for JP). <code>display</code> is the registry display in the cohort's language (Japanese for JP), then English, and <code>null</code> when the code has no registered display. The file does not count FHIR resources.</p>
+<p>An excerpt (the file writes its keys in sorted order, and the lists in full):</p>
+<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">"schema_version"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nt">"country"</span><span class="p">:</span><span class="w"> </span><span class="s2">"US"</span><span class="p">,</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="nt">"language"</span><span class="p">:</span><span class="w"> </span><span class="s2">"en"</span><span class="p">,</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="nt">"period"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"start"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2026-01-01"</span><span class="p">,</span><span class="w"> </span><span class="nt">"end"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2026-03-31"</span><span class="p">},</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span><span class="nt">"snapshot_date"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2026-03-31"</span><span class="p">,</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span><span class="nt">"patients"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">    </span><span class="nt">"total"</span><span class="p">:</span><span class="w"> </span><span class="mi">11</span><span class="p">,</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">    </span><span class="nt">"by_sex"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"F"</span><span class="p">:</span><span class="w"> </span><span class="mi">6</span><span class="p">,</span><span class="w"> </span><span class="nt">"M"</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">},</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">    </span><span class="nt">"by_age_band"</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">"band"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0-14"</span><span class="p">,</span><span class="w"> </span><span class="nt">"patients"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">},</span><span class="w"> </span><span class="s2">"..."</span><span class="p">],</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">    </span><span class="nt">"deaths"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"total"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">"in_hospital"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">}</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">  </span><span class="nt">"conditions"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">    </span><span class="nt">"chronic"</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">"code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"E66.9"</span><span class="p">,</span><span class="w"> </span><span class="nt">"display"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Obesity, unspecified"</span><span class="p">,</span><span class="w"> </span><span class="nt">"patients"</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="nt">"system"</span><span class="p">:</span><span class="w"> </span><span class="s2">"http://hl7.org/fhir/sid/icd-10-cm"</span><span class="p">},</span><span class="w"> </span><span class="s2">"..."</span><span class="p">],</span>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">    </span><span class="nt">"inpatient_principal_diagnosis"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="w">  </span><span class="nt">"encounters"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="w">    </span><span class="nt">"total"</span><span class="p">:</span><span class="w"> </span><span class="mi">23</span><span class="p">,</span>
+</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="w">    </span><span class="nt">"by_type"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"emergency"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">"outpatient"</span><span class="p">:</span><span class="w"> </span><span class="mi">22</span><span class="p">},</span>
+</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="w">    </span><span class="nt">"inpatient"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"stays"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">"finished_stays"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">"length_of_stay_days"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"mean"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"> </span><span class="nt">"median"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">},</span><span class="w"> </span><span class="nt">"in_hospital_deaths"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">}</span>
+</span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-4-22"><a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="p">}</span>
+</span></code></pre></div>
 <h3 id="longitudinal-service-line-emit-v05--v060">Longitudinal service-line emit (v0.5 → v0.6.0)<a class="headerlink" href="#longitudinal-service-line-emit-v05--v060" title="Permanent link">&para;</a></h3>
 <p>Both service lines emit through the standard resource files above —
 no new resource types were introduced; the service-line schema is
@@ -2813,16 +2918,16 @@ described in
 </tbody>
 </table>
 <h3 id="csv">CSV<a class="headerlink" href="#csv" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>output/csv/
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>├── patients.csv
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>├── encounters.csv
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>├── diagnoses.csv
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>├── lab_results.csv
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>├── vital_signs.csv
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>├── orders.csv
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>├── medication_administrations.csv
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>├── procedures.csv
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>└── ...
+<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>output/csv/
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>├── patients.csv
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>├── encounters.csv
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>├── diagnoses.csv
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>├── lab_results.csv
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>├── vital_signs.csv
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>├── orders.csv
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>├── medication_administrations.csv
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>├── procedures.csv
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>└── ...
 </span></code></pre></div>
 <hr />
 
