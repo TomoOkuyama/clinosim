@@ -216,6 +216,11 @@ stop_actions:
     classes: [antibiotic]
     spared_classes: [antibiotic.nitroimidazole]
     intent: complication_antibiotic_stop
+    # Issue #3896: a replacement antibiotic for the infection that is still
+    # under treatment is ordered only when the protocol authors a lower-CDI-risk
+    # alternative as this `drugs` block. No protocol does (a guard test fails
+    # the day one does), so none is ordered and the stop marker says so.
+    replacement_block: lower_cdi_risk_alternative
 
 # C. difficile infection regimen (Issues #3864, #3896). No disease protocol
 # carries one, so it is authored here under `start_oral_vancomycin`, by severity

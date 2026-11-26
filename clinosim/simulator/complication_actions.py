@@ -114,6 +114,9 @@ class StopAction(BaseModel):
     spared_classes: tuple[_Slug, ...] = ()
     intent: _Slug
     planned_prophylaxis: bool = False
+    # Issue #3896: the protocol ``drugs`` block that authors a replacement for
+    # the stopped drug; no block, no replacement (the marker says so).
+    replacement_block: _Slug | None = None
 
 
 class ComplicationActionRules(BaseModel):

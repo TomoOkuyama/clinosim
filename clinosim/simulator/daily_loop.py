@@ -1760,6 +1760,11 @@ def _stop_complication_drugs(stay: _Stay, run: _Run, day: int, comp_name: str, a
         if not any(same_drug(prophylaxis, key) for key in held):
             held.setdefault(prophylaxis, prophylaxis)
     complication = {lang: _localize_complication_name(comp_name, lang) for lang in ("en", "ja")}
+    # Issue #3896: no protocol authors a replacement for the stopped drug (the
+    # block is absent), so none is ordered and the marker says so.
+    intent = spec.intent
+    if spec.replacement_block and not (stay.protocol.drugs or {}).get(spec.replacement_block):
+        intent = f"{spec.intent}_no_replacement"
     for idx, (key, name) in enumerate(held.items()):
         run.orders.append(
             Order(
@@ -1771,8 +1776,8 @@ def _stop_complication_drugs(stay: _Stay, run: _Run, day: int, comp_name: str, a
                 order_type=OrderType.MEDICATION,
                 display_name=f"DISCONTINUE: {name or key}",
                 urgency="urgent",
-                clinical_intent=t(f"order_intent.{spec.intent}", "en", day=day, complication=complication["en"]),
-                clinical_intent_ja=t(f"order_intent.{spec.intent}", "ja", day=day, complication=complication["ja"]),
+                clinical_intent=t(f"order_intent.{intent}", "en", day=day, complication=complication["en"]),
+                clinical_intent_ja=t(f"order_intent.{intent}", "ja", day=day, complication=complication["ja"]),
                 ordered_datetime=when,
                 status=OrderStatus.PLACED,
             )
