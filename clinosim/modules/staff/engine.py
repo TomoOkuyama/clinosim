@@ -382,6 +382,24 @@ def scoped_nurses(roster: StaffRoster, *, ward: str = "", department: str = "") 
     return nurses
 
 
+def assign_ed_physician(roster: StaffRoster, stay_id: str) -> str:
+    """Roster id of the emergency physician who attends the ED phase of the
+    stay ``stay_id`` (admitted through the ED), ``""`` when the roster has no
+    emergency physician (Issue #3874).
+
+    A stable rendezvous pick of ``stay_id`` over the ED pool
+    (:func:`clinosim.seeding.rendezvous_pick`), so it draws from no RNG stream
+    and every record naming the ED phase's physician (the bridge Encounter's
+    participant, the ED physician note's author) resolves to the same person.
+    """
+    from clinosim.seeding import id_hashes, rendezvous_pick
+
+    pool = sorted(m.staff_id for m in roster.get_by_role("physician", "emergency_medicine"))
+    if not pool:
+        return ""
+    return pool[rendezvous_pick(f"ed-physician:{stay_id}", pool, id_hashes(pool))]
+
+
 def assign_rehab_therapist(roster: StaffRoster, therapy_type: str, encounter_id: str) -> str:
     """Roster id of the therapist delivering ``therapy_type`` (PT / OT / ST)
     on ``encounter_id``, ``""`` when the roster has none (Issue #3319).

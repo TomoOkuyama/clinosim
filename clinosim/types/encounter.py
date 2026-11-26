@@ -90,6 +90,12 @@ class Encounter:
     # The ED nurse who charted the triage vitals (ED visits only; Issue #3703):
     # the author of the ED triage note.
     triage_nurse_id: str = ""
+    # The emergency physician who attended the ED phase of a stay admitted
+    # through the ED (Issue #3874; the stay's own attending is the admitting
+    # specialist): the participant of the bridge ED Encounter and the author
+    # of the ED physician note. Empty for ED visits (their attending is the
+    # ED physician) and for every other stay.
+    ed_physician_id: str = ""
     triage_data: TriageData | None = None  # Set by triage_enricher (ED visits and via-ED admissions).
     # AD-65 Bug C fix: severity sampled in emergency.py ("mild"/"moderate"/"severe"),
     # consumed by triage_enricher.pick_triage_level(). Previously sampled but never

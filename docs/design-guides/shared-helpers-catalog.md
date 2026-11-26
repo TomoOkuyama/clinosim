@@ -151,6 +151,7 @@ Governing specs: [`medication-lifecycle-spec.md`](medication-lifecycle-spec.md),
 | `clinosim/modules/observation/pediatric_ranges.py` `pediatric_vital_range(vital, age_months)` / `pediatric_vital_range_text` / `age_independent_vital_range_text` | The pediatric vital-sign range for the age and its `referenceRange.text`; None means the adult range applies. |
 | `clinosim/modules/observation/pediatric_ranges.py` `pediatric_lab_range(lab_name, age_years, sex)` / `pediatric_lab_center` / `pediatric_lab_band` / `pediatric_lab_range_text` | The pediatric lab reference interval (and its midpoint, band and text) for a child; None means the adult interval applies. |
 | `clinosim/modules/staff/engine.py` `scoped_nurses(roster, ward=, department=)` | The nurses of a ward, else of the department, else every nurse. |
+| `clinosim/modules/staff/engine.py` `assign_ed_physician(roster, stay_id)` | The emergency physician of the ED phase of a stay admitted through the ED (stable, RNG-free); never copy the stay's attending onto the ED phase. |
 | `clinosim/modules/diagnosis/nonspecific_codes.py` `is_visit_reason_zcode(code)` | Whether a Z code is a visit reason rather than a diagnosis. |
 | `clinosim/modules/document/engine.py` `_compute_los_days` *(module-internal, also used by the narrative pass)* | Length of stay, including the in-progress proxy. |
 | `clinosim/modules/observation/hemolysis_redraw.py` `is_hemolyzed(flag)` / `HEMOLYZED_FLAGS` | The one definition of a hemolysed specimen flag; never compare `H*` / `L*` inline. |

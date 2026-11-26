@@ -151,6 +151,7 @@ Governing specs: [`medication-lifecycle-spec.ja.md`](medication-lifecycle-spec.j
 | `clinosim/modules/observation/pediatric_ranges.py` `pediatric_vital_range(vital, age_months)` / `pediatric_vital_range_text` / `age_independent_vital_range_text` | 月齢に応じた小児バイタル基準範囲と `referenceRange.text`。None は成人範囲を使う。 |
 | `clinosim/modules/observation/pediatric_ranges.py` `pediatric_lab_range(lab_name, age_years, sex)` / `pediatric_lab_center` / `pediatric_lab_band` / `pediatric_lab_range_text` | 小児の検査基準範囲 (中点・年齢帯・表示文を含む)。None は成人範囲を使う。 |
 | `clinosim/modules/staff/engine.py` `scoped_nurses(roster, ward=, department=)` | 病棟の看護師、無ければ診療科、それも無ければ全看護師。 |
+| `clinosim/modules/staff/engine.py` `assign_ed_physician(roster, stay_id)` | ED 経由入院の ED 相を担当する救急医 (安定・乱数を引かない)。入院の attending を ED 相へ写さない。 |
 | `clinosim/modules/diagnosis/nonspecific_codes.py` `is_visit_reason_zcode(code)` | Z コードが診断ではなく受診理由か。 |
 | `clinosim/modules/document/engine.py` `_compute_los_days` *(モジュール内部、narrative pass も使用)* | 在院日数 (入院中の代替値を含む)。 |
 | `clinosim/modules/observation/hemolysis_redraw.py` `is_hemolyzed(flag)` / `HEMOLYZED_FLAGS` | 溶血した検体の flag の唯一の定義。`H*` / `L*` をその場で比較しない。 |

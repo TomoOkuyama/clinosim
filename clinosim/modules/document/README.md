@@ -154,6 +154,10 @@ from clinosim.modules.document.engine import document_enricher
   A spec with `author_role: triage_nurse` (the ED triage note,
   Issue #3703) is dispatched to `encounter.triage_nurse_id` (the ED
   nurse who charted the triage vitals), falling back to the attending.
+  A spec with `author_role: ed_physician` (the ED physician note,
+  Issue #3874) is dispatched to `encounter.ed_physician_id` (the
+  emergency physician of a stay admitted through the ED), falling back
+  to the attending (an ED visit's attending is the ED physician).
 - **Document-type specs**
   ([`reference_data/document_type_specs.yaml`](reference_data/document_type_specs.yaml))
   — per-document-type registry entries (`DocumentTypeSpec` in

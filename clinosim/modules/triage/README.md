@@ -43,7 +43,12 @@ encounters are a no-op.
 
 For such a stay the enricher also records the ED nurse who measured the
 arrival vitals as `Encounter.triage_nurse_id`; that nurse authors the
-triage note (Issue #3703).
+triage note (Issue #3703). It also records the emergency physician of the
+ED phase as `Encounter.ed_physician_id`, a stable pick over the ED pool
+by the stay id (`staff.engine.assign_ed_physician`, no RNG draw): the
+participant of the bridge ED Encounter and the author of the ED physician
+note, while the inpatient Encounter keeps the admitting specialist
+(Issue #3874).
 
 ## Scope
 

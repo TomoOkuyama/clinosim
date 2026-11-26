@@ -152,6 +152,9 @@ from clinosim.modules.document.engine import document_enricher
   `author_role: triage_nurse` を持つ spec (ED triage note、Issue #3703) は
   `encounter.triage_nurse_id` (トリアージのバイタルを記録した ED 看護師) に
   dispatch し、無ければ attending に fallback する。
+  `author_role: ed_physician` を持つ spec (ED 医師記録、Issue #3874) は
+  `encounter.ed_physician_id` (ED 経由入院の救急医) に dispatch し、無ければ
+  attending に fallback する (ED 受診の attending は ED 医師)。
 - **Document-type spec**
   ([`reference_data/document_type_specs.yaml`](reference_data/document_type_specs.yaml))
   — 文書種別ごとの registry entry (`clinosim/types/document.py` の

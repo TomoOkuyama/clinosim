@@ -39,7 +39,11 @@ encounter は no-op。
 
 この入院では、enricher は来院時バイタルを測定した ED 看護師を
 `Encounter.triage_nurse_id` にも記録し、その看護師がトリアージ記録の
-著者になる (Issue #3703)。
+著者になる (Issue #3703)。あわせて ED 相の救急医を
+`Encounter.ed_physician_id` に記録する (stay id による ED 医師プールからの
+安定した選択、`staff.engine.assign_ed_physician`、乱数を引かない)。これが
+ブリッジ ED Encounter の participant と ED 医師記録の著者になり、入院
+Encounter は入院を担当する専門医のままである (Issue #3874)。
 
 ## Scope
 
