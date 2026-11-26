@@ -14,13 +14,23 @@
 # Codes are the internal diagnosis codes the rest of the simulator uses
 # (ICD-10-CM granularity); the locale mapping (`locale/<cc>/code_mapping_
 # diagnosis.yaml`, `map_diagnosis_code`) turns them into the US ICD-10-CM leaf
-# or the JP WHO ICD-10 code at output time. Every code is already registered in
-# `codes/data/icd-10-cm.yaml` and `icd-10.yaml` after that mapping; a token
-# whose code would need a new registered code (for example C. difficile
-# enterocolitis, A04.7) is left out until the code table carries it with its
-# verified Japanese display. Where `death_cause_chain.yaml`
+# or the JP WHO ICD-10 code at output time. Every code is registered in
+# `codes/data/icd-10-cm.yaml` and, after that mapping, `icd-10.yaml` with the
+# CMS description and the MHLW Japanese name (Issue #3872 added the codes of
+# the tokens below it). Where `death_cause_chain.yaml`
 # `immediate_cause_complications` names a token, the code is the same (guard
 # test).
+#
+# Every complication token a disease protocol can fire is classified (guard
+# test): coded here (`codes`), a delirium token (coded by the delirium rule), a
+# `non_diagnosis` token (an event, a treatment effect or a nonspecific term
+# that names no disease: it stays narrative-only), or a `pending` token (a
+# disease-like complication whose code is not yet chosen and verified; it stays
+# narrative-only until it moves to `codes`).
+#
+# `distinct_code_categories`: ICD-10 3-character categories whose members are
+# different diagnoses, so the first-onset-per-category rule keys on the full
+# code (E87: hypokalemia and hyperkalemia are two diagnoses of one category).
 metadata:
   kind: reference
   name: complication_diagnosis_codes
@@ -47,3 +57,117 @@ codes:
   cardiogenic_shock: R57.0
   cerebral_edema: G93.6
   hepatorenal_syndrome: K76.7
+  # Issue #3872 — codes read in the CMS ICD-10-CM FY2027 order file and the MHLW
+  # 基本分類表 (ICD-10 2013). Hypoglycemia is E16.x (its own category, so a
+  # diabetic stay's E11.x does not swallow it).
+  constipation_ileus: K59.00
+  hypoglycemia: E16.2
+  c_diff_colitis: A04.72
+  hypokalemia: E87.6
+  hyperkalemia: E87.5
+  steroid_hyperglycemia: R73.9
+  atrial_fibrillation_rvr: I48.91
+  renal_abscess: N15.1
+  seizure: R56.9
+  bacteremia: R78.81
+  cardiac_arrhythmia: I49.9
+  pressure_ulcer: L89.90
+  atelectasis: J98.11
+  venous_thromboembolism: I82.90
+  recurrent_aspiration: J69.0
+
+distinct_code_categories: [E87]
+
+# Events, treatment effects and nonspecific terms: no disease to code.
+# "urosepsis" is a nonspecific term with no default code (ICD-10-CM Official
+# Guidelines FY2027, I.C.1.d.1.a(ii)); the urinary infection is coded as its own
+# diagnosis.
+non_diagnosis:
+  - intubation_required
+  - urosepsis
+  - bleeding_complication
+  - bleeding_on_anticoagulation
+  - major_bleeding
+  - rebleeding
+  - postoperative_hemorrhage
+  - hematoma_expansion
+  - hypotension_from_treatment
+  - bradycardia_from_treatment
+  - perioperative_cardiac_event
+  - mechanical_complication
+  - thrombus_extension
+  - transfusion_reaction
+
+# Disease-like complications still narrative-only: the code (and for several a
+# new registered ICD-10-CM / WHO code with its MHLW name) is not chosen and
+# verified yet. Move a token to `codes` when it is.
+pending:
+  - abscess_formation
+  - adhesive_bowel_obstruction
+  - adjacent_vertebral_fracture
+  - bacterial_superinfection
+  - bile_duct_injury
+  - bile_leak
+  - bleeding_uremic_platelet_dysfunction
+  - bowel_perforation
+  - brain_herniation
+  - burn_wound_infection
+  - cardioembolic_stroke
+  - central_line_associated_bloodstream_infection
+  - cerebral_herniation
+  - cholangitis
+  - chronic_thromboembolic_pulmonary_hypertension
+  - coagulopathy_bleeding
+  - compartment_syndrome
+  - critical_illness_polyneuropathy
+  - delirium_tremens
+  - dressler_syndrome
+  - electrolyte_imbalance
+  - empyema
+  - gi_bleeding
+  - hemorrhagic_shock
+  - hemorrhagic_transformation
+  - heparin_induced_thrombocytopenia
+  - hepatic_dysfunction
+  - hepatic_encephalopathy
+  - hepatic_encephalopathy_worsening
+  - hydrocephalus
+  - infected_necrosis
+  - inhalation_injury_respiratory_failure
+  - intra_abdominal_abscess
+  - lung_abscess
+  - lymphedema
+  - malnutrition_worsening
+  - median_nerve_dysfunction
+  - metabolic_acidosis
+  - myocarditis
+  - necrotizing_fasciitis
+  - pancreatic_duct_disruption
+  - pancreatic_pseudocyst
+  - parapneumonic_effusion
+  - pericarditis
+  - peritonitis
+  - phlegmasia_cerulea_dolens
+  - post_stroke_depression
+  - post_thrombotic_syndrome
+  - postoperative_ileus
+  - postoperative_pancreatitis
+  - pulmonary_edema
+  - recurrent_hematoma
+  - retained_cbd_stone
+  - rhabdomyolysis
+  - rhabdomyolysis_aki
+  - right_heart_failure
+  - splenic_vein_thrombosis
+  - spontaneous_bacterial_peritonitis
+  - stress_cardiomyopathy
+  - stroke
+  - stump_appendicitis
+  - surgical_site_infection
+  - uremic_encephalopathy
+  - variceal_hemorrhage
+  - ventricular_arrhythmia
+  - viral_pneumonia
+  - withdrawal_seizure
+  - wound_dehiscence
+  - wound_infection

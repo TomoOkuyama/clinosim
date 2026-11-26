@@ -1057,3 +1057,5 @@ _.check_up_prefixes  # _VisitTypes / _VisitTypeTable field (validated yaml key, 
 _.result_at_fraction_of_remaining  # _AmbulatoryTiming field (validated yaml key, read by key in _draw_times, Issue #3867)
 _.admission_result_delay_hours  # _Timing field (validated yaml key, read by key in _draw_times, Issue #3867)
 _.type_text  # _VisitTypeTable field (validated yaml key, read by key in _check_up_type_text, Issue #3875)
+_.non_diagnosis_tokens  # used by the classification guard test (Issue #3872)
+_.pending_tokens  # used by the classification guard test (Issue #3872)

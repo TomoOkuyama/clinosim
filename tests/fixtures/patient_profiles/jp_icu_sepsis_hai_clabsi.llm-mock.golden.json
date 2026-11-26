@@ -4368,7 +4368,7 @@
         "admission_reason": "敗血症のため入院となった。",
         "chief_complaint": "3日前より倦怠感・本日ぐったり",
         "discharge_details": "2024-07-26施設退院となった。",
-        "discharge_diagnoses": "黄色ブドウ球菌敗血症（A41.0）。副病名: 重症敗血症（R65.1）、急性腎障害（N17.9）、播種性血管内凝固症候群（DIC）（D65）、クロストリジウム・ディフィシル腸炎。",
+        "discharge_diagnoses": "黄色ブドウ球菌敗血症（A41.0）。副病名: 重症敗血症（R65.1）、急性腎障害（N17.9）、播種性血管内凝固症候群（DIC）（D65）、クロストリジウム・ディフィシルによる腸炎（A04.7）。",
         "discharge_instructions": "[Mock LLM response #43 — discharge_instructions]",
         "discharge_medications": "退院処方なし",
         "hospital_course": "[Mock LLM response #43 — hospital_course]",
