@@ -44,6 +44,7 @@ from clinosim.modules.physiology.engine import (
     apply_state_delta,
     initialize_state,
 )
+from clinosim.modules.population.encounter_anthropometry import encounter_weight_kg
 from clinosim.modules.population.engine import LifeEvent
 from clinosim.modules.procedure.engine import (
     generate_bedside_procedures,
@@ -480,7 +481,16 @@ def _finalize_discharge(
             ordered_drugs=[o.display_name for o in all_orders if o.order_type == OrderType.MEDICATION],
             severity=str(getattr(encounter, "severity", "") or ""),
             # Issue #3864: the anticoagulant a complication started continues.
-            extra_specs=complication_discharge_specs(all_orders, country_key, discharge_time=discharge_time),
+            extra_specs=complication_discharge_specs(
+                all_orders,
+                country_key,
+                discharge_time=discharge_time,
+                weight_kg=float(encounter_weight_kg(patient, encounter.encounter_id, admission_time, country_key)),
+                active_drugs=[
+                    *(m.drug_name for m in patient.current_medications or [] if m.drug_name),
+                    *(o.display_name for o in all_orders if o.order_type == OrderType.MEDICATION),
+                ],
+            ),
             excluded_classes=_stopped_classes[0],
             spared_classes=_stopped_classes[1],
             # Issue #3896: each home anticoagulant a bleed held gets a discharge decision.
