@@ -163,13 +163,24 @@ treatment_actions:
       - bleeding_complication
       - bleeding_uremic_platelet_dysfunction
   start_oral_vancomycin:
-    drug_class: antibiotic.glycopeptide
+    # The C. difficile regimen (Issue #3896): chosen by country and severity.
+    drug_class: antibiotic
     intent: complication_oral_antibiotic
-    regimen:
-      us:
-        - {drug_id: vancomycin, dose: "125mg PO QID x10 days", route: PO, duration_days: 10}
-      japan:
-        - {drug_id: vancomycin, dose: "125mg PO QID x10 days", route: PO, duration_days: 10}
+    severity:
+      criteria:
+        - {lab: WBC, at_least: 15000}
+        - {lab: Creatinine, above: 1.5}
+    regimen_by_severity:
+      non_severe:
+        us:
+          - {drug_id: vancomycin, dose: "125mg PO QID x10 days", route: PO, duration_days: 10}
+        japan:
+          - {drug_id: metronidazole, dose: "500mg PO TID x10 days", route: PO, duration_days: 10}
+      severe:
+        us:
+          - {drug_id: vancomycin, dose: "125mg PO QID x10 days", route: PO, duration_days: 10}
+        japan:
+          - {drug_id: vancomycin, dose: "125mg PO QID x10 days", route: PO, duration_days: 10}
     blocked_by: []
   IV_PPI:
     protocol: gi_bleeding
@@ -206,20 +217,36 @@ stop_actions:
     spared_classes: [antibiotic.nitroimidazole]
     intent: complication_antibiotic_stop
 
-# C. difficile infection regimen (Issue #3864). No disease protocol carries
-# one, so it is authored here: oral vancomycin 125 mg four times daily for 10
-# days, the standard regimen of the IDSA/SHEA guideline (2017 update: "vancomycin
-# 125 mg orally 4 times per day or fidaxomicin 200 mg twice daily for 10 days";
-# the 2021 focused update: "a standard regimen (200 mg orally twice daily for 10
-# days)" of fidaxomicin, and the vancomycin comparator "125 mg orally 4 times
-# daily for 10 days") and of the Japanese guideline (Clostridioides difficile
-# infection guideline 2022, Japanese Society of Chemotherapy and Japanese
-# Association for Infectious Diseases: "バンコマイシンを 1 回 125 mg 1 日 4 回 10
-# 日間経口投与する"). The disease protocols declare oral vancomycin
-# (`start_oral_vancomycin`); fidaxomicin (the 2021 suggestion for an initial
-# episode, and the Japanese choice when recurrence risk exists) and the
-# Japanese first choice of metronidazole for a non-severe first episode are not
-# modelled (neither agent is in the drug catalog).
+# C. difficile infection regimen (Issues #3864, #3896). No disease protocol
+# carries one, so it is authored here under `start_oral_vancomycin`, by severity
+# (`regimen_by_severity`) and country.
+#   Severity (`severity.criteria`): severe when the latest WBC at or before the
+#   order is >= 15,000/uL or the latest creatinine is > 1.5 mg/dL, else
+#   non-severe; a lab without a result counts as not met. Japanese guideline
+#   (Clostridioides difficile infection guideline 2022, Japanese Society of
+#   Chemotherapy and Japanese Association for Infectious Diseases; Journal of
+#   Japanese Society of Chemotherapy Vol. 71 No. 1), p. 40, Table 1 (severity
+#   definitions): WBC >= 15,000 in the IDSA/SHEA 2018 and ACG 2021 columns, serum
+#   creatinine > 1.5 mg/dL in the ACG 2021 column (the IDSA/SHEA column states
+#   >= 1.5 x baseline, which needs a baseline the simulator does not carry).
+#   Japan, p. 46, treatment recommendation Table 1: a non-severe first episode
+#   "メトロニダゾールを 1 回 500 mg 1 日 3 回 10 日間経口投与または点滴静注する"
+#   (strong recommendation, A); a severe first episode "バンコマイシンを 1 回
+#   125 mg 1 日 4 回 10 日間経口投与する" (strong recommendation, A), the
+#   fidaxomicin 200 mg twice daily for 10 days being the alternative. Oral
+#   metronidazole is the route ordered (the guideline gives IV as an
+#   alternative). The guideline's fulminant regimen (shock, hypotension, toxic
+#   megacolon, paralytic ileus: vancomycin 500 mg four times daily) is not
+#   modelled: the stay carries none of those as a state at the onset.
+#   US (IDSA/SHEA 2017 update: "vancomycin 125 mg orally 4 times per day or
+#   fidaxomicin 200 mg twice daily for 10 days"; 2021 focused update: fidaxomicin
+#   is suggested over standard vancomycin for an initial episode, the vancomycin
+#   comparator being "125 mg orally 4 times daily for 10 days"): oral vancomycin
+#   for both severities. Fidaxomicin is not in the drug catalog and is not
+#   ordered (neither a Japanese YJ code nor an FDA/PMDA dose was added here).
+#   Metronidazole is the catalog drug of RxNorm 6922 (RxNav: TTY=IN
+#   metronidazole), classes antibiotic.nitroimidazole (so the stop action
+#   spares it, and it continues at discharge as the rest of the 10-day course).
 
 not_executed_treatment_actions:
   - anticoagulation_consideration

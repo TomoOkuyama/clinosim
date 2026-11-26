@@ -1807,6 +1807,7 @@ def _start_complication_treatment(
         is_therapeutic_anticoagulant_order,
         renal_decision,
         treatment_candidates,
+        treatment_severity,
     )
     from clinosim.simulator.medication_pipeline import apply_drug_safety_gate_to_orders
     from clinosim.simulator.renal_antibiotic_dose import creatinine_clearance
@@ -1837,7 +1838,7 @@ def _start_complication_treatment(
     complication = {lang: _localize_complication_name(comp_name, lang) for lang in ("en", "ja")}
     gated: list[Order] = []
     chosen = 0
-    candidates_of = treatment_candidates(action, stay.country_key)
+    candidates_of = treatment_candidates(action, stay.country_key, treatment_severity(action, run.lab_results, when))
     for idx, entry in enumerate(candidates_of):
         if _running_order(run.orders, protocol_drug_name(entry)) is not None:
             return

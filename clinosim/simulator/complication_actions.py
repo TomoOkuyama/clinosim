@@ -38,17 +38,47 @@ from clinosim.types.encounter import Order, OrderStatus, OrderType
 _Slug = StrictStr
 
 
+class SeverityCriterion(BaseModel):
+    """One lab limit of a severity rule (Issue #3896): the latest result of
+    ``lab`` at or before the onset is ``at_least`` (>=) or ``above`` (>) the
+    limit."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    lab: _Slug
+    at_least: float | None = None
+    above: float | None = None
+
+    @model_validator(mode="after")
+    def _one_limit(self) -> SeverityCriterion:
+        if (self.at_least is None) == (self.above is None):
+            raise ValueError("a severity criterion has either at_least or above")
+        return self
+
+
+class SeverityRule(BaseModel):
+    """A stay is ``severe`` when any criterion holds, else ``non_severe``."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    criteria: tuple[SeverityCriterion, ...] = Field(min_length=1)
+
+
 class TreatmentAction(BaseModel):
     """One executed treatment action (Issue #3864): the regimen is the entries
-    of a protocol block (``protocol`` + ``block``) or, where no protocol has
-    one, ``regimen`` (country -> entries, authored in the reference data), and
-    ``drug_class`` / ``route`` choose among them."""
+    of a protocol block (``protocol`` + ``block``), ``regimen`` (country ->
+    entries, authored in the reference data, where no protocol has one) or
+    ``regimen_by_severity`` (severity -> country -> entries, with the
+    ``severity`` rule that picks the level), and ``drug_class`` / ``route``
+    choose among them."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     protocol: _Slug | None = None
     block: _Slug | None = None
     regimen: dict[_Slug, tuple[dict[str, Any], ...]] | None = None
+    regimen_by_severity: dict[_Slug, dict[_Slug, tuple[dict[str, Any], ...]]] | None = None
+    severity: SeverityRule | None = None
     intent: _Slug
     drug_class: _Slug
     route: _Slug | None = None
@@ -60,8 +90,17 @@ class TreatmentAction(BaseModel):
 
     @model_validator(mode="after")
     def _one_regimen_source(self) -> TreatmentAction:
-        if (self.regimen is None) == (self.protocol is None or self.block is None):
-            raise ValueError("a treatment action names either protocol + block or an own regimen")
+        sources = [
+            self.regimen is not None,
+            self.regimen_by_severity is not None,
+            self.protocol is not None and self.block is not None,
+        ]
+        if sum(sources) != 1:
+            raise ValueError("a treatment action names one of protocol + block, regimen, regimen_by_severity")
+        if (self.regimen_by_severity is None) != (self.severity is None):
+            raise ValueError("regimen_by_severity and severity go together")
+        if self.regimen_by_severity is not None and set(self.regimen_by_severity) != {"non_severe", "severe"}:
+            raise ValueError("regimen_by_severity has the levels non_severe and severe")
         return self
 
 
@@ -204,16 +243,47 @@ def renal_decision(adjustment: dict[str, Any] | None, crcl_ml_min: float | None)
     return None
 
 
-def treatment_candidates(action: str, country_key: str) -> list[dict[str, Any]]:
+def treatment_severity(action: str, results: Iterable[Any], at: datetime) -> str | None:
+    """The severity level (``severe`` / ``non_severe``) of an action that has a
+    severity rule, from the stay's results at ``at`` (Issue #3896): severe when
+    any criterion's lab, its latest result at or before ``at``, meets the
+    limit; a lab with no result by then does not count. ``None`` for an action
+    without a rule. Draws nothing."""
+    spec = complication_action_rules().treatment_actions[action]
+    if spec.severity is None:
+        return None
+    latest: dict[str, tuple[datetime, float]] = {}
+    for r in results:
+        if (
+            r.lab_name
+            and isinstance(r.value, (int, float))
+            and r.result_datetime is not None
+            and r.result_datetime <= at
+        ):
+            if r.lab_name not in latest or r.result_datetime >= latest[r.lab_name][0]:
+                latest[r.lab_name] = (r.result_datetime, float(r.value))
+    for c in spec.severity.criteria:
+        if c.lab in latest:
+            value = latest[c.lab][1]
+            if (c.at_least is not None and value >= c.at_least) or (c.above is not None and value > c.above):
+                return "severe"
+    return "non_severe"
+
+
+def treatment_candidates(action: str, country_key: str, severity: str | None = None) -> list[dict[str, Any]]:
     """The protocol entries a treatment action chooses from, in order (Issue
     #3864): the entries of the named block for the country whose drug is of the
     action's class (and route) and that are given without a draw (no
-    ``probability``); ``first_only`` keeps the first alone."""
+    ``probability``); ``first_only`` keeps the first alone. An action with
+    ``regimen_by_severity`` takes the entries of ``severity`` (``non_severe``
+    when not given, Issue #3896)."""
     from clinosim.modules.disease.protocol import load_disease_protocol
 
     spec = complication_action_rules().treatment_actions[action]
-    if spec.regimen is not None:
-        entries: Any = list(spec.regimen.get(country_key, ()))
+    if spec.regimen_by_severity is not None:
+        entries: Any = list(spec.regimen_by_severity[severity or "non_severe"].get(country_key, ()))
+    elif spec.regimen is not None:
+        entries = list(spec.regimen.get(country_key, ()))
     else:
         assert spec.protocol is not None and spec.block is not None
         entries = (load_disease_protocol(spec.protocol).drugs.get(spec.block) or {}).get(country_key, [])

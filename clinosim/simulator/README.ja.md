@@ -195,7 +195,10 @@ clinosim/simulator/
                          `order/supersede.py` が除く)。`IV_PPI` は消化管出血プロトコルの
                          静注 PPI を 3 日間発注する。スタッフの乱数は
                          `complication_treatment_seed` を使う。C. difficile 腸炎 (Issue #3864):
-                         `start_oral_vancomycin` (125 mg 1 日 4 回 10 日間。参照データに記述) と
+                         `start_oral_vancomycin` (国と重症度で選び参照データに記述, Issue #3896:
+                         日本は非重症ならメトロニダゾール 500 mg 1 日 3 回 10 日間、重症
+                         (白血球 15,000/uL 以上またはクレアチニン 1.5 mg/dL 超) ならバンコマイシン
+                         経口 125 mg 1 日 4 回 10 日間。米国はバンコマイシン経口) と
                          `stop_offending_antibiotic` (ニトロイミダゾール以外の実行中の抗菌薬に
                          中止マーカー。退院処方には他の全身抗菌薬を載せず、投与の残りを継続)
   vasopressor_initiation.py  記録された平均血圧が輸液後も低い場合に昇圧薬を開始する

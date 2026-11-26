@@ -210,8 +210,10 @@ clinosim/simulator/
                          are cut after the stay by `order/supersede.py`); `IV_PPI` orders
                          the gastrointestinal-bleeding protocol's IV PPI for 3 days; staff
                          draws use `complication_treatment_seed`; C. difficile colitis
-                         (Issue #3864): `start_oral_vancomycin` (125 mg QID x10 days, authored in
-                         the reference data) and `stop_offending_antibiotic` (stop markers for the
+                         (Issue #3864): `start_oral_vancomycin` (authored in the reference data
+                         by country and severity, Issue #3896: Japan metronidazole 500 mg TID x10 days
+                         for a non-severe episode, oral vancomycin 125 mg QID x10 days when severe,
+                         WBC >= 15,000/uL or creatinine > 1.5 mg/dL; US oral vancomycin) and `stop_offending_antibiotic` (stop markers for the
                          running antibiotics but nitroimidazoles; no other systemic antibiotic at
                          discharge, the rest of the course continues)
   vasopressor_initiation.py  starts a vasopressor from the recorded mean arterial
