@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from clinosim.audit.types import Cohort, iter_ndjson
-from clinosim.codes import get_system_uri
+from clinosim.codes import data_table, get_system_uri
 from clinosim.country_profile import supported_countries
 from clinosim.eval.engine import EvalCheck, Outcome, Severity
 from clinosim.modules.output.fhir_r4.labs.coding_package import jp_clins_defined_system_uris
@@ -213,10 +213,15 @@ def _jp_yj_code_on_medications(cohort: Cohort, country: str) -> EvalCheck:
 
 def _jp_core_profile_declared(cohort: Cohort, country: str) -> EvalCheck:
     """Delegate to the structural axis's expectation but express it as a
-    locale-axis concern (JP Core is a locale profile, not a structural one)."""
+    locale-axis concern (JP Core is a locale profile, not a structural one).
+    Resource types JP Core publishes no profile for (``no_published_profile``
+    in ``fhir-profiles-jp-core.yaml``, Issue #3836) are not counted."""
     types_seen = 0
     types_all_profiled = 0
+    unpublished = set(data_table("fhir-profiles-jp-core").get("no_published_profile") or [])
     for path in cohort.resource_files(country):
+        if path.stem in unpublished:
+            continue
         total = 0
         with_profile = 0
         for row in iter_ndjson(path, skip_malformed=True):

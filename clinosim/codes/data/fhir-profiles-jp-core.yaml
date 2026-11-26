@@ -81,6 +81,21 @@ profiles:
     - http://jpfhir.jp/fhir/core/StructureDefinition/JP_Device
   DeviceUseStatement:
     - http://jpfhir.jp/fhir/core/StructureDefinition/JP_DeviceUseStatement
+  # Issue #3836: JP_Specimen_Common (jpfhir.jp/fhir/core/1.2.0/
+  # StructureDefinition-jp-specimen-common.html, "定義URL" row). Its only Must
+  # Support element is meta.lastUpdated (filled by the finishing pass); it
+  # requires no other element and binds Specimen.status to the required
+  # SpecimenStatus value set (`available`).
+  Specimen:
+    - http://jpfhir.jp/fhir/core/StructureDefinition/JP_Specimen_Common
+
+# Issue #3836: resource types JP Core 1.2.0 publishes no profile for. The
+# `jp_core_profile_declared` eval check leaves them out of its ratio.
+no_published_profile:
+  - CareTeam
+  - ClinicalImpression
+  - Endpoint
+  - Composition
 
 # Issue #3201: profile variants a builder declares itself, keyed
 # `<ResourceType>/<variant>` (read through

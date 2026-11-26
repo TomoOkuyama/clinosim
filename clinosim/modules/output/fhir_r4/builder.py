@@ -108,6 +108,7 @@ from clinosim.modules.output.fhir_r4.post_process import (
     _populate_condition_ai_mr_ecs_fields,
     _populate_jp_medication_dosage_ecs_fields,
     _populate_observation_identifier_and_last_updated,
+    _populate_specimen_last_updated,
     _strip_forbidden_observation_reference_range_extensions,
     _strip_japanese_display_on_english_only_systems,
 )
@@ -711,6 +712,8 @@ def _finalize_resource(resource: dict, country: str, roster_map: dict[str, dict]
     # each builder; idempotent (skips when meta.profile is populated).
     if jp_core:
         _apply_jp_core_profile(resource)
+        # Issue #3836: JP_Specimen_Common's Must Support meta.lastUpdated.
+        _populate_specimen_last_updated(resource)
     if jp_clins:
         _apply_jp_clins_profile(resource, country)
     if jp_core:
@@ -763,6 +766,8 @@ def _finalize_resource(resource: dict, country: str, roster_map: dict[str, dict]
         specimen = _build_companion_specimen(resource, country)
         resource["specimen"] = {"reference": f"Specimen/{specimen['id']}"}
         if jp_core:
+            _apply_jp_core_profile(specimen)
+            _populate_specimen_last_updated(specimen)
             # SNOMED `display` on Specimen.type is English-only; the JP text
             # stays in `type.text`.
             _strip_japanese_display_on_english_only_systems(specimen)

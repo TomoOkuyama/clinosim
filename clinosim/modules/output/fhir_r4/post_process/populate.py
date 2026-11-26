@@ -553,6 +553,23 @@ def _populate_observation_identifier_and_last_updated(resource: dict, country: s
             meta["lastUpdated"] = ts
 
 
+def _populate_specimen_last_updated(resource: dict) -> None:
+    """Fill ``Specimen.meta.lastUpdated``, the Must Support element of
+    JP_Specimen_Common (Issue #3836), from the collection / receipt time.
+    Idempotent; a Specimen with no time keeps no ``lastUpdated``."""
+    if resource.get("resourceType") != "Specimen":
+        return
+    meta = resource.setdefault("meta", {})
+    if not meta.get("lastUpdated"):
+        ts = derive_meta_last_updated(
+            resource, ("collection.collectedDateTime", "collection.collectedPeriod.end", "receivedTime")
+        )
+        if ts:
+            meta["lastUpdated"] = ts
+    if not meta:
+        del resource["meta"]
+
+
 def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
     """Populate `JP_MedicationDosage_eCS`-required fields on each
     `MedicationRequest.dosageInstruction[]`.
