@@ -29,3 +29,14 @@ devices:
   noninvasive_ventilator:
     snomed_code: "706226000"
     placement_criteria: []
+  # Issue #3837: the CPAP unit of a patient with obstructive sleep apnea on CPAP
+  # therapy (chronic_followup.yaml G47.30 lists "CPAP therapy" as the ongoing
+  # treatment of every visit). A home device, not an ICU device: no placement
+  # criterion and no infection sampling. SNOMED 702172008 "Home CPAP unit" (tx.fhir.org
+  # $lookup 2026-11-26). Placed at the patient's first recorded CPAP therapy, else
+  # at the condition onset; it stays in use (no removal).
+  home_cpap:
+    snomed_code: "702172008"
+    placement_criteria: []
+    home_for_conditions: ["G47.3"]
+    therapy_procedure_types: ["CPAP therapy"]

@@ -85,7 +85,8 @@ def test_device_extension_through_fhir_pipeline(tmp_path):
     assert len({u["id"] for u in dus}) == len(dus)
 
     # SNOMED coding shape — per-patient ICU devices (CVC/urinary catheter/
-    # ventilator) + facility-shared infusion pump (session 52 fix 2).
+    # ventilator) + facility-shared infusion pump (session 52 fix 2) + the
+    # home CPAP unit of an OSA patient (Issue #3837).
     for d in device:
         coding = d["type"]["coding"][0]
         assert coding["code"] in (
@@ -93,5 +94,6 @@ def test_device_extension_through_fhir_pipeline(tmp_path):
             "23973005",
             "706172005",
             "433296005",
+            "702172008",
         )
         assert coding["display"] != coding["code"]  # display ≠ code

@@ -71,6 +71,8 @@ Internal helpers (in `engine.py`): `_evaluate_indications`,
 
 The `noninvasive_ventilator` entry (Issue #3705) has no placement criterion: it is not an ICU device but is placed on the date of the stay's first reading that carries the NIV device and removed on the first day after the last such reading (`simulator/device_removal.py::noninvasive_ventilation_dates`).
 
+The `home_cpap` entry (Issue #3837) is a home device: `place_home_devices` gives every patient whose chronic conditions include an `home_for_conditions` prefix (`G47.3`, obstructive sleep apnea; the follow-up lists CPAP therapy as the ongoing treatment) a `DeviceRecord` with `origin="home"`, placed at the date of the first recorded CPAP therapy procedure (`therapy_procedure_types`), else at the condition onset, with no removal date. It carries no infection sampling (`origin != icu_stay`). Draws no RNG.
+
 - [`reference_data/devices.yaml`](reference_data/devices.yaml) —
   device catalog (`cvc`, `indwelling_catheter`,
   `mechanical_ventilator`, `noninvasive_ventilator`). Each entry carries `snomed_code`,

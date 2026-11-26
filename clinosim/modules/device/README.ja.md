@@ -68,6 +68,8 @@ from clinosim.modules.device.enricher import enrich_device
 
 `noninvasive_ventilator` entry (Issue #3705) は配置基準を持たない: ICU デバイスではなく、入院の測定が最初に NIV デバイスを持った日に配置し、最後の NIV 測定の次の測定の日に外す (`simulator/device_removal.py::noninvasive_ventilation_dates`)。
 
+`home_cpap` entry (Issue #3837) は在宅デバイス: `place_home_devices` が、慢性疾患に `home_for_conditions` の接頭辞 (`G47.3` 閉塞性睡眠時無呼吸。フォローアップの継続治療が CPAP 療法) を持つ全患者に `origin="home"` の `DeviceRecord` を作る。配置日は最初に記録された CPAP 療法 Procedure (`therapy_procedure_types`) の日、なければ疾患の発症日で、除去日は持たない。感染サンプリングの対象外 (`origin != icu_stay`)。乱数は使わない。
+
 - [`reference_data/devices.yaml`](reference_data/devices.yaml) —
   デバイスカタログ (`cvc`, `indwelling_catheter`,
   `mechanical_ventilator`、`noninvasive_ventilator`)。各 entry は `snomed_code`、

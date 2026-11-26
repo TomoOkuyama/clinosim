@@ -128,7 +128,7 @@ def test_stage_bearing_chronic_surfaces_the_stage():
 
 
 def test_stage_less_chronic_falls_back_to_noted_stub():
-    text = _run(_mk_ctx("G47.30", "", lang="en"))
+    text = _run(_mk_ctx("J30.9", "", lang="en"))  # not G47.30: an OSA follow-up states its CPAP therapy (Issue #3837)
     assert text, f"stage-less chronic must still produce an Assessment line: {text!r}"
     assert "not condition-specific" not in text
     assert "problem list" in text.lower() or "no acute" in text.lower(), (

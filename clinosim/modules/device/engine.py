@@ -55,6 +55,11 @@ class _Device(BaseModel):
     snomed_code: str
     # Empty: not an ICU device (placed by its own rule, e.g. non-invasive ventilation, Issue #3705).
     placement_criteria: list[_Criterion]
+    # A home device (Issue #3837): ICD-10 prefixes of the chronic conditions whose
+    # treatment it is, and the ``procedure_type`` names of the therapy that dates
+    # its start.
+    home_for_conditions: list[str] = Field(default_factory=list)
+    therapy_procedure_types: list[str] = Field(default_factory=list)
 
     @field_validator("snomed_code")
     @classmethod
@@ -249,4 +254,48 @@ def place_devices_for_encounter(
         inserted = placing_date(rule, record, encounter)
         if inserted is not None:
             _add(device_type, inserted, "catheter_insertion", "insertion")
+    return out
+
+
+def place_home_devices(record: Any, devices_config: dict[str, Any]) -> list[DeviceRecord]:
+    """Home devices of the patient's chronic conditions (Issue #3837): a CPAP
+    unit for obstructive sleep apnea. ``origin="home"``, no removal (the unit is
+    in use), no infection sampling. The unit is placed at the date of the
+    patient's first recorded therapy procedure, else at the condition onset.
+    Draws no RNG."""
+    from clinosim.modules._shared import get_attr_or_key as _g
+    from clinosim.simulator.device_removal import _to_date
+
+    patient = _g(record, "patient")
+    pid = str(_g(patient, "patient_id", "") or "")
+    conditions = list(_g(patient, "chronic_conditions", []) or [])
+    out: list[DeviceRecord] = []
+    for device_type, cfg in devices_config["devices"].items():
+        prefixes = tuple(cfg.get("home_for_conditions") or ())
+        if not prefixes or not pid:
+            continue
+        match = next((c for c in conditions if str(_g(c, "code", "") or "").startswith(prefixes)), None)
+        if match is None:
+            continue
+        types = set(cfg.get("therapy_procedure_types") or ())
+        therapy = sorted(
+            (d, str(_g(p, "encounter_id", "") or ""))
+            for p in _g(record, "procedures", []) or []
+            if _g(p, "procedure_type", "") in types and (d := _to_date(_g(p, "start_datetime", None))) is not None
+        )
+        placed = therapy[0][0] if therapy else _to_date(_g(match, "onset_date", None))
+        if placed is None:
+            continue
+        out.append(
+            DeviceRecord(
+                device_id=f"dev-{pid}-{device_type.replace('_', '-')}",
+                encounter_id=therapy[0][1] if therapy else "",
+                device_type=device_type,
+                snomed_code=cfg["snomed_code"],
+                placement_date=placed.isoformat(),
+                removal_date=None,
+                placement_indication=str(_g(match, "code", "") or ""),
+                origin="home",
+            )
+        )
     return out

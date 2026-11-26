@@ -1076,6 +1076,24 @@ def _chronic_assessment(ctx: NarrativeContext, skip_code: str = "") -> _ChronicA
             if bits2:
                 interp = t("list_sep.serial", lang).join(bits2) + t(_asthma_control_phrase_key(_age_at(ctx)), lang)
 
+        # Issue #3837: a condition whose follow-up lists CPAP therapy (OSA) is
+        # followed on the device; the note states the therapy, not a result the
+        # record does not hold (no AHI, no adherence).
+        if (
+            not interp
+            and not str(_o(c, "stage", "") or "").strip()
+            and any(
+                str(p.get("snomed") or "") == _CPAP_THERAPY_SNOMED
+                for p in (
+                    (load_chronic_followup().get(code) or load_chronic_followup().get(code.split(".")[0]) or {}).get(
+                        "procedures"
+                    )
+                    or []
+                )
+            )
+        ):
+            interp = t("chronic_assessment.cpap_continued", lang)
+
         if interp:
             items.append(f"{label}: {interp}")
         else:
@@ -1134,6 +1152,8 @@ def _chronic_assessment(ctx: NarrativeContext, skip_code: str = "") -> _ChronicA
     return out
 
 
+# SNOMED CT 47545007 "CPAP therapy" (chronic_followup.yaml procedures; Issue #3837).
+_CPAP_THERAPY_SNOMED = "47545007"
 _HBA1C_IN_STAGE = re.compile(r"HbA1c\s*([0-9]+(?:\.[0-9]+)?)")
 
 

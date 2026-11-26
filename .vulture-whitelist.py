@@ -806,6 +806,8 @@ _.collected_datetime  # types/microbiology.py MicrobiologyResult (read by key in
 _.rxnorm_scd_codes  # codes/drugs.py — used by tests/unit/test_drugs_catalog_phase_4_coverage_1792b.py (Issue #2614)
 _.age_bands  # code_status/engine.py _CodeStatusConfig / care_level _CareLevelConfig model fields (Issue #2760)
 _.placement_criteria  # device/engine.py _Device model field (Issue #2760)
+_.home_for_conditions  # device/engine.py _Device model field, read by key in place_home_devices (Issue #3837)
+_.therapy_procedure_types  # device/engine.py _Device model field, read by key in place_home_devices (Issue #3837)
 _.eligibility_gates  # reference-YAML model field (Issue #2760)
 _.observable_snomed  # reference-YAML model field (Issue #2760)
 _.primary_insured_min_age  # reference-YAML model field (Issue #2760)

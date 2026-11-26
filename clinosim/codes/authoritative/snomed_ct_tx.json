@@ -5,11 +5,11 @@
     "source_file": "https://tx.fhir.org/r4/CodeSystem/$lookup (preferred term, synonyms, FSN)",
     "extracted_at": "2026-11-10",
     "edition_version": "http://snomed.info/sct/900000000000207008/version/20250201",
-    "clinosim_codes_total": 288,
+    "clinosim_codes_total": 289,
     "clinosim_codes_missing_from_source": [
       "303408005"
     ],
-    "note": "SNOMED CT codes in codes/data/snomed-ct.yaml with their English preferred term, synonyms and FSN (Issue #3127). Codes missing from the source are unknown to the International Edition. Issue #3680 added seven body-structure concepts (looked up on tx.fhir.org 2026-11-24, edition 20260701; display and active English designations)."
+    "note": "SNOMED CT codes in codes/data/snomed-ct.yaml with their English preferred term, synonyms and FSN (Issue #3127). Codes missing from the source are unknown to the International Edition. Issue #3680 added seven body-structure concepts (looked up on tx.fhir.org 2026-11-24, edition 20260701; display and active English designations). Issue #3837 added 702172008 \"Home CPAP unit\" (looked up on tx.fhir.org 2026-11-26, edition 20260701)."
   },
   "concept": [
     {
@@ -4443,6 +4443,20 @@
         {
           "use": "900000000000003001",
           "value": "Chronic kidney disease stage 3B (disorder)"
+        }
+      ]
+    },
+    {
+      "code": "702172008",
+      "display": "Home CPAP unit",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Home continuous positive airway pressure unit"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Home continuous positive airway pressure unit (physical object)"
         }
       ]
     },
