@@ -71,9 +71,11 @@
 #                              it, given from the day the lead-in ends.
 #       iv_ppi                 gastrointestinal bleeding: the IV high-dose PPI of
 #                              the gastrointestinal-bleeding protocol (its first
-#                              IV entry; the oral step-down entry is not
-#                              ordered), for `course_days` (the regimen text
-#                              "x 72h").
+#                              IV entry), for `course_days` (the regimen text
+#                              "x 72h"), then (`step_down`, Issue #3896) the
+#                              protocol's oral PPI entry from the end of that
+#                              course until 2 weeks after the onset; the rest
+#                              of it continues at discharge.
 #       start_oral_vancomycin  C. difficile colitis: the oral regimen authored
 #                              under the action (below), 10 days.
 #       hold_anticoagulation   see `stop_actions` below.
@@ -190,6 +192,21 @@ treatment_actions:
     route: IV
     course_days: 3
     first_only: true
+    # Issue #3896: the oral PPI of the same block follows the IV course and runs
+    # until 2 weeks after the onset (the onset is the day of the endoscopy).
+    # ACG Clinical Guideline: Upper Gastrointestinal and Ulcer Bleeding (Am J
+    # Gastroenterol 2021;116:899-917), read as quoted on MDCalc: "We recommend
+    # high-dose PPI therapy given continuously or intermittently for 3 d after
+    # successful endoscopic hemostatic therapy of a bleeding ulcer" (strong
+    # recommendation); "We suggest that high-risk patients with UGIB due to
+    # ulcers who received endoscopic hemostatic therapy followed by short-term
+    # high-dose PPI therapy in hospital continue on twice-daily PPI therapy until
+    # 2 week after index endoscopy" (conditional recommendation). The guideline's
+    # twice-daily frequency is for high-risk patients (a Rockall score the
+    # simulator does not carry), so the dose is the protocol's own oral
+    # step-down entry (20 mg omeprazole in Japan, 40 mg pantoprazole in the US,
+    # once daily); only the duration comes from the guideline.
+    step_down: {route: PO, total_days: 14}
 
 # Executed stop actions (Issue #3864): every running drug of `classes` (but
 # those of `spared_classes`) gets a `DISCONTINUE:` stop marker at the onset

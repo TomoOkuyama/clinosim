@@ -281,7 +281,8 @@ def test_a_gi_bleed_orders_the_iv_ppi_and_a_stop_marker_for_each_running_anticoa
     order = _running_enoxaparin()
     run = _run([order], creatinine=0.9, prophylaxis=True)
     _fire(monkeypatch, stay, run, "gi_bleeding", ("hold_anticoagulation", "IV_PPI", "GI_consult"))
-    bolus, infusion = _meds(run, "ppi")
+    bolus, infusion, oral = _meds(run, "ppi")  # the oral step-down (Issue #3896) follows the IV course
+    assert (oral.route, oral.administer_from) == ("PO", ONSET_ORDER + timedelta(days=3))
     assert (bolus.drug_id, bolus.single_dose, bolus.route) == ("pantoprazole", True, "IV")
     assert (infusion.frequency, infusion.duration_days) == ("CONTINUOUS", 3)
     stops = [o for o in run.orders if o.display_name.startswith("DISCONTINUE:")]
