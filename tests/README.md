@@ -84,9 +84,10 @@ Duration file at repo root drives the shard split of PR CI
 (`scripts/ci_split_by_file.py` sums it per test file). The nightly workflow
 (`.github/workflows/nightly.yml`) measures it per shard in the `ci.yml` layout
 and opens (or updates) a PR that refreshes it. That PR is opened with
-`GITHUB_TOKEN`, which starts no `pull_request` run, so the nightly job
-dispatches the required checks (`ci.yml`, `dco.yml`) on its branch and sets
-auto-merge: the refresh lands without a maintainer step when the checks pass.
+`GITHUB_TOKEN`, so its `pull_request` runs (`ci.yml`, `dco.yml`) wait for
+approval; the nightly job approves them (or, when the token may not approve,
+dispatches both workflows on the branch after them) and sets auto-merge: the
+refresh lands without a maintainer step when the checks pass.
 A new test file without an entry weighs as the mean file until the next
 nightly run, so a PR does not need to refresh the file itself.
 
