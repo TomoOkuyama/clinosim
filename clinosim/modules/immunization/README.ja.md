@@ -127,7 +127,8 @@ in-progress snapshot でのバックデート出力を防ぐ。
 1. 入院期間内の接種日はその入院に紐付け、日付は維持 (新生児室での
    B 型肝炎出生時接種など)。その接種は入院時のオーダーにもする
    (`_order_stay_doses`、Issue #3688: ワクチンの `order_drug_id` の薬剤オーダー。
-   `Immunization` が投与記録なので薬剤投与記録は作らない)。
+   `Immunization` が投与記録なので薬剤投与記録は作らない。Issue #3831:
+   オーダーは接種日付で、接種と同時に終了するので MedicationRequest は `completed`)。
 2. `visits.bind_to_vaccination_visits` (Issue #2868): 受診理由 `Z23` の
    外来受診は、その受診で行った接種を記録する (接種日は受診日)。シーズンの
    インフルエンザ接種はそのシーズン最初のインフルエンザ予防接種受診

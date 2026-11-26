@@ -8693,6 +8693,12 @@
    "status": "Active",
    "name": "diclofenac potassium 75 MG Oral Tablet",
    "tty": "SCD"
+  },
+  {
+   "code": "1986820",
+   "status": "Active",
+   "name": "varicella zoster virus glycoprotein E, recombinant",
+   "tty": "PIN"
   }
  ]
 }

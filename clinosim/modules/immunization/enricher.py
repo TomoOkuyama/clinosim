@@ -310,6 +310,15 @@ def _order_stay_doses(rec: Any, imm_recs: list, country: str) -> None:
             continue
         have.add(oid)
         admitted = _get(enc, "admission_datetime", None)
+        discharged = _get(enc, "discharge_datetime", None)
+        ordered = admitted
+        dose_day = _get(imm, "occurrence_date", None)
+        if isinstance(admitted, datetime) and isinstance(dose_day, date) and dose_day > admitted.date():
+            # A dose given after the admission day is ordered on its day
+            # (at the admission time of day, inside the stay).
+            ordered = datetime.combine(dose_day, admitted.time())
+            if isinstance(discharged, datetime) and ordered > discharged:
+                ordered = discharged
         given = vaccine_administration(
             country,
             cvx,
@@ -324,7 +333,10 @@ def _order_stay_doses(rec: Any, imm_recs: list, country: str) -> None:
                 display_name=name,
                 drug_id=drug_id,
                 urgency="routine",
-                ordered_datetime=admitted,
+                ordered_datetime=ordered,
+                # Issue #3831: the dose is given, so the order ends with it
+                # (the MedicationRequest is completed, as vitamin K's).
+                end_datetime=ordered,
                 ordered_by=str(_get(enc, "attending_physician_id", "") or ""),
                 status=OrderStatus.PLACED,
                 frequency="once",

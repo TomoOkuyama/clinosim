@@ -1667,6 +1667,14 @@ drugs:
     codes:
       rxnorm: "797752"
     classes: ["vaccine"]
+  zoster_vaccine:
+    # Issue #3831: the recombinant zoster vaccine dose given during an
+    # inpatient stay (US). NLM RxNav RxCUI 1986820 "varicella zoster virus
+    # glycoprotein E, recombinant", TTY=PIN (read 2026-11-26).
+    names: {en: "Zoster vaccine, recombinant", ja: "帯状疱疹ワクチン（組換え）"}
+    codes:
+      rxnorm: "1986820"
+    classes: ["vaccine"]
   nab_paclitaxel:
     # Nab-paclitaxel is a specific albumin-bound formulation of paclitaxel
     # (Abraxane). Registered as its own drug_id because the chemo_regimens

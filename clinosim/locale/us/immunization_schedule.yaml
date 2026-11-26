@@ -145,6 +145,9 @@ vaccines:
       "65-99": {M: 0.24, F: 0.26}
   zoster_rzv:
     cvx: "187"
+    # Issue #3831: the drug of the order behind a dose given during an
+    # inpatient stay (drugs.yaml drug id).
+    order_drug_id: zoster_vaccine
     min_age: 50
     frequency: once
     administration: {route: IM, dose_ml: 0.5}
