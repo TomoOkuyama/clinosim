@@ -31,6 +31,10 @@ on:
     branches: [master]
   pull_request:
     branches: [master]
+  # The nightly .test_durations refresh PR is opened with GITHUB_TOKEN, which
+  # starts no pull_request run; the nightly job dispatches CI on the PR branch
+  # instead, so the required checks report on its head commit.
+  workflow_dispatch:
 
 # Cancel an in-flight run when a newer push to the same ref arrives — on a
 # PR, no point testing obsolete code; on master (Issue #3770), the newest
