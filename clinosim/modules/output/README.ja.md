@@ -77,6 +77,10 @@ from clinosim.modules.output.adapters_builtin import CsvAdapter, FhirR4Adapter
 # CIF writer + reader
 from clinosim.modules.output.cif_writer import write_cif                # (dataset, output_dir) -> None
 from clinosim.modules.output.cif_reader import CIFReader, resolve_current_narrative_dir
+from clinosim.modules.output.cohort_summary import (   # summary/cohort-summary.json (CIF から計算)
+    build_cohort_summary,        # (records, *, country, period_start, period_end, snapshot_date) -> dict
+    write_cohort_summary,        # (cif_dir) -> path; cif/metadata.json の "cohort_summary" も設定
+)
 
 # Narrative 向け extractor
 from clinosim.modules.output.hospital_course_extractor import (
@@ -145,6 +149,7 @@ clinosim/modules/output/
   adapters_builtin.py                CsvAdapter + FhirR4Adapter (遅延登録)
   cif_writer.py                      write_cif (構造化 CIF 用 JSON writer)
   cif_reader.py                      CIFReader (構造化 + narrative merge) + resolve_current_narrative_dir
+  cohort_summary.py                  CIF のコホート統計 -> summary/cohort-summary.json (スキーマ: docs/reference/output-formats.ja.md)
   csv_adapter.py                     per-domain CSV emission (`convert_cif_to_csv`)
   hospital_course_extractor.py       HospitalCourseFact + extract_hospital_course + summarize_* (narrative helper)
   fhir_r4/                           FHIR R4 emission subpackage (fhir_r4/README.md 参照)
@@ -177,6 +182,8 @@ fhir-r4 ...` または単独 `clinosim export-fhir`) に呼び出され、
 pytest tests/unit -k "output or cif_reader or hospital_course" -q
 pytest tests/integration -k "output or export" -q
 ```
+
+コホートサマリー: `tests/unit/output/test_cohort_summary.py` (件数、年齢帯、在院日数、ソート、決定性、表示言語) と `tests/integration/test_cohort_summary_files.py` (US/JP: ファイル出力、metadata のポインタ、`total_patients` と `total_records`)。
 
 Coverage は広範 — `tests/unit -k output` で adapter 別 test、
 CIF-reader test、hospital-course extractor test を検索。

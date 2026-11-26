@@ -6,7 +6,7 @@
 
 ```
 output/cif/
-├── metadata.json                             # Generation info, snapshot_date, etc.
+├── metadata.json                             # Generation info, snapshot_date, total_patients, total_records, pointers to summary/ and catalog/
 ├── hospital.json                             # Staff roster + hospital config
 ├── structural/                               # Stage 1 output (immutable)
 │   └── patients/
@@ -24,6 +24,7 @@ output/cif/
         └── ...
 ```
 
+- `metadata.json` counts `total_patients` (distinct patients) and `total_records` (the files under `structural/patients/`; a patient has one file per encounter episode, so `total_patients <= total_records`). It also holds the pointers `cohort_summary` ([Cohort summary](#cohort-summary)) and, after an FHIR export, `used_codes_catalog`. The earlier `total_patients_generated` field, which counted records, is removed.
 - `structural/` is the **immutable intermediate format** of the simulation. All structural FHIR/CSV resources derive from this.
 - `narratives/<version>/documents/` is the **narrative layer** — one JSON per clinical document (the document type is recorded inside the file, not in the file name), conforming to the `ClinicalDocument` type in `clinosim/types/clinical.py`. Each file contains the LOINC code, plain-text content, references, and provenance (LLM model, tokens, cache hit, prompt version, generated_at).
 - Multiple narrative versions can coexist: e.g. `template_v1`, `ollama_en_v1`, `bedrock_sonnet_en_v1` — all generated from the same structural CIF.
@@ -69,7 +70,7 @@ output/fhir_r4/
 
 Each line = 1 FHIR resource. `Resource.id` is unique across all resource types. Reference integrity is maintained.
 
-Every export also writes `output/catalog/codes-used.ndjson` next to `fhir_r4/` (never inside it) — see [Used-codes catalog](#used-codes-catalog).
+Every export also writes `output/catalog/codes-used.ndjson` next to `fhir_r4/` (never inside it) — see [Used-codes catalog](#used-codes-catalog) — and every simulation writes `output/summary/cohort-summary.json` — see [Cohort summary](#cohort-summary).
 
 `DocumentReference.ndjson` is emitted whenever `--narrative-version`
 resolves to a version directory (default: `current`, backed by the
@@ -108,6 +109,59 @@ Each line has `kind`, `resource`, `element`, `system`, `code`, `display` (the em
 Every coding of a concept that carries a code gets its own line. Kind-specific attributes are present only when the emitted resource states them: medications carry `route_coding` (SNOMED route), `dose_units` (UCUM) and `co_coded` (the other codings of the same concept, e.g. the RxNorm product and its ingredient); observations carry `value_types`, `units` (UCUM), `reference_ranges`, `specimens` (type of the linked Specimen) and `components`; imaging carries `modalities` (DICOM) and `body_sites`. Concepts with text only (no code) are not listed. `MedicationAdministration`, `ServiceRequest`, `DiagnosticReport`, `Composition` and `Specimen` codes are not catalogued.
 
 The same format, without `count` and `patients`, is what [`clinosim catalog-codes`](cli.md#clinosim-catalog-codes--every-code-a-release-can-emit) writes for every code a release can emit; each release attaches `clinosim-codes-US-<tag>.ndjson` and `clinosim-codes-JP-<tag>.ndjson`, and a dataset's codes are a subset of them.
+
+### Cohort summary
+
+Every simulation also writes `summary/cohort-summary.json` next to `cif/` (and `fhir_r4/`, `catalog/`), and records its path in `cif/metadata.json` as `cohort_summary`. It is computed from the CIF records only, so CIF-only and FHIR outputs both have it, and it is not part of CIF. It is deterministic: no timestamp, sorted keys, explicit list order, so two runs on the same CIF give identical bytes.
+
+```
+output/
+├── cif/metadata.json     # "cohort_summary": "summary/cohort-summary.json"
+└── summary/
+    └── cohort-summary.json
+```
+
+| field | content |
+|---|---|
+| `schema_version` | `1` |
+| `country`, `language`, `period` (`start`, `end`), `snapshot_date` | the inputs needed to read the file |
+| `patients.total` | distinct patients (a patient counts once whatever the number of records) |
+| `patients.by_sex` | patients per `sex` value |
+| `patients.by_age_band` | `[{band, patients}]`, in age order, empty bands included. Bands are the `age_distribution` bands of the country's `locale/<country>/demographics.yaml`, applied to the age on the snapshot date (an age above the last band counts in the last band) |
+| `patients.deaths` | `total` (patients whose date of death falls in the simulated period) and `in_hospital` (patients with a stay that ended in death) |
+| `conditions.chronic` | chronic conditions of each patient's latest record, as `[{code, system, display, patients}]`, sorted by `patients` descending then `code` |
+| `conditions.inpatient_principal_diagnosis` | the same shape for the principal diagnosis (discharge, else admission) of inpatient stays; a patient with several stays of one diagnosis counts once |
+| `encounters.total`, `encounters.by_type` | encounters per `encounter_type` (`inpatient`, `emergency`, `outpatient`, ...) |
+| `encounters.inpatient` | `stays`, `finished_stays` (with a discharge), `length_of_stay_days` (`mean`, `median`, 2 decimals, finished stays only, `null` with none) and `in_hospital_deaths` |
+
+Codes are in the country's diagnosis system as the FHIR `Condition` export emits them (`icd-10-cm` for US, the MHLW ICD-10 for JP). `display` is the registry display in the cohort's language (Japanese for JP), then English, and `null` when the code has no registered display. The file does not count FHIR resources.
+
+An excerpt (the file writes its keys in sorted order, and the lists in full):
+
+```json
+{
+  "schema_version": 1,
+  "country": "US",
+  "language": "en",
+  "period": {"start": "2026-01-01", "end": "2026-03-31"},
+  "snapshot_date": "2026-03-31",
+  "patients": {
+    "total": 11,
+    "by_sex": {"F": 6, "M": 5},
+    "by_age_band": [{"band": "0-14", "patients": 1}, "..."],
+    "deaths": {"total": 0, "in_hospital": 0}
+  },
+  "conditions": {
+    "chronic": [{"code": "E66.9", "display": "Obesity, unspecified", "patients": 5, "system": "http://hl7.org/fhir/sid/icd-10-cm"}, "..."],
+    "inpatient_principal_diagnosis": []
+  },
+  "encounters": {
+    "total": 23,
+    "by_type": {"emergency": 1, "outpatient": 22},
+    "inpatient": {"stays": 0, "finished_stays": 0, "length_of_stay_days": {"mean": null, "median": null}, "in_hospital_deaths": 0}
+  }
+}
+```
 
 ### Longitudinal service-line emit (v0.5 → v0.6.0)
 

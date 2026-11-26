@@ -92,6 +92,8 @@ cif/
 fhir_r4/
   *.ndjson                 (全 FHIR R4 リソース)
   _generator_metadata.json (clinosim_version + cif_metadata の入れ子ミラー)
+summary/
+  cohort-summary.json      (患者数、疾患別患者数、年齢帯、encounter と在院日数の集計)
 catalog/
   codes-used.ndjson        (データセットの FHIR リソースが使う全コード)
 ```

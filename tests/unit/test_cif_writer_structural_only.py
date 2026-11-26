@@ -38,7 +38,8 @@ def _tiny_dataset() -> CIFDataset:
         country="US",
         hospital_scale="medium",
         snapshot_date="2026-07-01",
-        total_patients_generated=1,
+        total_patients=1,
+        total_records=1,
         llm_mode="none",
     )
     return CIFDataset(metadata=md, patients=[p], hospital_roster=[], hospital_config={})

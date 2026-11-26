@@ -28,6 +28,8 @@ jp-100/
     ├── Observation.ndjson
     ├── ...
     └── manifest.json            # FHIR Bulk manifest
+├── summary/
+│   └── cohort-summary.json      # 患者・疾患・encounter の集計
 └── catalog/
     └── codes-used.ndjson        # FHIR リソースが使う全コード
 ```

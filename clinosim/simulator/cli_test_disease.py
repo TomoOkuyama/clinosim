@@ -112,6 +112,7 @@ def _run_test_disease_generate(args: Any) -> None:
     """
     from clinosim.modules.document.narrative.passes import TemplateNarrativePass
     from clinosim.modules.output.cif_writer import write_cif
+    from clinosim.modules.output.cohort_summary import write_cohort_summary
     from clinosim.types.config import load_patient_profile
 
     cif_dir = os.path.join(args.output, "cif")
@@ -171,6 +172,7 @@ def _run_test_disease_generate(args: Any) -> None:
     dataset = run_forced(scenario, config)
 
     write_cif(dataset, cif_dir)
+    write_cohort_summary(cif_dir)
 
     # Stage 2 (AD-65): always run the template narrative pass, mirroring `generate`'s
     # auto-invoke, so the mini-cohort is emit-ready regardless of which export

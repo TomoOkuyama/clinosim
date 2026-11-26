@@ -29,6 +29,7 @@ def _run_enumerate(args: Any) -> None:
 
     from clinosim.modules.document.narrative.passes import TemplateNarrativePass
     from clinosim.modules.output.cif_writer import write_cif
+    from clinosim.modules.output.cohort_summary import write_cohort_summary
     from clinosim.simulator.enumerate import CoverageExplosionError, plan_enumeration, run_enumeration
 
     countries = ["JP", "US"] if args.include_both_countries else [args.country]
@@ -62,6 +63,7 @@ def _run_enumerate(args: Any) -> None:
 
     cif_dir = _os.path.join(args.output, "cif")
     write_cif(dataset, cif_dir)
+    write_cohort_summary(cif_dir)
 
     # Manifest — sibling to fhir_r4/ so downstream consumers can locate the
     # patient_id → scenario map without walking the CIF.

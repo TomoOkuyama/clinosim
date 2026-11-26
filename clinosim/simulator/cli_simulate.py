@@ -217,9 +217,11 @@ def run(args: Any, parser: argparse.ArgumentParser) -> None:
 
     # Output
     from clinosim.modules.output.cif_writer import write_cif
+    from clinosim.modules.output.cohort_summary import write_cohort_summary
 
     cif_dir = os.path.join(args.output, "cif")
     write_cif(dataset, cif_dir)
+    write_cohort_summary(cif_dir)  # summary/cohort-summary.json, from the CIF just written
 
     # F4: write _cache_manifest.json alongside the output so a
     # future `run_beta(..., cache_dir=args.output)` call (later cursor / cron

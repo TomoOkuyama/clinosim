@@ -151,7 +151,7 @@ def _load_cif_metadata(cif_dir: str) -> dict[str, Any]:
     """Load ``cif/metadata.json`` if present, empty dict otherwise.
 
     The CIF writer already records ``random_seed`` / ``snapshot_date`` /
-    ``total_patients_generated`` / ``hospital_scale`` / ``llm_mode`` etc.
+    ``total_patients`` / ``total_records`` / ``hospital_scale`` / ``llm_mode`` etc.
     Forwarding it verbatim keeps the sim-params info in one canonical
     shape rather than reinventing a subset here.
     """
