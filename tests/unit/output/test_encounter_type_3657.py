@@ -51,3 +51,50 @@ def test_chronic_follow_up_and_well_child_keep_check_up() -> None:
 def test_screening_keeps_patient_initiated() -> None:
     assert _type_code({"chief_complaint": "Health screening"}, dx="Z00.0") == PATIENT_INITIATED
     assert _type_code({"chief_complaint": "健康診断"}, "JP") == PATIENT_INITIATED
+
+
+# Issue #3875: the visit type, not the SNOMED check-up term, names the visit.
+def _type_concept(visit_type: str, country: str, dx: str = "I10", chief: str = "Follow-up: x") -> dict:
+    resource = _build_encounter(
+        {"encounter_id": "E1", "encounter_type": "outpatient", "chief_complaint": chief},
+        "P1",
+        primary_dx_code=dx,
+        country=country,
+        visit_type=visit_type,
+    )
+    return resource["type"][0]
+
+
+@pytest.mark.parametrize("visit_type", ["chronic_followup", "chemo_visit", "post_discharge"])
+def test_follow_up_visits_are_not_titled_periodic_health_check_ja(visit_type: str) -> None:
+    concept = _type_concept(visit_type, "JP")
+    assert "定期健診" not in concept["text"]
+    assert concept["coding"][0]["code"] == CHECK_UP
+
+
+def test_visit_type_texts_japanese() -> None:
+    assert _type_concept("chronic_followup", "JP")["text"] == "慢性疾患フォローアップ外来"
+    assert _type_concept("chemo_visit", "JP")["text"] == "化学療法外来"
+    assert _type_concept("post_discharge", "JP")["text"] == "退院後外来"
+
+
+def test_periodic_health_check_keeps_the_name() -> None:
+    concept = _type_concept("pediatric_visit", "JP", dx="Z00.121", chief="Well-child visit")
+    assert concept["text"] == "定期健診"
+    assert concept["coding"][0]["code"] == CHECK_UP
+
+
+def test_unknown_visit_type_gets_a_neutral_text() -> None:
+    for vt in ("", "something_new"):
+        assert "定期健診" not in _type_concept(vt, "JP")["text"]
+
+
+def test_english_text_per_visit_type_and_no_japanese_in_us() -> None:
+    concept = _type_concept("chemo_visit", "US")
+    assert concept["text"] == "Chemotherapy visit"
+    assert concept["coding"][0]["display"] == "Encounter for check up"
+    assert concept["coding"][0]["code"] == CHECK_UP
+
+
+def test_vaccination_and_consultation_keep_their_own_text() -> None:
+    assert _type_concept("chronic_followup", "JP", dx="Z23", chief="予防接種")["coding"][0]["code"] == PATIENT_INITIATED

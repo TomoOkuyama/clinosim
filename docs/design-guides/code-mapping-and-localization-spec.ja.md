@@ -223,6 +223,8 @@ Guard: `tests/unit/output/test_immunization_program_3660.py`。
 | 小児の急性疾患 (`visit_condition_id` が小児スケジュールの `presentations` の項目、`pediatric.calendar.is_acute_illness_condition`) | 11429006 Consultation |
 | 主訴が `Follow-up`・`フォローアップ`・`Post-discharge` で始まる、または診断のあるその他の受診 | 185349003 Encounter for check up |
 
+185349003 とした受診は SNOMED の coding と display を保ったまま、`Encounter.type.text` を simulator の visit type (レコード自身の encounter の `condition_event.visit_type`、Issue #3875) で命名する。同 YAML の `type_text` 表が visit type (`chronic_followup`・`chemo_visit`・`post_discharge`・`health_screening`・`pediatric_visit`) ごとの英語・日本語の text と、未登録 type 用の中立な `default` を持つ。言語が欠ければ英語に fallback する。定期健診は小児の健診 (well-child) の text にのみ使い、check-up 語の日本語 display (定期健診外来受診) をフォローアップの text にしない。
+
 Guard: `tests/unit/output/test_encounter_type_3657.py`。`tests/unit/modules/pediatric/test_acute_illness_single_source_3657.py` は、受診記録の理由表の急性疾患 condition を小児 presentations と一致させる。
 
 ## 4. 解決関数
