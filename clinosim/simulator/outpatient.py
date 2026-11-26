@@ -723,11 +723,12 @@ def _renewal_prescription(
         # discharge Rx / narrative — only the routine per-visit refill
         # stops firing.
         def _is_prn(med: Any) -> bool:
-            # Issue #2613: any as-needed frequency ("prn", "q4-6h PRN",
-            # "PRN up to 3x/day"), as the prescription timing reads it.
-            from clinosim.modules.output.fhir_r4.lib.dosage import resolve_timing_repeat
+            # Issue #2613: any as-needed frequency, as the prescription timing
+            # reads it; the note's medication comparison shares the predicate
+            # (Issue #3878).
+            from clinosim.modules.output.fhir_r4.lib.dosage import is_as_needed_frequency
 
-            return resolve_timing_repeat(str(getattr(med, "frequency", "") or ""))[1]
+            return is_as_needed_frequency(getattr(med, "frequency", ""))
 
         rx = PrescriptionRecord(
             prescription_id=f"RX-{patient.patient_id}-OPD",

@@ -593,6 +593,16 @@ def _split_prn_suffix(flow: str) -> tuple[str, bool]:
     return flow, False
 
 
+def is_as_needed_frequency(freq_raw: str | None) -> bool:
+    """Whether a frequency label is an as-needed one ("prn", "q4-6h PRN",
+    "PRN up to 3x/day"), exactly as the prescription timing reads it.
+
+    The one PRN predicate of the outpatient prescription (a rescue inhaler is
+    not renewed at every visit, Issue #1318) and of the note that compares the
+    prescription with the home medications (Issue #3878)."""
+    return resolve_timing_repeat(str(freq_raw or ""))[1]
+
+
 def resolve_timing_repeat(
     freq_raw: str | None,
     freq_per_day: int | None = None,

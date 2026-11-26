@@ -1645,7 +1645,16 @@ def _compose_medication_changes_line(ctx: NarrativeContext) -> str:
     rx = [m for m in (getattr(ctx, "discharge_medications", None) or []) if _o(m, "drug_name", "")]
     if not rx:
         return ""
-    home = {_med_key(m): m for m in home_medications_at_admission(ctx)[0] if _med_key(m)}
+    # Issue #3878: an as-needed drug (a rescue inhaler) is not re-prescribed at
+    # each visit (the simulator leaves it off the outpatient prescription, the
+    # same predicate), so its absence is no change to report.
+    from clinosim.modules.output.fhir_r4.lib.dosage import is_as_needed_frequency
+
+    home = {
+        _med_key(m): m
+        for m in home_medications_at_admission(ctx)[0]
+        if _med_key(m) and not is_as_needed_frequency(_o(m, "frequency", ""))
+    }
     today = {_med_key(m): m for m in rx}
 
     def _name(m: Any) -> str:
