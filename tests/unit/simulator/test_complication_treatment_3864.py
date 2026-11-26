@@ -471,7 +471,19 @@ _CDIFF = ("stop_offending_antibiotic", "start_oral_vancomycin", "contact_precaut
 
 @pytest.mark.parametrize("country", ["us", "japan"])
 def test_c_difficile_colitis_gets_oral_vancomycin_125_mg_qid_for_10_days(monkeypatch, country) -> None:
+    # Issue #3896: the Japanese regimen of a non-severe episode is metronidazole, so this
+    # scenario is a severe one (WBC at the severe limit) in both countries.
     stay, run = _stay(country), _run(creatinine=0.9)
+    run.lab_results.append(
+        OrderResult(
+            result_datetime=ADMIT + timedelta(days=DAY, hours=2),
+            performed_by="T",
+            lab_name="WBC",
+            value=15000.0,
+            unit="/uL",
+            flag="",
+        )
+    )
     _fire(monkeypatch, stay, run, "c_diff_colitis", _CDIFF)
     (order,) = _meds(run, "antibiotic.glycopeptide")
     assert order.drug_id == "vancomycin" and order.route == "PO" and order.status == OrderStatus.PLACED
