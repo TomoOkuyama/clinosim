@@ -84,3 +84,7 @@ Priority 4: Purely "unknown" change
 
 ### Open question resolved
 - Treatment effect model: **continuous**, not binary. The disease protocol's `state_trajectory` defines continuous daily deltas, modulated by `treatment_sensitivity`. This is the answer to global open #3.
+
+## Treatment response of deteriorating courses (Issue #3838)
+
+A `gradual_deterioration` or `treatment_resistant` trajectory is authored for its first days; its last value used to be held for ever, so an open-ended rising tail kept the inflammation, and with it the temperature, high for weeks. `reference_data/treatment_response.yaml` names the turn: from the last treatment change of the archetype (`treatment_modifications`; for an archetype without any, its last authored trajectory day) plus `response_delay_days`, the inflammation delta is at most `resolution_inflammation_delta` per day (an authored recovery that is faster is kept). Before that day the course deteriorates as authored. The inflammation a complication adds (`state_impact.inflammation_level`) is held in full for the same delay and then released at the same rate (`clinosim/simulator/sustained_complication.py`), so it does not outlast its treatment.

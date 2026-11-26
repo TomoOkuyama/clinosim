@@ -23,7 +23,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from clinosim.modules.physiology.engine import apply_state_delta
 from clinosim.types.clinical import PhysiologicalState
@@ -40,9 +40,18 @@ class SustainedEffectSpec(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     level: float = Field(gt=0.0, le=1.0)
-    driver: str
-    release_below: float = Field(ge=0.0, lt=1.0)
+    # The held amount follows a driver state variable ...
+    driver: str | None = None
+    release_below: float = Field(default=0.0, ge=0.0, lt=1.0)
+    # ... or, without a driver, falls by ``fade_per_day`` a day once ``full_days`` have passed.
+    fade_per_day: float | None = Field(default=None, gt=0.0)
     full_days: int = Field(default=0, ge=0)
+
+    @model_validator(mode="after")
+    def _driver_or_fade(self) -> SustainedEffectSpec:
+        if (self.driver is None) == (self.fade_per_day is None):
+            raise ValueError("a sustained effect names exactly one of driver and fade_per_day")
+        return self
 
 
 @dataclass
@@ -66,17 +75,39 @@ def start_holds(complication: dict[str, Any], state: PhysiologicalState) -> dict
     """The holds a complication starts at its onset, by state variable."""
     holds: dict[str, SustainedHold] = {}
     for var, spec in sustained_specs(complication).items():
-        reference = max(float(getattr(state, spec.driver)), spec.release_below + _MIN_DRIVER_SPAN)
+        reference = (
+            max(float(getattr(state, spec.driver)), spec.release_below + _MIN_DRIVER_SPAN)
+            if spec.driver is not None
+            else 0.0
+        )
         holds[var] = SustainedHold(spec=spec, reference=reference)
     return holds
 
 
-def _target(hold: SustainedHold, driver_value: float) -> float:
-    if hold.days <= hold.spec.full_days:
-        return hold.spec.level
+def _target(hold: SustainedHold, state: PhysiologicalState) -> float:
+    spec = hold.spec
+    if hold.days <= spec.full_days:
+        return spec.level
+    if spec.driver is None:
+        return max(0.0, spec.level - (spec.fade_per_day or 0.0) * (hold.days - spec.full_days))
+    driver_value = float(getattr(state, spec.driver))
     span = hold.reference - hold.spec.release_below
     fraction = (driver_value - hold.spec.release_below) / span
     return hold.spec.level * min(1.0, max(0.0, fraction))
+
+
+def inflammation_push_hold(level: float) -> SustainedHold:
+    """The hold of the inflammation a complication adds (Issue #3838): held in
+    full until the treatment of the complication has had time to act, then
+    released at the course's resolution rate (``treatment_response.yaml``), so a
+    complication's fever does not last for the rest of the stay."""
+    from clinosim.modules.clinical_course.engine import treatment_response_rules
+
+    rules = treatment_response_rules()
+    spec = SustainedEffectSpec(
+        level=level, fade_per_day=-rules.resolution_inflammation_delta, full_days=rules.response_delay_days
+    )
+    return SustainedHold(spec=spec, reference=0.0)
 
 
 def advance_holds(state: PhysiologicalState, holds: dict[tuple[str, str], SustainedHold]) -> None:
@@ -86,10 +117,10 @@ def advance_holds(state: PhysiologicalState, holds: dict[tuple[str, str], Sustai
     for key in list(holds):
         hold = holds[key]
         hold.days += 1
-        wanted = _target(hold, float(getattr(state, hold.spec.driver))) - hold.held
+        wanted = _target(hold, state) - hold.held
         before = float(getattr(state, key[1]))
         apply_state_delta(state, key[1], wanted)
         # Only what the state variable actually took (the range may cap it) can be taken back.
         hold.held += float(getattr(state, key[1])) - before
-        if hold.held <= 0.0 and _target(hold, float(getattr(state, hold.spec.driver))) <= 0.0:
+        if hold.held <= 0.0 and _target(hold, state) <= 0.0:
             del holds[key]

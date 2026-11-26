@@ -1,0 +1,36 @@
+# treatment_response.yaml — when a deteriorating course turns (Issue #3838).
+#
+# A `gradual_deterioration` or `treatment_resistant` trajectory is authored
+# for the first days, and its last value used to be held for ever: an
+# open-ended rising tail kept the inflammation (and so the temperature) at
+# 39-41 degrees C for weeks, and the fever gate then extended the stay.
+# The patient is deteriorating until the escalated treatment has had time to
+# act; after that the inflammation falls at least at `resolution_inflammation_delta`
+# per day (a faster authored recovery is kept).
+#
+# The time the treatment is taken to have started to act is the last day the
+# archetype changes the treatment (`treatment_modifications`, the escalation),
+# or, for an archetype without any, the last day of its authored trajectory;
+# plus `response_delay_days`.
+#
+# Sources:
+# * `response_delay_days: 3`. Halm EA et al., JAMA 1998;279:1452-7 (PMID
+#   9600479; abstract read through Europe PMC): in 686 adults hospitalised with
+#   community-acquired pneumonia the median time to stability was 3 days for
+#   respiratory rate, oxygen saturation and temperature (the abstract's text
+#   is cut at the temperature threshold in the Europe PMC record).
+# * `resolution_inflammation_delta: -0.08`. The daily inflammation fall the
+#   same disease files already author for the resolving phase of their
+#   treatment_resistant archetypes (sepsis day 10, bacterial_pneumonia day 14:
+#   -0.08 per day). At this rate an inflammation of 0.85 is below the 0.5 at
+#   which the temperature lift falls under 1.5 degrees C in about 5 days.
+metadata:
+  kind: reference
+  name: treatment_response
+  source: clinosim
+
+response_delay_days: 3
+resolution_inflammation_delta: -0.08
+archetypes:
+  - gradual_deterioration
+  - treatment_resistant

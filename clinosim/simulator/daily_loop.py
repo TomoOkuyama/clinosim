@@ -162,7 +162,7 @@ from clinosim.simulator.oral_intake import (
 )
 from clinosim.simulator.oxygen_course import OxygenCourse, oxygen_course_rules
 from clinosim.simulator.renal_antibiotic_dose import RenalDoseContext
-from clinosim.simulator.sustained_complication import SustainedHold, advance_holds, start_holds
+from clinosim.simulator.sustained_complication import SustainedHold, advance_holds, inflammation_push_hold, start_holds
 from clinosim.simulator.vasoactive_support import (
     hospital_day_start,
     stop_weaned_vasoactive_infusions,
@@ -1506,9 +1506,14 @@ def _apply_complications(stay: _Stay, run: _Run, day: int, comp_list: list) -> N
         ),
     )
     for comp in triggered:
-        for var, delta in comp.get("state_impact", {}).items():
-            apply_state_delta(run.state, var, delta)
         comp_name = comp.get("name", "unknown")
+        own_holds = comp.get("sustained_state") or {}
+        for var, delta in comp.get("state_impact", {}).items():
+            if var == "inflammation_level" and delta > 0 and var not in own_holds:
+                # Issue #3838: the fever of a complication ends once its treatment has acted.
+                run.sustained[(comp_name, var)] = inflammation_push_hold(delta)
+            else:
+                apply_state_delta(run.state, var, delta)
         # Issue #3827: an effect that lasts while its driver does (DIC consumption).
         for var, hold in start_holds(comp, run.state).items():
             run.sustained[(comp_name, var)] = hold
