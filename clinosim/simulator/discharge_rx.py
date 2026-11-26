@@ -577,6 +577,21 @@ def build_discharge_rx(
         # Empty for the ~all entries that carry a real numeric dose; only the
         # 5 disease-YAML entries flagged by #476 populate these.
         resolved = _resolve_item_dose(drug_spec, home_meds, _admission_weight_kg)
+        # Issue #3896: the weight / interaction dose of the label (edoxaban).
+        from clinosim.simulator.complication_actions import dose_reduction_rule, reduced_dose
+
+        dose_rule = dose_reduction_rule(_drug_id or drug_key(drug_name))
+        dose_en = language_slot(drug_spec.get("dose_text"), "en")
+        dose_ja = language_slot(drug_spec.get("dose_text"), "ja")
+        if dose_rule is not None:
+            reduced = reduced_dose(
+                _drug_id or drug_key(drug_name),
+                _admission_weight_kg(),
+                [*(m.drug_name for m in home_meds if m.drug_name), *ordered_drugs],
+            )
+            if reduced:
+                resolved = {**resolved, "dose": reduced}
+                dose_en, dose_ja = "", dose_rule.dose_ja
         items.append(
             {
                 "drug_name": drug_name,
@@ -587,8 +602,8 @@ def build_discharge_rx(
                 "frequency": resolved["frequency"],
                 "duration_days": drug_spec.get("duration_days", default_duration),
                 "route": resolved["route"],
-                "dose_ja": language_slot(drug_spec.get("dose_text"), "ja"),
-                "dose_en": language_slot(drug_spec.get("dose_text"), "en"),
+                "dose_ja": dose_ja,
+                "dose_en": dose_en,
             }
         )
 
