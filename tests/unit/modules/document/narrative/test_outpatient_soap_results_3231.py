@@ -5,7 +5,7 @@ states chronic stages from the latest labs."""
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 
 import pytest
 
@@ -302,3 +302,35 @@ def test_retinopathy_screening_visit_states_the_fundus_examination():
     ctx2 = _ctx("US", [{"code": "E11.9"}, {"code": "E11.311"}])
     ctx2.visit_type, ctx2.visit_condition_id = "chronic_followup", "diabetic_retinopathy_screening"
     assert "diabetic retinopathy is on the problem list" in _soap(ctx2)["A"]
+
+
+# ── #3877 ──────────────────────────────────────────────────────────────
+
+
+@pytest.mark.parametrize("name", ["PT_INR", "PT-INR"])
+@pytest.mark.parametrize("country", ["US", "JP"])
+def test_warfarin_af_assessment_states_the_latest_earlier_inr_with_its_date(country, name):
+    warfarin = [_med("Warfarin", "3mg", "warfarin")]
+    prior = [_lab(name, 2.5, "{INR}", at="2025-12-15T12:25:00")]
+    # The visit's own INR is resulted after the note, so it cannot be cited.
+    labs = [_lab("PT_INR", 2.6, "{INR}", at="2026-03-02T12:25:00")]
+    ctx = _ctx(country, [{"code": "I48.91"}], labs, meds=warfarin, home=warfarin, prior=prior)
+    ctx.authored_datetime = datetime(2026, 3, 2, 10, 43)
+    s = _soap(ctx)
+    assert "PT-INR 2.5" in s["A"], s["A"]
+    assert "2025-12-15" in s["A"], s["A"]
+    assert "2.6" not in s["A"]
+
+
+def test_warfarin_af_assessment_flags_a_subtherapeutic_prior_inr():
+    warfarin = [_med("Warfarin", "3mg", "warfarin")]
+    prior = [_lab("PT_INR", 1.6, "{INR}", at="2025-12-15T12:25:00")]
+    s = _soap(_ctx("US", [{"code": "I48.91"}], [], meds=warfarin, home=warfarin, prior=prior))
+    assert "PT-INR 1.6" in s["A"] and "subtherapeutic" in s["A"], s["A"]
+
+
+def test_doac_af_assessment_does_not_cite_an_inr():
+    doac = [_med("Apixaban", "5mg", "apixaban")]
+    prior = [_lab("PT_INR", 1.1, "{INR}", at="2025-12-15T12:25:00")]
+    s = _soap(_ctx("US", [{"code": "I48.91"}], [], meds=doac, home=doac, prior=prior))
+    assert "PT-INR" not in s["A"], s["A"]

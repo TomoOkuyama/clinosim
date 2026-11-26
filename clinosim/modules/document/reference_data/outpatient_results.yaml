@@ -27,7 +27,7 @@ metadata:
   name: outpatient_results
   source: clinosim
 
-prior_lab_analytes: [HbA1c, LDL, eGFR, Creatinine, Hb]
+prior_lab_analytes: [HbA1c, LDL, eGFR, Creatinine, Hb, PT_INR]
 
 hold_followup_days: 90
 

@@ -178,6 +178,7 @@ _LAB_GROUPS: tuple[tuple[str, ...], ...] = (
     ("ldl",),
     ("egfr", "creatinine", "cr"),
     ("hb", "hemoglobin"),
+    ("pt-inr", "pt_inr", "inr"),  # Issue #3877: the warfarin assessment cites the last INR
 )
 
 
@@ -1024,6 +1025,7 @@ def _chronic_assessment(ctx: NarrativeContext, skip_code: str = "") -> _ChronicA
             inr = lab_by_name.get("pt-inr") or lab_by_name.get("pt_inr") or lab_by_name.get("inr")
             if inr and on_warfarin:
                 v, u = inr
+                out.cited.update(("pt-inr", "pt_inr", "inr"))
                 try:
                     vf = float(v)
                     if 2.0 <= vf <= 3.0:
@@ -1035,7 +1037,8 @@ def _chronic_assessment(ctx: NarrativeContext, skip_code: str = "") -> _ChronicA
                 except (TypeError, ValueError):
                     ctrl = ""
                 target = t("chronic_assessment.inr_target_standard", lang)
-                parts_afib.append(f"PT-INR {v} — {target} — {ctrl}" if ctrl else f"PT-INR {v} — {target}")
+                when = _when("pt-inr", "pt_inr", "inr")
+                parts_afib.append(f"PT-INR {v}{when} — {target} — {ctrl}" if ctrl else f"PT-INR {v}{when} — {target}")
             elif on_doac:
                 parts_afib.extend(_doac_monitoring_values(lab_by_name, measured_on, lang))
                 out.cited.update(("egfr", "creatinine", "cr", "hb", "hemoglobin"))
