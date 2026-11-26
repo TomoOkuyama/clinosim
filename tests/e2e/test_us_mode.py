@@ -105,6 +105,9 @@ class TestUSForcedScenario:
             disease_id="bacterial_pneumonia",
             count=3,
             severity="moderate",
+            # A deteriorating course (sudden_deterioration, treatment_resistant)
+            # legitimately stays longer; the bound is for a recovering one.
+            archetype="smooth_recovery",
         )
         config = SimulatorConfig(random_seed=42, country="US")
         dataset = run_forced(scenario, config)

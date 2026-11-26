@@ -289,6 +289,7 @@ from clinosim.modules.physiology._vital_signs_thresholds import (
     TEMPERATURE_CIRCADIAN_SCALE,
     TEMPERATURE_CLAMP_MAX,
     TEMPERATURE_CLAMP_MIN,
+    TEMPERATURE_INFLAMMATION_KNEE,
     TEMPERATURE_INFLAMMATION_SCALE,
 )
 from clinosim.modules.physiology.dehydration_thresholds import (
@@ -1391,7 +1392,10 @@ def derive_vital_signs(
     circadian = TEMPERATURE_CIRCADIAN_SCALE * (
         -math.cos((hour - TEMPERATURE_CIRCADIAN_HOUR_OFFSET) * math.pi / TEMPERATURE_CIRCADIAN_HOUR_PERIOD)
     )
-    temperature = baseline.temperature + infl * TEMPERATURE_INFLAMMATION_SCALE + circadian
+    # Issue #3818: below the knee the lift grows with the square of
+    # inflammation, so a near-normal CRP is not a low-grade fever.
+    lift_infl = infl if infl >= TEMPERATURE_INFLAMMATION_KNEE else infl * infl / TEMPERATURE_INFLAMMATION_KNEE
+    temperature = baseline.temperature + lift_infl * TEMPERATURE_INFLAMMATION_SCALE + circadian
     if symp:
         temperature += symp * SYMPATHETIC_TEMPERATURE_SCALE
     temperature = clamp(temperature, TEMPERATURE_CLAMP_MIN, TEMPERATURE_CLAMP_MAX)

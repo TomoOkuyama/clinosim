@@ -34,7 +34,7 @@
         "hpi": "62 y/o male patient. Chief complaint: Chest pain, diaphoresis, dyspnea. Symptoms began suddenly and worsened rapidly; brought in by ambulance. History: Chronic ischemic heart disease (IHD), Hypertension (HTN), Dyslipidemia. ROS: no syncope, no sustained palpitations.",
         "medications_at_home": "No home medications",
         "past_medical_history": "Atherosclerotic heart disease of native coronary artery without angina pectoris [I25.10]; Essential (primary) hypertension [I10]; Hyperlipidemia, unspecified [E78.5]",
-        "physical_examination": "Vital signs: BP 121/75 mmHg, HR 108/min, T 37.9°C, SpO2 98% (RA), RR 22/min. General: drowsy, responds to voice, pale, diaphoretic, in distress from chest discomfort. Cardiovascular: regular rhythm, no new murmur or rub, jugular venous pressure not elevated. Respiratory: bibasilar crackles, tachypnea",
+        "physical_examination": "Vital signs: BP 121/75 mmHg, HR 106/min, T 37.5°C, SpO2 98% (RA), RR 22/min. General: drowsy, responds to voice, pale, diaphoretic, in distress from chest discomfort. Cardiovascular: regular rhythm, no new murmur or rub, jugular venous pressure not elevated. Respiratory: bibasilar crackles, tachypnea",
         "social_history": "Smoking: Non-smoker; Alcohol: Non-drinker; Occupation: Other"
       },
       "text": ""
@@ -83,11 +83,11 @@
       },
       "sections": {
         "assessment": "Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 1. Notable labs (past 24 h): troponin I 97.881 ng/mL [H] (troponin elevation), CK-MB 58.5 ng/mL [H], BNP 104.5 pg/mL [H], glucose 119 mg/dL [H], HDL 31 mg/dL [L].",
-        "objective": "BP 115/71 mmHg, HR 110 bpm, RR 18 /min, SpO2 95% (RA), T 38.0°C (past 24 h: HR max 112 bpm, RR max 22 /min)",
+        "objective": "BP 115/71 mmHg, HR 107 bpm, RR 18 /min, SpO2 95% (RA), T 37.7°C (past 24 h: HR max 111 bpm, RR max 22 /min)",
         "plan": "Continue current medications: Heparin, Nitroglycerin. Given once: Aspirin, Ticagrelor. Procedures today: Arterial line insertion, Transthoracic echocardiography. Planned later today: Urinary catheter insertion, Percutaneous coronary intervention (PCI).",
-        "subjective": "Hospital day 1. Persistent fever 38.0°C. Persistent chest pain (NRS 6). New decrease in level of consciousness (AVPU V); orientation being monitored."
+        "subjective": "Hospital day 1. Persistent chest pain (NRS 6). New decrease in level of consciousness (AVPU V); orientation being monitored."
       },
-      "text": "S: Hospital day 1. Persistent fever 38.0°C. Persistent chest pain (NRS 6). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 115/71 mmHg, HR 110 bpm, RR 18 /min, SpO2 95% (RA), T 38.0°C (past 24 h: HR max 112 bpm, RR max 22 /min)\nA: Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 1. Notable labs (past 24 h): troponin I 97.881 ng/mL [H] (troponin elevation), CK-MB 58.5 ng/mL [H], BNP 104.5 pg/mL [H], glucose 119 mg/dL [H], HDL 31 mg/dL [L].\nP: Continue current medications: Heparin, Nitroglycerin. Given once: Aspirin, Ticagrelor. Procedures today: Arterial line insertion, Transthoracic echocardiography. Planned later today: Urinary catheter insertion, Percutaneous coronary intervention (PCI)."
+      "text": "S: Hospital day 1. Persistent chest pain (NRS 6). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 115/71 mmHg, HR 107 bpm, RR 18 /min, SpO2 95% (RA), T 37.7°C (past 24 h: HR max 111 bpm, RR max 22 /min)\nA: Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 1. Notable labs (past 24 h): troponin I 97.881 ng/mL [H] (troponin elevation), CK-MB 58.5 ng/mL [H], BNP 104.5 pg/mL [H], glucose 119 mg/dL [H], HDL 31 mg/dL [L].\nP: Continue current medications: Heparin, Nitroglycerin. Given once: Aspirin, Ticagrelor. Procedures today: Arterial line insertion, Transthoracic echocardiography. Planned later today: Urinary catheter insertion, Percutaneous coronary intervention (PCI)."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-03": {
@@ -132,12 +132,12 @@
         }
       },
       "sections": {
-        "assessment": "Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 2. Post-procedure day 1 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, reduced consciousness improved, not yet sustained). Vital signs worsening compared with the previous day (new oxygen therapy). Abnormal vital signs persisting (tachycardia); no improvement yet. Abnormal vital signs persisting and worsening (tachypnea 18 → 22). Notable labs (past 24 h): HDL 31 mg/dL [L], TG 218 mg/dL [H], LDL 191 mg/dL [H], TC 295 mg/dL [H].",
-        "objective": "BP 117/73 mmHg, HR 107 bpm, RR 22 /min, SpO2 99% (nasal cannula 2 L/min), T 37.7°C (past 24 h: Tmax 39.2°C, HR max 117 bpm, SpO2 min 92%)",
+        "assessment": "Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 2. Post-procedure day 1 (Percutaneous coronary intervention (PCI)). Transferred to the intensive care unit (ICU) on hospital day 2. Vital signs improving compared with the previous day (reduced consciousness improved, not yet sustained). Vital signs worsening compared with the previous day (new oxygen therapy). Abnormal vital signs persisting (tachycardia); no improvement yet. Abnormal vital signs persisting and worsening (tachypnea 18 → 21). Notable labs (past 24 h): HDL 31 mg/dL [L], TG 218 mg/dL [H], LDL 191 mg/dL [H], TC 295 mg/dL [H].",
+        "objective": "BP 115/69 mmHg, HR 105 bpm, RR 21 /min, SpO2 98% (nasal cannula 3.5 L/min), T 36.9°C (past 24 h: Tmax 38.4°C, HR max 117 bpm, SpO2 min 92%)",
         "plan": "Continue current medications: Heparin, Nitroglycerin. Diet changed to NPO (nothing by mouth).",
-        "subjective": "Hospital day 2. Fever up to 39.2°C in the past 24 h; now 37.7°C, below the fever threshold. Persistent chest pain (NRS 5). Level of consciousness improved, now alert (prev AVPU V)."
+        "subjective": "Hospital day 2. Fever up to 38.4°C in the past 24 h; now 36.9°C, below the fever threshold. Persistent chest pain (NRS 5). Level of consciousness improved, now alert (prev AVPU V)."
       },
-      "text": "S: Hospital day 2. Fever up to 39.2°C in the past 24 h; now 37.7°C, below the fever threshold. Persistent chest pain (NRS 5). Level of consciousness improved, now alert (prev AVPU V).\nO: BP 117/73 mmHg, HR 107 bpm, RR 22 /min, SpO2 99% (nasal cannula 2 L/min), T 37.7°C (past 24 h: Tmax 39.2°C, HR max 117 bpm, SpO2 min 92%)\nA: Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 2. Post-procedure day 1 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, reduced consciousness improved, not yet sustained). Vital signs worsening compared with the previous day (new oxygen therapy). Abnormal vital signs persisting (tachycardia); no improvement yet. Abnormal vital signs persisting and worsening (tachypnea 18 → 22). Notable labs (past 24 h): HDL 31 mg/dL [L], TG 218 mg/dL [H], LDL 191 mg/dL [H], TC 295 mg/dL [H].\nP: Continue current medications: Heparin, Nitroglycerin. Diet changed to NPO (nothing by mouth)."
+      "text": "S: Hospital day 2. Fever up to 38.4°C in the past 24 h; now 36.9°C, below the fever threshold. Persistent chest pain (NRS 5). Level of consciousness improved, now alert (prev AVPU V).\nO: BP 115/69 mmHg, HR 105 bpm, RR 21 /min, SpO2 98% (nasal cannula 3.5 L/min), T 36.9°C (past 24 h: Tmax 38.4°C, HR max 117 bpm, SpO2 min 92%)\nA: Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 2. Post-procedure day 1 (Percutaneous coronary intervention (PCI)). Transferred to the intensive care unit (ICU) on hospital day 2. Vital signs improving compared with the previous day (reduced consciousness improved, not yet sustained). Vital signs worsening compared with the previous day (new oxygen therapy). Abnormal vital signs persisting (tachycardia); no improvement yet. Abnormal vital signs persisting and worsening (tachypnea 18 → 21). Notable labs (past 24 h): HDL 31 mg/dL [L], TG 218 mg/dL [H], LDL 191 mg/dL [H], TC 295 mg/dL [H].\nP: Continue current medications: Heparin, Nitroglycerin. Diet changed to NPO (nothing by mouth)."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-04": {
@@ -182,12 +182,12 @@
         }
       },
       "sections": {
-        "assessment": "Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 3. Post-procedure day 2 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (reduced consciousness resolved). Vital signs improving compared with the previous day (fever, tachypnea, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 82.518 ng/mL [H] (prior 97.881; troponin elevation), CK-MB 42.4 ng/mL [H] (prior 58.5), BNP 107.4 pg/mL [H] (prior 104.5), glucose 118 mg/dL [H] (prior 119).",
-        "objective": "BP 113/68 mmHg, HR 106 bpm, RR 17 /min, SpO2 98% (nasal cannula 1 L/min), T 37.0°C (past 24 h: Tmax 39.1°C, HR max 119 bpm, RR max 23 /min, SpO2 min 93%)",
+        "assessment": "Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 3. Post-procedure day 2 (Percutaneous coronary intervention (PCI)). In the ICU since hospital day 2. New complication (ventricular arrhythmia, onset hospital day 2) recognised. Vital signs improving compared with the previous day (fever, low SpO2, reduced consciousness resolved). Vital signs improving compared with the previous day (tachypnea improved, not yet sustained). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 83.612 ng/mL [H] (prior 97.881; troponin elevation), CK-MB 42.9 ng/mL [H] (prior 58.5), BNP 108.5 pg/mL [H] (prior 104.5).",
+        "objective": "BP 109/69 mmHg, HR 105 bpm, RR 15 /min, SpO2 98% (nasal cannula 1 L/min), T 36.4°C (past 24 h: HR max 115 bpm, RR max 22 /min)",
         "plan": "Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet changed to Clear liquids.",
-        "subjective": "Hospital day 3. Fever up to 39.1°C in the past 24 h; now 37.0°C, below the fever threshold. Persistent chest pain (NRS 4)."
+        "subjective": "Hospital day 3. Persistent chest pain (NRS 5)."
       },
-      "text": "S: Hospital day 3. Fever up to 39.1°C in the past 24 h; now 37.0°C, below the fever threshold. Persistent chest pain (NRS 4).\nO: BP 113/68 mmHg, HR 106 bpm, RR 17 /min, SpO2 98% (nasal cannula 1 L/min), T 37.0°C (past 24 h: Tmax 39.1°C, HR max 119 bpm, RR max 23 /min, SpO2 min 93%)\nA: Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 3. Post-procedure day 2 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (reduced consciousness resolved). Vital signs improving compared with the previous day (fever, tachypnea, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 82.518 ng/mL [H] (prior 97.881; troponin elevation), CK-MB 42.4 ng/mL [H] (prior 58.5), BNP 107.4 pg/mL [H] (prior 104.5), glucose 118 mg/dL [H] (prior 119).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet changed to Clear liquids."
+      "text": "S: Hospital day 3. Persistent chest pain (NRS 5).\nO: BP 109/69 mmHg, HR 105 bpm, RR 15 /min, SpO2 98% (nasal cannula 1 L/min), T 36.4°C (past 24 h: HR max 115 bpm, RR max 22 /min)\nA: Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 3. Post-procedure day 2 (Percutaneous coronary intervention (PCI)). In the ICU since hospital day 2. New complication (ventricular arrhythmia, onset hospital day 2) recognised. Vital signs improving compared with the previous day (fever, low SpO2, reduced consciousness resolved). Vital signs improving compared with the previous day (tachypnea improved, not yet sustained). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 83.612 ng/mL [H] (prior 97.881; troponin elevation), CK-MB 42.9 ng/mL [H] (prior 58.5), BNP 108.5 pg/mL [H] (prior 104.5).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet changed to Clear liquids."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-05": {
@@ -232,12 +232,12 @@
         }
       },
       "sections": {
-        "assessment": "Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 4. Post-procedure day 3 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (tachypnea resolved). Vital signs improving compared with the previous day (fever, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 75.911 ng/mL [H] (prior 82.518; troponin elevation), CK-MB 35.1 ng/mL [H] (prior 42.4), glucose 116 mg/dL [H] (prior 118).",
-        "objective": "BP 113/71 mmHg, HR 103 bpm, RR 20 /min, SpO2 98% (nasal cannula 1 L/min), T 37.5°C (past 24 h: Tmax 38.8°C, HR max 114 bpm, SpO2 min 94%)",
+        "assessment": "Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 4. Post-procedure day 3 (Percutaneous coronary intervention (PCI)). In the ICU since hospital day 2. Complications noted (ventricular arrhythmia, onset hospital day 2); management ongoing. Vital signs improving compared with the previous day (tachypnea resolved). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 96.427 ng/mL [H] (prior 83.612; troponin elevation), CK-MB 44.3 ng/mL [H] (prior 42.9), glucose 116 mg/dL [H] (prior 119).",
+        "objective": "BP 111/70 mmHg, HR 103 bpm, RR 15 /min, SpO2 96% (nasal cannula 1 L/min), T 36.9°C (past 24 h: Tmax 38.0°C, HR max 112 bpm, SpO2 min 93%)",
         "plan": "Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet changed to Soft diet.",
-        "subjective": "Hospital day 4. Fever up to 38.8°C in the past 24 h; now 37.5°C, below the fever threshold. Well-controlled chest pain (NRS 4 → 3)."
+        "subjective": "Hospital day 4. Fever up to 38.0°C in the past 24 h; now 36.9°C, below the fever threshold. Well-controlled chest pain (NRS 5 → 3)."
       },
-      "text": "S: Hospital day 4. Fever up to 38.8°C in the past 24 h; now 37.5°C, below the fever threshold. Well-controlled chest pain (NRS 4 → 3).\nO: BP 113/71 mmHg, HR 103 bpm, RR 20 /min, SpO2 98% (nasal cannula 1 L/min), T 37.5°C (past 24 h: Tmax 38.8°C, HR max 114 bpm, SpO2 min 94%)\nA: Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 4. Post-procedure day 3 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (tachypnea resolved). Vital signs improving compared with the previous day (fever, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 75.911 ng/mL [H] (prior 82.518; troponin elevation), CK-MB 35.1 ng/mL [H] (prior 42.4), glucose 116 mg/dL [H] (prior 118).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet changed to Soft diet."
+      "text": "S: Hospital day 4. Fever up to 38.0°C in the past 24 h; now 36.9°C, below the fever threshold. Well-controlled chest pain (NRS 5 → 3).\nO: BP 111/70 mmHg, HR 103 bpm, RR 15 /min, SpO2 96% (nasal cannula 1 L/min), T 36.9°C (past 24 h: Tmax 38.0°C, HR max 112 bpm, SpO2 min 93%)\nA: Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 4. Post-procedure day 3 (Percutaneous coronary intervention (PCI)). In the ICU since hospital day 2. Complications noted (ventricular arrhythmia, onset hospital day 2); management ongoing. Vital signs improving compared with the previous day (tachypnea resolved). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 96.427 ng/mL [H] (prior 83.612; troponin elevation), CK-MB 44.3 ng/mL [H] (prior 42.9), glucose 116 mg/dL [H] (prior 119).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet changed to Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-06": {
@@ -282,12 +282,12 @@
         }
       },
       "sections": {
-        "assessment": "Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 5. Post-procedure day 4 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, oxygen therapy improved, not yet sustained). Abnormal vital signs persisting (tachycardia); no improvement yet. Abnormal vital signs persisting and worsening (low SpO2 98 → 94). Notable labs (past 24 h): troponin I 82.477 ng/mL [H] (prior 75.911; troponin elevation), CK-MB 43.5 ng/mL [H] (prior 35.1), glucose 109 mg/dL [H] (prior 116).",
-        "objective": "BP 115/68 mmHg, HR 106 bpm, RR 19 /min, SpO2 94% (RA), T 36.6°C, weaned off supplemental O2 (past 24 h: Tmax 38.1°C, HR max 114 bpm, SpO2 min 93%)",
+        "assessment": "Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 5. Post-procedure day 4 (Percutaneous coronary intervention (PCI)). In the ICU since hospital day 2. Complications noted (ventricular arrhythmia, onset hospital day 2); management ongoing. Vital signs improving compared with the previous day (fever, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 104.961 ng/mL [H] (prior 96.427; troponin elevation), CK-MB 55.0 ng/mL [H] (prior 44.3), glucose 108 mg/dL [H] (prior 116).",
+        "objective": "BP 111/67 mmHg, HR 104 bpm, RR 18 /min, SpO2 98% (nasal cannula 1 L/min), T 37.5°C (past 24 h: Tmax 38.3°C, HR max 109 bpm, SpO2 min 92%)",
         "plan": "Started: Dobutamine 2ug/kg/min IV drip. Continue current medications: Aspirin, Ticagrelor, Heparin. Held: Nitroglycerin (on vasopressor or inotrope infusion). Diet: Soft diet.",
-        "subjective": "Hospital day 5. Fever up to 38.1°C in the past 24 h; now 36.6°C, below the fever threshold."
+        "subjective": "Hospital day 5. Fever up to 38.3°C in the past 24 h; now 37.5°C, below the fever threshold."
       },
-      "text": "S: Hospital day 5. Fever up to 38.1°C in the past 24 h; now 36.6°C, below the fever threshold.\nO: BP 115/68 mmHg, HR 106 bpm, RR 19 /min, SpO2 94% (RA), T 36.6°C, weaned off supplemental O2 (past 24 h: Tmax 38.1°C, HR max 114 bpm, SpO2 min 93%)\nA: Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 5. Post-procedure day 4 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, oxygen therapy improved, not yet sustained). Abnormal vital signs persisting (tachycardia); no improvement yet. Abnormal vital signs persisting and worsening (low SpO2 98 → 94). Notable labs (past 24 h): troponin I 82.477 ng/mL [H] (prior 75.911; troponin elevation), CK-MB 43.5 ng/mL [H] (prior 35.1), glucose 109 mg/dL [H] (prior 116).\nP: Started: Dobutamine 2ug/kg/min IV drip. Continue current medications: Aspirin, Ticagrelor, Heparin. Held: Nitroglycerin (on vasopressor or inotrope infusion). Diet: Soft diet."
+      "text": "S: Hospital day 5. Fever up to 38.3°C in the past 24 h; now 37.5°C, below the fever threshold.\nO: BP 111/67 mmHg, HR 104 bpm, RR 18 /min, SpO2 98% (nasal cannula 1 L/min), T 37.5°C (past 24 h: Tmax 38.3°C, HR max 109 bpm, SpO2 min 92%)\nA: Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 5. Post-procedure day 4 (Percutaneous coronary intervention (PCI)). In the ICU since hospital day 2. Complications noted (ventricular arrhythmia, onset hospital day 2); management ongoing. Vital signs improving compared with the previous day (fever, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 104.961 ng/mL [H] (prior 96.427; troponin elevation), CK-MB 55.0 ng/mL [H] (prior 44.3), glucose 108 mg/dL [H] (prior 116).\nP: Started: Dobutamine 2ug/kg/min IV drip. Continue current medications: Aspirin, Ticagrelor, Heparin. Held: Nitroglycerin (on vasopressor or inotrope infusion). Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-07": {
@@ -332,12 +332,12 @@
         }
       },
       "sections": {
-        "assessment": "Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 6. Post-procedure day 5 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 76.188 ng/mL [H] (prior 82.477; troponin elevation), CK-MB 45.6 ng/mL [H] (prior 43.5), glucose 107 mg/dL [H] (prior 109).",
-        "objective": "BP 113/70 mmHg, HR 104 bpm, RR 15 /min, SpO2 96% (nasal cannula 1.5 L/min), T 36.5°C (past 24 h: Tmax 38.1°C, HR max 113 bpm, SpO2 min 93%)",
+        "assessment": "Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 6. Post-procedure day 5 (Percutaneous coronary intervention (PCI)). In the ICU since hospital day 2. Complications noted (ventricular arrhythmia, onset hospital day 2); management ongoing. Vital signs improving compared with the previous day (fever improved, not yet sustained). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Abnormal vital signs persisting and worsening (low SpO2 98 → 93). Notable labs (past 24 h): troponin I 96.790 ng/mL [H] (prior 104.961; troponin elevation), BNP 101.5 pg/mL [H] (prior 99.6), CK-MB 57.5 ng/mL [H] (prior 55.0), glucose 107 mg/dL [H] (prior 108).",
+        "objective": "BP 108/67 mmHg, HR 105 bpm, RR 18 /min, SpO2 93% (nasal cannula 1 L/min), T 36.3°C (past 24 h: Tmax 38.0°C, HR max 110 bpm, SpO2 min 92%)",
         "plan": "Continue current medications: Dobutamine 2ug/kg/min IV drip, Aspirin, Ticagrelor, Heparin. Held: Nitroglycerin (on vasopressor or inotrope infusion). Diet: Soft diet.",
-        "subjective": "Hospital day 6. Fever up to 38.1°C in the past 24 h; now 36.5°C, below the fever threshold."
+        "subjective": "Hospital day 6. Fever up to 38.0°C in the past 24 h; now 36.3°C, below the fever threshold."
       },
-      "text": "S: Hospital day 6. Fever up to 38.1°C in the past 24 h; now 36.5°C, below the fever threshold.\nO: BP 113/70 mmHg, HR 104 bpm, RR 15 /min, SpO2 96% (nasal cannula 1.5 L/min), T 36.5°C (past 24 h: Tmax 38.1°C, HR max 113 bpm, SpO2 min 93%)\nA: Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 6. Post-procedure day 5 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 76.188 ng/mL [H] (prior 82.477; troponin elevation), CK-MB 45.6 ng/mL [H] (prior 43.5), glucose 107 mg/dL [H] (prior 109).\nP: Continue current medications: Dobutamine 2ug/kg/min IV drip, Aspirin, Ticagrelor, Heparin. Held: Nitroglycerin (on vasopressor or inotrope infusion). Diet: Soft diet."
+      "text": "S: Hospital day 6. Fever up to 38.0°C in the past 24 h; now 36.3°C, below the fever threshold.\nO: BP 108/67 mmHg, HR 105 bpm, RR 18 /min, SpO2 93% (nasal cannula 1 L/min), T 36.3°C (past 24 h: Tmax 38.0°C, HR max 110 bpm, SpO2 min 92%)\nA: Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 6. Post-procedure day 5 (Percutaneous coronary intervention (PCI)). In the ICU since hospital day 2. Complications noted (ventricular arrhythmia, onset hospital day 2); management ongoing. Vital signs improving compared with the previous day (fever improved, not yet sustained). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Abnormal vital signs persisting and worsening (low SpO2 98 → 93). Notable labs (past 24 h): troponin I 96.790 ng/mL [H] (prior 104.961; troponin elevation), BNP 101.5 pg/mL [H] (prior 99.6), CK-MB 57.5 ng/mL [H] (prior 55.0), glucose 107 mg/dL [H] (prior 108).\nP: Continue current medications: Dobutamine 2ug/kg/min IV drip, Aspirin, Ticagrelor, Heparin. Held: Nitroglycerin (on vasopressor or inotrope infusion). Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-08": {
@@ -382,12 +382,12 @@
         }
       },
       "sections": {
-        "assessment": "Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 7. Post-procedure day 6 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, low SpO2, oxygen therapy improved, not yet sustained). Abnormal vital signs persisting (tachycardia); no improvement yet. Notable labs (past 24 h): troponin I 87.121 ng/mL [H] (prior 78.817; troponin elevation), CK-MB 37.5 ng/mL [H] (prior 45.6), glucose 119 mg/dL [H] (prior 107).",
-        "objective": "BP 118/70 mmHg, HR 104 bpm, RR 16 /min, SpO2 98% (RA), T 37.9°C, weaned off supplemental O2 (past 24 h: Tmax 38.9°C, HR max 113 bpm, SpO2 min 93%)",
-        "plan": "Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Stopped: Dobutamine 2ug/kg/min IV drip. Diet: Soft diet.",
-        "subjective": "Hospital day 7. Fever up to 38.9°C in the past 24 h; now 37.9°C, below the fever threshold."
+        "assessment": "Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 7. Post-procedure day 6 (Percutaneous coronary intervention (PCI)). In the ICU since hospital day 2. Complications noted (ventricular arrhythmia, onset hospital day 2); management ongoing. Vital signs improving compared with the previous day (fever resolved). Vital signs improving compared with the previous day (low SpO2 improved, not yet sustained). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 111.756 ng/mL [H] (prior 99.558; troponin elevation), CK-MB 47.1 ng/mL [H] (prior 57.5), BNP 111.4 pg/mL [H] (prior 101.5), glucose 118 mg/dL [H] (prior 107).",
+        "objective": "BP 109/67 mmHg, HR 106 bpm, RR 20 /min, SpO2 98% (nasal cannula 1 L/min), T 37.0°C (past 24 h: HR max 111 bpm, SpO2 min 92%)",
+        "plan": "Continue current medications: Dobutamine 2ug/kg/min IV drip, Aspirin, Ticagrelor, Heparin. Held: Nitroglycerin (on vasopressor or inotrope infusion). Diet: Soft diet.",
+        "subjective": "Hospital day 7. Fever trending down (prev 38.0°C → today 37.3°C)."
       },
-      "text": "S: Hospital day 7. Fever up to 38.9°C in the past 24 h; now 37.9°C, below the fever threshold.\nO: BP 118/70 mmHg, HR 104 bpm, RR 16 /min, SpO2 98% (RA), T 37.9°C, weaned off supplemental O2 (past 24 h: Tmax 38.9°C, HR max 113 bpm, SpO2 min 93%)\nA: Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 7. Post-procedure day 6 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, low SpO2, oxygen therapy improved, not yet sustained). Abnormal vital signs persisting (tachycardia); no improvement yet. Notable labs (past 24 h): troponin I 87.121 ng/mL [H] (prior 78.817; troponin elevation), CK-MB 37.5 ng/mL [H] (prior 45.6), glucose 119 mg/dL [H] (prior 107).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Stopped: Dobutamine 2ug/kg/min IV drip. Diet: Soft diet."
+      "text": "S: Hospital day 7. Fever trending down (prev 38.0°C → today 37.3°C).\nO: BP 109/67 mmHg, HR 106 bpm, RR 20 /min, SpO2 98% (nasal cannula 1 L/min), T 37.0°C (past 24 h: HR max 111 bpm, SpO2 min 92%)\nA: Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 7. Post-procedure day 6 (Percutaneous coronary intervention (PCI)). In the ICU since hospital day 2. Complications noted (ventricular arrhythmia, onset hospital day 2); management ongoing. Vital signs improving compared with the previous day (fever resolved). Vital signs improving compared with the previous day (low SpO2 improved, not yet sustained). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 111.756 ng/mL [H] (prior 99.558; troponin elevation), CK-MB 47.1 ng/mL [H] (prior 57.5), BNP 111.4 pg/mL [H] (prior 101.5), glucose 118 mg/dL [H] (prior 107).\nP: Continue current medications: Dobutamine 2ug/kg/min IV drip, Aspirin, Ticagrelor, Heparin. Held: Nitroglycerin (on vasopressor or inotrope infusion). Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-09": {
@@ -432,12 +432,12 @@
         }
       },
       "sections": {
-        "assessment": "Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 8. Post-procedure day 7 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 83.290 ng/mL [H] (prior 87.121; troponin elevation), CK-MB 33.8 ng/mL [H] (prior 37.5), glucose 106 mg/dL [H] (prior 119).",
-        "objective": "BP 113/69 mmHg, HR 104 bpm, RR 19 /min, SpO2 97% (nasal cannula 1 L/min), T 36.7°C (past 24 h: Tmax 38.2°C, HR max 114 bpm, SpO2 min 92%)",
-        "plan": "Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet.",
-        "subjective": "Hospital day 8. Fever up to 38.2°C in the past 24 h; now 36.7°C, below the fever threshold."
+        "assessment": "Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 8. Post-procedure day 7 (Percutaneous coronary intervention (PCI)). In the ICU since hospital day 2. Complications noted (ventricular arrhythmia, onset hospital day 2); management ongoing. Vital signs improving compared with the previous day (low SpO2, oxygen therapy improved, not yet sustained). Abnormal vital signs persisting (tachycardia); no improvement yet. Notable labs (past 24 h): troponin I 98.203 ng/mL [H] (prior 106.842; troponin elevation), CK-MB 43.1 ng/mL [H] (prior 47.1), glucose 106 mg/dL [H] (prior 118).",
+        "objective": "BP 108/68 mmHg, HR 106 bpm, RR 16 /min, SpO2 97% (RA), T 37.0°C, weaned off supplemental O2 (past 24 h: HR max 110 bpm, RR max 21 /min, SpO2 min 93%)",
+        "plan": "Continue current medications: Dobutamine 2ug/kg/min IV drip, Aspirin, Ticagrelor, Heparin. Held: Nitroglycerin (on vasopressor or inotrope infusion). Diet: Soft diet.",
+        "subjective": "Hospital day 8. Appetite adequate; no acute discomfort reported."
       },
-      "text": "S: Hospital day 8. Fever up to 38.2°C in the past 24 h; now 36.7°C, below the fever threshold.\nO: BP 113/69 mmHg, HR 104 bpm, RR 19 /min, SpO2 97% (nasal cannula 1 L/min), T 36.7°C (past 24 h: Tmax 38.2°C, HR max 114 bpm, SpO2 min 92%)\nA: Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 8. Post-procedure day 7 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 83.290 ng/mL [H] (prior 87.121; troponin elevation), CK-MB 33.8 ng/mL [H] (prior 37.5), glucose 106 mg/dL [H] (prior 119).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet."
+      "text": "S: Hospital day 8. Appetite adequate; no acute discomfort reported.\nO: BP 108/68 mmHg, HR 106 bpm, RR 16 /min, SpO2 97% (RA), T 37.0°C, weaned off supplemental O2 (past 24 h: HR max 110 bpm, RR max 21 /min, SpO2 min 93%)\nA: Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 8. Post-procedure day 7 (Percutaneous coronary intervention (PCI)). In the ICU since hospital day 2. Complications noted (ventricular arrhythmia, onset hospital day 2); management ongoing. Vital signs improving compared with the previous day (low SpO2, oxygen therapy improved, not yet sustained). Abnormal vital signs persisting (tachycardia); no improvement yet. Notable labs (past 24 h): troponin I 98.203 ng/mL [H] (prior 106.842; troponin elevation), CK-MB 43.1 ng/mL [H] (prior 47.1), glucose 106 mg/dL [H] (prior 118).\nP: Continue current medications: Dobutamine 2ug/kg/min IV drip, Aspirin, Ticagrelor, Heparin. Held: Nitroglycerin (on vasopressor or inotrope infusion). Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-10": {
@@ -482,12 +482,12 @@
         }
       },
       "sections": {
-        "assessment": "Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 9. Post-procedure day 8 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 61.209 ng/mL [H] (prior 83.290; troponin elevation), BNP 106.8 pg/mL [H] (prior 71.8), CK-MB 30.8 ng/mL [H] (prior 33.8), glucose 118 mg/dL [H] (prior 106).",
-        "objective": "BP 111/71 mmHg, HR 101 bpm, RR 18 /min, SpO2 96% (nasal cannula 1 L/min), T 36.9°C (past 24 h: Tmax 38.0°C, HR max 110 bpm, SpO2 min 94%)",
-        "plan": "Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet.",
-        "subjective": "Hospital day 9. Fever up to 38.0°C in the past 24 h; now 36.9°C, below the fever threshold."
+        "assessment": "Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 9. Post-procedure day 8 (Percutaneous coronary intervention (PCI)). Transferred back to the general ward from the ICU on hospital day 9. Complications noted (ventricular arrhythmia, onset hospital day 2); management ongoing. Vital signs improving compared with the previous day (oxygen therapy resolved). Vital signs improving compared with the previous day (tachypnea, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (tachycardia); no improvement yet. Notable labs (past 24 h): troponin I 93.946 ng/mL [H] (prior 98.203; troponin elevation), K 5.2 mmol/L [H] (prior 4.6), CK-MB 41.7 ng/mL [H] (prior 43.1).",
+        "objective": "BP 112/67 mmHg, HR 103 bpm, RR 20 /min, SpO2 94% (RA), T 35.9°C (past 24 h: Tmax 38.1°C, HR max 108 bpm, RR max 22 /min, SpO2 min 92%)",
+        "plan": "Continue current medications: Dobutamine 2ug/kg/min IV drip, Aspirin, Ticagrelor, Heparin. Held: Nitroglycerin (on vasopressor or inotrope infusion). Diet: Soft diet.",
+        "subjective": "Hospital day 9. Fever up to 38.1°C in the past 24 h; now 35.9°C, below the fever threshold."
       },
-      "text": "S: Hospital day 9. Fever up to 38.0°C in the past 24 h; now 36.9°C, below the fever threshold.\nO: BP 111/71 mmHg, HR 101 bpm, RR 18 /min, SpO2 96% (nasal cannula 1 L/min), T 36.9°C (past 24 h: Tmax 38.0°C, HR max 110 bpm, SpO2 min 94%)\nA: Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 9. Post-procedure day 8 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (tachycardia, oxygen therapy); no improvement yet. Notable labs (past 24 h): troponin I 61.209 ng/mL [H] (prior 83.290; troponin elevation), BNP 106.8 pg/mL [H] (prior 71.8), CK-MB 30.8 ng/mL [H] (prior 33.8), glucose 118 mg/dL [H] (prior 106).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet."
+      "text": "S: Hospital day 9. Fever up to 38.1°C in the past 24 h; now 35.9°C, below the fever threshold.\nO: BP 112/67 mmHg, HR 103 bpm, RR 20 /min, SpO2 94% (RA), T 35.9°C (past 24 h: Tmax 38.1°C, HR max 108 bpm, RR max 22 /min, SpO2 min 92%)\nA: Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 9. Post-procedure day 8 (Percutaneous coronary intervention (PCI)). Transferred back to the general ward from the ICU on hospital day 9. Complications noted (ventricular arrhythmia, onset hospital day 2); management ongoing. Vital signs improving compared with the previous day (oxygen therapy resolved). Vital signs improving compared with the previous day (tachypnea, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (tachycardia); no improvement yet. Notable labs (past 24 h): troponin I 93.946 ng/mL [H] (prior 98.203; troponin elevation), K 5.2 mmol/L [H] (prior 4.6), CK-MB 41.7 ng/mL [H] (prior 43.1).\nP: Continue current medications: Dobutamine 2ug/kg/min IV drip, Aspirin, Ticagrelor, Heparin. Held: Nitroglycerin (on vasopressor or inotrope infusion). Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-11": {
@@ -532,12 +532,12 @@
         }
       },
       "sections": {
-        "assessment": "Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 10. Post-procedure day 9 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, low SpO2 resolved). Vital signs improving compared with the previous day (tachycardia, oxygen therapy improved, not yet sustained). Notable labs (past 24 h): troponin I 65.592 ng/mL [H] (prior 61.209; troponin elevation), CK-MB 29.7 ng/mL [H] (prior 30.8), glucose 108 mg/dL [H] (prior 118).",
-        "objective": "BP 119/68 mmHg, HR 100 bpm, RR 20 /min, SpO2 94% (RA), T 35.8°C, weaned off supplemental O2 (past 24 h: HR max 109 bpm, RR max 21 /min)",
-        "plan": "Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet.",
-        "subjective": "Hospital day 10. Fever trending down (prev 38.0°C → today 37.4°C)."
+        "assessment": "Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 10. Post-procedure day 9 (Percutaneous coronary intervention (PCI)). Complications noted (ventricular arrhythmia, onset hospital day 2); management ongoing. Vital signs improving compared with the previous day (fever resolved). Vital signs improving compared with the previous day (tachypnea, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (tachycardia); no improvement yet. Notable labs (past 24 h): troponin I 82.716 ng/mL [H] (prior 93.946; troponin elevation), CK-MB 37.4 ng/mL [H] (prior 41.7), glucose 108 mg/dL [H] (prior 106).",
+        "objective": "BP 113/70 mmHg, HR 105 bpm, RR 18 /min, SpO2 95% (RA), T 36.1°C (past 24 h: HR max 107 bpm, RR max 22 /min, SpO2 min 93%)",
+        "plan": "Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Stopped: Dobutamine 2ug/kg/min IV drip. Diet: Soft diet.",
+        "subjective": "Hospital day 10. Fever trending down (prev 38.1°C → today 36.9°C)."
       },
-      "text": "S: Hospital day 10. Fever trending down (prev 38.0°C → today 37.4°C).\nO: BP 119/68 mmHg, HR 100 bpm, RR 20 /min, SpO2 94% (RA), T 35.8°C, weaned off supplemental O2 (past 24 h: HR max 109 bpm, RR max 21 /min)\nA: Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 10. Post-procedure day 9 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, low SpO2 resolved). Vital signs improving compared with the previous day (tachycardia, oxygen therapy improved, not yet sustained). Notable labs (past 24 h): troponin I 65.592 ng/mL [H] (prior 61.209; troponin elevation), CK-MB 29.7 ng/mL [H] (prior 30.8), glucose 108 mg/dL [H] (prior 118).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet."
+      "text": "S: Hospital day 10. Fever trending down (prev 38.1°C → today 36.9°C).\nO: BP 113/70 mmHg, HR 105 bpm, RR 18 /min, SpO2 95% (RA), T 36.1°C (past 24 h: HR max 107 bpm, RR max 22 /min, SpO2 min 93%)\nA: Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 10. Post-procedure day 9 (Percutaneous coronary intervention (PCI)). Complications noted (ventricular arrhythmia, onset hospital day 2); management ongoing. Vital signs improving compared with the previous day (fever resolved). Vital signs improving compared with the previous day (tachypnea, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (tachycardia); no improvement yet. Notable labs (past 24 h): troponin I 82.716 ng/mL [H] (prior 93.946; troponin elevation), CK-MB 37.4 ng/mL [H] (prior 41.7), glucose 108 mg/dL [H] (prior 106).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Stopped: Dobutamine 2ug/kg/min IV drip. Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-12": {
@@ -582,12 +582,12 @@
         }
       },
       "sections": {
-        "assessment": "Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 11. Post-procedure day 10 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (oxygen therapy resolved). Abnormal vital signs persisting (tachycardia); no improvement yet. Abnormal vital signs persisting and worsening (tachypnea 20 → 23). Notable labs (past 24 h): troponin I 94.221 ng/mL [H] (prior 65.592; troponin elevation), CK-MB 42.1 ng/mL [H] (prior 29.7), glucose 112 mg/dL [H] (prior 108).",
-        "objective": "BP 117/70 mmHg, HR 101 bpm, RR 23 /min, SpO2 96% (RA), T 36.0°C (past 24 h: Tmax 38.7°C, HR max 106 bpm, SpO2 min 94%)",
+        "assessment": "Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 11. Post-procedure day 10 (Percutaneous coronary intervention (PCI)). Complications noted (ventricular arrhythmia, onset hospital day 2); management ongoing. Vital signs improving compared with the previous day (tachypnea, low SpO2 improved, not yet sustained). Vital signs worsening compared with the previous day (new oxygen therapy). Abnormal vital signs persisting (tachycardia); no improvement yet. Notable labs (past 24 h): troponin I 119.428 ng/mL [H] (prior 82.716; troponin elevation), BNP 103.9 pg/mL [H] (prior 87.2), CK-MB 53.3 ng/mL [H] (prior 37.4), glucose 107 mg/dL [H] (prior 108).",
+        "objective": "BP 109/72 mmHg, HR 102 bpm, RR 18 /min, SpO2 97% (nasal cannula 1 L/min), T 36.8°C (past 24 h: HR max 104 bpm, RR max 21 /min, SpO2 min 93%)",
         "plan": "Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet.",
-        "subjective": "Hospital day 11. Fever up to 38.7°C in the past 24 h; now 36.0°C, below the fever threshold."
+        "subjective": "Hospital day 11. No new subjective complaints."
       },
-      "text": "S: Hospital day 11. Fever up to 38.7°C in the past 24 h; now 36.0°C, below the fever threshold.\nO: BP 117/70 mmHg, HR 101 bpm, RR 23 /min, SpO2 96% (RA), T 36.0°C (past 24 h: Tmax 38.7°C, HR max 106 bpm, SpO2 min 94%)\nA: Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 11. Post-procedure day 10 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (oxygen therapy resolved). Abnormal vital signs persisting (tachycardia); no improvement yet. Abnormal vital signs persisting and worsening (tachypnea 20 → 23). Notable labs (past 24 h): troponin I 94.221 ng/mL [H] (prior 65.592; troponin elevation), CK-MB 42.1 ng/mL [H] (prior 29.7), glucose 112 mg/dL [H] (prior 108).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet."
+      "text": "S: Hospital day 11. No new subjective complaints.\nO: BP 109/72 mmHg, HR 102 bpm, RR 18 /min, SpO2 97% (nasal cannula 1 L/min), T 36.8°C (past 24 h: HR max 104 bpm, RR max 21 /min, SpO2 min 93%)\nA: Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 11. Post-procedure day 10 (Percutaneous coronary intervention (PCI)). Complications noted (ventricular arrhythmia, onset hospital day 2); management ongoing. Vital signs improving compared with the previous day (tachypnea, low SpO2 improved, not yet sustained). Vital signs worsening compared with the previous day (new oxygen therapy). Abnormal vital signs persisting (tachycardia); no improvement yet. Notable labs (past 24 h): troponin I 119.428 ng/mL [H] (prior 82.716; troponin elevation), BNP 103.9 pg/mL [H] (prior 87.2), CK-MB 53.3 ng/mL [H] (prior 37.4), glucose 107 mg/dL [H] (prior 108).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-13": {
@@ -632,12 +632,12 @@
         }
       },
       "sections": {
-        "assessment": "Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 12. Post-procedure day 11 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever resolved). Vital signs improving compared with the previous day (tachycardia, tachypnea improved, not yet sustained). Abnormal vital signs persisting and worsening (low SpO2 96 → 94). Notable labs (past 24 h): troponin I 58.283 ng/mL [H] (prior 94.221; troponin elevation), BNP 107.5 pg/mL [H] (prior 81.8), CK-MB 30.9 ng/mL [H] (prior 42.1), glucose 117 mg/dL [H] (prior 112).",
-        "objective": "BP 112/69 mmHg, HR 99 bpm, RR 17 /min, SpO2 94% (RA), T 36.4°C (past 24 h: HR max 109 bpm, RR max 23 /min)",
+        "assessment": "Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 12. Post-procedure day 11 (Percutaneous coronary intervention (PCI)). Complications noted (ventricular arrhythmia, onset hospital day 2); management ongoing. Vital signs improving compared with the previous day (tachycardia, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Abnormal vital signs persisting and worsening (tachypnea 18 → 21). Notable labs (past 24 h): troponin I 70.263 ng/mL [H] (prior 119.428; troponin elevation), K 5.1 mmol/L [H] (prior 4.7), BNP 123.8 pg/mL [H] (prior 103.9), CK-MB 37.3 ng/mL [H] (prior 53.3), glucose 117 mg/dL [H] (prior 107).",
+        "objective": "BP 113/73 mmHg, HR 99 bpm, RR 21 /min, SpO2 95% (nasal cannula 1 L/min), T 35.8°C (past 24 h: HR max 105 bpm, SpO2 min 92%)",
         "plan": "Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet.",
         "subjective": "Hospital day 12. Overall clinical status stable; observation continues."
       },
-      "text": "S: Hospital day 12. Overall clinical status stable; observation continues.\nO: BP 112/69 mmHg, HR 99 bpm, RR 17 /min, SpO2 94% (RA), T 36.4°C (past 24 h: HR max 109 bpm, RR max 23 /min)\nA: Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 12. Post-procedure day 11 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever resolved). Vital signs improving compared with the previous day (tachycardia, tachypnea improved, not yet sustained). Abnormal vital signs persisting and worsening (low SpO2 96 → 94). Notable labs (past 24 h): troponin I 58.283 ng/mL [H] (prior 94.221; troponin elevation), BNP 107.5 pg/mL [H] (prior 81.8), CK-MB 30.9 ng/mL [H] (prior 42.1), glucose 117 mg/dL [H] (prior 112).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet."
+      "text": "S: Hospital day 12. Overall clinical status stable; observation continues.\nO: BP 113/73 mmHg, HR 99 bpm, RR 21 /min, SpO2 95% (nasal cannula 1 L/min), T 35.8°C (past 24 h: HR max 105 bpm, SpO2 min 92%)\nA: Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 12. Post-procedure day 11 (Percutaneous coronary intervention (PCI)). Complications noted (ventricular arrhythmia, onset hospital day 2); management ongoing. Vital signs improving compared with the previous day (tachycardia, low SpO2 improved, not yet sustained). Abnormal vital signs persisting (oxygen therapy); no improvement yet. Abnormal vital signs persisting and worsening (tachypnea 18 → 21). Notable labs (past 24 h): troponin I 70.263 ng/mL [H] (prior 119.428; troponin elevation), K 5.1 mmol/L [H] (prior 4.7), BNP 123.8 pg/mL [H] (prior 103.9), CK-MB 37.3 ng/mL [H] (prior 53.3), glucose 117 mg/dL [H] (prior 107).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-14": {
@@ -682,12 +682,12 @@
         }
       },
       "sections": {
-        "assessment": "Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 13. Post-procedure day 12 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (tachypnea resolved). Vital signs improving compared with the previous day (tachycardia, low SpO2 improved, not yet sustained). Notable labs (past 24 h): troponin I 67.307 ng/mL [H] (prior 58.283; troponin elevation), CK-MB 35.7 ng/mL [H] (prior 30.9), glucose 106 mg/dL [H] (prior 117).",
-        "objective": "BP 116/72 mmHg, HR 99 bpm, RR 16 /min, SpO2 98% (RA), T 36.9°C (past 24 h: Tmax 38.2°C, HR max 104 bpm, SpO2 min 93%)",
+        "assessment": "Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 13. Post-procedure day 12 (Percutaneous coronary intervention (PCI)). Complications noted (ventricular arrhythmia, onset hospital day 2); management ongoing. Vital signs improving compared with the previous day (tachypnea resolved). Vital signs improving compared with the previous day (tachycardia, low SpO2, oxygen therapy improved, not yet sustained). Notable labs (past 24 h): troponin I 81.104 ng/mL [H] (prior 70.263; troponin elevation), CK-MB 43.0 ng/mL [H] (prior 37.3), glucose 106 mg/dL [H] (prior 117).",
+        "objective": "BP 115/74 mmHg, HR 97 bpm, RR 19 /min, SpO2 96% (RA), T 36.6°C, weaned off supplemental O2 (past 24 h: HR max 105 bpm, SpO2 min 93%)",
         "plan": "Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet. Arranging transfer or facility discharge.",
-        "subjective": "Hospital day 13. Fever up to 38.2°C in the past 24 h; now 36.9°C, below the fever threshold."
+        "subjective": "Hospital day 13. Continuing rehab in preparation for discharge."
       },
-      "text": "S: Hospital day 13. Fever up to 38.2°C in the past 24 h; now 36.9°C, below the fever threshold.\nO: BP 116/72 mmHg, HR 99 bpm, RR 16 /min, SpO2 98% (RA), T 36.9°C (past 24 h: Tmax 38.2°C, HR max 104 bpm, SpO2 min 93%)\nA: Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 13. Post-procedure day 12 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (tachypnea resolved). Vital signs improving compared with the previous day (tachycardia, low SpO2 improved, not yet sustained). Notable labs (past 24 h): troponin I 67.307 ng/mL [H] (prior 58.283; troponin elevation), CK-MB 35.7 ng/mL [H] (prior 30.9), glucose 106 mg/dL [H] (prior 117).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet. Arranging transfer or facility discharge."
+      "text": "S: Hospital day 13. Continuing rehab in preparation for discharge.\nO: BP 115/74 mmHg, HR 97 bpm, RR 19 /min, SpO2 96% (RA), T 36.6°C, weaned off supplemental O2 (past 24 h: HR max 105 bpm, SpO2 min 93%)\nA: Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 13. Post-procedure day 12 (Percutaneous coronary intervention (PCI)). Complications noted (ventricular arrhythmia, onset hospital day 2); management ongoing. Vital signs improving compared with the previous day (tachypnea resolved). Vital signs improving compared with the previous day (tachycardia, low SpO2, oxygen therapy improved, not yet sustained). Notable labs (past 24 h): troponin I 81.104 ng/mL [H] (prior 70.263; troponin elevation), CK-MB 43.0 ng/mL [H] (prior 37.3), glucose 106 mg/dL [H] (prior 117).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet. Arranging transfer or facility discharge."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-15": {
@@ -732,12 +732,12 @@
         }
       },
       "sections": {
-        "assessment": "Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 14. Post-procedure day 13 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, low SpO2 resolved). Vital signs improving compared with the previous day (tachycardia improved, not yet sustained). Vital signs worsening compared with the previous day (new oxygen therapy). Notable labs (past 24 h): troponin I 54.511 ng/mL [H] (prior 67.307; troponin elevation), CK-MB 38.3 ng/mL [H] (prior 35.7), glucose 106 mg/dL [H] (prior 106).",
-        "objective": "BP 119/74 mmHg, HR 95 bpm, RR 16 /min, SpO2 96% (nasal cannula 1 L/min), T 36.4°C (past 24 h: HR max 103 bpm)",
+        "assessment": "Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 14. Post-procedure day 13 (Percutaneous coronary intervention (PCI)). Complications noted (ventricular arrhythmia, onset hospital day 2); management ongoing. Vital signs improving compared with the previous day (oxygen therapy resolved). Vital signs improving compared with the previous day (tachycardia, low SpO2 improved, not yet sustained). Notable labs (past 24 h): troponin I 66.590 ng/mL [H] (prior 81.104; troponin elevation), CK-MB 46.7 ng/mL [H] (prior 43.0), glucose 106 mg/dL [H] (prior 106).",
+        "objective": "BP 116/73 mmHg, HR 99 bpm, RR 16 /min, SpO2 98% (RA), T 35.8°C (past 24 h: HR max 103 bpm, RR max 21 /min, SpO2 min 93%)",
         "plan": "Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet. Arranging transfer or facility discharge.",
-        "subjective": "Hospital day 14. Fever trending down (prev 38.2°C → today 37.4°C)."
+        "subjective": "Hospital day 14. Discharge readiness confirmed; family instructed."
       },
-      "text": "S: Hospital day 14. Fever trending down (prev 38.2°C → today 37.4°C).\nO: BP 119/74 mmHg, HR 95 bpm, RR 16 /min, SpO2 96% (nasal cannula 1 L/min), T 36.4°C (past 24 h: HR max 103 bpm)\nA: Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 14. Post-procedure day 13 (Percutaneous coronary intervention (PCI)). Vital signs improving compared with the previous day (fever, low SpO2 resolved). Vital signs improving compared with the previous day (tachycardia improved, not yet sustained). Vital signs worsening compared with the previous day (new oxygen therapy). Notable labs (past 24 h): troponin I 54.511 ng/mL [H] (prior 67.307; troponin elevation), CK-MB 38.3 ng/mL [H] (prior 35.7), glucose 106 mg/dL [H] (prior 106).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet. Arranging transfer or facility discharge."
+      "text": "S: Hospital day 14. Discharge readiness confirmed; family instructed.\nO: BP 116/73 mmHg, HR 99 bpm, RR 16 /min, SpO2 98% (RA), T 35.8°C (past 24 h: HR max 103 bpm, RR max 21 /min, SpO2 min 93%)\nA: Problem: Acute myocardial infarction, unspecified (I21.9), hospital day 14. Post-procedure day 13 (Percutaneous coronary intervention (PCI)). Complications noted (ventricular arrhythmia, onset hospital day 2); management ongoing. Vital signs improving compared with the previous day (oxygen therapy resolved). Vital signs improving compared with the previous day (tachycardia, low SpO2 improved, not yet sustained). Notable labs (past 24 h): troponin I 66.590 ng/mL [H] (prior 81.104; troponin elevation), CK-MB 46.7 ng/mL [H] (prior 43.0), glucose 106 mg/dL [H] (prior 106).\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Diet: Soft diet. Arranging transfer or facility discharge."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-16": {
@@ -748,18 +748,21 @@
         "ctx.encounter.chief_complaint",
         "ctx.medications",
         "ctx.procedures",
+        "ctx.icu_discharge_day",
+        "ctx.complications_events",
         "ctx.lab_results",
         "ctx.discharge_medications",
         "ctx.vitals",
         "ctx.encounter.discharge_disposition",
         "ctx.los_days",
         "ctx.diagnoses",
+        "ctx.working_diagnoses",
         "ctx.discharge_medications",
         "discharge_instructions.baseline",
         "discharge_instructions.disease_specific.acute_mi",
         "discharge_instructions.follow_up"
       ],
-      "generated_at": "2024-06-29T09:16:00Z",
+      "generated_at": "2024-06-29T10:16:00Z",
       "generator": "template",
       "generator_metadata": {
         "generator": "template",
@@ -767,11 +770,11 @@
       },
       "sections": {
         "admission_summary": "Chief complaint: Chest pain, diaphoresis, dyspnea. Admitted for inpatient care.",
-        "discharge_diagnoses": "Acute myocardial infarction, unspecified (I21.9)",
+        "discharge_diagnoses": "Acute myocardial infarction, unspecified (I21.9). Secondary diagnoses: ventricular arrhythmia.",
         "discharge_instructions": "Get adequate rest and avoid overexertion. Cardiology follow-up within 1-2 weeks. Cardiac rehabilitation enrollment recommended. Take your heart medications (Aspirin, Ticagrelor, Atorvastatin) every day as prescribed. Do NOT stop them without consulting your cardiologist. Facility staff: contact the physician or call emergency services if the patient's symptoms worsen significantly. Restricted activity for 4-6 weeks. Avoid heavy lifting. Gradual return per cardiologist guidance. Low-fat, low-sodium diet. Weight management.",
         "discharge_medications": "Aspirin 81mg PO daily x365d; Ticagrelor 90mg PO BID x365d; Atorvastatin 80mg PO daily x365d",
         "follow_up": "Cardiology follow-up within 1-2 weeks. Cardiac rehabilitation enrollment recommended.",
-        "hospital_course": "Length of stay: 14 days (primary reason: Chest pain, diaphoresis, dyspnea). Main treatment: vasoactive drugs (Dobutamine); antithrombotic therapy (Heparin, Aspirin, Ticagrelor); other parenteral drugs (Nitroglycerin). Key procedures: Urinary catheter insertion (2024-06-15), Arterial line insertion (2024-06-15), Transthoracic echocardiography (2024-06-15), Percutaneous coronary intervention (PCI) (2024-06-15). Significant results: troponin I 97.881 ng/mL [H] (troponin elevation) on hospital day 1. Medication changes from admission: started Aspirin, Ticagrelor, Atorvastatin. Vital signs at discharge: BP 120/70 mmHg, HR 99 bpm, RR 17 /min, SpO2 98% (RA), T 36.3°C. Condition at discharge: discharged to skilled nursing facility, Barthel Index 70/100."
+        "hospital_course": "Length of stay: 14 days (primary reason: Chest pain, diaphoresis, dyspnea). Main treatment: vasoactive drugs (Dobutamine); antithrombotic therapy (Heparin, Aspirin, Ticagrelor); other parenteral drugs (Nitroglycerin). Key procedures: Urinary catheter insertion (2024-06-15), Arterial line insertion (2024-06-15), Transthoracic echocardiography (2024-06-15), Percutaneous coronary intervention (PCI) (2024-06-15). Intensive care unit (ICU) stay from 2024-06-16 (hospital day 2) to 2024-06-23 (hospital day 9) in the setting of ventricular arrhythmia, then transferred back to the general ward. Complications during stay: ventricular arrhythmia (onset hospital day 2). Significant results: troponin I 119.428 ng/mL [H] (prior 82.716; troponin elevation) on hospital day 10. Medication changes from admission: started Aspirin, Ticagrelor, Atorvastatin. Vital signs at discharge: BP 115/72 mmHg, HR 99 bpm, RR 14 /min, SpO2 98% (RA), T 36.5°C. Condition at discharge: discharged to skilled nursing facility, Barthel Index 65/100."
       },
       "text": ""
     }
@@ -812,7 +815,6 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
-        "ctx.vitals.shift.fever",
         "ctx.vitals.shift.desaturation",
         "ctx.vitals.shift.consciousness",
         "ctx.devices.shift",
@@ -831,7 +833,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 119/71, HR 117, SpO2 95%, T 38.2°C.\nMeds administered: Heparin, Nitroglycerin.\nchest pain reported, NRS 6.\nFever 38.2°C; observation continued.\nSpO2 fell to 92% at 11:06; no oxygen given, observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nNPO, nothing by mouth.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nDay of the procedure (Percutaneous transluminal coronary angioplasty (PCI); single major coronary artery). Puncture-site observation (bleeding, hematoma) and distal pulses continued."
+      "text": "[Nursing Shift Note - day shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 119/71, HR 114, SpO2 95%, T 37.9°C.\nMeds administered: Heparin, Nitroglycerin.\nchest pain reported, NRS 6.\nSpO2 fell to 92% at 13:06; no oxygen given, observation continued.\nDecreased level of consciousness (AVPU V); observation continued.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nNPO, nothing by mouth.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nDay of the procedure (Percutaneous transluminal coronary angioplasty (PCI); single major coronary artery). Puncture-site observation (bleeding, hematoma) and distal pulses continued."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-19-evening": {
@@ -862,7 +864,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 122/73, HR 112, SpO2 96%, T 37.4°C.\nMeds administered: Nitroglycerin.\nchest pain reported, NRS 6.\nFever 39.2°C; observation continued.\nSpO2 fell to 93% at 20:54; no oxygen given, observation continued.\nLevel of consciousness remains decreased (AVPU V).\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nNPO, nothing by mouth.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nDay of the procedure (Percutaneous transluminal coronary angioplasty (PCI); single major coronary artery). Puncture-site observation (bleeding, hematoma) and distal pulses continued."
+      "text": "[Nursing Shift Note - evening shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 118/72, HR 108, SpO2 93%, T 37.2°C.\nMeds administered: Nitroglycerin.\nchest pain reported, NRS 6.\nFever 38.4°C; observation continued.\nSpO2 fell to 93% at 22:54; no oxygen given, observation continued.\nLevel of consciousness remains decreased (AVPU V).\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nNPO, nothing by mouth.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nDay of the procedure (Percutaneous transluminal coronary angioplasty (PCI); single major coronary artery). Puncture-site observation (bleeding, hematoma) and distal pulses continued."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-20-night": {
@@ -873,8 +875,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.icu_transferred_day",
         "ctx.vitals.shift.pain",
-        "ctx.vitals.shift.desaturation",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
         "ctx.orders.diet.shift",
@@ -892,7 +894,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 117/72, HR 109, SpO2 93%, T 37.5°C; nasal cannula 1 L/min.\nMeds administered: Aspirin, Nitroglycerin.\nchest pain reported, NRS 5.\nSpO2 fell to 93% at 07:47; managed on nasal cannula 1 L/min.\nPrevious day (6/15) fluid balance: intake 745 mL, output 949 mL (urine 50 mL), net -204 mL.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nNPO continued. Oral medications given with sips of water.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nDay 1 after Percutaneous transluminal coronary angioplasty (PCI); single major coronary artery. Puncture-site observation (bleeding, hematoma) and distal pulses continued."
+      "text": "[Nursing Shift Note - night shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 118/69, HR 106, SpO2 98%, T 37.7°C; nasal cannula 2.5 L/min.\nMeds administered: Aspirin, Nitroglycerin.\nTransferred to the ICU during this shift.\nchest pain reported, NRS 5.\nPrevious day (6/15) fluid balance: intake 785 mL, output 949 mL (urine 50 mL), net -164 mL.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 2.5 L/min; device fit and observation continued.\nNPO continued. Oral medications given with sips of water.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nDay 1 after Percutaneous transluminal coronary angioplasty (PCI); single major coronary artery. Puncture-site observation (bleeding, hematoma) and distal pulses continued."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-21-day": {
@@ -903,9 +905,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.icu_transferred_day",
         "ctx.vitals.shift.pain",
-        "ctx.vitals.shift.fever",
-        "ctx.vitals.shift.desaturation",
         "ctx.medications.shift.not_given",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
@@ -924,7 +925,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 118/72, HR 113, SpO2 99%, T 36.6°C; nasal cannula 1 L/min.\nMeds administered: Ticagrelor, Heparin, Nitroglycerin.\nchest pain reported, NRS 5.\nFever 39.1°C; observation continued.\nSpO2 fell to 94% at 13:44; managed on nasal cannula 1 L/min.\nPatient refused Nitroglycerin dose.\nPrevious day (6/15) fluid balance: intake 745 mL, output 949 mL (urine 50 mL), net -204 mL.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Clear liquids, feeding needs partial help, oral intake the previous day 130 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nDay 1 after Percutaneous transluminal coronary angioplasty (PCI); single major coronary artery. Puncture-site observation (bleeding, hematoma) and distal pulses continued."
+      "text": "[Nursing Shift Note - day shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 118/64, HR 111, SpO2 97%, T 36.9°C; nasal cannula 1 L/min.\nMeds administered: Ticagrelor, Heparin, Nitroglycerin.\nIn the ICU (transferred on hospital day 2).\nchest pain reported, NRS 5.\nPatient refused Nitroglycerin dose.\nPrevious day (6/15) fluid balance: intake 785 mL, output 949 mL (urine 50 mL), net -164 mL.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Clear liquids, feeding needs partial help, oral intake the previous day 135 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nDay 1 after Percutaneous transluminal coronary angioplasty (PCI); single major coronary artery. Puncture-site observation (bleeding, hematoma) and distal pulses continued."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-22-evening": {
@@ -935,9 +936,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.icu_transferred_day",
         "ctx.vitals.shift.pain",
-        "ctx.vitals.shift.fever",
-        "ctx.vitals.shift.desaturation",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
         "ctx.orders.diet.shift",
@@ -955,7 +955,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 113/70, HR 113, SpO2 95%, T 37.6°C; nasal cannula 1 L/min.\nMeds administered: Ticagrelor, Nitroglycerin.\nchest pain reported, NRS 5.\nFever 38.5°C; observation continued.\nSpO2 fell to 93% at 17:00; managed on nasal cannula 1 L/min.\nPrevious day (6/15) fluid balance: intake 745 mL, output 949 mL (urine 50 mL), net -204 mL.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Clear liquids, feeding needs partial help, oral intake the previous day 130 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nDay 1 after Percutaneous transluminal coronary angioplasty (PCI); single major coronary artery. Puncture-site observation (bleeding, hematoma) and distal pulses continued."
+      "text": "[Nursing Shift Note - evening shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 112/70, HR 107, SpO2 98%, T 36.6°C; nasal cannula 1 L/min.\nMeds administered: Ticagrelor, Nitroglycerin.\nIn the ICU (transferred on hospital day 2).\nchest pain reported, NRS peak 5, latest 4.\nPrevious day (6/15) fluid balance: intake 785 mL, output 949 mL (urine 50 mL), net -164 mL.\nIndwelling urinary catheter in place; securement, urine flow and character observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Clear liquids, feeding needs partial help, oral intake the previous day 135 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed.\nDay 1 after Percutaneous transluminal coronary angioplasty (PCI); single major coronary artery. Puncture-site observation (bleeding, hematoma) and distal pulses continued."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-23-night": {
@@ -966,7 +966,9 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.icu_transferred_day",
         "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.desaturation",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
         "ctx.orders.diet.shift",
@@ -983,7 +985,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 113/67, HR 102, SpO2 100%, T 36.8°C; nasal cannula 1 L/min.\nMeds administered: Ticagrelor, Nitroglycerin.\nchest pain reported, NRS 4.\nPrevious day (6/16) fluid balance: intake 1566 mL, output 1341 mL (urine 587 mL), net +225 mL.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Clear liquids, feeding needs partial help, oral intake the previous day 593 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - night shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 109/70, HR 106, SpO2 98%, T 36.6°C; nasal cannula 1 L/min.\nMeds administered: Ticagrelor, Nitroglycerin.\nIn the ICU (transferred on hospital day 2).\nchest pain reported, NRS peak 5, latest 4.\nSpO2 fell to 93% at 05:02; managed on nasal cannula 1 L/min.\nPrevious day (6/16) fluid balance: intake 1256 mL, output 1046 mL (urine 292 mL), net +210 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Clear liquids, feeding needs partial help, oral intake the previous day 501 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-24-day": {
@@ -994,8 +996,8 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.icu_transferred_day",
         "ctx.vitals.shift.pain",
-        "ctx.vitals.shift.fever",
         "ctx.vitals.shift.desaturation",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
@@ -1013,7 +1015,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 111/71, HR 108, SpO2 95%, T 38.5°C; nasal cannula 1 L/min.\nMeds administered: Aspirin, Heparin, Nitroglycerin.\nchest pain reported, NRS 4.\nFever 38.8°C; observation continued.\nSpO2 fell to 94% at 11:05; managed on nasal cannula 1 L/min.\nPrevious day (6/16) fluid balance: intake 1566 mL, output 1341 mL (urine 587 mL), net +225 mL.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 593 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - day shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 109/69, HR 108, SpO2 94%, T 36.7°C; nasal cannula 1 L/min.\nMeds administered: Aspirin, Heparin, Nitroglycerin.\nIn the ICU (transferred on hospital day 2).\nchest pain reported, NRS 5.\nSpO2 fell to 93% at 10:08; managed on nasal cannula 1 L/min.\nPrevious day (6/16) fluid balance: intake 1256 mL, output 1046 mL (urine 292 mL), net +210 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 501 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-25-evening": {
@@ -1024,9 +1026,9 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.icu_transferred_day",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
-        "ctx.vitals.shift.desaturation",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
         "ctx.orders.diet.shift",
@@ -1043,7 +1045,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 111/67, HR 108, SpO2 95%, T 37.8°C; nasal cannula 1 L/min.\nMeds administered: Ticagrelor, Nitroglycerin.\nchest pain reported, NRS 4.\nFever 38.1°C; observation continued.\nSpO2 fell to 94% at 19:52; managed on nasal cannula 1 L/min.\nPrevious day (6/16) fluid balance: intake 1566 mL, output 1341 mL (urine 587 mL), net +225 mL.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 593 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - evening shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 110/68, HR 105, SpO2 98%, T 37.5°C; nasal cannula 1 L/min.\nMeds administered: Ticagrelor, Nitroglycerin.\nIn the ICU (transferred on hospital day 2).\nchest pain reported, NRS 4.\nFever 38.0°C; observation continued.\nPrevious day (6/16) fluid balance: intake 1256 mL, output 1046 mL (urine 292 mL), net +210 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 501 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-26-night": {
@@ -1054,7 +1056,9 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.icu_transferred_day",
         "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.desaturation",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
         "ctx.orders.diet.shift",
@@ -1071,7 +1075,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 113/66, HR 107, SpO2 98%, T 37.3°C; nasal cannula 1 L/min.\nMeds administered: Aspirin, Nitroglycerin.\nchest pain reported, NRS 3.\nPrevious day (6/17) fluid balance: intake 837 mL, output 992 mL (urine 238 mL), net -155 mL.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 262 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - night shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 110/67, HR 106, SpO2 96%, T 37.1°C.\nMeds administered: Aspirin, Nitroglycerin.\nIn the ICU (transferred on hospital day 2).\nchest pain reported, NRS 3.\nSpO2 fell to 93% at 05:58; no oxygen given, observation continued.\nPrevious day (6/17) fluid balance: intake 1740 mL, output 1371 mL (urine 617 mL), net +369 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 554 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-27-day": {
@@ -1082,10 +1086,12 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.icu_transferred_day",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
         "ctx.vitals.shift.desaturation",
         "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
         "ctx.medications.today",
@@ -1100,7 +1106,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 112/68, HR 114, SpO2 96%, T 38.1°C.\nMeds administered: Ticagrelor, Heparin, Nitroglycerin.\nchest pain reported, NRS 3.\nFever 38.1°C; observation continued.\nSpO2 fell to 94% at 10:05; no oxygen given, observation continued.\nPrevious day (6/17) fluid balance: intake 837 mL, output 992 mL (urine 238 mL), net -155 mL.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 262 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - day shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 111/69, HR 106, SpO2 98%, T 37.8°C; simple face mask 4.5 L/min.\nMeds administered: Ticagrelor, Heparin, Nitroglycerin.\nIn the ICU (transferred on hospital day 2).\nchest pain reported, NRS 3.\nFever 38.3°C; observation continued.\nSpO2 fell to 92% at 11:57; simple face mask 4.5 L/min given, SpO2 98% afterwards.\nPrevious day (6/17) fluid balance: intake 1740 mL, output 1371 mL (urine 617 mL), net +369 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: simple face mask 4.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 554 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-28-evening": {
@@ -1111,10 +1117,11 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.icu_transferred_day",
         "ctx.vitals.shift.pain",
-        "ctx.vitals.shift.desaturation",
         "ctx.medications.shift.not_given",
         "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
         "ctx.medications.today",
@@ -1129,7 +1136,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 112/70, HR 108, SpO2 94%, T 36.3°C.\nMeds administered: Ticagrelor, Dobutamine 2ug/kg/min IV drip.\nchest pain reported, NRS 3.\nSpO2 fell to 93% at 22:00; no oxygen given, observation continued.\nNitroglycerin dose held: on vasopressor or inotrope infusion.\nPrevious day (6/17) fluid balance: intake 837 mL, output 992 mL (urine 238 mL), net -155 mL.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 262 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - evening shift] Day 4\nRecorded by: Clara Pittman\nPatient status: BP 110/66, HR 104, SpO2 98%, T 37.3°C; nasal cannula 2.5 L/min.\nMeds administered: Ticagrelor, Dobutamine 2ug/kg/min IV drip.\nIn the ICU (transferred on hospital day 2).\nchest pain reported, NRS peak 4, latest 3.\nNitroglycerin dose held: on vasopressor or inotrope infusion.\nPrevious day (6/17) fluid balance: intake 1740 mL, output 1371 mL (urine 617 mL), net +369 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 2.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 554 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-29-night": {
@@ -1140,11 +1147,12 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.icu_transferred_day",
         "ctx.vitals.shift.pain",
-        "ctx.vitals.shift.fever",
         "ctx.vitals.shift.desaturation",
         "ctx.medications.shift.not_given",
         "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
         "ctx.medications.today",
@@ -1159,7 +1167,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 114/69, HR 106, SpO2 93%, T 38.1°C.\nMeds administered: Dobutamine 2ug/kg/min IV drip.\nchest pain reported, NRS peak 3, latest 2.\nFever 38.1°C; observation continued.\nSpO2 fell to 93% at 07:05; no oxygen given, observation continued.\nNitroglycerin dose held: on vasopressor or inotrope infusion.\nPrevious day (6/18) fluid balance: intake 978 mL, output 1049 mL (urine 50 mL), net -71 mL.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 393 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - night shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 109/68, HR 106, SpO2 98%, T 36.5°C; nasal cannula 1 L/min.\nMeds administered: Dobutamine 2ug/kg/min IV drip.\nIn the ICU (transferred on hospital day 2).\nchest pain reported, NRS 2.\nSpO2 fell to 93% at 00:10; managed on nasal cannula 1.5 L/min.\nNitroglycerin dose held: on vasopressor or inotrope infusion.\nPrevious day (6/18) fluid balance: intake 1083 mL, output 1072 mL (urine 73 mL), net +11 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 511 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-30-day": {
@@ -1170,10 +1178,12 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.icu_transferred_day",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.desaturation",
         "ctx.medications.shift.not_given",
         "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
         "ctx.medications.today",
@@ -1188,7 +1198,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 111/68, HR 112, SpO2 94%, T 37.3°C.\nMeds administered: Aspirin, Ticagrelor, Heparin, Dobutamine 2ug/kg/min IV drip.\nchest pain reported, NRS 2.\nSpO2 fell to 94% at 15:12; no oxygen given, observation continued.\nNitroglycerin dose held: on vasopressor or inotrope infusion.\nPrevious day (6/18) fluid balance: intake 978 mL, output 1049 mL (urine 50 mL), net -71 mL.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 393 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - day shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 113/67, HR 108, SpO2 97%, T 37.5°C; nasal cannula 1 L/min.\nMeds administered: Aspirin, Ticagrelor, Heparin, Dobutamine 2ug/kg/min IV drip.\nIn the ICU (transferred on hospital day 2).\nchest pain reported, NRS 2.\nSpO2 fell to 93% at 11:52; managed on nasal cannula 2 L/min.\nNitroglycerin dose held: on vasopressor or inotrope infusion.\nPrevious day (6/18) fluid balance: intake 1083 mL, output 1072 mL (urine 73 mL), net +11 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 511 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-31-evening": {
@@ -1199,7 +1209,10 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.icu_transferred_day",
         "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
+        "ctx.vitals.shift.desaturation",
         "ctx.medications.shift.not_given",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
@@ -1217,7 +1230,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 112/71, HR 106, SpO2 98%, T 37.6°C; nasal cannula 2.5 L/min.\nMeds administered: Ticagrelor, Dobutamine 2ug/kg/min IV drip.\nchest pain reported, NRS 2.\nNitroglycerin dose held: on vasopressor or inotrope infusion.\nPrevious day (6/18) fluid balance: intake 978 mL, output 1049 mL (urine 50 mL), net -71 mL.\nOxygen: nasal cannula 2.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 393 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - evening shift] Day 5\nRecorded by: Clara Pittman\nPatient status: BP 109/67, HR 105, SpO2 98%, T 37.9°C; nasal cannula 1 L/min.\nMeds administered: Ticagrelor, Dobutamine 2ug/kg/min IV drip.\nIn the ICU (transferred on hospital day 2).\nchest pain reported, NRS 2.\nFever 38.0°C; observation continued.\nSpO2 fell to 92% at 19:00; managed on nasal cannula 1 L/min.\nNitroglycerin dose held: on vasopressor or inotrope infusion.\nPrevious day (6/18) fluid balance: intake 1083 mL, output 1072 mL (urine 73 mL), net +11 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 511 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-32-night": {
@@ -1228,7 +1241,10 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.icu_transferred_day",
         "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.desaturation",
+        "ctx.medications.shift.not_given",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
         "ctx.orders.diet.shift",
@@ -1245,7 +1261,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 6\nRecorded by: Clara Pittman\nPatient status: BP 113/70, HR 106, SpO2 95%, T 36.1°C; nasal cannula 1 L/min.\nMeds administered: Nitroglycerin.\nchest pain reported, NRS 3.\nPrevious day (6/19) fluid balance: intake 946 mL, output 920 mL (urine 56 mL), net +26 mL.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 606 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - night shift] Day 6\nRecorded by: Clara Pittman\nPatient status: BP 110/71, HR 108, SpO2 96%, T 37.0°C; nasal cannula 1 L/min.\nMeds administered: Dobutamine 2ug/kg/min IV drip.\nIn the ICU (transferred on hospital day 2).\nchest pain reported, NRS peak 2, latest 1.\nSpO2 fell to 93% at 04:08; managed on nasal cannula 1 L/min.\nNitroglycerin dose held: on vasopressor or inotrope infusion.\nPrevious day (6/19) fluid balance: intake 723 mL, output 914 mL (urine 50 mL), net -191 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 613 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-33-day": {
@@ -1256,9 +1272,12 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.icu_transferred_day",
         "ctx.vitals.shift.pain",
-        "ctx.vitals.shift.fever",
+        "ctx.vitals.shift.desaturation",
+        "ctx.medications.shift.not_given",
         "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
         "ctx.medications.today",
@@ -1273,7 +1292,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 6\nRecorded by: Clara Pittman\nPatient status: BP 114/68, HR 109, SpO2 95%, T 38.0°C.\nMeds administered: Aspirin, Ticagrelor, Heparin, Nitroglycerin.\nchest pain reported, NRS peak 3, latest 1.\nFever 38.0°C; observation continued.\nPrevious day (6/19) fluid balance: intake 946 mL, output 920 mL (urine 56 mL), net +26 mL.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 606 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - day shift] Day 6\nRecorded by: Clara Pittman\nPatient status: BP 109/70, HR 106, SpO2 92%, T 37.3°C; nasal cannula 1 L/min.\nMeds administered: Aspirin, Ticagrelor, Heparin, Dobutamine 2ug/kg/min IV drip.\nIn the ICU (transferred on hospital day 2).\nchest pain reported, NRS peak 5, latest 1.\nSpO2 fell to 92% at 15:57; managed on nasal cannula 1 L/min.\nNitroglycerin dose held: on vasopressor or inotrope infusion.\nPrevious day (6/19) fluid balance: intake 723 mL, output 914 mL (urine 50 mL), net -191 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 613 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-34-evening": {
@@ -1284,10 +1303,12 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.icu_transferred_day",
         "ctx.vitals.shift.pain",
-        "ctx.vitals.shift.fever",
         "ctx.vitals.shift.desaturation",
+        "ctx.medications.shift.not_given",
         "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
         "ctx.medications.today",
@@ -1302,7 +1323,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 6\nRecorded by: Clara Pittman\nPatient status: BP 113/70, HR 106, SpO2 97%, T 37.5°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nchest pain reported, NRS peak 2, latest 1.\nFever 38.9°C; observation continued.\nSpO2 fell to 93% at 17:53; no oxygen given, observation continued.\nPrevious day (6/19) fluid balance: intake 946 mL, output 920 mL (urine 56 mL), net +26 mL.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 606 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - evening shift] Day 6\nRecorded by: Clara Pittman\nPatient status: BP 111/68, HR 105, SpO2 95%, T 37.0°C; nasal cannula 1 L/min.\nMeds administered: Ticagrelor, Dobutamine 2ug/kg/min IV drip.\nIn the ICU (transferred on hospital day 2).\nchest pain reported, NRS peak 4, latest 0.\nSpO2 fell to 93% at 18:56; managed on nasal cannula 1 L/min.\nNitroglycerin dose held: on vasopressor or inotrope infusion.\nPrevious day (6/19) fluid balance: intake 723 mL, output 914 mL (urine 50 mL), net -191 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 613 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-35-night": {
@@ -1313,9 +1334,11 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.icu_transferred_day",
         "ctx.vitals.shift.pain",
-        "ctx.vitals.shift.desaturation",
+        "ctx.medications.shift.not_given",
         "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
         "ctx.medications.today",
@@ -1330,7 +1353,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 110/67, HR 104, SpO2 96%, T 37.6°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nchest pain reported, NRS 2.\nSpO2 fell to 92% at 05:03; no oxygen given, observation continued.\nPrevious day (6/20) fluid balance: intake 880 mL, output 958 mL (urine 50 mL), net -78 mL.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 547 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - night shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 108/65, HR 102, SpO2 98%, T 36.9°C; nasal cannula 1 L/min.\nMeds administered: Aspirin, Ticagrelor, Dobutamine 2ug/kg/min IV drip.\nIn the ICU (transferred on hospital day 2).\nchest pain reported, NRS 1.\nNitroglycerin dose held: on vasopressor or inotrope infusion.\nPrevious day (6/20) fluid balance: intake 1173 mL, output 1170 mL (urine 262 mL), net +3 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 595 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-36-day": {
@@ -1341,8 +1364,10 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.icu_transferred_day",
         "ctx.vitals.shift.pain",
-        "ctx.vitals.shift.fever",
+        "ctx.vitals.shift.desaturation",
+        "ctx.medications.shift.not_given",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
         "ctx.orders.diet.shift",
@@ -1359,7 +1384,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 113/70, HR 108, SpO2 98%, T 38.2°C; nasal cannula 1 L/min.\nMeds administered: Heparin, Nitroglycerin.\nchest pain reported, NRS peak 1, latest 0.\nFever 38.2°C; observation continued.\nPrevious day (6/20) fluid balance: intake 880 mL, output 958 mL (urine 50 mL), net -78 mL.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 547 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - day shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 109/70, HR 110, SpO2 94%, T 36.4°C.\nMeds administered: Heparin, Dobutamine 2ug/kg/min IV drip.\nIn the ICU (transferred on hospital day 2).\nchest pain reported, NRS peak 2, latest 1.\nSpO2 fell to 93% at 12:04; no oxygen given, observation continued.\nNitroglycerin dose held: on vasopressor or inotrope infusion.\nPrevious day (6/20) fluid balance: intake 1173 mL, output 1170 mL (urine 262 mL), net +3 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 595 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-37-evening": {
@@ -1370,9 +1395,9 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.icu_transferred_day",
         "ctx.vitals.shift.pain",
-        "ctx.vitals.shift.fever",
-        "ctx.vitals.shift.desaturation",
+        "ctx.medications.shift.not_given",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
         "ctx.orders.diet.shift",
@@ -1389,7 +1414,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 112/68, HR 107, SpO2 94%, T 37.0°C; nasal cannula 1 L/min.\nMeds administered: Ticagrelor, Nitroglycerin.\nchest pain reported, NRS peak 1, latest 0.\nFever 38.1°C; observation continued.\nSpO2 fell to 94% at 23:00; managed on nasal cannula 1 L/min.\nPrevious day (6/20) fluid balance: intake 880 mL, output 958 mL (urine 50 mL), net -78 mL.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 547 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - evening shift] Day 7\nRecorded by: Clara Pittman\nPatient status: BP 109/66, HR 105, SpO2 95%, T 36.6°C.\nMeds administered: Ticagrelor, Dobutamine 2ug/kg/min IV drip.\nIn the ICU (transferred on hospital day 2).\nchest pain reported, NRS peak 1, latest 0.\nNitroglycerin dose held: on vasopressor or inotrope infusion.\nPrevious day (6/20) fluid balance: intake 1173 mL, output 1170 mL (urine 262 mL), net +3 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 595 mL.\nADL: Barthel Index 65/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-38-night": {
@@ -1400,7 +1425,10 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.icu_transferred_day",
         "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.desaturation",
+        "ctx.medications.shift.not_given",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
         "ctx.orders.diet.shift",
@@ -1417,7 +1445,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 113/71, HR 104, SpO2 96%, T 37.2°C; nasal cannula 1 L/min.\nMeds administered: Aspirin, Nitroglycerin.\nNo pain reported (NRS 0).\nPrevious day (6/21) fluid balance: intake 1256 mL, output 1138 mL (urine 384 mL), net +118 mL.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 567 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - night shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 112/67, HR 103, SpO2 96%, T 36.1°C.\nMeds administered: Aspirin, Dobutamine 2ug/kg/min IV drip.\nIn the ICU (transferred on hospital day 2).\nchest pain reported, NRS peak 3, latest 0.\nSpO2 fell to 93% at 04:56; no oxygen given, observation continued.\nNitroglycerin dose held: on vasopressor or inotrope infusion.\nPrevious day (6/21) fluid balance: intake 1100 mL, output 916 mL (urine 162 mL), net +184 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 519 mL.\nADL: Barthel Index 65/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-39-day": {
@@ -1428,8 +1456,13 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.icu_transferred_day",
         "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
+        "ctx.vitals.shift.desaturation",
+        "ctx.medications.shift.not_given",
         "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
         "ctx.medications.today",
@@ -1444,7 +1477,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 114/72, HR 108, SpO2 96%, T 37.8°C.\nMeds administered: Ticagrelor, Heparin, Nitroglycerin.\nchest pain reported, NRS 2.\nPrevious day (6/21) fluid balance: intake 1256 mL, output 1138 mL (urine 384 mL), net +118 mL.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 567 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - day shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 112/68, HR 107, SpO2 95%, T 38.1°C.\nMeds administered: Ticagrelor, Heparin, Dobutamine 2ug/kg/min IV drip.\nIn the ICU (transferred on hospital day 2).\nchest pain reported, NRS 2.\nFever 38.1°C; observation continued.\nSpO2 fell to 92% at 11:52; no oxygen given, observation continued.\nNitroglycerin dose held: on vasopressor or inotrope infusion.\nPrevious day (6/21) fluid balance: intake 1100 mL, output 916 mL (urine 162 mL), net +184 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 519 mL.\nADL: Barthel Index 65/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-40-evening": {
@@ -1455,9 +1488,11 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.icu_transferred_day",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
         "ctx.vitals.shift.desaturation",
+        "ctx.medications.shift.not_given",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
         "ctx.orders.diet.shift",
@@ -1474,7 +1509,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 111/69, HR 110, SpO2 98%, T 37.4°C; nasal cannula 2 L/min.\nMeds administered: Ticagrelor, Nitroglycerin.\nchest pain reported, NRS 1.\nFever 38.0°C; observation continued.\nSpO2 fell to 94% at 17:55; nasal cannula 3 L/min given, SpO2 96% afterwards.\nPrevious day (6/21) fluid balance: intake 1256 mL, output 1138 mL (urine 384 mL), net +118 mL.\nOxygen: nasal cannula 2 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 567 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - evening shift] Day 8\nRecorded by: Clara Pittman\nPatient status: BP 110/75, HR 106, SpO2 96%, T 37.2°C.\nMeds administered: Ticagrelor, Dobutamine 2ug/kg/min IV drip, Nitroglycerin.\nIn the ICU (transferred on hospital day 2).\nchest pain reported, NRS peak 3, latest 0.\nFever 38.1°C; observation continued.\nSpO2 fell to 93% at 18:49; no oxygen given, observation continued.\nNitroglycerin dose held: on vasopressor or inotrope infusion.\nPrevious day (6/21) fluid balance: intake 1100 mL, output 916 mL (urine 162 mL), net +184 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 519 mL.\nADL: Barthel Index 65/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-41-night": {
@@ -1485,7 +1520,9 @@
         "ctx.shift",
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
+        "ctx.icu_transferred_day",
         "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.desaturation",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
         "ctx.orders.diet.shift",
@@ -1502,7 +1539,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 9\nRecorded by: Clara Pittman\nPatient status: BP 114/70, HR 105, SpO2 94%, T 36.9°C; nasal cannula 1 L/min.\nMeds administered: Nitroglycerin.\nchest pain reported, NRS 3.\nPrevious day (6/22) fluid balance: intake 977 mL, output 1005 mL (urine 251 mL), net -28 mL.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 604 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - night shift] Day 9\nRecorded by: Clara Pittman\nPatient status: BP 110/64, HR 107, SpO2 95%, T 36.5°C.\nMeds administered: Nitroglycerin.\nTransferred back to the general ward from the ICU during this shift.\nNo pain reported (NRS 0).\nSpO2 fell to 93% at 05:57; no oxygen given, observation continued.\nPrevious day (6/22) fluid balance: intake 727 mL, output 852 mL (urine 98 mL), net -125 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 412 mL.\nADL: Barthel Index 65/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-42-day": {
@@ -1530,7 +1567,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 9\nRecorded by: Clara Pittman\nPatient status: BP 113/74, HR 107, SpO2 98%, T 37.3°C; nasal cannula 1 L/min.\nMeds administered: Aspirin, Ticagrelor, Heparin, Nitroglycerin.\nchest pain reported, NRS 2.\nPrevious day (6/22) fluid balance: intake 977 mL, output 1005 mL (urine 251 mL), net -28 mL.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 604 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - day shift] Day 9\nRecorded by: Clara Pittman\nPatient status: BP 109/67, HR 104, SpO2 95%, T 36.9°C.\nMeds administered: Aspirin, Ticagrelor, Heparin, Nitroglycerin.\nchest pain reported, NRS 1.\nPrevious day (6/22) fluid balance: intake 727 mL, output 852 mL (urine 98 mL), net -125 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 412 mL.\nADL: Barthel Index 65/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-43-evening": {
@@ -1543,6 +1580,7 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
         "ctx.medications.today",
@@ -1557,7 +1595,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 9\nRecorded by: Clara Pittman\nPatient status: BP 115/70, HR 105, SpO2 100%, T 37.1°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nchest pain reported, NRS 3.\nPrevious day (6/22) fluid balance: intake 977 mL, output 1005 mL (urine 251 mL), net -28 mL.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 604 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - evening shift] Day 9\nRecorded by: Clara Pittman\nPatient status: BP 110/70, HR 103, SpO2 97%, T 36.2°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nchest pain reported, NRS peak 2, latest 0.\nPrevious day (6/22) fluid balance: intake 727 mL, output 852 mL (urine 98 mL), net -125 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 412 mL.\nADL: Barthel Index 65/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-44-night": {
@@ -1571,6 +1609,7 @@
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.desaturation",
         "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
         "ctx.medications.today",
@@ -1585,7 +1624,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 10\nRecorded by: Clara Pittman\nPatient status: BP 112/72, HR 104, SpO2 96%, T 36.6°C.\nMeds administered: Nitroglycerin.\nchest pain reported, NRS peak 1, latest 0.\nSpO2 fell to 94% at 04:55; no oxygen given, observation continued.\nPrevious day (6/23) fluid balance: intake 1356 mL, output 1178 mL (urine 424 mL), net +178 mL.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 967 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - night shift] Day 10\nRecorded by: Clara Pittman\nPatient status: BP 112/70, HR 103, SpO2 99%, T 36.6°C.\nMeds administered: Nitroglycerin.\nchest pain reported, NRS 1.\nSpO2 fell to 93% at 05:03; no oxygen given, observation continued.\nPrevious day (6/23) fluid balance: intake 1299 mL, output 1200 mL (urine 446 mL), net +99 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 1065 mL.\nADL: Barthel Index 65/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-45-day": {
@@ -1597,9 +1636,9 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
-        "ctx.vitals.shift.fever",
         "ctx.vitals.shift.desaturation",
         "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
         "ctx.medications.today",
@@ -1614,7 +1653,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 10\nRecorded by: Clara Pittman\nPatient status: BP 113/66, HR 105, SpO2 96%, T 38.1°C.\nMeds administered: Aspirin, Ticagrelor, Heparin, Nitroglycerin.\nchest pain reported, NRS peak 2, latest 0.\nFever 38.1°C; observation continued.\nSpO2 fell to 94% at 14:11; no oxygen given, observation continued.\nPrevious day (6/23) fluid balance: intake 1356 mL, output 1178 mL (urine 424 mL), net +178 mL.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 967 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - day shift] Day 10\nRecorded by: Clara Pittman\nPatient status: BP 112/70, HR 104, SpO2 96%, T 37.1°C.\nMeds administered: Aspirin, Ticagrelor, Heparin, Nitroglycerin.\nchest pain reported, NRS 1.\nSpO2 fell to 94% at 09:52; no oxygen given, observation continued.\nPrevious day (6/23) fluid balance: intake 1299 mL, output 1200 mL (urine 446 mL), net +99 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 1065 mL.\nADL: Barthel Index 65/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-46-evening": {
@@ -1626,9 +1665,8 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
-        "ctx.vitals.shift.fever",
-        "ctx.vitals.shift.desaturation",
         "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
         "ctx.medications.today",
@@ -1643,7 +1681,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 10\nRecorded by: Clara Pittman\nPatient status: BP 114/69, HR 102, SpO2 94%, T 38.0°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nchest pain reported, NRS peak 3, latest 1.\nFever 38.7°C; observation continued.\nSpO2 fell to 94% at 22:51; no oxygen given, observation continued.\nPrevious day (6/23) fluid balance: intake 1356 mL, output 1178 mL (urine 424 mL), net +178 mL.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 967 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - evening shift] Day 10\nRecorded by: Clara Pittman\nPatient status: BP 112/69, HR 104, SpO2 99%, T 37.5°C; nasal cannula 2 L/min.\nMeds administered: Ticagrelor, Nitroglycerin.\nchest pain reported, NRS 2.\nPrevious day (6/23) fluid balance: intake 1299 mL, output 1200 mL (urine 446 mL), net +99 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nOxygen: nasal cannula 2 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 1065 mL.\nADL: Barthel Index 65/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-47-night": {
@@ -1656,6 +1694,7 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
         "ctx.medications.today",
@@ -1670,7 +1709,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 11\nRecorded by: Clara Pittman\nPatient status: BP 115/68, HR 98, SpO2 94%, T 36.5°C.\nMeds administered: Aspirin, Heparin, Nitroglycerin.\nNo pain reported (NRS 0).\nPrevious day (6/24) fluid balance: intake 948 mL, output 939 mL (urine 185 mL), net +9 mL.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 921 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - night shift] Day 11\nRecorded by: Clara Pittman\nPatient status: BP 115/71, HR 101, SpO2 96%, T 36.2°C; nasal cannula 2.5 L/min.\nMeds administered: Aspirin, Heparin, Nitroglycerin.\nchest pain reported, NRS 2.\nPrevious day (6/24) fluid balance: intake 890 mL, output 848 mL (urine 94 mL), net +42 mL.\nOxygen: nasal cannula 2.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 549 mL.\nADL: Barthel Index 65/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-48-day": {
@@ -1683,6 +1722,7 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
         "ctx.medications.today",
@@ -1697,7 +1737,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 11\nRecorded by: Clara Pittman\nPatient status: BP 113/71, HR 103, SpO2 96%, T 37.5°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nchest pain reported, NRS 1.\nPrevious day (6/24) fluid balance: intake 948 mL, output 939 mL (urine 185 mL), net +9 mL.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 921 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - day shift] Day 11\nRecorded by: Clara Pittman\nPatient status: BP 116/71, HR 104, SpO2 98%, T 36.4°C; nasal cannula 1 L/min.\nMeds administered: Ticagrelor, Nitroglycerin.\nchest pain reported, NRS 2.\nPrevious day (6/24) fluid balance: intake 890 mL, output 848 mL (urine 94 mL), net +42 mL.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 549 mL.\nADL: Barthel Index 65/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-49-evening": {
@@ -1709,7 +1749,9 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.desaturation",
         "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
         "ctx.medications.today",
@@ -1724,7 +1766,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 11\nRecorded by: Clara Pittman\nPatient status: BP 115/72, HR 102, SpO2 98%, T 37.1°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nchest pain reported, NRS 2.\nPrevious day (6/24) fluid balance: intake 948 mL, output 939 mL (urine 185 mL), net +9 mL.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 921 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - evening shift] Day 11\nRecorded by: Clara Pittman\nPatient status: BP 113/70, HR 101, SpO2 98%, T 36.3°C; nasal cannula 1 L/min.\nMeds administered: Ticagrelor, Nitroglycerin.\nchest pain reported, NRS peak 2, latest 0.\nSpO2 fell to 92% at 20:59; managed on nasal cannula 1 L/min.\nPrevious day (6/24) fluid balance: intake 890 mL, output 848 mL (urine 94 mL), net +42 mL.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 549 mL.\nADL: Barthel Index 65/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-50-night": {
@@ -1738,6 +1780,7 @@
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.desaturation",
         "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
         "ctx.medications.today",
@@ -1752,7 +1795,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 12\nRecorded by: Clara Pittman\nPatient status: BP 114/69, HR 100, SpO2 95%, T 36.6°C.\nMeds administered: Heparin, Nitroglycerin.\nNo pain reported (NRS 0).\nSpO2 fell to 94% at 03:01; no oxygen given, observation continued.\nPrevious day (6/25) fluid balance: intake 1508 mL, output 1283 mL (urine 409 mL), net +225 mL.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 1000 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - night shift] Day 12\nRecorded by: Clara Pittman\nPatient status: BP 115/70, HR 101, SpO2 97%, T 36.7°C; nasal cannula 1 L/min.\nMeds administered: Heparin, Nitroglycerin.\nchest pain reported, NRS 1.\nSpO2 fell to 94% at 02:13; managed on nasal cannula 1 L/min.\nPrevious day (6/25) fluid balance: intake 1038 mL, output 972 mL (urine 98 mL), net +66 mL.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 543 mL.\nADL: Barthel Index 65/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-51-day": {
@@ -1764,8 +1807,8 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
-        "ctx.vitals.shift.desaturation",
         "ctx.intake_output_records.previous_day",
+        "ctx.devices.shift",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
         "ctx.medications.today",
@@ -1780,7 +1823,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 12\nRecorded by: Clara Pittman\nPatient status: BP 114/74, HR 103, SpO2 96%, T 37.0°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nchest pain reported, NRS 2.\nSpO2 fell to 94% at 13:51; no oxygen given, observation continued.\nPrevious day (6/25) fluid balance: intake 1508 mL, output 1283 mL (urine 409 mL), net +225 mL.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 1000 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - day shift] Day 12\nRecorded by: Clara Pittman\nPatient status: BP 118/73, HR 101, SpO2 98%, T 37.2°C; nasal cannula 1 L/min.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nchest pain reported, NRS peak 2, latest 0.\nPrevious day (6/25) fluid balance: intake 1038 mL, output 972 mL (urine 98 mL), net +66 mL.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 543 mL.\nADL: Barthel Index 65/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-52-evening": {
@@ -1792,7 +1835,7 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
-        "ctx.vitals.shift.fever",
+        "ctx.vitals.shift.desaturation",
         "ctx.intake_output_records.previous_day",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
@@ -1808,7 +1851,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 12\nRecorded by: Clara Pittman\nPatient status: BP 118/70, HR 101, SpO2 94%, T 37.5°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nchest pain reported, NRS peak 1, latest 0.\nFever 38.2°C; observation continued.\nPrevious day (6/25) fluid balance: intake 1508 mL, output 1283 mL (urine 409 mL), net +225 mL.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 1000 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - evening shift] Day 12\nRecorded by: Clara Pittman\nPatient status: BP 116/73, HR 100, SpO2 97%, T 36.4°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nchest pain reported, NRS 1.\nSpO2 fell to 93% at 17:56; no oxygen given, observation continued.\nPrevious day (6/25) fluid balance: intake 1038 mL, output 972 mL (urine 98 mL), net +66 mL.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 543 mL.\nADL: Barthel Index 65/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-53-night": {
@@ -1836,7 +1879,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 13\nRecorded by: Clara Pittman\nPatient status: BP 117/69, HR 100, SpO2 96%, T 36.5°C.\nMeds administered: Ticagrelor, Heparin, Nitroglycerin.\nchest pain reported, NRS 2.\nSpO2 fell to 93% at 00:58; no oxygen given, observation continued.\nPrevious day (6/26) fluid balance: intake 1723 mL, output 1662 mL (urine 719 mL), net +61 mL.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 906 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - night shift] Day 13\nRecorded by: Clara Pittman\nPatient status: BP 119/71, HR 102, SpO2 93%, T 36.1°C.\nMeds administered: Ticagrelor, Heparin, Nitroglycerin.\nNo pain reported (NRS 0).\nSpO2 fell to 93% at 00:59; no oxygen given, observation continued.\nPrevious day (6/26) fluid balance: intake 922 mL, output 993 mL (urine 50 mL), net -71 mL.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 446 mL.\nADL: Barthel Index 65/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-54-day": {
@@ -1848,8 +1891,8 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.desaturation",
         "ctx.intake_output_records.previous_day",
-        "ctx.devices.shift",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
         "ctx.medications.today",
@@ -1864,7 +1907,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 13\nRecorded by: Clara Pittman\nPatient status: BP 115/70, HR 96, SpO2 98%, T 36.2°C; nasal cannula 3.5 L/min.\nMeds administered: Aspirin, Nitroglycerin.\nchest pain reported, NRS 1.\nPrevious day (6/26) fluid balance: intake 1723 mL, output 1662 mL (urine 719 mL), net +61 mL.\nOxygen: nasal cannula 3.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 906 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - day shift] Day 13\nRecorded by: Clara Pittman\nPatient status: BP 119/73, HR 99, SpO2 97%, T 36.5°C.\nMeds administered: Aspirin, Nitroglycerin.\nchest pain reported, NRS peak 2, latest 1.\nSpO2 fell to 93% at 09:58; no oxygen given, observation continued.\nPrevious day (6/26) fluid balance: intake 922 mL, output 993 mL (urine 50 mL), net -71 mL.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 446 mL.\nADL: Barthel Index 65/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-55-evening": {
@@ -1876,8 +1919,8 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.desaturation",
         "ctx.intake_output_records.previous_day",
-        "ctx.devices.shift",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
         "ctx.medications.today",
@@ -1892,7 +1935,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 13\nRecorded by: Clara Pittman\nPatient status: BP 118/73, HR 98, SpO2 95%, T 36.6°C; nasal cannula 1.5 L/min.\nMeds administered: Ticagrelor, Nitroglycerin.\nNo pain reported (NRS 0).\nPrevious day (6/26) fluid balance: intake 1723 mL, output 1662 mL (urine 719 mL), net +61 mL.\nOxygen: nasal cannula 1.5 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 906 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - evening shift] Day 13\nRecorded by: Clara Pittman\nPatient status: BP 114/72, HR 96, SpO2 96%, T 36.6°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nNo pain reported (NRS 0).\nSpO2 fell to 94% at 16:50; no oxygen given, observation continued.\nPrevious day (6/26) fluid balance: intake 922 mL, output 993 mL (urine 50 mL), net -71 mL.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 446 mL.\nADL: Barthel Index 65/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-56-night": {
@@ -1905,7 +1948,6 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.intake_output_records.previous_day",
-        "ctx.devices.shift",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
         "ctx.medications.today",
@@ -1920,7 +1962,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 14\nRecorded by: Clara Pittman\nPatient status: BP 118/71, HR 98, SpO2 97%, T 36.6°C; nasal cannula 1 L/min.\nMeds administered: Aspirin, Heparin, Nitroglycerin.\nchest pain reported, NRS 2.\nPrevious day (6/27) fluid balance: intake 1440 mL, output 1378 mL (urine 414 mL), net +62 mL.\nOxygen: nasal cannula 1 L/min; device fit and observation continued.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 962 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - night shift] Day 14\nRecorded by: Clara Pittman\nPatient status: BP 116/71, HR 93, SpO2 95%, T 36.3°C.\nMeds administered: Aspirin, Heparin, Nitroglycerin.\nNo pain reported (NRS 0).\nPrevious day (6/27) fluid balance: intake 2283 mL, output 1809 mL (urine 845 mL), net +474 mL.\nDiet: Soft diet, feeding needs partial help, oral intake the previous day 1725 mL.\nADL: Barthel Index 65/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-57-day": {
@@ -1932,6 +1974,7 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.desaturation",
         "ctx.intake_output_records.previous_day",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
@@ -1947,7 +1990,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 14\nRecorded by: Clara Pittman\nPatient status: BP 117/70, HR 100, SpO2 98%, T 37.9°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nchest pain reported, NRS peak 2, latest 1.\nPrevious day (6/27) fluid balance: intake 1440 mL, output 1378 mL (urine 414 mL), net +62 mL.\nDiet: Regular diet, feeding needs partial help, oral intake the previous day 962 mL.\nADL: Barthel Index 60/100 (moderate assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - day shift] Day 14\nRecorded by: Clara Pittman\nPatient status: BP 118/70, HR 93, SpO2 97%, T 36.6°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nNo pain reported (NRS 0).\nSpO2 fell to 94% at 11:00; no oxygen given, observation continued.\nPrevious day (6/27) fluid balance: intake 2283 mL, output 1809 mL (urine 845 mL), net +474 mL.\nDiet: Regular diet, feeding needs partial help, oral intake the previous day 1725 mL.\nADL: Barthel Index 65/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-58-evening": {
@@ -1959,6 +2002,7 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.desaturation",
         "ctx.intake_output_records.previous_day",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
@@ -1974,7 +2018,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 14\nRecorded by: Clara Pittman\nPatient status: BP 120/70, HR 99, SpO2 98%, T 36.3°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nchest pain reported, NRS peak 2, latest 0.\nPrevious day (6/27) fluid balance: intake 1440 mL, output 1378 mL (urine 414 mL), net +62 mL.\nDiet: Regular diet, feeding needs partial help, oral intake the previous day 962 mL.\nADL: Barthel Index 70/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - evening shift] Day 14\nRecorded by: Clara Pittman\nPatient status: BP 115/72, HR 99, SpO2 98%, T 36.5°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nchest pain reported, NRS 3.\nSpO2 fell to 93% at 18:57; no oxygen given, observation continued.\nPrevious day (6/27) fluid balance: intake 2283 mL, output 1809 mL (urine 845 mL), net +474 mL.\nDiet: Regular diet, feeding needs partial help, oral intake the previous day 1725 mL.\nADL: Barthel Index 65/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-59": {
@@ -1983,6 +2027,7 @@
     "narrative": {
       "facts_used": [
         "ctx.los_days",
+        "ctx.complications_occurred",
         "encounter.discharge_disposition",
         "ctx.medications",
         "ctx.vitals",
@@ -1992,16 +2037,16 @@
         "ctx.disease_protocol.disease_id",
         "ctx.adl_assessments@authored"
       ],
-      "generated_at": "2024-06-29T09:16:00Z",
+      "generated_at": "2024-06-29T10:16:00Z",
       "generator": "template",
       "generator_metadata": {
         "generator": "template",
         "lang": "en"
       },
       "sections": {
-        "admission_status": "Hospital stay: 14 days. Admission reason: Chest pain, diaphoresis, dyspnea. Not yet safe for home; discharged to skilled nursing facility for continued care.",
-        "discharge_readiness": "Discharge readiness: Discharge Barthel 70/100.",
-        "nursing_interventions_provided": "Medication administration: 139 doses (5 drugs); Vital-sign monitoring: 268 sets; Oxygen therapy: observed on 133 sets of vital signs; Procedures: Urinary catheter insertion, Arterial line insertion, Transthoracic echocardiography, Percutaneous coronary intervention (PCI); Cumulative IN 17091 mL / OUT 16300 mL (net +791 mL); Education: Explain that chest pain or palpitations should be reported at once by call bell.",
+        "admission_status": "Hospital stay: 14 days. Admission reason: Chest pain, diaphoresis, dyspnea. Complications: ventricular arrhythmia. Not yet safe for home; discharged to skilled nursing facility for continued care.",
+        "discharge_readiness": "Discharge readiness: Discharge Barthel 65/100.",
+        "nursing_interventions_provided": "Medication administration: 139 doses (5 drugs); Vital-sign monitoring: 296 sets; Oxygen therapy: observed on 154 sets of vital signs; Procedures: Urinary catheter insertion, Arterial line insertion, Transthoracic echocardiography, Percutaneous coronary intervention (PCI); Cumulative IN 16569 mL / OUT 15456 mL (net +1113 mL); Education: Explain that chest pain or palpitations should be reported at once by call bell.",
         "patient_education": "Patient education: continuing prescribed drugs (e.g. antiplatelets) and watching for bleeding; cardiac rehabilitation and pacing of activity; calling emergency services if chest pain recurs."
       },
       "text": ""
@@ -2077,7 +2122,7 @@
         "disposition": "Admitted (Chest pain, diaphoresis, dyspnea)",
         "ed_workup": "Labs: WBC 8541.0 /uL, PT-INR 1.0, AST 24.0 U/L, lipid panel pending, troponin I 68.499 ng/mL [H], troponin I 97.881 ng/mL [H], CK-MB 58.5 ng/mL [H], BNP 104.5 pg/mL [H]. Imaging: 12-lead ECG (ST-T changes suggesting acute myocardial ischemia), echocardiogram (No acute abnormal findings within the imaged range), coronary angiography (Culprit lesion identified; indication for percutaneous coronary intervention), chest X-ray AP (Cardiogenic pulmonary congestion, consider left ventricular dysfunction from acute MI). Medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Procedures ordered: O2: Nasal cannula SpO2 >= 94%",
         "hpi": "62 y/o male patient. Chief complaint: Chest pain, diaphoresis, dyspnea. Symptoms began suddenly and worsened rapidly; presented to the emergency department. History: Chronic ischemic heart disease (IHD), Hypertension (HTN), Dyslipidemia. ROS: no syncope, no sustained palpitations.",
-        "physical_exam": "On arrival: BP 121/75 mmHg, HR 108 bpm, RR 22 /min, SpO2 98%, T 37.9°C. General: drowsy, responds to voice, pale, diaphoretic, in distress from chest discomfort. Cardiovascular: regular rhythm, no new murmur or rub, jugular venous pressure not elevated. Respiratory: bibasilar crackles, tachypnea.",
+        "physical_exam": "On arrival: BP 121/75 mmHg, HR 106 bpm, RR 22 /min, SpO2 98%, T 37.5°C. General: drowsy, responds to voice, pale, diaphoretic, in distress from chest discomfort. Cardiovascular: regular rhythm, no new murmur or rub, jugular venous pressure not elevated. Respiratory: bibasilar crackles, tachypnea.",
         "triage_details": "Triage level: ESI Level 2. Arrival mode: Private vehicle. Allergies: No known drug allergies (NKDA)."
       },
       "text": ""
@@ -2099,7 +2144,7 @@
         "lang": "en"
       },
       "sections": {},
-      "text": "Triage level: ESI Level 2\nArrival mode: Private vehicle\nChief complaint: Chest pain, diaphoresis, dyspnea\nTriage vital signs: BP 121/75 mmHg, HR 108/min, T 37.9°C, SpO2 98% (RA), RR 22/min, pain 7/10\nAllergies: No known drug allergies (NKDA)"
+      "text": "Triage level: ESI Level 2\nArrival mode: Private vehicle\nChief complaint: Chest pain, diaphoresis, dyspnea\nTriage vital signs: BP 121/75 mmHg, HR 106/min, T 37.5°C, SpO2 98% (RA), RR 22/min, pain 7/10\nAllergies: No known drug allergies (NKDA)"
     }
   }
 }

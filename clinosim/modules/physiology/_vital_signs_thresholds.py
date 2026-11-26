@@ -73,6 +73,7 @@ __all__ = [
     "TEMPERATURE_CIRCADIAN_SCALE",
     "TEMPERATURE_CLAMP_MAX",
     "TEMPERATURE_CLAMP_MIN",
+    "TEMPERATURE_INFLAMMATION_KNEE",
     "TEMPERATURE_INFLAMMATION_SCALE",
 ]
 
@@ -84,6 +85,18 @@ __all__ = [
 TEMPERATURE_INFLAMMATION_SCALE: float = 3.0
 """°C rise per unit inflammation — at inflammation = 1.0, temperature
 lifts by 3°C (37 → 40°C, matching severe febrile response)."""
+
+TEMPERATURE_INFLAMMATION_KNEE: float = 0.5
+"""Inflammation level below which the temperature lift grows with the
+square of inflammation, ``SCALE * x * (x / KNEE)``, and at or above which
+it is the linear ``SCALE * x`` (Issue #3818). Fever follows the cytokine
+response and settles before CRP does: treated community-acquired pneumonia
+reaches 37.2 °C or lower in a median of 3 days (Halm et al., JAMA
+1998;279:1452-7). With the linear lift, inflammation 0.3 (CRP about
+11 mg/L) still read 37.4 °C on average and kept recovering patients
+febrile for a week. 0.5 is about the presenting level of moderate
+infection, so presenting fevers are unchanged; continuous and monotonic at
+the knee."""
 
 TEMPERATURE_CIRCADIAN_SCALE: float = 0.3
 """Amplitude (°C) of the circadian temperature variation — matches the
