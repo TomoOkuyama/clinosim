@@ -265,7 +265,7 @@ def _run_lab_result_pipeline(
                 continue
 
             result_time = calculate_result_time_from_state(order, hospital_state, hospital_ops or {}, lab_rng)
-            observed = generate_lab_result(canon, true_labs[canon], lab_rng)
+            observed = generate_lab_result(canon, true_labs[canon], lab_rng, serial=True)
             flag = determine_flag(
                 canon,
                 observed,
@@ -328,7 +328,7 @@ def _run_lab_result_pipeline(
                     flag="H*",
                 )
             else:
-                observed = generate_lab_result(canon, true_labs[canon], sub_rng)
+                observed = generate_lab_result(canon, true_labs[canon], sub_rng, serial=True)
                 flag = determine_flag(
                     canon,
                     observed,

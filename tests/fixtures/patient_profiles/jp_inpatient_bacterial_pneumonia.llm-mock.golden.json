@@ -27,7 +27,7 @@
         "lang": "ja"
       },
       "sections": {
-        "admission_results": "検査（異常値）: CRP 4.19 mg/dL [H]、PCT 0.69 ng/mL [H]、WBC 13753 /uL [H]、クレアチニン 0.81 mg/dL [H]、Na 136 mmol/L [L]、アルブミン 3.4 g/dL [L]、ほか異常値 1 項目。画像・生理検査: 胸部単純X線撮影 PA・側面（右下葉肺炎像）",
+        "admission_results": "検査（異常値）: CRP 5.53 mg/dL [H]、PCT 0.69 ng/mL [H]、WBC 13753 /uL [H]、クレアチニン 0.81 mg/dL [H]、Na 136 mmol/L [L]、アルブミン 3.4 g/dL [L]、ほか異常値 1 項目。画像・生理検査: 胸部単純X線撮影 PA・側面（右下葉肺炎像）",
         "allergies": "薬物アレルギーなし（NKDA）",
         "assessment_and_plan": "[Mock LLM response #1 — assessment_and_plan]",
         "chief_complaint": "発熱・咳嗽・呼吸困難",
@@ -2109,7 +2109,7 @@
         "assessment": "[Mock LLM response #18 — assessment]",
         "chief_complaint": "発熱・咳嗽・呼吸困難",
         "disposition": "[Mock LLM response #18 — disposition]",
-        "ed_workup": "検査: WBC 13753.0 /uL [H]、アルブミン 3.4 g/dL [L]、CRP 4.19 mg/dL [H]、PCT 0.69 ng/mL [H]、クレアチニン 0.81 mg/dL [H]、BUN 18.5 mg/dL、Na 136.0 mmol/L [L]、K 4.5 mmol/L。画像: 胸部レントゲン (正面・側面)（右下葉肺炎像）。投薬: アンピシリン/スルバクタム、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）。処置指示: 酸素投与: 鼻カニューラ SpO2 >= 94%",
+        "ed_workup": "検査: WBC 13753.0 /uL [H]、アルブミン 3.4 g/dL [L]、CRP 5.53 mg/dL [H]、PCT 0.69 ng/mL [H]、クレアチニン 0.81 mg/dL [H]、BUN 18.5 mg/dL、Na 136.0 mmol/L [L]、K 4.5 mmol/L。画像: 胸部レントゲン (正面・側面)（右下葉肺炎像）。投薬: アンピシリン/スルバクタム、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）。処置指示: 酸素投与: 鼻カニューラ SpO2 >= 94%",
         "hpi": "[Mock LLM response #18 — hpi]",
         "physical_exam": "来院時所見: BP 123/65 mmHg, HR 107 回/分, RR 16 回/分, SpO2 90%, T 38.0°C。一般状態: 意識清明、中等度の苦痛様。呼吸器: 患側肺野で断続性ラ音と気管支呼吸音を聴取。",
         "triage_details": "トリアージレベル: JTAS レベル2。来院形態: 独歩来院。アレルギー: 薬物アレルギーなし（NKDA）。"

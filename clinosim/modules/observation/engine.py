@@ -61,6 +61,10 @@ _LAB_CONSTANTS: dict[str, dict[str, Any]] = load_validated_yaml(_REF_DIR / "lab_
 
 BIOLOGICAL_CV: dict[str, float] = dict(_LAB_CONSTANTS["biological_cv"])
 
+# Biological CV of a serial inpatient draw, where it differs from the
+# within-subject CV of unselected subjects above (Issue #3870).
+SERIAL_BIOLOGICAL_CV: dict[str, float] = dict(_LAB_CONSTANTS["serial_biological_cv"])
+
 ANALYTICAL_CV: dict[str, float] = dict(_LAB_CONSTANTS["analytical_cv"])
 
 PRECISION: dict[str, int] = dict(_LAB_CONSTANTS["precision"])
@@ -104,12 +108,22 @@ def apply_realistic_variability(
     lab_name: str,
     true_value: float,
     rng: np.random.Generator,
+    *,
+    serial: bool = False,
 ) -> float:
-    """Apply 3-layer variability model to a physiology-derived lab value."""
+    """Apply 3-layer variability model to a physiology-derived lab value.
+
+    ``serial`` marks a repeated draw of one inpatient stay: an analyte with a
+    ``serial_biological_cv`` uses it instead of the unselected-subject CV, since
+    the course of the stay already comes from the physiological state (Issue
+    #3870). Both normal draws are taken either way, so the stream is unchanged.
+    """
     if true_value <= 0:
         return 0.0
 
     cvi = BIOLOGICAL_CV.get(lab_name, DEFAULT_BIOLOGICAL_CV)
+    if serial:
+        cvi = SERIAL_BIOLOGICAL_CV.get(lab_name, cvi)
     cva = ANALYTICAL_CV.get(lab_name, DEFAULT_ANALYTICAL_CV)
 
     bio_noise = rng.normal(0, true_value * cvi)
@@ -168,11 +182,15 @@ def generate_lab_result(
     lab_name: str,
     true_value: float,
     rng: np.random.Generator,
+    *,
+    serial: bool = False,
 ) -> float | str:
-    """Full pipeline: variability + rounding. Returns string for qualitative tests."""
+    """Full pipeline: variability + rounding. Returns string for qualitative tests.
+
+    ``serial``: see :func:`apply_realistic_variability` (inpatient serial draws)."""
     if lab_name in _QUALITATIVE_TESTS:
         return _generate_qualitative_result(lab_name, rng)
-    noisy = apply_realistic_variability(lab_name, true_value, rng)
+    noisy = apply_realistic_variability(lab_name, true_value, rng, serial=serial)
     return round_to_precision(lab_name, noisy)
 
 

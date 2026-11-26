@@ -58,6 +58,7 @@ class LabConstants(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     biological_cv: dict[_Name, _NonNegFloat] = Field(min_length=1)
+    serial_biological_cv: dict[_Name, _NonNegFloat] = Field(default_factory=dict)
     analytical_cv: dict[_Name, _NonNegFloat] = Field(min_length=1)
     precision: dict[_Name, _NonNegInt] = Field(min_length=1)
     units: dict[_Name, StrictStr] = Field(min_length=1)
@@ -78,6 +79,7 @@ class LabConstants(BaseModel):
             raise ValueError(f"panic_thresholds: both cutoffs null for {empty_panic}")
         for section in (
             "biological_cv",
+            "serial_biological_cv",
             "analytical_cv",
             "precision",
             "physiologic_limits",

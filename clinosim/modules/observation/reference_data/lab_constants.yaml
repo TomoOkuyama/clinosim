@@ -8,6 +8,8 @@
 #
 # Sections:
 #   biological_cv       within-individual biological CV (fraction)
+#   serial_biological_cv  biological CV of a serial inpatient draw where it
+#                       differs from biological_cv (fraction; Issue #3870)
 #   analytical_cv       analytical CV (fraction)
 #   precision           reported decimal places
 #   units               UCUM unit of the reported value
@@ -76,6 +78,21 @@ biological_cv:
   # wider rater-variability band of the C-SSRS vs the self-
   # administered PHQ-9 / GAD-7.
   "C-SSRS": 0.25
+
+# Biological CV of a serial draw of one inpatient stay (Issue #3870), for the
+# analytes where the within-subject CV above is too large to apply as
+# independent noise on every draw of a stay (the course of the stay comes from
+# the physiological state). CRP: 0.423 is in line with the median within-subject
+# CV 0.41 (range 0.11-0.89) of Within-subject variation of C-reactive protein
+# and high-sensitivity C-reactive protein: a systematic review and
+# meta-analysis, PLoS One 2024, doi 10.1371/journal.pone.0304961 (read: the
+# abstract and the results text). Applied as independent noise on each draw it
+# gave a 13 % chance of a more than three-fold swing between consecutive draws
+# of a constant state. 0.11 is the lowest CV the review reports. No source read
+# gives a serial-draw CV of an inpatient stay, so this is the conservative end
+# of the published range, not a measured value.
+serial_biological_cv:
+  CRP: 0.11
 
 # Analytical variation (instrument imprecision)
 analytical_cv:

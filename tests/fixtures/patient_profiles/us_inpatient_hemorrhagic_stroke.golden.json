@@ -27,7 +27,7 @@
         "lang": "en"
       },
       "sections": {
-        "admission_results": "Laboratory (abnormal): CRP 11.6 mg/L [H]; WBC 11275 /uL [H]; albumin 3.2 g/dL [L]; glucose 119 mg/dL [H]. Imaging and studies: head CT (without contrast) (Acute right basal ganglia intracerebral hemorrhage with mass effect)",
+        "admission_results": "Laboratory (abnormal): CRP 19.2 mg/L [H]; WBC 11275 /uL [H]; albumin 3.2 g/dL [L]; glucose 119 mg/dL [H]. Imaging and studies: head CT (without contrast) (Acute right basal ganglia intracerebral hemorrhage with mass effect)",
         "allergies": "No known drug allergies (NKDA)",
         "assessment_and_plan": "Assessment: Admitted for evaluation and management of: Sudden severe headache, vomiting, altered consciousness. Working diagnosis: hemorrhagic stroke (severity: severe). Comorbidities: Hypertension (HTN), Atrial fibrillation (AF). Plan: Estimated length of stay: ~14 days. Initial medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Workup / procedures: Nasogastric tube insertion, Transthoracic echocardiography, Central venous catheter insertion. Planned procedures: Urinary catheter insertion, Craniotomy for intracranial hematoma evacuation. Admission work-up: PT-INR, APTT, fibrinogen, creatinine, BUN, Na, K, glucose, head CT (without contrast). Supportive care and monitoring: blood pressure management: Target SBP < 140 mmHg per AHA/ASA guidelines, NPO: NPO until swallowing assessment, head elevation: HOB 30 degrees, seizure prophylaxis: Not routine; only if seizure occurs.",
         "chief_complaint": "Sudden severe headache, vomiting, altered consciousness",
@@ -83,12 +83,12 @@
         }
       },
       "sections": {
-        "assessment": "Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 1. Notable labs (past 24 h): CRP 11.6 mg/L [H], WBC 11275 /uL [H], albumin 3.2 g/dL [L], glucose 119 mg/dL [H].",
+        "assessment": "Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 1. Notable labs (past 24 h): CRP 19.2 mg/L [H], WBC 11275 /uL [H], albumin 3.2 g/dL [L], glucose 119 mg/dL [H].",
         "objective": "BP 131/82 mmHg, HR 96 bpm, RR 16 /min, SpO2 98% (nasal cannula 3.5 L/min), T 36.8°C (past 24 h: SpO2 min 94%)",
         "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Procedures today: Nasogastric tube insertion, Transthoracic echocardiography, Central venous catheter insertion. Planned later today: Urinary catheter insertion, Craniotomy for intracranial hematoma evacuation.",
         "subjective": "Hospital day 1. Persistent headache (NRS 6). New decrease in level of consciousness (AVPU V); orientation being monitored."
       },
-      "text": "S: Hospital day 1. Persistent headache (NRS 6). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 131/82 mmHg, HR 96 bpm, RR 16 /min, SpO2 98% (nasal cannula 3.5 L/min), T 36.8°C (past 24 h: SpO2 min 94%)\nA: Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 1. Notable labs (past 24 h): CRP 11.6 mg/L [H], WBC 11275 /uL [H], albumin 3.2 g/dL [L], glucose 119 mg/dL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Procedures today: Nasogastric tube insertion, Transthoracic echocardiography, Central venous catheter insertion. Planned later today: Urinary catheter insertion, Craniotomy for intracranial hematoma evacuation."
+      "text": "S: Hospital day 1. Persistent headache (NRS 6). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 131/82 mmHg, HR 96 bpm, RR 16 /min, SpO2 98% (nasal cannula 3.5 L/min), T 36.8°C (past 24 h: SpO2 min 94%)\nA: Problem: Nontraumatic intracerebral hemorrhage, unspecified (I61.9), hospital day 1. Notable labs (past 24 h): CRP 19.2 mg/L [H], WBC 11275 /uL [H], albumin 3.2 g/dL [L], glucose 119 mg/dL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Procedures today: Nasogastric tube insertion, Transthoracic echocardiography, Central venous catheter insertion. Planned later today: Urinary catheter insertion, Craniotomy for intracranial hematoma evacuation."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-03": {
