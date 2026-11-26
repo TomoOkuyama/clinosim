@@ -20,6 +20,7 @@ from clinosim.locale.loader import map_diagnosis_code
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._as_of import procedures_after, procedures_started_by
+from clinosim.modules.population.condition_mutex import without_redundant_uncomplicated_diabetes
 from clinosim.timeutil import parse_iso_datetime
 
 if TYPE_CHECKING:
@@ -273,7 +274,12 @@ def ordered_chronic_conditions(ctx: NarrativeContext) -> list[Any]:
     order. Entries without a code are dropped. A problem list renders this
     whole list rather than the first few conditions in stored order."""
     patient = ctx.patient
-    conditions = list(_o(patient, "chronic_conditions", []) or []) if patient is not None else []
+    # Issue #3873: E11.9 is not listed beside a diabetic complication code.
+    conditions = (
+        without_redundant_uncomplicated_diabetes(_o(patient, "chronic_conditions", []) or [])
+        if patient is not None
+        else []
+    )
     country = country_code(ctx.locale)
     sex = str(_o(patient, "sex", "") or "") if patient is not None else ""
     visit_categories: set[str] = set()

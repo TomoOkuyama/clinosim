@@ -36,6 +36,7 @@ from clinosim.modules.observation.engine import (
 from clinosim.modules.order.engine import enrich_medication_order
 from clinosim.modules.patient.medication_timeline import medications_at_encounter
 from clinosim.modules.pediatric.calendar import Presentation, pediatric_presentation
+from clinosim.modules.population.condition_mutex import principal_code_for_problem_list
 from clinosim.modules.staff.engine import (
     FALLBACK_PHYSICIAN_ID,
     StaffRoster,
@@ -865,7 +866,9 @@ def unique_items_by_drug(items: list[dict]) -> list[dict]:
     return out
 
 
-def _visit_diagnosis_code(chronic_code: str, post_discharge_disease: str, visit_type: str) -> str:
+def _visit_diagnosis_code(
+    chronic_code: str, post_discharge_disease: str, visit_type: str, patient: PatientProfile | None = None
+) -> str:
     # Determine diagnosis code — prefer encounter YAML, fall back to chronic/Z-code
     dx_code = ""
 
@@ -898,6 +901,12 @@ def _visit_diagnosis_code(chronic_code: str, post_discharge_disease: str, visit_
     # Final fallback
     if not dx_code:
         dx_code = fallback_visit_code()
+
+    # Issue #3873: the follow-up of a patient with a diabetic complication is
+    # for the complication, not for E11.9 ("without complications"); the visit
+    # spec of E11.9 still drives the visit (the CIF keeps it as the driver).
+    if patient is not None:
+        dx_code = principal_code_for_problem_list(dx_code, getattr(patient, "chronic_conditions", None) or [])
 
     return dx_code
 
@@ -1403,7 +1412,7 @@ def _simulate_outpatient_visit(
         encounter, admit_source=AdmitSource.OUTP, disposition=DischargeDisposition.HOME, priority=ActPriority.R
     )
 
-    dx_code = _visit_diagnosis_code(chronic_code, post_discharge_disease, visit_type)
+    dx_code = _visit_diagnosis_code(chronic_code, post_discharge_disease, visit_type, patient)
     condition_event = ConditionEvent(
         condition_id=f"COND-{patient.patient_id}-OPD",
         condition_type="chronic_followup" if chronic_code else "post_discharge_followup",

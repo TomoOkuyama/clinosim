@@ -51,6 +51,11 @@ from clinosim.modules.output.fhir_r4.lib.common import (
 from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_date, to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
 from clinosim.modules.output.fhir_r4.lib.profile_meta import profile_meta
+from clinosim.modules.population.condition_mutex import (
+    E11_UNCOMPLICATED_CODE,
+    is_complicated_diabetes_code,
+    redundant_uncomplicated_diabetes_indices,
+)
 from clinosim.modules.triage.engine import admitted_ed_stay
 
 # Condition.stage.summary SNOMED coding for staging systems with an unambiguous,
@@ -379,8 +384,9 @@ def _build_conditions(
     diagnosis, secondary (working) diagnoses, the patient's chronic
     conditions and past births. Deduplicates by the full emitted diagnosis code
     (Issue #3333): distinct codes that share a 3-character ICD-10 category
-    (E11.9 / E11.311 / E11.42) are distinct diagnoses and each keeps its own
-    Condition; two source codes that map to the same emitted code (JP maps
+    (E11.311 / E11.42 / E11.65) are distinct diagnoses and each keeps its own
+    Condition, except that E11.9 (diabetes without complications) is not
+    emitted beside a complication code (Issue #3873); two source codes that map to the same emitted code (JP maps
     several ICD-10-CM codes onto one MHLW code) are the same diagnosis.
     """
     ctx = _ConditionContext(
@@ -670,10 +676,18 @@ def _secondary_conditions(
 def _chronic_conditions(ctx: _ConditionContext, chronic_list: list, seen_codes: set[str]) -> list[dict]:
     """One problem-list-item Condition per chronic condition the patient carries."""
     conditions: list[dict] = []
+    # Issue #3873: E11.9 ("without complications") is not listed beside a
+    # complication code; indices are kept so the other ids do not move.
+    redundant = redundant_uncomplicated_diabetes_indices(chronic_list)
+    # A record written before the complication was first recorded still lists
+    # E11.9 (its own snapshot has no complication): that entry is superseded
+    # from the day the patient's records first carry a complication code.
+    superseded_from = min((ctx.first_seen[c] for c in ctx.first_seen if is_complicated_diabetes_code(c)), default="")
     for i, chronic in enumerate(chronic_list):
         code, onset, severity, stage = _chronic_fields(chronic)
-        if not code:
+        if not code or i in redundant:
             continue
+        superseded = bool(superseded_from) and code.startswith(E11_UNCOMPLICATED_CODE)
         mapped_code = ctx.mapped(code)
         if (mapped_code or code) in seen_codes:
             continue
@@ -686,7 +700,7 @@ def _chronic_conditions(ctx: _ConditionContext, chronic_list: list, seen_codes: 
             structural_key=chronic_condition_key(ctx.patient_id, i),
             # Issue #744: a general clinical finding, not the encounter's reason.
             diagnosis_type="clinical",
-            clinical_status="active",
+            clinical_status="inactive" if superseded else "active",
             category="problem-list-item",
             mapped_code=mapped_code,
         )
@@ -697,6 +711,8 @@ def _chronic_conditions(ctx: _ConditionContext, chronic_list: list, seen_codes: 
             cond["stage"] = _stage(stage, ctx.country)
         if onset:
             cond["onsetDateTime"] = to_fhir_date(onset)
+        if superseded:
+            cond["abatementDateTime"] = to_fhir_datetime(superseded_from)
         # CY8-21: a patient with no encounter in the record falls back to the
         # hospital's primary-care physician as recorder / asserter.
         _set_recorder(cond, ctx.encounter.get("attending_physician_id", "") or _FALLBACK_RECORDER_ID)

@@ -48,6 +48,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
 from clinosim.modules.output.fhir_r4.lib.localization import _dept_display
 from clinosim.modules.output.fhir_r4.lib.profile_meta import profile_meta
 from clinosim.modules.pediatric.calendar import is_acute_illness_condition
+from clinosim.modules.population.condition_mutex import redundant_uncomplicated_diabetes_indices
 
 # === Issue #854 Bucket B (PR-encounter): opaque Encounter.id ===
 # LEAK ROOT of the compound-id anti-pattern — the pre-#854 shape
@@ -550,15 +551,17 @@ def _set_diagnoses(
         if chronic_condition_codes:
             _emitted_codes: set[str] = set()
             _rank = 2
+            # Issue #3873: a redundant E11.9 is not an emitted Condition.
+            _redundant_e119 = redundant_uncomplicated_diabetes_indices(chronic_condition_codes)
             for _i, _ccode in enumerate(chronic_condition_codes):
-                if not _ccode:
+                if not _ccode or _i in _redundant_e119:
                     continue
                 _emitted_code = map_diagnosis_code(_ccode, country, sex=patient_sex) or _ccode
                 if chronic_condition_id(patient_id, _i) == _dd_ref:
                     _emitted_codes.add(_emitted_code)
                     continue  # already emitted as primary rank=1
                 # Issue #3333: chronic codes that share an ICD-10 category
-                # (E11.9 / E11.311 / E11.42) are distinct problem-list
+                # (E11.311 / E11.42 / E11.65) are distinct problem-list
                 # Conditions, so only an identical emitted code is skipped to
                 # avoid a duplicate diagnosis[] entry for one Condition.
                 if _emitted_code in _emitted_codes:

@@ -37,6 +37,10 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
     structural_key_system,
 )
+from clinosim.modules.population.condition_mutex import (
+    principal_code_for_problem_list,
+    redundant_uncomplicated_diabetes_indices,
+)
 
 # === Issue #854 Bucket B (PR-condition): opaque Condition.id ===
 # Same pattern as PR #357 / #863 / #867 / #868 / #869 / #878 / #879 /
@@ -223,15 +227,21 @@ def _matching_chronic_index(primary_dx_code: str, chronic_codes: list[str]) -> i
     specific codes of one category (chronic E11.9 / primary E11.65, or chronic
     E11.9 / E11.311) are different diagnoses and never merge (Issue #3333).
     """
+    # Issue #3873: a redundant E11.9 is not an emitted problem-list entry, so a
+    # visit whose principal is E11.9 resolves to the patient's complication
+    # code and no primary ever merges into the suppressed entry.
+    redundant = redundant_uncomplicated_diabetes_indices(chronic_codes)
+    if redundant:
+        primary_dx_code = principal_code_for_problem_list(primary_dx_code, chronic_codes)
     base = _icd_base(primary_dx_code)
     if not base:
         return None
     for i, c_code in enumerate(chronic_codes):
-        if c_code == primary_dx_code:
+        if c_code == primary_dx_code and i not in redundant:
             return i
     primary_is_general = primary_dx_code == base or primary_dx_code.endswith(".9")
     for i, c_code in enumerate(chronic_codes):
-        if _icd_base(c_code) == base and (c_code == base or primary_is_general):
+        if i not in redundant and _icd_base(c_code) == base and (c_code == base or primary_is_general):
             return i
     return None
 

@@ -41,6 +41,7 @@ from clinosim.modules.document.narrative._visit_reason import join_sentences
 from clinosim.modules.document.narrative.renderers._shared_helpers import chronic_condition_label, diagnosis_coded
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section, section_builder
 from clinosim.modules.document.referral_recipient import format_referral_destination_text, pick_external_hospital
+from clinosim.modules.population.condition_mutex import without_redundant_uncomplicated_diabetes
 from clinosim.types.document import NarrativeContext
 
 if TYPE_CHECKING:
@@ -600,7 +601,8 @@ def build_checkup_questionnaire(generator: TemplateNarrativeGenerator, ctx: Narr
 
     # Convert past medical history (chronic_conditions) codes to the
     # prose name of the code the output emits (Issue #2994, #3259).
-    chronic = _o(patient, "chronic_conditions", []) or []
+    # Issue #3873: E11.9 is not listed beside a diabetic complication code.
+    chronic = without_redundant_uncomplicated_diabetes(_o(patient, "chronic_conditions", []) or [])
     history_lines: list[str] = []
     for cond in chronic:
         code = _o(cond, "code", "")

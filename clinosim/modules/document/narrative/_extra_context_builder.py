@@ -49,6 +49,7 @@ from clinosim.modules.document.narrative._replacement_renderers import (
 from clinosim.modules.document.narrative._safety_skips import safety_skip_line
 from clinosim.modules.document.narrative.context import newborn_workup_known_at
 from clinosim.modules.document.reference_data_loaders import NarrativeExtrasWhitelists
+from clinosim.modules.population.condition_mutex import without_redundant_uncomplicated_diabetes
 from clinosim.types.document import DocumentTypeSpec, NarrativeContext
 
 # Per-doc-type extras eligibility — biometrics (Ht/Wt/BMI/blood type) and
@@ -139,7 +140,7 @@ def _build_extra_context(
         # `past_medical_history` (admission_hp only; other doc-types
         # don't get PMH from template so extras carry the chronic list).
         if "past_medical_history" not in tmpl:
-            chronic = _get(p, "chronic_conditions", []) or []
+            chronic = without_redundant_uncomplicated_diabetes(_get(p, "chronic_conditions", []) or [])
             rendered = _render_chronic_list(chronic, lang=ctx.target_lang, country=country_code(ctx.locale))
             if rendered:
                 extra["chronic_conditions"] = rendered
