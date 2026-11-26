@@ -147,7 +147,9 @@ def test_assessment_numbers_staged_stageless_and_vital_items_consecutively(lang:
     )
     text = _compose_chronic_assessment_integrated(_ctx(lang, conds, vitals=[vital]))
     lines = text.split("\n")
-    assert len(lines) == 5, text
+    # The stageless M54.5 has no continued drug and so no item (Issue #3876):
+    # C16, F00, the OSA CPAP line and the vital-sign item remain.
+    assert len(lines) == 4, text
     for n, line in enumerate(lines, 1):
         assert re.match(rf"{n}\. ", line), (n, text)
 

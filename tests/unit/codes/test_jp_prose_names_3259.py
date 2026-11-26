@@ -143,7 +143,11 @@ def test_outpatient_problem_list_never_repeats_a_label(lang: str) -> None:
     labels = [m.group(1) for m in re.finditer(r"^\d+\. ([^:：]+)[:：]", text, re.M)]
     assert len(labels) == len(set(labels)), text
     retinopathy = "糖尿病網膜症" if lang == "ja" else "Diabetic retinopathy"
-    assert retinopathy in labels, text
+    # The retinopathy is never folded into the diabetes item. Since #3876 a
+    # problem the visit does not address has no item at all, so the
+    # retinopathy (no treatment in this context) may be absent.
+    diabetes_lines = [ln for ln in text.splitlines() if re.match(r"^\d+\. (2型糖尿病|Type 2 diabetes)", ln)]
+    assert diabetes_lines and all(retinopathy not in ln for ln in diabetes_lines), text
     # The HbA1c control judgement belongs to the diabetes item only.
     assert text.count("HbA1c") == 1, text
 

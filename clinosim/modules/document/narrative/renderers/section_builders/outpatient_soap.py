@@ -724,6 +724,29 @@ class _ChronicAssessment:
     plans: list[str] = field(default_factory=list)
 
 
+def _treating_medications(code: str, med_rows: list[Any], med_names: list[str]) -> list[str]:
+    """The display names of the visit's medications that treat a chronic
+    condition (Issue #3876): the drugs of its entry in
+    ``locale/shared/chronic_medications.yaml`` (the exact code, else its
+    three-character block), leaving out the as-needed ones, which are no
+    continued therapy of the problem (the predicate of #3878)."""
+    from clinosim.locale.loaders.clinical import load_chronic_medications
+    from clinosim.modules.output.fhir_r4.lib.dosage import is_as_needed_frequency
+
+    table = load_chronic_medications()
+    entry = table.get(code) or table.get(code.split(".")[0]) or {}
+    drug_ids = tuple(
+        str(m["drug_id"]) for m in (entry.get("medications") or []) if isinstance(m, dict) and m.get("drug_id")
+    )
+    if not drug_ids:
+        return []
+    return [
+        name
+        for name, m in zip(med_names, med_rows, strict=True)
+        if medication_matches(m, drugs=drug_ids) and not is_as_needed_frequency(_o(m, "frequency", ""))
+    ]
+
+
 def _chronic_assessment(ctx: NarrativeContext, skip_code: str = "") -> _ChronicAssessment:
     """SOAP Assessment enriched with today's vitals + labs + target
     comparison prose (Issue #985 personalization).
@@ -1150,7 +1173,19 @@ def _chronic_assessment(ctx: NarrativeContext, skip_code: str = "") -> _ChronicA
                 )
                 items.append(follow)
             else:
-                items.append(t("chronic_assessment.chronic_noted", lang, label=label))
+                # Issue #3876: a problem the visit does not address is left out
+                # (the problem-list section lists it); one a continued drug
+                # treats states that drug.
+                _treating = _treating_medications(code, med_rows, med_names_display)
+                if _treating:
+                    items.append(
+                        t(
+                            "chronic_assessment.chronic_med_continued",
+                            lang,
+                            label=label,
+                            med=t("list_sep.serial", lang).join(_treating),
+                        )
+                    )
 
     return out
 
