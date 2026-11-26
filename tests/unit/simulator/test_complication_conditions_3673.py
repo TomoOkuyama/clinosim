@@ -175,4 +175,6 @@ def test_delirium_tokens_resolve_through_the_delirium_rule() -> None:
 def test_table_shape() -> None:
     for token, code in complication_diagnosis_codes().items():
         assert re.fullmatch(r"[A-Za-z_]+", token)
-        assert re.fullmatch(r"[A-Z]\d{2}(\.\d{1,4})?", code), (token, code)
+        # An ICD-10-CM code: category, then up to five characters (the 7th
+        # character of an injury or procedure code, M48.50XA, T80.211A).
+        assert re.fullmatch(r"[A-Z]\d{2}(\.[0-9A-Z]{1,5})?", code), (token, code)

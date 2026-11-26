@@ -4,7 +4,7 @@
     "source_url": "https://www.cms.gov/files/zip/2027-code-descriptions-tabular-order.zip",
     "source_file": "Code Descriptions/icd10cm_order_2027.txt (long description, columns 78-)",
     "extracted_at": "2026-11-10",
-    "clinosim_codes_total": 560,
+    "clinosim_codes_total": 605,
     "clinosim_codes_missing_from_source": [
       "F00",
       "J46",
@@ -15,7 +15,7 @@
       "S67.8"
     ],
     "note": "ICD-10-CM codes in codes/data/icd-10-cm.yaml with the CMS long description (Issue #3127). billable = the order file's header flag (1 = valid for HIPAA-covered transactions). Codes missing from the source are WHO-only or retired codes the registry still lists; they are not emitted for the US.",
-    "later_additions": "E11.21, E11.311, E11.42 and Z37.0 (Issue #3327) were added on 2026-11-16 from the same icd10cm_order_2027.txt. K35.209, I21.09, K85.10, I48.19, L03.119, I63.30, I82.409, M80.08XA, S67.20XA, T75.4XXA, T31.20, I26.09 (Issue #3258, US billable discharge codes) were added from the same icd10cm_order_2027.txt. W11.XXXA, W12.XXXA, W13.2XXA, W13.8XXA, W23.0XXA, W23.1XXA, W23.2XXA, X04.XXXA, X17.XXXA, X12.XXXA, X19.XXXA, X00.0XXA, W86.1XXA, W85.XXXA, S32.009A, S22.009A, S06.9X0A (Issue #3258, injury external-cause and discharge codes) were added from the same icd10cm_order_2027.txt. T20.0, T20.00XA, T20.07, T20.07XA, T21.0, T21.00XA, T21.05, T21.05XA, T22.0, T22.00XA, T23.0, T23.009A, T24.0, T24.009A, T25.0, T25.029A, T31.30 (Issue #3258, burn site codes) were added from the same icd10cm_order_2027.txt. J14 and J15.5 (Issue #3645, pneumonia organism codes) were added on 2026-11-24 from the same icd10cm_order_2027.txt. A40.3, A41.3, A41.59 and A41.81 (Issue #3833, sepsis organism codes) were added on 2026-11-26 from the same icd10cm_order_2027.txt. K59.00, E16.2, A04.72, E87.6, E87.5, N15.1, R56.9, R78.81, L89.90 and J98.11 (Issue #3872, in-hospital complication diagnosis codes) were added on 2026-11-26 from the same icd10cm_order_2027.txt."
+    "later_additions": "E11.21, E11.311, E11.42 and Z37.0 (Issue #3327) were added on 2026-11-16 from the same icd10cm_order_2027.txt. K35.209, I21.09, K85.10, I48.19, L03.119, I63.30, I82.409, M80.08XA, S67.20XA, T75.4XXA, T31.20, I26.09 (Issue #3258, US billable discharge codes) were added from the same icd10cm_order_2027.txt. W11.XXXA, W12.XXXA, W13.2XXA, W13.8XXA, W23.0XXA, W23.1XXA, W23.2XXA, X04.XXXA, X17.XXXA, X12.XXXA, X19.XXXA, X00.0XXA, W86.1XXA, W85.XXXA, S32.009A, S22.009A, S06.9X0A (Issue #3258, injury external-cause and discharge codes) were added from the same icd10cm_order_2027.txt. T20.0, T20.00XA, T20.07, T20.07XA, T21.0, T21.00XA, T21.05, T21.05XA, T22.0, T22.00XA, T23.0, T23.009A, T24.0, T24.009A, T25.0, T25.029A, T31.30 (Issue #3258, burn site codes) were added from the same icd10cm_order_2027.txt. J14 and J15.5 (Issue #3645, pneumonia organism codes) were added on 2026-11-24 from the same icd10cm_order_2027.txt. A40.3, A41.3, A41.59 and A41.81 (Issue #3833, sepsis organism codes) were added on 2026-11-26 from the same icd10cm_order_2027.txt. K59.00, E16.2, A04.72, E87.6, E87.5, N15.1, R56.9, R78.81, L89.90 and J98.11 (Issue #3872, in-hospital complication diagnosis codes) were added on 2026-11-26 from the same icd10cm_order_2027.txt. D68.4, D69.19, D75.822, E46, E87.21, E87.8, F06.31, G56.10, G62.81, G91.1, G93.41, I24.1, I27.24, I47.20, I50.811, I51.81, I63.40, I82.890, I85.11, I87.009, I89.0, J11.82, J70.5, J81.0, J86.9, J91.8, K56.50, K63.1, K65.1, K65.2, K76.82, K76.89, K80.51, K85.92, K86.3, K86.89, K91.71, K91.89, M62.82, R57.8, S06.5XAA, T79.A0XA, T81.31XA, T81.40XA and T81.49XA (Issue #3872, the remaining in-hospital complication diagnosis codes) were added on 2026-11-27 from the same icd10cm_order_2027.txt."
   },
   "concept": [
     {
@@ -244,6 +244,21 @@
       "billable": true
     },
     {
+      "code": "D68.4",
+      "display": "Acquired coagulation factor deficiency",
+      "billable": true
+    },
+    {
+      "code": "D69.19",
+      "display": "Other qualitative platelet defects",
+      "billable": true
+    },
+    {
+      "code": "D75.822",
+      "display": "Immune-mediated heparin-induced thrombocytopenia",
+      "billable": true
+    },
+    {
       "code": "E03",
       "display": "Other hypothyroidism",
       "billable": false
@@ -334,6 +349,11 @@
       "billable": true
     },
     {
+      "code": "E46",
+      "display": "Unspecified protein-calorie malnutrition",
+      "billable": true
+    },
+    {
       "code": "E66",
       "display": "Overweight and obesity",
       "billable": false
@@ -384,6 +404,11 @@
       "billable": true
     },
     {
+      "code": "E87.21",
+      "display": "Acute metabolic acidosis",
+      "billable": true
+    },
+    {
       "code": "E87.5",
       "display": "Hyperkalemia",
       "billable": true
@@ -391,6 +416,11 @@
     {
       "code": "E87.6",
       "display": "Hypokalemia",
+      "billable": true
+    },
+    {
+      "code": "E87.8",
+      "display": "Other disorders of electrolyte and fluid balance, not elsewhere classified",
       "billable": true
     },
     {
@@ -411,6 +441,11 @@
     {
       "code": "F05",
       "display": "Delirium due to known physiological condition",
+      "billable": true
+    },
+    {
+      "code": "F06.31",
+      "display": "Mood disorder due to known physiological condition with depressive features",
       "billable": true
     },
     {
@@ -569,6 +604,26 @@
       "billable": true
     },
     {
+      "code": "G56.10",
+      "display": "Other lesions of median nerve, unspecified upper limb",
+      "billable": true
+    },
+    {
+      "code": "G62.81",
+      "display": "Critical illness polyneuropathy",
+      "billable": true
+    },
+    {
+      "code": "G91.1",
+      "display": "Obstructive hydrocephalus",
+      "billable": true
+    },
+    {
+      "code": "G93.41",
+      "display": "Metabolic encephalopathy",
+      "billable": true
+    },
+    {
       "code": "G93.5",
       "display": "Compression of brain",
       "billable": true
@@ -634,6 +689,11 @@
       "billable": true
     },
     {
+      "code": "I24.1",
+      "display": "Dressler's syndrome",
+      "billable": true
+    },
+    {
       "code": "I25",
       "display": "Chronic ischemic heart disease",
       "billable": false
@@ -684,6 +744,11 @@
       "billable": true
     },
     {
+      "code": "I27.24",
+      "display": "Chronic thromboembolic pulmonary hypertension",
+      "billable": true
+    },
+    {
       "code": "I30.9",
       "display": "Acute pericarditis, unspecified",
       "billable": true
@@ -696,6 +761,11 @@
     {
       "code": "I47.10",
       "display": "Supraventricular tachycardia, unspecified",
+      "billable": true
+    },
+    {
+      "code": "I47.20",
+      "display": "Ventricular tachycardia, unspecified",
       "billable": true
     },
     {
@@ -749,8 +819,18 @@
       "billable": true
     },
     {
+      "code": "I50.811",
+      "display": "Acute right heart failure",
+      "billable": true
+    },
+    {
       "code": "I50.9",
       "display": "Heart failure, unspecified",
+      "billable": true
+    },
+    {
+      "code": "I51.81",
+      "display": "Takotsubo syndrome",
       "billable": true
     },
     {
@@ -812,6 +892,11 @@
       "code": "I63.4",
       "display": "Cerebral infarction due to embolism of cerebral arteries",
       "billable": false
+    },
+    {
+      "code": "I63.40",
+      "display": "Cerebral infarction due to embolism of unspecified cerebral artery",
+      "billable": true
     },
     {
       "code": "I63.5",
@@ -894,6 +979,11 @@
       "billable": false
     },
     {
+      "code": "I82.890",
+      "display": "Acute embolism and thrombosis of other specified veins",
+      "billable": true
+    },
+    {
       "code": "I82.90",
       "display": "Acute embolism and thrombosis of unspecified vein",
       "billable": true
@@ -909,8 +999,23 @@
       "billable": true
     },
     {
+      "code": "I85.11",
+      "display": "Secondary esophageal varices with bleeding",
+      "billable": true
+    },
+    {
+      "code": "I87.009",
+      "display": "Postthrombotic syndrome without complications of unspecified extremity",
+      "billable": true
+    },
+    {
       "code": "I88.0",
       "display": "Nonspecific mesenteric lymphadenitis",
+      "billable": true
+    },
+    {
+      "code": "I89.0",
+      "display": "Lymphedema, not elsewhere classified",
       "billable": true
     },
     {
@@ -956,6 +1061,11 @@
     {
       "code": "J11.1",
       "display": "Influenza due to unidentified influenza virus with other respiratory manifestations",
+      "billable": true
+    },
+    {
+      "code": "J11.82",
+      "display": "Influenza due to unidentified influenza virus with myocarditis",
       "billable": true
     },
     {
@@ -1109,13 +1219,33 @@
       "billable": true
     },
     {
+      "code": "J70.5",
+      "display": "Respiratory conditions due to smoke inhalation",
+      "billable": true
+    },
+    {
       "code": "J80",
       "display": "Acute respiratory distress syndrome",
       "billable": true
     },
     {
+      "code": "J81.0",
+      "display": "Acute pulmonary edema",
+      "billable": true
+    },
+    {
       "code": "J85.1",
       "display": "Abscess of lung with pneumonia",
+      "billable": true
+    },
+    {
+      "code": "J86.9",
+      "display": "Pyothorax without fistula",
+      "billable": true
+    },
+    {
+      "code": "J91.8",
+      "display": "Pleural effusion in other conditions classified elsewhere",
       "billable": true
     },
     {
@@ -1264,6 +1394,11 @@
       "billable": false
     },
     {
+      "code": "K56.50",
+      "display": "Intestinal adhesions [bands], unspecified as to partial versus complete obstruction",
+      "billable": true
+    },
+    {
       "code": "K56.6",
       "display": "Other and unspecified intestinal obstruction",
       "billable": false
@@ -1299,8 +1434,23 @@
       "billable": true
     },
     {
+      "code": "K63.1",
+      "display": "Perforation of intestine (nontraumatic)",
+      "billable": true
+    },
+    {
       "code": "K65.0",
       "display": "Generalized (acute) peritonitis",
+      "billable": true
+    },
+    {
+      "code": "K65.1",
+      "display": "Peritoneal abscess",
+      "billable": true
+    },
+    {
+      "code": "K65.2",
+      "display": "Spontaneous bacterial peritonitis",
       "billable": true
     },
     {
@@ -1359,6 +1509,16 @@
       "billable": true
     },
     {
+      "code": "K76.82",
+      "display": "Hepatic encephalopathy",
+      "billable": true
+    },
+    {
+      "code": "K76.89",
+      "display": "Other specified diseases of liver",
+      "billable": true
+    },
+    {
       "code": "K76.9",
       "display": "Liver disease, unspecified",
       "billable": true
@@ -1386,6 +1546,11 @@
     {
       "code": "K80.42",
       "display": "Calculus of bile duct with acute cholecystitis without obstruction",
+      "billable": true
+    },
+    {
+      "code": "K80.51",
+      "display": "Calculus of bile duct without cholangitis or cholecystitis with obstruction",
       "billable": true
     },
     {
@@ -1451,6 +1616,31 @@
     {
       "code": "K85.90",
       "display": "Acute pancreatitis without necrosis or infection, unspecified",
+      "billable": true
+    },
+    {
+      "code": "K85.92",
+      "display": "Acute pancreatitis with infected necrosis, unspecified",
+      "billable": true
+    },
+    {
+      "code": "K86.3",
+      "display": "Pseudocyst of pancreas",
+      "billable": true
+    },
+    {
+      "code": "K86.89",
+      "display": "Other specified diseases of pancreas",
+      "billable": true
+    },
+    {
+      "code": "K91.71",
+      "display": "Accidental puncture and laceration of a digestive system organ or structure during a digestive system procedure",
+      "billable": true
+    },
+    {
+      "code": "K91.89",
+      "display": "Other postprocedural complications and disorders of digestive system",
       "billable": true
     },
     {
@@ -1586,6 +1776,11 @@
     {
       "code": "M54.50",
       "display": "Low back pain, unspecified",
+      "billable": true
+    },
+    {
+      "code": "M62.82",
+      "display": "Rhabdomyolysis",
       "billable": true
     },
     {
@@ -1984,6 +2179,11 @@
       "billable": true
     },
     {
+      "code": "R57.8",
+      "display": "Other shock",
+      "billable": true
+    },
+    {
       "code": "R65.10",
       "display": "Systemic inflammatory response syndrome (SIRS) of non-infectious origin without acute organ dysfunction",
       "billable": true
@@ -2051,6 +2251,11 @@
     {
       "code": "S06.5X0A",
       "display": "Traumatic subdural hemorrhage without loss of consciousness, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "S06.5XAA",
+      "display": "Traumatic subdural hemorrhage with loss of consciousness status unknown, initial encounter",
       "billable": true
     },
     {
@@ -2474,8 +2679,28 @@
       "billable": true
     },
     {
+      "code": "T79.A0XA",
+      "display": "Compartment syndrome, unspecified, initial encounter",
+      "billable": true
+    },
+    {
       "code": "T80.211A",
       "display": "Bloodstream infection due to central venous catheter, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "T81.31XA",
+      "display": "Disruption of external operation (surgical) wound, not elsewhere classified, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "T81.40XA",
+      "display": "Infection following a procedure, unspecified, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "T81.49XA",
+      "display": "Infection following a procedure, other surgical site, initial encounter",
       "billable": true
     },
     {

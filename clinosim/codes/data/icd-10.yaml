@@ -1503,3 +1503,99 @@ codes:
   R56.8:
     en: Other and unspecified convulsions
     ja: "その他及び詳細不明のけいれん＜痙攣＞"
+  D68.4:
+    en: Acquired coagulation factor deficiency
+    ja: "後天性凝固因子欠乏症"
+  D69.1:
+    en: Qualitative platelet defects
+    ja: "血小板機能異常症"
+  D75.8:
+    en: Other specified diseases of blood and blood-forming organs
+    ja: "血液及び造血器のその他の明示された疾患"
+  E46:
+    en: Unspecified protein-energy malnutrition
+    ja: "詳細不明のタンパク＜蛋白＞エネルギー性栄養失調（症）"
+  E87.8:
+    en: Other disorders of electrolyte and fluid balance, not elsewhere classified
+    ja: "その他の電解質及び体液障害，他に分類されないもの"
+  F06.3:
+    en: Organic mood [affective] disorders
+    ja: "器質性気分［感情］障害"
+  G56.1:
+    en: Other lesions of median nerve
+    ja: "正中神経のその他の病変"
+  G62.8:
+    en: Other specified polyneuropathies
+    ja: "その他の明示された多発（性）ニューロパチ＜シ＞ー"
+  G91.1:
+    en: Obstructive hydrocephalus
+    ja: "閉塞性水頭症"
+  G93.4:
+    en: Encephalopathy, unspecified
+    ja: "脳症＜エンセファロパチ＜シ＞ー＞，詳細不明"
+  I24.1:
+    en: Dressler syndrome
+    ja: "ドレスラー＜Dressler＞症候群"
+  I27.2:
+    en: Other secondary pulmonary hypertension
+    ja: "その他の二次性＜続発性＞肺高血圧（症）"
+  I47.2:
+    en: Ventricular tachycardia
+    ja: "心室（性）頻拍（症）"
+  I51.8:
+    en: Other ill-defined heart diseases
+    ja: "その他の診断名不明確な心疾患"
+  I82.8:
+    en: Embolism and thrombosis of other specified veins
+    ja: "その他の明示された静脈の塞栓症及び血栓症"
+  I87.0:
+    en: Postthrombotic syndrome
+    ja: "血栓後症候群"
+  I89.0:
+    en: Lymphoedema, not elsewhere classified
+    ja: "リンパ浮腫，他に分類されないもの"
+  J11.8:
+    en: Influenza with other manifestations, virus not identified
+    ja: "その他の症状を伴うインフルエンザ，インフルエンザウイルスが分離されないもの"
+  J70.8:
+    en: Respiratory conditions due to other specified external agents
+    ja: "その他の明示された外的因子による呼吸器病態"
+  J81:
+    en: Pulmonary oedema
+    ja: "肺水腫"
+  J86.9:
+    en: Pyothorax without fistula
+    ja: "瘻（孔）を伴わない膿胸（症）"
+  J91:
+    en: Pleural effusion in conditions classified elsewhere
+    ja: "他に分類される病態における胸水"
+  K63.1:
+    en: Perforation of intestine (nontraumatic)
+    ja: "腸穿孔（非外傷性）"
+  K76.8:
+    en: Other specified diseases of liver
+    ja: "その他の明示された肝疾患"
+  K86.3:
+    en: Pseudocyst of pancreas
+    ja: "膵仮性のう＜嚢＞胞"
+  K86.8:
+    en: Other specified diseases of pancreas
+    ja: "その他の明示された膵疾患"
+  K91.8:
+    en: Other postprocedural disorders of digestive system, not elsewhere classified
+    ja: "消化器系のその他の処置後障害，他に分類されないもの"
+  M62.8:
+    en: Other specified disorders of muscle
+    ja: "その他の明示された筋障害"
+  R57.8:
+    en: Other shock
+    ja: "その他のショック"
+  T79.6:
+    en: Traumatic ischaemia of muscle
+    ja: "筋の外傷性阻血"
+  T81.3:
+    en: Disruption of operation wound, not elsewhere classified
+    ja: "手術創の離開，他に分類されないもの"
+  T81.4:
+    en: Infection following a procedure, not elsewhere classified
+    ja: "処置に続発する感染症，他に分類されないもの"
