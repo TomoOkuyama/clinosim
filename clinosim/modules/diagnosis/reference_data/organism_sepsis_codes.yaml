@@ -1,0 +1,63 @@
+# The organism-specific discharge code of a sepsis stay (Issue #3833).
+#
+# Read by clinosim/modules/diagnosis/organism_code.py (the same mechanism as
+# organism_pneumonia_codes.yaml, Issue #3645) and applied in
+# simulator/inpatient.py after the stay's cultures are derived.
+#
+# A sepsis is coded to its organism only when the organism was isolated from
+# the blood culture; with no isolate it keeps A41.9 (sepsis, unspecified
+# organism). `disease_ids` lists the protocols whose non-specific discharge
+# code (`refines`) an isolate refines. The organism is the first positive
+# culture of `specimens` by collection time; its SNOMED CT organism code (the
+# codes of observation/reference_data/microbiology.yaml `organisms`) selects the
+# code in `organisms`. An organism with no code here keeps A41.9.
+#
+# Staphylococcus aureus: ICD-10-CM codes it by methicillin susceptibility
+# (A41.01 MSSA / A41.02 MRSA). The simulator models methicillin resistance as
+# cefazolin resistance (microbiology.yaml: "~30% MRSA -> cefazolin R"), so the
+# split reads the isolate's cefazolin result (S -> A41.01, R -> A41.02); an
+# isolate with no S/R cefazolin result keeps A41.9. The codes are US
+# (ICD-10-CM); the JP output maps them to WHO ICD-10 through
+# locale/jp/code_mapping_diagnosis.yaml (A41.01 / A41.02 -> A41.0,
+# A41.51 / A41.52 / A41.59 -> A41.5, A41.81 -> A41.8; A40.0, A40.3, A41.3 as is).
+#
+# Sources (read on 2026-11-26): ICD-10-CM FY2027 tabular order file (CMS,
+# icd10cm_order_2027.txt): A40.0 Sepsis due to streptococcus, group A; A40.3
+# Sepsis due to Streptococcus pneumoniae; A41.01 / A41.02 MSSA / MRSA; A41.3
+# Sepsis due to Hemophilus influenzae; A41.51 Escherichia coli; A41.52
+# Pseudomonas; A41.59 Other Gram-negative sepsis; A41.81 Sepsis due to
+# Enterococcus (Enterococcus has its own code, A41.81, not A41.89); A41.9
+# Sepsis, unspecified organism. WHO ICD-10 via tx.fhir.org $lookup on
+# http://hl7.org/fhir/sid/icd-10 (2019-covid-expanded) and MHLW ICD-10 2013
+# basic classification (kihon2013.xlsx) for the Japanese names. Klebsiella and
+# Proteus are Gram-negative organisms without a code of their own: A41.59.
+
+metadata:
+  kind: reference
+  name: organism_sepsis_codes
+  source: clinosim
+
+disease_ids:
+  - sepsis
+
+refines:
+  - A41.9
+
+specimens:
+  - blood
+
+organisms:
+  "9861002": A40.3    # Streptococcus pneumoniae
+  "80166006": A40.0   # Streptococcus pyogenes (group A)
+  "44470000": A41.3   # Haemophilus influenzae
+  "112283007": A41.51 # Escherichia coli
+  "52499004": A41.52  # Pseudomonas aeruginosa
+  "56415008": A41.59  # Klebsiella pneumoniae (other Gram-negative)
+  "73457008": A41.59  # Proteus mirabilis (other Gram-negative)
+  "78065002": A41.81  # Enterococcus faecalis
+
+susceptibility_splits:
+  "3092008":          # Staphylococcus aureus
+    marker_antibiotic: cefazolin
+    susceptible: A41.01
+    resistant: A41.02

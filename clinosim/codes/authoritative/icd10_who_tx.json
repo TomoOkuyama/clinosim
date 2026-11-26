@@ -13,7 +13,7 @@
       "S67.2"
     ],
     "note": "WHO ICD-10 authoritative displays for the codes clinosim emits.",
-    "later_additions": "T22.2 and T23.2 (Issue #3279), E11.2, E11.3 and E11.4 (Issue #3259), G35, I69.1 and I69.3 (Issue #3327), R57.2 (Issue #3269) were added on 2026-11-16 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded). T20.0, T21.0, T22.0, T23.0, T24.0, T25.0 (Issue #3258, tx.fhir.org $lookup 2026-11-18). J14 and J15.5 (Issue #3645) were added on 2026-11-24 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded)."
+    "later_additions": "T22.2 and T23.2 (Issue #3279), E11.2, E11.3 and E11.4 (Issue #3259), G35, I69.1 and I69.3 (Issue #3327), R57.2 (Issue #3269) were added on 2026-11-16 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded). T20.0, T21.0, T22.0, T23.0, T24.0, T25.0 (Issue #3258, tx.fhir.org $lookup 2026-11-18). J14 and J15.5 (Issue #3645) were added on 2026-11-24 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded). A40.3, A41.3 and A41.8 (Issue #3833) were added on 2026-11-26 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded)."
   },
   "concept": [
     {
@@ -101,6 +101,21 @@
       "code": "A40.0",
       "display": "Sepsis due to streptococcus, group A",
       "definition": "Sepsis due to streptococcus, group A",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "A40"
+        }
+      ]
+    },
+    {
+      "code": "A40.3",
+      "display": "Sepsis due to Streptococcus pneumoniae",
+      "definition": "Sepsis due to Streptococcus pneumoniae",
       "property": [
         {
           "code": "kind",
@@ -267,6 +282,21 @@
       ]
     },
     {
+      "code": "A41.3",
+      "display": "Sepsis due to Haemophilus influenzae",
+      "definition": "Sepsis due to Haemophilus influenzae",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "A41"
+        }
+      ]
+    },
+    {
       "code": "A41.5",
       "display": "Sepsis due to other Gram-negative organisms",
       "definition": "Sepsis due to other Gram-negative organisms",
@@ -282,6 +312,21 @@
         {
           "code": "inclusion",
           "valueString": "Gram-negative sepsis NOS"
+        }
+      ]
+    },
+    {
+      "code": "A41.8",
+      "display": "Other specified sepsis",
+      "definition": "Other specified sepsis",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "A41"
         }
       ]
     },

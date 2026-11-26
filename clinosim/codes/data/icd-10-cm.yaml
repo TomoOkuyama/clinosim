@@ -1041,6 +1041,15 @@ codes:
   A41.52:
     en: Sepsis due to Pseudomonas
     ja: 緑膿菌による敗血症
+  # Sepsis organism codes (Issue #3833)
+  A40.3:
+    en: Sepsis due to Streptococcus pneumoniae
+  A41.3:
+    en: Sepsis due to Hemophilus influenzae
+  A41.59:
+    en: Other Gram-negative sepsis
+  A41.81:
+    en: Sepsis due to Enterococcus
   # Diabetes acute complications (diabetic_ketoacidosis.yaml variants)
   E10.11:
     en: Type 1 diabetes mellitus with ketoacidosis with coma

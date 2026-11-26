@@ -727,6 +727,15 @@ codes:
   A41.5:
     en: Sepsis due to other Gram-negative organisms
     ja: "その他のグラム陰性菌による敗血症"
+  A40.3:
+    en: Sepsis due to Streptococcus pneumoniae
+    ja: "肺炎連鎖球菌による敗血症"
+  A41.3:
+    en: Sepsis due to Haemophilus influenzae
+    ja: "インフルエンザ菌による敗血症"
+  A41.8:
+    en: Other specified sepsis
+    ja: "その他の明示された敗血症"
   B18.2:
     en: Chronic viral hepatitis C
     ja: "慢性C型ウイルス性肝炎"
