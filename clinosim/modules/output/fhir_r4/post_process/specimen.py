@@ -94,7 +94,11 @@ def _lab_observation_needs_specimen(resource: dict) -> bool:
     if any(cd.get("code") == "vital-signs" for c in resource.get("category") or [] for cd in c.get("coding") or []):
         return False
     # A questionnaire score is administered, not drawn from a specimen (Issue #3802).
-    if any(cd.get("code") == "survey" for c in resource.get("category") or [] for cd in c.get("coding") or []):
+    if any(
+        cd.get("code") in ("survey", "procedure")
+        for c in resource.get("category") or []
+        for cd in c.get("coding") or []
+    ):
         return False
     rid = resource.get("id", "")
     return isinstance(rid, str) and rid.startswith("lab-")

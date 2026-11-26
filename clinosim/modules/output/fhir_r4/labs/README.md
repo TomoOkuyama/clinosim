@@ -17,6 +17,8 @@ effective at the specimen collection and `issued` at the report;
 `Specimen.receivedTime` is the collection plus
 `observation.microbiology.specimen_transport_minutes`.
 
+The apnea-hypopnea index of a polysomnography (`PROCEDURE_RESULT_ANALYTES` in `lib/common.py`: AHI, Issue #3837) is a `procedure` Observation with the same exemptions (no specimen, no analyzer `method`, no lab profile); its ServiceRequest is an evaluation procedure and its DiagnosticReport is the polysomnography report (LOINC 28633-6).
+
 Questionnaire total scores (`QUESTIONNAIRE_SCORE_ANALYTES` in `lib/common.py`: PHQ-9, GAD-7, C-SSRS, EPDS; Issue #3802) are `survey` Observations with no `specimen`, no analyzer `method` and no companion Specimen; their ServiceRequest and DiagnosticReport are evaluation procedures (SNOMED 386053000), not laboratory ones, and the report declares no lab profile.
 A questionnaire score is coded with its LOINC instrument code alone (no JP-CLINS uncoded or local-code codings, no laboratory profile), and its `performer` is the clinician: the orderer, else the attending of the Encounter, never the laboratory technician (Issue #3807).
 

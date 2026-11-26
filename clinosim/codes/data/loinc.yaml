@@ -912,6 +912,14 @@ codes:
   99046-5:
     en: "Total score [EPDS]"
     ja: EPDS エジンバラ産後うつ病質問票 総合スコア
+  # Issue #3837: apnea-hypopnea index and the polysomnography report
+  # (tx.fhir.org $lookup 2026-11-26, ACTIVE).
+  69990-0:
+    en: "Apnea hypopnea index 24 hour"
+    ja: 無呼吸低呼吸指数
+  28633-6:
+    en: "Polysomnography (sleep) study"
+    ja: 睡眠ポリグラフ検査 (ポリソムノグラフィー)
   55757-9:
     en: "Patient Health Questionnaire 2 item (PHQ-2) [Reported]"
     ja: PHQ-2 うつ病2項目版

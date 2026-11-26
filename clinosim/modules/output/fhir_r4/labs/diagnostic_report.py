@@ -60,11 +60,13 @@ from clinosim.modules.output.fhir_r4.labs.service_request import (
     standalone_lab_order_code,
 )
 from clinosim.modules.output.fhir_r4.lib.common import (
+    PROCEDURE_RESULT_ANALYTES,
     _escape_html,
     build_presented_form,
     display_entry,
     dual_slot_concept,
-    is_questionnaire_score,
+    is_instrument_result,
+    is_procedure_result,
     system_coding,
 )
 from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
@@ -860,6 +862,13 @@ def build_single_test_report(
     anchor = orders[report.group.obs_idxs[0]]
     code, title = _single_test_report_code(anchor, country)
     lang = lang_for(country)
+    analyte = _o(_o(anchor, "result"), "lab_name", "") or _o(anchor, "display_name", "")
+    if is_procedure_result(analyte):
+        # Issue #3837: the report of a procedure result is the procedure's report
+        # (the polysomnography study), the result being its Observation.
+        report_loinc = PROCEDURE_RESULT_ANALYTES[analyte]
+        title = registry_display("loinc", report_loinc, lang) or ""
+        code = {"coding": [system_coding("loinc", report_loinc, "en")], "text": title}
     return _lab_report_resource(
         structural_key=report.sr_structural_key,
         key_system=LAB_ORDER_DR_KEY_SYSTEM,
@@ -873,9 +882,7 @@ def build_single_test_report(
         orders=orders,
         presented_text=_lab_panel_presented_text({}, title, report.group, lang),
         presented_title=title,
-        questionnaire=is_questionnaire_score(
-            _o(_o(anchor, "result"), "lab_name", "") or _o(anchor, "display_name", "")
-        ),
+        questionnaire=is_instrument_result(analyte),
     )
 
 

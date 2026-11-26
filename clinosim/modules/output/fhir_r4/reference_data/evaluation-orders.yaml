@@ -19,3 +19,4 @@ metadata:
 lab_orders:
   Peak_Expiratory_Flow:   # LOINC 33452-4 Peak expiratory flow
     v2_0074: PF           # Pulmonary Function
+  AHI: {}                 # LOINC 69990-0 Apnea hypopnea index: the result of a polysomnography (Issue #3837)

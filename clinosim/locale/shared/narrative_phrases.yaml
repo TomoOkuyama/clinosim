@@ -3929,6 +3929,10 @@ order_intent:
 # Order intents of the admission, ED, outpatient and unknown-condition flows
 # (clinical_intent / clinical_intent_ja; Issue #2406).
 encounter_intent:
+  # Issue #3837: the result of the polysomnography recorded at the visit.
+  sleep_study_result:
+    ja: "睡眠ポリグラフ検査の結果: {test}"
+    en: "Polysomnography result: {test}"
   admission_workup:
     ja: "入院時精査: {test}"
     en: "Admission workup: {test}"

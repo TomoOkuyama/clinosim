@@ -102,6 +102,12 @@ GAD-7: "70274-6"
 # total score, so it carries the total-score code.
 EPDS: "99046-5"
 
+# Issue #3837 - the apnea-hypopnea index of a polysomnography. LOINC 69990-0
+# "Apnea hypopnea index 24 hour" (PULM, NRat, ACTIVE; tx.fhir.org $lookup
+# 2026-11-26), the only active LOINC code for the index; its example UCUM unit
+# is {events}/h.
+AHI: "69990-0"
+
 # Issue #1137 — C-SSRS Columbia Suicide Severity Rating Scale
 # ideation severity (score 0-5: none, then the five ideation types of
 # Posner 2011 Am J Psychiatry). LOINC 93293-9 "Most severe suicidal

@@ -55,6 +55,8 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     dual_slot_concept,
     english_display_concept,
     entry,
+    is_instrument_result,
+    is_procedure_result,
     is_questionnaire_score,
     judged_reference_range,
 )
@@ -129,7 +131,7 @@ def lab_observation_coding(lab_name: str, order: dict, result: dict, country: st
     # (LOINC) alone; the JP-CLINS laboratory codings (uncoded slice, local
     # code) describe a laboratory analyte. The local code still supplies the
     # code's text (the instrument's name) but is not emitted as a coding.
-    if is_questionnaire_score(lab_name):
+    if is_instrument_result(lab_name):
         codings = [c for c in codings if c.get("system") == get_system_uri("loinc")]
     elif _localcode is not None:
         codings.append(_localcode)
@@ -236,7 +238,7 @@ def _build_lab_observation(
     # A questionnaire score (category survey) is no laboratory result and
     # declares no laboratory profile (Issue #3807).
     _profiles: list[str] = (
-        [] if is_questionnaire_score(lab_name) else declared_profiles("Observation/LabResult", country, "jp_core")
+        [] if is_instrument_result(lab_name) else declared_profiles("Observation/LabResult", country, "jp_core")
     )
 
     # Issue #3154: a health-checkup result is the report's Observation — it
@@ -248,7 +250,9 @@ def _build_lab_observation(
     # table names, it carries the item code alone (a LOINC vital-sign code
     # would bring in the HL7 ``bmi`` / ``bp`` profiles, which one checkup
     # measurement cannot meet) and declares only the report profile.
-    _category = "survey" if is_questionnaire_score(lab_name) else "laboratory"
+    _category = (
+        "survey" if is_questionnaire_score(lab_name) else "procedure" if is_procedure_result(lab_name) else "laboratory"
+    )
     _measured_on_body = False
     if order.get("clinical_intent") == "health_checkup":
         _item_coding, _item_profile, _item_category = _checkup_report_item(lab_name, country)
@@ -393,7 +397,7 @@ def _build_lab_observation(
     # Performer (lab technician or ordering physician). A questionnaire score
     # is administered or reviewed by the clinician (Issue #3807): the
     # orderer, else the encounter's clinician; none when the record has neither.
-    if is_questionnaire_score(lab_name):
+    if is_instrument_result(lab_name):
         performer_id = order.get("ordered_by", "") or encounter_clinician
     else:
         performer_id = result.get("performed_by", "") or order.get("ordered_by", "")
@@ -409,7 +413,7 @@ def _build_lab_observation(
     # analyte). Mirrors Coverage.type text-only precedent.
     # A body measurement (Issue #3167) and a questionnaire score (Issue #3802)
     # are not analyzer results.
-    if not _measured_on_body and _category != "survey":
+    if not _measured_on_body and _category not in ("survey", "procedure"):
         _method_text = t("fhir_obs_text.automated_method", lang_for(country))
         resource["method"] = {"text": _method_text}
 
