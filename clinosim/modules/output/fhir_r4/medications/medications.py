@@ -1495,6 +1495,9 @@ def _build_discharge_medication_request(
 # byte-identical to the pre-refactor function.
 
 
+_GIVEN_RATE = re.compile(r"^(\d+(?:\.\d+)?)\s*((?:mg|g|mcg|ug|mL|IU|U|units)/(?:h|min))\b", re.IGNORECASE)
+
+
 def _build_ma_dosage_block(
     mar: dict,
     parent_order: dict | None,
@@ -1535,6 +1538,12 @@ def _build_ma_dosage_block(
         dose_text = _mar_dose_raw
         dose_str = _mar_dose_raw
     parsed = _parse_dose_for_mar(dose_str or drug_name)
+    # Issue #3865: an absolute rate given ("1000U/h", the per-kg rate capped at
+    # its written maximum) is the rate of the administration.
+    _given_rate = _GIVEN_RATE.match(_mar_dose_raw)
+    if _given_rate:
+        parsed["dose_quantity"] = float(_given_rate.group(1))
+        parsed["dose_unit"] = _given_rate.group(2)
     # C3 / Issue #1089: bolus IV drugs backfill from parent Order when
     # the MAR text parse found no numeric dose_quantity.
     if parsed.get("dose_quantity") is None:

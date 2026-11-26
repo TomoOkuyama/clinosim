@@ -841,16 +841,23 @@ def _given_dose_text(order: Order, patient: PatientProfile, weight_kg: float | N
     per-m² order the absolute amount given (Issue #2750) — per kg of
     ``weight_kg`` (a minor's weight at admission, Issue #3004) when given,
     else of the profile weight."""
-    from clinosim.modules.order.absolute_dose import absolute_dose, is_continuous_infusion
+    from clinosim.modules.order.absolute_dose import absolute_dose, absolute_rate, is_continuous_infusion
 
+    weight = float(weight_kg or getattr(patient, "weight_kg", 0.0) or 0.0)
     if is_continuous_infusion(order.frequency or "", order.display_name or ""):
+        # Issue #3865: a per-kg rate with a written maximum is given as the
+        # capped absolute rate; any other infusion stays its stated rate.
+        rate = absolute_rate(order.dose_quantity, order.dose_unit, weight, order.dose_max_quantity)
+        if rate is not None:
+            return f"{rate[0]:g}{rate[1]}"
         return f"{order.dose_quantity}{order.dose_unit}"
     given = absolute_dose(
         order.dose_quantity,
         order.dose_unit,
         float(getattr(patient, "height_cm", 0.0) or 0.0),
-        float(weight_kg or getattr(patient, "weight_kg", 0.0) or 0.0),
+        weight,
         text=order.display_name or "",
+        cap_quantity=order.dose_max_quantity,
     )
     if given is not None:
         return f"{given[0]:g}{given[1]}"

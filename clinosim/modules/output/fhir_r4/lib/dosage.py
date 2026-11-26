@@ -505,6 +505,11 @@ def augment_iv_dosage_with_rate(
             entry = (load_iv_infusion_defaults() or {}).get("default") or {}
             mode = str(entry.get("mode", "") or "").lower()
     if mode == "continuous":
+        # Issue #3865: a rate the order itself states (its dose is a rate unit,
+        # e.g. the protocol's heparin 12 U/kg/h) wins over the catalog default
+        # (18 U/kg/h, the rate of another indication).
+        if ((dosage.get("doseAndRate") or [{}])[0] or {}).get("rateQuantity"):
+            return
         rate_value = entry.get("rate_value")
         rate_unit = entry.get("rate_unit", "")
         if rate_value is None or not rate_unit:
@@ -661,7 +666,11 @@ def _amount_text(amount: float) -> str:
 
 
 def prescribed_absolute_dose(
-    dose_qty: Any, dose_unit: str, written: str, body: tuple[float, float] | None
+    dose_qty: Any,
+    dose_unit: str,
+    written: str,
+    body: tuple[float, float] | None,
+    cap_quantity: float | None = None,
 ) -> tuple[float, str] | None:
     """The absolute amount per dose of a per-kg / per-m² prescription
     (Issue #2991): the written dose x the patient's weight (or body surface
@@ -669,7 +678,8 @@ def prescribed_absolute_dose(
     for any other dose (a rate such as "mg/kg/h" keeps its rate) or an
     unknown body size. A continuous infusion's per-kg dose is its loading
     dose ("6mg/kg IV loading then 0.5mg/kg/h"), so it is converted too.
-    ``body`` is ``(height_cm, weight_kg)``."""
+    ``body`` is ``(height_cm, weight_kg)``; ``cap_quantity`` is the maximum the
+    order carries (``Order.dose_max_quantity``, Issue #3865)."""
     from clinosim.modules.order.absolute_dose import absolute_dose, is_per_body_unit
 
     if body is None or dose_qty is None or not is_per_body_unit(dose_unit):
@@ -678,7 +688,9 @@ def prescribed_absolute_dose(
         value = float(dose_qty)
     except (TypeError, ValueError):
         return None
-    return absolute_dose(value, dose_unit, float(body[0] or 0.0), float(body[1] or 0.0), text=written)
+    return absolute_dose(
+        value, dose_unit, float(body[0] or 0.0), float(body[1] or 0.0), text=written, cap_quantity=cap_quantity
+    )
 
 
 # The written per-kg / per-m² dose in an order text ("45mg/kg",
@@ -779,7 +791,13 @@ def build_dosage_instruction(
         _dose_txt = f"{int(dose_qty)}" if isinstance(dose_qty, float) and dose_qty.is_integer() else f"{dose_qty}"
         _written = f"{_dose_txt}{dose_unit}"
         # Issue #2991: a per-kg / per-m² dose is prescribed as the amount to give.
-        _absolute = prescribed_absolute_dose(dose_qty, dose_unit, str(order.get("display_name", "") or ""), body)
+        _absolute = prescribed_absolute_dose(
+            dose_qty,
+            dose_unit,
+            str(order.get("display_name", "") or ""),
+            body,
+            cap_quantity=order.get("dose_max_quantity"),
+        )
         if _absolute is not None:
             dosage["doseAndRate"] = [{"doseQuantity": ucum_quantity(_absolute[0], _absolute[1])}]
             parts.append(with_absolute_dose(_written, _absolute))

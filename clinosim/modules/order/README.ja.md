@@ -46,6 +46,12 @@ ServiceRequest への `basedOn` を持つことを要求する
   1 回限りの負荷投与オーダー X と、それを `prior_order_id` で置き換え
   `administer_from` で翌日から投与する維持オーダー Y に分ける、#3002、
   `split_loading_dose`)、
+  「X bolus, then Y」(Y が速度を明示するもの。「60U/kg bolus (max 4000U),
+  then 12U/kg/h IV (max 1000U/h)」) は、1 回限りの bolus オーダーと、
+  bolus から続けて明示された速度で投与する持続オーダーに分ける。
+  速度の明示がない「10% bolus then 60min infusion」は 1 件のまま、
+  #3865、`split_bolus_then_infusion`。用量に添えた上限は
+  `Order.dose_max_quantity` に保持する)、
   `calculate_lab_result_time` (STAT / routine + 夜勤 deferral)、
   `calculate_imaging_result_time` (scheduling + reporting delay)、
   `calculate_result_time_from_state` (`facility.HospitalState` 経由

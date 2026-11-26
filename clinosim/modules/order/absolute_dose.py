@@ -16,10 +16,12 @@ import re
 
 __all__ = [
     "absolute_dose",
+    "absolute_rate",
     "body_surface_area",
     "is_continuous_infusion",
     "is_one_time_infusion",
     "is_per_body_unit",
+    "written_maximum",
 ]
 
 # Frequency / name markers of a continuous infusion, whose per-kg figure is a
@@ -63,6 +65,13 @@ _PER_UNIT = re.compile(r"^\s*(mg|g|mcg|ug|µg|U|IU|units?)\s*/\s*(kg|m2|m²)\s*$
 _MAX = re.compile(r"\bmax\.?\s*(\d+(?:\.\d+)?)\s*(mg|g|mcg|ug|µg|U|IU|units?)\b", re.IGNORECASE)
 
 
+def written_maximum(text: str) -> float | None:
+    """The maximum amount written with a dose ("max 4000U" -> 4000.0; Issue
+    #3865), in the unit of the dose's mass or activity; ``None`` when none."""
+    cap = _MAX.search(text or "")
+    return float(cap.group(1)) if cap else None
+
+
 def is_per_body_unit(unit: str) -> bool:
     """Whether ``unit`` is a per-kg / per-m² dose unit ("mg/kg", "mg/m2")."""
     return bool(_PER_UNIT.match(unit or ""))
@@ -79,12 +88,19 @@ def _rounded(amount: float) -> float:
 
 
 def absolute_dose(
-    value: float | None, unit: str, height_cm: float, weight_kg: float, *, text: str = ""
+    value: float | None,
+    unit: str,
+    height_cm: float,
+    weight_kg: float,
+    *,
+    text: str = "",
+    cap_quantity: float | None = None,
 ) -> tuple[float, str] | None:
     """``(amount, mass unit)`` given for a per-kg / per-m² dose, else None.
 
     ``text`` is the written order; a maximum in it in the same unit
-    ("max 90mg") caps the amount."""
+    ("max 90mg") caps the amount. ``cap_quantity`` is a maximum the order
+    carries (``Order.dose_max_quantity``, Issue #3865) in that unit."""
     m = _PER_UNIT.match(unit or "")
     if value is None or not m or weight_kg <= 0:
         return None
@@ -96,4 +112,25 @@ def absolute_dose(
     cap = _MAX.search(text or "")
     if cap and cap.group(2).lower() == base.lower():
         amount = min(amount, float(cap.group(1)))
+    if cap_quantity is not None:
+        amount = min(amount, float(cap_quantity))
     return amount, base
+
+
+# Per-kg infusion rate: "<mass unit>/kg/h" (or /min), nothing after it.
+_PER_KG_RATE = re.compile(r"^\s*(mg|g|mcg|ug|µg|U|IU|units?)\s*/\s*kg\s*/\s*(h|hr|min)\s*$", re.IGNORECASE)
+
+
+def absolute_rate(
+    value: float | None, unit: str, weight_kg: float, cap_quantity: float | None
+) -> tuple[float, str] | None:
+    """``(rate, "<unit>/<time>")`` of a per-kg infusion rate that has a written
+    maximum (Issue #3865: heparin "12U/kg/h (max 1000U/h)"): the per-kg rate x
+    weight, capped; ``None`` for a rate without a maximum (it stays the stated
+    per-kg rate) or a unit that is not a per-kg rate."""
+    m = _PER_KG_RATE.match(unit or "")
+    if value is None or m is None or cap_quantity is None or weight_kg <= 0:
+        return None
+    rate = min(float(value) * weight_kg, float(cap_quantity))
+    time_unit = "h" if m.group(2).lower() in ("h", "hr") else "min"
+    return _rounded(rate), f"{m.group(1)}/{time_unit}"
