@@ -80,6 +80,7 @@ from clinosim.simulator._stay_thresholds import (
 from clinosim.simulator.complication_actions import (
     complication_discharge_specs,
     complication_stopped_antibiotic_classes,
+    held_home_anticoagulants,
 )
 from clinosim.simulator.complication_dx import complication_diagnosis_entries
 from clinosim.simulator.complications import complication_names
@@ -482,6 +483,8 @@ def _finalize_discharge(
             extra_specs=complication_discharge_specs(all_orders, country_key, discharge_time=discharge_time),
             excluded_classes=_stopped_classes[0],
             spared_classes=_stopped_classes[1],
+            # Issue #3896: each home anticoagulant a bleed held gets a discharge decision.
+            held_anticoagulants=held_home_anticoagulants(all_orders, patient),
         )
         if not death_occurred
         else None

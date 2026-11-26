@@ -427,6 +427,12 @@ def medication_changes_sentence(ctx: NarrativeContext) -> tuple[str, str]:
             changed.append(
                 t("hospital_course.med_dose_item", lang, name=_render_home_med_name(m, lang=lang), old=old, new=new)
             )
+    # Issue #3896: a home anticoagulant held in hospital for a bleed and resumed at discharge.
+    resumed = [
+        administered_drug_label(m, lang)
+        for k, m in after.items()
+        if k in before and _o(m, "reconciliation", "") == "resumed"
+    ]
     cap = hospital_course_rules().medication_changes.max_listed
     groups = [
         t(phrase, lang, list=_capped([n for n in names if n], cap, lang))
@@ -434,6 +440,7 @@ def medication_changes_sentence(ctx: NarrativeContext) -> tuple[str, str]:
             ("hospital_course.med_started", started),
             ("hospital_course.med_stopped", stopped),
             ("hospital_course.med_dose_changed", changed),
+            ("hospital_course.med_resumed", resumed),
         )
         if any(names)
     ]

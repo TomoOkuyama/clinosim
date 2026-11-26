@@ -1065,6 +1065,10 @@ hospital_course:
   med_dose_changed:
     ja: "用量変更 {list}"
     en: "dose changed {list}"
+  # Issue #3896: a home anticoagulant held in hospital for a bleed, resumed at discharge.
+  med_resumed:
+    ja: "入院中に出血のため中止し退院時に再開 {list}"
+    en: "stopped in hospital for bleeding and resumed at discharge {list}"
   med_dose_item:
     ja: "{name}（{old}→{new}）"
     en: "{name} ({old} to {new})"
@@ -3915,6 +3919,9 @@ order_intent:
   complication_ppi:
     ja: "第{day}病日 {complication}の発症に対しプロトンポンプ阻害薬の静脈内投与を開始"
     en: "Day {day}: intravenous proton pump inhibitor started for {complication}"
+  held_anticoagulant_not_resumed:
+    ja: "出血のため入院中に中止した抗凝固薬を退院時に再開しない"
+    en: "anticoagulant stopped in hospital for bleeding, not resumed at discharge"
   complication_ppi_step_down:
     ja: "第{day}病日 {complication}の発症に対し静脈内投与の終了後に経口プロトンポンプ阻害薬へ切り替え"
     en: "Day {day}: oral proton pump inhibitor after the intravenous course for {complication}"

@@ -228,3 +228,94 @@ def test_a_step_down_must_follow_a_course() -> None:
         TreatmentAction(**base, step_down={"route": "PO", "total_days": 14})  # no IV course to follow
     with pytest.raises(ValidationError):
         TreatmentAction(**base, course_days=3, step_down={"route": "PO", "total_days": 3})
+
+
+# --- held home anticoagulant: an explicit discharge decision (Issue #3896) ---
+
+
+def _home_patient(*drugs: str):
+    from clinosim.types.patient import PatientProfile
+
+    return PatientProfile(
+        patient_id="P1", age=70, sex="M", weight_kg=70.0, height_cm=170.0, current_medications=list(drugs)
+    )
+
+
+def _hold_marker(drug: str):
+    from clinosim.modules._shared import COMPLICATION_HOLD_ORDER_ID_MARKER, MED_STOP_ORDER_ID_MARKER
+    from clinosim.types.encounter import Order, OrderType
+
+    return Order(
+        order_id=f"ORD-E1{MED_STOP_ORDER_ID_MARKER}D4{COMPLICATION_HOLD_ORDER_ID_MARKER}0-{drug.lower()[:8]}",
+        order_type=OrderType.MEDICATION,
+        display_name=f"DISCONTINUE: {drug}",
+        ordered_datetime=ONSET_ORDER,
+        status=OrderStatus.PLACED,
+    )
+
+
+def _rx(patient, held=(), final_renal=1.0, extra=()):
+    import numpy as np
+
+    from clinosim.modules.disease.protocol import load_disease_protocol
+    from clinosim.simulator.discharge_rx import build_discharge_rx
+
+    return build_discharge_rx(
+        patient,
+        "bacterial_pneumonia",
+        load_disease_protocol("bacterial_pneumonia"),
+        "DR1",
+        ADMIT,
+        np.random.default_rng(0),
+        encounter_id="E1",
+        country_key="us",
+        final_renal_function=final_renal,
+        held_anticoagulants=held,
+        extra_specs=extra,
+    )
+
+
+def test_the_held_home_anticoagulants_are_found_from_the_stop_markers_and_the_home_list() -> None:
+    from clinosim.simulator.complication_actions import held_home_anticoagulants
+
+    patient = _home_patient("Warfarin", "Atorvastatin")
+    markers = [_hold_marker("Warfarin"), _hold_marker("Enoxaparin"), _hold_marker("Levofloxacin")]
+    # enoxaparin was the stay's prophylaxis, levofloxacin is no anticoagulant: only the home one counts
+    assert held_home_anticoagulants(markers, patient) == ["Warfarin"]
+    assert held_home_anticoagulants([], patient) == []
+
+
+def test_a_held_home_anticoagulant_is_resumed_at_discharge_and_the_item_says_so() -> None:
+    patient = _home_patient("Warfarin")
+    rx = _rx(patient, held=["Warfarin"])
+    (item,) = [i for i in rx.items if i["drug_name"] == "Warfarin"]
+    assert item["reconciliation"] == "resumed"
+    assert not [i for i in rx.items if i["drug_name"] != "Warfarin" and "reconciliation" in i]
+    assert "reconciliation" not in {k for i in _rx(patient).items for k in i}, "no hold, no decision"
+
+
+def test_a_held_home_anticoagulant_that_a_discharge_rule_holds_is_stopped_and_logged() -> None:
+    patient = _home_patient("Enoxaparin")  # a renal-hold drug at a kidney function below the discharge threshold
+    rx = _rx(patient, held=["Enoxaparin"], final_renal=0.1)
+    assert not [i for i in rx.items if i["drug_name"] == "Enoxaparin"]
+    log = [e for e in patient.safety_skip_log if e.candidate_drug == "Enoxaparin" and e.event_type == "hold"]
+    assert len(log) == 1
+
+
+def test_a_held_anticoagulant_the_patient_does_not_take_at_home_states_nothing() -> None:
+    other = _home_patient("Atorvastatin")
+    rx = _rx(other, held=["Apixaban"])
+    assert not other.safety_skip_log and not [i for i in rx.items if "reconciliation" in i]
+
+
+def test_the_discharge_summary_says_the_held_anticoagulant_was_resumed() -> None:
+    from types import SimpleNamespace
+
+    from clinosim.modules.document.narrative._hospital_course import medication_changes_sentence
+
+    home = [{"drug_name": "Warfarin", "dose": "3mg"}]
+    discharge = [{"drug_name": "Warfarin", "dose": "3mg", "reconciliation": "resumed"}]
+    for lang, expected in (("en", "resumed"), ("ja", "再開")):
+        ctx = SimpleNamespace(target_lang=lang, home_medications_at_admission=home, discharge_medications=discharge)
+        line, _ = medication_changes_sentence(ctx)
+        assert expected in line and "Warfarin" in line or "ワルファリン" in line, line

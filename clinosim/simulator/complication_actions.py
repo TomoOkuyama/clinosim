@@ -389,6 +389,35 @@ def complication_discharge_specs(
     return out
 
 
+def held_home_anticoagulants(orders: Iterable[Order], patient: Any) -> list[str]:
+    """The home anticoagulants a complication held (Issue #3896): the drugs of
+    the ``hold_anticoagulation`` stop markers that the patient takes at home
+    (the stay's own prophylaxis is not a home medication). Each needs an
+    explicit discharge decision (``build_discharge_rx(held_anticoagulants=)``).
+    In marker order, without repeats; draws nothing."""
+    from clinosim.codes.drugs import drug_key
+    from clinosim.modules._shared import COMPLICATION_HOLD_ORDER_ID_MARKER, MED_STOP_ORDER_ID_MARKER
+
+    home = {
+        drug_key(m.drug_name)
+        for m in [*(patient.baseline_chronic_medications or []), *(patient.current_medications or [])]
+        if m.drug_name
+    }
+    out: dict[str, str] = {}
+    for o in orders:
+        name = (o.display_name or "").removeprefix("DISCONTINUE:").strip()
+        if (
+            o.order_type == OrderType.MEDICATION
+            and MED_STOP_ORDER_ID_MARKER in o.order_id
+            and COMPLICATION_HOLD_ORDER_ID_MARKER in o.order_id
+            and (o.display_name or "").startswith("DISCONTINUE:")
+            and "anticoagulant" in drug_classes(name)
+            and drug_key(name) in home
+        ):
+            out.setdefault(drug_key(name), name)
+    return list(out.values())
+
+
 def complication_stopped_antibiotic_classes(orders: Iterable[Order]) -> tuple[frozenset[str], frozenset[str]]:
     """``(excluded classes, spared classes)`` of the discharge prescription of
     a stay in which a complication stopped the inciting antibiotic (a
