@@ -27,6 +27,7 @@ def test_load_devices_config_returns_the_devices():
         "indwelling_catheter",
         "mechanical_ventilator",
         "noninvasive_ventilator",  # Issue #3705
+        "home_cpap",  # Issue #3837
     }
 
 

@@ -322,6 +322,10 @@ codes:
   '706172005':
     en: Ventilator
     ja: 人工呼吸器
+  # Issue #3837: the CPAP unit of a patient on CPAP therapy (tx.fhir.org $lookup 2026-11-26).
+  '702172008':
+    en: Home CPAP unit
+    ja: 在宅用CPAP装置
   # === HAI conditions (AD-55 Module: hai, PR-B) ===
   # All verified via tx.fhir.org $lookup / $expand against SNOMED CT
   # International edition. Spec's CLABSI tentative 433142000 and

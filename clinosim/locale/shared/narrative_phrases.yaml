@@ -2038,6 +2038,10 @@ chronic_assessment:
   chronic_stage_untreated:
     ja: "{label}（{stage}）、薬物療法なし、非薬物療法と経過観察を継続。"
     en: "{label} ({stage}); no pharmacotherapy, non-drug management and monitoring continued."
+  # Issue #3837: the therapy of an OSA follow-up (chronic_followup.yaml lists CPAP).
+  cpap_continued:
+    ja: "CPAP 療法を継続。"
+    en: "CPAP therapy continued."
   chronic_noted:
     ja: "{label}: 問題リスト登録済み。"
     en: "{label}: on the problem list."

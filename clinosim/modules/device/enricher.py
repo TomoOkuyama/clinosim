@@ -14,6 +14,7 @@ from clinosim.modules._shared import get_or_create_container
 from clinosim.modules.device.engine import (
     load_devices_config,
     place_devices_for_encounter,
+    place_home_devices,
 )
 
 
@@ -29,6 +30,7 @@ def enrich_device(ctx) -> None:
         devices = []
         for encounter in _get(rec, "encounters", []) or []:
             devices.extend(place_devices_for_encounter(rec, encounter, cfg))
+        devices.extend(place_home_devices(rec, cfg))  # Issue #3837
         if not devices:
             continue
         ext = get_or_create_container(rec, "extensions", dict)
