@@ -886,7 +886,7 @@ complications:
       perfusion_status: -0.20
       inflammation_level: 0.05
       ph_status: -0.05
-    actions: ["ct_angiography", "anticoagulation", "consider_icu"]
+    actions: ["ct_angiography", "start_anticoagulation", "consider_icu"]
 
   - name: "seizure"
     description: "Post-stroke seizure from cortical irritation"

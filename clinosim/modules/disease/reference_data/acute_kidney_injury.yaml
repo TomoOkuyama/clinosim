@@ -823,7 +823,7 @@ complications:
     detection:
       test: "d_dimer_then_ultrasound"
       finding: "dvt_confirmed"
-    actions: ["anticoagulation_with_renal_dosing"]
+    actions: ["start_anticoagulation"]
     cascade: ["pulmonary_embolism"]
 
   - name: "pulmonary_embolism"
@@ -834,7 +834,7 @@ complications:
     state_impact:
       perfusion_status: -0.20
       ph_status: -0.05
-    actions: ["ct_angiography", "anticoagulation_renal_adjusted", "consider_icu"]
+    actions: ["ct_angiography", "start_anticoagulation", "consider_icu"]
 
 # ============================================================
 # NARRATIVE SPEC (Tier 1 #3 α-min-1)

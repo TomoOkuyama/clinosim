@@ -77,6 +77,7 @@ from clinosim.simulator._stay_thresholds import (
     URGENT_ADMISSION_HOUR_MIN,
     URGENT_ADMISSION_HOUR_STD,
 )
+from clinosim.simulator.complication_actions import complication_discharge_specs
 from clinosim.simulator.complication_dx import complication_diagnosis_entries
 from clinosim.simulator.complications import complication_names
 from clinosim.simulator.daily_loop import SYMPTOM_AXES, _run_daily_loop
@@ -473,6 +474,8 @@ def _finalize_discharge(
             # Issue #2992: a discharge hold names only a drug the patient took.
             ordered_drugs=[o.display_name for o in all_orders if o.order_type == OrderType.MEDICATION],
             severity=str(getattr(encounter, "severity", "") or ""),
+            # Issue #3864: the anticoagulant a complication started continues.
+            extra_specs=complication_discharge_specs(all_orders, country_key),
         )
         if not death_occurred
         else None

@@ -110,6 +110,32 @@ def _rewritten_name(name: str, mg: float, interval: str) -> str:
     return _INTERVAL.sub(interval.lower(), name, count=1) if interval.upper().startswith("Q") else name
 
 
+def creatinine_clearance(
+    patient: Any, encounter_id: str, admission_time: datetime, at: datetime, context: RenalDoseContext
+) -> float | None:
+    """The Cockcroft-Gault creatinine clearance (mL/min) of a patient at ``at``:
+    the latest creatinine resulted by then, else the stay's first; the age at
+    admission and the weight charted on the encounter. ``None`` for a minor
+    (under ``min_age_years``) or when no creatinine or weight gives one. Shared
+    by the renal dosing of antibiotics and of the anticoagulants a complication
+    starts (Issue #3864)."""
+    from clinosim.modules.population.encounter_anthropometry import encounter_weight_kg
+    from clinosim.simulator.aki_response import aki_response_rules
+
+    rules = _rules()
+    dob = getattr(patient, "date_of_birth", None)
+    age_years = (
+        (admission_time.date() - dob).days / _DAYS_PER_YEAR if dob is not None else float(getattr(patient, "age", 0))
+    )
+    if age_years < rules.cockcroft_gault.min_age_years:
+        return None
+    creatinine = _creatinine_at(context.results, at, aki_response_rules().creatinine_lab)
+    if creatinine is None:
+        return None
+    weight = encounter_weight_kg(patient, encounter_id, admission_time, context.country)
+    return cockcroft_gault_ml_min(age_years, weight, creatinine, str(patient.sex))
+
+
 def apply_renal_dose(
     order: Order, patient: Any, admission_time: datetime, at: datetime, context: RenalDoseContext
 ) -> None:
@@ -117,23 +143,14 @@ def apply_renal_dose(
     (``at``), in place; a no-op for an order already decided, an unlisted drug
     or country, or a patient without a clearance. Idempotent. The age is the
     age at admission and the weight the one charted on the encounter."""
-    from clinosim.modules.population.encounter_anthropometry import encounter_weight_kg
-    from clinosim.simulator.aki_response import aki_response_rules
-
     if order.renal_crcl_ml_min is not None or order.dose_quantity is None:
         return
     rules = _rules()
     key = order.drug_id or drug_ref(order.display_name or "")
     rule = rules.drugs.get(key, {}).get(country_code(context.country))
-    dob = getattr(patient, "date_of_birth", None)
-    age_years = (
-        (admission_time.date() - dob).days / _DAYS_PER_YEAR if dob is not None else float(getattr(patient, "age", 0))
-    )
-    if rule is None or age_years < rules.cockcroft_gault.min_age_years:
+    if rule is None:
         return
-    creatinine = _creatinine_at(context.results, at, aki_response_rules().creatinine_lab)
-    weight = encounter_weight_kg(patient, order.encounter_id, admission_time, context.country)
-    crcl = cockcroft_gault_ml_min(age_years, weight, creatinine, str(patient.sex)) if creatinine is not None else None
+    crcl = creatinine_clearance(patient, order.encounter_id, admission_time, at, context)
     if crcl is None:
         return
     order.renal_crcl_ml_min = round(crcl, 1)

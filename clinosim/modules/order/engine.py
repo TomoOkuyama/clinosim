@@ -435,6 +435,10 @@ def split_bolus_then_infusion(dose_str: str) -> tuple[str, str] | None:
 _STATED_COURSE = re.compile(r"\bx\s*(\d+)(?:\s*-\s*(\d+))?\s*days?\b(?!.*\bthen\b)", re.IGNORECASE | re.DOTALL)
 
 
+# Issue #3864: a first phase that states its own length, then a later regimen.
+_PHASED_THEN = re.compile(r"^(?P<first>.+?\bx\s*\d+(?:\s*-\s*\d+)?\s*days?)\s*,?\s*then\b.+$", re.IGNORECASE)
+
+
 def parse_dose_string(dose_str: str) -> dict[str, Any]:
     """Parse a dose string like '500mg PO BID' into structured fields.
 
@@ -452,6 +456,14 @@ def parse_dose_string(dose_str: str) -> dict[str, Any]:
     _loading = split_loading_dose(s)
     if _loading:
         s = _loading[1]
+    # Issue #3864: "15mg PO BID x21 days, then 20mg PO daily" is given as its
+    # first phase (15 mg BID) when it starts; the later phase's "daily" is not
+    # the order's frequency. A course that continues after the first phase
+    # states no stop (``_STATED_COURSE`` reads the whole text).
+    full_text = s
+    _phased = _PHASED_THEN.match(s)
+    if _phased:
+        s = _phased.group("first")
 
     # Dose quantity + unit. Two-tier match:
     # 1. BSA / weight-based dose (e.g. "85mg/m2", "6mg/kg", "500mg/m2") —
@@ -533,7 +545,7 @@ def parse_dose_string(dose_str: str) -> dict[str, Any]:
     if re.search(r"\bprn\b", s_lower):
         result["frequency"] = f"{result.get('frequency', '')} PRN".strip()
 
-    course = _STATED_COURSE.search(s)
+    course = _STATED_COURSE.search(full_text)
     if course:
         result["duration_days"] = int(course.group(2) or course.group(1))
 

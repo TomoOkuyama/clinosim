@@ -881,7 +881,7 @@ complications:
     detection:
       test: "ct_angiography"
       finding: "pulmonary_embolism_confirmed"
-    actions: ["anticoagulation", "consider_icu", "echocardiography"]
+    actions: ["start_anticoagulation", "consider_icu", "echocardiography"]
 
   - name: "acute_kidney_injury"
     description: "Pre-renal AKI from dehydration and poor intake"

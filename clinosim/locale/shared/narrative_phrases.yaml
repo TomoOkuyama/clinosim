@@ -3909,6 +3909,15 @@ order_intent:
   complication_antibiotic:
     ja: "第{day}病日 {complication}の発症に対し抗菌薬を開始"
     en: "Day {day}: antibiotic started for {complication}"
+  complication_anticoagulation:
+    ja: "第{day}病日 {complication}の発症に対し治療量の抗凝固療法を開始"
+    en: "Day {day}: therapeutic anticoagulation started for {complication}"
+  complication_ppi:
+    ja: "第{day}病日 {complication}の発症に対しプロトンポンプ阻害薬の静脈内投与を開始"
+    en: "Day {day}: intravenous proton pump inhibitor started for {complication}"
+  complication_anticoagulant_hold:
+    ja: "第{day}病日 {complication}の発症に対し抗凝固薬を中止"
+    en: "Day {day}: anticoagulant stopped for {complication}"
   complication_workup:
     ja: "第{day}病日 {complication}の経過観察のための検査"
     en: "Day {day}: monitoring labs for {complication}"

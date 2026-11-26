@@ -480,6 +480,13 @@ def complication_antibiotic_seed(encounter_id: str, day: int, complication: str)
     return _digest_int(f"complication-antibiotic:{encounter_id}:{day}:{complication}", 8)
 
 
+def complication_treatment_seed(encounter_id: str, day: int, complication: str, action: str) -> int:
+    """Per-(encounter, hospital day, complication, action) seed of the staff draw
+    of the medication administrations of an anticoagulant or IV PPI started
+    for a complication (Issue #3864, 64-bit); the stay's own RNG is not read."""
+    return _digest_int(f"complication-treatment:{encounter_id}:{day}:{complication}:{action}", 8)
+
+
 def co_disease_orders_seed(encounter_id: str) -> int:
     """Per-encounter seed of the admission orders of a mixed admission's
     co-disease (Issue #3392, 64-bit): the placement times of its labs,

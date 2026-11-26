@@ -31,6 +31,11 @@ from clinosim.countries import is_us as is_us
 # constant is shared so writer and reader stay in lockstep — the same
 # convention as ``ABX_ORDER_ID_PREFIX`` in ``modules/antibiotic/engine.py``.
 MED_STOP_ORDER_ID_MARKER: str = "-STOP-"
+# Issue #3864: the id marker of a medication order started for a complication
+# (therapeutic anticoagulation, IV PPI) and of the stop marker of an
+# anticoagulant held for a bleeding complication.
+COMPLICATION_TREATMENT_ORDER_ID_MARKER: str = "-COMPTX-"
+COMPLICATION_HOLD_ORDER_ID_MARKER: str = "-COMPHOLD-"
 
 # ``Order.order_set`` values (Issue #3242), shared by the writer (order
 # engine) and the readers (the ED note): the order set an admission order was

@@ -651,7 +651,7 @@ complications:
     state_impact:
       perfusion_status: -0.20
       ph_status: -0.05
-    actions: ["ct_angiography", "anticoagulation", "consider_icu"]
+    actions: ["ct_angiography", "start_anticoagulation", "consider_icu"]
 
   - name: "urinary_tract_infection"
     description: "UTI from immobility and possible catheterization"

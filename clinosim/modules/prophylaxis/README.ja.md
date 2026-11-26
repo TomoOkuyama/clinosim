@@ -27,6 +27,7 @@ DOAC / heparin 持続点滴)、入院時診断が活動性出血 / 最近の出�
 脳卒中 / 消化管出血 / 分娩 / 活動性 DVT-PE の治療、または
 Enoxaparin が有効な薬剤と major / 禁忌ペアを形成する
 (`drug_safety.check_candidate_against_active`、Issue #1087)。
+入院中に合併症が開始した治療量の抗凝固薬(id に `-COMPTX-`、Issue #3864)は、それ以前の予防投与を取り消さない。予防投与はその指示の時刻で終わる(それより前に始まっていた場合は投与しない)。出血性の合併症が書いた予防薬の中止マーカーは、退院後に `order.supersede.drop_doses_after_hold` がそれ以降の投与を除く。
 
 **Out of scope (post-MVP)**:
 - ストレス潰瘍予防 (ICU での PPI) — 別プロトコル。

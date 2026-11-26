@@ -25,7 +25,7 @@ from typing import Any
 import numpy as np
 
 from clinosim import determinism
-from clinosim.codes.drugs import drug_key
+from clinosim.codes.drugs import drug_classes, drug_key
 from clinosim.locale.i18n import t
 from clinosim.locale.localized import language_slot
 from clinosim.modules.disease.protocol import DiseaseProtocol
@@ -245,6 +245,7 @@ def build_discharge_rx(
     aki_active: bool = False,
     lactate_high: bool = False,
     discharge_time: datetime | None = None,
+    extra_specs: Iterable[dict[str, Any]] = (),
 ) -> PrescriptionRecord:
     """Build discharge prescription from protocol.
 
@@ -261,6 +262,10 @@ def build_discharge_rx(
     ``lactate_high`` (Issue #3539): the final lactate is at or above the metformin
     hold threshold (``aki_response.yaml`` ``lactate_hold``) — metformin is held
     and logged until a later lactate is below it.
+
+    ``extra_specs`` (Issue #3864): ``discharge_oral``-style entries added to the
+    prescription, the anticoagulant a complication started in hospital; they
+    pass the same renal, hold, allergy and dedup checks as the protocol's.
 
     ``discharge_time`` (Issue #3441): the discharge datetime, the timestamp of the
     discharge holds logged on ``patient.safety_skip_log`` (the admission time when
@@ -729,6 +734,28 @@ def build_discharge_rx(
             if str(picked.get("route", "PO")).upper() != "PO":
                 continue
             _append_item(picked, chronic_continuation=True)
+
+    # Issue #3864: the anticoagulant a complication started in hospital is
+    # continued (``complication_actions.complication_discharge_specs``).
+    for spec in extra_specs:
+        before = len(items)
+        _append_item(spec, chronic_continuation=True)
+        if len(items) > before:
+            # The anticoagulant of the complication takes priority over an
+            # antiplatelet the safety rules rule out with it (the stroke plan's
+            # aspirin: "the anticoagulant alone"); the pair would be refused in
+            # hospital.
+            from clinosim.modules import drug_safety
+
+            added = str(items[-1]["drug_name"])
+            items[:] = [
+                it
+                for it in items[:-1]
+                if not (
+                    "antiplatelet" in drug_classes(str(it.get("drug_name", "")))
+                    and not drug_safety.check_pair(added, str(it["drug_name"])).is_allowed
+                )
+            ] + [items[-1]]
 
     limit_triple_antithrombotic(items, home_medications=[m.drug_name for m in patient.current_medications])
     # Issue #3004: a minor's discharge doses are weight-based (weight charted
