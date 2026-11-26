@@ -245,7 +245,7 @@ class _DocumentTypeSpecEntry(BaseModel):
     structured_form_yaml: str | None = None
     authored_after_admission_hours: float = Field(default=0.0, ge=0, le=24)
     authored_at: Literal["admission", "period_end"] = "admission"
-    author_role: Literal["", "triage_nurse"] = ""
+    author_role: Literal["", "triage_nurse", "ed_physician"] = ""
 
 
 class DocumentTypeSpecs(BaseModel):

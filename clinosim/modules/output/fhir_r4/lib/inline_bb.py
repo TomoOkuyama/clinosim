@@ -108,7 +108,11 @@ def _make_synth_ed_enc_dict(
             _ed_start_str = (_dt0 - admitted_ed_stay()).isoformat()
     except (ValueError, TypeError):
         pass
+    # Issue #3874: the ED phase is attended by the ED physician of the stay;
+    # a record written before the field existed falls back to the stay's attending.
     _att = (
+        imp_enc.get("ed_physician_id", "") if isinstance(imp_enc, dict) else getattr(imp_enc, "ed_physician_id", "")
+    ) or (
         imp_enc.get("attending_physician_id", "")
         if isinstance(imp_enc, dict)
         else getattr(imp_enc, "attending_physician_id", "")
@@ -1113,6 +1117,8 @@ def _bb_practitioners(ctx: BundleContext) -> list[dict]:
         add(enc.get("primary_nurse_id", "") if isinstance(enc, dict) else getattr(enc, "primary_nurse_id", ""))
         # Issue #3703: the ED nurse who authors the triage note.
         add(enc.get("triage_nurse_id", "") if isinstance(enc, dict) else getattr(enc, "triage_nurse_id", ""))
+        # Issue #3874: the ED physician of a via-ED stay (the bridge Encounter's attender).
+        add(enc.get("ed_physician_id", "") if isinstance(enc, dict) else getattr(enc, "ed_physician_id", ""))
     # C2-09: also emit every pharmacist in the roster so
     # CareTeam.participant refs to `Practitioner/PH-*` (C1-15 fix) resolve.
     # Pharmacists are assigned deterministically by encounter-id hash in

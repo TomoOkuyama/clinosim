@@ -209,6 +209,13 @@ def _pick_document_author(spec: Any, encounter: Any) -> str:
             "triage doc %s falling back to attending (triage_nurse_id missing)",
             loinc,
         )
+    elif _o(spec, "author_role", "") == "ed_physician":
+        # Issue #3874: the ED phase of a via-ED stay is the ED physician's;
+        # an ED visit (no ed_physician_id) is attended by the ED physician
+        # already, so the attending is the author.
+        ed_physician = _o(encounter, "ed_physician_id", "") or ""
+        if ed_physician:
+            return ed_physician
     elif loinc in NURSING_LOINCS:
         nurse = _o(encounter, "primary_nurse_id", "") or ""
         if nurse:

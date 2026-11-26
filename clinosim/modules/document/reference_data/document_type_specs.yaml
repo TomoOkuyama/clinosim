@@ -210,6 +210,9 @@ specs:
     # end of the ED visit (Issue #3397) and quotes only what was known then;
     # the triage note stays at the arrival.
     authored_at: period_end
+    # The ED phase of a stay admitted through the ED is the ED physician's, not
+    # the admitting specialist's (Issue #3874).
+    author_role: ed_physician
 
   ed_triage_note:
     loinc_code: "54094-8"

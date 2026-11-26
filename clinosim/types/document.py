@@ -133,7 +133,10 @@ class DocumentTypeSpec:
     author_role: str = ""
     """Who authors the document, when not the attending (Issue #3703):
     ``triage_nurse`` = the ED nurse who charted the triage vitals
-    (``Encounter.triage_nurse_id``), falling back to the attending. Empty =
+    (``Encounter.triage_nurse_id``), falling back to the attending;
+    ``ed_physician`` = the emergency physician of a stay admitted through the
+    ED (``Encounter.ed_physician_id``, Issue #3874), falling back to the
+    attending (an ED visit's attending is the ED physician). Empty =
     the default dispatch of ``_pick_document_author``."""
 
     composition_sections_jp: tuple[str, ...] = field(default_factory=tuple)

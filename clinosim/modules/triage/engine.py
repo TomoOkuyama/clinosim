@@ -435,6 +435,12 @@ def triage_enricher(ctx: Any) -> None:
             rng = determinism.default_rng(sub_seed)
             admission_dt = _o(enc, "admission_datetime", None)
             triage_time = admission_dt if isinstance(admission_dt, datetime) else None
+            roster = _o(ctx, "roster", None)
+            if admitted and roster is not None:
+                from clinosim.modules.staff.engine import assign_ed_physician
+
+                # Issue #3874: an ED physician attends the ED phase (RNG-free pick).
+                enc.ed_physician_id = assign_ed_physician(roster, enc_id)
             if admitted and triage_time is not None:
                 triage_time = triage_time - admitted_ed_stay()
                 _record_ed_arrival_vitals(ctx, record, enc, triage_time, rng)
