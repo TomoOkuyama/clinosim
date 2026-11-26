@@ -39,9 +39,11 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+## [0.7.4] - 2026-11-26
+
 ### Highlights
 
-About 105 commits since v0.7.3, from a review of the v0.7.3 sample cohorts (a whole-cohort aggregate review and a per-patient review per country) and the slow end-to-end tests. The entries below were written as the changes landed; this summary lists the main areas.
+About 130 commits since v0.7.3, from a review of the v0.7.3 sample cohorts (a whole-cohort aggregate review and a per-patient review per country) and the slow end-to-end tests. The entries below were written as the changes landed; this summary lists the main areas.
 
 - **Clinical course.** Treated infections now settle: a finding's likelihood ratio counts once per stay, so a treated bacterial pneumonia keeps its diagnosis, and a recovering patient's temperature settles before CRP; a still-febrile patient is not sent home at the extension cap. Oxygen is titrated in steps both ways, complications that require intubation or non-invasive ventilation act on the stay, acute kidney injury is dated at the first diagnostic creatinine, renally cleared antibiotics and home NSAIDs follow the kidneys, and drug courses stop at their stated length.
 - **Delivery, newborn and immunization records.** Delivery stays carry obstetric content, complication data and blood loss; postpartum visits record an EPDS screen; newborns carry their sampled anthropometrics, bilirubin trajectory and P-chapter conditions; vaccines are kept off febrile visits, flu doses follow the two-dose rule for young children, and ED tetanus doses are Immunizations.

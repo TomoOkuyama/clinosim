@@ -24,8 +24,8 @@ authors:
   - name: "clinosim contributors"
     website: "https://github.com/TomoOkuyama/clinosim/graphs/contributors"
 
-version: "0.7.3"
-date-released: "2026-11-24"
+version: "0.7.4"
+date-released: "2026-11-26"
 
 repository-code: "https://github.com/TomoOkuyama/clinosim"
 url: "https://github.com/TomoOkuyama/clinosim"
