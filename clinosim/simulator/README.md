@@ -199,6 +199,10 @@ clinosim/simulator/
   vasopressor_initiation.py  starts a vasopressor from the recorded mean arterial
                          pressure (low despite fluids) instead of a fixed day
                          (Issue #3332)
+  renal_replacement.py   intermittent hemodialysis for AKI whose potassium (>= treatment threshold) or total CO2
+                         (<= 10) persists after the medical response: a dialysis_acute Procedure per session, which
+                         sets the state's dialysis_clearance so potassium, bicarbonate, creatinine and urea improve
+                         and rebound; recent sessions defer discharge (Issue #3830, KDIGO 2012 5.1.1)
   aki_response.py        acute kidney injury (KDIGO creatinine definition): drugs held
                          while it is active (sticky from the first result meeting the definition until
                          a 10% fall from the peak, #3538), metformin held while lactate
@@ -355,6 +359,7 @@ Reference data (`reference_data/`, 22 YAMLs):
   reference_data/mixed_condition.yaml         late recognition, recovery and order merge of a mixed admission's co-disease (mixed_condition.py)
   reference_data/delirium_derivation.yaml     susceptibility cut, episode rule and code of a derived delirium (delirium.py)
   reference_data/complication_diagnosis_codes.yaml  complication token -> diagnosis code of the stay (complication_dx.py)
+  reference_data/renal_replacement.yaml       hemodialysis indication, session effect and rebound (renal_replacement.py)
   reference_data/aki_response.yaml            AKI detection, drugs held during AKI, discharge gate (aki_response.py)
   reference_data/device_removal.yaml          catheter placing events and the indications that end them (device_removal.py)
   reference_data/implied_chronic_prevalence.yaml  prevalence of the chronic conditions a stay implies (implied_chronic.py)

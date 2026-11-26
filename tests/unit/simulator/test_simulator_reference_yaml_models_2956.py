@@ -30,6 +30,7 @@ from clinosim.simulator.oral_intake import OralIntakeRules
 from clinosim.simulator.oxygen_course import OxygenCourseRules
 from clinosim.simulator.permissive_hypertension import PermissiveHypertensionRules
 from clinosim.simulator.renal_antibiotic_dose import RenalAntibioticDosing
+from clinosim.simulator.renal_replacement import RenalReplacementRules
 from clinosim.simulator.sex_gating import SexRestrictionRules
 from clinosim.simulator.sleep_study import SleepStudyRules
 from clinosim.simulator.statin_monitoring import StatinMonitoringRules
@@ -53,6 +54,7 @@ _MODELS: dict[str, type[BaseModel]] = {
     "icu_step_down.yaml": IcuStepDownRules,
     "implied_chronic_prevalence.yaml": ImpliedChronicPrevalence,
     "aki_response.yaml": AkiResponseRules,
+    "renal_replacement.yaml": RenalReplacementRules,
     "ketoacidosis_resolution.yaml": KetoacidosisResolutionRules,
     "maintenance_iv_fluid.yaml": MaintenanceIVFluidRules,
     "mixed_condition.yaml": MixedConditionRules,
@@ -119,6 +121,7 @@ _NESTED: dict[str, Callable[[dict[str, Any]], None]] = {
     "oxygen_course.yaml": lambda d: d.update(wean_hours={"hours": 12}),
     "permissive_hypertension_hold.yaml": lambda d: d["held_classes"].append("antihypertensives"),
     "renal_antibiotic_dosing.yaml": lambda d: d["drugs"]["meropenem"]["US"]["bands"][0].update(dose_factr=0.5),
+    "renal_replacement.yaml": lambda d: d.update(clearance_per_sesion=0.7),
     "renal_medication_rules.yaml": lambda d: d["renal_drugs"].update(metformin="hld"),
     "sleep_study.yaml": lambda d: d.update(abnormal_from="high"),
     "statin_monitoring.yaml": lambda d: _rename(d["countries"]["US"]["step_up_ldl"][0], "ldl_mg_dl", "ldl_mgdl"),

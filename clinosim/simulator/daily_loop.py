@@ -66,7 +66,7 @@ from clinosim.modules.physiology.engine import (
     scenario_flags_from_protocol,
     update,
 )
-from clinosim.modules.procedure.engine import build_intubation_procedure
+from clinosim.modules.procedure.engine import build_dialysis_session_procedure, build_intubation_procedure
 from clinosim.modules.staff.engine import (
     FALLBACK_NURSE_ID,
     StaffRoster,
@@ -161,6 +161,13 @@ from clinosim.simulator.oral_intake import (
 )
 from clinosim.simulator.oxygen_course import OxygenCourse, oxygen_course_rules
 from clinosim.simulator.renal_antibiotic_dose import RenalDoseContext
+from clinosim.simulator.renal_replacement import (
+    decay_dialysis_clearance,
+    indication_present,
+    renal_replacement_due,
+    renal_replacement_rules,
+    start_session,
+)
 from clinosim.simulator.sustained_complication import SustainedHold, advance_holds, inflammation_push_hold, start_holds
 from clinosim.simulator.vasoactive_support import (
     hospital_day_start,
@@ -417,6 +424,8 @@ class _Run:
     lab_time: datetime | None = None  # the most recent morning lab draw (none before day 1)
     potassium_hold: PotassiumHold | None = None  # Issue #2981: hyperkalemia hold, from the first K >= threshold
     hyperkalemia_last_day: int | None = None  # Issue #2981: last day with K >= threshold
+    rrt_first_indication_day: int | None = None  # Issue #3830: first day K / total CO2 met the dialysis indication
+    rrt_last_session_day: int | None = None  # Issue #3830: day of the latest hemodialysis session
     lactate: LactateCourse = field(default_factory=LactateCourse)  # Issue #3539: lactate course
     aki: AkiCourse = field(default_factory=AkiCourse)  # Issue #3281: creatinine course, KDIGO AKI per result
     oxygen: OxygenCourse = field(default_factory=OxygenCourse)  # Issue #3469: supplemental-oxygen state
@@ -851,6 +860,43 @@ def _respond_to_hyperkalemia(stay: _Stay, run: _Run, day: int, day_results_start
             continuing=continuing,
             parse_dose=parse_dose_string,
         )
+    )
+
+
+def _renal_replacement(stay: _Stay, run: _Run, day: int, day_results_start: int) -> None:
+    """Issue #3830: intermittent hemodialysis while the hyperkalemia or severe
+    acidosis of an AKI persists after the medical response. A session is a
+    Procedure; it clears part of the kidney failure from the state, so the next
+    days' potassium and total CO2 improve (and rebound). No draws."""
+    if not run.aki.points or not any(p[2] for p in run.aki.points):
+        return
+    today = run.lab_results[day_results_start:]
+    if not indication_present(today):
+        return
+    if run.rrt_first_indication_day is None:
+        run.rrt_first_indication_day = day
+    if not renal_replacement_due(today, run.state, day=day, first_indication_day=run.rrt_first_indication_day):
+        return
+    rules = renal_replacement_rules()
+    start_session(run.state)
+    run.rrt_last_session_day = day
+    run.escalation_procedures.append(
+        build_dialysis_session_procedure(
+            stay.patient.patient_id,
+            stay.encounter_id,
+            hospital_day_start(stay.admission_time, day) + timedelta(hours=rules.session_hour),
+            stay.country,
+            f"PROC-{stay.encounter_id}-HD{day:02d}",
+            rules.procedure_type,
+            performer_id=stay.attending_id,
+        )
+    )
+
+
+def _renal_replacement_recent(run: _Run, day: int) -> bool:
+    """Issue #3830: a session within the last ``discharge_defer_days`` days."""
+    return run.rrt_last_session_day is not None and day - run.rrt_last_session_day < (
+        renal_replacement_rules().discharge_defer_days
     )
 
 
@@ -2066,6 +2112,7 @@ def _run_daily_loop(
     loop_days = max(target_los, max_los or 0) + vasoactive_weaning_rules().max_extension_days
     for day in range(loop_days):
         actual_los = day + 1
+        decay_dialysis_clearance(run.state)
         lab_state_pre_update = _advance_state(stay, run, day)
         if co_disease is not None:
             # Issue #3392: a late recognised co-disease is worked up and treated from today.
@@ -2088,6 +2135,7 @@ def _run_daily_loop(
         day_results_start = _result_labs(stay, run, day, lab_state_pre_update)
         _respond_to_hyperkalemia(stay, run, day, day_results_start)
         run.aki = aki_course(run.lab_results)
+        _renal_replacement(stay, run, day, day_results_start)
         run.lactate = lactate_course(run.lab_results)
         if day >= 1:
             _update_diagnosis(stay, run, day, day_results_start)
@@ -2151,7 +2199,9 @@ def _run_daily_loop(
         # Issue #3274: an arrhythmia stay stays until its rate is controlled.
         rate_uncontrolled = _ventricular_rate_uncontrolled(stay, run, day)
         # Issue #3281: nor while AKI is not recovering or a fever persists.
-        unresolved = discharge_findings_unresolved(run.aki, run.vitals, run.lab_results)
+        unresolved = discharge_findings_unresolved(
+            run.aki, run.vitals, run.lab_results, dialysis_recent=_renal_replacement_recent(run, day)
+        )
         # Early discharge: if state-based criteria met before target_los
         # (not for protocols whose recovery the physiology does not model,
         # e.g. psychiatric admissions, Issue #2132).
@@ -2183,7 +2233,11 @@ def _run_daily_loop(
                 # fever persists.
                 if not (
                     unresolved
-                    and los_ceiling < target_los + discharge_extension_days(run.aki, run.vitals, run.lab_results)
+                    and los_ceiling
+                    < target_los
+                    + discharge_extension_days(
+                        run.aki, run.vitals, run.lab_results, dialysis_recent=_renal_replacement_recent(run, day)
+                    )
                 ):
                     break
             los_ceiling += 1
@@ -2224,7 +2278,9 @@ def _run_daily_loop(
         actual_los=actual_los,
         on_vasoactive_support=on_support and not run.death_occurred,
         aki_at_discharge=run.aki.active and not run.death_occurred,
-        findings_unresolved_at_discharge=discharge_findings_unresolved(run.aki, run.vitals, run.lab_results)
+        findings_unresolved_at_discharge=discharge_findings_unresolved(
+            run.aki, run.vitals, run.lab_results, dialysis_recent=_renal_replacement_recent(run, day)
+        )
         and not run.death_occurred,
         airway_declined=run.airway_declined,
         lactate_high_at_discharge=bool(run.lactate.points)
