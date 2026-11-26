@@ -3,7 +3,10 @@
 # ED in-department doses and ED take-home prescriptions written with an adult
 # fixed strength ("Acetaminophen 500mg") are re-dosed for a child from the
 # patient's weight: dose = min(mg_per_kg x weight, max_mg), rounded. A drug is
-# not given below min_age_months. Drugs not listed keep their written dose.
+# not given below min_age_months. Drugs not listed keep their written dose,
+# except those in withheld_below_age_months (no pediatric dose read: not given
+# below the age). A combination strength written "875/125mg" is re-dosed on its
+# first ingredient and keeps its tablet ratio ("280/40mg").
 # Sources: Lexicomp Pediatric & Neonatal Dosage Handbook (single-dose mg/kg and
 # maximum), AAP Clinical Report "Fever and Antipyretic Use in Children" (2011,
 # reaffirmed 2016) for acetaminophen / ibuprofen; FDA labels for age limits.
@@ -92,6 +95,42 @@ drugs:
   metronidazole: {mg_per_kg: 10, max_mg: 500, min_age_months: 0}
   ciprofloxacin: {mg_per_kg: 10, max_mg: 400, min_age_months: 0}
   trimethoprim_sulfamethoxazole: {mg_per_kg: 5, max_mg: 160, min_age_months: 0}
+
+  # --- Drugs the ED and discharge prescriptions wrote at an adult dose (Issue #3829) ---
+  # Labels read on DailyMed (2026-11):
+  #   methylprednisolone: Solu-Medrol label, Dosage and Administration:
+  #     "In pediatric patients, the initial dose ... 0.11 to 1.6 mg/kg/day in
+  #     three or four divided doses"; the NHLBI asthma dose it quotes is
+  #     1-2 mg/kg/day in single or divided doses. 0.5 mg/kg per dose keeps an
+  #     every-6-to-8-hour inpatient course (1.5-2 mg/kg/day) inside that range;
+  #     the label sets no per-dose maximum, the 125 mg cap is the largest adult
+  #     single dose clinosim writes.
+  #   azithromycin: Zithromax tablets label, pediatric dosage: 10 mg/kg once
+  #     daily (acute bacterial sinusitis; day 1 of otitis media and
+  #     pneumonia), from 6 months of age; 500 mg is the adult daily dose. The
+  #     injection label states pediatric safety and effectiveness are not
+  #     established, so the oral weight-based dose is used for the IV order too.
+  #   amoxicillin/clavulanate: label, pediatric patients 12 weeks and older,
+  #     25-45 mg/kg/day every 12 hours or 20-40 mg/kg/day every 8 hours of the
+  #     amoxicillin component, up to the adult dose. 13 mg/kg per dose is
+  #     26 mg/kg/day at q12h and 39 mg/kg/day at q8h, inside both ranges; the
+  #     875 mg cap is the adult amoxicillin dose.
+  #   loperamide: capsule label: contraindicated under 2 years; after the
+  #     first day 1 mg per 10 kg body weight after each loose stool (0.1 mg/kg),
+  #     the adult 2 mg being the ceiling.
+  methylprednisolone: {mg_per_kg: 0.5, max_mg: 125, min_age_months: 0}
+  azithromycin: {mg_per_kg: 10, max_mg: 500, min_age_months: 6}
+  amoxicillin_clavulanate: {mg_per_kg: 13, max_mg: 875, min_age_months: 0}
+  loperamide: {mg_per_kg: 0.1, max_mg: 2, min_age_months: 24}
+
+# Drugs given with no pediatric dose: not given below the age in months.
+#   cyclobenzaprine: label, Pediatric Use: "Safety and effectiveness ... in
+#     pediatric patients below 15 years of age have not been established".
+#   butylscopolamine (Buscopan): no pediatric dose or age limit was read, so it
+#     is kept to adults until one is.
+withheld_below_age_months:
+  cyclobenzaprine: 180
+  butylscopolamine: 216
 
 fluids:
   normal_saline: {ml_per_kg: 20}

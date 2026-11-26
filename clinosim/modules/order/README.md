@@ -289,7 +289,13 @@ from clinosim.modules.order.label_dose import within_label  # (name, frequency, 
   `extra="forbid"`): `adult_age_years` plus per-drug `mg_per_kg`,
   `max_mg`, `min_age_months`. An ED order for a listed drug given to a
   patient under `adult_age_years` is re-dosed from the weight, and not
-  given below its minimum age. `fluids` lists IV crystalloids by
+  given below its minimum age. `withheld_below_age_months` (Issue #3829)
+  lists drugs with no pediatric dose (cyclobenzaprine, butylscopolamine):
+  they are not given below the age. A combination strength written
+  "875/125mg" is re-dosed on its first ingredient and keeps the tablet
+  ratio ("280/40mg"). A drug in neither table keeps its written dose; a
+  guard test lists those a child can still reach and must not grow.
+  `fluids` lists IV crystalloids by
   `ml_per_kg` (Issue #2977): a child's bolus written as an adult volume
   ("IV normal saline 1000mL") becomes `ml_per_kg` × weight, never more
   than the written volume. `country_overrides.<CC>` replaces a drug's

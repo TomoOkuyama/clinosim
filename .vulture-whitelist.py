@@ -779,6 +779,7 @@ _.min_age_years  # modules/encounter/protocol.py (Pydantic field; read from the 
 _.country_overrides  # modules/order/pediatric_dose.py (Pydantic field; read from the YAML dict in pediatric_order_name, Issue #3012)
 _.max_age_days  # modules/encounter/protocol.py (Pydantic field; read from the YAML dict in phases/_ed_slot.py and procedure/engine.py, Issue #3063)
 _.neonatal_drugs  # modules/order/pediatric_dose.py (Pydantic field; read from the YAML dict in _neonatal_band, Issue #3063)
+_.withheld_below_age_months  # modules/order/pediatric_dose.py (Pydantic field; read from the YAML dict in pediatric_order_name, Issue #3829)
 _.incidence_per_1000_births  # modules/encounter/protocol.py (Pydantic field; read from the YAML dict in phases/_ed_slot.py, Issue #3063)
 _.procedures_by_age_days  # modules/encounter/protocol.py (Pydantic field; read from the YAML dict in simulator/emergency.py, Issue #3063)
 _.triage_temperature_c  # modules/encounter/protocol.py (Pydantic field; read from the YAML dict in simulator/emergency.py, Issue #3063)

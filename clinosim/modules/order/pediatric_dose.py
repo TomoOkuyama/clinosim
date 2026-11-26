@@ -35,6 +35,9 @@ _STRENGTH = re.compile(r"(\d+(?:\.\d+)?)\s*mg\b", re.IGNORECASE)
 # the adult antibiotic regimens are written (Issue #3082).
 _MG_OR_G = re.compile(r"(\d+(?:\.\d+)?)\s*(mg|g)\b", re.IGNORECASE)
 _MG_PER_UNIT = {"mg": 1.0, "g": 1000.0}
+# A combination strength ("875/125mg", "160/800mg"): one tablet of two
+# ingredients, dosed on the first (Issue #2861, #3829).
+_COMBO = re.compile(r"(\d+(?:\.\d+)?)\s*/\s*(\d+(?:\.\d+)?)\s*(mg|g)\b", re.IGNORECASE)
 _VOLUME = re.compile(r"(\d+(?:\.\d+)?)\s*(mL|L)\b", re.IGNORECASE)
 # An hourly rate as written, a range ("80-125 mL/h") or one value.
 # A written dosing interval ("q6h"), replaced by a neonatal band's (Issue #3063).
@@ -76,6 +79,9 @@ class PediatricDosingFile(BaseModel):
     adult_age_years: int = Field(gt=0)
     drugs: dict[str, _PediatricDose]
     fluids: dict[str, _PediatricFluid] = Field(default_factory=dict)
+    # Drug -> age in months below which it is not given; for a drug with no
+    # pediatric dose (Issue #3829).
+    withheld_below_age_months: dict[str, int] = Field(default_factory=dict)
     # Upper-case country code -> drug -> rule replacing ``drugs`` (Issue #3012).
     country_overrides: dict[str, dict[str, _PediatricDose]] = Field(default_factory=dict)
     maintenance_fluid_bands: list[_HollidaySegarBand] = Field(min_length=1)
@@ -105,6 +111,29 @@ def _rounded(mg: float) -> str:
     if mg < 10:
         return f"{round(mg, 1):g}"
     return str(int(round(mg)))
+
+
+def _strength_span(text: str, pattern: re.Pattern[str]) -> tuple[int, int, float, float | None, str] | None:
+    """(start, end, first amount, second amount or None, unit) of the first
+    strength in ``text``: a combination ("875/125mg") as one strength, else
+    ``pattern`` (amount then unit as groups 1 and 2). Amounts are in the
+    written unit."""
+    m = _COMBO.search(text)
+    if m:
+        return m.start(), m.end(), float(m.group(1)), float(m.group(2)), m.group(3).lower()
+    m = pattern.search(text)
+    if not m:
+        return None
+    unit = m.group(2).lower() if m.re.groups >= 2 else "mg"
+    return m.start(), m.end(), float(m.group(1)), None, unit
+
+
+def _strength_text(mg: float, first: float, second: float | None) -> str:
+    """The child's strength: ``mg`` of the first ingredient, a second one in the
+    written ratio ("280/40mg")."""
+    if second is None:
+        return f"{mg:g}mg"
+    return f"{mg:g}/{_rounded(second * mg / first)}mg"
 
 
 def _fluid_bolus_name(name: str, ml_per_kg: float, weight_kg: float | None) -> str:
@@ -163,13 +192,16 @@ def pediatric_order_name(
         return _fluid_bolus_name(name, float(fluid["ml_per_kg"]), weight_kg)
     rule = _drug_rule(key, country, age_days)
     if rule is None:
-        return name
+        withheld = (table.get("withheld_below_age_months") or {}).get(key)
+        return None if withheld is not None and age_months < int(withheld) else name
     if age_months < int(rule["min_age_months"]):
         return None
-    if not weight_kg or weight_kg <= 0 or not _STRENGTH.search(name):
+    span = _strength_span(name, _STRENGTH)
+    if span is None or not weight_kg or weight_kg <= 0:
         return name
-    mg = min(float(rule["mg_per_kg"]) * float(weight_kg), float(rule["max_mg"]))
-    return _STRENGTH.sub(f"{_rounded(mg)}mg", name, count=1)
+    start, end, first, second, _ = span
+    mg = float(_rounded(min(float(rule["mg_per_kg"]) * float(weight_kg), float(rule["max_mg"]))))
+    return name[:start] + _strength_text(mg, first, second) + name[end:]
 
 
 def pediatric_adult_age_months() -> int:
@@ -213,14 +245,19 @@ def pediatric_dose_text(
     dose in mg; a neonate ``age_days`` old gets the drug's neonatal band (Issue
     #3063). Unchanged for an adult, an unlisted drug, a dose not written in
     mg or g, or a child dose no lower than the written one."""
-    m = _MG_OR_G.search(dose or "")
-    if not m or (m.end() < len(dose) and dose[m.end()] == "/"):
+    dose = dose or ""
+    span = _strength_span(dose, _MG_OR_G)
+    if span is None:
         return dose
-    written = float(m.group(1)) * _MG_PER_UNIT[m.group(2).lower()]
+    start, end, amount, second, unit = span
+    if second is None and end < len(dose) and dose[end] == "/":
+        return dose
+    scale = _MG_PER_UNIT[unit]
+    written = amount * scale
     mg = _child_mg(drug_key(drug), written, age_months, weight_kg, country, age_days)
-    if mg is None or (mg >= written and m.group(2).lower() == "g"):
+    if mg is None or (mg >= written and unit == "g"):
         return dose
-    return dose[: m.start()] + f"{mg:g}mg" + dose[m.end() :]
+    return dose[:start] + _strength_text(mg, written, None if second is None else second * scale) + dose[end:]
 
 
 def redose_order_for_child(
@@ -260,6 +297,12 @@ def redose_order_for_child(
         return
     order.dose_quantity = mg
     order.dose_unit = "mg"
-    m = _MG_OR_G.search(name)
-    if m and not (m.end() < len(name) and name[m.end()] == "/"):
-        order.display_name = name[: m.start()] + f"{mg:g}mg" + name[m.end() :]
+    span = _strength_span(name, _MG_OR_G)
+    if span is None:
+        return
+    start, end, amount, second, unit = span
+    if second is None and end < len(name) and name[end] == "/":
+        return
+    scale = _MG_PER_UNIT[unit]
+    shown = _strength_text(mg, amount * scale, None if second is None else second * scale)
+    order.display_name = name[:start] + shown + name[end:]
