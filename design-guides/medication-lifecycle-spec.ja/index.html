@@ -2610,7 +2610,12 @@
 </tr>
 <tr>
 <td>合併症が <code>hold_anticoagulation</code>(出血)を宣言すると、発症の指示時刻に、実行中の抗凝固薬と予定の VTE 予防薬ごとに <code>DISCONTINUE:</code> の中止マーカー(id に <code>-STOP-</code> と <code>-COMPHOLD-</code>)を書く。マーカーは以後の action からは即座に指示を止め、退院後にそのマーカー以降の投与を除いて指示をそこで終える(<code>drop_doses_after_hold</code>。日々の MAR は引き直さない)。<code>IV_PPI</code>(消化管出血)は消化管出血プロトコルの静注 PPI の最初のエントリを <code>course_days</code>(3。レジメンの「x 72h」。ACG 2021: 内視鏡的止血後は高用量 PPI を 3 日間)だけ発注する。開始した指示のスタッフ乱数は <code>complication_treatment_seed</code> を使い、滞在の乱数列は使わない。</td>
-<td><code>daily_loop.py::_hold_anticoagulation</code>, <code>_start_complication_treatment</code>; <code>modules/order/supersede.py::drop_doses_after_hold</code>; <code>seeding.py::complication_treatment_seed</code></td>
+<td><code>daily_loop.py::_stop_complication_drugs</code>, <code>_start_complication_treatment</code>; <code>modules/order/supersede.py::drop_doses_after_hold</code>; <code>seeding.py::complication_treatment_seed</code></td>
+<td><code>tests/unit/simulator/test_complication_treatment_3864.py</code></td>
+</tr>
+<tr>
+<td>合併症が <code>start_oral_vancomycin</code>(別名 <code>start_oral_vancomycin_125mg_qid</code>)と <code>stop_offending_antibiotic</code>(別名 <code>stop_offending_antibiotic_if_possible</code>)を宣言する(Clostridioides difficile 腸炎)と、発症時にバンコマイシンの経口 125 mg 1 日 4 回を 10 日間開始する(<code>complication_actions.yaml</code> に記述。どのプロトコルにもない。IDSA/SHEA 2017 と 2021 年の限定更新、日本の 2022 年ガイドラインがこの用量と期間を示す。フィダキソマイシンと、日本のガイドラインが非重症の初発に第一選択とするメトロニダゾールはモデル化しない)。原因となった抗菌薬は中止する(「Discontinue therapy with the inciting antibiotic agent(s) as soon as possible」、IDSA/SHEA 2017)。投与期間が終わっていない全身抗菌薬は、ニトロイミダゾールを除き、発症の指示時刻に中止マーカーを書く(停止 action の <code>classes</code> / <code>spared_classes</code>)。中止は抗凝固薬の保留と同じ方法で反映し、代わりの抗菌薬は発注しない。退院処方には 10 日間の残りの投与以外の全身抗菌薬を載せない(保留として記録する)。</td>
+<td><code>simulator/complication_actions.py</code>(<code>stop_actions_of</code>, <code>complication_stopped_antibiotic_classes</code>, <code>complication_discharge_specs</code>)、<code>daily_loop.py::_stop_complication_drugs</code>, <code>_start_complication_treatment</code>、<code>discharge_rx.py::build_discharge_rx(excluded_classes=, spared_classes=)</code>。データは <code>complication_actions.yaml</code></td>
 <td><code>tests/unit/simulator/test_complication_treatment_3864.py</code></td>
 </tr>
 <tr>
