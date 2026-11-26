@@ -66,7 +66,7 @@ treatment:
   - {name: "Dark room rest", probability: 0.8, route: "non-pharmacologic", intent: "photophobia relief"}
 
 discharge_instructions:
-  - {en: "Migraine aborted with IV therapy", ja: "点滴治療で頭痛発作は頓挫"}
+  - {en: "Migraine aborted with IV therapy", ja: "点滴治療で頭痛発作は頓挫", when_ordered: ["Ketorolac 30mg", "Metoclopramide 10mg", "Ondansetron 4mg", "IV normal saline 1000mL", "Diphenhydramine 25mg"]}
   - {en: "Avoid known triggers (bright lights, certain foods, stress)", ja: "誘因（強い光、特定の食品、ストレス）を避ける"}
   - {en: "Return if headache recurs and is unresponsive to prescribed medication", ja: "頭痛が再発し処方薬が効かなければ再受診"}
   - {en: "Return immediately if sudden worst headache of life, neck stiffness, or fever", ja: "突然の人生最悪の頭痛、項部硬直、発熱があれば直ちに受診"}

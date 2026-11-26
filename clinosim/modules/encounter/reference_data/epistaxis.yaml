@@ -40,7 +40,9 @@ treatment:
   - {name: "Oxymetazoline nasal spray", locale_name: {jp: "Naphazoline nasal drops", us: "Oxymetazoline nasal spray"}, probability: 0.4, route: "nasal", intent: "vasoconstriction"}
 
 discharge_instructions:
-  - {en: "Bleeding controlled with packing/cauterization", ja: "タンポン挿入／焼灼で止血"}
+  # Issue #3879: each states a treatment, so it is printed only for a visit that ordered it.
+  - {en: "Bleeding controlled with nasal packing", ja: "タンポン挿入で止血", when_ordered: ["Nasal packing (anterior)"]}
+  - {en: "Bleeding controlled with silver nitrate cauterization", ja: "硝酸銀による焼灼で止血", when_ordered: ["Silver nitrate cauterization"]}
   - {en: "Keep head elevated, avoid nose blowing for 48 hours", ja: "頭部を高くし、48時間は鼻をかまない"}
   - {en: "Return if bleeding recurs and cannot be controlled with 15 minutes of direct pressure", ja: "再出血し15分の圧迫で止まらなければ再受診"}
 follow_up: {en: "ENT if episodes recur", ja: "繰り返す場合は耳鼻咽喉科を受診"}

@@ -55,7 +55,7 @@ treatment:
     intent: "anti-inflammatory"
 
 discharge_instructions:
-  - {en: "Good response to bronchodilator therapy", ja: "気管支拡張薬に良好に反応"}
+  - {en: "Good response to bronchodilator therapy", ja: "気管支拡張薬に良好に反応", when_ordered: ["Nebulized salbutamol 2.5mg", "Ipratropium bromide 0.5mg nebulized"]}
   - {en: "Continue rescue inhaler as needed", ja: "発作時は発作治療薬の吸入を継続"}
   - {en: "Complete steroid course as prescribed", ja: "処方されたステロイドを最後まで内服"}
   - {en: "Return if worsening dyspnea, inability to speak in full sentences, or no relief from inhaler", ja: "呼吸困難の増悪、会話困難、吸入で改善しない場合は再受診"}

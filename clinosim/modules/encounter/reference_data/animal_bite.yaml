@@ -44,7 +44,7 @@ treatment:
   - {name: "Lidocaine 1% local", probability: 0.6, route: "infiltration", intent: "local anesthesia for wound care"}
 
 discharge_instructions:
-  - {en: "Wound irrigated and cleaned; no signs of deep structure injury", ja: "創は洗浄済み、深部組織損傷の所見なし"}
+  - {en: "Wound irrigated and cleaned; no signs of deep structure injury", ja: "創は洗浄済み、深部組織損傷の所見なし", when_ordered: ["Wound irrigation with normal saline"]}
   - {en: "Complete antibiotic course as prescribed", ja: "処方された抗菌薬を最後まで内服"}
   - {en: "Keep wound clean and dry; change dressing daily", ja: "創部を清潔・乾燥に保ち、ガーゼは毎日交換"}
   - {en: "Return if increasing redness, swelling, warmth, drainage, or fever", ja: "発赤・腫脹・熱感・排膿の増強、発熱があれば再受診"}
