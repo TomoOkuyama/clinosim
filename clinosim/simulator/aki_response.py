@@ -6,9 +6,11 @@ applied (``aki_course``). While the latest creatinine meets it, scheduled doses
 of nephrotoxic or renally cleared drugs (NSAIDs, ACE inhibitors / ARBs,
 thiazide and potassium-sparing diuretics, metformin) are held
 (``AkiCourse.holds``), and the discharge gate keeps the patient in hospital
-while the creatinine has not fallen or a fever persists
-(``discharge_findings_unresolved``); a stay that reaches the extension cap
-keeps its disposition and the discharge instructions carry the recheck. Values live in
+while the creatinine has not fallen, a fever persists or the potassium / total
+CO2 of kidney failure persists (``discharge_findings_unresolved``); a stay that
+reaches the extension cap with any of them unresolved is discharged to a skilled
+nursing facility (its outcome is then unchanged or worsened, never improved,
+Issue #3830) and the discharge instructions carry the recheck. Values live in
 ``reference_data/aki_response.yaml``. Everything here is RNG-free.
 """
 
@@ -74,6 +76,9 @@ class AkiResponseRules(BaseModel):
     fever_window_hours: int = Field(gt=0)
     max_extension_days: int = Field(ge=0)
     fever_max_extension_days: int = Field(ge=0)
+    potassium_lab: str = Field(min_length=1)
+    total_co2_lab: str = Field(min_length=1)
+    unresolved_total_co2_mmol_l: float = Field(gt=0)
     lactate_hold: LactateHoldRules
 
     @field_validator("hold_classes")
@@ -267,22 +272,47 @@ def fever_persists(vitals: Iterable[VitalSignRecord]) -> bool:
     return any(t > since and c >= rules.fever_celsius for t, c in temps)
 
 
-def discharge_findings_unresolved(course: AkiCourse, vitals: Iterable[VitalSignRecord]) -> bool:
+def metabolic_findings_unresolved(results: Iterable[OrderResult]) -> bool:
+    """True when the latest potassium is at or above the hyperkalemia treatment
+    threshold or the latest total CO2 is at or below
+    ``unresolved_total_co2_mmol_l`` (Issue #3830)."""
+    from clinosim.modules.drug_safety.hyperkalemia import hyperkalemia_rules
+
+    rules = aki_response_rules()
+    latest: dict[str, tuple[datetime, float]] = {}
+    for r in results:
+        if r.lab_name in (rules.potassium_lab, rules.total_co2_lab) and isinstance(r.value, (int, float)):
+            if r.lab_name not in latest or r.result_datetime >= latest[r.lab_name][0]:
+                latest[r.lab_name] = (r.result_datetime, float(r.value))
+    potassium = latest.get(rules.potassium_lab)
+    co2 = latest.get(rules.total_co2_lab)
+    return bool(
+        (potassium is not None and potassium[1] >= hyperkalemia_rules().treat_threshold_mmol_l)
+        or (co2 is not None and co2[1] <= rules.unresolved_total_co2_mmol_l)
+    )
+
+
+def discharge_findings_unresolved(
+    course: AkiCourse, vitals: Iterable[VitalSignRecord], results: Iterable[OrderResult] = ()
+) -> bool:
     """True while the patient is not fit to go home for the kidneys or a
-    fever: AKI that has not begun to recover, or a fever in the last day."""
-    return course.not_improving or fever_persists(vitals)
+    fever: AKI that has not begun to recover, a fever in the last day, or the
+    potassium / total CO2 of kidney failure (Issue #3830)."""
+    return course.not_improving or fever_persists(vitals) or metabolic_findings_unresolved(results)
 
 
-def discharge_extension_days(course: AkiCourse, vitals: Iterable[VitalSignRecord]) -> int:
+def discharge_extension_days(
+    course: AkiCourse, vitals: Iterable[VitalSignRecord], results: Iterable[OrderResult] = ()
+) -> int:
     """How many days past the sampled stay the patient may be kept for the
     findings still unresolved (Issue #3637): ``fever_max_extension_days`` while
     a fever persists, ``max_extension_days`` for AKI that has not begun to
-    recover, 0 when nothing is unresolved."""
+    recover or metabolic findings that persist, 0 when nothing is unresolved."""
     rules = aki_response_rules()
     vitals = list(vitals)
     if fever_persists(vitals):
         return rules.fever_max_extension_days
-    return rules.max_extension_days if course.not_improving else 0
+    return rules.max_extension_days if course.not_improving or metabolic_findings_unresolved(results) else 0
 
 
 def _field(rec: object, name: str) -> object:
@@ -295,13 +325,17 @@ def _when(value: object) -> datetime | None:
     return value if isinstance(value, datetime) else None
 
 
-def _course_from_records(records: Iterable[object]) -> AkiCourse:
+def _results_from_records(records: Iterable[object]) -> list[OrderResult]:
     results: list[OrderResult] = []
     for rec in records:
         when, value = _when(_field(rec, "result_datetime")), _field(rec, "value")
         if when is not None and isinstance(value, (int, float)):
             results.append(OrderResult(result_datetime=when, lab_name=str(_field(rec, "lab_name") or ""), value=value))
-    return aki_course(results)
+    return results
+
+
+def _course_from_records(records: Iterable[object]) -> AkiCourse:
+    return aki_course(_results_from_records(records))
 
 
 def aki_active_from_records(records: Iterable[object]) -> bool:
@@ -330,4 +364,11 @@ def discharge_findings_unresolved_from_records(lab_records: Iterable[object], vi
     results and vital signs (objects or their JSON dicts): True when the stay
     ended with AKI not recovering or a fever in the last day, i.e. it was
     discharged at the deferral cap rather than because the gate was met."""
-    return discharge_findings_unresolved(_course_from_records(lab_records), _vitals_from_records(vital_records))
+    results = _results_from_records(lab_records)
+    return discharge_findings_unresolved(aki_course(results), _vitals_from_records(vital_records), results)
+
+
+def metabolic_findings_unresolved_from_records(lab_records: Iterable[object]) -> bool:
+    """``metabolic_findings_unresolved`` over recorded lab results (objects or
+    their JSON dicts)."""
+    return metabolic_findings_unresolved(_results_from_records(lab_records))
