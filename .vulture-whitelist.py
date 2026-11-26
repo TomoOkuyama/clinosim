@@ -1021,6 +1021,8 @@ _.education  # document _NursingCareDetail field (validated yaml key, read by ke
 _.smoking_education  # document _NursingContentEntry field (validated yaml key, read by key, Issue #3267)
 _.comorbidity  # document _NursingContentEntry field (validated yaml key, read by key, Issue #3267)
 _.vitamin_k_given  # document DischargeInstructionGate field (validated yaml key, read by key in _resolvers._instruction_applies, Issue #3260)
+_.fever_at_discharge  # document DischargeInstructionGate field (validated yaml key, read by key in _resolvers._instruction_applies, Issue #3637)
+_.metabolic_at_discharge  # document DischargeInstructionGate field (validated yaml key, read by key in _resolvers._instruction_applies, Issue #3830)
 _.icd10_prefixes  # document _NursingCategoryEntry field (validated yaml key, read by key in _narrative_utils._diagnosis_category_entry, Issue #3267)
 _.diagnosis_category  # document NursingContent field (validated yaml axis, read by key, Issue #3267)
 _.performer_organization  # newborn _Screen field (validated yaml key, read by key, Issue #3357)

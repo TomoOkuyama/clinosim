@@ -329,6 +329,11 @@ def _instruction_applies(gate: dict[str, Any] | None, ctx: NarrativeContext) -> 
 
         if not fever_persists_from_records(getattr(ctx, "vitals", None) or []):
             return False
+    if gate.get("metabolic_at_discharge"):
+        from clinosim.simulator.aki_response import metabolic_findings_unresolved_from_records
+
+        if not metabolic_findings_unresolved_from_records(getattr(ctx, "lab_results", None) or []):
+            return False
     if gate.get("setting") and gate["setting"] != discharge_setting(ctx):
         return False
     refs = gate.get("discharge_drugs") or []

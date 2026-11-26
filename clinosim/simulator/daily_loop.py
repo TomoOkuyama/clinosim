@@ -112,7 +112,6 @@ from clinosim.simulator.aki_response import (
     date_aki_complications,
     discharge_extension_days,
     discharge_findings_unresolved,
-    fever_persists,
     lactate_course,
 )
 from clinosim.simulator.complication_actions import (
@@ -322,8 +321,9 @@ class DailyLoopResult:
     on_vasoactive_support: bool = False
     # Issue #3281: the final creatinine meets the AKI definition.
     aki_at_discharge: bool = False
-    # Issue #3637: the stay reached its extension cap still febrile.
-    fever_at_discharge: bool = False
+    # Issues #3637, #3830: the stay reached its extension cap with the discharge findings unresolved
+    # (AKI not recovering, a fever, or the potassium / total CO2 of kidney failure).
+    findings_unresolved_at_discharge: bool = False
     # Issue #3539: the final lactate is at or above the metformin hold threshold.
     lactate_high_at_discharge: bool = False
     # Issue #3551: the patient decided against intubation, so the airway escalation
@@ -2151,7 +2151,7 @@ def _run_daily_loop(
         # Issue #3274: an arrhythmia stay stays until its rate is controlled.
         rate_uncontrolled = _ventricular_rate_uncontrolled(stay, run, day)
         # Issue #3281: nor while AKI is not recovering or a fever persists.
-        unresolved = discharge_findings_unresolved(run.aki, run.vitals)
+        unresolved = discharge_findings_unresolved(run.aki, run.vitals, run.lab_results)
         # Early discharge: if state-based criteria met before target_los
         # (not for protocols whose recovery the physiology does not model,
         # e.g. psychiatric admissions, Issue #2132).
@@ -2181,7 +2181,10 @@ def _run_daily_loop(
                 # Issue #3281: one more day (at most ``max_extension_days``
                 # past the sampled stay) while AKI is not recovering or a
                 # fever persists.
-                if not (unresolved and los_ceiling < target_los + discharge_extension_days(run.aki, run.vitals)):
+                if not (
+                    unresolved
+                    and los_ceiling < target_los + discharge_extension_days(run.aki, run.vitals, run.lab_results)
+                ):
                     break
             los_ceiling += 1
 
@@ -2221,7 +2224,8 @@ def _run_daily_loop(
         actual_los=actual_los,
         on_vasoactive_support=on_support and not run.death_occurred,
         aki_at_discharge=run.aki.active and not run.death_occurred,
-        fever_at_discharge=fever_persists(run.vitals) and not run.death_occurred,
+        findings_unresolved_at_discharge=discharge_findings_unresolved(run.aki, run.vitals, run.lab_results)
+        and not run.death_occurred,
         airway_declined=run.airway_declined,
         lactate_high_at_discharge=bool(run.lactate.points)
         and run.lactate.active_at(run.lactate.points[-1][0])

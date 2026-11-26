@@ -430,7 +430,7 @@ def _finalize_discharge(
     symptom_floor: dict[str, float] | None = None,
     on_vasoactive_support: bool = False,
     aki_at_discharge: bool = False,
-    fever_at_discharge: bool = False,
+    findings_unresolved_at_discharge: bool = False,
     lactate_high_at_discharge: bool = False,
     discharge_time: datetime | None = None,
 ) -> Any:
@@ -518,7 +518,7 @@ def _finalize_discharge(
             symptom_floor,
             death_occurred,
             on_vasoactive_support=on_vasoactive_support,
-            findings_unresolved=fever_at_discharge,
+            findings_unresolved=findings_unresolved_at_discharge,
         )
     if not encounter.priority:
         encounter.priority = route_priority
@@ -1131,7 +1131,7 @@ def _simulate_patient(
         symptom_floor=symptom_floor,
         on_vasoactive_support=loop_result.on_vasoactive_support,
         aki_at_discharge=loop_result.aki_at_discharge,
-        fever_at_discharge=loop_result.fever_at_discharge,
+        findings_unresolved_at_discharge=loop_result.findings_unresolved_at_discharge,
         lactate_high_at_discharge=loop_result.lactate_high_at_discharge,
         discharge_time=planned_discharge,
     )

@@ -27,9 +27,10 @@
 #     the stay is extended by at most `max_extension_days` beyond the sampled
 #     stay, while the creatinine meets the AKI definition and has not fallen
 #     fallen by `recovery_fall_fraction` from its peak, or a temperature of at least
-#     `fever_celsius` was recorded in the last `fever_window_hours`. A stay
-#     that reaches the cap unresolved keeps the disposition it would otherwise
-#     have had; the discharge instructions then add an outpatient creatinine
+#     `fever_celsius` was recorded in the last `fever_window_hours`, or the
+#     metabolic findings below persist. A stay that reaches the cap unresolved
+#     is discharged to a skilled nursing facility (Issue #3830; before it kept the
+#     disposition it would otherwise have had); the discharge instructions then add an outpatient creatinine
 #     recheck and the restart of the held drugs after it
 #     (modules/document/reference_data/clinosim-discharge-instruction.yaml,
 #     `aki_recheck`). A fever extends the stay up to `fever_max_extension_days`
@@ -105,6 +106,22 @@ max_extension_days: 5
 # instructions name the unresolved fever. The loop's own day limit still bounds
 # the stay.
 fever_max_extension_days: 10
+# Metabolic findings of kidney failure keep a patient in hospital too (Issue
+# #3830): the latest potassium at or above the hyperkalemia treatment threshold
+# (modules/drug_safety/reference_data/hyperkalemia_response.yaml
+# `treat_threshold_mmol_l`) or the latest total CO2 at or below
+# `unresolved_total_co2_mmol_l`. The stay is extended by at most
+# `max_extension_days`; one that reaches the cap still unresolved (these, a
+# creatinine that is not recovering, or a fever) is discharged to a skilled
+# nursing facility, not home, and its outcome is unchanged or worsened, never
+# improved. The total CO2 limit is the one the issue reporting the case gave
+# (oliguria with potassium of 6 mmol/L or more and total CO2 of 10 mmol/L or less
+# is not fit for home); no guideline text for it was read, so it is kept at that
+# value, stricter than the acute_kidney_injury protocol's own sodium bicarbonate
+# indication (CO2 below 12).
+potassium_lab: K
+total_co2_lab: CO2
+unresolved_total_co2_mmol_l: 10.0
 # Metformin is also held while the latest lactate is at or above the threshold
 # (mmol/L; see the lactate source note above). Only the lab name, the
 # threshold, the drugs and the reason are configurable here.

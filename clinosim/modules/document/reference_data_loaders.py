@@ -279,7 +279,9 @@ class DischargeInstructionGate(BaseModel):
     modes listed; ``aki_at_discharge`` keeps the instruction for a patient whose final
     creatinine still meets the AKI definition (Issue #3281);
     ``fever_at_discharge`` keeps it for a patient still febrile (a temperature
-    at or above the gate's fever threshold in the last day, Issue #3637)."""
+    at or above the gate's fever threshold in the last day, Issue #3637);
+    ``metabolic_at_discharge`` for one whose final potassium or total CO2 is
+    still that of unrecovered kidney failure (Issue #3830)."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -299,6 +301,8 @@ class DischargeInstructionGate(BaseModel):
     aki_at_discharge: bool = False
     # Issue #3637: the stay reached its extension cap still febrile.
     fever_at_discharge: bool = False
+    # Issue #3830: the final potassium or total CO2 is still that of unrecovered kidney failure.
+    metabolic_at_discharge: bool = False
     # Issue #3554: where the patient goes after discharge ("home" = a private
     # residence, "facility" = a nursing facility or another hospital; the
     # dispositions that count as a facility are the file's

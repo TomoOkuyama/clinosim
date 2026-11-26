@@ -30,6 +30,9 @@
 #   fever_at_discharge: true — a temperature at or above the discharge gate's
 #     fever threshold was recorded in the last day of the stay, i.e. the stay
 #     reached its extension cap still febrile (Issue #3637).
+#   metabolic_at_discharge: true — the stay's final potassium or total CO2 is
+#     still that of unrecovered kidney failure (simulator/aki_response.py
+#     `metabolic_findings_unresolved`; Issue #3830).
 #   setting: home | facility - where the patient goes (Issue #3554); a facility
 #     discharge is one whose disposition is in `facility_dispositions`. An
 #     unrecorded disposition counts as home.
@@ -123,6 +126,13 @@ baseline:
     en: "Your kidney function was reduced during this stay. Have your blood creatinine rechecked at your follow-up visit about 1 week after discharge, and have your kidney function evaluated again about 3 months after this illness. Any medicines that were stopped because of the kidney injury (such as anti-inflammatory pain relievers, blood pressure medicines of the ACE inhibitor or ARB type, water pills and metformin) should not be restarted until your doctor has reviewed the recheck result."
     ja: "今回の入院中に腎機能が低下しました。退院後 1 週間ほどを目安に外来で血清クレアチニンを再検査し、この病気から約 3 か月後にも腎機能を再評価してください。腎機能低下のため中止した薬(消炎鎮痛薬、ACE 阻害薬・ARB などの降圧薬、利尿薬、メトホルミンなど)がある場合は、再検査の結果を主治医が確認するまで再開しないでください。"
     applies_when: {aki_at_discharge: true}
+  # Issue #3830: discharged (to a facility) with the potassium still at or above the
+  # hyperkalemia treatment threshold or the total CO2 still very low. A clinosim
+  # modelling choice: the recheck interval is not taken from a guideline.
+  metabolic_followup:
+    en: "Your blood potassium or bicarbonate level was still abnormal when you left the hospital. Have your blood potassium, bicarbonate and creatinine rechecked within a few days, avoid potassium supplements and salt substitutes, and tell your doctor or the facility physician promptly if you feel weak, have palpitations, or pass much less urine."
+    ja: "退院時にも血清カリウム値または重炭酸(総 CO2)値の異常が残っていました。数日以内に血清カリウム・重炭酸・クレアチニンを再検査し、カリウム補充薬やカリウム含有の減塩代替品は避け、脱力感・動悸・尿量の著しい減少がある場合は速やかに主治医または施設の医師に連絡してください。"
+    applies_when: {metabolic_at_discharge: true}
   fever_followup:
     en: "You still had a fever when you left the hospital. Check your temperature at least twice a day, and tell your doctor or the facility physician promptly if it stays at 38°C or above, or if your breathing, alertness or urine output worsens."
     ja: "退院時にもまだ発熱が続いていました。1 日 2 回以上体温を測り、38℃ 以上の発熱が続く場合や、息苦しさ・意識の変化・尿量の減少がある場合は、速やかに主治医または施設の医師に連絡してください。"

@@ -205,7 +205,11 @@ clinosim/simulator/
                          is high (#3539), the discharge gate (Issue #3281), and the AKI onset
                          dated at the first creatinine that meets the definition (#3642),
                          and a fever extends the stay up to its own, longer cap; a patient still
-                         febrile then is discharged to a facility, not home (#3637)
+                         febrile then is discharged to a facility, not home (#3637); the potassium (at or
+                         above the hyperkalemia threshold) or total CO2 (at or below 10 mmol/L) of unrecovered
+                         kidney failure keeps a patient in hospital the same way, and a stay that
+                         reaches the cap with the creatinine not recovering, or these, is discharged
+                         to a facility, so its outcome is never improved (#3830)
   device_removal.py      urinary / central venous catheter placement and removal:
                          the event that placed it and the day its indication
                          ended (Issue #3516)
