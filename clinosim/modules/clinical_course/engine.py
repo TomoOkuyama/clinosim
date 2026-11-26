@@ -439,6 +439,7 @@ def get_daily_directive(
         yaml_arch = protocol_archetypes[archetype_name]
         trajectory_data = yaml_arch.get("trajectory", {})
     else:
+        yaml_arch = {}
         trajectory_data = _FALLBACK_TRAJECTORIES.get(archetype_name, {})
 
     # --- Speed modulation: age-based time stretch ---
@@ -475,6 +476,8 @@ def get_daily_directive(
             # Immune reactivity: high → bigger inflammation swings (both up and down)
             if var_name == "inflammation_level":
                 delta *= profile.immune_reactivity / IMMUNE_REACTIVITY_SCALE
+                # Issue #3838: a deteriorating course turns once the escalated treatment has acted.
+                delta = _apply_treatment_response(delta, archetype_name, yaml_arch, int_traj, day)
 
             # Recovery deltas (positive for renal/perfusion) scale with treatment sensitivity
             if delta > 0 and var_name in ("renal_function", "perfusion_status"):
@@ -669,6 +672,46 @@ def _evaluate_risk_condition(
     except (ValueError, AttributeError):
         pass
     return False
+
+
+class TreatmentResponseRules(BaseModel):
+    """Schema of ``reference_data/treatment_response.yaml`` (Issue #3838)."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    response_delay_days: int = Field(ge=1)
+    resolution_inflammation_delta: float = Field(lt=0)
+    archetypes: tuple[str, ...] = Field(min_length=1)
+
+
+@cache
+def treatment_response_rules() -> TreatmentResponseRules:
+    """The validated treatment-response rules."""
+    path = Path(__file__).resolve().parent / "reference_data" / "treatment_response.yaml"
+    return TreatmentResponseRules.model_validate(load_data_yaml(path))
+
+
+def _apply_treatment_response(
+    delta: float, archetype_name: str, archetype: dict[str, Any], trajectory: dict[int, float], day: int
+) -> float:
+    """The inflammation delta of ``day`` for a deteriorating course (Issue #3838).
+
+    Until the treatment has had time to act the authored delta stands; from then
+    on the inflammation falls at least at the rate the rules name. The day the
+    treatment starts to act is the last treatment change of the archetype (or, with
+    none, the last authored trajectory day) plus the response delay."""
+    rules = treatment_response_rules()
+    if archetype_name not in rules.archetypes:
+        return delta
+    change_days = [
+        int(k.split("_")[1])
+        for k in (archetype.get("treatment_modifications") or {})
+        if k.startswith("day_") and k.split("_")[1].isdigit()
+    ]
+    acting_from = (max(change_days) if change_days else max(trajectory, default=0)) + rules.response_delay_days
+    if day < acting_from:
+        return delta
+    return min(delta, rules.resolution_inflammation_delta)
 
 
 def _interpolate(trajectory: dict[int, float], day: int | float) -> float:

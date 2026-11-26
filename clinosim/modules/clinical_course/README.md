@@ -165,6 +165,8 @@ clinosim/modules/clinical_course/
   _complication_risk_conditions.py   complication risk-factor vocabulary + ComplicationContext (Issue #2093)
   reference_data/
     fallback_archetypes.yaml         six built-in archetypes (trajectory + probability)
+    treatment_response.yaml          when a deteriorating course turns: response delay and
+                                     minimum inflammation fall (Issue #3838)
   SPEC.md                            extended design reference (not runtime)
 ```
 

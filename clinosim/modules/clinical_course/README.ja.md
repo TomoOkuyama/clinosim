@@ -149,6 +149,8 @@ clinosim/modules/clinical_course/
   _complication_risk_conditions.py   合併症 risk factor 語彙 + ComplicationContext (Issue #2093)
   reference_data/
     fallback_archetypes.yaml         built-in 6 archetype (trajectory + 確率)
+    treatment_response.yaml          悪化型経過が反転する時点: 反応遅延日数と炎症の最小低下量
+                                     (Issue #3838)
   SPEC.md                            拡張設計参考 (runtime data ではない)
 ```
 
