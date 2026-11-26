@@ -118,6 +118,17 @@ class PrescriptionSpec(BaseModel):
     frequency: str = Field(min_length=1)
     # Age band (years) -> course length in days.
     duration_days: dict[str, int] = Field(min_length=1)
+    # What replaces this item when the child's recorded allergies rule the
+    # drug out (Issue #3828); an item with none is simply not prescribed then.
+    # One level only: the alternative has no alternative of its own.
+    alternative: PrescriptionSpec | None = None
+
+    @field_validator("alternative")
+    @classmethod
+    def _one_level(cls, alt: PrescriptionSpec | None) -> PrescriptionSpec | None:
+        if alt is not None and alt.alternative is not None:
+            raise ValueError("an alternative cannot carry an alternative of its own")
+        return alt
 
     @field_validator("drug_id")
     @classmethod
