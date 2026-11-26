@@ -38,6 +38,9 @@ ServiceRequest への `basedOn` を持つことを要求する
   order があるとき、または全身 study で同 modality の構造化 order が
   あるときに除く, #3394。旧 order は先に placement するので stay の
   RNG stream は不変)、
+  `drop_redundant_scalar_labs` (同じ呼び出しのパネルオーダーまたは先の
+  単独オーダーがすでに含む項目の単独検査オーダーは、乱数をすべて引いた
+  後に除く。一回の採血に同じ項目の結果が二つ付かない、#3869)、
   `enrich_medication_order` + `parse_dose_string` (「X loading, then Y」
   の用量文字列は維持量 Y として解析する。`place_admission_orders` では
   1 回限りの負荷投与オーダー X と、それを `prior_order_id` で置き換え
@@ -114,6 +117,7 @@ from clinosim.modules.order.engine import (
     place_daily_lab_orders,             # (protocol, patient_id, encounter_id, day_number, order_time, lab_frequency_multiplier, rng, ordered_by="") -> list[Order]
     place_imaging_orders,               # (disease_protocol, encounter_id, patient_id, admission_dt, day_index, severity, rng, sequence_counter, ed_period=None) -> list[Order]
     drop_legacy_duplicate_imaging,      # (admission_orders, structured_orders) -> list[Order]
+    drop_redundant_scalar_labs,         # (orders) -> list[Order]  (#3869)
     enrich_medication_order,            # (order, dose_str="") -> Order
     parse_dose_string,                  # (dose_str) -> dict: dose_quantity, dose_unit, frequency, frequency_per_day, route、および文中に投与期間があれば duration_days (Issue #3640)
     protocol_medication_orders,         # (med_spec, *, order_id, encounter_id, patient_id, country, ordered_datetime, ordered_by, urgency="stat", order_set=...) -> list[Order]; 1 件のオーダー、または初回投与 + 維持のオーダー (Issue #3002)

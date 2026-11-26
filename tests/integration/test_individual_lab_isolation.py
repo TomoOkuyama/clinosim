@@ -28,16 +28,16 @@ from clinosim.types.encounter import OrderStatus
 
 
 @pytest.mark.integration
-def test_dka_individual_cl_order_now_resulted():
-    """DKA has an individual {test: "Cl"} admission order. Before
-    derive_lab_values produced Cl, this order silently failed canon-in-
-    true_labs check and stayed PLACED with no result. After Cl is added
-    (BMP Cl/Ca physiology PR), the order must be RESULTED with a
-    numerical Cl value.
+def test_dka_individual_admission_lab_order_resulted():
+    """A DKA stay has individual (stand-alone, not panel-child) admission lab
+    orders, and at least one of them is RESULTED with a numeric value: this
+    covers the individual-order path that Pass 1 handles via
+    individual_lab_seed.
 
-    This is the integration counterpart to test_dka_bmp_cl_ca_children_now_resulted
-    (which covers the panel-child path); this test covers the
-    individual-order path that Pass 1 handles via individual_lab_seed.
+    This used to assert the YAML's stand-alone ``Cl`` order. Since Issue #3869
+    an analyte the same admission already orders inside a panel (``Cl`` in
+    the BMP) is not ordered a second time, so that order no longer exists; the
+    path is exercised through the stand-alone orders that remain.
     """
     scenario = ForcedScenario(
         disease_id="diabetic_ketoacidosis",
@@ -48,28 +48,19 @@ def test_dka_individual_cl_order_now_resulted():
     dataset = run_forced(scenario, cfg)
 
     for record in dataset.patients:
-        # Find the individual Cl order (display_name == "Cl"), NOT panel children
-        # (whose order_id ends in "-Cl" after a parent prefix).
-        cl_individual = [
-            o
-            for o in record.orders
-            if o.display_name == "Cl" and not (o.order_id.endswith("-Cl") and "-" in o.order_id[:-3])
+        individual = [
+            o for o in record.orders if o.order_type.value == "lab" and not o.panel_key and "-ADM-" in o.order_id
         ]
-        assert cl_individual, (
+        assert individual, (
             f"DKA patient {record.patient.patient_id} should have at least one "
-            f"individual Cl order (from disease YAML admission_orders), found none"
+            f"individual admission lab order (from disease YAML admission_orders), found none"
         )
-        # At least one such order must be RESULTED (some may be CANCELLED
-        # via specimen rejection sub-RNG; that is allowed).
-        resulted = [o for o in cl_individual if o.status == OrderStatus.RESULTED]
+        resulted = [o for o in individual if o.status == OrderStatus.RESULTED]
         assert resulted, (
-            f"DKA patient {record.patient.patient_id}: every individual Cl "
-            f"order is non-RESULTED — derive_lab_values should now produce "
-            f"Cl so the order resolves."
+            f"DKA patient {record.patient.patient_id}: every individual admission lab order is non-RESULTED"
         )
         for o in resulted:
-            assert o.result is not None and o.result.value is not None
-            assert 80 <= o.result.value <= 125, f"Cl value {o.result.value} out of physiological range"
+            assert o.result is not None and isinstance(o.result.value, (int, float))
 
 
 @pytest.mark.integration

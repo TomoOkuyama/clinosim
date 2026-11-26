@@ -43,6 +43,10 @@ ServiceRequest.
   the same modality and report group, or is a whole-body study and a
   structured order of its modality exists, #3394; the legacy order is still
   placed first so the stay's RNG stream is unchanged);
+  `drop_redundant_scalar_labs` (a stand-alone lab order for an analyte a
+  panel order of the same call already holds, or an earlier stand-alone
+  order, is dropped after every draw, so a draw never carries two results
+  of one analyte, #3869);
   `enrich_medication_order` + `parse_dose_string` (a "X loading, then
   Y" dose string parses as the maintenance regimen Y; in
   `place_admission_orders` it becomes a one-time loading order X plus the
@@ -122,6 +126,7 @@ from clinosim.modules.order.engine import (
     place_daily_lab_orders,             # (protocol, patient_id, encounter_id, day_number, order_time, lab_frequency_multiplier, rng, ordered_by="") -> list[Order]
     place_imaging_orders,               # (disease_protocol, encounter_id, patient_id, admission_dt, day_index, severity, rng, sequence_counter, ed_period=None) -> list[Order]
     drop_legacy_duplicate_imaging,      # (admission_orders, structured_orders) -> list[Order]
+    drop_redundant_scalar_labs,         # (orders) -> list[Order]  (#3869)
     enrich_medication_order,            # (order, dose_str="") -> Order
     parse_dose_string,                  # (dose_str) -> dict: dose_quantity, dose_unit, frequency, frequency_per_day, route, and duration_days when the text states the course length (Issue #3640)
     protocol_medication_orders,         # (med_spec, *, order_id, encounter_id, patient_id, country, ordered_datetime, ordered_by, urgency="stat", order_set=...) -> list[Order]; one order, or a loading dose + maintenance order (Issue #3002)

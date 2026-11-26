@@ -927,6 +927,9 @@ def place_admission_orders(
         )
         order_seq += 1
 
+    # One order per analyte (Issue #3869); every draw above is already consumed.
+    orders[:] = drop_redundant_scalar_labs(orders)
+
     # Medication orders (all first-line drugs, not just the first)
     meds = admission.get("medications", {})
     first_line_raw = meds.get("first_line", {}).get(country.lower(), [])
@@ -1066,6 +1069,37 @@ def place_admission_orders(
     return orders
 
 
+def drop_redundant_scalar_labs(orders: list[Order]) -> list[Order]:
+    """Drop a stand-alone lab order for an analyte the same call already orders
+    through a panel order or an earlier stand-alone order (Issue #3869).
+
+    A protocol that lists ``BMP`` and also ``K`` / ``Glucose`` would place two
+    orders for one specimen's analyte, each resulted with independent noise, so
+    one draw would carry two disagreeing values. A panel that overlaps another
+    panel (``ABG_or_VBG`` and ``BMP`` both hold HCO3) is a different specimen and
+    is kept. Called after every random draw of the placement, so the RNG stream
+    is unchanged."""
+    from clinosim.modules.observation.engine import lab_panel_components
+    from clinosim.modules.observation.order_routing import lab_analytes
+
+    def is_scalar_lab(o: Order) -> bool:
+        return o.order_type == OrderType.LAB and not o.panel_key and not lab_panel_components(o.display_name)
+
+    covered: set[str] = set()
+    for o in orders:
+        if o.order_type == OrderType.LAB and not is_scalar_lab(o):
+            covered |= lab_analytes(o.display_name)
+    kept: list[Order] = []
+    for o in orders:
+        if is_scalar_lab(o):
+            analyte = lab_analytes(o.display_name)
+            if analyte <= covered:
+                continue
+            covered |= analyte
+        kept.append(o)
+    return kept
+
+
 def place_daily_lab_orders(
     protocol: dict,
     patient_id: str,
@@ -1170,7 +1204,7 @@ def place_daily_lab_orders(
         )
         order_seq += 1
 
-    return orders
+    return drop_redundant_scalar_labs(orders)
 
 
 def calculate_lab_result_time(
