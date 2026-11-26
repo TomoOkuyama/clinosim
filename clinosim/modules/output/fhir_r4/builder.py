@@ -318,7 +318,7 @@ def convert_cif_to_fhir(
                 snapshot_date,
                 snapshot_drop_counter=snapshot_drop_counter,
                 rx_closures=rx_closures,
-                first_seen_dt=first_seen_by_patient.get(str((record.get("patient") or {}).get("patient_id", "")), ""),
+                first_seen=first_seen_by_patient.get(str((record.get("patient") or {}).get("patient_id", "")), {}),
             )
             for entry in bundle.get("entry", []):
                 write(entry["resource"])
@@ -779,23 +779,46 @@ def _finalize_resource(resource: dict, country: str, roster_map: dict[str, dict]
     return specimen
 
 
-def _first_seen_by_patient(records: Any) -> dict[str, str]:
-    """Earliest Encounter start per patient across all of the patient's
-    records (Issue #3694)."""
+def _first_seen_by_patient(records: Any) -> dict[str, dict[str, str]]:
+    """Per patient, the earliest Encounter start across the patient's records
+    under the key ``""`` (Issue #3694), and per chronic condition code the
+    earliest start of the records whose patient snapshot carries that code
+    (Issue #3826): a disease diagnosed later in the window is first recorded
+    then, not at the patient's first visit. A delivered pregnancy ending on
+    ``D`` gets the key ``birth:D``: the earliest record start on or after
+    ``D``, the first visit at which the birth is history."""
     from datetime import datetime as _dt
 
-    from clinosim.modules.output.fhir_r4.conditions.conditions import record_first_start
+    from clinosim.modules.output.fhir_r4.conditions.conditions import _chronic_fields, record_first_start
 
-    first: dict[str, tuple[Any, str]] = {}
+    first: dict[str, dict[str, tuple[Any, str]]] = {}
+    starts: dict[str, list[tuple[Any, str]]] = {}
+    births: dict[str, set[str]] = {}
     for rec in records:
         pid = str((rec.get("patient") or {}).get("patient_id", ""))
         start = record_first_start(rec)
         if not pid or not start:
             continue
         parsed = _dt.fromisoformat(start.replace("Z", "+00:00")).replace(tzinfo=None)
-        if pid not in first or parsed < first[pid][0]:
-            first[pid] = (parsed, start)
-    return {pid: v[1] for pid, v in first.items()}
+        codes = [_chronic_fields(c)[0] for c in (rec.get("patient") or {}).get("chronic_conditions") or []]
+        seen = first.setdefault(pid, {})
+        for key in ["", *(c for c in codes if c)]:
+            if key not in seen or parsed < seen[key][0]:
+                seen[key] = (parsed, start)
+        starts.setdefault(pid, []).append((parsed, start))
+        for period in (rec.get("patient") or {}).get("state_periods") or []:
+            if (
+                period.get("state_type") == "pregnancy"
+                and period.get("outcome") == "delivered"
+                and period.get("end_date")
+            ):
+                births.setdefault(pid, set()).add(str(period["end_date"])[:10])
+    for pid, ends in births.items():
+        for end in ends:
+            after = [s for s in starts[pid] if s[0].date().isoformat() >= end]
+            if after:
+                first[pid][f"birth:{end}"] = min(after)
+    return {pid: {key: v[1] for key, v in seen.items()} for pid, seen in first.items()}
 
 
 def _build_bundle(
@@ -806,7 +829,7 @@ def _build_bundle(
     snapshot_date: str | None = None,
     snapshot_drop_counter: dict[str, int] | None = None,
     rx_closures: dict[tuple[str, int], dict] | None = None,
-    first_seen_dt: str = "",
+    first_seen: dict[str, str] | None = None,
 ) -> dict:
     """Build a FHIR R4 Bundle from a CIF patient record by running the builder registry."""
     if roster_map is None:
@@ -857,7 +880,7 @@ def _build_bundle(
         patient_sex=patient_data.get("sex", ""),
         snapshot_date=snapshot_date,
         rx_closures=rx_closures or {},
-        first_seen_dt=first_seen_dt,
+        first_seen=first_seen or {},
     )
 
     entries: list[dict] = []

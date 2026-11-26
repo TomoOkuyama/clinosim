@@ -32,9 +32,11 @@ def _record(start: str, enc_id: str, admit_source: str = "outp") -> dict:
 
 
 def _problem_list_dates(rec: dict, first_seen: str) -> list[str]:
+    # E11.9 is carried by every record, so its first visit is the patient's.
+    seen = {"": first_seen, "E11.9": first_seen} if first_seen else {}
     return [
         c["recordedDate"]
-        for c in _build_conditions(rec, "P1", "US", first_seen)
+        for c in _build_conditions(rec, "P1", "US", seen)
         if any(cat.get("coding", [{}])[0].get("code") == "problem-list-item" for cat in c.get("category", []))
     ]
 
@@ -45,7 +47,7 @@ def test_first_seen_is_the_earliest_start_regardless_of_record_order() -> None:
         _record("2026-01-23T09:00:00", "E1"),
         _record("2026-04-30T08:00:00", "E2"),
     ]
-    assert _first_seen_by_patient(iter(recs)) == {"P1": "2026-01-23T09:00:00"}
+    assert _first_seen_by_patient(iter(recs))["P1"][""] == "2026-01-23T09:00:00"
 
 
 @pytest.mark.parametrize("rec_start", ["2026-10-26T10:24:00", "2026-01-23T09:00:00"])
