@@ -2564,6 +2564,11 @@
 <td><code>tests/unit/drug_safety/test_hemolyzed_potassium_redraw_3452.py</code></td>
 </tr>
 <tr>
+<td>入院中の連続採血の生物学的ノイズは、その項目に <code>serial_biological_cv</code> の項目があればそれを使う(CRP は 0.11。一般の被検者の個体内 CV 0.423 を毎回の独立ノイズにすると、真値が一定の CRP が連続する採血の間で 3 倍を超えて振れる組が 13% あった)。入院経過は生理状態が与える。どちらの場合も 2 回の正規乱数を引くので乱数ストリームは変わらず、他の項目は変わらない (Issue #3870)。</td>
+<td><code>observation/engine.py::apply_realistic_variability</code> (<code>serial=</code>), <code>observation/reference_data/lab_constants.yaml</code> (<code>serial_biological_cv</code>), <code>simulator/lab_pipeline.py</code></td>
+<td><code>tests/unit/test_crp_serial_variability_3870.py</code></td>
+</tr>
+<tr>
 <td>一つの検査項目は一回の採血につき一度だけオーダーする。プロトコルの一覧がパネルとその構成項目(BMP と K)の両方を挙げていれば、項目は一度だけオーダーする。1 日 1 回の慢性疾患モニタリング検査と合併症モニタリング検査は、朝の採血にすでにその項目が含まれていれば置かない(パネルのオーダーはその構成項目として数える)。別のパネルと重なるパネル(ABG と BMP はどちらも HCO3 を含む)は別の検体なので残す。定時の繰り返し(qid / tid のモニタリング)、溶血による再採血、stat の追加検査は別の採血であり、まとめない。置いた各オーダーはそれぞれ独自のノイズで結果が出るため、同じ採血に二つ目のオーダーを置くと一つの検体に食い違う値が付いてしまう。乱数の引きは増減しない (Issue #3869)。</td>
 <td><code>order/engine.py::drop_redundant_scalar_labs</code>, <code>observation/order_routing.py::placed_lab_analytes</code>, <code>simulator/medication_pipeline.py::_place_chronic_monitoring_orders</code>, <code>simulator/daily_loop.py::_place_complication_monitoring_orders</code></td>
 <td><code>tests/unit/simulator/test_daily_lab_dedup_3869.py</code></td>

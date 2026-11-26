@@ -2564,6 +2564,11 @@
 <td><code>tests/unit/drug_safety/test_hemolyzed_potassium_redraw_3452.py</code></td>
 </tr>
 <tr>
+<td>An inpatient serial draw takes its biological noise from <code>serial_biological_cv</code> where the analyte has an entry (CRP: 0.11, against the 0.423 within-subject CV of unselected subjects, which as independent noise on every draw swung a constant CRP more than three-fold between consecutive draws in 13% of pairs); the course of the stay comes from the physiological state. Both noise draws are taken either way, so the random stream is unchanged, and other analytes are unchanged (Issue #3870).</td>
+<td><code>observation/engine.py::apply_realistic_variability</code> (<code>serial=</code>), <code>observation/reference_data/lab_constants.yaml</code> (<code>serial_biological_cv</code>), <code>simulator/lab_pipeline.py</code></td>
+<td><code>tests/unit/test_crp_serial_variability_3870.py</code></td>
+</tr>
+<tr>
 <td>One analyte is ordered once per draw: a protocol list that names a panel and also one of its analytes (BMP and K) orders the analyte once, a daily once-a-day chronic monitoring test and a complication monitoring test are not placed when the morning draw already holds the analyte (a panel order counts as its components), and a panel that overlaps another panel (ABG and BMP both hold HCO3) is a different specimen and is kept. Scheduled repeats (qid / tid monitoring), hemolysis redraws and stat add-ons are other draws and are not collapsed. Each placed order is resulted with its own noise, so a second order of one draw would give a disagreeing value of one specimen. No random draw is added or skipped (Issue #3869).</td>
 <td><code>order/engine.py::drop_redundant_scalar_labs</code>, <code>observation/order_routing.py::placed_lab_analytes</code>, <code>simulator/medication_pipeline.py::_place_chronic_monitoring_orders</code>, <code>simulator/daily_loop.py::_place_complication_monitoring_orders</code></td>
 <td><code>tests/unit/simulator/test_daily_lab_dedup_3869.py</code></td>
