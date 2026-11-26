@@ -6,7 +6,8 @@ leaf data, shared helpers, and stdlib/first-party deps — never the adapter.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from collections.abc import Mapping
+from dataclasses import dataclass, field
 from datetime import datetime
 from functools import cache
 from typing import Any
@@ -186,9 +187,10 @@ class _ConditionContext:
     # The record has at least one resulted laboratory order (Issue #3693):
     # the principal diagnosis cites laboratory results only then.
     has_labs: bool = False
-    # Earliest Encounter start of the patient across all records (Issue #3694);
-    # empty when the caller did not compute it (single-record callers).
-    first_seen_dt: str = ""
+    # Earliest Encounter start of the patient across all records under the key
+    # "" (Issue #3694) and per chronic condition code (Issue #3826); empty when
+    # the caller did not compute it (single-record callers).
+    first_seen: Mapping[str, str] = field(default_factory=dict)
 
     @property
     def country_code(self) -> str:
@@ -214,13 +216,18 @@ class _ConditionContext:
     def admission_dt(self) -> str:
         return self.encounter.get("admission_datetime", "")
 
-    @property
-    def recorded_dt(self) -> str:
+    def recorded_dt(self, code: str = "") -> str:
         """``recordedDate`` of a problem-list Condition: when it was first
         entered in the record, i.e. the earliest Encounter start of the
-        patient (never later than this record's own start)."""
+        records that carry ``code`` (Issue #3826), or of all the patient's
+        records when no code is given (Issue #3694); never later than this
+        record's own start."""
         own = self.admission_dt
-        first = self.first_seen_dt
+        first = self.first_seen.get(code, "") if code else self.first_seen.get("", "")
+        if first and code.startswith("birth:"):
+            # A record dated before the delivery still lists the birth from
+            # the patient's periods; it is history from the first later visit.
+            return first
         if not first or not own:
             return own
         a, b = _parse_naive(first), _parse_naive(own)
@@ -363,7 +370,9 @@ def _chronic_fields(chronic: Any) -> tuple[str, str, str, str]:
     )
 
 
-def _build_conditions(record: dict, patient_id: str, country: str, first_seen_dt: str = "") -> list[dict]:
+def _build_conditions(
+    record: dict, patient_id: str, country: str, first_seen: Mapping[str, str] | None = None
+) -> list[dict]:
     """Build FHIR Condition resources from diagnosis and chronic conditions.
 
     Generates, in order: the primary encounter diagnosis, the admission
@@ -384,7 +393,7 @@ def _build_conditions(record: dict, patient_id: str, country: str, first_seen_dt
         # per-person. JP C50 is identity-mapped, so the sex is a no-op there.
         patient_sex=str(record.get("patient", {}).get("sex", "") or ""),
         has_labs=_record_has_lab_results(record),
-        first_seen_dt=first_seen_dt,
+        first_seen=first_seen or {},
     )
     dx = record.get("clinical_diagnosis", {})
     chronic_list = record.get("patient", {}).get("chronic_conditions", [])
@@ -694,8 +703,9 @@ def _chronic_conditions(ctx: _ConditionContext, chronic_list: list, seen_codes: 
         # recordedDate: when the condition was first entered in the record =
         # the patient's earliest Encounter start (full time so time-series UIs
         # sort correctly, Issue #821 / N-7; first recording, Issue #3694).
-        if ctx.recorded_dt:
-            cond["recordedDate"] = to_fhir_datetime(ctx.recorded_dt)
+        recorded = ctx.recorded_dt(code)
+        if recorded:
+            cond["recordedDate"] = to_fhir_datetime(recorded)
         _set_bodysite(cond, code, ctx.country)
         conditions.append(cond)
     return conditions
@@ -736,6 +746,11 @@ def _past_birth_conditions(ctx: _ConditionContext, record: dict, seen_codes: set
         end_date = get_attr_or_key(period, "end_date", "") or ""
         if not end_date:
             continue
+        # Issue #3826: with the cross-record pre-pass, a birth no visit of the
+        # window follows is not yet history in any record (the delivery stay
+        # carries its own Z37 Condition).
+        if ctx.first_seen and f"birth:{str(end_date)[:10]}" not in ctx.first_seen:
+            continue
         # Defensive: Z87 is not a chronic code, so this is not an expected path.
         if any(c.startswith("Z87") for c in seen_codes):
             break
@@ -757,7 +772,9 @@ def _past_birth_conditions(ctx: _ConditionContext, record: dict, seen_codes: set
         cond["onsetDateTime"] = to_fhir_date(end_date)
         cond["evidence"] = _evidence(ctx, "condition_evidence.problem_list_prior")
         _set_recorder(cond, ctx.encounter.get("attending_physician_id", "") or _FALLBACK_RECORDER_ID)
-        if ctx.recorded_dt:
-            cond["recordedDate"] = to_fhir_datetime(ctx.recorded_dt)
+        # Issue #3826: recorded at the first visit on or after the delivery.
+        recorded = ctx.recorded_dt(f"birth:{str(end_date)[:10]}")
+        if recorded:
+            cond["recordedDate"] = to_fhir_datetime(recorded)
         conditions.append(cond)
     return conditions

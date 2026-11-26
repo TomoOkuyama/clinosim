@@ -203,7 +203,7 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
     _resources = []
     # Issue #3597: the Condition builder decides which encounter-diagnosis
     # Conditions exist; every one of them is referenced from its Encounter.
-    _emitted_conditions = _build_conditions(ctx.record, ctx.patient_id, ctx.country, ctx.first_seen_dt)
+    _emitted_conditions = _build_conditions(ctx.record, ctx.patient_id, ctx.country, ctx.first_seen)
     # Issue #3761: the in-stay HAI Conditions are built after the Encounters, so
     # their ids come from the HAI builder's own guard, ranked after the rest.
     _hai_ids_by_encounter = hai_condition_ids_by_encounter(ctx)
@@ -331,7 +331,7 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
 
 
 def _bb_conditions(ctx: BundleContext) -> list[dict]:
-    return list(_build_conditions(ctx.record, ctx.patient_id, ctx.country, ctx.first_seen_dt))
+    return list(_build_conditions(ctx.record, ctx.patient_id, ctx.country, ctx.first_seen))
 
 
 def _bb_occupation(ctx: BundleContext) -> list[dict]:
