@@ -115,7 +115,7 @@ from clinosim.modules.order.engine import (
     place_imaging_orders,               # (disease_protocol, encounter_id, patient_id, admission_dt, day_index, severity, rng, sequence_counter, ed_period=None) -> list[Order]
     drop_legacy_duplicate_imaging,      # (admission_orders, structured_orders) -> list[Order]
     enrich_medication_order,            # (order, dose_str="") -> Order
-    parse_dose_string,                  # (dose_str) -> dict
+    parse_dose_string,                  # (dose_str) -> dict: dose_quantity, dose_unit, frequency, frequency_per_day, route、および文中に投与期間があれば duration_days (Issue #3640)
     protocol_medication_orders,         # (med_spec, *, order_id, encounter_id, patient_id, country, ordered_datetime, ordered_by, urgency="stat", order_set=...) -> list[Order]; 1 件のオーダー、または初回投与 + 維持のオーダー (Issue #3002)
     first_line_alternative_groups,      # (protocol, encounter_id, country, id_infix="") -> tuple[tuple[order_id, ...], ...]; `select: one_of` と宣言した `drugs.first_line` のオーダー ID (Issue #3274)
     protocol_drug_order_code,           # (spec, country) -> 疾患 YAML の薬剤項目のオーダーコード (Issue #2351)

@@ -28,6 +28,8 @@ jp-100/
     ├── Observation.ndjson
     ├── ...
     └── manifest.json            # FHIR Bulk manifest
+└── catalog/
+    └── codes-used.ndjson        # FHIR リソースが使う全コード
 ```
 
 詳細: [Datasets](../reference/datasets.ja.md)。

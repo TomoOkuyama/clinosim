@@ -95,6 +95,8 @@ cif/
 fhir_r4/
   *.ndjson                 (all FHIR R4 resources)
   _generator_metadata.json (clinosim_version + nested cif_metadata mirror)
+catalog/
+  codes-used.ndjson        (every code the dataset's FHIR resources use)
 ```
 
 Both metadata files pin `clinosim_version` to the release tag; the

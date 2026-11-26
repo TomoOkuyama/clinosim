@@ -136,7 +136,7 @@ canonical 11-section 構造に従う per-module README にリンクする。
 | [clinical_course](clinosim/modules/clinical_course/README.ja.md) | trajectory archetype + 日次 `StateChangeDirective` | simulation | — (caller RNG) | — |
 | [diagnosis](clinosim/modules/diagnosis/README.ja.md) | Bayesian 鑑別 + Issue #551 非特異コード | simulation | — | POST_ENCOUNTER 94 (`lab_derived_dx`、RNG なし) |
 | [procedure](clinosim/modules/procedure/README.ja.md) | 手術 + bedside + rehab 生成 | simulation | — (caller RNG) | — |
-| [encounter](clinosim/modules/encounter/README.ja.md) | encounter registry (51 YAML) + 入院日次 cycle timeline | simulation | — | — |
+| [encounter](clinosim/modules/encounter/README.ja.md) | encounter registry (52 YAML) + 入院日次 cycle timeline | simulation | — | — |
 | [disease](clinosim/modules/disease/README.ja.md) | 疾患 registry (36 YAML) + 重症度 + acuity + 薬剤 vocabulary | simulation | — | — |
 | [longitudinal](clinosim/modules/longitudinal/README.ja.md) | 年次 trajectory engine (AR(1) HbA1c / Markov stage ladder / event firing — Phase 4a-4d 慢性進展) | simulation | — (`advance_one_year` に caller RNG) | POST_RECORDS 900 (`stage_refresh`: 慢性疾患 stage を最新検査値で再記述、乱数なし) |
 | [population](clinosim/modules/population/README.ja.md) | demographics + life event (Layer 1) + 年次 aging / 院外死亡 (`aging.advance_population` + `mortality.py`。旧 `natural_death` モジュールは #2167 でここへ統合) | population | — (pipeline 頭) | — |

@@ -92,6 +92,8 @@ cif/
 fhir_r4/
   *.ndjson                 (全 FHIR R4 リソース)
   _generator_metadata.json (clinosim_version + cif_metadata の入れ子ミラー)
+catalog/
+  codes-used.ndjson        (データセットの FHIR リソースが使う全コード)
 ```
 
 両 metadata ファイルは `clinosim_version` をリリース tag に固定する。

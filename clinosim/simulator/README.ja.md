@@ -193,6 +193,8 @@ clinosim/simulator/
   enrichers.py           enricher レジストリ (post-population / post-encounter / post-records)
   outpatient_dept.py     外来フォローアップ診療科リゾルバ
   perinatal.py           分娩エンカウンター + 新生児 emit (母の退院処方 = 鎮痛薬 + 母の維持的な常用薬の継続)
+  _perinatal_complications.py  分娩合併症が記録に残すもの: `perinatal.yaml complications.effects` による
+                         血圧の上書き・検査結果・薬剤オーダー (Issue #3661/#3662)
   complications.py       合併症イベントスキーマヘルパー
   sex_gating.py          ICD-10 診断 dispatch の性別ゲート
   unknown_condition.py   疾患プロトコルを持たない慢性疾患のハンドリング
@@ -278,7 +280,7 @@ forward ループとフェーズ (`phases/`、5 モジュール + `__init__.py`)
   enumerate.py           網羅列挙モード (`clinosim enumerate`)
 ```
 
-CLI サブコマンドハンドラ (11 ファイル):
+CLI サブコマンドハンドラ (12 ファイル):
 
 ```
   cli_common.py          共有 CLI ユーティリティ
@@ -292,6 +294,7 @@ CLI サブコマンドハンドラ (11 ファイル):
   cli_regenerate.py      `clinosim regenerate-goldens` サブコマンド
   cli_test_disease.py    `clinosim test-disease` サブコマンド
   cli_test_encounter.py  `clinosim test-encounter` サブコマンド
+  cli_catalog_codes.py   `clinosim catalog-codes` サブコマンド (リリースが出力しうる全コードのカタログ、Issue #3763)
 ```
 
 リファレンスデータ (`reference_data/`、22 YAML):

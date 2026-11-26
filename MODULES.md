@@ -139,7 +139,7 @@ the canonical 11-section structure).
 | [clinical_course](clinosim/modules/clinical_course/README.md) | trajectory archetype + daily `StateChangeDirective` | simulation | — (uses caller RNG) | — |
 | [diagnosis](clinosim/modules/diagnosis/README.md) | Bayesian differential + Issue #551 non-specific codes | simulation | — | POST_ENCOUNTER 94 (`lab_derived_dx`, RNG-free) |
 | [procedure](clinosim/modules/procedure/README.md) | surgery + bedside + rehab generation | simulation | — (uses caller RNG) | — |
-| [encounter](clinosim/modules/encounter/README.md) | encounter registry (51 YAML) + inpatient daily-cycle timeline | simulation | — | — |
+| [encounter](clinosim/modules/encounter/README.md) | encounter registry (52 YAML) + inpatient daily-cycle timeline | simulation | — | — |
 | [disease](clinosim/modules/disease/README.md) | disease registry (36 YAML) + severity + acuity + drug-vocabulary | simulation | — | — |
 | [longitudinal](clinosim/modules/longitudinal/README.md) | year-indexed trajectory engine (AR(1) HbA1c / Markov stage ladders / event firing — Phase 4a-4d chronic evolution) | simulation | — (uses caller RNG per `advance_one_year`) | POST_RECORDS 900 (`stage_refresh`: chronic stages restated from the latest labs, no random draw) |
 | [population](clinosim/modules/population/README.md) | demographics + life events (Layer 1) + annual aging / community mortality (`aging.advance_population` + `mortality.py`; the former `natural_death` module was folded in here by #2167) | population | — (pipeline head) | — |

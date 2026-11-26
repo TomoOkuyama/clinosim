@@ -59,7 +59,9 @@ module から直接 import する (Issue #545 rename)。
   - `fhir_time.py` — FHIR date / dateTime / instant 整形
     (`to_fhir_date`、`to_fhir_datetime`、`to_fhir_instant`、
     `tz_suffix_for_country`、`derive_meta_last_updated`)、
-    `_JST_TZ_SUFFIX = "+09:00"` / `_UTC_TZ_SUFFIX = "Z"`。
+    `_JST_TZ_SUFFIX = "+09:00"` / `_UTC_TZ_SUFFIX = "Z"`。出力する
+    タイムスタンプは秒未満を切り捨てる (`truncate_fraction`、丸めない、
+    Issue #3698)。
   - `localization.py` — EN / JA テキスト localisation dispatch
     (`localize_drug_name`、`localize_fixed_label`、`code_lookup`、
     および free-text 翻訳器の再 export。翻訳器本体と

@@ -34,7 +34,7 @@
 
 ```
  population(人口動態・世帯)                        Layer 0-1: reference YAML
-   └→ scenario 発火(disease 36種 / encounter 51種)   (disease/encounter protocols,
+   └→ scenario 発火(disease 36種 / encounter 52種)   (disease/encounter protocols,
         └→ encounter simulation(inpatient/ED/outpatient) locale, codes)
              ├ physiology state 遷移(daily loop)
              ├ orders / labs / vitals / MAR / procedures

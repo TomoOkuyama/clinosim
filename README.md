@@ -67,7 +67,7 @@ Most synthetic-EHR tools produce records by sampling from disease distributions.
 
 - **Clinical coherence by construction** — physiology model makes incoherent labs impossible.
 - **JP + US natively** — JP Core profiles on all 21 FHIR resource types that have one in JP output, JLAC10 / MHLW YJ codes, JP names / addresses / insurance out of the box.
-- **YAML-driven extension** — 36 inpatient diseases + 51 ED / outpatient conditions are all data files, not code.
+- **YAML-driven extension** — 36 inpatient diseases + 52 ED / outpatient conditions are all data files, not code.
 - **Longitudinal service lines** — oncology (10 cancer sites incl. male breast, chemo regimen cycles, radiation therapy Procedure, tumor-marker labs) + obstetrics (pregnancy modelled as a time-boxed `TemporalStatePeriod` lifecycle — annual conception, prenatal visits at gestational weeks 12/24/36, mother-side delivery Encounter with Z37.0 discharge dx + delivery Procedure + newborn Patient chain, postpartum visits at 7 d / 28 d) emit at correct temporal cadence, not as flat annotations. See [`docs/reference/oncology-obstetric-service-lines.md`](docs/reference/oncology-obstetric-service-lines.md).
 
 Prior-art comparison (Synthea): [docs/synthea-comparison.md](docs/synthea-comparison.md).

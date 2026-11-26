@@ -38,7 +38,10 @@ Declared in `pyproject.toml [tool.pytest.ini_options] markers`:
 | `serial`      | mutates shared filesystem/global state — xdist runs it single-worker |
 
 `slow` is NOT a marker. Sharding is duration-based via `.test_durations`, not
-marker-based. Do not add `pytest.mark.slow`.
+marker-based: PR CI splits the unit and integration suites into shards by whole
+test file with `scripts/ci_split_by_file.py` (a file weighs the sum of its
+tests' durations in `.test_durations`, and files are bin-packed longest first
+onto the least-loaded shard). Do not add `pytest.mark.slow`.
 
 Do not mix `unit` and `integration` markers in the same file — put integration
 cases under `tests/integration/`.
@@ -77,7 +80,10 @@ already prints a useful diff.
 
 ## `.test_durations` refresh
 
-Duration file at repo root drives xdist sharding. Refresh policy:
+Duration file at repo root drives the shard split of PR CI
+(`scripts/ci_split_by_file.py` sums it per test file). The nightly workflow
+(`.github/workflows/nightly.yml`) measures it per shard in the `ci.yml` layout
+and opens a PR that refreshes it. Refresh policy:
 
 - Regenerate on any change that adds/removes ≥5 tests or shifts a slow test's
   runtime by ≥2×.
