@@ -190,7 +190,10 @@ clinosim/simulator/
                          予防薬ごとに中止マーカーを書く (中止後の投与は退院後に
                          `order/supersede.py` が除く)。`IV_PPI` は消化管出血プロトコルの
                          静注 PPI を 3 日間発注する。スタッフの乱数は
-                         `complication_treatment_seed` を使う
+                         `complication_treatment_seed` を使う。C. difficile 腸炎 (Issue #3864):
+                         `start_oral_vancomycin` (125 mg 1 日 4 回 10 日間。参照データに記述) と
+                         `stop_offending_antibiotic` (ニトロイミダゾール以外の実行中の抗菌薬に
+                         中止マーカー。退院処方には他の全身抗菌薬を載せず、投与の残りを継続)
   vasopressor_initiation.py  記録された平均血圧が輸液後も低い場合に昇圧薬を開始する
                          (固定病日ではなく生理状態駆動, Issue #3332)
   renal_replacement.py   内科的治療後もカリウム (治療閾値以上) または総 CO2 (10 以下) が続く AKI への間欠的血液透析: 1 回ごとに

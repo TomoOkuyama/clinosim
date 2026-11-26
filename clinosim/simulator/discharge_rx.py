@@ -246,6 +246,8 @@ def build_discharge_rx(
     lactate_high: bool = False,
     discharge_time: datetime | None = None,
     extra_specs: Iterable[dict[str, Any]] = (),
+    excluded_classes: frozenset[str] = frozenset(),
+    spared_classes: frozenset[str] = frozenset(),
 ) -> PrescriptionRecord:
     """Build discharge prescription from protocol.
 
@@ -266,6 +268,12 @@ def build_discharge_rx(
     ``extra_specs`` (Issue #3864): ``discharge_oral``-style entries added to the
     prescription, the anticoagulant a complication started in hospital; they
     pass the same renal, hold, allergy and dedup checks as the protocol's.
+
+    ``excluded_classes`` / ``spared_classes`` (Issue #3864): the drug classes a
+    complication's stop action rules out at discharge (every systemic
+    antibiotic once the inciting one was stopped for C. difficile colitis, less
+    the spared classes); such a drug is held and logged like any other discharge
+    hold, except a ``from_complication`` entry (the C. difficile course).
 
     ``discharge_time`` (Issue #3441): the discharge datetime, the timestamp of the
     discharge holds logged on ``patient.safety_skip_log`` (the admission time when
@@ -474,6 +482,17 @@ def build_discharge_rx(
         if not drug_name:
             return
         if _allergy_conflict(drug_name, chronic_continuation):
+            return
+        _classes = set(drug_classes(drug_name))
+        if _classes & excluded_classes and not _classes & spared_classes and not drug_spec.get("from_complication"):
+            _record_hold(
+                encounter_id=encounter_id,
+                held_drug_name=drug_name,
+                held_drug_name_ja=drug_name_ja or drug_name,
+                hold_reason=t("order_intent.antibiotic_stopped_for_complication", "en"),
+                hold_reason_ja=t("order_intent.antibiotic_stopped_for_complication", "ja"),
+                taken=taken,
+            )
             return
         if final_renal_function < DISCHARGE_RENAL_HOLD_THRESHOLD and drug_key(drug_name) in renal_hold_drugs():
             # Issue #1403: log renal-driven hold for narrative surface

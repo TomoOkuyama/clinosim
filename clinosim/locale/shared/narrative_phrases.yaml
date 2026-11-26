@@ -3918,6 +3918,15 @@ order_intent:
   complication_anticoagulant_hold:
     ja: "第{day}病日 {complication}の発症に対し抗凝固薬を中止"
     en: "Day {day}: anticoagulant stopped for {complication}"
+  complication_antibiotic_stop:
+    ja: "第{day}病日 {complication}の発症に対し原因となった抗菌薬を中止"
+    en: "Day {day}: inciting antibiotic stopped for {complication}"
+  complication_oral_antibiotic:
+    ja: "第{day}病日 {complication}の発症に対し経口抗菌薬を開始"
+    en: "Day {day}: oral antibiotic started for {complication}"
+  antibiotic_stopped_for_complication:
+    ja: "入院中に発症した合併症(クロストリジウム・ディフィシル腸炎)のため抗菌薬を中止"
+    en: "antibiotic stopped for a complication that developed in hospital (Clostridioides difficile colitis)"
   complication_workup:
     ja: "第{day}病日 {complication}の経過観察のための検査"
     en: "Day {day}: monitoring labs for {complication}"

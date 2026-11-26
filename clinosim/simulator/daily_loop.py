@@ -1707,44 +1707,55 @@ def _start_complication_antibiotic(
 
 
 def _treat_complication(stay: _Stay, run: _Run, day: int, comp: dict, onset_dt: datetime) -> None:
-    """Execute the anticoagulation / acid-suppression actions a complication
-    declares (Issue #3864): the hold of a running anticoagulant first, then
-    the treatment orders (therapeutic anticoagulation, IV PPI)."""
-    from clinosim.simulator.complication_actions import hold_actions_of, treatment_actions_of
+    """Execute the anticoagulation, acid-suppression and C. difficile actions a
+    complication declares (Issue #3864): the stop actions first (a held
+    anticoagulant, the stopped inciting antibiotic), then the treatment orders
+    (therapeutic anticoagulation, IV PPI, oral vancomycin)."""
+    from clinosim.simulator.complication_actions import stop_actions_of, treatment_actions_of
 
     comp_name = comp.get("name", "unknown")
-    if hold_actions_of(comp):
-        _hold_anticoagulation(stay, run, day, comp_name, onset_dt)
+    for action in stop_actions_of(comp):
+        _stop_complication_drugs(stay, run, day, comp_name, action, onset_dt)
     for action in treatment_actions_of(comp):
         _start_complication_treatment(stay, run, day, comp_name, action, onset_dt)
 
 
-def _hold_anticoagulation(stay: _Stay, run: _Run, day: int, comp_name: str, onset_dt: datetime) -> None:
-    """Stop the anticoagulants a bleeding complication holds (Issue #3864): a
-    ``DISCONTINUE`` marker (``MED_STOP_ORDER_ID_MARKER`` +
+def _stop_complication_drugs(stay: _Stay, run: _Run, day: int, comp_name: str, action: str, onset_dt: datetime) -> None:
+    """Stop the running drugs a complication's stop action names (Issue #3864):
+    a ``DISCONTINUE`` marker (``MED_STOP_ORDER_ID_MARKER`` +
     ``COMPLICATION_HOLD_ORDER_ID_MARKER``) at the onset order time for every
-    running drug of the rules' ``hold_classes`` and for the planned VTE
-    prophylaxis drug. The marker stops the running order for the later
-    actions at once; the post-stay steps flip its status and cut the doses
-    charted from the marker on (``supersede.drop_doses_after_hold``), so the
-    stay's MAR draws do not move. Draws nothing."""
+    running drug of the action's ``classes`` (not its ``spared_classes``) and,
+    with ``planned_prophylaxis``, for the planned VTE prophylaxis drug. The
+    marker stops the running order for the later actions at once; the post-stay
+    steps flip its status and cut the doses charted from the marker on
+    (``supersede.drop_doses_after_hold``), so the stay's MAR draws do not
+    move. Draws nothing."""
     from clinosim.codes.drugs import get_drug
     from clinosim.modules._shared import COMPLICATION_HOLD_ORDER_ID_MARKER
     from clinosim.modules.prophylaxis.engine import dvt_regimen
     from clinosim.simulator.complication_actions import complication_action_rules
 
     rules = complication_action_rules()
+    spec = rules.stop_actions[action]
     when = onset_dt.replace(hour=rules.order_hour)
     held: dict[str, str] = {}
     for order in run.orders:
         if order.order_type != OrderType.MEDICATION or (order.display_name or "").startswith("DISCONTINUE:"):
             continue
         ref = order.drug_id or order.display_name
-        if not set(rules.hold_classes) & set(drug_classes(ref)) or _running_order(run.orders, ref) is None:
+        classes = set(drug_classes(ref))
+        started = max(order.ordered_datetime, order.administer_from or order.ordered_datetime)
+        if order.duration_days and (when - started).days >= order.duration_days:
+            continue  # its stated course is over: nothing to stop
+        if (
+            not set(spec.classes) & classes
+            or set(spec.spared_classes) & classes
+            or _running_order(run.orders, ref) is None
+        ):
             continue
         record = get_drug(order.drug_id) if order.drug_id else None
         held.setdefault(order.drug_id or ref, record.names.get("en", "") if record is not None else order.display_name)
-    if run.dvt_prophylaxis_planned:
+    if spec.planned_prophylaxis and run.dvt_prophylaxis_planned:
         prophylaxis = str(dvt_regimen(country_code(stay.country_key))["drug"])
         if not any(same_drug(prophylaxis, key) for key in held):
             held.setdefault(prophylaxis, prophylaxis)
@@ -1760,12 +1771,8 @@ def _hold_anticoagulation(stay: _Stay, run: _Run, day: int, comp_name: str, onse
                 order_type=OrderType.MEDICATION,
                 display_name=f"DISCONTINUE: {name or key}",
                 urgency="urgent",
-                clinical_intent=t(
-                    "order_intent.complication_anticoagulant_hold", "en", day=day, complication=complication["en"]
-                ),
-                clinical_intent_ja=t(
-                    "order_intent.complication_anticoagulant_hold", "ja", day=day, complication=complication["ja"]
-                ),
+                clinical_intent=t(f"order_intent.{spec.intent}", "en", day=day, complication=complication["en"]),
+                clinical_intent_ja=t(f"order_intent.{spec.intent}", "ja", day=day, complication=complication["ja"]),
                 ordered_datetime=when,
                 status=OrderStatus.PLACED,
             )
@@ -1826,9 +1833,7 @@ def _start_complication_treatment(
         and not o.display_name.startswith("DISCONTINUE:")
         and _running_order(run.orders, o.drug_id or o.display_name) is not None
     ]
-    intent_key = (
-        "order_intent.complication_ppi" if spec.drug_class == "ppi" else "order_intent.complication_anticoagulation"
-    )
+    intent_key = f"order_intent.{spec.intent}"
     complication = {lang: _localize_complication_name(comp_name, lang) for lang in ("en", "ja")}
     gated: list[Order] = []
     chosen = 0

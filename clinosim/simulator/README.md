@@ -206,7 +206,11 @@ clinosim/simulator/
                          anticoagulant and for the planned prophylaxis (the doses after it
                          are cut after the stay by `order/supersede.py`); `IV_PPI` orders
                          the gastrointestinal-bleeding protocol's IV PPI for 3 days; staff
-                         draws use `complication_treatment_seed`
+                         draws use `complication_treatment_seed`; C. difficile colitis
+                         (Issue #3864): `start_oral_vancomycin` (125 mg QID x10 days, authored in
+                         the reference data) and `stop_offending_antibiotic` (stop markers for the
+                         running antibiotics but nitroimidazoles; no other systemic antibiotic at
+                         discharge, the rest of the course continues)
   vasopressor_initiation.py  starts a vasopressor from the recorded mean arterial
                          pressure (low despite fluids) instead of a fixed day
                          (Issue #3332)

@@ -1077,7 +1077,7 @@ complications:
     detection:
       test: "c_diff_toxin_pcr"
       finding: "positive"
-    actions: ["stop_offending_antibiotic_if_possible", "start_oral_vancomycin_125mg_qid", "contact_precautions"]
+    actions: ["stop_offending_antibiotic", "start_oral_vancomycin", "contact_precautions"]
 
   - name: "stress_cardiomyopathy"
     description: "Sepsis-induced myocardial dysfunction (septic cardiomyopathy)"
