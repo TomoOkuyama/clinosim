@@ -146,7 +146,9 @@ their records, then binds each dose (deterministic, no rng):
    its date (e.g. the hepatitis B birth dose in the nursery); the dose is
    also ordered at the admission (`_order_stay_doses`, Issue #3688: a
    medication order of the vaccine's `order_drug_id`, no medication
-   administration, since the `Immunization` is the administration);
+   administration, since the `Immunization` is the administration; Issue #3831:
+   the order is dated on the dose day and ends with it, so the
+   MedicationRequest is `completed`);
 2. `visits.bind_to_vaccination_visits` (Issue #2868): an outpatient
    visit with reason `Z23` records the doses given at it, re-dated to the
    visit. The season's flu dose goes to the season's first flu

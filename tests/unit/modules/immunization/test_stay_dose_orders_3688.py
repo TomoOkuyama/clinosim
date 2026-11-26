@@ -76,3 +76,31 @@ def test_outpatient_record_gets_no_order() -> None:
     rec = _rec(enc_type="outpatient")
     _order_stay_doses(rec, [_imm()], "US")
     assert rec["orders"] == []
+
+
+def test_stay_dose_order_is_ended_at_the_dose_3831() -> None:
+    """Issue #3831: the dose was given, so the order carries an end and the
+    MedicationRequest resolves to completed like the vitamin K order."""
+    rec = _rec()
+    _order_stay_doses(rec, [_imm()], "US")
+    (order,) = rec["orders"]
+    assert order.end_datetime == order.ordered_datetime == datetime(2026, 2, 20, 10, 0)
+
+
+def test_later_dose_is_ordered_on_the_dose_day_3831() -> None:
+    rec = _rec(enc_type="inpatient")
+    rec["encounters"][0]["discharge_datetime"] = datetime(2026, 2, 28, 12, 0)
+    imm = _imm(cvx="187")
+    imm["occurrence_date"] = date(2026, 2, 24)
+    rec["patient"].date_of_birth = date(1950, 1, 1)
+    _order_stay_doses(rec, [imm], "US")
+    (order,) = rec["orders"]
+    assert order.ordered_datetime == order.end_datetime == datetime(2026, 2, 24, 10, 0)
+    assert order.drug_id == "zoster_vaccine"
+
+
+def test_zoster_vaccine_order_has_an_rxnorm_code_3831() -> None:
+    from clinosim.codes.drugs import resolve_drug
+
+    record = resolve_drug("zoster_vaccine")
+    assert record is not None and record.codes["rxnorm"] == "1986820"
