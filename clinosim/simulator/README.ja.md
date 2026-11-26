@@ -193,7 +193,8 @@ clinosim/simulator/
                          これを継続する。`hold_anticoagulation` は実行中の抗凝固薬と予定の
                          予防薬ごとに中止マーカーを書く (中止後の投与は退院後に
                          `order/supersede.py` が除く)。`IV_PPI` は消化管出血プロトコルの
-                         静注 PPI を 3 日間発注する。スタッフの乱数は
+                         静注 PPI を 3 日間、続けて経口 PPI を発症後 2 週間まで発注する (残りは退院処方が
+                         継続, Issue #3896)。スタッフの乱数は
                          `complication_treatment_seed` を使う。C. difficile 腸炎 (Issue #3864):
                          `start_oral_vancomycin` (国と重症度で選び参照データに記述, Issue #3896:
                          日本は非重症ならメトロニダゾール 500 mg 1 日 3 回 10 日間、重症

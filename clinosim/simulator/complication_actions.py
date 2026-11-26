@@ -64,6 +64,17 @@ class SeverityRule(BaseModel):
     criteria: tuple[SeverityCriterion, ...] = Field(min_length=1)
 
 
+class StepDown(BaseModel):
+    """The oral step-down that follows a ``course_days`` IV course (Issue #3896):
+    the first ``route`` entry of the same block and class, given from the end of
+    the IV course until ``total_days`` after the onset."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    route: _Slug
+    total_days: int = Field(gt=0)
+
+
 class TreatmentAction(BaseModel):
     """One executed treatment action (Issue #3864): the regimen is the entries
     of a protocol block (``protocol`` + ``block``), ``regimen`` (country ->
@@ -86,6 +97,7 @@ class TreatmentAction(BaseModel):
     course_days: int | None = Field(default=None, gt=0)
     first_only: bool = False
     lead_in_days: int | None = Field(default=None, gt=0)
+    step_down: StepDown | None = None
     blocked_by: tuple[_Slug, ...] = ()
 
     @model_validator(mode="after")
@@ -99,6 +111,8 @@ class TreatmentAction(BaseModel):
             raise ValueError("a treatment action names one of protocol + block, regimen, regimen_by_severity")
         if (self.regimen_by_severity is None) != (self.severity is None):
             raise ValueError("regimen_by_severity and severity go together")
+        if self.step_down is not None and (self.course_days is None or self.step_down.total_days <= self.course_days):
+            raise ValueError("a step-down follows a course_days course and ends after it")
         if self.regimen_by_severity is not None and set(self.regimen_by_severity) != {"non_severe", "severe"}:
             raise ValueError("regimen_by_severity has the levels non_severe and severe")
         return self
@@ -303,6 +317,27 @@ def treatment_candidates(action: str, country_key: str, severity: str | None = N
     return out[:1] if spec.first_only else out
 
 
+def step_down_candidates(action: str, country_key: str) -> list[dict[str, Any]]:
+    """The oral step-down entry of a treatment action with a ``step_down``
+    (Issue #3896): the first entry of the action's block for the country whose
+    drug is of the action's class, of the step-down route and given without a
+    draw; ``[]`` when the action has no step-down or the block has no such
+    entry."""
+    from clinosim.modules.disease.protocol import load_disease_protocol
+
+    spec = complication_action_rules().treatment_actions[action]
+    if spec.step_down is None or spec.protocol is None or spec.block is None:
+        return []
+    entries = candidates_in(load_disease_protocol(spec.protocol).drugs.get(spec.block), country_key)
+    return [
+        e
+        for e in entries
+        if e.get("probability") is None
+        and spec.drug_class in drug_classes(str(e.get("drug_id") or e.get("drug") or ""))
+        and str(e.get("route", "")).upper() == spec.step_down.route.upper()
+    ][:1]
+
+
 def is_therapeutic_anticoagulant_order(order: Order) -> bool:
     """Whether a medication order gives a therapeutic anticoagulant: an oral
     anticoagulant, or a heparin as a continuous infusion (prophylactic SC
@@ -322,9 +357,9 @@ def complication_discharge_specs(
 ) -> list[dict[str, Any]]:
     """The discharge prescription entries for the treatment a complication
     started and that still runs at discharge (Issue #3864): the anticoagulant
-    (:func:`_anticoagulant_discharge_specs`) and the rest of a C. difficile
-    course, which ends ``duration_days`` after its order (``discharge_time``
-    is needed for it); a held (stopped) order is not continued."""
+    (:func:`_anticoagulant_discharge_specs`) and the rest of an oral antibiotic
+    (C. difficile) or PPI (step-down, Issue #3896) course, which ends
+    ``duration_days`` after it starts (``discharge_time`` is needed for it); a held (stopped) order is not continued."""
     orders = list(orders)
     out = _anticoagulant_discharge_specs(orders, country_key)
     if discharge_time is not None:
@@ -335,10 +370,11 @@ def complication_discharge_specs(
                 and o.status == OrderStatus.PLACED
                 and o.duration_days
                 and o.route.upper() == "PO"
-                and "antibiotic" in drug_classes(o.drug_id or o.display_name or "")
+                and {"antibiotic", "ppi"} & set(drug_classes(o.drug_id or o.display_name or ""))
             ):
+                started = max(o.ordered_datetime, o.administer_from or o.ordered_datetime)
                 remaining = math.ceil(
-                    (o.ordered_datetime + timedelta(days=o.duration_days) - discharge_time).total_seconds() / 86400
+                    (started + timedelta(days=o.duration_days) - discharge_time).total_seconds() / 86400
                 )
                 if remaining > 0:
                     out.append(

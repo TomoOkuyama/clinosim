@@ -1811,6 +1811,7 @@ def _start_complication_treatment(
     from clinosim.simulator.complication_actions import (
         is_therapeutic_anticoagulant_order,
         renal_decision,
+        step_down_candidates,
         treatment_candidates,
         treatment_severity,
     )
@@ -1947,6 +1948,55 @@ def _start_complication_treatment(
                         order.duration_days = spec.lead_in_days
                 gated.extend(accepted_oral)
             break
+    if spec.step_down is not None and spec.course_days:
+        # Issue #3896: the oral step-down is ordered with the IV course and given
+        # from its end until ``total_days`` after the onset.
+        for index, entry in enumerate(step_down_candidates(action, stay.country_key)):
+            decided = renal_decision(entry.get("renal_adjustment"), crcl)
+            if decided == "avoid":
+                continue
+            oral = [
+                replace(
+                    o,
+                    administer_from=when + timedelta(days=spec.course_days),
+                    duration_days=spec.step_down.total_days - spec.course_days,
+                )
+                for o in protocol_medication_orders(
+                    {**entry, "dose": decided} if decided else entry,
+                    order_id=(
+                        f"ORD-{stay.encounter_id}{COMPLICATION_TREATMENT_ORDER_ID_MARKER}"
+                        f"D{day}-{sanitize_id_token(comp_name, 12)}-{len(candidates_of) + index}"
+                    ),
+                    encounter_id=stay.encounter_id,
+                    patient_id=stay.patient.patient_id,
+                    country=stay.country_key,
+                    ordered_datetime=when,
+                    ordered_by=stay.attending_id,
+                    urgency="urgent",
+                    order_set="",
+                )
+            ]
+            for order in oral:
+                order.clinical_intent = t(f"{intent_key}_step_down", "en", day=day, complication=complication["en"])
+                order.clinical_intent_ja = t(f"{intent_key}_step_down", "ja", day=day, complication=complication["ja"])
+                if crcl is not None:
+                    order.renal_crcl_ml_min = round(crcl, 1)
+            iv_names = {o.display_name for o in gated}
+            gated.extend(
+                apply_drug_safety_gate_to_orders(
+                    oral,
+                    patient=stay.patient,
+                    encounter_id=stay.encounter_id,
+                    ordered_datetime=when,
+                    attending_id=stay.attending_id,
+                    protocol=stay.protocol,
+                    country=stay.country_key,
+                    already_accepted_meds=[
+                        *(m.drug_name for m in stay.patient.current_medications or [] if m.drug_name),
+                        *(a for a in accepted if a not in iv_names),
+                    ],
+                )
+            )
     run.orders.extend(gated)
     run.mars.extend(
         _generate_mar(

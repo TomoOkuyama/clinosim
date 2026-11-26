@@ -3915,6 +3915,9 @@ order_intent:
   complication_ppi:
     ja: "第{day}病日 {complication}の発症に対しプロトンポンプ阻害薬の静脈内投与を開始"
     en: "Day {day}: intravenous proton pump inhibitor started for {complication}"
+  complication_ppi_step_down:
+    ja: "第{day}病日 {complication}の発症に対し静脈内投与の終了後に経口プロトンポンプ阻害薬へ切り替え"
+    en: "Day {day}: oral proton pump inhibitor after the intravenous course for {complication}"
   complication_anticoagulant_hold:
     ja: "第{day}病日 {complication}の発症に対し抗凝固薬を中止"
     en: "Day {day}: anticoagulant stopped for {complication}"

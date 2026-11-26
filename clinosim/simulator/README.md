@@ -208,7 +208,9 @@ clinosim/simulator/
                          `hold_anticoagulation` writes a stop marker per running
                          anticoagulant and for the planned prophylaxis (the doses after it
                          are cut after the stay by `order/supersede.py`); `IV_PPI` orders
-                         the gastrointestinal-bleeding protocol's IV PPI for 3 days; staff
+                         the gastrointestinal-bleeding protocol's IV PPI for 3 days and its
+                         oral PPI from then until 2 weeks after the onset (the rest
+                         continues at discharge, Issue #3896); staff
                          draws use `complication_treatment_seed`; C. difficile colitis
                          (Issue #3864): `start_oral_vancomycin` (authored in the reference data
                          by country and severity, Issue #3896: Japan metronidazole 500 mg TID x10 days

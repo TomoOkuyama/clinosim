@@ -165,3 +165,66 @@ def test_the_stop_marker_says_no_replacement_antibiotic_is_ordered(monkeypatch) 
     assert "代わりの抗菌薬は発注しない" in marker.clinical_intent_ja
     # the hold of an anticoagulant keeps its own wording
     assert "replacement" not in dl.t("order_intent.complication_anticoagulant_hold", "en", day=4, complication="x")
+
+
+_GI = ("hold_anticoagulation", "IV_PPI", "GI_consult")
+
+
+@pytest.mark.parametrize(("country", "drug", "dose"), [("us", "pantoprazole", 40.0), ("japan", "omeprazole", 20.0)])
+def test_the_iv_ppi_steps_down_to_the_protocols_oral_ppi_after_the_iv_course(monkeypatch, country, drug, dose) -> None:
+    stay, run = _stay(country), _run(creatinine=0.9)
+    _fire(monkeypatch, stay, run, "gi_bleeding", _GI)
+    bolus, infusion, oral = _meds(run, "ppi")
+    assert (bolus.drug_id, bolus.route, infusion.duration_days) == (drug, "IV", 3)
+    assert (oral.drug_id, oral.route, oral.dose_quantity, oral.dose_unit, oral.frequency) == (
+        drug,
+        "PO",
+        dose,
+        "mg",
+        "DAILY",
+    )
+    # given from the end of the 3-day IV course, until 2 weeks after the onset
+    assert oral.administer_from == ONSET_ORDER + timedelta(days=3)
+    assert oral.administer_from + timedelta(days=oral.duration_days) == ONSET_ORDER + timedelta(days=14)
+    assert not _given(run, oral), "no oral dose is charted on the onset day"
+    assert oral.status == OrderStatus.PLACED and "-COMPTX-" in oral.order_id
+
+
+def test_the_oral_ppi_course_continues_at_discharge_for_the_rest_of_the_two_weeks(monkeypatch) -> None:
+    from clinosim.simulator.complication_actions import complication_discharge_specs
+
+    stay, run = _stay(), _run(creatinine=0.9)
+    _fire(monkeypatch, stay, run, "gi_bleeding", _GI)
+    specs = complication_discharge_specs(run.orders, "us", discharge_time=ONSET_ORDER + timedelta(days=5))
+    assert [(s["drug_id"], s["route"], s["duration_days"], s["from_complication"]) for s in specs] == [
+        ("pantoprazole", "PO", 9, True)
+    ]
+    assert complication_discharge_specs(run.orders, "us", discharge_time=ONSET_ORDER + timedelta(days=14)) == []
+    # discharged during the IV course: the oral course still ends 14 days after the onset
+    early = complication_discharge_specs(run.orders, "us", discharge_time=ONSET_ORDER + timedelta(days=2))
+    assert [s["duration_days"] for s in early] == [12]
+
+
+def test_the_oral_step_down_is_not_ordered_without_a_ppi_course(monkeypatch) -> None:
+    stay, run = _stay(), _run(creatinine=0.9)
+    _fire(monkeypatch, stay, run, "major_bleeding", ("hold_anticoagulation",))
+    assert not _meds(run, "ppi")
+
+
+def test_the_oral_ppi_intent_says_oral_step_down(monkeypatch) -> None:
+    stay, run = _stay(), _run(creatinine=0.9)
+    _fire(monkeypatch, stay, run, "gi_bleeding", _GI)
+    oral = _meds(run, "ppi")[-1]
+    assert "oral proton pump inhibitor" in oral.clinical_intent and "経口" in oral.clinical_intent_ja
+
+
+def test_a_step_down_must_follow_a_course() -> None:
+    from pydantic import ValidationError
+
+    from clinosim.simulator.complication_actions import TreatmentAction
+
+    base = dict(protocol="gi_bleeding", block="first_line", drug_class="ppi", intent="complication_ppi")
+    with pytest.raises(ValidationError):
+        TreatmentAction(**base, step_down={"route": "PO", "total_days": 14})  # no IV course to follow
+    with pytest.raises(ValidationError):
+        TreatmentAction(**base, course_days=3, step_down={"route": "PO", "total_days": 3})
