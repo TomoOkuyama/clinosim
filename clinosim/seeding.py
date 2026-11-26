@@ -557,6 +557,14 @@ def guardian_contact_seed(person_id: str, date_of_birth: str) -> int:
     return _digest_int(f"clinosim:guardian-contact:v1|{person_id}|{date_of_birth}", 6) % (2**32)
 
 
+def guardian_contact_phone_seed(person_id: str, date_of_birth: str) -> int:
+    """Per-person seed of a minor's parent-contact phone number, in
+    ``[0, 2**32)`` (Issue #3832). Own salt, so the number is stable across a
+    person's records and neither the parent-contact draw
+    (:func:`guardian_contact_seed`) nor any other stream moves."""
+    return _digest_int(f"clinosim:guardian-contact-phone:v1|{person_id}|{date_of_birth}", 6) % (2**32)
+
+
 def marital_status_seed(person_id: str, date_of_birth: str) -> int:
     """Per-person seed of the marital-status draw, in ``[0, 2**32)`` (Issue
     #3189). Keyed like :func:`emergency_contact_seed`; separate from the

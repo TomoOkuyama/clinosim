@@ -521,15 +521,17 @@ def _baseline_spo2_mean_and_ceiling(age_months: int) -> tuple[float, float]:
     return BASELINE_SPO2_MEAN, BASELINE_SPO2_CEILING
 
 
-def _emergency_contact_phone(person: PersonRecord, country: str) -> str:
-    """The adult emergency contact's own mobile number (Issue #3695): drawn
-    from the country's mobile pattern with a stream seeded by the person id
-    and birth date, so every record of the person carries the same number."""
+def _emergency_contact_phone(person: PersonRecord, country: str, *, guardian: bool = False) -> str:
+    """The emergency contact's own mobile number (Issue #3695): drawn from the
+    country's mobile pattern with a stream seeded by the person id and birth
+    date, so every record of the person carries the same number. A minor's
+    parent contact (``guardian``, Issue #3832) uses a stream of its own."""
     from clinosim.locale.loader import load_addresses
     from clinosim.modules.population._identity import _generate_phone
-    from clinosim.seeding import emergency_contact_phone_seed
+    from clinosim.seeding import emergency_contact_phone_seed, guardian_contact_phone_seed
 
-    rng = determinism.default_rng(emergency_contact_phone_seed(person.person_id, str(person.date_of_birth)))
+    seed_fn = guardian_contact_phone_seed if guardian else emergency_contact_phone_seed
+    rng = determinism.default_rng(seed_fn(person.person_id, str(person.date_of_birth)))
     return _generate_phone(load_addresses(country), "mobile", rng)
 
 
@@ -883,7 +885,7 @@ def activate_patient(
                 _minor_rels, person.sex, name.family_name, country, _guardian_rng
             )
             person.guardian_contact_name = guardian_name = g_name
-            person.guardian_contact_phone = guardian_phone = phone_home or phone_mobile
+            person.guardian_contact_phone = guardian_phone = _emergency_contact_phone(person, country, guardian=True)
             person.guardian_contact_relationship = g_rel
             person.guardian_contact_sex = g_sex
             person.guardian_contact_role = _marital.contact_role_code(g_rel, g_sex)
