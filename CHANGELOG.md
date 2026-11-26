@@ -39,7 +39,34 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Highlights
+
+About 105 commits since v0.7.3, from a review of the v0.7.3 sample cohorts (a whole-cohort aggregate review and a per-patient review per country) and the slow end-to-end tests. The entries below were written as the changes landed; this summary lists the main areas.
+
+- **Clinical course.** Treated infections now settle: a finding's likelihood ratio counts once per stay, so a treated bacterial pneumonia keeps its diagnosis, and a recovering patient's temperature settles before CRP; a still-febrile patient is not sent home at the extension cap. Oxygen is titrated in steps both ways, complications that require intubation or non-invasive ventilation act on the stay, acute kidney injury is dated at the first diagnostic creatinine, renally cleared antibiotics and home NSAIDs follow the kidneys, and drug courses stop at their stated length.
+- **Delivery, newborn and immunization records.** Delivery stays carry obstetric content, complication data and blood loss; postpartum visits record an EPDS screen; newborns carry their sampled anthropometrics, bilirubin trajectory and P-chapter conditions; vaccines are kept off febrile visits, flu doses follow the two-dose rule for young children, and ED tetanus doses are Immunizations.
+- **FHIR output.** Questionnaire scores are not laboratory results, HAI Conditions are encounter diagnoses, in-progress encounters carry no discharge disposition, timestamps are whole seconds, and ED-phase resources belong to the ED encounter.
+- **Code catalogs.** Every export writes the catalog of the codes it uses, and `clinosim catalog-codes` lists every code a release can emit; the release attaches both country catalogs.
+
+### CIF drift (why this release is numbered as a PATCH)
+
+Many of the fixes below change structured CIF for the same `(seed, hospital_config, country, start, end, population)` and are marked "CIF drift, a MINOR-class change". Under the versioning policy above this release would be a MINOR bump; it is numbered 0.7.4 by maintainer decision, as a corrective release of the v0.7.3 cohort review. CIF ↔ narrative-CIF consistency is broken all the same: narrative CIF generated with v0.7.3 must be regenerated (`narrate`) against structured CIF from v0.7.4.
+
+### Added
+
+- Every postpartum (Z39) visit records one Edinburgh Postnatal Depression Scale total score as a survey Observation (LOINC 99046-5), drawn from a dedicated sub-seed of the encounter id so no other RNG stream moves; the positive rate and cut-off are per country in `perinatal.yaml` (US 14.0% at 10 or more, JP 13.9% at 9 or more), the postpartum SOAP states the score, and a positive screen adds a referral and follow-up plan line. CIF drift (a new screening Observation per postpartum visit), a MINOR-class change (#3751).
+- `clinosim simulate` and the FHIR export write `catalog/codes-used.ndjson` next to `fhir_r4/`, a catalog of every code the dataset uses (kinds: medication per route, lab, vital sign, nursing score, observation, imaging, diagnosis, procedure, document type, organism, vaccine, allergen) with counts and patient numbers, and `cif/metadata.json` points at it as `used_codes_catalog` (#3762).
+- New command `clinosim catalog-codes --country US|JP -o FILE` lists every code the installed version can emit in the format of the used-codes catalog (without count and patients), and the release workflow attaches both country files to the GitHub Release and appends the codes added, removed and changed since the previous release to the release notes (#3763).
+
 ### Fixed
+
+- A recovering patient's temperature now settles with the inflammation: below inflammation 0.5 the fever lift grows with its square instead of linearly (3 C per unit inflammation all the way down), so a treated pneumonia whose CRP is near normal no longer keeps charting 38 C and is no longer held for a week by the febrile discharge gate; at or above 0.5 the lift is unchanged, so presenting fevers stay as before. CIF drift (vital-sign temperature and every value that follows it), a MINOR-class change (#3818).
+- A finding's likelihood ratio is counted once per differential, at its first result (`DifferentialDiagnosis.applied_findings` records the names), instead of being re-applied each day a test repeats, so falling CRP and WBC under antibiotics no longer turn a treated bacterial pneumonia into a viral pneumonia by day 4 with a treatment effectiveness of 0.17 and two febrile weeks. CIF drift (working diagnosis, treatment course and length of stay), a MINOR-class change (#3820).
+- A death after the snapshot date is not known to the record wherever it happens: the vital-status cutoff now applies to every death place, so an in-hospital death after the snapshot leaves the stay in progress and the patient without a death flag, date or datetime; a death inside the window is unchanged. CIF drift, a MINOR-class change (#3759).
+- An Encounter that has not ended no longer carries `hospitalization.dischargeDisposition`, so a current inpatient no longer reads as discharged or dead (#3760).
+- The hospital-acquired infection Condition is now listed in `Encounter.diagnosis` as a complication (`CM`) entry ranked after the other diagnoses; it was the one encounter-diagnosis Condition no Encounter referenced (#3761).
+- PHQ-9, GAD-7, C-SSRS and EPDS total scores are no longer built as laboratory results: the Observation has no analyzer method and no companion blood Specimen, its ServiceRequest and DiagnosticReport are evaluation procedures (SNOMED 386053000) without a laboratory profile (#3802).
+- A questionnaire-score Observation carries its LOINC instrument code only, with no JP-CLINS uncoded or local-code coding and no laboratory profile, and is performed by the orderer, else the attending of the Encounter (no performer when neither exists), instead of the laboratory technician; laboratory results and `jp_clins_lab_compliance` are unchanged (#3807).
 
 - A child's per-kg prescription is dosed from the weight charted at the prescribing visit (the weight Observation of the same encounter) instead of the profile weight, so "432mg (45mg/kg)" no longer overdoses a young infant (#3636).
 - A patient who is still febrile is no longer discharged home at the extension cap: a fever has its own, longer cap (`fever_max_extension_days`), a patient still febrile at that cap is discharged to a skilled nursing facility, and the discharge instructions name the unresolved fever (#3637).

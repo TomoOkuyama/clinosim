@@ -165,7 +165,7 @@ Quality check generated data against published benchmarks.
 ## `clinosim list-diseases`
 
 Show all 36 inpatient disease protocols
-(`clinosim/modules/disease/reference_data/*.yaml`) + 51 ED /
+(`clinosim/modules/disease/reference_data/*.yaml`) + 52 ED /
 outpatient encounter conditions
 (`clinosim/modules/encounter/reference_data/*.yaml`).
 

@@ -69,6 +69,8 @@ output/fhir_r4/
 
 Each line = 1 FHIR resource. `Resource.id` is unique across all resource types. Reference integrity is maintained.
 
+Every export also writes `output/catalog/codes-used.ndjson` next to `fhir_r4/` (never inside it) — see [Used-codes catalog](#used-codes-catalog).
+
 `DocumentReference.ndjson` is emitted whenever `--narrative-version`
 resolves to a version directory (default: `current`, backed by the
 `current_version.txt` pointer that Stage 1's `TemplateNarrativePass`

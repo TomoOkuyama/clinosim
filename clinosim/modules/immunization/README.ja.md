@@ -153,12 +153,12 @@ in-progress snapshot でのバックデート出力を防ぐ。
    窓 (`age_days_min`〜`age_days_max`) の外へは snap しない。engine が同じ日に
    した回 (同じ well-child 受診で同時期の乳児系列) は全て同じ受診へまとめて
    動かし、動かせなければ全て元の日のまま残す (Issue #3567)。急性疾患の受診・発熱のある
-受診にも snap しない (Issue #3655): 小児受診の `visit_condition_id` が小児
-スケジュールの `presentations` のいずれか
-(`pediatric.calendar.is_acute_illness_condition`)、または当日の体温が
-`reference_data/vaccination_precautions.yaml` の `febrile_celsius` (38.0 C) 以上の
-受診 (`enricher.acute_visit_encounter_ids`)。その接種は well・予防接種・
-フォローアップ受診に付くか、無ければ専用の `ENC-VAX-*` 受診になる。
+   受診にも snap しない (Issue #3655): 小児受診の `visit_condition_id` が小児
+   スケジュールの `presentations` のいずれか
+   (`pediatric.calendar.is_acute_illness_condition`)、または当日の体温が
+   `reference_data/vaccination_precautions.yaml` の `febrile_celsius` (38.0 C) 以上の
+   受診 (`enricher.acute_visit_encounter_ids`)。その接種は well・予防接種・
+   フォローアップ受診に付くか、無ければ専用の `ENC-VAX-*` 受診になる。
 
 救急外来で行った破傷風トキソイド (1 回限りの指示で ED が投与を記録) も
 Immunization にする (Issue #3685): `enricher.ed_vaccine_doses` が、
@@ -229,7 +229,7 @@ Z26.9)。FHIR の Encounter・Procedure の `reasonCode` がこれを使い、US
     確率。silent no-show と区別された、記録された拒否 / 延期を表す。
     `annual` / `every_n_years` / `pediatric_series` ブランチと母体
     Tdap に適用。`once` ブランチにも適用 (#2207)。
-- Locale schedule (本 module の `reference_data/` は `vaccination_precautions.yaml` のみ):
+- Locale schedule (本 module の `reference_data/` は `ed_vaccine_doses.yaml`・`vaccination_visit.yaml`・`vaccination_precautions.yaml`):
   - [`clinosim/locale/us/immunization_schedule.yaml`](../../locale/us/immunization_schedule.yaml)
     — CDC ACIP schedule。現状 18 エントリ: 成人 5 (Influenza,
     COVID-19 mRNA, PPSV23, Tdap, RZV Shingrix) + 小児 13
@@ -278,7 +278,7 @@ clinosim/modules/immunization/
 ```
 
 **`audit.py` は存在しない** — 国別スケジュールは `clinosim/locale/` 配下にあり
-(本 module の `reference_data/` は接種の注意事項のみ)、`ModuleAuditSpec` は登録して
+(本 module の `reference_data/` は ED のワクチン薬、予防接種受診の所要時間、接種の注意事項のみ)、`ModuleAuditSpec` は登録して
 いない。検証は下記 test で担保。
 
 ## Enricher 配線

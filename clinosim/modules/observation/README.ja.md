@@ -250,7 +250,9 @@ clinosim/modules/observation/
 
 - **`nursing`** — `stage=POST_RECORDS`, `order=20`, always-on。entry
   は `clinosim.modules.observation.nursing_enricher.enrich_nursing`。
-  各 vital record に NEWS2 + GCS を埋め、日次 Braden + Morse を生成。
+  各 vital record に GCS を、完全な vital セット (`nursing_scores.yaml` の
+  `news2.required_inputs` が全て記録されたもの。体温のみの再測定や HR/SpO2
+  モニタ行は対象外、Issue #3644) に NEWS2 を埋め、日次 Braden + Morse を生成。
 
 [`clinosim.modules.nursing`](../nursing/README.ja.md) が登録する
 `nursing_assignment` enricher (POST_ENCOUNTER order=94) は別 enricher。

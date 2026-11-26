@@ -49,7 +49,7 @@ clinosim/
 │
 ├── modules/                  # 機能モジュール (38 パッケージ、各 README 有)
 │   ├── disease/              # 疾患 YAML プロトコル
-│   ├── encounter/            # 51 ED/外来症例 YAML
+│   ├── encounter/            # 52 ED/外来症例 YAML
 │   ├── physiology/           # 19 変数の状態モデル + lab/vital 導出
 │   ├── clinical_course/      # 6 archetype + 合併症 + 診断フィードバック
 │   ├── diagnosis/            # ベイジアン鑑別 (LR table)

@@ -262,7 +262,7 @@ encounter documents).
     deferrals, distinct from silent no-shows. Applied in every
     scheduling branch (`annual`, `every_n_years`, `once`,
     `pediatric_series`) and to maternal Tdap (`once` since #2207).
-- Locale schedules (the module's `reference_data/` holds only `vaccination_precautions.yaml`):
+- Locale schedules (the module's `reference_data/` holds `ed_vaccine_doses.yaml`, `vaccination_visit.yaml` and `vaccination_precautions.yaml`):
   - [`clinosim/locale/us/immunization_schedule.yaml`](../../locale/us/immunization_schedule.yaml)
     — CDC ACIP schedule. Currently 18 entries: 5 adult (Influenza,
     COVID-19 mRNA, PPSV23, Tdap, RZV Shingrix) + 13 paediatric
@@ -312,8 +312,9 @@ clinosim/modules/immunization/
 ```
 
 The module has **no `audit.py`** — country schedules live under
-`clinosim/locale/` (the module's own `reference_data/` holds only the
-vaccination precautions), and no
+`clinosim/locale/` (the module's own `reference_data/` holds only the ED
+vaccine doses, the vaccination-visit duration and the vaccination
+precautions), and no
 `ModuleAuditSpec` is registered. Verification lives in the tests
 below.
 

@@ -41,6 +41,10 @@ count only its initial order set (`order_set == "admission_initial"`,
 the ED orders) and the vitals cap reads only the arrival set. Other
 encounters are a no-op.
 
+For such a stay the enricher also records the ED nurse who measured the
+arrival vitals as `Encounter.triage_nurse_id`; that nurse authors the
+triage note (Issue #3703).
+
 ## Scope
 
 - **In scope**: `triage_enricher` (POST_ENCOUNTER order=93,

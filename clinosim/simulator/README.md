@@ -210,6 +210,9 @@ clinosim/simulator/
   enrichers.py           enricher registry (post-population / post-encounter / post-records)
   outpatient_dept.py     outpatient follow-up department resolver
   perinatal.py           delivery encounter + newborn emission (the mother's discharge Rx = analgesics + her maintenance home medications)
+  _perinatal_complications.py  what a delivery complication leaves in the record: the
+                         blood-pressure override, lab results and drug orders from
+                         `perinatal.yaml complications.effects` (Issues #3661/#3662)
   complications.py       complication-event schema helpers
   sex_gating.py          sex-gating for ICD-10 diagnosis dispatch
   unknown_condition.py   handling for chronic conditions without a
@@ -301,7 +304,7 @@ Helpers (2 files):
   enumerate.py           exhaustive enumeration mode (`clinosim enumerate`)
 ```
 
-CLI subcommand handlers (11 files):
+CLI subcommand handlers (12 files):
 
 ```
   cli_common.py          shared CLI utilities
@@ -315,6 +318,7 @@ CLI subcommand handlers (11 files):
   cli_regenerate.py      `clinosim regenerate-goldens` subcommand
   cli_test_disease.py    `clinosim test-disease` subcommand
   cli_test_encounter.py  `clinosim test-encounter` subcommand
+  cli_catalog_codes.py   `clinosim catalog-codes` subcommand (catalog of every code a release can emit, Issue #3763)
 ```
 
 Reference data (`reference_data/`, 22 YAMLs):

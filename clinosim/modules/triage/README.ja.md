@@ -37,6 +37,10 @@ FHIR 出力が ED bridge Encounter に載せられるよう
 ED の order) のみを数え、vitals 上限は来院時セットのみを読む。その他の
 encounter は no-op。
 
+この入院では、enricher は来院時バイタルを測定した ED 看護師を
+`Encounter.triage_nurse_id` にも記録し、その看護師がトリアージ記録の
+著者になる (Issue #3703)。
+
 ## Scope
 
 - **In scope**: `triage_enricher` (POST_ENCOUNTER order=93、ED

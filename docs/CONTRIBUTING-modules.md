@@ -590,7 +590,7 @@ AGENTS.md: "All types defined in `clinosim/types/`").
 `disease/protocol.py` is the correct reference:
 `DiseaseProtocol(BaseModel)` is loaded via
 `load_disease_protocol()` with `model_validate()`.
-`encounter/protocol.py` follows the same pattern for the 51
+`encounter/protocol.py` follows the same pattern for the 52
 encounter-condition YAMLs (`EncounterConditionProtocol`; a
 validation failure is re-raised with the offending filename). **Wrap
 every new YAML protocol in Pydantic** with

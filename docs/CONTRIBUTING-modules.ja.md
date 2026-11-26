@@ -306,7 +306,7 @@ def generate_lab_result(lab_name: str, true_value: float,
 
 `disease/protocol.py` が正しい手本です。`DiseaseProtocol(BaseModel)` を `load_disease_protocol()` で `model_validate()` します。
 
-`encounter/protocol.py` も 51 の encounter condition YAML に対して同じパターンに従います (`EncounterConditionProtocol`、validation 失敗は該当ファイル名付きで re-raise)。**新規 YAML protocol は必ず Pydantic でラップ** し、`ConfigDict(extra="forbid")` で YAML の全キーを宣言してください (開いたマップは型付きの `dict[str, X]` フィールドにし、`extra="allow"` は使わない)。bare `except` 禁止。
+`encounter/protocol.py` も 52 の encounter condition YAML に対して同じパターンに従います (`EncounterConditionProtocol`、validation 失敗は該当ファイル名付きで re-raise)。**新規 YAML protocol は必ず Pydantic でラップ** し、`ConfigDict(extra="forbid")` で YAML の全キーを宣言してください (開いたマップは型付きの `dict[str, X]` フィールドにし、`extra="allow"` は使わない)。bare `except` 禁止。
 
 ### `__init__.py` で public API を明示する
 

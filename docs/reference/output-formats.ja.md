@@ -77,6 +77,8 @@ output/fhir_r4/
 各行 = 1 FHIR リソース。`Resource.id` は全 resource type 横断で一意。
 Reference integrity を維持。
 
+全ての export は `fhir_r4/` の隣 (内側ではない) に `output/catalog/codes-used.ndjson` も書く — [使用コードカタログ](#使用コードカタログ) 参照。
+
 `DocumentReference.ndjson` は `--narrative-version` が version
 ディレクトリに解決される時 (default: `current`、Stage 1 の
 `TemplateNarrativePass` が維持する `current_version.txt` ポインタ

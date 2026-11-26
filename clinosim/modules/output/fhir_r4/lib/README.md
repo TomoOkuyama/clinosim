@@ -64,7 +64,9 @@ rename).
   - `fhir_time.py` — FHIR date / dateTime / instant formatting
     (`to_fhir_date`, `to_fhir_datetime`, `to_fhir_instant`,
     `tz_suffix_for_country`, `derive_meta_last_updated`) with
-    `_JST_TZ_SUFFIX = "+09:00"` / `_UTC_TZ_SUFFIX = "Z"`.
+    `_JST_TZ_SUFFIX = "+09:00"` / `_UTC_TZ_SUFFIX = "Z"`. Emitted
+    timestamps are truncated to whole seconds (`truncate_fraction`, never
+    rounded; Issue #3698).
   - `localization.py` — EN / JA text localisation dispatch
     (`localize_drug_name`, `localize_fixed_label`, `code_lookup`,
     and re-exports of the free-text translator, which now lives in

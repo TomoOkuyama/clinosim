@@ -414,7 +414,7 @@ Run `pytest tests/unit/test_diagnosis_code_coverage.py` — green means coverage
 
 ## Encounter (ED/outpatient) protocol YAML files
 
-Located at `clinosim/modules/encounter/reference_data/`. 51 conditions covering ED visits and outpatient encounters.
+Located at `clinosim/modules/encounter/reference_data/`. 52 conditions covering ED visits and outpatient encounters.
 
 Adding a new encounter type:
 
