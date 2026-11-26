@@ -74,7 +74,7 @@ class DoseReduction(BaseModel):
     weight_kg_at_most: float = Field(gt=0)
     interacting_drugs: tuple[_Slug, ...] = ()
     dose: _Slug
-    dose_ja: _Slug
+    dose_text: dict[_Slug, _Slug]
 
 
 class StepDown(BaseModel):

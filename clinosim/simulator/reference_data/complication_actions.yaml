@@ -318,4 +318,4 @@ dose_reductions:
     weight_kg_at_most: 60
     interacting_drugs: [verapamil, erythromycin, ciclosporin]
     dose: "30mg PO daily"
-    dose_ja: "30mg 1日1回 経口"
+    dose_text: {en: "30mg PO daily", ja: "30mg 1日1回 経口"}
