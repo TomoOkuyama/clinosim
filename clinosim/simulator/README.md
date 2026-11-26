@@ -232,6 +232,8 @@ clinosim/simulator/
                          conditions (dementia CDR stage)
   statin_monitoring.py   lipid monitoring + statin titration at chronic
                          follow-up visits
+  sleep_study.py         apnea-hypopnea index of the baseline polysomnography of an OSA patient
+                         (Issue #3837)
   diagnosis_rules.py     diagnosis-coding rule tables of the encounter
                          simulators (loads reference_data/diagnosis_rules.yaml)
   chronic_reconcile.py   makes a patient's chronic-condition onsets agree with their encounters (Issue #3263)
@@ -336,6 +338,7 @@ Reference data (`reference_data/`, 22 YAMLs):
   reference_data/permissive_hypertension_hold.yaml  antihypertensives held during permissive hypertension while SBP is below the limit (permissive_hypertension.py)
   reference_data/renal_medication_rules.yaml  renal dosing rules (medication_pipeline.py, discharge_rx.py)
   reference_data/renal_antibiotic_dosing.yaml  antibiotic renal dose bands (renal_antibiotic_dose.py)
+  reference_data/sleep_study.yaml             AHI severity bands of the polysomnography result (sleep_study.py)
   reference_data/statin_monitoring.yaml       lipid monitoring / statin titration (statin_monitoring.py)
   reference_data/vasoactive_hold.yaml         drugs held during vasopressor / inotrope infusions (medication_pipeline.py)
   reference_data/complication_actions.yaml    canonical complication action keys and the empirical-regimen protocol of each infectious complication (complication_actions.py)

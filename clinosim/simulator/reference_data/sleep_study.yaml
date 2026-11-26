@@ -1,0 +1,37 @@
+# The result of the baseline polysomnography of a patient with obstructive
+# sleep apnea (Issue #3837), read by simulator/sleep_study.py.
+#
+# The study is the one-time Procedure of chronic_followup.yaml (G47.30,
+# SNOMED 60554003). The visit that records it also records the study's
+# apnea-hypopnea index (AHI, events per hour of sleep) as a lab-pipeline
+# result (lab name AHI, LOINC 69990-0), in the severity band of the patient's
+# OSA condition.
+#
+# Severity bands: the AHI classification of obstructive sleep apnea, read in
+# the abstract of PMID 42657971 (Europe PMC record, 2026, "Agreement between
+# apnea-hypopnea index and hypoxic burden for severity classification of
+# obstructive sleep apnea"): "OSA severity by AHI was categorized as normal
+# (<5 events/hour), mild (5 to <15), moderate (15 to <30), or severe (>=30)."
+# The upper end of the severe band is a MODEL CHOICE (no source read gives a
+# maximum); within a band the AHI is uniform (also a model choice, the
+# data carry no AHI distribution). The patient's severity is the condition's
+# `severity` field (mild / moderate / severe); a condition with another or no
+# severity gets no AHI: an empty result is ignorance, a guessed one is false.
+metadata:
+  kind: reference
+  name: sleep_study
+  source: clinosim
+
+analyte: AHI
+# chronic_followup.yaml procedure (SNOMED code) the result belongs to.
+procedure_snomed: "60554003"
+# Chronic condition (ICD-10 prefix) whose severity sets the band.
+condition_prefix: "G47.3"
+# An AHI at or above this is abnormal (the normal band of the same source is
+# below 5 events/hour): the result is flagged H.
+abnormal_from: 5.0
+# [low, high) events per hour.
+severity_bands:
+  mild: [5.0, 15.0]
+  moderate: [15.0, 30.0]
+  severe: [30.0, 60.0]

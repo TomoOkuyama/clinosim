@@ -209,6 +209,7 @@ clinosim/simulator/
                          受診 (workup + スクリーニング検査)
   adl_ceiling.py         病期つき慢性疾患 (認知症 CDR 病期) による
                          病前 Barthel 項目上限
+  sleep_study.py         OSA 患者の初回ポリソムノグラフィーの無呼吸低呼吸指数 (Issue #3837)
   statin_monitoring.py   慢性疾患フォローアップでの脂質モニタリング +
                          スタチン調整
   diagnosis_rules.py     エンカウンターシミュレータの診断コーディング規則表
@@ -311,6 +312,7 @@ CLI サブコマンドハンドラ (12 ファイル):
   reference_data/permissive_hypertension_hold.yaml  許容性高血圧の間、収縮期血圧が上限未満なら保留する降圧薬 (permissive_hypertension.py)
   reference_data/renal_medication_rules.yaml  腎機能別投与規則 (medication_pipeline.py, discharge_rx.py)
   reference_data/renal_antibiotic_dosing.yaml  抗菌薬の腎機能別用量区分 (renal_antibiotic_dose.py)
+  reference_data/sleep_study.yaml             ポリソムノグラフィー結果の AHI 重症度帯 (sleep_study.py)
   reference_data/statin_monitoring.yaml       脂質モニタリング / スタチン調整 (statin_monitoring.py)
   reference_data/vasoactive_hold.yaml         昇圧薬・強心薬の持続投与中に保留する薬 (medication_pipeline.py)
   reference_data/complication_actions.yaml    合併症アクションの正規キーと、感染性合併症ごとの経験的治療プロトコル (complication_actions.py)

@@ -14,6 +14,8 @@ dispatcher (`coding_strategy`)。
 する。`Specimen.receivedTime` は採取時刻 +
 `observation.microbiology.specimen_transport_minutes`。
 
+ポリソムノグラフィーの無呼吸低呼吸指数 (`lib/common.py` の `PROCEDURE_RESULT_ANALYTES`: AHI、Issue #3837) は category `procedure` の Observation で、同様に `specimen`・分析器 `method`・検査用 profile を持たない。ServiceRequest は評価手技、DiagnosticReport はポリソムノグラフィーの報告書 (LOINC 28633-6) である。
+
 質問票の総合点 (`lib/common.py` の `QUESTIONNAIRE_SCORE_ANALYTES`: PHQ-9・GAD-7・C-SSRS・EPDS、Issue #3802) は `survey` の Observation で、`specimen`・分析器 `method`・companion Specimen を持たない。ServiceRequest と DiagnosticReport も検体検査ではなく評価手技 (SNOMED 386053000) で、レポートに検査用 profile は付けない。
 質問票の総合点は LOINC の評価尺度コードのみで符号化し (JP-CLINS の未標準化コード・ローカルコードや検査用 profile は付けない)、`performer` は検査技師ではなく臨床医 (オーダ医、無ければ Encounter の担当医) とする (Issue #3807)。
 

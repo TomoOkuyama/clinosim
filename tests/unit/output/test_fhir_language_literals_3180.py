@@ -92,7 +92,7 @@ PINNED: dict[tuple[str, str, str], tuple[int, str]] = {
     ("fhir_r4/labs/coding_strategy.py", "registry_display", "en"): (3, ENGLISH_ONLY),
     ("fhir_r4/labs/diagnostic_report.py", "language_slot", "en"): (4, ENGLISH_FALLBACK),
     ("fhir_r4/labs/diagnostic_report.py", "registry_display", "en"): (3, ENGLISH_ONLY),
-    ("fhir_r4/labs/diagnostic_report.py", "system_coding", "en"): (1, ENGLISH_ONLY),
+    ("fhir_r4/labs/diagnostic_report.py", "system_coding", "en"): (2, ENGLISH_ONLY),
     ("fhir_r4/labs/diagnostic_report.py", "_codes_lookup", "en"): (1, ENGLISH_ONLY),
     ("fhir_r4/labs/imaging_study.py", "code_lookup", "en"): (4, ENGLISH_ONLY),
     # jp-document-codes (JP microbiology report) and the Japanese tail marker

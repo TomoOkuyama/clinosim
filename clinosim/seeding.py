@@ -297,6 +297,15 @@ def epds_screening_seed(encounter_id: str) -> int:
     return int.from_bytes(digest, "big") % (2**32)
 
 
+def sleep_study_seed(patient_id: str) -> int:
+    """Per-patient sub-seed in ``[0, 2**32)`` for the apnea-hypopnea index of the
+    baseline polysomnography (Issue #3837), so recording the result moves no
+    other stream."""
+    salt = "clinosim:sleep-study-ahi:v1"
+    digest = hashlib.sha256(f"{salt}|{patient_id}".encode()).digest()[:6]
+    return int.from_bytes(digest, "big") % (2**32)
+
+
 # AD-55 Module enricher sub-seed offsets.
 #
 # Convention (PR1 2026-06-24): new modules MUST use a 16-bit hex ASCII

@@ -60,6 +60,7 @@ from clinosim.simulator.encounter_setup import (
 from clinosim.simulator.lab_pipeline import patient_true_labs, relate_egfr_to_creatinine
 from clinosim.simulator.medication_pipeline import allergy_blocked
 from clinosim.simulator.perinatal import epds_screening_cutoff, sample_epds_score
+from clinosim.simulator.sleep_study import sleep_study_result_order
 from clinosim.types.clinical import ConditionEvent, PhysiologicalState
 from clinosim.types.config import SimulatorConfig
 from clinosim.types.encounter import (
@@ -1413,6 +1414,11 @@ def _simulate_outpatient_visit(
     clinical_diagnosis = encounter_diagnosis(dx_code, country)
 
     procedures_list = _followup_procedures(patient, spec, chronic_code, visit_type, encounter, visit_date, country)
+    # Issue #3837: the baseline polysomnography is reported with its AHI.
+    sleep_study = sleep_study_result_order(patient, encounter, procedures_list, lab_tech_id, _lab_result_offset(spec))
+    if sleep_study is not None:
+        orders.append(sleep_study[0])
+        lab_results.append(sleep_study[1])
     sedation_orders, sedation_mars = _procedural_sedation(
         patient, spec, encounter, visit_date, department_id, roster, rng, opd_nurse_id
     )

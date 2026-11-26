@@ -31,6 +31,7 @@ from clinosim.simulator.oxygen_course import OxygenCourseRules
 from clinosim.simulator.permissive_hypertension import PermissiveHypertensionRules
 from clinosim.simulator.renal_antibiotic_dose import RenalAntibioticDosing
 from clinosim.simulator.sex_gating import SexRestrictionRules
+from clinosim.simulator.sleep_study import SleepStudyRules
 from clinosim.simulator.statin_monitoring import StatinMonitoringRules
 from clinosim.simulator.stroke_onset import StrokeOnsetRules
 from clinosim.simulator.vasoactive_support import VasoactiveWeaningRules
@@ -60,6 +61,7 @@ _MODELS: dict[str, type[BaseModel]] = {
     "permissive_hypertension_hold.yaml": PermissiveHypertensionRules,
     "renal_antibiotic_dosing.yaml": RenalAntibioticDosing,
     "renal_medication_rules.yaml": RenalMedicationRules,
+    "sleep_study.yaml": SleepStudyRules,
     "statin_monitoring.yaml": StatinMonitoringRules,
     "stroke_onset_to_arrival.yaml": StrokeOnsetRules,
     "vasoactive_hold.yaml": VasoactiveHoldRules,
@@ -118,6 +120,7 @@ _NESTED: dict[str, Callable[[dict[str, Any]], None]] = {
     "permissive_hypertension_hold.yaml": lambda d: d["held_classes"].append("antihypertensives"),
     "renal_antibiotic_dosing.yaml": lambda d: d["drugs"]["meropenem"]["US"]["bands"][0].update(dose_factr=0.5),
     "renal_medication_rules.yaml": lambda d: d["renal_drugs"].update(metformin="hld"),
+    "sleep_study.yaml": lambda d: d.update(abnormal_from="high"),
     "statin_monitoring.yaml": lambda d: _rename(d["countries"]["US"]["step_up_ldl"][0], "ldl_mg_dl", "ldl_mgdl"),
     "stroke_onset_to_arrival.yaml": lambda d: d["countries"]["us"].update(median_minute=155),
     "vasoactive_hold.yaml": lambda d: d["held_classes"].append("antihypertensives"),

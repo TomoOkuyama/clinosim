@@ -176,6 +176,8 @@ precision:
   "C-SSRS": 0
   # Issue #3751 — EPDS total score is an integer 0-30 (10 items x 0-3 points).
   "EPDS": 0
+  # Issue #3837 - the apnea-hypopnea index of a polysomnography, one decimal.
+  "AHI": 1
   # Issue #2138: toxicology screen (integer reporting).
   Ethanol: 0
   Acetaminophen_level: 0
@@ -274,6 +276,8 @@ units:
   "GAD-7": "{score}"
   # Issue #3751 — EPDS total score, same UCUM "{score}" convention.
   "EPDS": "{score}"
+  # Issue #3837 - AHI, events per hour of sleep (the UCUM unit LOINC 69990-0 lists).
+  "AHI": "{events}/h"
   # Issue #1137 — mental-health cluster axis 7: Columbia Suicide
   # Severity Rating Scale ideation severity (C-SSRS score 0-5).
   # 0 = no ideation; 1 = wish to be dead; 2 = non-specific active
@@ -328,6 +332,8 @@ physiologic_limits:
   "GAD-7": [0.0, 21.0]
   # Issue #3751 — EPDS total score lies in [0, 30] (10 items x 3 points).
   "EPDS": [0.0, 30.0]
+  # Issue #3837 - AHI is a non-negative rate; 150 events/h is above any recorded study.
+  "AHI": [0.0, 150.0]
   # Issue #1137 — C-SSRS ideation severity score 0-5 (Posner 2011
   # Am J Psychiatry 168:1266). Scoring-rule invariant: 0 is "no
   # ideation", 5 is the maximum "active ideation with method,
@@ -391,6 +397,8 @@ baseline_normals:
   # Issue #3751 — EPDS fallback baseline only: the postpartum-screen sampler
   # (simulator/perinatal.py) draws the recorded score.
   "EPDS": 4.0
+  # Issue #3837 - AHI fallback only: the sleep-study result (simulator/sleep_study.py) sets the recorded value.
+  "AHI": 2.0
   # Issue #2138: toxicology screen in medical clearance — not detected
   # without an ingestion (reported below the assay's detection limit).
   Ethanol: 0.0

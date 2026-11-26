@@ -46,6 +46,9 @@ __all__ = [
     "survey_category",
     "QUESTIONNAIRE_SCORE_ANALYTES",
     "is_questionnaire_score",
+    "PROCEDURE_RESULT_ANALYTES",
+    "is_procedure_result",
+    "is_instrument_result",
 ]
 
 
@@ -141,6 +144,26 @@ QUESTIONNAIRE_SCORE_ANALYTES = frozenset({"PHQ-9", "GAD-7", "C-SSRS", "EPDS"})
 def is_questionnaire_score(lab_name: str) -> bool:
     """True when the lab-pipeline analyte ``lab_name`` is a questionnaire total score."""
     return lab_name in QUESTIONNAIRE_SCORE_ANALYTES
+
+
+# Results of a procedure scheduled through the lab pipeline, keyed by analyte to
+# the LOINC code of the procedure's report (Issue #3837): the apnea-hypopnea
+# index of a polysomnography (report LOINC 28633-6 "Polysomnography (sleep)
+# study"). FHIR category procedure; like a questionnaire score they carry no
+# specimen, no analyzer method and no laboratory profile, and the order and
+# report are evaluation procedures. The one definition; every builder asks it.
+PROCEDURE_RESULT_ANALYTES: dict[str, str] = {"AHI": "28633-6"}
+
+
+def is_procedure_result(lab_name: str) -> bool:
+    """True when the lab-pipeline analyte ``lab_name`` is the result of a procedure."""
+    return lab_name in PROCEDURE_RESULT_ANALYTES
+
+
+def is_instrument_result(lab_name: str) -> bool:
+    """True when ``lab_name`` is no laboratory (specimen) analyte: a questionnaire
+    score or a procedure result."""
+    return is_questionnaire_score(lab_name) or is_procedure_result(lab_name)
 
 
 def survey_category(lang: str) -> list[dict]:
