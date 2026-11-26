@@ -114,6 +114,7 @@ def _run(orders=None):
         mars=[],
         lab_results=[],
         active_complications=set(),
+        sustained={},
         complications=[],
         vitals=[],
         icu_transferred=False,
