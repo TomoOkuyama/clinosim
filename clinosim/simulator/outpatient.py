@@ -763,15 +763,30 @@ def _acute_visit_prescription(
     items = []
     for spec in presentation.prescriptions:
         names = resolve_drug(spec.drug_id).names
+        chosen = spec
+        if allergy_blocked(
+            patient,
+            names.get("en", ""),
+            encounter_id=encounter.encounter_id,
+            timestamp=visit_date,
+            substituted_with=_allergy_safe_alternative(patient, spec),
+        ):
+            # Ruled out by an active allergy (Issue #3828): the protocol's
+            # alternative, or nothing when it declares none (or that is ruled
+            # out too).
+            if _allergy_safe_alternative(patient, spec) is None:
+                continue
+            chosen = spec.alternative  # type: ignore[assignment]
+            names = resolve_drug(chosen.drug_id).names
         items.append(
             {
                 "drug_name": names.get("en", ""),
                 "drug_name_ja": names.get("ja", "") or names.get("en", ""),
-                "drug_id": spec.drug_id,
-                "dose": spec.dose,
-                "route": spec.route,
-                "frequency": spec.frequency,
-                "duration_days": spec.course_days(age),
+                "drug_id": chosen.drug_id,
+                "dose": chosen.dose,
+                "route": chosen.route,
+                "frequency": chosen.frequency,
+                "duration_days": chosen.course_days(age),
                 "course": ACUTE_COURSE,
             }
         )
@@ -782,6 +797,21 @@ def _acute_visit_prescription(
         issue_date=visit_date,
         items=items,
     )
+
+
+def _allergy_safe_alternative(patient: PatientProfile, spec: Any) -> str | None:
+    """The English name of ``spec``'s declared alternative when the patient's
+    active allergies do not rule it out too, else None."""
+    from clinosim.codes.drugs import resolve_drug
+    from clinosim.modules import drug_safety
+
+    alt = spec.alternative
+    if alt is None:
+        return None
+    name = resolve_drug(alt.drug_id).names.get("en", "")
+    if drug_safety.allergy_skip_verdict(name, getattr(patient, "allergies", None) or []) is not None:
+        return None
+    return name or None
 
 
 def _age_on(patient: PatientProfile, when: datetime) -> int:

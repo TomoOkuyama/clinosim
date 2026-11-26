@@ -300,7 +300,11 @@ encounters:
 #                        a marker of lower-respiratory disease).
 #   prescriptions:       take-home prescription items (a short course). `dose`
 #                        is per dose; `duration_days` is keyed by age band
-#                        (years, clinosim.age_bands keys).
+#                        (years, clinosim.age_bands keys). An optional
+#                        `alternative:` (same keys, no further alternative)
+#                        replaces the item when the child's recorded allergies
+#                        rule the drug out (drug_safety allergy gate); without
+#                        one the item is not prescribed then.
 presentations:
   # AAP 2014 bronchiolitis guideline (Ralston, Pediatrics 2014;134:e1474):
   # supportive care only — no bronchodilator, steroid or antibiotic. Fever is
@@ -330,6 +334,18 @@ presentations:
         route: PO
         frequency: BID
         duration_days: {"0-1": 10, "2+": 7}
+        # Penicillin-allergic child: cefdinir, whose FDA label doses a child
+        # aged 6 months through 12 years with acute bacterial otitis media at
+        # 7 mg/kg every 12 hours or 14 mg/kg every 24 hours for 5 to 10 days
+        # (DailyMed, cefdinir for oral suspension, "Dosage and
+        # Administration"; read 2026-11). Course length follows the amoxicillin
+        # item (the label's upper bound, 10 days, is not exceeded).
+        alternative:
+          drug_id: cefdinir
+          dose: "7mg/kg"
+          route: PO
+          frequency: BID
+          duration_days: {"0-1": 10, "2+": 7}
 
   # The visit reason does not claim a fever (Issue #3654: about 30 % of the
   # visits are afebrile at the visit); most are febrile at the visit. Supportive care (no antibiotic for a viral URI).

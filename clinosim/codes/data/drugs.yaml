@@ -1049,6 +1049,14 @@ drugs:
     codes:
       rxnorm: "83682"
     classes: ["antibiotic.cephalosporin.oral"]
+  cefdinir:
+    # Oral third-generation cephalosporin; RxCUI 25037 (RxNav, ingredient).
+    # Alternative to amoxicillin for acute otitis media in a penicillin-allergic
+    # child (Issue #3828). No YJ code listed: JP emits it in the nocoded slice.
+    names: {en: "Cefdinir", ja: "セフジニル"}
+    codes:
+      rxnorm: "25037"
+    classes: ["antibiotic.cephalosporin.oral"]
   prothrombin_complex_concentrate:
     # NLM canonical EN is "Factor IX complex" (the 4F-PCC product);
     # clinically known as "Prothrombin complex concentrate" / PCC.
