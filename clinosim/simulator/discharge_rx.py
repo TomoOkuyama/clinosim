@@ -591,7 +591,7 @@ def build_discharge_rx(
             )
             if reduced:
                 resolved = {**resolved, "dose": reduced}
-                dose_en, dose_ja = "", dose_rule.dose_ja
+                dose_en, dose_ja = dose_rule.dose_text.get("en", ""), dose_rule.dose_text.get("ja", "")
         items.append(
             {
                 "drug_name": drug_name,
