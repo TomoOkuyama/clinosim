@@ -6,7 +6,7 @@
 
 ```
 output/cif/
-├── metadata.json                             # 生成情報、snapshot_date 等
+├── metadata.json                             # 生成情報、snapshot_date、total_patients、total_records、summary/ と catalog/ へのポインタ
 ├── hospital.json                             # スタッフ roster + 病院設定
 ├── structural/                               # Stage 1 出力 (immutable)
 │   └── patients/
@@ -24,6 +24,7 @@ output/cif/
         └── ...
 ```
 
+- `metadata.json` は `total_patients` (患者の異なり数) と `total_records` (`structural/patients/` のファイル数。患者は encounter episode ごとに 1 ファイルを持つため `total_patients <= total_records`) を持つ。ポインタ `cohort_summary` ([コホートサマリー](#コホートサマリー)) と、FHIR export 後は `used_codes_catalog` も持つ。レコード数を数えていた旧フィールド `total_patients_generated` は削除した。
 - `structural/` はシミュレーションの **immutable な中間形式**。全
   structural FHIR/CSV リソースはこれから派生。
 - `narratives/<version>/documents/` は **narrative レイヤ** — 臨床
@@ -77,7 +78,7 @@ output/fhir_r4/
 各行 = 1 FHIR リソース。`Resource.id` は全 resource type 横断で一意。
 Reference integrity を維持。
 
-全ての export は `fhir_r4/` の隣 (内側ではない) に `output/catalog/codes-used.ndjson` も書く — [使用コードカタログ](#使用コードカタログ) 参照。
+全ての export は `fhir_r4/` の隣 (内側ではない) に `output/catalog/codes-used.ndjson` も書き ([使用コードカタログ](#使用コードカタログ) 参照)、全てのシミュレーションは `output/summary/cohort-summary.json` を書く ([コホートサマリー](#コホートサマリー) 参照)。
 
 `DocumentReference.ndjson` は `--narrative-version` が version
 ディレクトリに解決される時 (default: `current`、Stage 1 の
@@ -116,6 +117,32 @@ output/
 concept のコードを持つ coding はそれぞれ 1 行になる。kind 固有の属性は出力リソースが述べている場合のみ付く: 医薬品は `route_coding` (SNOMED 経路)、`dose_units` (UCUM)、`co_coded` (同じ concept の他の coding。例: RxNorm の製品と成分)、検査系 Observation は `value_types`、`units` (UCUM)、`reference_ranges`、`specimens` (紐づく Specimen の種別)、`components`、画像は `modalities` (DICOM) と `body_sites`。text のみでコードの無い concept は載せない。`MedicationAdministration`・`ServiceRequest`・`DiagnosticReport`・`Composition`・`Specimen` のコードはカタログ対象外。
 
 同じ形式 (`count` と `patients` なし) を [`clinosim catalog-codes`](cli.ja.md#clinosim-catalog-codes--リリースが出力しうる全コード) がリリースの出力しうる全コードについて書く。各リリースは `clinosim-codes-US-<tag>.ndjson` と `clinosim-codes-JP-<tag>.ndjson` を添付し、データセットのコードはその部分集合になる。
+
+### コホートサマリー
+
+全てのシミュレーションは `cif/` の隣 (`fhir_r4/`、`catalog/` と同じ階層) に `summary/cohort-summary.json` も書き、そのパスを `cif/metadata.json` の `cohort_summary` に記録する。CIF レコードだけから計算するため、CIF のみの出力にも FHIR 出力にも存在し、CIF の一部ではない。決定的で、タイムスタンプは無く、キーはソート済み、リストの順序は明示されているため、同じ CIF からは同一バイトのファイルができる。
+
+```
+output/
+├── cif/metadata.json     # "cohort_summary": "summary/cohort-summary.json"
+└── summary/
+    └── cohort-summary.json
+```
+
+| フィールド | 内容 |
+|---|---|
+| `schema_version` | `1` |
+| `country`、`language`、`period` (`start`、`end`)、`snapshot_date` | ファイルを読むのに必要な入力 |
+| `patients.total` | 患者の異なり数 (レコード数によらず 1 人 1 回) |
+| `patients.by_sex` | `sex` の値ごとの患者数 |
+| `patients.by_age_band` | `[{band, patients}]`。年齢順で、該当者のいない年齢帯も含む。年齢帯は国ごとの `locale/<country>/demographics.yaml` の `age_distribution` の年齢帯で、スナップショット日の年齢に適用する (最後の年齢帯より上は最後の年齢帯に入れる) |
+| `patients.deaths` | `total` (死亡日がシミュレーション期間内の患者) と `in_hospital` (死亡で終わった入院のある患者) |
+| `conditions.chronic` | 各患者の最新レコードの慢性疾患。`[{code, system, display, patients}]` で、`patients` 降順、次に `code` 順 |
+| `conditions.inpatient_principal_diagnosis` | 入院の主病名 (退院時、無ければ入院時診断) について同じ形。同一診断の入院が複数ある患者は 1 回数える |
+| `encounters.total`、`encounters.by_type` | `encounter_type` (`inpatient`、`emergency`、`outpatient` など) ごとの encounter 数 |
+| `encounters.inpatient` | `stays`、`finished_stays` (退院日のあるもの)、`length_of_stay_days` (`mean`、`median`、小数 2 桁、終了した入院のみ、無ければ `null`)、`in_hospital_deaths` |
+
+コードは FHIR `Condition` の出力と同じ、国の診断コード体系 (US は `icd-10-cm`、JP は MHLW ICD-10)。`display` はレジストリの表示名で、コホートの言語 (JP は日本語)、次に英語の順に解決し、表示名が未登録のコードは `null`。FHIR リソース数は数えない。
 
 ### 縦断サービスライン emit (v0.5 → v0.6.0)
 

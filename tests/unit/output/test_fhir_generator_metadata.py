@@ -53,7 +53,8 @@ def test_write_generator_metadata_produces_sidecar_with_expected_shape(tmp_path:
         "random_seed": 42,
         "country": "JP",
         "snapshot_date": "2026-06-30",
-        "total_patients_generated": 736,
+        "total_patients": 736,
+        "total_records": 790,
         "hospital_scale": "medium",
         "llm_mode": "none",
     }

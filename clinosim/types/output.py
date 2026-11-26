@@ -40,7 +40,8 @@ class CIFMetadata:
     simulation_period_start: date | None = None
     simulation_period_end: date | None = None
     snapshot_date: str | None = None  # YYYY-MM-DD; current-state cutoff
-    total_patients_generated: int = 0
+    total_patients: int = 0  # distinct patients across the records
+    total_records: int = 0  # CIF record files (one per encounter episode)
     llm_mode: str = "none"
 
 
@@ -163,3 +164,9 @@ class CIFDataset:
     patients: list[CIFPatientRecord] = field(default_factory=list)
     hospital_roster: list = field(default_factory=list)  # list[StaffMember]
     hospital_config: dict = field(default_factory=dict)  # ops yaml content
+
+
+def distinct_patient_count(records: list[CIFPatientRecord]) -> int:
+    """Number of distinct patients in ``records`` (a patient has one record per
+    encounter episode, so this is not ``len(records)``)."""
+    return len({r.patient.patient_id for r in records})

@@ -582,7 +582,7 @@ def run_enumeration(plan: EnumerationPlan) -> tuple[Any, EnumerationManifest]:
     from clinosim.simulator.engine import run_forced
     from clinosim.simulator.enrichers import register_builtin_enrichers
     from clinosim.types.config import ForcedScenario, SimulatorConfig
-    from clinosim.types.output import CIFDataset, CIFMetadata
+    from clinosim.types.output import CIFDataset, CIFMetadata, distinct_patient_count
 
     register_builtin_enrichers()
 
@@ -685,7 +685,8 @@ def run_enumeration(plan: EnumerationPlan) -> tuple[Any, EnumerationManifest]:
             country=",".join(plan.countries),
             hospital_scale="medium",
             snapshot_date=_ENUMERATION_BASE_DATE,
-            total_patients_generated=len(all_records),
+            total_patients=distinct_patient_count(all_records),
+            total_records=len(all_records),
         ),
         patients=all_records,
         hospital_roster=[],

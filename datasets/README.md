@@ -95,6 +95,8 @@ cif/
 fhir_r4/
   *.ndjson                 (all FHIR R4 resources)
   _generator_metadata.json (clinosim_version + nested cif_metadata mirror)
+summary/
+  cohort-summary.json      (patients, per-condition patient counts, age bands, encounters and length of stay)
 catalog/
   codes-used.ndjson        (every code the dataset's FHIR resources use)
 ```

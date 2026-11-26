@@ -31,7 +31,7 @@ Key properties:
 
 The sections under "Internal Design" are the original design sketch. Where they differ from the code, the code wins:
 
-- **CIF writer**: a function, `write_cif(dataset: CIFDataset, output_dir)`, not a `CIFWriter` class. It writes `metadata.json`, `hospital.json` (`{"staff": [...], "config": {...}}`, only when a roster or ops config exists) and one JSON file per patient record at `structural/patients/<first encounter_id>.json`, with `documents[].narrative` stripped to `None`. No `population_summary.json` / `validation_report.json` is written, and the real `CIFDataset` (`clinosim/types/output.py`) has only `metadata`, `patients`, `hospital_roster`, `hospital_config`.
+- **CIF writer**: a function, `write_cif(dataset: CIFDataset, output_dir)`, not a `CIFWriter` class. It writes `metadata.json`, `hospital.json` (`{"staff": [...], "config": {...}}`, only when a roster or ops config exists) and one JSON file per patient record at `structural/patients/<first encounter_id>.json`, with `documents[].narrative` stripped to `None`. `metadata.json` carries `total_patients` (distinct patients) and `total_records` (record files); the former `total_patients_generated`, which counted records, is removed. `write_cohort_summary(cif_dir)` (`cohort_summary.py`), called by the simulate / enumerate / test-disease / test-encounter commands after `write_cif`, writes `summary/cohort-summary.json` next to `cif/` and sets `metadata.json` `cohort_summary`. No `population_summary.json` / `validation_report.json` is written, and the real `CIFDataset` (`clinosim/types/output.py`) has only `metadata`, `patients`, `hospital_roster`, `hospital_config`.
 - **Narrative layer**: `NarrativePass` subclasses in `document/narrative/passes.py` write `narratives/<version>/manifest.json` and `narratives/<version>/documents/<enc>/<doc>.json`. The active version is named by the `narratives/current_version.txt` pointer file (not a `current/` symlink); `"template"` is the fallback.
 - **CIFReader**: `CIFReader(cif_dir, narrative_version="current").iter_patients()` yields merged raw dicts (no `read_patient` / typed `CIFPatientRecord`). An explicitly named or pointer-named version that is missing raises `FileNotFoundError`; with no pointer and no `template` dir it warns and runs structural-only.
 - **Adapters**: an `OutputAdapter` Protocol (`format_id`, `description`, `subdir` attributes + `convert(cif_dir, out_dir, ctx: OutputContext)`) registered with `register_output_adapter`; there is no `FormatAdapter` ABC, `OutputService` or `HealthcareSystemConfig` argument. Built-in format ids are `"csv"` and `"fhir-r4"` (output subdirs `csv/`, `fhir_r4/`).
@@ -177,7 +177,8 @@ class CIFMetadata:
     hospital_scale: str
     simulation_period: tuple[date, date]
     total_population: int
-    total_patients_generated: int
+    total_patients: int                    # distinct patients across the records
+    total_records: int                     # CIF record files (one per encounter episode)
     total_encounters: int
     llm_mode: str                          # "llm" | "template" | "none"
     llm_cost_report: dict | None           # token usage, cost

@@ -35,7 +35,7 @@ echo ""
 # Step 1: CIF generation
 if [ -f "${OUTPUT_DIR}/cif/metadata.json" ]; then
     log "Step 1/4: CIF already exists — SKIP"
-    python3 -c "import json; d=json.load(open('${OUTPUT_DIR}/cif/metadata.json')); print(f'  patients={d[\"total_patients_generated\"]}, country={d[\"country\"]}')"
+    python3 -c "import json; d=json.load(open('${OUTPUT_DIR}/cif/metadata.json')); print(f'  patients={d[\"total_patients\"]}, country={d[\"country\"]}')"
 else
     log "Step 1/4: CIF generation START"
     python3 -m clinosim.simulator.cli generate \

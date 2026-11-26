@@ -101,7 +101,7 @@ from clinosim.simulator.helpers import load_all_disease_protocols
 from clinosim.simulator.inpatient import _simulate_patient
 from clinosim.simulator.phases._forward_loop import ForwardContext, run_forward_loop
 from clinosim.types.config import ForcedScenario, SimulatorConfig
-from clinosim.types.output import CIFDataset, CIFMetadata, CIFPatientRecord
+from clinosim.types.output import CIFDataset, CIFMetadata, CIFPatientRecord, distinct_patient_count
 from clinosim.types.patient import PatientProfile
 
 # F1: `generate_healthcare_calendar` emits several distinct
@@ -313,7 +313,8 @@ def run_beta(
         snapshot_date=config.snapshot_date,
         simulation_period_start=_window[0],
         simulation_period_end=_window[1],
-        total_patients_generated=len(patient_records),
+        total_patients=distinct_patient_count(patient_records),
+        total_records=len(patient_records),
         llm_mode=config.llm.judgment.mode,
     )
     # L2 profile: emit one summary line per (stage, enricher) with total
@@ -447,7 +448,8 @@ def run_forced(scenario: ForcedScenario, config: SimulatorConfig | None = None) 
         country=config.country,
         hospital_scale=config.hospital_scale,
         snapshot_date=config.snapshot_date,
-        total_patients_generated=len(patient_records),
+        total_patients=distinct_patient_count(patient_records),
+        total_records=len(patient_records),
         llm_mode="none",
     )
     return CIFDataset(

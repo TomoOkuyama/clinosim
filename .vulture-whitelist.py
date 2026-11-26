@@ -198,7 +198,8 @@ _.clinosim_version  # types/output.py:35
 _.generation_timestamp  # types/output.py:36
 _.simulation_period_start  # types/output.py:40
 _.simulation_period_end  # types/output.py:41
-_.total_patients_generated  # types/output.py:43
+_.total_patients  # types/output.py
+_.total_records  # types/output.py
 _.llm_mode  # types/output.py:44
 _.nursing_risk_assessments  # types/output.py:67
 _.immunizations  # types/output.py:68

@@ -17,7 +17,7 @@ from clinosim.modules.staff.engine import generate_roster
 from clinosim.simulator.cli_common import _print_debug_record, _print_summary, _run_exports
 from clinosim.simulator.emergency import _simulate_ed_visit
 from clinosim.types.config import SimulatorConfig
-from clinosim.types.output import CIFDataset, CIFMetadata, CIFPatientRecord
+from clinosim.types.output import CIFDataset, CIFMetadata, CIFPatientRecord, distinct_patient_count
 
 # ---------------------------------------------------------------------------
 # Test-encounter default sampling ranges (Issue #637)
@@ -134,6 +134,7 @@ def _run_test_encounter_generate(args: Any) -> None:
     from clinosim.modules.document.narrative.passes import TemplateNarrativePass
     from clinosim.modules.encounter.protocol import load_encounter_condition
     from clinosim.modules.output.cif_writer import write_cif
+    from clinosim.modules.output.cohort_summary import write_cohort_summary
     from clinosim.modules.population.engine import PersonRecord
     from clinosim.simulator.enrichers import register_builtin_enrichers
 
@@ -216,7 +217,8 @@ def _run_test_encounter_generate(args: Any) -> None:
             random_seed=args.seed,
             country=args.country,
             hospital_scale="medium",
-            total_patients_generated=len(records),
+            total_patients=distinct_patient_count(records),
+            total_records=len(records),
         ),
         patients=records,
         hospital_roster=list(roster.members),
@@ -224,6 +226,7 @@ def _run_test_encounter_generate(args: Any) -> None:
     )
 
     write_cif(dataset, cif_dir)
+    write_cohort_summary(cif_dir)
 
     # Stage 2 (AD-65): always run the template narrative pass, mirroring `generate`'s
     # auto-invoke, so the mini-cohort is emit-ready regardless of which export

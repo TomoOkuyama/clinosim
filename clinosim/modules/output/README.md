@@ -80,6 +80,10 @@ from clinosim.modules.output.adapters_builtin import CsvAdapter, FhirR4Adapter
 # CIF writer + reader
 from clinosim.modules.output.cif_writer import write_cif                # (dataset, output_dir) -> None
 from clinosim.modules.output.cif_reader import CIFReader, resolve_current_narrative_dir
+from clinosim.modules.output.cohort_summary import (   # summary/cohort-summary.json (computed from the CIF)
+    build_cohort_summary,        # (records, *, country, period_start, period_end, snapshot_date) -> dict
+    write_cohort_summary,        # (cif_dir) -> path; also sets cif/metadata.json "cohort_summary"
+)
 
 # Narrative-facing extractor
 from clinosim.modules.output.hospital_course_extractor import (
@@ -151,6 +155,7 @@ clinosim/modules/output/
   adapters_builtin.py                CsvAdapter + FhirR4Adapter (lazy-registered)
   cif_writer.py                      write_cif (JSON writer for structural CIF)
   cif_reader.py                      CIFReader (merges structural + narrative) + resolve_current_narrative_dir
+  cohort_summary.py                  cohort statistics of the CIF -> summary/cohort-summary.json (schema: docs/reference/output-formats.md)
   csv_adapter.py                     per-domain CSV emission (`convert_cif_to_csv`)
   hospital_course_extractor.py       HospitalCourseFact + extract_hospital_course + summarize_* (narrative helper)
   fhir_r4/                           FHIR R4 emission subpackage (see fhir_r4/README.md)
@@ -184,6 +189,8 @@ There is no seed offset in `ENRICHER_SEED_OFFSETS`.
 pytest tests/unit -k "output or cif_reader or hospital_course" -q
 pytest tests/integration -k "output or export" -q
 ```
+
+Cohort summary: `tests/unit/output/test_cohort_summary.py` (counts, age bands, length of stay, sorting, determinism, display language) and `tests/integration/test_cohort_summary_files.py` (US and JP: file written, metadata points at it, `total_patients` vs `total_records`).
 
 Coverage: broad — search `tests/unit -k output` for the per-adapter
 tests, CIF-reader tests, and hospital-course extractor tests.
