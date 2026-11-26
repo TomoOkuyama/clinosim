@@ -57,7 +57,7 @@ Start here if you're evaluating or using clinosim:
 - **[reference/](reference/)** — small stable references
   (constants, tables, external system URLs).
 - **[development/](development/)** — release / publish / development
-  runbooks (e.g. `publishing-to-pypi.md`).
+  runbooks (e.g. `release-checklist.md`, `publishing-to-pypi.md`).
 - **[governance/](governance/)** — project governance model.
 
 ## Working notes

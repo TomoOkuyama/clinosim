@@ -57,7 +57,7 @@ clinosim の評価・利用を検討中ならここから:
 - **[reference/](reference/)** — 安定した小規模リファレンス
   (定数、テーブル、外部システム URL)。
 - **[development/](development/)** — リリース / 公開 / 開発
-  runbook (例: `publishing-to-pypi.md`)。
+  runbook (例: `release-checklist.md`、`publishing-to-pypi.md`)。
 - **[governance/](governance/)** — プロジェクトガバナンスモデル。
 
 ## 作業メモ

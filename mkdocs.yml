@@ -183,6 +183,7 @@ nav:
       - Roadmap: roadmap.md
       - Testing: development/testing.md
       - Reproducibility: development/reproducibility.md
+      - Release checklist: development/release-checklist.md
       - Publishing to PyPI: development/publishing-to-pypi.md
       - Changelog: development/changelog.md
   - Governance:

@@ -25,6 +25,8 @@ on PyPI differ, PyPI rejects the token exchange.
 
 ## Cutting a release
 
+Complete the [release checklist](release-checklist.md) first; every item in it is required before the tag push.
+
 1. Bump `clinosim/__init__.py::__version__` (e.g. `0.2.0 → 0.3.0`)
 2. Move `## [Unreleased]` content in `CHANGELOG.md` under a new
    `## [X.Y.Z] - YYYY-MM-DD` heading

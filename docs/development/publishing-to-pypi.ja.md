@@ -28,6 +28,8 @@ PyPI アップロードは Trusted Publishing を使います。GitHub OIDC で
 
 ## リリースを切る
 
+先に [リリース前チェックリスト](release-checklist.ja.md) を完了すること。タグの push 前にすべての項目が必須です。
+
 1. `clinosim/__init__.py::__version__` を bump (例: `0.2.0 → 0.3.0`)
 2. `CHANGELOG.md` の `## [Unreleased]` 内容を新しい
    `## [X.Y.Z] - YYYY-MM-DD` 見出しの下に移動
