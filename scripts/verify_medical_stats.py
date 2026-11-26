@@ -318,9 +318,14 @@ for c in read_nd(FHIR / "Condition.ndjson"):
             if age is not None and age >= 18:
                 adult_with_dx[name].add(pid)
     onset = c.get("onsetDateTime", "")[:10]
+    # An acute event counts once per stay: a stay carries its admission code,
+    # its organism-specific discharge code and a severity code (A41.9, A41.51,
+    # R65.20) as separate Conditions. A Condition without an Encounter counts
+    # on its own.
+    stay = (c.get("encounter") or {}).get("reference") or c.get("id")
     for name, pfx in acute_prefixes.items():
         if code_starts(codes, pfx):
-            acute_cases[name].add(c.get("id"))
+            acute_cases[name].add(stay)
 
 # --- Encounter mix ---
 enc_class = Counter()
