@@ -1068,6 +1068,10 @@ def _generate_mar(
             continue
         if renal is not None and day == order_day and child is None:
             apply_renal_dose(order, patient, admission_time, not_before, renal)
+            # Issue #3871: the administrations of the day the order is
+            # adjusted carry its adjusted name, not the one it had on entry.
+            drug_name = order.display_name
+            drug_upper = drug_name.upper()
         _drug = get_drug(order.drug_id or drug_ref(drug_name))
         # A renally adjusted antibiotic keeps its own interval (Issue #3638).
         _scheduled_h = _drug.scheduled_interval_hours if _drug is not None and not order.renal_dose_adjusted else None
