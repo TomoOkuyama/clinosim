@@ -1442,3 +1442,23 @@ codes:
     en: Burn of unspecified degree of unspecified foot, initial encounter
   T31.30:
     en: Burns involving 30-39% of body surface with 0% to 9% third degree burns
+  K59.00:
+    en: Constipation, unspecified
+  E16.2:
+    en: Hypoglycemia, unspecified
+  A04.72:
+    en: Enterocolitis due to Clostridium difficile, not specified as recurrent
+  E87.6:
+    en: Hypokalemia
+  E87.5:
+    en: Hyperkalemia
+  N15.1:
+    en: Renal and perinephric abscess
+  R56.9:
+    en: Unspecified convulsions
+  R78.81:
+    en: Bacteremia
+  L89.90:
+    en: Pressure ulcer of unspecified site, unspecified stage
+  J98.11:
+    en: Atelectasis

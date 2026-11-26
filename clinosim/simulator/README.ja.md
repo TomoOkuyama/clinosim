@@ -170,7 +170,11 @@ clinosim/simulator/
   complication_dx.py     診断名を持つ入院中の合併症を、その合併症自身の発症時刻を持つ
                          `working_diagnoses` エントリにする (入院が既に持つコードは省く)。FHIR では
                          副診断の encounter-diagnosis Condition になる。表は
-                         `reference_data/complication_diagnosis_codes.yaml`。乱数なし (Issue #3673)
+                         `reference_data/complication_diagnosis_codes.yaml`。乱数なし (Issue #3673)。
+                         プロトコルが起こしうる合併症トークンは全て、コード化・`non_diagnosis`
+                         (病名を持たない事象)・`pending` (名指しの未確定) のいずれかに分類する
+                         (ガードテスト)。`distinct_code_categories` (E87) は初回発症規則を
+                         完全コードで判定する (Issue #3872)
   sustained_complication.py  合併症の `sustained_state`: 原因が続く間保たれる状態変数への効果
                          (DIC の消費は敗血症の炎症に従う)。`full_days` の間は全量、その後は
                          解除点へ向けて減衰。その間は合併症の `monitoring_labs` を採血。

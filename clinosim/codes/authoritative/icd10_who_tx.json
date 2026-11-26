@@ -7,15 +7,38 @@
     "source_content_note": "The source CodeSystem is marked content=complete (all 13,831 WHO ICD-10 concepts). The snapshot filters to codes clinosim emits (320) so shipped size stays small; unlike the fragment-content YJ snapshot, missing codes here mean clinosim references a WHO code that does not exist upstream (typically ICD-10-CM-only sub-granularity or legacy codes), not an incomplete fragment. Session 59 #284: I84 → K64.9, R33.9 → R33, S62.9 → S62.8 to align with HAPI ICD-10 2019-covid-expanded (86 v5 errors closed).",
     "fetched_from": "https://github.com/iryohjoho/fhir-jp-validator tx-server-build/",
     "extracted_at": "2026-07-19",
-    "clinosim_codes_total": 320,
-    "clinosim_codes_in_source": 319,
+    "clinosim_codes_total": 329,
+    "clinosim_codes_in_source": 328,
     "clinosim_codes_missing_from_source": [
       "S67.2"
     ],
     "note": "WHO ICD-10 authoritative displays for the codes clinosim emits.",
-    "later_additions": "T22.2 and T23.2 (Issue #3279), E11.2, E11.3 and E11.4 (Issue #3259), G35, I69.1 and I69.3 (Issue #3327), R57.2 (Issue #3269) were added on 2026-11-16 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded). T20.0, T21.0, T22.0, T23.0, T24.0, T25.0 (Issue #3258, tx.fhir.org $lookup 2026-11-18). J14 and J15.5 (Issue #3645) were added on 2026-11-24 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded). A40.3, A41.3 and A41.8 (Issue #3833) were added on 2026-11-26 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded)."
+    "later_additions": "T22.2 and T23.2 (Issue #3279), E11.2, E11.3 and E11.4 (Issue #3259), G35, I69.1 and I69.3 (Issue #3327), R57.2 (Issue #3269) were added on 2026-11-16 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded). T20.0, T21.0, T22.0, T23.0, T24.0, T25.0 (Issue #3258, tx.fhir.org $lookup 2026-11-18). J14 and J15.5 (Issue #3645) were added on 2026-11-24 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded). A40.3, A41.3 and A41.8 (Issue #3833) were added on 2026-11-26 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded). A04.7, A49.9, E16.2, E87.5, E87.6, J98.1, L89.9, N15.1 and R56.8 (Issue #3872) were added on 2026-11-26 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded)."
   },
   "concept": [
+    {
+      "code": "A04.7",
+      "display": "Enterocolitis due to Clostridium difficile",
+      "definition": "Enterocolitis due to Clostridium difficile",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "A04"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Foodborne intoxication by Clostridium difficile"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Pseudomembranous colitis"
+        }
+      ]
+    },
     {
       "code": "A05.9",
       "display": "Bacterial foodborne intoxication, unspecified",
@@ -346,6 +369,25 @@
         {
           "code": "inclusion",
           "valueString": "Septicaemia"
+        }
+      ]
+    },
+    {
+      "code": "A49.9",
+      "display": "Bacterial infection, unspecified",
+      "definition": "Bacterial infection, unspecified",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "A49"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Bacteraemia NOS"
         }
       ]
     },
@@ -1046,6 +1088,21 @@
       ]
     },
     {
+      "code": "E16.2",
+      "display": "Hypoglycaemia, unspecified",
+      "definition": "Hypoglycaemia, unspecified",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "E16"
+        }
+      ]
+    },
+    {
       "code": "E66.0",
       "display": "Obesity due to excess calories",
       "definition": "Obesity due to excess calories",
@@ -1239,6 +1296,48 @@
         {
           "code": "exclusion",
           "valueString": "diabetic acidosis[E10-E14 with common fourth character .1]"
+        }
+      ]
+    },
+    {
+      "code": "E87.5",
+      "display": "Hyperkalaemia",
+      "definition": "Hyperkalaemia",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "E87"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Potassium [K] excess"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Potassium [K] overload"
+        }
+      ]
+    },
+    {
+      "code": "E87.6",
+      "display": "Hypokalaemia",
+      "definition": "Hypokalaemia",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "E87"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Potassium [K] deficiency"
         }
       ]
     },
@@ -4126,6 +4225,37 @@
       ]
     },
     {
+      "code": "J98.1",
+      "display": "Pulmonary collapse",
+      "definition": "Pulmonary collapse",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "J98"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Atelectasis"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Collapse of lung"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "atelectasis (of):newborn[P28.0-P28.1]"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "atelectasis (of):tuberculous (current disease)[A15-A16]"
+        }
+      ]
+    },
+    {
       "code": "J98.8",
       "display": "Other specified respiratory disorders",
       "definition": "Other specified respiratory disorders",
@@ -6020,6 +6150,25 @@
       ]
     },
     {
+      "code": "L89.9",
+      "display": "Decubitus ulcer and pressure area, unspecified",
+      "definition": "Decubitus ulcer and pressure area, unspecified",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "L89"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Decubitus [pressure] ulcer without mention of stage"
+        }
+      ]
+    },
+    {
       "code": "M17",
       "display": "Gonarthrosis [arthrosis of knee]",
       "definition": "Gonarthrosis [arthrosis of knee]",
@@ -6560,6 +6709,21 @@
         {
           "code": "inclusion",
           "valueString": "Urinary tract obstruction NOS"
+        }
+      ]
+    },
+    {
+      "code": "N15.1",
+      "display": "Renal and perinephric abscess",
+      "definition": "Renal and perinephric abscess",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "N15"
         }
       ]
     },
@@ -7742,6 +7906,29 @@
         {
           "code": "exclusion",
           "valueString": "unconsciousness NOS[R40.2]"
+        }
+      ]
+    },
+    {
+      "code": "R56.8",
+      "display": "Other and unspecified convulsions",
+      "definition": "Other and unspecified convulsions",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "R56"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Fit NOS"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Seizure (convulsive) NOS"
         }
       ]
     },

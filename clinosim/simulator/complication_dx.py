@@ -36,13 +36,30 @@ class ComplicationDiagnosisCodes(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     codes: dict[str, str] = Field(min_length=1)
+    distinct_code_categories: list[str] = Field(default_factory=list)
+    non_diagnosis: list[str] = Field(default_factory=list)
+    pending: list[str] = Field(default_factory=list)
 
 
 @functools.cache
+def _table() -> ComplicationDiagnosisCodes:
+    raw = load_data_yaml(Path(__file__).resolve().parent / "reference_data" / "complication_diagnosis_codes.yaml")
+    return ComplicationDiagnosisCodes.model_validate(raw)
+
+
 def complication_diagnosis_codes() -> dict[str, str]:
     """Complication token -> internal diagnosis code (the YAML table)."""
-    raw = load_data_yaml(Path(__file__).resolve().parent / "reference_data" / "complication_diagnosis_codes.yaml")
-    return dict(ComplicationDiagnosisCodes.model_validate(raw).codes)
+    return dict(_table().codes)
+
+
+def non_diagnosis_tokens() -> frozenset[str]:
+    """Tokens that name no disease (events, treatment effects, nonspecific terms)."""
+    return frozenset(_table().non_diagnosis)
+
+
+def pending_tokens() -> frozenset[str]:
+    """Disease-like tokens whose diagnosis code is not chosen and verified yet."""
+    return frozenset(_table().pending)
 
 
 def complication_diagnosis_code(token: str) -> str:
@@ -52,13 +69,18 @@ def complication_diagnosis_code(token: str) -> str:
 
 
 def _category(code: str) -> str:
-    return code.split(".")[0]
+    """The key of the first-onset-per-category rule: the 3-character ICD-10
+    category, or the full code for a category whose members are different
+    diagnoses (``distinct_code_categories``, e.g. E87 hypo- and hyperkalemia)."""
+    category = code.split(".")[0]
+    return code if category in _table().distinct_code_categories else category
 
 
 def complication_diagnosis_entries(complications: Iterable[Any], existing_codes: Iterable[str]) -> list[dict[str, Any]]:
     """One dated ``working_diagnoses`` entry per coded complication.
 
-    Skips a code whose 3-character category the stay already carries
+    Skips a code whose 3-character category (full code for a
+    ``distinct_code_categories`` category) the stay already carries
     (``existing_codes``: principal, secondary, working and chronic codes) and
     a category already entered by an earlier complication (the first onset
     wins); a complication that started as a new disease keeps its own entry.

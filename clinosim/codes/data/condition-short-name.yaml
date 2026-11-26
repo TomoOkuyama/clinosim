@@ -320,3 +320,10 @@ codes:
   Z71: {en: "Counseling", ja: "健康相談"}
   Z71.6: {en: "Tobacco cessation counseling", ja: "禁煙指導"}
   Z87.5: {en: "History of pregnancy complications", ja: "妊娠合併症の既往"}
+  # In-hospital complication diagnoses (Issue #3872)
+  E16.2: {en: "Hypoglycemia", ja: "低血糖"}
+  E87.5: {en: "Hyperkalemia", ja: "高カリウム血症"}
+  E87.6: {en: "Hypokalemia", ja: "低カリウム血症"}
+  L89: {en: "Pressure ulcer", ja: "褥瘡"}
+  R56: {en: "Convulsions", ja: "けいれん"}
+  A49.9: {en: "Bacteremia", ja: "菌血症"}  # WHO A49.9 includes "Bacteraemia NOS"; the JP code of R78.81

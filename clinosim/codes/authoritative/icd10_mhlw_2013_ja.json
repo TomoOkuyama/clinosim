@@ -5,9 +5,13 @@
     "source_file": "kihon2013.xlsx (sheet 基本分類表データ, columns コード / コード名)",
     "extracted_at": "2026-11-01",
     "note": "Japanese official names of the ICD-10 codes clinosim emits for JP, filtered from the full table (15,296 codes).",
-    "later_additions": "E11.2, E11.3 and E11.4 (Issue #3259), G35, I69.1 and I69.3 (Issue #3327) were added on 2026-11-16 from the same kihon2013.xlsx table. T20.0-T25.0 (Issue #3258) were added on 2026-11-18 from the same kihon2013.xlsx table. F05 (Issue #3519) was added on 2026-11-21 from the same kihon2013.xlsx table. J14 and J15.5 (Issue #3645) were added on 2026-11-24 from the same kihon2013.xlsx table. A40.3, A41.3 and A41.8 (Issue #3833) were added on 2026-11-26 from the same kihon2013.xlsx table."
+    "later_additions": "E11.2, E11.3 and E11.4 (Issue #3259), G35, I69.1 and I69.3 (Issue #3327) were added on 2026-11-16 from the same kihon2013.xlsx table. T20.0-T25.0 (Issue #3258) were added on 2026-11-18 from the same kihon2013.xlsx table. F05 (Issue #3519) was added on 2026-11-21 from the same kihon2013.xlsx table. J14 and J15.5 (Issue #3645) were added on 2026-11-24 from the same kihon2013.xlsx table. A40.3, A41.3 and A41.8 (Issue #3833) were added on 2026-11-26 from the same kihon2013.xlsx table. A04.7, A49.9, E16.2, E87.5, E87.6, J98.1, L89.9, N15.1 and R56.8 (Issue #3872) were added on 2026-11-26 from the same kihon2013.xlsx table."
   },
   "concept": [
+    {
+      "code": "A04.7",
+      "display": "クロストリジウム・ディフィシルによる腸炎"
+    },
     {
       "code": "A05.9",
       "display": "細菌性食中毒，詳細不明"
@@ -51,6 +55,10 @@
     {
       "code": "A41.9",
       "display": "敗血症，詳細不明"
+    },
+    {
+      "code": "A49.9",
+      "display": "細菌感染症，詳細不明"
     },
     {
       "code": "B18.2",
@@ -217,6 +225,10 @@
       "display": "２型＜インスリン非依存性＞糖尿病＜NIDDM＞，合併症を伴わないもの"
     },
     {
+      "code": "E16.2",
+      "display": "低血糖症，詳細不明"
+    },
+    {
       "code": "E66.0",
       "display": "過剰カロリーによる肥満（症）"
     },
@@ -251,6 +263,14 @@
     {
       "code": "E87.2",
       "display": "アシドーシス"
+    },
+    {
+      "code": "E87.5",
+      "display": "高カリウム＜K＞血症"
+    },
+    {
+      "code": "E87.6",
+      "display": "低カリウム＜K＞血症"
     },
     {
       "code": "E88.8",
@@ -733,6 +753,10 @@
       "display": "急性呼吸不全"
     },
     {
+      "code": "J98.1",
+      "display": "肺虚脱"
+    },
+    {
       "code": "J98.8",
       "display": "その他の明示された呼吸器障害"
     },
@@ -1017,6 +1041,10 @@
       "display": "おむつ＜ナプキン＞皮膚炎"
     },
     {
+      "code": "L89.9",
+      "display": "じょく＜褥＞瘡性潰瘍及び圧迫領域，詳細不明"
+    },
+    {
       "code": "M17",
       "display": "膝関節症［膝の関節症］"
     },
@@ -1091,6 +1119,10 @@
     {
       "code": "N13.9",
       "display": "閉塞性尿路疾患及び逆流性尿路疾患，詳細不明"
+    },
+    {
+      "code": "N15.1",
+      "display": "腎膿瘍及び腎周囲膿瘍"
     },
     {
       "code": "N17",
@@ -1303,6 +1335,10 @@
     {
       "code": "R55",
       "display": "失神及び虚脱"
+    },
+    {
+      "code": "R56.8",
+      "display": "その他及び詳細不明のけいれん＜痙攣＞"
     },
     {
       "code": "R57",

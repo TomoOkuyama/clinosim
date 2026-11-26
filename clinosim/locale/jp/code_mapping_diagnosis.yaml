@@ -232,3 +232,11 @@ Z87.59: "Z87.5"   # History of other complications of pregnancy → 妊娠，分
 # "complicated by genital tract and pelvic infection", so JP takes O04.9
 # (医学的人工流産，完全流産又は詳細不明の流産，合併症を伴わないもの).
 O04.5: "O04.9"
+# === In-hospital complication diagnoses (simulator/reference_data/complication_diagnosis_codes.yaml, Issue #3872) ===
+# The ICD-10-CM leaf the simulator codes the complication with → the WHO ICD-10 (2013) code of the MHLW table.
+K59.00: "K59.0"     # Constipation, unspecified → 便秘.
+A04.72: "A04.7"     # Enterocolitis due to Clostridium difficile, not specified as recurrent → クロストリジウム・ディフィシルによる腸炎.
+R56.9: "R56.8"      # Unspecified convulsions → その他及び詳細不明のけいれん＜痙攣＞.
+R78.81: "A49.9"     # Bacteremia → 細菌感染症，詳細不明 (WHO A49.9 includes "Bacteraemia NOS").
+L89.90: "L89.9"     # Pressure ulcer of unspecified site, unspecified stage → じょく＜褥＞瘡性潰瘍及び圧迫領域，詳細不明.
+J98.11: "J98.1"     # Atelectasis → 肺虚脱.

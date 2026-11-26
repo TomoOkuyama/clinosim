@@ -4,7 +4,7 @@
     "source_url": "https://www.cms.gov/files/zip/2027-code-descriptions-tabular-order.zip",
     "source_file": "Code Descriptions/icd10cm_order_2027.txt (long description, columns 78-)",
     "extracted_at": "2026-11-10",
-    "clinosim_codes_total": 544,
+    "clinosim_codes_total": 560,
     "clinosim_codes_missing_from_source": [
       "F00",
       "J46",
@@ -15,9 +15,14 @@
       "S67.8"
     ],
     "note": "ICD-10-CM codes in codes/data/icd-10-cm.yaml with the CMS long description (Issue #3127). billable = the order file's header flag (1 = valid for HIPAA-covered transactions). Codes missing from the source are WHO-only or retired codes the registry still lists; they are not emitted for the US.",
-    "later_additions": "E11.21, E11.311, E11.42 and Z37.0 (Issue #3327) were added on 2026-11-16 from the same icd10cm_order_2027.txt. K35.209, I21.09, K85.10, I48.19, L03.119, I63.30, I82.409, M80.08XA, S67.20XA, T75.4XXA, T31.20, I26.09 (Issue #3258, US billable discharge codes) were added from the same icd10cm_order_2027.txt. W11.XXXA, W12.XXXA, W13.2XXA, W13.8XXA, W23.0XXA, W23.1XXA, W23.2XXA, X04.XXXA, X17.XXXA, X12.XXXA, X19.XXXA, X00.0XXA, W86.1XXA, W85.XXXA, S32.009A, S22.009A, S06.9X0A (Issue #3258, injury external-cause and discharge codes) were added from the same icd10cm_order_2027.txt. T20.0, T20.00XA, T20.07, T20.07XA, T21.0, T21.00XA, T21.05, T21.05XA, T22.0, T22.00XA, T23.0, T23.009A, T24.0, T24.009A, T25.0, T25.029A, T31.30 (Issue #3258, burn site codes) were added from the same icd10cm_order_2027.txt. J14 and J15.5 (Issue #3645, pneumonia organism codes) were added on 2026-11-24 from the same icd10cm_order_2027.txt. A40.3, A41.3, A41.59 and A41.81 (Issue #3833, sepsis organism codes) were added on 2026-11-26 from the same icd10cm_order_2027.txt."
+    "later_additions": "E11.21, E11.311, E11.42 and Z37.0 (Issue #3327) were added on 2026-11-16 from the same icd10cm_order_2027.txt. K35.209, I21.09, K85.10, I48.19, L03.119, I63.30, I82.409, M80.08XA, S67.20XA, T75.4XXA, T31.20, I26.09 (Issue #3258, US billable discharge codes) were added from the same icd10cm_order_2027.txt. W11.XXXA, W12.XXXA, W13.2XXA, W13.8XXA, W23.0XXA, W23.1XXA, W23.2XXA, X04.XXXA, X17.XXXA, X12.XXXA, X19.XXXA, X00.0XXA, W86.1XXA, W85.XXXA, S32.009A, S22.009A, S06.9X0A (Issue #3258, injury external-cause and discharge codes) were added from the same icd10cm_order_2027.txt. T20.0, T20.00XA, T20.07, T20.07XA, T21.0, T21.00XA, T21.05, T21.05XA, T22.0, T22.00XA, T23.0, T23.009A, T24.0, T24.009A, T25.0, T25.029A, T31.30 (Issue #3258, burn site codes) were added from the same icd10cm_order_2027.txt. J14 and J15.5 (Issue #3645, pneumonia organism codes) were added on 2026-11-24 from the same icd10cm_order_2027.txt. A40.3, A41.3, A41.59 and A41.81 (Issue #3833, sepsis organism codes) were added on 2026-11-26 from the same icd10cm_order_2027.txt. K59.00, E16.2, A04.72, E87.6, E87.5, N15.1, R56.9, R78.81, L89.90 and J98.11 (Issue #3872, in-hospital complication diagnosis codes) were added on 2026-11-26 from the same icd10cm_order_2027.txt."
   },
   "concept": [
+    {
+      "code": "A04.72",
+      "display": "Enterocolitis due to Clostridium difficile, not specified as recurrent",
+      "billable": true
+    },
     {
       "code": "A05.9",
       "display": "Bacterial foodborne intoxication, unspecified",
@@ -324,6 +329,11 @@
       "billable": true
     },
     {
+      "code": "E16.2",
+      "display": "Hypoglycemia, unspecified",
+      "billable": true
+    },
+    {
       "code": "E66",
       "display": "Overweight and obesity",
       "billable": false
@@ -371,6 +381,16 @@
     {
       "code": "E87.20",
       "display": "Acidosis, unspecified",
+      "billable": true
+    },
+    {
+      "code": "E87.5",
+      "display": "Hyperkalemia",
+      "billable": true
+    },
+    {
+      "code": "E87.6",
+      "display": "Hypokalemia",
       "billable": true
     },
     {
@@ -1114,6 +1134,11 @@
       "billable": true
     },
     {
+      "code": "J98.11",
+      "display": "Atelectasis",
+      "billable": true
+    },
+    {
       "code": "J98.8",
       "display": "Other specified respiratory disorders",
       "billable": true
@@ -1267,6 +1292,11 @@
       "code": "K59",
       "display": "Other functional intestinal disorders",
       "billable": false
+    },
+    {
+      "code": "K59.00",
+      "display": "Constipation, unspecified",
+      "billable": true
     },
     {
       "code": "K65.0",
@@ -1514,6 +1544,11 @@
       "billable": true
     },
     {
+      "code": "L89.90",
+      "display": "Pressure ulcer of unspecified site, unspecified stage",
+      "billable": true
+    },
+    {
       "code": "M17",
       "display": "Osteoarthritis of knee",
       "billable": false
@@ -1616,6 +1651,11 @@
     {
       "code": "N13.9",
       "display": "Obstructive and reflux uropathy, unspecified",
+      "billable": true
+    },
+    {
+      "code": "N15.1",
+      "display": "Renal and perinephric abscess",
       "billable": true
     },
     {
@@ -1929,6 +1969,11 @@
       "billable": true
     },
     {
+      "code": "R56.9",
+      "display": "Unspecified convulsions",
+      "billable": true
+    },
+    {
       "code": "R57",
       "display": "Shock, not elsewhere classified",
       "billable": false
@@ -1971,6 +2016,11 @@
     {
       "code": "R73.9",
       "display": "Hyperglycemia, unspecified",
+      "billable": true
+    },
+    {
+      "code": "R78.81",
+      "display": "Bacteremia",
       "billable": true
     },
     {

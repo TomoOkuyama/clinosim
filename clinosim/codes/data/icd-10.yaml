@@ -1476,3 +1476,30 @@ codes:
   T25.0:
     en: Burn of unspecified degree of ankle and foot
     ja: "足首及び足の程度不明の熱傷"
+  A04.7:
+    en: Enterocolitis due to Clostridium difficile
+    ja: "クロストリジウム・ディフィシルによる腸炎"
+  A49.9:
+    en: Bacterial infection, unspecified
+    ja: "細菌感染症，詳細不明"
+  E16.2:
+    en: Hypoglycaemia, unspecified
+    ja: "低血糖症，詳細不明"
+  E87.5:
+    en: Hyperkalaemia
+    ja: "高カリウム＜K＞血症"
+  E87.6:
+    en: Hypokalaemia
+    ja: "低カリウム＜K＞血症"
+  J98.1:
+    en: Pulmonary collapse
+    ja: "肺虚脱"
+  L89.9:
+    en: Decubitus ulcer and pressure area, unspecified
+    ja: "じょく＜褥＞瘡性潰瘍及び圧迫領域，詳細不明"
+  N15.1:
+    en: Renal and perinephric abscess
+    ja: "腎膿瘍及び腎周囲膿瘍"
+  R56.8:
+    en: Other and unspecified convulsions
+    ja: "その他及び詳細不明のけいれん＜痙攣＞"
