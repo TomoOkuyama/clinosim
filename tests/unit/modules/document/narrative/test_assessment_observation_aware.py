@@ -80,15 +80,14 @@ def _run(ctx: NarrativeContext) -> str:
 
 
 def test_condition_without_specific_dispatch_and_no_measurements_still_stubs() -> None:
-    # #1776: a condition with no stage emits the structured "noted on
-    # problem list; no acute change" stub (not "本日測定なし" anymore).
-    # The spirit of #1181 — do not claim "not measured" and so
-    # contradict Objective — is preserved by the new phrase, which
-    # neither claims measurement nor its absence.
+    # #1776 / #3876: a condition with no stage and no continued drug has no
+    # assessment item at all (the problem-list section lists it); in
+    # particular no "本日測定なし" (#1181) and no content-free
+    # "registered on the problem list" line.
     ctx = _mk_ctx_with_condition_and_vitals("F32.9", vitals=None, labs=None)
     text = _run(ctx)
     assert "本日測定なし" not in text
-    assert "問題リスト" in text or "noted on problem list" in text.lower()
+    assert "問題リスト" not in text and text == ""
 
 
 def test_condition_without_specific_dispatch_but_vitals_present_does_not_requote_vitals() -> None:
@@ -129,7 +128,8 @@ def test_condition_without_specific_dispatch_english_fallback() -> None:
     assert "no measurement today" not in text
     assert "not condition-specific" not in text
     assert "focused review" not in text.lower()
-    assert "on the problem list" in text.lower()
+    # #3876: no content-free "on the problem list" item either.
+    assert "on the problem list" not in text.lower()
     assert "no acute change" not in text.lower()
 
 

@@ -382,3 +382,30 @@ def test_one_as_needed_predicate(freq, expected):
     from clinosim.modules.output.fhir_r4.lib.dosage import is_as_needed_frequency
 
     assert is_as_needed_frequency(freq) is expected
+
+
+# ── #3876 ──────────────────────────────────────────────────────────────
+
+
+@pytest.mark.parametrize(("country", "phrase"), [("US", "Alendronate continued"), ("JP", "Alendronateを継続")])
+def test_problem_with_a_continued_drug_states_the_drug(country, phrase):
+    med = [_med("Alendronate", "35mg", "alendronate")]
+    s = _soap(_ctx(country, [{"code": "M81.0"}], meds=med, home=med))
+    assert phrase in s["A"] or "アレンドロン" in s["A"], s["A"]
+    assert "問題リスト登録済み" not in s["A"] and "on the problem list" not in s["A"]
+
+
+@pytest.mark.parametrize("country", ["US", "JP"])
+def test_unaddressed_problem_is_absent_from_the_assessment(country):
+    med = [_med("Alendronate", "35mg", "alendronate")]
+    # K60.0 has no drug among the visit's medications; M81 has one.
+    s = _soap(_ctx(country, [{"code": "M81.0"}, {"code": "K60.0"}], meds=med, home=med))
+    lines = s["A"].split("\n")
+    assert len(lines) == 1, s["A"]
+    assert "問題リスト登録済み" not in s["A"] and "on the problem list" not in s["A"]
+
+
+def test_as_needed_drug_is_not_a_continued_therapy():
+    home = [_prn("Albuterol")]
+    s = _soap(_ctx("US", [{"code": "J44.9"}], meds=home, home=home))
+    assert "Albuterol" not in s["A"], s["A"]

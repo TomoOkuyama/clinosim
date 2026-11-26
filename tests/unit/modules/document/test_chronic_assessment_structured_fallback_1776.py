@@ -13,7 +13,8 @@ a structured-data fallback that reads the chronic condition's
 ``stage`` (populated by the longitudinal engine):
 
   * ``c.stage`` non-empty → ``"{label} ({stage}); management continued."``
-  * ``c.stage`` empty      → ``"{label}: on the problem list."``
+  * ``c.stage`` empty      → (Issue #3876) a status line naming the continued
+    drug of the problem, else no item
 
 Neither phrase re-quotes the vitals (which already live in Objective),
 and neither tells the reader to defer the clinical judgement.
@@ -127,13 +128,12 @@ def test_stage_bearing_chronic_surfaces_the_stage():
     assert "moderate" in text, f"stage must surface in the structured fallback: {text!r}"
 
 
-def test_stage_less_chronic_falls_back_to_noted_stub():
+def test_stage_less_chronic_without_a_continued_drug_adds_no_item():
+    # Issue #3876: the pre-fix "{label}: on the problem list." stub carried no
+    # clinical content; a problem nothing in the visit addresses is left out
+    # (the problem-list section lists it).
     text = _run(_mk_ctx("J30.9", "", lang="en"))  # not G47.30: an OSA follow-up states its CPAP therapy (Issue #3837)
-    assert text, f"stage-less chronic must still produce an Assessment line: {text!r}"
-    assert "not condition-specific" not in text
-    assert "problem list" in text.lower() or "no acute" in text.lower(), (
-        f"stage-less fallback must indicate a benign status, got: {text!r}"
-    )
+    assert text == "", f"stage-less chronic without a drug must add no Assessment item: {text!r}"
 
 
 # ---------------------------------------------------------------------------

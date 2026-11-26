@@ -56,9 +56,9 @@ def test_rendered_visit_has_no_home_log_or_symptom_denial(code: str) -> None:
 
 
 @pytest.mark.parametrize("lang", ["ja", "en"])
-def test_chronic_noted_is_a_pure_listing(lang: str) -> None:
-    text = t("chronic_assessment.chronic_noted", lang, label="X")
-    assert "X" in text
+def test_chronic_med_continued_is_a_pure_status_line(lang: str) -> None:
+    text = t("chronic_assessment.chronic_med_continued", lang, label="X", med="Y")
+    assert "X" in text and "Y" in text
     assert "増悪" not in text and "no acute change" not in text and "本日" not in text and "this visit" not in text
 
 
