@@ -155,3 +155,60 @@ def test_the_mar_gives_the_adjusted_interval_not_the_catalog_q8h() -> None:
         per_day[m.scheduled_datetime.day] = per_day.get(m.scheduled_datetime.day, 0) + 1
     assert max(per_day.values()) <= 2
     assert all(m.dose.startswith("500.0mg") or m.dose.startswith("500mg") for m in given)
+
+
+@pytest.mark.parametrize(
+    ("drug", "dose", "country", "creatinine"),
+    [
+        ("meropenem", "1g IV q8h", "JP", 3.96),
+        ("piperacillin_tazobactam", "4.5g IV q6h", "US", 2.0),
+    ],
+)
+def test_the_first_day_mar_names_the_adjusted_regimen_issue_3871(
+    drug: str, dose: str, country: str, creatinine: float
+) -> None:
+    """The administration of the day the order is adjusted carries the adjusted
+    name, like every later day (it used to keep the catalog "q8h" text)."""
+    order = _order(drug, dose, country)
+    order.display_name = f"{order.display_name} {dose}"  # the antibiotic enricher writes the regimen into the name
+    enrich_medication_order(order)
+    standard_name = order.display_name
+    given = _generate_mar(
+        _patient(),
+        [order],
+        0,
+        _ADM,
+        roster=StaffRoster(),
+        rng=np.random.default_rng(0),
+        renal=RenalDoseContext([_creatinine(creatinine)], country),
+    )
+    assert order.renal_dose_adjusted and order.display_name != standard_name
+    assert given and {m.drug_name for m in given} == {order.display_name}
+
+
+def test_a_progress_note_of_the_first_day_states_the_adjusted_interval_issue_3871() -> None:
+    from clinosim.modules.document.narrative._medication_plan import note_medications
+
+    order = _order("meropenem", "1g IV q8h", "JP")
+    order.display_name = "Meropenem 1g IV q8h"
+    enrich_medication_order(order)
+    given = _generate_mar(
+        _patient(),
+        [order],
+        1,
+        _ADM - timedelta(days=1),
+        roster=StaffRoster(),
+        rng=np.random.default_rng(0),
+        renal=RenalDoseContext([_creatinine(3.96)], "JP"),
+    )
+    ctx = SimpleNamespace(
+        medications=given,
+        orders=[order],
+        target_lang="ja",
+        day_index=1,
+        authored_datetime=None,
+        encounter=SimpleNamespace(admission_datetime=_ADM - timedelta(days=1)),
+    )
+    started = note_medications(ctx).started
+    assert started, "the antibiotic is a start in the note of its first day"
+    assert "q8h" not in " ".join(started).lower() and "8時間" not in " ".join(started)
