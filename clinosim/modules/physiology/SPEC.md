@@ -393,7 +393,10 @@ def derive_vital_signs(state: PhysiologicalState, patient: PatientProfile,
     
     # Temperature: driven by inflammation + circadian rhythm
     circadian = 0.3 * math.sin((timestamp.hour - 4) * math.pi / 12)  # peak at 16:00, nadir at 04:00
-    temperature = baseline.temperature + infl * 3.0 + circadian
+    # Issue #3818: below 0.5 the lift grows with infl**2 (fever settles
+    # before CRP); at or above 0.5 it is linear, so presenting fevers stay.
+    lift = infl if infl >= 0.5 else infl * infl / 0.5
+    temperature = baseline.temperature + lift * 3.0 + circadian
     temperature = clamp(temperature, 35.0, 42.0)
     
     # Heart rate: rises with fever, low perfusion, pain, anemia
