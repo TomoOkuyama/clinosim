@@ -39,7 +39,8 @@ def test_minor_has_a_parent_contact_with_sex_role_and_name(country: str, age: in
         assert c.emergency_contact_role == {"M": "FTH", "F": "MTH"}[c.emergency_contact_sex]
         assert c.emergency_contact_name
         assert c.emergency_contact_family_name and c.emergency_contact_given_name
-        assert c.emergency_contact_phone == "03-1234-5678"
+        # Issue #3832: the parent has a phone of their own, not the child's.
+        assert c.emergency_contact_phone and c.emergency_contact_phone != "03-1234-5678"
 
 
 @pytest.mark.parametrize("country", ["US", "JP"])

@@ -17,7 +17,7 @@ severity score 付きの慢性疾患活性化、disease profile 由来の常用�
 選ぶため、未婚・離別・死別の人は配偶者を連絡先にしない)。連絡先は性別、具体的な
 v3-RoleCode (FTH/MTH, BRO/SIS, SON/DAU, HUSB/WIFE。続柄 slug と性別から決定) と
 姓・名の分割を保持する (Issue #3599)。性別は既に引いていた名の選択に使った値で、
-乱数の消費は増えない。成人の名前付きの連絡先は本人とは別の電話番号を持つ: 国の携帯番号パターンから、person id と生年月日で seed した stream で引く (`seeding.emergency_contact_phone_seed`、Issue #3695)。患者本人の番号は使わない。未成年は保護者の番号のまま。未成年者 (表の `adult_age_min` 未満) の緊急連絡先は親とし (`emergency_contact.minor_relationships`。専用の person 単位 stream `guardian_contact_seed` で 1 回だけ選び、`guardian_contact_*` に保持する。シミュレーション内で出生した子は母のまま)、`employment_status` は 6 歳未満は空、6-17 歳は `student` (`demographics.yaml` の `employment_status.minor`。成人は `employed`、65 歳以上は `retired`) とする (Issue #3658)。simulator は `(person_id, as_of_year)` cache key ごとに
+乱数の消費は増えない。成人の名前付きの連絡先は本人とは別の電話番号を持つ: 国の携帯番号パターンから、person id と生年月日で seed した stream で引く (`seeding.emergency_contact_phone_seed`、Issue #3695)。患者本人の番号は使わない。未成年の親の連絡先も本人とは別の携帯番号を持つ (別 stream `seeding.guardian_contact_phone_seed`、Issue #3832。シミュレーション内で出生した子は母の番号のまま)。未成年者 (表の `adult_age_min` 未満) の緊急連絡先は親とし (`emergency_contact.minor_relationships`。専用の person 単位 stream `guardian_contact_seed` で 1 回だけ選び、`guardian_contact_*` に保持する。シミュレーション内で出生した子は母のまま)、`employment_status` は 6 歳未満は空、6-17 歳は `student` (`demographics.yaml` の `employment_status.minor`。成人は `employed`、65 歳以上は `retired`) とする (Issue #3658)。simulator は `(person_id, as_of_year)` cache key ごとに
 1 回これを呼び、返却 profile が全 encounter simulator の入力になる。
 
 ## Scope
