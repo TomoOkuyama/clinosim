@@ -200,6 +200,9 @@ complications:
     detection: {test: chest_xray, finding: pleural_effusion}
     actions: [order_chest_xray, consider_thoracentesis]
     cascade: [empyema]
+    sustained_state:               # optional: effect held while its driver lasts (Issue #3827)
+      coagulation_status: {level: 0.85, driver: inflammation_level, release_below: 0.30, full_days: 3}
+    monitoring_labs: [DIC_panel]   # optional: labs drawn with the morning labs while a sustained effect lasts
 
 narrative:                         # NarrativeSpec
   hpi_template:                    # HPI onset (Issue #3228)

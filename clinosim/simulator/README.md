@@ -183,6 +183,11 @@ clinosim/simulator/
                          encounter-diagnosis Conditions; table in
                          `reference_data/complication_diagnosis_codes.yaml`; no RNG
                          (Issue #3673)
+  sustained_complication.py  a complication's `sustained_state`: an effect on a state variable
+                         held while its driver lasts (DIC consumption follows the septic
+                         inflammation), full for `full_days` then fading to a release
+                         point; the complication's `monitoring_labs` are drawn meanwhile;
+                         no RNG (Issue #3827)
   complication_actions.py  the antibiotic `actions` a disease YAML declares on a
                          complication: one canonical spelling, and the first-line
                          antibiotic of the protocol named for the complication,
