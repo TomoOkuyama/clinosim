@@ -309,7 +309,23 @@ def _build_procedure(
     from clinosim.modules.diagnosis.nonspecific_codes import encounter_primary_dx_code, is_visit_reason_zcode
 
     _primary_dx_code = encounter_primary_dx_code(record, enc_id)
-    if enc_id and not (_primary_dx_code and is_visit_reason_zcode(_primary_dx_code)):
+    # Issue #3868: a procedure done for a condition other than the visit's
+    # (a cancer's surveillance on another visit) points at that condition.
+    _indication = str(proc.get("indication_code", "") or "")
+    if _indication:
+        from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
+            _matching_chronic_index,
+            chronic_condition_id,
+        )
+
+        _chronic_codes = [
+            str(c if isinstance(c, str) else (c.get("code", "") if isinstance(c, dict) else getattr(c, "code", "")))
+            for c in ((record or {}).get("patient") or {}).get("chronic_conditions", []) or []
+        ]
+        _idx = _matching_chronic_index(_indication, _chronic_codes)
+        if _idx is not None:
+            resource["reasonReference"] = [{"reference": f"Condition/{chronic_condition_id(patient_id, _idx)}"}]
+    elif enc_id and not (_primary_dx_code and is_visit_reason_zcode(_primary_dx_code)):
         # Issue #854 Bucket B (PR-condition): route through the shared
         # resolver so `.reasonReference[]` stays byte-consistent with the
         # opaque Condition.id emit — no string reconstruction anywhere.
@@ -331,7 +347,9 @@ def _build_procedure(
     # CY7-17 (Chain-7): base fallback wording kept identical for
     # backwards compatibility of CY7-17 assertions.
     if not resource.get("reasonCode"):
-        resource["reasonCode"] = procedure_reason_codes(record, country, encounter_id=enc_id)
+        resource["reasonCode"] = procedure_reason_codes(
+            record, country, encounter_id=enc_id, indication_code=_indication
+        )
 
     # bodySite (SNOMED)
     body_site_code = proc.get("body_site_code", "")
@@ -383,7 +401,9 @@ def _build_procedure(
     return resource
 
 
-def procedure_reason_codes(record: dict | None, country: str, encounter_id: str | None = None) -> list[dict]:
+def procedure_reason_codes(
+    record: dict | None, country: str, encounter_id: str | None = None, indication_code: str = ""
+) -> list[dict]:
     """``Procedure.reasonCode`` from the encounter's clinical diagnosis
     (session-88j P2-5a / Issue #816), shared by the CIF-procedure and the
     order-derived Procedure paths.
@@ -394,13 +414,18 @@ def procedure_reason_codes(record: dict | None, country: str, encounter_id: str 
     ``Condition`` and ``Encounter`` do; a folded code takes its own display.
     A vaccination visit of the CIF-procedure path (``encounter_id`` given)
     carries the reason of each vaccine given at the encounter (Issue #3008).
-    Without a diagnosis, the generic reason text."""
+    Without a diagnosis, the generic reason text. A procedure done for a
+    condition other than the visit's passes it as ``indication_code`` (an
+    internal chronic-condition code, Issue #3868), which replaces the visit's
+    diagnosis."""
     from clinosim.modules.immunization.visits import IMMUNIZATION_VISIT_DX, vaccination_visit_reason_codes
 
     lang = lang_for(country)
     dx = (record or {}).get("clinical_diagnosis", {}) or {}
     dx_code = dx.get("discharge_diagnosis_code") or dx.get("admission_diagnosis_code", "") or ""
     dx_display = dx.get("discharge_diagnosis_display") or dx.get("admission_diagnosis_display", "") or ""
+    if indication_code:
+        dx_code, dx_display, encounter_id = indication_code, "", None
     generic_text = t("fhir_text.procedure_reason_generic", lang)
     if not dx_code:
         return [{"text": generic_text}]

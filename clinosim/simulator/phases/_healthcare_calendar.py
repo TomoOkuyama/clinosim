@@ -405,6 +405,9 @@ def dispatch_calendar_event(event: LifeEvent, ctx: ForwardContext, visit_day: da
                 chronic_code=specialty_code,
                 followup_spec={
                     "labs": [],
+                    # Issue #3868: a specialty follow-up takes the procedures of
+                    # its own condition's block, no other condition's.
+                    "fanout": True,
                     "visit_reason": _specialty_visit_reason.get(
                         specialty_name,
                         {

@@ -36,6 +36,11 @@ class ProcedureRecord:
     # falls back to the country default + the Phase 4d.2 CPT-swap. Any
     # key resolvable via ``clinosim.codes.get_system_uri`` is accepted.
     procedure_system_key: str = ""
+    # Issue #3868: the internal chronic-condition code the procedure is done
+    # for (a cancer's surveillance colonoscopy: the cancer), when it is not the
+    # diagnosis of the encounter it sits on. Empty: the encounter's own
+    # diagnosis is the reason.
+    indication_code: str = ""
     # Per AD-30 (CIF is language-neutral), procedure display name is NOT stored
     # in CIF. Consumers resolve via code_lookup("k-codes"|"cpt", code, lang).
 

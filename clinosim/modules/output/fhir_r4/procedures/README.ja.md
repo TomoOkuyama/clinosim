@@ -124,6 +124,10 @@ from clinosim.modules.output.fhir_r4.procedures.oxygen_therapy import (
   `procedure_system_key` override (例 `snomed-ct`) が優先。JP 出力は CPT を
   一切出さない (Issue #3009): K-code の無い処置は日本語 `code.text` と、
   検証済みなら SNOMED coding のみ。
+- **理由** (Issue #3868): `Procedure.reasonCode` / `reasonReference` は受診の
+  主診断。ただし `indication_code` を持つ処置 (別の受診で行うがんの
+  サーベイランス) はその病態のコード (国別に変換) と、患者の慢性 Condition
+  への参照を持つ。
 - **手術検体** (`surgical_specimens.py`、Issue #3284):
   `ProcedureRecord.specimens_sent` の 1 件ごとに Specimen を 1 つ出す。
   `type` は SNOMED CT の検体 concept (`snomed_for("specimen_type", key)`、

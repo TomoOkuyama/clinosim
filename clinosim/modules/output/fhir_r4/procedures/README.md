@@ -134,6 +134,11 @@ Not applicable — pure builders over CIF procedures / immunizations /
   precedence. JP output never carries CPT (Issue #3009): a procedure
   with no K-code keeps its Japanese `code.text` and a verified SNOMED
   coding when there is one.
+- **Reason** (Issue #3868): `Procedure.reasonCode` / `reasonReference` are the
+  encounter's primary diagnosis, except for a procedure with
+  `indication_code` (a cancer's surveillance done on another visit), which
+  carries that condition's code (country-mapped) and a reference to the
+  patient's chronic Condition.
 - **Surgical specimens** (`surgical_specimens.py`, Issue #3284): one
   Specimen per `ProcedureRecord.specimens_sent` entry. `type` is the
   SNOMED CT specimen concept (`snomed_for("specimen_type", key)`, dual

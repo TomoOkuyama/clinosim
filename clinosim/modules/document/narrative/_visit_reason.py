@@ -378,7 +378,13 @@ def _screening_items(ctx: Any) -> str:
         name = imaging_exam_display(str(_o(order, "display_name", "") or ""), lang)
         if name and name not in names:
             names.append(name)
+    visit_condition = str(getattr(ctx, "visit_condition_id", "") or "").split(".")[0]
     for proc in ctx.procedures or []:
+        # Issue #3868: a procedure done for another condition (a cancer's
+        # surveillance on an unrelated visit) is not a screening test of it.
+        indication = str(_o(proc, "indication_code", "") or "").split(".")[0]
+        if indication and indication != visit_condition:
+            continue
         name = procedure_prose_name(proc, lang)
         if name and name not in names:
             names.append(name)

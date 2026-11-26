@@ -306,6 +306,17 @@ follow-up moves to the next clinic day. Closed days come from
 3 Jan; US: Sundays and federal holidays). The event keeps its planned date for
 its RNG key, so no stream moves; ED visits are not affected.
 
+A cancer's surveillance procedure (colonoscopy, mammography, ... from the
+`procedures:` of its `chronic_followup.yaml` block) is done for that cancer
+(Issue #3868): `ProcedureRecord.indication_code` carries the condition. The
+oncology survivorship visit the calendar adds after a chronic visit
+(`_specialty_fanout_tick`, flagged `fanout` in its spec) takes the procedures of
+its own condition's block; an unrelated chronic visit leaves a condition's
+procedures to its specialty visit while that visit is still to come in the
+period (`_own_visit_follows`, read from the ledger's `specialty_visits`) and
+otherwise keeps the earlier behaviour of doing them on the visit, with the
+condition as indication. No RNG is drawn.
+
 Pipelines (3 files):
 
 ```
