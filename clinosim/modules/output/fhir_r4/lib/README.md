@@ -96,7 +96,7 @@ rename).
     helper used by `convert_cif_to_fhir` when reattributing
     via-ED IMP encounters to a synthetic ED bridge encounter
     (N-3 PR #810 chain), `reattribute_ed_phase_by_time` (Issue #3672: orders, results, doses and
-    procedures dated in the ED window `[admission - admitted_ed_stay(), admission)` go to the bridge; Issue #3866: a MedicationAdministration is read through its `context`, an ImagingStudy by `started`, and the imaging-report Composition by the start of the ImagingStudy it describes),
+    procedures dated in the ED window `[admission - admitted_ed_stay(), admission)` go to the bridge; Issue #3866: a MedicationAdministration is read through its `context`, an ImagingStudy by `started`, and the imaging-report Composition by the start of the ImagingStudy it describes; Issue #3888: a MedicationRequest or ServiceRequest moved to the bridge is requested by the stay's `ed_physician_id`, with the recorder / performer that repeated the requester following it, and is left unchanged when the stay has no ED physician),
     and `vital_sign_encounter_id(vs, ctx)`, which
     places the ED arrival vital-sign set (`data_source == "ed_triage"`)
     and its NEWS2 / GCS on that bridge (Issue #3243), and a set taken outside the primary encounter's period on the record's other outpatient encounter whose period holds it (the companion vaccination visit, Issue #3656).
