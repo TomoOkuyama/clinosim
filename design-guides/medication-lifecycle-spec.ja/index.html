@@ -2604,6 +2604,16 @@
 <td><code>tests/unit/simulator/test_complication_antibiotic_3543.py</code></td>
 </tr>
 <tr>
+<td>合併症が <code>start_anticoagulation</code> を宣言すると(正規キー。<code>anticoagulation</code>・<code>anticoagulation_with_renal_dosing</code>・<code>anticoagulation_renal_adjusted</code> は別名で YAML には書かない)、発症時に治療量の抗凝固療法を開始する。DVT プロトコルの当該国の <code>first_line</code> のうち(クラス <code>anticoagulant</code>)、クレアチニンクリアランス(Cockcroft-Gault、エントリの <code>renal_adjustment</code>。「avoid」は次のエントリへ、用量文字列は用量の置換)と薬剤安全性ゲートが許す最初のエントリを発注する。出血性の合併症が活動中、または治療量の抗凝固薬が既に実行中のときは発注しない。最初の薬がヘパリンなら <code>lead_in_days</code> だけ投与し、ブロックの経口薬を同時に発注して導入期間の終わりから投与する(ゲートが経口薬を除外したときはヘパリンを継続)。予定の VTE 予防はこの発注の時刻で終わる(削除はしない)。退院処方は抗凝固薬を継続する(<code>discharge_block</code>。段階的な投与期間が終わっていないときは入院中の用法文「15mg PO BID x21 days, then 20mg PO daily」)。安全性ルールで併用できない抗血小板薬は外す。条件付き・用法変更の action(「start_anticoagulation_cautiously」「increase_anticoagulation」)は実行しない。</td>
+<td><code>simulator/complication_actions.py</code>(<code>treatment_actions_of</code>, <code>treatment_candidates</code>, <code>renal_decision</code>, <code>complication_discharge_specs</code>)、<code>daily_loop.py::_start_complication_treatment</code>、<code>modules/prophylaxis/engine.py::build_dvt_prophylaxis_orders</code>、<code>discharge_rx.py::build_discharge_rx(extra_specs=)</code>。データは <code>complication_actions.yaml</code></td>
+<td><code>tests/unit/simulator/test_complication_treatment_3864.py</code></td>
+</tr>
+<tr>
+<td>合併症が <code>hold_anticoagulation</code>(出血)を宣言すると、発症の指示時刻に、実行中の抗凝固薬と予定の VTE 予防薬ごとに <code>DISCONTINUE:</code> の中止マーカー(id に <code>-STOP-</code> と <code>-COMPHOLD-</code>)を書く。マーカーは以後の action からは即座に指示を止め、退院後にそのマーカー以降の投与を除いて指示をそこで終える(<code>drop_doses_after_hold</code>。日々の MAR は引き直さない)。<code>IV_PPI</code>(消化管出血)は消化管出血プロトコルの静注 PPI の最初のエントリを <code>course_days</code>(3。レジメンの「x 72h」。ACG 2021: 内視鏡的止血後は高用量 PPI を 3 日間)だけ発注する。開始した指示のスタッフ乱数は <code>complication_treatment_seed</code> を使い、滞在の乱数列は使わない。</td>
+<td><code>daily_loop.py::_hold_anticoagulation</code>, <code>_start_complication_treatment</code>; <code>modules/order/supersede.py::drop_doses_after_hold</code>; <code>seeding.py::complication_treatment_seed</code></td>
+<td><code>tests/unit/simulator/test_complication_treatment_3864.py</code></td>
+</tr>
+<tr>
 <td>昇圧薬・強心薬の持続投与は、直前 24 時間に記録した血圧がすべて平均動脈圧 65 mmHg 以上(2 回以上の記録)、その間に新たな昇圧薬・強心薬の開始がなく、ショックを脱している(日次ループの <code>in_shock</code>)とき、その病日の開始時点で中止する。持続投与中の昇圧薬・強心薬はまとめて中止し(status stopped、終了時刻はその病日の開始)、以後は投与しない。最終病日に持続投与があった患者は退院可能とも自宅退院可能とも判定せず、そのために入院期間をプロトコルの最大在院日数から最大 <code>max_extension_days</code> 日まで延長する。</td>
 <td><code>simulator/vasoactive_support.py</code>(<code>stop_weaned_vasoactive_infusions</code>, <code>vasoactive_support_after</code>)、<code>medication_pipeline.py::is_vasoactive_infusion</code>。データ <code>simulator/reference_data/vasoactive_weaning.yaml</code>。<code>daily_loop.py</code>(<code>_wean_vasoactive_support</code>, <code>_on_vasoactive_support</code>)と <code>discharge_gate.py</code> で適用</td>
 <td><code>tests/unit/simulator/test_vasoactive_weaning_3270.py</code></td>
