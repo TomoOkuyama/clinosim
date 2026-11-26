@@ -386,6 +386,45 @@ def test_the_dose_reduction_rule_is_validated_and_names_catalog_drugs() -> None:
     from clinosim.codes.drugs import get_drug
     from clinosim.simulator.complication_actions import complication_action_rules
 
-    rule = complication_action_rules().treatment_actions["start_anticoagulation"].dose_reductions["edoxaban"]
+    rule = complication_action_rules().dose_reductions["edoxaban"]
     assert rule.weight_kg_at_most == 60.0 and rule.dose == "30mg PO daily"
     assert all(get_drug(d) is not None for d in rule.interacting_drugs)
+
+
+# --- the same edoxaban rule at the discharge of the pulmonary embolism / atrial fibrillation / stroke protocols ---
+
+
+def _jp_discharge_edoxaban(disease: str, weight: float, home=()):
+    import numpy as np
+
+    from clinosim.modules.disease.protocol import load_disease_protocol
+    from clinosim.simulator.discharge_rx import build_discharge_rx
+    from clinosim.types.patient import PatientProfile
+
+    for seed in range(40):  # the protocols draw the anticoagulant (edoxaban 0.8 / 0.2 warfarin)
+        patient = PatientProfile(
+            patient_id="P1", age=70, sex="M", weight_kg=weight, height_cm=170.0, current_medications=list(home)
+        )
+        rx = build_discharge_rx(
+            patient,
+            disease,
+            load_disease_protocol(disease),
+            "DR1",
+            ADMIT,
+            np.random.default_rng(seed),
+            encounter_id="E1",
+            country_key="japan",
+        )
+        found = [i for i in rx.items if i["drug_name"] == "Edoxaban"]
+        if found:
+            return found[0]
+    raise AssertionError(f"no edoxaban discharge item for {disease}")
+
+
+@pytest.mark.parametrize("disease", ["pulmonary_embolism", "atrial_fibrillation_rvr"])
+def test_the_edoxaban_discharge_dose_of_every_protocol_follows_the_weight_and_the_interactions(disease) -> None:
+    light = _jp_discharge_edoxaban(disease, 55.0)
+    assert light["dose"].startswith("30mg") and light["dose_ja"].startswith("30mg")
+    assert _jp_discharge_edoxaban(disease, 80.0)["dose"].startswith("60mg")
+    with_verapamil = _jp_discharge_edoxaban(disease, 80.0, home=["Verapamil"])
+    assert with_verapamil["dose"].startswith("30mg")

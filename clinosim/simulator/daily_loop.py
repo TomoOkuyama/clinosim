@@ -1809,6 +1809,7 @@ def _start_complication_treatment(
     from clinosim.modules.order.engine import protocol_medication_orders
     from clinosim.seeding import complication_treatment_seed
     from clinosim.simulator.complication_actions import (
+        dose_reduction_rule,
         is_therapeutic_anticoagulant_order,
         reduced_dose,
         renal_decision,
@@ -1843,9 +1844,10 @@ def _start_complication_treatment(
     ]
     from clinosim.modules.population.encounter_anthropometry import encounter_weight_kg
 
+    candidates_of = treatment_candidates(action, stay.country_key, treatment_severity(action, run.lab_results, when))
     weight_kg = (
         float(encounter_weight_kg(stay.patient, stay.encounter_id, stay.admission_time, stay.country_key))
-        if spec.dose_reductions
+        if any(dose_reduction_rule(str(e.get("drug_id"))) for e in candidates_of)
         else None
     )
     active_names = [*(m.drug_name for m in stay.patient.current_medications or [] if m.drug_name), *accepted]
@@ -1853,12 +1855,11 @@ def _start_complication_treatment(
     complication = {lang: _localize_complication_name(comp_name, lang) for lang in ("en", "ja")}
     gated: list[Order] = []
     chosen = 0
-    candidates_of = treatment_candidates(action, stay.country_key, treatment_severity(action, run.lab_results, when))
     for idx, entry in enumerate(candidates_of):
         if _running_order(run.orders, protocol_drug_name(entry)) is not None:
             return
         decision = renal_decision(entry.get("renal_adjustment"), crcl) or reduced_dose(
-            action, str(entry.get("drug_id")), weight_kg, active_names
+            str(entry.get("drug_id")), weight_kg, active_names
         )
         if decision == "avoid":
             continue
@@ -1914,7 +1915,7 @@ def _start_complication_treatment(
             ):
                 continue
             decided = renal_decision(later.get("renal_adjustment"), crcl) or reduced_dose(
-                action, str(later.get("drug_id")), weight_kg, active_names
+                str(later.get("drug_id")), weight_kg, active_names
             )
             oral = [
                 replace(o, administer_from=when + timedelta(days=spec.lead_in_days))

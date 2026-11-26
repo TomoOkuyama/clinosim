@@ -74,6 +74,7 @@ class DoseReduction(BaseModel):
     weight_kg_at_most: float = Field(gt=0)
     interacting_drugs: tuple[_Slug, ...] = ()
     dose: _Slug
+    dose_ja: _Slug
 
 
 class StepDown(BaseModel):
@@ -110,7 +111,6 @@ class TreatmentAction(BaseModel):
     first_only: bool = False
     lead_in_days: int | None = Field(default=None, gt=0)
     step_down: StepDown | None = None
-    dose_reductions: dict[_Slug, DoseReduction] = Field(default_factory=dict)
     blocked_by: tuple[_Slug, ...] = ()
 
     @model_validator(mode="after")
@@ -161,6 +161,7 @@ class ComplicationActionRules(BaseModel):
     treatment_actions: dict[_Slug, TreatmentAction]
     stop_actions: dict[_Slug, StopAction] = Field(min_length=1)
     not_executed_treatment_actions: tuple[_Slug, ...]
+    dose_reductions: dict[_Slug, DoseReduction] = Field(default_factory=dict)
 
 
 @functools.cache
@@ -330,14 +331,20 @@ def treatment_candidates(action: str, country_key: str, severity: str | None = N
     return out[:1] if spec.first_only else out
 
 
-def reduced_dose(action: str, drug_id: str, weight_kg: float | None, active_drugs: Iterable[str]) -> str | None:
-    """The reduced dose text of ``drug_id`` under a treatment action's
-    ``dose_reductions`` (Issue #3896): the body weight at or below the limit, or an
-    interacting drug among ``active_drugs`` (names or ids); ``None`` when the drug
-    has no rule or none applies. Draws nothing."""
+def dose_reduction_rule(drug_id: str) -> DoseReduction | None:
+    """The reduced-dose rule of a catalog drug (``dose_reductions``), ``None``
+    when it has none (Issue #3896)."""
+    return complication_action_rules().dose_reductions.get(drug_id)
+
+
+def reduced_dose(drug_id: str, weight_kg: float | None, active_drugs: Iterable[str]) -> str | None:
+    """The reduced dose text of ``drug_id`` under ``dose_reductions`` (Issue
+    #3896): the body weight at or below the limit, or an interacting drug among
+    ``active_drugs`` (names or ids); ``None`` when the drug has no rule or none
+    applies. Draws nothing."""
     from clinosim.codes.drugs import drug_key
 
-    rule = complication_action_rules().treatment_actions[action].dose_reductions.get(drug_id)
+    rule = dose_reduction_rule(drug_id)
     if rule is None:
         return None
     if weight_kg is not None and weight_kg <= rule.weight_kg_at_most:
@@ -514,7 +521,7 @@ def _anticoagulant_discharge_specs(
             out["dose"] = started_dose
         elif decision:
             out["dose"] = decision
-        elif reduction := reduced_dose("start_anticoagulation", str(entry.get("drug_id")), weight_kg, active_drugs):
+        elif reduction := reduced_dose(str(entry.get("drug_id")), weight_kg, active_drugs):
             out["dose"] = reduction  # Issue #3896: the weight / interaction dose of the label
         return [out]
     return []
