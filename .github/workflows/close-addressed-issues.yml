@@ -6,7 +6,7 @@
 # fire on negated text. With auto-merge enabled, a PR is merged by GitHub when
 # its required checks pass, so the Issues must be closed on the server side
 # too: this job closes every `Addresses #N` Issue of a merged PR and leaves
-# `Part of #N` Issues open.
+# `Part of #N` Issues open. It closes without a comment (see the step).
 name: Close addressed Issues
 
 on:
@@ -37,7 +37,10 @@ jobs:
           for n in $issues; do
             state=$(gh issue view "$n" -R "$REPO" --json state -q .state || echo MISSING)
             if [ "$state" = OPEN ]; then
-              gh issue close "$n" -R "$REPO" --comment "Fixed by #$PR_NUMBER."
+              # No comment: the PR's `Addresses #N` line already links the
+              # PR on the Issue timeline, and a comment would e-mail the
+              # Issue author once per merged PR.
+              gh issue close "$n" -R "$REPO" --reason completed
               echo "closed #$n"
             else
               echo "#$n is $state, left as is"
