@@ -334,3 +334,51 @@ def test_doac_af_assessment_does_not_cite_an_inr():
     prior = [_lab("PT_INR", 1.1, "{INR}", at="2025-12-15T12:25:00")]
     s = _soap(_ctx("US", [{"code": "I48.91"}], [], meds=doac, home=doac, prior=prior))
     assert "PT-INR" not in s["A"], s["A"]
+
+
+# ── #3878 ──────────────────────────────────────────────────────────────
+
+
+def _prn(name: str, frequency: str = "prn") -> dict:
+    return {**_med(name, "2 puffs"), "frequency": frequency}
+
+
+@pytest.mark.parametrize("country", ["US", "JP"])
+def test_prn_home_medication_not_on_the_prescription_is_not_a_dropped_drug(country):
+    home = [_med("Tiotropium", "18mcg"), _prn("Albuterol")]
+    rx = [_med("Tiotropium", "18mcg")]
+    p = _soap(_ctx(country, [{"code": "J44.9"}], meds=home, home=home, rx=rx))["P"]
+    assert "Albuterol" not in p and "アルブテロール" not in p and "サルブタモール" not in p, p
+    assert "not on today's prescription" not in p and "処方されていない" not in p, p
+
+
+def test_prn_alone_does_not_break_the_unchanged_decision():
+    home = [_med("Tiotropium", "18mcg"), _prn("Albuterol", "q4-6h PRN")]
+    rx = [_med("Tiotropium", "18mcg")]
+    p = _soap(_ctx("US", [{"code": "J44.9"}], meds=home, home=home, rx=rx))["P"]
+    assert "unchanged from the medications" in p, p
+
+
+def test_scheduled_drug_missing_from_the_prescription_keeps_the_line():
+    home = [_med("Tiotropium", "18mcg"), _prn("Albuterol"), _med("Metformin", "500mg")]
+    rx = [_med("Tiotropium", "18mcg")]
+    p = _soap(_ctx("US", [{"code": "J44.9"}], meds=home, home=home, rx=rx))["P"]
+    assert "not on today's prescription Metformin" in p and "Albuterol" not in p, p
+
+
+@pytest.mark.parametrize(
+    ("freq", "expected"),
+    [
+        ("prn", True),
+        ("q4-6h PRN", True),
+        ("PRN up to 3x/day", True),
+        ("daily", False),
+        ("BID", False),
+        ("", False),
+        (None, False),
+    ],
+)
+def test_one_as_needed_predicate(freq, expected):
+    from clinosim.modules.output.fhir_r4.lib.dosage import is_as_needed_frequency
+
+    assert is_as_needed_frequency(freq) is expected
