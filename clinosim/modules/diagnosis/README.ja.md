@@ -10,7 +10,7 @@ Issue #551 で 6 sites に散在していた非特異 / fallback ICD-10 コー�
 named canonical 定数、FHIR emit 層が gate に使う ICD-10 code 分類
 predicate (Z-chapter visit-reason code、主診断不可 code)、および
 lab 由来 AKI (N17.9) working diagnosis を追記する RNG-free な
-  organism_code.py               `isolate_refined_code`: 菌種を示す肺炎コードは診断確信度ではなく入院中の培養の分離菌に従う (Issue #3645)
+  organism_code.py               `isolate_refined_code`: 菌種を示す肺炎・敗血症コードは診断確信度ではなく入院中の培養の分離菌に従う (Issues #3645, #3833)
 POST_ENCOUNTER enricher 1 本 (`lab_derived_dx.py`、Issue #1326) も所有する。
 
 ## Scope
@@ -147,6 +147,7 @@ clinosim/modules/diagnosis/
   reference_data/
     builtin_differentials.yaml   built-in 差別ライブラリ
     organism_pneumonia_codes.yaml  肺炎の分離菌 (SNOMED 菌種) -> J13 / J14 / J15.x (Issue #3645)
+    organism_sepsis_codes.yaml     敗血症の血液培養分離菌 -> A40.x / A41.x (分離菌なしは A41.9。黄色ブドウ球菌はセファゾリン感受性で A41.01 / A41.02) (Issue #3833)
   SPEC.md                        拡張設計参考 (runtime data ではない)
 ```
 

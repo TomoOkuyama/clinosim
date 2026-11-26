@@ -5,7 +5,7 @@
     "source_file": "kihon2013.xlsx (sheet 基本分類表データ, columns コード / コード名)",
     "extracted_at": "2026-11-01",
     "note": "Japanese official names of the ICD-10 codes clinosim emits for JP, filtered from the full table (15,296 codes).",
-    "later_additions": "E11.2, E11.3 and E11.4 (Issue #3259), G35, I69.1 and I69.3 (Issue #3327) were added on 2026-11-16 from the same kihon2013.xlsx table. T20.0-T25.0 (Issue #3258) were added on 2026-11-18 from the same kihon2013.xlsx table. F05 (Issue #3519) was added on 2026-11-21 from the same kihon2013.xlsx table. J14 and J15.5 (Issue #3645) were added on 2026-11-24 from the same kihon2013.xlsx table."
+    "later_additions": "E11.2, E11.3 and E11.4 (Issue #3259), G35, I69.1 and I69.3 (Issue #3327) were added on 2026-11-16 from the same kihon2013.xlsx table. T20.0-T25.0 (Issue #3258) were added on 2026-11-18 from the same kihon2013.xlsx table. F05 (Issue #3519) was added on 2026-11-21 from the same kihon2013.xlsx table. J14 and J15.5 (Issue #3645) were added on 2026-11-24 from the same kihon2013.xlsx table. A40.3, A41.3 and A41.8 (Issue #3833) were added on 2026-11-26 from the same kihon2013.xlsx table."
   },
   "concept": [
     {
@@ -25,6 +25,10 @@
       "display": "A群連鎖球菌による敗血症"
     },
     {
+      "code": "A40.3",
+      "display": "肺炎連鎖球菌による敗血症"
+    },
+    {
       "code": "A41",
       "display": "その他の敗血症"
     },
@@ -33,8 +37,16 @@
       "display": "黄色ブドウ球菌による敗血症"
     },
     {
+      "code": "A41.3",
+      "display": "インフルエンザ菌による敗血症"
+    },
+    {
       "code": "A41.5",
       "display": "その他のグラム陰性菌による敗血症"
+    },
+    {
+      "code": "A41.8",
+      "display": "その他の明示された敗血症"
     },
     {
       "code": "A41.9",

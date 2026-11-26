@@ -95,7 +95,8 @@ P(Disease|Test) ∝ P(Test|Disease) × P(Disease)
 > that adds specificity: `I50.9` -> `I50.0`; for a bacterial pneumonia the
 > organism-specific `J13` / `J14` / `J15.x` follow an isolate of the stay's
 > cultures, not the confidence: `organism_code.isolate_refined_code`, Issue
-> #3645). A less specific
+> #3645; likewise a sepsis `A41.9` is refined to `A40.3` / `A41.x` by the
+> blood-culture isolate, Issue #3833). A less specific
 > or different condition (DKA -> hyperglycemia, acute pyelonephritis -> UTI
 > site not specified) is not. `discharge_code_is_admissible` is the canonical
 > predicate: the guard test
