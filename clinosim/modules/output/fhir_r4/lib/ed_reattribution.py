@@ -336,3 +336,37 @@ def reattribute_ed_phase_by_time(resource: dict, ctx: Any) -> None:
     if t is None or not (window[0] <= t < window[1]):
         return
     enc_ref["reference"] = f"Encounter/{resolve_encounter_id(f'{imp_id}-ED')}"
+    _name_ed_physician_as_requester(resource, ctx)
+
+
+# Orders carry the ordering physician in ``requester``. MedicationRequest.recorder
+# (medications.py) and the ServiceRequest.performer fallback (service_request.py)
+# repeat that same Practitioner when no other one is known.
+_REQUESTER_MIRROR_FIELDS: dict[str, str] = {"MedicationRequest": "recorder", "ServiceRequest": "performer"}
+
+
+def _ed_physician_id(ctx: Any) -> str:
+    """``ed_physician_id`` of the via-ED IMP encounter ('' when unset)."""
+    return str(get_attr_or_key(ctx.record["encounters"][0], "ed_physician_id", "") or "")
+
+
+def _name_ed_physician_as_requester(resource: dict, ctx: Any) -> None:
+    """An order re-routed to the ED bridge is requested by the stay's ED physician
+    (the bridge Encounter's attender, Issue #3888), not by the inpatient
+    attending whose name the order carries. The reference form is the one the
+    order builders emit. No ED physician recorded: left unchanged."""
+    rtype = resource.get("resourceType")
+    if rtype not in _REQUESTER_MIRROR_FIELDS:
+        return
+    ed_doc = _ed_physician_id(ctx)
+    requester = resource.get("requester")
+    if not ed_doc or not isinstance(requester, dict):
+        return
+    new_ref = {"reference": f"Practitioner/{ed_doc}"}
+    mirror = _REQUESTER_MIRROR_FIELDS[rtype]
+    value = resource.get(mirror)
+    if rtype == "MedicationRequest" and value == requester:
+        resource[mirror] = dict(new_ref)
+    elif rtype == "ServiceRequest" and value == [requester]:
+        resource[mirror] = [dict(new_ref)]
+    resource["requester"] = new_ref
