@@ -36,12 +36,18 @@ admission are routed to the bridge by :func:`reattribute_ed_phase_by_time`
 drawn in the ED and resulted after admission goes to the ED), not its
 issue / result time.
 
-**Why documents stay type-routed:** an earlier draft routed documents by
+The ImagingStudy is routed by its ``started`` time, and the imaging-report
+Composition (LOINC 18748-4) by the start of the ImagingStudy it describes (its
+own ``date`` is the report time, after the study). A MedicationAdministration
+carries its Encounter in ``context`` (Issue #3866).
+
+**Why other documents stay type-routed:** an earlier draft routed documents by
 timestamp too. Testing against the p=200 s800 baseline showed CIF timestamps
 are unreliable proxies for the locus of a *document* — nursing intake notes
 are stamped at 08:00 (which happens to land in the ED window preceding an
 08:37 admission) but are clinically ward activity, not ED activity. So
-Composition / DocumentReference keep their doc-type routing only.
+Composition / DocumentReference keep their doc-type routing only (imaging
+reports excepted, above).
 
 Idempotent: only rewrites when the current reference matches the IMP id
 exactly, so re-running the walker (or running it against already-attributed
@@ -203,8 +209,13 @@ _TIME_ROUTED_TYPES: frozenset[str] = frozenset(
         "MedicationRequest",
         "MedicationAdministration",
         "Procedure",
+        "ImagingStudy",
     }
 )
+# The imaging report Composition (LOINC 18748-4) is routed by the start of the
+# ImagingStudy it describes, not by its own (report-issue) date.
+_IMAGING_REPORT_LOINC = "18748-4"
+_IMAGING_STUDY_REF_PREFIX = "ImagingStudy/"
 # Clinical-time fields in precedence order: (top-level field, Period field).
 _CLINICAL_TIME_FIELDS: tuple[tuple[str, str | None], ...] = (
     ("effectiveDateTime", None),
@@ -214,6 +225,7 @@ _CLINICAL_TIME_FIELDS: tuple[tuple[str, str | None], ...] = (
     ("performedPeriod", "start"),
     ("authoredOn", None),
     ("occurrenceDateTime", None),
+    ("started", None),
 )
 _TZ_TAIL_RE = re.compile(r"(Z|[+-]\d{2}:?\d{2})$")
 
@@ -258,24 +270,69 @@ def _clinical_time(resource: dict) -> datetime | None:
     return None
 
 
+def _encounter_field(resource: dict) -> str:
+    """The element carrying a resource's Encounter reference: R4
+    ``MedicationAdministration`` uses ``context``, the others ``encounter``."""
+    return "context" if resource.get("resourceType") == "MedicationAdministration" else "encounter"
+
+
+def _imaging_study_starts(ctx: Any) -> dict[str, datetime]:
+    """FHIR ImagingStudy id -> start of the record's imaging studies, cached on ctx."""
+    cached = getattr(ctx, "_imaging_study_starts_cache", None)
+    if cached is not None:
+        return cached
+    from clinosim.modules.output.fhir_r4.labs.imaging_study import imaging_study_id_for_cif_study_id
+
+    starts: dict[str, datetime] = {}
+    ext = ctx.record.get("extensions") if isinstance(ctx.record, dict) else None
+    for study in (ext or {}).get("imaging") or []:
+        sid = str(get_attr_or_key(study, "study_id", "") or "")
+        started = get_attr_or_key(study, "started_datetime", None)
+        at = _as_datetime(started)
+        if sid and at is not None:
+            starts[imaging_study_id_for_cif_study_id(sid)] = at
+    try:
+        ctx._imaging_study_starts_cache = starts  # noqa: SLF001
+    except AttributeError:
+        pass
+    return starts
+
+
+def _imaging_report_time(resource: dict, ctx: Any) -> datetime | None:
+    """Start of the ImagingStudy an imaging-report Composition describes
+    (None for any other resource or an unlinked report)."""
+    if resource.get("resourceType") != "Composition":
+        return None
+    if not any(c.get("code") == _IMAGING_REPORT_LOINC for c in (resource.get("type") or {}).get("coding") or []):
+        return None
+    starts = _imaging_study_starts(ctx)
+    for section in resource.get("section") or []:
+        for ref in section.get("entry") or []:
+            r = str(ref.get("reference", "")) if isinstance(ref, dict) else ""
+            if r.startswith(_IMAGING_STUDY_REF_PREFIX) and r[len(_IMAGING_STUDY_REF_PREFIX) :] in starts:
+                return starts[r[len(_IMAGING_STUDY_REF_PREFIX) :]]
+    return None
+
+
 def reattribute_ed_phase_by_time(resource: dict, ctx: Any) -> None:
     """Route an order, result, dose or procedure dated in the ED window of a
     via-ED admission from the IMP Encounter to the ``-ED`` bridge
     (Issue #3672). Idempotent; resources without a parsable clinical time,
     documents, and anything already routed elsewhere stay untouched."""
-    if resource.get("resourceType") not in _TIME_ROUTED_TYPES:
+    imaging_report_at = _imaging_report_time(resource, ctx)
+    if resource.get("resourceType") not in _TIME_ROUTED_TYPES and imaging_report_at is None:
         return
     imp_id = _resolve_ed_imp_id(ctx)
     if imp_id is None:
         return
-    enc_ref = resource.get("encounter")
+    enc_ref = resource.get(_encounter_field(resource))
     imp_ref = f"Encounter/{resolve_encounter_id(imp_id)}"
     if not isinstance(enc_ref, dict) or enc_ref.get("reference") != imp_ref:
         return
     window = _ed_window(ctx)
     if window is None:
         return
-    t = _clinical_time(resource)
+    t = imaging_report_at if imaging_report_at is not None else _clinical_time(resource)
     if t is None or not (window[0] <= t < window[1]):
         return
     enc_ref["reference"] = f"Encounter/{resolve_encounter_id(f'{imp_id}-ED')}"
