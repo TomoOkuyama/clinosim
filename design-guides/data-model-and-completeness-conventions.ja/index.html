@@ -2492,6 +2492,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#44-問題リストが否定する-code-は-emit-時に単一の関数で解決する" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 問題リストが否定する code は emit 時に単一の関数で解決する
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2667,6 +2678,8 @@ call-site は event 日(<code>event.timestamp</code>)を渡す。</p>
 <p><code>Condition.stage</code> の SNOMED type に "Tumor stage finding"(385356007)を高血圧へ流用するような
 「近いから使う」を禁止。適切なコードが codes YAML に無ければ authoritative source(NLM/WHO)で
 検証して追加(<code>implementation-rules.md</code> §6、捏造禁止)。</p>
+<h3 id="44-問題リストが否定する-code-は-emit-時に単一の関数で解決する">4.4 問題リストが否定する code は emit 時に単一の関数で解決する<a class="headerlink" href="#44-問題リストが否定する-code-は-emit-時に単一の関数で解決する" title="Permanent link">&para;</a></h3>
+<p><code>E11.9</code> (合併症を伴わない 2 型糖尿病) は、同じ患者の <code>E11.2</code> / <code>E11.3</code> / <code>E11.4</code> 等の entry と矛盾する (Issue #3873)。CIF は <code>E11.9</code> を <code>chronic_conditions</code> に残す。糖尿病フォローアップ spec (完全一致 lookup)・基本処方・<code>has_condition(..., "diabetes")</code> を駆動するため、削除するとシミュレーション自体が変わる。全ての <em>emit</em> 箇所は <code>clinosim/modules/population/condition_mutex.py</code> (<code>redundant_uncomplicated_diabetes_indices</code>・<code>without_redundant_uncomplicated_diabetes</code>・<code>principal_code_for_problem_list</code>) を通して解決する: FHIR Condition 一覧 (index は維持するので他の id は動かない)、<code>Encounter.diagnosis</code>、主病名の照合、外来受診の主病名 (<code>_visit_diagnosis_code</code>: 合併症 code)、narrative の問題リスト (既往歴・A&amp;P の整列済み問題リスト・JP-CLINS の既往歴・死亡診断書の併存症・LLM 向けの慢性疾患一覧)。<code>chronic_conditions</code> を列挙する新しい emit 箇所は同じ関数を呼ぶ。規則を各所で再実装しない。合併症が初めて記録される前に書かれたレコードは自身のスナップショットに合併症が無く、<code>E11.9</code> を列挙する。Condition builder はその問題リスト項目を <code>inactive</code> とし、<code>abatementDateTime</code> を合併症 code を持つ最初のレコード (<code>first_seen</code>) の日時にするので、合併症と並ぶ有効な <code>E11.9</code> は残らない。Guard: <code>tests/unit/test_e119_diabetes_mutex_3873.py</code>。</p>
 <hr />
 <h2 id="5-clinical-authoring-規約c3-対策">5. clinical authoring 規約(C3 対策)<a class="headerlink" href="#5-clinical-authoring-規約c3-対策" title="Permanent link">&para;</a></h2>
 <h3 id="51-course_archetypes-と-complications-はセットで考える">5.1 course_archetypes と complications はセットで考える<a class="headerlink" href="#51-course_archetypes-と-complications-はセットで考える" title="Permanent link">&para;</a></h3>

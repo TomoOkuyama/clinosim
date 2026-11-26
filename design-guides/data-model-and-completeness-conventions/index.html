@@ -1128,6 +1128,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#44-a-code-that-the-problem-list-contradicts-is-resolved-at-emit-through-one-function" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 A code that the problem list contradicts is resolved at emit, through one function
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2753,6 +2764,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#44-a-code-that-the-problem-list-contradicts-is-resolved-at-emit-through-one-function" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 A code that the problem list contradicts is resolved at emit, through one function
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2979,6 +3001,8 @@ every determinism-touching change.</strong></p>
 close enough". If the correct code is not in the codes YAML, verify
 against an authoritative source (NLM / WHO) and add it
 (<code>implementation-rules.md</code> §6 — no fabrication).</p>
+<h3 id="44-a-code-that-the-problem-list-contradicts-is-resolved-at-emit-through-one-function">4.4 A code that the problem list contradicts is resolved at emit, through one function<a class="headerlink" href="#44-a-code-that-the-problem-list-contradicts-is-resolved-at-emit-through-one-function" title="Permanent link">&para;</a></h3>
+<p><code>E11.9</code> ("type 2 diabetes mellitus without complications") is contradicted by the patient's own <code>E11.2</code> / <code>E11.3</code> / <code>E11.4</code> ... entry (Issue #3873). The CIF keeps <code>E11.9</code> in <code>chronic_conditions</code> because it drives the diabetes follow-up spec (exact-code lookup), the base regimen and <code>has_condition(..., "diabetes")</code>; deleting it would change what the simulation does. Every <em>emit</em> site resolves through <code>clinosim/modules/population/condition_mutex.py</code> (<code>redundant_uncomplicated_diabetes_indices</code>, <code>without_redundant_uncomplicated_diabetes</code>, <code>principal_code_for_problem_list</code>): the FHIR Condition list (indices are kept, so other ids do not move), <code>Encounter.diagnosis</code>, the primary-condition match, the outpatient visit's principal diagnosis (<code>_visit_diagnosis_code</code>: the complication code) and the narrative problem lists (past medical history, the ordered problem list of the Assessment and Plan, the JP-CLINS history, the death-certificate comorbidities, the LLM chronic list). A new emit site that lists <code>chronic_conditions</code> calls the same function; no site re-implements the rule. A record written before the complication was first recorded has no complication in its own snapshot and still lists <code>E11.9</code>; the Condition builder marks that problem-list entry <code>inactive</code> with <code>abatementDateTime</code> = the first record that carries a complication code (<code>first_seen</code>), so no active <code>E11.9</code> stands beside the complication. Guard: <code>tests/unit/test_e119_diabetes_mutex_3873.py</code>.</p>
 <hr />
 <h2 id="5-clinical-authoring-rules-c3-defense">5. Clinical authoring rules (C3 defense)<a class="headerlink" href="#5-clinical-authoring-rules-c3-defense" title="Permanent link">&para;</a></h2>
 <h3 id="51-think-of-course_archetypes-and-complications-together">5.1 Think of <code>course_archetypes</code> and <code>complications</code> together<a class="headerlink" href="#51-think-of-course_archetypes-and-complications-together" title="Permanent link">&para;</a></h3>
