@@ -224,6 +224,8 @@ An outpatient `Encounter.type` follows the visit's reason, not the encounter-typ
 | pediatric acute illness (`visit_condition_id` is a `presentations` entry of the pediatric schedule, `pediatric.calendar.is_acute_illness_condition`) | 11429006 Consultation |
 | chief complaint starting `Follow-up`, `フォローアップ` or `Post-discharge`, or any other visit with a diagnosis | 185349003 Encounter for check up |
 
+A visit typed 185349003 keeps the SNOMED coding and display, but `Encounter.type.text` names the visit by the simulator's visit type (`condition_event.visit_type` of the record's own encounter; Issue #3875). The `type_text` table of the same YAML holds the English and Japanese text per visit type (`chronic_followup`, `chemo_visit`, `post_discharge`, `health_screening`, `pediatric_visit`) and a neutral `default` for an unlisted type; a missing language falls back to English. 定期健診 (periodic health check) is the text of a well-child visit only; the check-up term's own Japanese display (定期健診外来受診) is not used as the text of a follow-up.
+
 Guard: `tests/unit/output/test_encounter_type_3657.py`; `tests/unit/modules/pediatric/test_acute_illness_single_source_3657.py` keeps the visit-note reason table's acute-illness conditions equal to the pediatric presentations.
 
 ## 4. Resolution functions

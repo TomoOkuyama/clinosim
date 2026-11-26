@@ -180,6 +180,20 @@ class _VisitTypes(BaseModel):
     consultation: str
 
 
+class _TypeText(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    en: str
+    ja: str
+
+
+class _TypeTextTable(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    default: _TypeText
+    by_visit_type: dict[str, _TypeText]
+
+
 class _VisitTypeTable(BaseModel):
     """Shape of ``reference_data/encounter_visit_type.yaml``."""
 
@@ -190,6 +204,7 @@ class _VisitTypeTable(BaseModel):
     generic_keywords: list[str]
     generic_reason_prefixes: list[str]
     check_up_prefixes: list[str]
+    type_text: _TypeTextTable
 
 
 _VISIT_TYPE_PATH = Path(__file__).resolve().parents[1] / "reference_data" / "encounter_visit_type.yaml"
@@ -218,6 +233,15 @@ def _outpatient_type_code(enc: dict, primary_dx_code: str, visit_condition_id: s
     return ""
 
 
+def _check_up_type_text(visit_type: str, lang: str) -> str:
+    """``Encounter.type.text`` of a visit typed check-up, named by the
+    simulator's visit type (Issue #3875; ``type_text`` of
+    ``encounter_visit_type.yaml``; a language without text falls back to English)."""
+    table = _visit_type_table()["type_text"]
+    entry = table["by_visit_type"].get(visit_type) or table["default"]
+    return str(entry.get(lang) or entry["en"])
+
+
 def _set_type(
     resource: dict[str, Any],
     enc: dict,
@@ -225,6 +249,7 @@ def _set_type(
     primary_dx_code: str,
     country: str,
     visit_condition_id: str = "",
+    visit_type: str = "",
 ) -> None:
     """Encounter.type (SNOMED), specific for outpatient visits."""
     # Type (SNOMED). C1-05: outpatient AMB no longer
@@ -239,7 +264,12 @@ def _set_type(
     if type_code:
         # C2-01: use dual_slot_concept so codes lacking a
         # codes/data entry emit without display=code fallback (FHIR interop).
-        resource["type"] = [dual_slot_concept("snomed-ct", type_code, lang_for(country))]
+        lang = lang_for(country)
+        text = None
+        if enc_type == "outpatient" and type_code == str(_visit_type_table()["types"]["check_up"]):
+            # Issue #3875: the coding stays the SNOMED check-up term; the text names the visit.
+            text = _check_up_type_text(visit_type, lang)
+        resource["type"] = [dual_slot_concept("snomed-ct", type_code, lang, text=text)]
 
 
 def _set_priority(resource: dict[str, Any], enc: dict, country: str) -> None:
@@ -808,6 +838,7 @@ def _build_encounter(
     visit_reason_codes: list[str] | None = None,  # Issue #3008: vaccination-visit reason codes
     diagnosis_condition_ids: list[str] | None = None,  # Issue #3597: emitted encounter-diagnosis Condition ids
     visit_condition_id: str = "",  # Issue #3657: the outpatient visit's condition (types an acute-illness visit)
+    visit_type: str = "",  # Issue #3875: the outpatient visit's kind (names a check-up typed visit)
 ) -> dict:
     """Build FHIR Encounter resource."""
     encounter_id = enc.get("encounter_id", str(uuid.uuid4()))
@@ -835,7 +866,7 @@ def _build_encounter(
         "subject": patient_ref(patient_id),
     }
 
-    _set_type(resource, enc, enc_type, primary_dx_code, country, visit_condition_id)
+    _set_type(resource, enc, enc_type, primary_dx_code, country, visit_condition_id, visit_type)
     _set_priority(resource, enc, country)
     # Service type (department)
     # feedback FB-F7: hl7-service-type CodeSystem は診療科 code の canonical

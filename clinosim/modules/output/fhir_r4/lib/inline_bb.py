@@ -208,18 +208,14 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
     # their ids come from the HAI builder's own guard, ranked after the rest.
     _hai_ids_by_encounter = hai_condition_ids_by_encounter(ctx)
     _cond_event = ctx.record.get("condition_event") if isinstance(ctx.record, dict) else None
-    _primary_visit_condition = (
-        str(
-            (
-                _cond_event.get("visit_condition_id", "")
-                if isinstance(_cond_event, dict)
-                else getattr(_cond_event, "visit_condition_id", "")
-            )
-            or ""
+
+    def _event_field(name: str) -> str:
+        return str(
+            (_cond_event.get(name, "") if isinstance(_cond_event, dict) else getattr(_cond_event, name, "")) or ""
         )
-        if _cond_event
-        else ""
-    )
+
+    _primary_visit_condition = _event_field("visit_condition_id") if _cond_event else ""
+    _primary_visit_type = _event_field("visit_type") if _cond_event else ""
     for enc in ctx.record.get("encounters", []) or []:
         _enc_key = enc.get("encounter_id", "") if isinstance(enc, dict) else getattr(enc, "encounter_id", "")
         _partof_id = (
@@ -282,6 +278,7 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
             # Issue #3657: only the record's own (primary) encounter is the visit
             # its condition event describes.
             visit_condition_id=_primary_visit_condition if _enc_key == ctx.primary_enc_id else "",
+            visit_type=_primary_visit_type if _enc_key == ctx.primary_enc_id else "",
         )
         # ED bridge Encounter emit (CY7-05 + N-3 refinement):
         # - Always emit the synth `-ED` companion Encounter when the IMP

@@ -11,6 +11,14 @@
 # generic = SNOMED 270427003 Patient-initiated encounter; check_up = 185349003
 # Encounter for check up; consultation = 11429006 Consultation (all in
 # codes/data/snomed-ct.yaml).
+#
+# `type_text` (Issue #3875) is the Encounter.type.text of a visit typed
+# check_up, by the simulator's visit type (condition_event.visit_type): the
+# check-up code's own display (定期健診外来受診) would call a chronic follow-up
+# or a chemotherapy visit a periodic health check. The coding keeps the SNOMED
+# code and display; `default` names a visit of an unlisted type neutrally.
+# 定期健診 is the periodic health check of a child (pediatric_visit typed
+# check_up: a well-child visit).
 metadata:
   kind: reference
   name: encounter_visit_type
@@ -25,3 +33,23 @@ generic_keywords: [vaccination, immunization, screening, 予防接種, 健康診
 # immunization; Z24-Z27 need for immunization against ...).
 generic_reason_prefixes: [Z23, Z24, Z25, Z26, Z27]
 check_up_prefixes: [Follow-up, フォローアップ, Post-discharge]
+type_text:
+  default:
+    en: Follow-up visit
+    ja: 再診外来
+  by_visit_type:
+    chronic_followup:
+      en: Chronic disease follow-up visit
+      ja: 慢性疾患フォローアップ外来
+    chemo_visit:
+      en: Chemotherapy visit
+      ja: 化学療法外来
+    post_discharge:
+      en: Post-discharge follow-up visit
+      ja: 退院後外来
+    health_screening:
+      en: Health screening visit
+      ja: 健康診断
+    pediatric_visit:
+      en: Well-child check-up
+      ja: 定期健診
