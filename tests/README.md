@@ -83,12 +83,12 @@ already prints a useful diff.
 Duration file at repo root drives the shard split of PR CI
 (`scripts/ci_split_by_file.py` sums it per test file). The nightly workflow
 (`.github/workflows/nightly.yml`) measures it per shard in the `ci.yml` layout
-and opens a PR that refreshes it. Refresh policy:
-
-- Regenerate on any change that adds/removes ≥5 tests or shifts a slow test's
-  runtime by ≥2×.
-- Run `pytest --store-durations` locally against the full suite (unit +
-  integration) and commit the diff in the same PR that changed test count.
+and opens (or updates) a PR that refreshes it. That PR is opened with
+`GITHUB_TOKEN`, which starts no `pull_request` run, so the nightly job
+dispatches the required checks (`ci.yml`, `dco.yml`) on its branch and sets
+auto-merge: the refresh lands without a maintainer step when the checks pass.
+A new test file without an entry weighs as the mean file until the next
+nightly run, so a PR does not need to refresh the file itself.
 
 ## Related backlog
 

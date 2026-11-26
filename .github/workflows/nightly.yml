@@ -219,6 +219,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      actions: write
     # Merges the per-shard measurements into `.test_durations` (a test that
     # no shard ran, i.e. a removed test, drops out) and opens a PR when the
     # file changed. The PR is a routine data refresh; a drastic change in the
@@ -275,6 +276,21 @@ jobs:
           labels: |
             ci
             test-durations
+      - name: Run the required checks and auto-merge the refresh PR
+        # A PR opened or updated with GITHUB_TOKEN starts no pull_request run,
+        # so the required checks (`CI result`, `Signed-off-by check`) are
+        # dispatched on the PR branch, and the PR merges itself when they
+        # pass. The PR changes only `.test_durations`, the shard split input.
+        if: steps.create_pr.outcome == 'success' && steps.create_pr.outputs.pull-request-number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ steps.create_pr.outputs.pull-request-number }}
+          BRANCH: nightly/refresh-test-durations
+        run: |
+          set -euo pipefail
+          gh workflow run ci.yml --ref "$BRANCH" -R "$GITHUB_REPOSITORY"
+          gh workflow run dco.yml --ref "$BRANCH" -R "$GITHUB_REPOSITORY"
+          gh pr merge "$PR" --auto --rebase -R "$GITHUB_REPOSITORY"
       - name: Upload refreshed .test_durations
         if: steps.create_pr.outcome == 'failure' || steps.create_pr.outcome == 'skipped'
         uses: actions/upload-artifact@v7
