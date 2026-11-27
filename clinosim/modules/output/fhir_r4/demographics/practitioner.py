@@ -22,6 +22,7 @@ from clinosim.locale.loader import (
     role_display,
 )
 from clinosim.locale.localized import localized
+from clinosim.modules.output.fhir_r4.demographics.patient import _given_part
 from clinosim.modules.output.fhir_r4.lib.common import (
     display_entry,
     dual_slot_concept,
@@ -243,7 +244,7 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None, count
         else:
             family, given = full_name, ""
 
-        name_obj: dict[str, Any] = {"family": family, "given": [given] if given else []}
+        name_obj: dict[str, Any] = {"family": family, **_given_part(given)}
         # Issue #3141: the title is country data (country profile
         # ``formats.physician_name_prefix``; none in JP).
         _prefix = profile.formats.physician_name_prefix
@@ -280,7 +281,7 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None, count
                     {
                         "use": "official",
                         "family": p_family,
-                        "given": [p_given] if p_given else [],
+                        **_given_part(p_given),
                         "extension": [
                             {
                                 "url": "http://hl7.org/fhir/StructureDefinition/iso21090-EN-representation",

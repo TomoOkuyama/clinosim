@@ -883,6 +883,13 @@ def _patient_meta(country: str) -> dict[str, Any]:
     return {"meta": meta}
 
 
+def _given_part(given: str) -> dict[str, list[str]]:
+    """``HumanName.given`` for a possibly empty given name. A FHIR string has
+    at least one character, so an unnamed person omits the element
+    (Issue #3920)."""
+    return {"given": [given]} if given else {}
+
+
 def _build_patient(
     p: dict, country: str, encounters: list[dict] | None = None, snapshot_date: str | None = None
 ) -> dict:
@@ -917,7 +924,7 @@ def _build_patient(
             "use": "official",
             "text": f"{family} {given}".strip(),
             "family": family,
-            "given": [given],
+            **_given_part(given),
             "extension": [{"url": ISO21090_URL, "valueCode": "IDE"}],
         }
         names.append(kanji_name)
@@ -946,12 +953,16 @@ def _build_patient(
                     "use": "official",
                     "text": f"{_kana_fam} {_kana_giv}".strip(),
                     "family": _kana_fam,
-                    "given": [_kana_giv],
+                    **_given_part(_kana_giv),
                     "extension": [{"url": ISO21090_URL, "valueCode": "SYL"}],
                 }
             )
     else:
-        names.append({"use": "official", "family": family, "given": [given]})
+        us_name: dict[str, Any] = {"use": "official", "family": family, **_given_part(given)}
+        if not given and str(p.get("patient_id", "")).endswith("-BABY"):
+            # An unnamed newborn (Issue #1247) is "Baby <family>" in US usage.
+            us_name["text"] = f"Baby {family}".strip()
+        names.append(us_name)
     names[0]  # kept for legacy readers below
 
     pid = p.get("patient_id", str(uuid.uuid4()))
