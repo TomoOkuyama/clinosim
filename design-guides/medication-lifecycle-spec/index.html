@@ -2743,7 +2743,7 @@
 <td><code>tests/unit/test_build_discharge_rx_continue_at_discharge.py</code>, <code>tests/unit/test_discharge_rx_drug_safety_1334.py</code>, <code>tests/unit/test_discharge_oral_route_integrity.py</code>, <code>tests/unit/test_discharge_resume_or_start_dose_3461.py</code></td>
 </tr>
 <tr>
-<td>Discharge, activation of home medications and the longitudinal history reconcile against one rule list: a second agent of a class a listed rule names is not added (one statin, one P2Y12 inhibitor, one anticoagulant, one beta-blocker (Issue #3274), no ACE inhibitor with an ARB).</td>
+<td>Discharge, activation of home medications and the longitudinal history reconcile against one rule list: a second agent of a class a listed rule names is not added (one statin, one P2Y12 inhibitor, one anticoagulant, one beta-blocker (Issue #3274), no ACE inhibitor with an ARB; an NSAID never beside an anticoagulant, the anticoagulant kept whichever came first (Issue #3923)).</td>
 <td><code>modules/drug_safety/engine.py::discharge_reconciliation_rules</code>; callers <code>discharge_rx.py</code>, <code>modules/patient/activator.py</code>, <code>modules/longitudinal/engine.py</code></td>
 <td><code>tests/unit/test_discharge_reconciliation_2713.py</code></td>
 </tr>

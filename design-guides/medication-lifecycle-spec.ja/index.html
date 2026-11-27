@@ -2743,7 +2743,7 @@
 <td><code>tests/unit/test_build_discharge_rx_continue_at_discharge.py</code>, <code>tests/unit/test_discharge_rx_drug_safety_1334.py</code>, <code>tests/unit/test_discharge_oral_route_integrity.py</code>, <code>tests/unit/test_discharge_resume_or_start_dose_3461.py</code></td>
 </tr>
 <tr>
-<td>退院時・在宅薬の有効化・経年履歴は一つの規則リストで突き合わせる。リストの規則が名指す系統の 2 剤目は加えない(スタチン 1 剤、P2Y12 阻害薬 1 剤、抗凝固薬 1 剤、β遮断薬 1 剤 (Issue #3274)、ACE 阻害薬と ARB の併用なし)。</td>
+<td>退院時・在宅薬の有効化・経年履歴は一つの規則リストで突き合わせる。リストの規則が名指す系統の 2 剤目は加えない(スタチン 1 剤、P2Y12 阻害薬 1 剤、抗凝固薬 1 剤、β遮断薬 1 剤 (Issue #3274)、ACE 阻害薬と ARB の併用なし、抗凝固薬と NSAID の併用なし(先後によらず抗凝固薬を残す、Issue #3923))。</td>
 <td><code>modules/drug_safety/engine.py::discharge_reconciliation_rules</code>。呼び出し元 <code>discharge_rx.py</code>, <code>modules/patient/activator.py</code>, <code>modules/longitudinal/engine.py</code></td>
 <td><code>tests/unit/test_discharge_reconciliation_2713.py</code></td>
 </tr>
