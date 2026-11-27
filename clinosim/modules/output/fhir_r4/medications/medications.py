@@ -1498,6 +1498,24 @@ def _build_discharge_medication_request(
 _GIVEN_RATE = re.compile(r"^(\d+(?:\.\d+)?)\s*((?:mg|g|mcg|ug|mL|IU|U|units)/(?:h|min))\b", re.IGNORECASE)
 
 
+_DOSE_STATEMENT = re.compile(r"(\d+(?:\.\d+)?)\s*([A-Za-z%\u00b5][A-Za-z%\u00b5/\[\]0-9_.]*)")
+
+
+def _dose_statement_key(qty: float, unit: str) -> tuple[float, str]:
+    """A dose as a number and a normalised unit, so ``2`` and ``2.0`` agree."""
+    return float(qty), unit.strip().lower().replace("mcg", "ug").replace("\u00b5g", "ug")
+
+
+def _dose_already_stated(qty: float, unit: str, text: str) -> bool:
+    """True when ``text`` already states the dose ``qty`` ``unit`` (Issue #3927).
+
+    Compared by numeric value and unit, not by substring: ``"2ug/kg/min"`` is
+    not a substring of ``"2.0ug/kg/min"`` but is the same dose.
+    """
+    want = _dose_statement_key(qty, unit)
+    return any(_dose_statement_key(float(n), u) == want for n, u in _DOSE_STATEMENT.findall(text))
+
+
 def _build_ma_dosage_block(
     mar: dict,
     parent_order: dict | None,
@@ -1555,7 +1573,7 @@ def _build_ma_dosage_block(
             parsed["dose_unit"] = _po_unit
             _q_txt = f"{int(_po_qty)}" if isinstance(_po_qty, float) and _po_qty.is_integer() else str(_po_qty)
             _dose_summary = f"{_q_txt}{_po_unit}"
-            if _dose_summary not in dose_text:
+            if _dose_summary not in dose_text and not _dose_already_stated(float(_po_qty), _po_unit, dose_text):
                 dose_text = f"{_dose_summary} {dose_text}".strip() if dose_text.strip() else _dose_summary
     # Attach rate-adjustment note peeled off drug_name to dose_text so
     # continuous-infusion titration intent surfaces in the dosage record.
