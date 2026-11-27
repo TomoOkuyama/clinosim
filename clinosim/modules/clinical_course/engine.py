@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from clinosim.codes.valuesets import has_condition
 from clinosim.datafiles import load_data_yaml
@@ -425,8 +425,13 @@ def get_daily_directive(
     protocol_archetypes: dict[str, Any] | None = None,
     age: int = 70,
     rng: Any | None = None,
+    time_scale: float = 1.0,
 ) -> StateChangeDirective:
     """Get the StateChangeDirective for a given day and archetype.
+
+    ``time_scale`` (``course_time_scale``, Issue #3931) runs the authored course that many times faster:
+    the trajectory is read at ``day * time_scale`` and each delta is multiplied by it, so the total change
+    is kept in a shorter course. 1.0 is the authored speed.
 
     Individual variation is applied through:
     1. Amplitude: immune_reactivity modulates inflammation swings
@@ -470,14 +475,16 @@ def get_daily_directive(
         if var_name in trajectory_data:
             traj = trajectory_data[var_name]
             int_traj = {int(k): v for k, v in traj.items()}
-            delta = _interpolate(int_traj, effective_day)
+            delta = _interpolate(int_traj, effective_day * time_scale) * time_scale
 
             # --- Amplitude modulation ---
             # Immune reactivity: high → bigger inflammation swings (both up and down)
             if var_name == "inflammation_level":
                 delta *= profile.immune_reactivity / IMMUNE_REACTIVITY_SCALE
                 # Issue #3838: a deteriorating course turns once the escalated treatment has acted.
-                delta = _apply_treatment_response(delta, archetype_name, yaml_arch, int_traj, day)
+                delta = _apply_treatment_response(
+                    delta, archetype_name, yaml_arch, int_traj, day * time_scale, time_scale
+                )
 
             # Recovery deltas (positive for renal/perfusion) scale with treatment sensitivity
             if delta > 0 and var_name in ("renal_function", "perfusion_status"):
@@ -691,8 +698,48 @@ def treatment_response_rules() -> TreatmentResponseRules:
     return TreatmentResponseRules.model_validate(load_data_yaml(path))
 
 
+class CourseTimeScaleRules(BaseModel):
+    """Schema of ``reference_data/course_time_scale.yaml`` (Issue #3931)."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    min_scale: float = Field(gt=0)
+    max_scale: float = Field(gt=0)
+    scales: dict[str, dict[str, float]]
+
+    @model_validator(mode="after")
+    def _scales_within_bounds(self) -> CourseTimeScaleRules:
+        if not self.min_scale <= 1.0 <= self.max_scale:
+            raise ValueError("min_scale <= 1 <= max_scale is required (the authored speed must stay reachable)")
+        for disease_id, by_severity in self.scales.items():
+            for severity, scale in by_severity.items():
+                if not self.min_scale <= scale <= self.max_scale:
+                    raise ValueError(f"course_time_scale {disease_id}/{severity}={scale} is outside the bounds")
+        return self
+
+
+@cache
+def course_time_scale_rules() -> CourseTimeScaleRules:
+    """The validated course-time-scale rules."""
+    path = Path(__file__).resolve().parent / "reference_data" / "course_time_scale.yaml"
+    return CourseTimeScaleRules.model_validate(load_data_yaml(path))
+
+
+def course_time_scale(disease_id: str, severity: str) -> float:
+    """How many times faster than authored the course of a disease runs (Issue #3931).
+
+    Calibrated once per disease and severity, the same in every country, so that the patient is
+    clinically stable around the US target length of stay; 1.0 for a disease or severity not in the table."""
+    return course_time_scale_rules().scales.get(disease_id, {}).get(severity, 1.0)
+
+
 def _apply_treatment_response(
-    delta: float, archetype_name: str, archetype: dict[str, Any], trajectory: dict[int, float], day: int
+    delta: float,
+    archetype_name: str,
+    archetype: dict[str, Any],
+    trajectory: dict[int, float],
+    day: float,
+    time_scale: float = 1.0,
 ) -> float:
     """The inflammation delta of ``day`` for a deteriorating course (Issue #3838).
 
@@ -711,7 +758,7 @@ def _apply_treatment_response(
     acting_from = (max(change_days) if change_days else max(trajectory, default=0)) + rules.response_delay_days
     if day < acting_from:
         return delta
-    return min(delta, rules.resolution_inflammation_delta)
+    return min(delta, rules.resolution_inflammation_delta * time_scale)
 
 
 def _interpolate(trajectory: dict[int, float], day: int | float) -> float:
@@ -865,8 +912,12 @@ def natural_recovery_directive(
     severity: str,
     profile: PatientPhysiologicalProfile,
     treatment_effectiveness: float = 1.0,
+    time_scale: float = 1.0,
 ) -> StateChangeDirective:
     """Compute small baseline recovery independent of treatment.
+
+    ``time_scale`` (``course_time_scale``, Issue #3931) multiplies the course-speed axes (inflammation,
+    volume and the symptom axes); the marrow recovery of the anemia axis is not scaled.
 
     The symptom-axis part (pain, sympathetic, oxygenation, consciousness)
     reflects standard care and scales with ``treatment_effectiveness``
@@ -901,10 +952,10 @@ def natural_recovery_directive(
     return StateChangeDirective(
         source="natural_recovery",
         changes={
-            "inflammation_level": -base,
-            "volume_status": -VOLUME_RECOVERY_RATE_PER_UNIT_SEVERITY * severity_scale,  # toward 0
+            "inflammation_level": -base * time_scale,
+            "volume_status": -VOLUME_RECOVERY_RATE_PER_UNIT_SEVERITY * severity_scale * time_scale,  # toward 0
             "anemia_level": -anemia_recovery,  # bone marrow erythropoiesis
-            **{axis: -rate * symptom_scale for axis, rate in SYMPTOM_AXIS_DAILY_RECOVERY.items()},
+            **{axis: -rate * symptom_scale * time_scale for axis, rate in SYMPTOM_AXIS_DAILY_RECOVERY.items()},
         },
         reason=f"Natural recovery (immune={immune:.2f}, severity={severity})",
     )

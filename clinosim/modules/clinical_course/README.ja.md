@@ -45,11 +45,12 @@ vector に適用する日次 `StateChangeDirective` を評価し、疾患スコ�
 ```python
 from clinosim.modules.clinical_course.engine import (
     select_archetype,                # (severity, profile, rng, protocol_archetypes=None, protocol_modifiers=None, patient=None) -> archetype_name
-    get_daily_directive,             # (archetype_name, day, profile, protocol_archetypes=None, age=70, rng=None) -> StateChangeDirective
+    get_daily_directive,             # (archetype_name, day, profile, protocol_archetypes=None, age=70, rng=None, time_scale=1.0) -> StateChangeDirective
+    course_time_scale,               # (disease_id, severity) -> float — 疾患・重症度別に較正した経過速度 (Issue #3931)
     evaluate_complications,          # (day, state, patient, complications, active_complications, rng, severity="moderate", context=None) -> list[dict]
     compute_diagnosis_effectiveness, # (working_diagnosis, ground_truth_disease, diagnosis_confidence, day, diagnostic_difficulty=0.3) -> float
     apply_diagnosis_modifier,        # (directive, effectiveness, current_volume=0.0, current_ph=0.0) -> StateChangeDirective
-    natural_recovery_directive,      # (day, disease_id, severity, profile, treatment_effectiveness=1.0) -> StateChangeDirective
+    natural_recovery_directive,      # (day, disease_id, severity, profile, treatment_effectiveness=1.0, time_scale=1.0) -> StateChangeDirective
     validate_complication_risk_factors,  # (disease_id, complications) -> None — 語彙の fail-loud check
     is_supported_risk_condition,     # (condition) -> bool
 )
@@ -151,6 +152,7 @@ clinosim/modules/clinical_course/
     fallback_archetypes.yaml         built-in 6 archetype (trajectory + 確率)
     treatment_response.yaml          悪化型経過が反転する時点: 反応遅延日数と炎症の最小低下量
                                      (Issue #3838)
+    course_time_scale.yaml           疾患・重症度別の経過速度 (臨床的安定までの日数に較正, Issue #3931)
   SPEC.md                            拡張設計参考 (runtime data ではない)
 ```
 
