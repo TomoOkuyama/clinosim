@@ -139,7 +139,8 @@ from clinosim.modules.order.engine import (
     first_line_alternative_groups,      # (protocol, encounter_id, country, id_infix="") -> tuple[tuple[order_id, ...], ...]; the order ids of a `drugs.first_line` block declared `select: one_of` (Issue #3274)
     protocol_drug_order_code,           # (spec, country) -> the order code of a disease-YAML drug entry (Issue #2351)
     protocol_drug_order_code_system,    # (spec, country) -> its code-system key, "" when there is no code (Issue #2378)
-    dosing_interval_days,               # (frequency) -> days between doses of a cadence longer than a day, None otherwise (Issue #2982)
+    dosing_interval_days,               # (frequency) -> days between doses of a cadence longer than a day, None otherwise (Issue #2982; includes the 3-month / 6-month / yearly tokens, Issue #3912)
+    unrecognized_cadence,               # (text) -> the first cadence phrase of a dose / frequency string the engine cannot resolve, None when all resolve; such a phrase raises in enrich_medication_order instead of becoming DAILY (Issue #3912)
     imaging_study_keys,                 # (orders) -> set of (modality, report group) of the imaging orders (Issue #3392)
     calculate_lab_result_time,          # (order, rng) -> datetime
     calculate_imaging_result_time,      # (order, rng) -> datetime
