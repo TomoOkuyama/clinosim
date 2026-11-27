@@ -371,6 +371,15 @@ codes:
   K91.8: {en: "Postprocedural digestive complication", ja: "消化器系の処置後合併症"}
   S06.5XAA: {en: "Traumatic subdural hemorrhage", ja: "外傷性硬膜下出血"}
   T79.A: {en: "Compartment syndrome", ja: "コンパートメント症候群"}
-  T79.6: {en: "Traumatic muscle ischemia", ja: "筋の外傷性阻血（コンパートメント症候群）"}
+  T79.6: {en: "Traumatic muscle ischemia", ja: "筋の外傷性阻血"}  # WHO T79.6 is both a traumatic rhabdomyolysis and a compartment syndrome (JP code of T79.6XXA and T79.A0XA)
+  T79.6XXA: {en: "Traumatic rhabdomyolysis", ja: "外傷性横紋筋融解症"}
+  # Protocol-specific complication codes (Issue #3907)
+  # The JP code of the diabetes-with-hypoglycemia combination (E10.649 / E11.649) and of E10.65 / E11.65: WHO has
+  # no hypoglycemia-specific code, so the JP name says what the code says. The English name is the category's.
+  E10.6: {en: "Type 1 diabetes (DM)", ja: "1型糖尿病（その他の明示された合併症）"}
+  E11.6: {en: "Type 2 diabetes (DM)", ja: "2型糖尿病（その他の明示された合併症）"}
+  E10.64: {en: "Hypoglycemia in type 1 diabetes", ja: "1型糖尿病に伴う低血糖"}
+  E11.64: {en: "Hypoglycemia in type 2 diabetes", ja: "2型糖尿病に伴う低血糖"}
+  I42.89: {en: "Cardiomyopathy", ja: "心筋症"}
   T81.3: {en: "Surgical wound dehiscence", ja: "手術創離開"}
   T81.4: {en: "Surgical site infection", ja: "手術部位感染"}

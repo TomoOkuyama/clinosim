@@ -28,12 +28,25 @@
 # disease-like complication whose code is not yet chosen and verified; it stays
 # narrative-only until it moves to `codes`; none is pending now).
 #
+# `protocol_codes` (Issue #3907): a token that means a different disease in one
+# protocol than its default code says. `<disease_id>: {<token>: <code>}`; the
+# protocol must exist and declare the token (validated at load), and any other
+# protocol keeps the token's default in `codes`. A code that depends on the
+# stay's own diabetes type is `{by_stay_category: {<3-char category>: <code>},
+# default: <code>}`: the first code of the stay (principal, secondary, working)
+# in one of the categories picks the code, with no draw. The notes each choice
+# relies on are quoted in the comment above it (CMS ICD-10-CM FY2027 tabular
+# list and alphabetic index, Official Guidelines FY2027).
+#
 # `distinct_code_categories`: ICD-10 3-character categories whose members are
 # different diagnoses, so the first-onset-per-category rule keys on the full
 # code (E87: hypokalemia and hyperkalemia are two diagnoses of one category;
 # F10: the withdrawal delirium F10.231 is a different diagnosis from the stay's
 # F10.23x withdrawal; K86: a pseudocyst K86.3 and a duct disruption K86.89;
-# T81: a wound infection T81.4-, a wound dehiscence T81.31XA). A category the
+# T81: a wound infection T81.4-, a wound dehiscence T81.31XA; T79: a traumatic
+# rhabdomyolysis T79.6XXA and a traumatic compartment syndrome T79.A0XA; E10 and
+# E11: the diabetes-with-hypoglycemia combination code is a diagnosis of its own
+# beside the stay's ketoacidosis code, not a repeat of it). A category the
 # stay itself carries still blocks a complication of the same category when it
 # is not listed (a recurrent subdural hematoma, a stump appendicitis).
 metadata:
@@ -155,7 +168,60 @@ codes:
   wound_dehiscence: T81.31XA
   wound_infection: T81.49XA
 
-distinct_code_categories: [E87, F10, K86, T81]
+# Issue #3907. Each override below was read in the CMS ICD-10-CM FY2027 tabular
+# list and alphabetic index (icd10cm-table-and-index-2027.zip) and the FY2027
+# Official Guidelines; the JP code is the WHO ICD-10 code of the MHLW table.
+protocol_codes:
+  diabetic_ketoacidosis:
+    # Tabular E16.2 "Hypoglycemia, unspecified": Excludes1 "diabetes with
+    # hypoglycemia (E08.649, E10.649, E11.649, E13.649)"; E16.1 and E16.0 carry
+    # the same Excludes1 / index note. Index: "Hypoglycemia, diabetic - see
+    # Diabetes, hypoglycemia" and "Diabetes, type 1, with, hypoglycemia E10.649
+    # (with coma E10.641)", "Diabetes, type 2, with, hypoglycemia E11.649"; plain
+    # "Diabetes, with, hypoglycemia" is E11.649. E10.64 / E11.64 add "Use
+    # additional code for hypoglycemia level, if applicable (E16.A-)". The
+    # stay's principal is E10.1x or E11.1x (type 1 / type 2), so the type comes
+    # from it; the protocol's hypoglycemia has no coma state, so ".649".
+    # JP: the WHO fourth character .0 holds "hypoglycaemic coma" and .6 "With
+    # other specified complications"; hypoglycemia without coma is the specified
+    # complication of the diabetes, so E10.6 / E11.6 (MHLW 基本分類表).
+    hypoglycemia:
+      by_stay_category: {E10: E10.649, E11: E11.649}
+      default: E11.649
+  sepsis:
+    # Tabular I51.81 "Takotsubo syndrome" (inclusion terms: stress induced
+    # cardiomyopathy, Takotsubo cardiomyopathy) is a different disease from the
+    # protocol's "Sepsis-induced myocardial dysfunction (septic cardiomyopathy)".
+    # The index has no entry for a septic cardiomyopathy: "Cardiomyopathy,
+    # secondary I42.9" (inclusion term at I42.9 "Cardiomyopathy (primary)
+    # (secondary) NOS"), "Cardiomyopathy, specified NEC I42.89" and
+    # "Cardiomyopathy, non-ischemic I42.89 - see also by cause". The cause
+    # (sepsis) is specified, so I42.89 "Other cardiomyopathies not elsewhere
+    # classified"; A41.9 stays the principal. I43 "Cardiomyopathy in diseases
+    # classified elsewhere" (code first the underlying disease "such as:
+    # amyloidosis, glycogen storage disease, gout, thyrotoxicosis") is not
+    # chosen: the index "Cardiomyopathy, in" lists only Chagas' disease and
+    # sarcoidosis and sepsis is not among its underlying diseases.
+    # JP: WHO I42.8 "Other cardiomyopathies" (MHLW その他の心筋症).
+    stress_cardiomyopathy: I42.89
+  electrical_injury:
+    # Guidelines I.C.19.d.4 "Infected burn: For any documented infected burn
+    # site, use an additional code for the infection." The wound is the entry /
+    # exit burn wound of the injury, not an operation wound (index "Infection,
+    # operation wound / postoperative wound T81.49", which the surgical
+    # protocols keep). Index "Infection, skin, local L08.9" with L00-L08 "Use
+    # additional code (B95-B97) to identify infectious agent"; the same code as
+    # burn_wound_infection. (FY2027 has no T79.3, post-traumatic wound infection.)
+    wound_infection: L08.9
+    # Tabular M62.82 Rhabdomyolysis: Excludes1 "traumatic rhabdomyolysis (T79.6)";
+    # T79.6 Traumatic ischemia of muscle: inclusion term "Traumatic
+    # rhabdomyolysis"; index "Rhabdomyolysis, traumatic T79.6" (7th character A,
+    # initial encounter). The protocol's muscle injury is the electrical injury.
+    # The protocol declares no acute_kidney_injury token, so the stay carries N17.9
+    # only when another path records it; the token's own diagnosis is the muscle injury.
+    rhabdomyolysis_aki: T79.6XXA
+
+distinct_code_categories: [E10, E11, E87, F10, K86, T79, T81]
 
 # Events, treatment effects and nonspecific terms: no disease to code.
 # "urosepsis" is a nonspecific term with no default code (ICD-10-CM Official

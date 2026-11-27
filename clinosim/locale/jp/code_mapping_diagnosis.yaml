@@ -282,3 +282,8 @@ T79.A0XA: "T79.6"       # Compartment syndrome, unspecified, initial encounter �
 T81.31XA: "T81.3"       # Disruption of external operation (surgical) wound, not elsewhere classified, initial encounter → 手術創の離開，他に分類されないもの.
 T81.40XA: "T81.4"       # Infection following a procedure, unspecified, initial encounter → 処置に続発する感染症，他に分類されないもの.
 T81.49XA: "T81.4"       # Infection following a procedure, other surgical site, initial encounter → 処置に続発する感染症，他に分類されないもの.
+# === Protocol-specific complication codes (Issue #3907) ===
+E10.649: "E10.6"       # Type 1 diabetes mellitus with hypoglycemia without coma → １型糖尿病，その他の明示された合併症を伴うもの (WHO E10.0 holds only hypoglycaemic coma; .6 is the specified complication).
+E11.649: "E11.6"       # Type 2 diabetes mellitus with hypoglycemia without coma → ２型糖尿病，その他の明示された合併症を伴うもの.
+I42.89: "I42.8"        # Other cardiomyopathies not elsewhere classified → その他の心筋症.
+T79.6XXA: "T79.6"      # Traumatic ischemia of muscle (traumatic rhabdomyolysis), initial encounter → 筋の外傷性阻血.

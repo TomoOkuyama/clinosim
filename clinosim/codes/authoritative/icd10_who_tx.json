@@ -7,13 +7,13 @@
     "source_content_note": "The source CodeSystem is marked content=complete (all 13,831 WHO ICD-10 concepts). The snapshot filters to codes clinosim emits (320) so shipped size stays small; unlike the fragment-content YJ snapshot, missing codes here mean clinosim references a WHO code that does not exist upstream (typically ICD-10-CM-only sub-granularity or legacy codes), not an incomplete fragment. Session 59 #284: I84 → K64.9, R33.9 → R33, S62.9 → S62.8 to align with HAPI ICD-10 2019-covid-expanded (86 v5 errors closed).",
     "fetched_from": "https://github.com/iryohjoho/fhir-jp-validator tx-server-build/",
     "extracted_at": "2026-07-19",
-    "clinosim_codes_total": 361,
-    "clinosim_codes_in_source": 360,
+    "clinosim_codes_total": 362,
+    "clinosim_codes_in_source": 361,
     "clinosim_codes_missing_from_source": [
       "S67.2"
     ],
     "note": "WHO ICD-10 authoritative displays for the codes clinosim emits.",
-    "later_additions": "T22.2 and T23.2 (Issue #3279), E11.2, E11.3 and E11.4 (Issue #3259), G35, I69.1 and I69.3 (Issue #3327), R57.2 (Issue #3269) were added on 2026-11-16 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded). T20.0, T21.0, T22.0, T23.0, T24.0, T25.0 (Issue #3258, tx.fhir.org $lookup 2026-11-18). J14 and J15.5 (Issue #3645) were added on 2026-11-24 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded). A40.3, A41.3 and A41.8 (Issue #3833) were added on 2026-11-26 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded). A04.7, A49.9, E16.2, E87.5, E87.6, J98.1, L89.9, N15.1 and R56.8 (Issue #3872) were added on 2026-11-26 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded). D68.4, D69.1, D75.8, E46, E87.8, F06.3, G56.1, G62.8, G91.1, G93.4, I24.1, I27.2, I47.2, I51.8, I82.8, I87.0, I89.0, J11.8, J70.8, J81, J86.9, J91, K63.1, K76.8, K86.3, K86.8, K91.8, M62.8, R57.8, T79.6, T81.3 and T81.4 (Issue #3872, the remaining in-hospital complication diagnosis codes) were added on 2026-11-27 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded)."
+    "later_additions": "T22.2 and T23.2 (Issue #3279), E11.2, E11.3 and E11.4 (Issue #3259), G35, I69.1 and I69.3 (Issue #3327), R57.2 (Issue #3269) were added on 2026-11-16 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded). T20.0, T21.0, T22.0, T23.0, T24.0, T25.0 (Issue #3258, tx.fhir.org $lookup 2026-11-18). J14 and J15.5 (Issue #3645) were added on 2026-11-24 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded). A40.3, A41.3 and A41.8 (Issue #3833) were added on 2026-11-26 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded). A04.7, A49.9, E16.2, E87.5, E87.6, J98.1, L89.9, N15.1 and R56.8 (Issue #3872) were added on 2026-11-26 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded). D68.4, D69.1, D75.8, E46, E87.8, F06.3, G56.1, G62.8, G91.1, G93.4, I24.1, I27.2, I47.2, I51.8, I82.8, I87.0, I89.0, J11.8, J70.8, J81, J86.9, J91, K63.1, K76.8, K86.3, K86.8, K91.8, M62.8, R57.8, T79.6, T81.3 and T81.4 (Issue #3872, the remaining in-hospital complication diagnosis codes) were added on 2026-11-27 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded). I42.8 (Issue #3907) was added on 2026-11-27 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded)."
   },
   "concept": [
     {
@@ -2563,6 +2563,21 @@
         {
           "code": "coding-hint",
           "valueString": "Use additional code (B95-B98), if desired, to identify infectious agent."
+        }
+      ]
+    },
+    {
+      "code": "I42.8",
+      "display": "Other cardiomyopathies",
+      "definition": "Other cardiomyopathies",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "I42"
         }
       ]
     },

@@ -4,7 +4,7 @@
     "source_url": "https://www.cms.gov/files/zip/2027-code-descriptions-tabular-order.zip",
     "source_file": "Code Descriptions/icd10cm_order_2027.txt (long description, columns 78-)",
     "extracted_at": "2026-11-10",
-    "clinosim_codes_total": 605,
+    "clinosim_codes_total": 609,
     "clinosim_codes_missing_from_source": [
       "F00",
       "J46",
@@ -15,7 +15,7 @@
       "S67.8"
     ],
     "note": "ICD-10-CM codes in codes/data/icd-10-cm.yaml with the CMS long description (Issue #3127). billable = the order file's header flag (1 = valid for HIPAA-covered transactions). Codes missing from the source are WHO-only or retired codes the registry still lists; they are not emitted for the US.",
-    "later_additions": "E11.21, E11.311, E11.42 and Z37.0 (Issue #3327) were added on 2026-11-16 from the same icd10cm_order_2027.txt. K35.209, I21.09, K85.10, I48.19, L03.119, I63.30, I82.409, M80.08XA, S67.20XA, T75.4XXA, T31.20, I26.09 (Issue #3258, US billable discharge codes) were added from the same icd10cm_order_2027.txt. W11.XXXA, W12.XXXA, W13.2XXA, W13.8XXA, W23.0XXA, W23.1XXA, W23.2XXA, X04.XXXA, X17.XXXA, X12.XXXA, X19.XXXA, X00.0XXA, W86.1XXA, W85.XXXA, S32.009A, S22.009A, S06.9X0A (Issue #3258, injury external-cause and discharge codes) were added from the same icd10cm_order_2027.txt. T20.0, T20.00XA, T20.07, T20.07XA, T21.0, T21.00XA, T21.05, T21.05XA, T22.0, T22.00XA, T23.0, T23.009A, T24.0, T24.009A, T25.0, T25.029A, T31.30 (Issue #3258, burn site codes) were added from the same icd10cm_order_2027.txt. J14 and J15.5 (Issue #3645, pneumonia organism codes) were added on 2026-11-24 from the same icd10cm_order_2027.txt. A40.3, A41.3, A41.59 and A41.81 (Issue #3833, sepsis organism codes) were added on 2026-11-26 from the same icd10cm_order_2027.txt. K59.00, E16.2, A04.72, E87.6, E87.5, N15.1, R56.9, R78.81, L89.90 and J98.11 (Issue #3872, in-hospital complication diagnosis codes) were added on 2026-11-26 from the same icd10cm_order_2027.txt. D68.4, D69.19, D75.822, E46, E87.21, E87.8, F06.31, G56.10, G62.81, G91.1, G93.41, I24.1, I27.24, I47.20, I50.811, I51.81, I63.40, I82.890, I85.11, I87.009, I89.0, J11.82, J70.5, J81.0, J86.9, J91.8, K56.50, K63.1, K65.1, K65.2, K76.82, K76.89, K80.51, K85.92, K86.3, K86.89, K91.71, K91.89, M62.82, R57.8, S06.5XAA, T79.A0XA, T81.31XA, T81.40XA and T81.49XA (Issue #3872, the remaining in-hospital complication diagnosis codes) were added on 2026-11-27 from the same icd10cm_order_2027.txt."
+    "later_additions": "E11.21, E11.311, E11.42 and Z37.0 (Issue #3327) were added on 2026-11-16 from the same icd10cm_order_2027.txt. K35.209, I21.09, K85.10, I48.19, L03.119, I63.30, I82.409, M80.08XA, S67.20XA, T75.4XXA, T31.20, I26.09 (Issue #3258, US billable discharge codes) were added from the same icd10cm_order_2027.txt. W11.XXXA, W12.XXXA, W13.2XXA, W13.8XXA, W23.0XXA, W23.1XXA, W23.2XXA, X04.XXXA, X17.XXXA, X12.XXXA, X19.XXXA, X00.0XXA, W86.1XXA, W85.XXXA, S32.009A, S22.009A, S06.9X0A (Issue #3258, injury external-cause and discharge codes) were added from the same icd10cm_order_2027.txt. T20.0, T20.00XA, T20.07, T20.07XA, T21.0, T21.00XA, T21.05, T21.05XA, T22.0, T22.00XA, T23.0, T23.009A, T24.0, T24.009A, T25.0, T25.029A, T31.30 (Issue #3258, burn site codes) were added from the same icd10cm_order_2027.txt. J14 and J15.5 (Issue #3645, pneumonia organism codes) were added on 2026-11-24 from the same icd10cm_order_2027.txt. A40.3, A41.3, A41.59 and A41.81 (Issue #3833, sepsis organism codes) were added on 2026-11-26 from the same icd10cm_order_2027.txt. K59.00, E16.2, A04.72, E87.6, E87.5, N15.1, R56.9, R78.81, L89.90 and J98.11 (Issue #3872, in-hospital complication diagnosis codes) were added on 2026-11-26 from the same icd10cm_order_2027.txt. D68.4, D69.19, D75.822, E46, E87.21, E87.8, F06.31, G56.10, G62.81, G91.1, G93.41, I24.1, I27.24, I47.20, I50.811, I51.81, I63.40, I82.890, I85.11, I87.009, I89.0, J11.82, J70.5, J81.0, J86.9, J91.8, K56.50, K63.1, K65.1, K65.2, K76.82, K76.89, K80.51, K85.92, K86.3, K86.89, K91.71, K91.89, M62.82, R57.8, S06.5XAA, T79.A0XA, T81.31XA, T81.40XA and T81.49XA (Issue #3872, the remaining in-hospital complication diagnosis codes) were added on 2026-11-27 from the same icd10cm_order_2027.txt. E10.649, E11.649, I42.89 and T79.6XXA (Issue #3907, protocol-specific complication codes) were added on 2026-11-27 from the same icd10cm_order_2027.txt."
   },
   "concept": [
     {
@@ -289,6 +289,11 @@
       "billable": true
     },
     {
+      "code": "E10.649",
+      "display": "Type 1 diabetes mellitus with hypoglycemia without coma",
+      "billable": true
+    },
+    {
       "code": "E10.65",
       "display": "Type 1 diabetes mellitus with hyperglycemia",
       "billable": true
@@ -331,6 +336,11 @@
     {
       "code": "E11.42",
       "display": "Type 2 diabetes mellitus with diabetic polyneuropathy",
+      "billable": true
+    },
+    {
+      "code": "E11.649",
+      "display": "Type 2 diabetes mellitus with hypoglycemia without coma",
       "billable": true
     },
     {
@@ -756,6 +766,11 @@
     {
       "code": "I33.0",
       "display": "Acute and subacute infective endocarditis",
+      "billable": true
+    },
+    {
+      "code": "I42.89",
+      "display": "Other cardiomyopathies not elsewhere classified",
       "billable": true
     },
     {
@@ -2676,6 +2691,11 @@
     {
       "code": "T78.40XA",
       "display": "Allergy, unspecified, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "T79.6XXA",
+      "display": "Traumatic ischemia of muscle, initial encounter",
       "billable": true
     },
     {

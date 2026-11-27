@@ -30,21 +30,55 @@ WORKING_DIAGNOSIS_SOURCE = "in_hospital_complication"
 _OWN_ENTRY_SOURCES = frozenset({"in_hospital_new_disease"})
 
 
+class CodeByStayDiagnosis(BaseModel):
+    """A protocol's code that depends on the stay's own diagnosis (Issue #3907):
+    the first code of the stay whose 3-character category is a key of
+    ``by_stay_category`` picks the code, else ``default``. Read from the codes
+    the stay already carries; nothing is drawn."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    by_stay_category: dict[str, str] = Field(min_length=1)
+    default: str
+
+
 class ComplicationDiagnosisCodes(BaseModel):
     """Schema of ``reference_data/complication_diagnosis_codes.yaml``."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     codes: dict[str, str] = Field(min_length=1)
+    protocol_codes: dict[str, dict[str, str | CodeByStayDiagnosis]] = Field(default_factory=dict)
     distinct_code_categories: list[str] = Field(default_factory=list)
     non_diagnosis: list[str] = Field(default_factory=list)
     pending: list[str] = Field(default_factory=list)
 
 
+def validate_protocol_codes(protocol_codes: dict[str, dict[str, Any]], declared_tokens: dict[str, set[str]]) -> None:
+    """Every per-protocol override names a protocol that exists and declares the
+    token (``declared_tokens``: protocol id -> the complication tokens it
+    declares); a code table naming a typo would silently never apply."""
+    for protocol, tokens in protocol_codes.items():
+        if protocol not in declared_tokens:
+            raise ValueError(f"protocol_codes names {protocol!r}, which is not a disease protocol")
+        for token in tokens:
+            if token not in declared_tokens[protocol]:
+                raise ValueError(f"protocol_codes: protocol {protocol!r} does not declare the complication {token!r}")
+
+
 @functools.cache
 def _table() -> ComplicationDiagnosisCodes:
     raw = load_data_yaml(Path(__file__).resolve().parent / "reference_data" / "complication_diagnosis_codes.yaml")
-    return ComplicationDiagnosisCodes.model_validate(raw)
+    table = ComplicationDiagnosisCodes.model_validate(raw)
+    if table.protocol_codes:
+        from clinosim.modules.disease.protocol import load_all_disease_protocols
+
+        declared = {
+            disease_id: {str(c.get("name")) for c in protocol.complications if isinstance(c, dict) and c.get("name")}
+            for disease_id, protocol in load_all_disease_protocols().items()
+        }
+        validate_protocol_codes(table.protocol_codes, declared)
+    return table
 
 
 def complication_diagnosis_codes() -> dict[str, str]:
@@ -62,10 +96,32 @@ def pending_tokens() -> frozenset[str]:
     return frozenset(_table().pending)
 
 
-def complication_diagnosis_code(token: str) -> str:
+def complication_diagnosis_code(token: str, disease_id: str = "", stay_codes: Iterable[str] = ()) -> str:
     """The diagnosis code of a complication token, ``""`` for an event with
-    none. A delirium token resolves through the delirium rule."""
+    none. A delirium token resolves through the delirium rule.
+
+    ``disease_id`` (Issue #3907): the protocol the complication occurred in. A
+    token a protocol codes differently (``protocol_codes``: a septic
+    cardiomyopathy, a burn wound infection, a traumatic rhabdomyolysis, a
+    diabetic stay's hypoglycemia) gives that code; a code that depends on the
+    stay's diabetes type reads ``stay_codes``. Any other protocol gets the
+    token's default code."""
+    override = _table().protocol_codes.get(disease_id, {}).get(token) if disease_id else None
+    if isinstance(override, CodeByStayDiagnosis):
+        by_category = override.by_stay_category
+        for code in stay_codes:
+            if code and code.split(".")[0] in by_category:
+                return by_category[code.split(".")[0]]
+        return override.default
+    if override:
+        return override
     return complication_diagnosis_codes().get(token) or delirium_token_code(token)
+
+
+def diagnosis_category(code: str) -> str:
+    """The key under which a diagnosis code counts as the same diagnosis as
+    another (see ``_category``): public for the discharge summary's list."""
+    return _category(code)
 
 
 def _category(code: str) -> str:
@@ -77,7 +133,10 @@ def _category(code: str) -> str:
 
 
 def complication_diagnoses(
-    complications: Iterable[Any], stay_codes: Iterable[str], chronic_codes: Iterable[str] = ()
+    complications: Iterable[Any],
+    stay_codes: Iterable[str],
+    chronic_codes: Iterable[str] = (),
+    disease_id: str = "",
 ) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
     """``(entries, carried)`` for the coded complications of a stay.
 
@@ -93,7 +152,11 @@ def complication_diagnoses(
     that carries its category, so the complication is still accounted for by
     an existing diagnosis. ``carrier`` says where that code is from: ``stay``
     (searched first), ``chronic`` or ``complication`` (an earlier entry).
+
+    ``disease_id`` (Issue #3907): the stay's disease protocol, which picks a
+    token's per-protocol code; the stay's own codes pick a diabetes type.
     """
+    stay_codes = list(stay_codes)
     carriers: dict[str, tuple[str, str]] = {}
     for carrier, codes in (("stay", stay_codes), ("chronic", chronic_codes)):
         for code in codes:
@@ -104,7 +167,7 @@ def complication_diagnoses(
     for event in normalized_complications(list(complications)):
         if event["source"] in _OWN_ENTRY_SOURCES:
             continue
-        code = complication_diagnosis_code(str(event["name"]))
+        code = complication_diagnosis_code(str(event["name"]), disease_id, stay_codes)
         if not code:
             continue
         category = _category(code)
