@@ -307,14 +307,18 @@ drugs:
     # the catalog. Furosemide is maintenance therapy (28-day renewal, as the
     # chronic home-medication entry), so it is carried into later admissions, and
     # its dose / route / frequency stay separate fields like that entry's.
+    # Issue #3924: the ACE inhibitor and the beta-blocker are lifelong guideline-directed
+    # therapy after a decompensation, so they carry the same 28-day renewal supply (a
+    # 7-day default is a finite course that is not carried forward, and the ARB the ACE
+    # inhibitor replaced would be derived again at the next visit).
     japan:
       - {drug_id: furosemide, dose: "20mg", route: "PO", frequency: "daily", duration_days: 28}
-      - {drug_id: enalapril, dose: "5mg PO daily"}
-      - {drug_id: carvedilol, dose: "2.5mg PO BID"}
+      - {drug_id: enalapril, dose: "5mg PO daily", duration_days: 28}
+      - {drug_id: carvedilol, dose: "2.5mg PO BID", duration_days: 28}
     us:
       - {drug_id: furosemide, dose: "40mg", route: "PO", frequency: "daily", duration_days: 28}
-      - {drug_id: lisinopril, dose: "10mg PO daily"}
-      - {drug_id: carvedilol, dose: "6.25mg PO BID"}
+      - {drug_id: lisinopril, dose: "10mg PO daily", duration_days: 28}
+      - {drug_id: carvedilol, dose: "6.25mg PO BID", duration_days: 28}
 
 target_los:
   japan:
