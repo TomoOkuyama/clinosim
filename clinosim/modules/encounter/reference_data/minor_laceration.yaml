@@ -69,7 +69,7 @@ treatment:
   - {name: "Suture closure", probability: 0.6, route: "topical", intent: "wound closure"}
   - {name: "Skin staples", probability: 0.15, route: "topical", intent: "wound closure"}
   - {name: "Tissue adhesive (glue)", probability: 0.25, route: "topical", intent: "wound closure"}
-  - {name: "Tetanus toxoid booster", probability: 0.3, route: "IM", intent: "prophylaxis"}
+  - {name: "Tetanus toxoid 0.5mL", probability: 0.3, route: "IM", intent: "prophylaxis"}
   - {name: "Acetaminophen 500mg", probability: 0.4, route: "PO", intent: "analgesic"}
 
 discharge_instructions:

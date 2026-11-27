@@ -34,7 +34,7 @@ workup:
 treatment:
   - {name: "Observation and monitoring", probability: 0.8, route: "N/A", intent: "assess passage"}
   - {name: "Endoscopy", probability: 0.15, route: "N/A", intent: "foreign body removal if impacted"}
-  - {name: "IV normal saline", probability: 0.2, route: "IV", intent: "hydration during observation"}
+  - {name: "IV normal saline 500mL", probability: 0.2, route: "IV", intent: "hydration during observation"}
 
 discharge_instructions:
   - {en: "Foreign body expected to pass spontaneously within 2-5 days", ja: "異物は2〜5日以内に自然排出される見込み"}

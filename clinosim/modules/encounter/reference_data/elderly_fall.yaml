@@ -53,7 +53,7 @@ workup:
 
 treatment:
   - {name: "Acetaminophen 1000mg", probability: 0.6, route: "PO", intent: "pain management"}
-  - {name: "IV normal saline", probability: 0.3, route: "IV", intent: "hydration"}
+  - {name: "IV normal saline 500mL", probability: 0.3, route: "IV", intent: "hydration"}
   - {name: "Ice pack to affected area", probability: 0.4, route: "topical", intent: "swelling reduction"}
 
 discharge_instructions:

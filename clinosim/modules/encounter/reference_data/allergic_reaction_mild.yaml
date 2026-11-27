@@ -35,7 +35,7 @@ treatment:
   - {name: "Famotidine 20mg", probability: 0.4, route: "IV", intent: "H2 blocker adjunct"}
   - {name: "Methylprednisolone 125mg", probability: 0.3, route: "IV", intent: "anti-inflammatory"}
   - {name: "Epinephrine 0.3mg", probability: 0.10, route: "IM", intent: "anaphylaxis concern"}
-  - {name: "IV normal saline", probability: 0.2, route: "IV"}
+  - {name: "IV normal saline 500mL", probability: 0.2, route: "IV"}
 
 discharge_instructions:
   - {en: "Allergic reaction treated, symptoms improved", ja: "アレルギー反応は治療により症状改善"}

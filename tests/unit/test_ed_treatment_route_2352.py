@@ -48,8 +48,8 @@ def test_every_medication_treatment_declares_an_administration_route(where: str,
     ("condition", "drug", "route"),
     [
         ("minor_laceration", "Lidocaine 1% local infiltration", "infiltration"),
-        ("minor_laceration", "Tetanus toxoid booster", "IM"),
-        ("eye_foreign_body", "Ofloxacin ophthalmic drops", "OPH"),
+        ("minor_laceration", "Tetanus toxoid 0.5mL", "IM"),
+        ("eye_foreign_body", "Ofloxacin 0.3% ophthalmic drops 1 drop", "OPH"),
     ],
 )
 def test_ed_order_keeps_the_protocol_route(condition: str, drug: str, route: str) -> None:

@@ -46,7 +46,7 @@ treatment:
   - {name: "Neurological observation", probability: 1.0, route: "other", intent: "serial neuro checks q1h"}
   - {name: "Acetaminophen 500mg", probability: 0.7, route: "PO", intent: "headache relief — avoid NSAIDs"}
   - {name: "Ondansetron 4mg", probability: 0.3, route: "IV", intent: "anti-emetic for nausea"}
-  - {name: "IV normal saline", probability: 0.2, route: "IV", intent: "hydration if vomiting"}
+  - {name: "IV normal saline 500mL", probability: 0.2, route: "IV", intent: "hydration if vomiting"}
 
 discharge_instructions:
   - {en: "Have a responsible adult stay with you for the first 24 hours", ja: "最初の24時間は付き添いの成人と過ごす"}

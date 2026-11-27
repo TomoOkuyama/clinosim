@@ -39,7 +39,7 @@ treatment:
   - {name: "Oxygen supplementation", probability: 0.20, route: "inhalation", intent: "respiratory support"}
   - {name: "Nebulized salbutamol 2.5mg", probability: 0.15, route: "inhalation", intent: "bronchospasm"}
   - {name: "Acetaminophen 500mg", probability: 0.40, route: "PO", intent: "analgesic"}
-  - {name: "Silver sulfadiazine cream", probability: 0.30, route: "topical", intent: "skin burn care"}
+  - {name: "Silver sulfadiazine 1% cream", locale_name: {us: "Silver sulfadiazine 1% cream 1/16 inch layer", jp: "Silver sulfadiazine 1% cream 2-3mm layer"}, probability: 0.30, route: "topical", intent: "skin burn care"}
 
 discharge_instructions:
   - {en: "Keep the affected area clean", ja: "患部を清潔に保つ"}
