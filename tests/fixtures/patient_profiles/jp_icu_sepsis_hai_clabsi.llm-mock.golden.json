@@ -46,7 +46,6 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.disease_exam.sepsis",
-        "ctx.safety_skips",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -94,7 +93,6 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_1",
-        "ctx.safety_skips",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -143,7 +141,6 @@
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_2",
         "ctx.exam.unchanged_from_previous_day",
-        "ctx.safety_skips",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -191,7 +188,6 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_3",
-        "ctx.safety_skips",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -239,7 +235,6 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_4",
-        "ctx.safety_skips",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -288,7 +283,6 @@
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_5",
         "ctx.exam.unchanged_from_previous_day",
-        "ctx.safety_skips",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -337,7 +331,6 @@
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_6",
         "ctx.exam.unchanged_from_previous_day",
-        "ctx.safety_skips",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -386,7 +379,6 @@
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_7",
         "ctx.exam.unchanged_from_previous_day",
-        "ctx.safety_skips",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -435,7 +427,6 @@
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_8",
         "ctx.exam.unchanged_from_previous_day",
-        "ctx.safety_skips",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -784,7 +775,6 @@
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_9",
         "ctx.exam.unchanged_from_previous_day",
-        "ctx.safety_skips",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -1131,7 +1121,6 @@
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_10",
         "ctx.exam.unchanged_from_previous_day",
-        "ctx.safety_skips",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -1480,7 +1469,6 @@
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_11",
         "ctx.exam.unchanged_from_previous_day",
-        "ctx.safety_skips",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -1826,7 +1814,6 @@
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_12",
         "ctx.exam.unchanged_from_previous_day",
-        "ctx.safety_skips",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -2173,7 +2160,6 @@
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_13",
         "ctx.exam.unchanged_from_previous_day",
-        "ctx.safety_skips",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -2516,7 +2502,6 @@
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_14",
         "ctx.exam.unchanged_from_previous_day",
-        "ctx.safety_skips",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -2886,7 +2871,6 @@
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_15",
         "ctx.exam.unchanged_from_previous_day",
-        "ctx.safety_skips",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -3111,7 +3095,6 @@
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_16",
         "ctx.exam.unchanged_from_previous_day",
-        "ctx.safety_skips",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -3160,7 +3143,6 @@
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_17",
         "ctx.exam.unchanged_from_previous_day",
-        "ctx.safety_skips",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -3209,7 +3191,6 @@
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_18",
         "ctx.exam.unchanged_from_previous_day",
-        "ctx.safety_skips",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],

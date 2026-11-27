@@ -268,3 +268,62 @@ def test_extract_archetype_parses_daily_loop_clinical_intent():
     assert _extract_archetype("") == ""
     assert _extract_archetype("no colon here") == ""
     assert _extract_archetype("Day 3") == ""  # too few tokens
+
+
+# ---------------------------------------------------------------------------
+# Issue #3914: a switch event is dated by the day the stopped order really ended
+# ---------------------------------------------------------------------------
+
+
+def _switch_record(last_dose: dict[str, datetime]) -> Any:
+    from datetime import timedelta
+
+    from clinosim.types.encounter import MedicationAdministration
+    from clinosim.types.patient import PatientProfile
+
+    admission = datetime(2026, 6, 1, 8, 0)
+    patient = PatientProfile(patient_id="pt-3914")
+    pip = _mk_med_order("ORD-enc-3914-ADM-M01", "Piperacillin/Tazobactam")
+    vanc = _mk_med_order("ORD-enc-3914-ADM-M02", "Vancomycin")
+    markers = []
+    for idx, name in enumerate(("Piperacillin/Tazobactam", "Vancomycin")):
+        marker = _mk_med_order(f"ORD-enc-3914-STOP-D8-COMPHOLD-{idx}", f"DISCONTINUE: {name}")
+        marker.ordered_datetime = admission + timedelta(days=8, hours=5)  # hospital day 9
+        markers.append(marker)
+    mars = [
+        MedicationAdministration(order_id=o, drug_name=name, scheduled_datetime=when, status="given")
+        for (o, name), when in zip(
+            (("ORD-enc-3914-ADM-M01", "Piperacillin/Tazobactam"), ("ORD-enc-3914-ADM-M02", "Vancomycin")),
+            (last_dose["pip"], last_dose["vanc"]),
+        )
+    ]
+    encounter = SimpleNamespace(encounter_id="ENC-3914", admission_datetime=admission)
+    return SimpleNamespace(
+        orders=[pip, vanc, *markers],
+        encounter=encounter,
+        encounters=[encounter],
+        patient=patient,
+        medication_administrations=mars,
+    )
+
+
+def test_switch_day_is_the_day_the_stopped_drug_last_ran():
+    from datetime import timedelta
+
+    from clinosim.modules.order.discontinue_flip import align_switch_stop_days
+
+    admission = datetime(2026, 6, 1, 8, 0)
+    rec = _switch_record(
+        {
+            "pip": admission + timedelta(days=3, hours=4),  # last dose on hospital day 4
+            "vanc": admission + timedelta(days=12),  # ran past the marker
+        }
+    )
+    enrich_discontinue_flip(_mk_ctx([rec]))
+    assert {e.candidate_drug: e.stopped_on_day for e in rec.patient.safety_skip_log} == {
+        "Piperacillin/Tazobactam": 9,
+        "Vancomycin": 9,
+    }
+    align_switch_stop_days(rec)
+    days = {e.candidate_drug: e.stopped_on_day for e in rec.patient.safety_skip_log}
+    assert days == {"Piperacillin/Tazobactam": 4, "Vancomycin": 9}

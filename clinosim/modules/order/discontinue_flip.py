@@ -35,6 +35,8 @@ Determinism: RNG-free. Reads/mutates only ``record.orders``.
 
 from __future__ import annotations
 
+from datetime import datetime
+
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER
 from clinosim.simulator.enrichers import EnricherContext
@@ -468,4 +470,43 @@ def _extract_archetype(clinical_intent: str) -> str:
     return parts[2].strip()
 
 
-__all__ = ["enrich_discontinue_flip", "_drug_key"]
+def align_switch_stop_days(record) -> None:
+    """Date each ``switch`` event by the day its stopped drug last ran
+    (Issue #3914).
+
+    The event is first dated by the day of the ``DISCONTINUE`` marker, but a
+    drug can stop being given before it (a class switch, ``supersede_orders``,
+    drops the earlier antibiotic's doses when the new one starts, while the
+    marker still ends the order later). Once the administrations are final
+    the event takes the earlier of the marker's day and the hospital day of
+    the drug's last given dose. An event whose drug has no given dose keeps
+    the marker's day. RNG-free.
+    """
+    patient = getattr(record, "patient", None)
+    log = getattr(patient, "safety_skip_log", None) or []
+    encs = getattr(record, "encounters", None) or []
+    encounter = getattr(record, "encounter", None) or (encs[0] if encs else None)
+    adm_dt = getattr(encounter, "admission_datetime", None) if encounter else None
+    if not log or adm_dt is None:
+        return
+    last_by_drug: dict[str, datetime] = {}
+    for mar in getattr(record, "medication_administrations", None) or []:
+        if getattr(mar, "status", "given") != "given":
+            continue
+        when = getattr(mar, "actual_datetime", None) or getattr(mar, "scheduled_datetime", None)
+        key = _drug_key(str(getattr(mar, "drug_name", "") or ""))
+        if when is not None and key and (key not in last_by_drug or when > last_by_drug[key]):
+            last_by_drug[key] = when
+    for entry in log:
+        if getattr(entry, "event_type", "") != "switch" or entry.stopped_on_day is None:
+            continue
+        if encounter is not None and entry.encounter_id != getattr(encounter, "encounter_id", entry.encounter_id):
+            continue
+        last = last_by_drug.get(_drug_key(entry.candidate_drug))
+        if last is None:
+            continue
+        last_day = max(0, int((last - adm_dt).total_seconds() // 86400) + 1)
+        entry.stopped_on_day = min(entry.stopped_on_day, last_day)
+
+
+__all__ = ["align_switch_stop_days", "enrich_discontinue_flip", "_drug_key"]

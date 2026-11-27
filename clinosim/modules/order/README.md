@@ -375,7 +375,7 @@ clinosim/modules/order/
   engine.py                          admission + daily + imaging order placement, result-time computation
   panel_grouping.py                  classify_lab_specs + load_panel_definitions + PANEL_PRIORITY_ORDER
   treatment_classifier.py            classify_{encounter,inpatient,escalation}_* keyword tables
-  discontinue_flip.py                POST_ENCOUNTER enricher: DISCONTINUE marker → original order STOPPED (Issue #1346)
+  discontinue_flip.py                POST_ENCOUNTER enricher: DISCONTINUE marker → original order STOPPED (Issue #1346); `align_switch_stop_days` dates a switch event by the day its drug last ran, called from `supersede_orders` (Issue #3914)
   supersede.py                       POST_ENCOUNTER enricher: a newer order for the same drug / a listed class switch stops the earlier one (Issue #2615)
   prescription_supersede.py          prescription_closures — renewal / supply-end closure of take-home prescriptions at FHIR export (Issue #2610)
   _supersede_thresholds.py           constants of the supersede pass (Issue #2983)

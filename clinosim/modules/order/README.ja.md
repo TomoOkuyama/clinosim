@@ -347,7 +347,7 @@ clinosim/modules/order/
   engine.py                          admission + 日次 + imaging 発注、結果時刻計算
   panel_grouping.py                  classify_lab_specs + load_panel_definitions + PANEL_PRIORITY_ORDER
   treatment_classifier.py            classify_{encounter,inpatient,escalation}_* keyword 表
-  discontinue_flip.py                POST_ENCOUNTER enricher: DISCONTINUE marker → 元 order を STOPPED に (Issue #1346)
+  discontinue_flip.py                POST_ENCOUNTER enricher: DISCONTINUE marker → 元 order を STOPPED に (Issue #1346)。`align_switch_stop_days` は切替イベントの日付を薬剤の最終投与日に合わせる (`supersede_orders` から呼ぶ、Issue #3914)
   supersede.py                       POST_ENCOUNTER enricher: 同一薬剤の新 order / 登録済 class 切替が旧 order を停止 (Issue #2615)
   prescription_supersede.py          prescription_closures — FHIR export 時に持ち帰り処方の更新 / 供給終了で終了を決定 (Issue #2610)
   _supersede_thresholds.py           supersede pass の定数 (Issue #2983)

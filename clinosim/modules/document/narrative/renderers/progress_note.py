@@ -253,7 +253,12 @@ def render_progress_note(
     from clinosim.modules.document.narrative._safety_skips import progress_note_safety_skips
 
     skips_addendum = _render_safety_skips_line(
-        progress_note_safety_skips(getattr(ctx, "safety_skips", None) or [], note_medications(ctx).held_refs), lang
+        progress_note_safety_skips(
+            getattr(ctx, "safety_skips", None) or [],
+            note_medications(ctx).held_refs,
+            hospital_day=int(ctx.day_index) + 1,
+        ),
+        lang,
     )
     if skips_addendum:
         plan = f"{plan}\n{skips_addendum}" if plan else skips_addendum

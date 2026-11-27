@@ -17,7 +17,7 @@ from clinosim.locale.i18n import t
 from clinosim.locale.loader import hold_reason_change
 from clinosim.locale.localized import localized_field
 
-__all__ = ["progress_note_safety_skips", "safety_skip_line"]
+__all__ = ["known_by_hospital_day", "progress_note_safety_skips", "safety_skip_line"]
 
 # event_type -> phrase-key stem; an absent or unknown event is the legacy
 # pair-conflict avoidance (Issue #1403).
@@ -47,7 +47,19 @@ def _identity(name: object) -> str:
     return drug_key(text) or text.lower()
 
 
-def progress_note_safety_skips(skips: list[dict], held_refs: Collection[str] = ()) -> list[dict]:
+def known_by_hospital_day(skips: list[dict], hospital_day: int | None) -> list[dict]:
+    """The events a note written on ``hospital_day`` (1-based; the admission
+    day is 1) can state (Issue #3914): an event dated ``stopped_on_day`` later
+    than the note has not happened yet. An event with no day, or no note day
+    (a whole-stay document), is kept."""
+    if hospital_day is None:
+        return list(skips)
+    return [s for s in skips if not s.get("stopped_on_day") or int(s["stopped_on_day"]) <= hospital_day]
+
+
+def progress_note_safety_skips(
+    skips: list[dict], held_refs: Collection[str] = (), *, hospital_day: int | None = None
+) -> list[dict]:
     """The safety events a daily progress note's plan states (Issue #3411):
     the in-stay ones, one hold per drug and each other event once.
 
@@ -55,8 +67,11 @@ def progress_note_safety_skips(skips: list[dict], held_refs: Collection[str] = (
     documents; a drug is held once, by the first hold event (a protocol logs
     the admission hold and the discharge one for the same drug); and a drug
     the day's medication record already names as held (``held_refs``: drug
-    keys) is not stated a second time, its record carrying the day's reason.
+    keys) is not stated a second time, its record carrying the day's reason. With
+    ``hospital_day`` a switch dated after the note's own day is left out
+    (Issue #3914).
     """
+    skips = known_by_hospital_day(skips, hospital_day)
     out: list[dict] = []
     held = set(held_refs)
     seen: set[tuple] = set()
