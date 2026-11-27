@@ -34,7 +34,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from clinosim import determinism
 from clinosim.codes.drugs import all_drug_ids, drug_classes, drug_key, drug_ref, get_drug, same_drug
-from clinosim.countries import lang_for
+from clinosim.countries import country_slot, lang_for
 from clinosim.datafiles import load_data_yaml
 from clinosim.locale.free_text import localize_drug_name
 from clinosim.locale.i18n import t
@@ -1567,11 +1567,13 @@ def apply_drug_safety_gate_to_orders(
             continue
 
         if worst is not None and worst.default_action == "emit_with_note":
-            locale = country.lower()
-            note_text = localized_field(worst, "rationale", lang_for(locale))
+            # Issue #3929: ``country`` may be the disease-YAML slot (``japan``);
+            # the language map is keyed by country code.
+            lang = lang_for(country_slot(country))
+            note_text = localized_field(worst, "rationale", lang)
             note_entry = {
-                "text": t("order_intent.interaction_caution", lang_for(locale), note=note_text),
-                "authorReference": {"display": t("order_intent.interaction_check_author", lang_for(locale))},
+                "text": t("order_intent.interaction_caution", lang, note=note_text),
+                "authorReference": {"display": t("order_intent.interaction_check_author", lang)},
             }
             order.notes.append(note_entry)
 
