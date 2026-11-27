@@ -29,11 +29,11 @@ ed_stay_hours:
 workup:
   vitals: true
   labs:
-    - {test: "ECG", probability: 0.95}
     - {test: "Troponin", probability: 0.5}
     - {test: "Glucose", probability: 0.6}
     - {test: "Hb", probability: 0.4}
   imaging:
+    - {test: "ECG", probability: 0.95}
     - {test: "CT_Head", probability: 0.3}
 
 treatment:
