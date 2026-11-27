@@ -231,10 +231,27 @@ def _secondary_diagnoses(ctx: NarrativeContext, diagnoses: list) -> list[str]:
     # A complication token's diagnosis code, where one names it, keeps a
     # complication already listed as a coded diagnosis from repeating.
     complication_codes = load_death_cause_chain().immediate_cause_complications
+    # Issue #3905: a complication whose category a chronic condition or an
+    # earlier complication carries is named with the carrying code; one the
+    # principal, a secondary or a working diagnosis carries is that diagnosis.
+    carried_by_name = {
+        str(c.get("name") or ""): c
+        for dx in diagnoses
+        for c in _o(dx, "carried_complications", []) or []
+        if isinstance(c, dict)
+    }
     names: set[str] = set()
     for event in ctx.complications_events or []:
         token = str(_o(event, "name", "") or "")
         key = "_".join(token.strip().lower().split())
+        carried = carried_by_name.get(key)
+        if carried and carried.get("carrier") in ("chronic", "complication") and carried.get("carrying_code"):
+            label = _localize_complication(token, lang)
+            emitted, _display = diagnosis_coded(str(carried["carrying_code"]), country, lang, sex)
+            if label and label not in names:
+                names.add(label)
+                items.append(t("list_item.inline_dx_with_code", lang, display=label, code=emitted))
+            continue
         code = complication_diagnosis_code(key) or complication_codes.get(key) or ""
         if not token or (code and code.split(".")[0] in seen):
             continue

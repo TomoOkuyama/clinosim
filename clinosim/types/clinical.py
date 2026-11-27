@@ -143,6 +143,11 @@ class ClinicalDiagnosis:
     # Issue #3258: further coded secondary diagnoses of the stay, e.g. the
     # extent of a burn (T31.x) beside the principal burn site.
     secondary_diagnosis_codes: list[str] = field(default_factory=list)
+    # Issue #3905: a coded complication whose category the stay already carries
+    # adds no working diagnosis; it is recorded here with the code that carries
+    # it: [{"name": token, "carrying_code": code, "carrier": "stay" | "chronic"
+    # | "complication"}].
+    carried_complications: list[dict] = field(default_factory=list)
 
     # Hidden fields (in CIF, not in clinical output)
     diagnosis_correct: bool = True  # does discharge dx match ground truth?

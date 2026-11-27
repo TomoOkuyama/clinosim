@@ -32,6 +32,7 @@ the encounter-DD role purely through `Encounter.diagnosis[0].condition + use=DD`
 
 from __future__ import annotations
 
+from clinosim.locale.loader import map_diagnosis_code
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
@@ -330,4 +331,38 @@ def encounter_diagnosis_condition_ids(conditions: list[dict], encounter_referenc
             for coding in cat.get("coding") or []
         ):
             ids.append(str(cond["id"]))
+    return ids
+
+
+def carrying_condition_ids(
+    conditions: list[dict], carried: list[dict], *, country: str, patient_sex: str = "", encounter_reference: str = ""
+) -> list[str]:
+    """Ids of the emitted Conditions that carry a complication the stay does
+    not give a Condition of its own (Issue #3905), in the order of
+    ``clinical_diagnosis.carried_complications``.
+
+    A carried entry names the code of the diagnosis that stands for the
+    complication (principal, secondary, working or chronic). Its Condition is
+    the emitted one with that code in the country's system, either of this
+    encounter or on the problem list; a code with no emitted Condition adds
+    nothing, so no reference dangles. ``Encounter.diagnosis[]`` lists each id
+    not already there.
+    """
+    ids: list[str] = []
+    for entry in carried:
+        code = str(entry.get("carrying_code") or "")
+        if not code:
+            continue
+        emitted = map_diagnosis_code(code, country, sex=patient_sex) or code
+        for cond in conditions:
+            coding = (cond.get("code") or {}).get("coding") or [{}]
+            if coding[0].get("code") != emitted:
+                continue
+            categories = {x.get("code") for cat in cond.get("category") or [] for x in cat.get("coding") or []}
+            of_encounter = (cond.get("encounter") or {}).get("reference") == encounter_reference
+            if ("problem-list-item" in categories or (of_encounter and "encounter-diagnosis" in categories)) and str(
+                cond["id"]
+            ) not in ids:
+                ids.append(str(cond["id"]))
+                break
     return ids
