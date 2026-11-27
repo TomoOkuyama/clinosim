@@ -28,7 +28,7 @@
       "sections": {
         "admission_results": "Laboratory (abnormal): glucose 578 mg/dL [critical]; pH 7.04 [critical]; lactate 3.0 mmol/L [H]; BUN 35.0 mg/dL [H]; Cl 107 mmol/L [H]; HCO3 5.0 mmol/L [L]; +1 other abnormal. Imaging and studies: ECG (Sinus tachycardia without ischemic changes); chest X-ray AP (Left lower lobe consolidation)",
         "allergies": "No known drug allergies (NKDA)",
-        "assessment_and_plan": "Assessment: Admitted for evaluation and management of: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Working diagnosis: diabetic ketoacidosis (severity: severe). Comorbidities: Type 2 diabetes (DM), Dyslipidemia. Plan: Estimated length of stay: ~5 days. Initial medications: Enoxaparin, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0. Workup / procedures: Central venous catheter insertion. Admission work-up: β-hydroxybutyrate, anion gap, phosphate, Mg, lactate, urinalysis, HbA1c, CRP, ECG, chest X-ray AP. Supportive care and monitoring: monitoring: Continuous cardiac monitoring, glucose check: Fingerstick glucose q1h, intake and output: Strict intake and output monitoring.",
+        "assessment_and_plan": "Assessment: Admitted for evaluation and management of: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Working diagnosis: diabetic ketoacidosis (severity: severe). Comorbidities: Type 2 diabetes (DM), Dyslipidemia. Plan: Estimated length of stay: ~5 days. Initial medications: Enoxaparin, Insulin, Regular, Human, Normal Saline, Potassium Chloride. Workup / procedures: Central venous catheter insertion. Admission work-up: β-hydroxybutyrate, anion gap, phosphate, Mg, lactate, urinalysis, HbA1c, CRP, ECG, chest X-ray AP. Supportive care and monitoring: monitoring: Continuous cardiac monitoring, glucose check: Fingerstick glucose q1h, intake and output: Strict intake and output monitoring.",
         "chief_complaint": "Nausea, vomiting, abdominal pain, polyuria, altered consciousness",
         "family_history": "No significant family history",
         "hpi": "34 y/o female patient. Chief complaint: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Symptoms that began over the preceding days worsened rapidly, prompting today's presentation. History: Type 2 diabetes (DM), Dyslipidemia. ROS: no fever, no diarrhea.",
@@ -84,10 +84,10 @@
       "sections": {
         "assessment": "Problem: Type 2 diabetes mellitus with ketoacidosis without coma (E11.10), hospital day 1. Notable labs (past 24 h): glucose 578 mg/dL [critical], pH 7.04 [critical], lactate 3.0 mmol/L [H], BUN 35.0 mg/dL [H], Cl 107 mmol/L [H], HCO3 5.0 mmol/L [L], +2 other abnormal.",
         "objective": "BP 107/67 mmHg, HR 119 bpm, RR 22 /min, SpO2 97% (RA), T 36.2°C (past 24 h: HR max 125 bpm, SpO2 min 94%)",
-        "plan": "Continue current medications: IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0. Procedures today: Central venous catheter insertion.",
+        "plan": "Continue current medications: Insulin, Regular, Human, Normal Saline, Potassium Chloride. Procedures today: Central venous catheter insertion.",
         "subjective": "Hospital day 1. No new subjective complaints."
       },
-      "text": "S: Hospital day 1. No new subjective complaints.\nO: BP 107/67 mmHg, HR 119 bpm, RR 22 /min, SpO2 97% (RA), T 36.2°C (past 24 h: HR max 125 bpm, SpO2 min 94%)\nA: Problem: Type 2 diabetes mellitus with ketoacidosis without coma (E11.10), hospital day 1. Notable labs (past 24 h): glucose 578 mg/dL [critical], pH 7.04 [critical], lactate 3.0 mmol/L [H], BUN 35.0 mg/dL [H], Cl 107 mmol/L [H], HCO3 5.0 mmol/L [L], +2 other abnormal.\nP: Continue current medications: IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0. Procedures today: Central venous catheter insertion."
+      "text": "S: Hospital day 1. No new subjective complaints.\nO: BP 107/67 mmHg, HR 119 bpm, RR 22 /min, SpO2 97% (RA), T 36.2°C (past 24 h: HR max 125 bpm, SpO2 min 94%)\nA: Problem: Type 2 diabetes mellitus with ketoacidosis without coma (E11.10), hospital day 1. Notable labs (past 24 h): glucose 578 mg/dL [critical], pH 7.04 [critical], lactate 3.0 mmol/L [H], BUN 35.0 mg/dL [H], Cl 107 mmol/L [H], HCO3 5.0 mmol/L [L], +2 other abnormal.\nP: Continue current medications: Insulin, Regular, Human, Normal Saline, Potassium Chloride. Procedures today: Central venous catheter insertion."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-03": {
@@ -134,10 +134,10 @@
       "sections": {
         "assessment": "Problem: Type 2 diabetes mellitus with ketoacidosis without coma (E11.10), hospital day 2. Vital signs improving compared with the previous day (tachypnea improved, not yet sustained). Abnormal vital signs still present but improving (tachycardia 119 → 107). Abnormal vital signs persisting and worsening (low SpO2 97 → 93). Notable labs (past 24 h): HbA1c 11.8 % [H].",
         "objective": "BP 117/72 mmHg, HR 107 bpm, RR 19 /min, SpO2 93% (RA), T 35.7°C (past 24 h: HR max 121 bpm, RR max 24 /min)",
-        "plan": "Continue current medications: Enoxaparin, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0. Diet changed to NPO (nothing by mouth). Discharge planning in progress (home).",
+        "plan": "Continue current medications: Enoxaparin, Insulin, Regular, Human, Normal Saline, Potassium Chloride. Diet changed to NPO (nothing by mouth). Discharge planning in progress (home).",
         "subjective": "Hospital day 2. Tolerating initial therapy without adverse reaction."
       },
-      "text": "S: Hospital day 2. Tolerating initial therapy without adverse reaction.\nO: BP 117/72 mmHg, HR 107 bpm, RR 19 /min, SpO2 93% (RA), T 35.7°C (past 24 h: HR max 121 bpm, RR max 24 /min)\nA: Problem: Type 2 diabetes mellitus with ketoacidosis without coma (E11.10), hospital day 2. Vital signs improving compared with the previous day (tachypnea improved, not yet sustained). Abnormal vital signs still present but improving (tachycardia 119 → 107). Abnormal vital signs persisting and worsening (low SpO2 97 → 93). Notable labs (past 24 h): HbA1c 11.8 % [H].\nP: Continue current medications: Enoxaparin, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0. Diet changed to NPO (nothing by mouth). Discharge planning in progress (home)."
+      "text": "S: Hospital day 2. Tolerating initial therapy without adverse reaction.\nO: BP 117/72 mmHg, HR 107 bpm, RR 19 /min, SpO2 93% (RA), T 35.7°C (past 24 h: HR max 121 bpm, RR max 24 /min)\nA: Problem: Type 2 diabetes mellitus with ketoacidosis without coma (E11.10), hospital day 2. Vital signs improving compared with the previous day (tachypnea improved, not yet sustained). Abnormal vital signs still present but improving (tachycardia 119 → 107). Abnormal vital signs persisting and worsening (low SpO2 97 → 93). Notable labs (past 24 h): HbA1c 11.8 % [H].\nP: Continue current medications: Enoxaparin, Insulin, Regular, Human, Normal Saline, Potassium Chloride. Diet changed to NPO (nothing by mouth). Discharge planning in progress (home)."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-04": {
@@ -184,10 +184,10 @@
       "sections": {
         "assessment": "Problem: Type 2 diabetes mellitus with ketoacidosis without coma (E11.10), hospital day 3. Vital signs improving compared with the previous day (low SpO2 resolved). Vital signs improving compared with the previous day (tachypnea improved, not yet sustained). Abnormal vital signs persisting (tachycardia); no improvement yet. Notable labs (past 24 h): pH 7.27 [L] (prior 7.04), Na 146 mmol/L [H] (prior 144; hypernatremia), BUN 24.8 mg/dL [H] (prior 35.0), HCO3 12.3 mmol/L [L] (prior 5.0), PaCO2 30.5 mmHg [L] (prior 22.0), Cl 109 mmol/L [H] (prior 107), +1 other abnormal.",
         "objective": "BP 113/74 mmHg, HR 104 bpm, RR 19 /min, SpO2 98% (RA), T 36.1°C (past 24 h: HR max 106 bpm, RR max 21 /min)",
-        "plan": "Continue current medications: Enoxaparin, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0. Diet changed to Regular diet. Discharge planning in progress (home).",
+        "plan": "Continue current medications: Enoxaparin, Insulin, Regular, Human, Normal Saline, Potassium Chloride. Diet changed to Regular diet. Discharge planning in progress (home).",
         "subjective": "Hospital day 3. Day before planned discharge; symptoms stable, discharge instructions reviewed."
       },
-      "text": "S: Hospital day 3. Day before planned discharge; symptoms stable, discharge instructions reviewed.\nO: BP 113/74 mmHg, HR 104 bpm, RR 19 /min, SpO2 98% (RA), T 36.1°C (past 24 h: HR max 106 bpm, RR max 21 /min)\nA: Problem: Type 2 diabetes mellitus with ketoacidosis without coma (E11.10), hospital day 3. Vital signs improving compared with the previous day (low SpO2 resolved). Vital signs improving compared with the previous day (tachypnea improved, not yet sustained). Abnormal vital signs persisting (tachycardia); no improvement yet. Notable labs (past 24 h): pH 7.27 [L] (prior 7.04), Na 146 mmol/L [H] (prior 144; hypernatremia), BUN 24.8 mg/dL [H] (prior 35.0), HCO3 12.3 mmol/L [L] (prior 5.0), PaCO2 30.5 mmHg [L] (prior 22.0), Cl 109 mmol/L [H] (prior 107), +1 other abnormal.\nP: Continue current medications: Enoxaparin, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0. Diet changed to Regular diet. Discharge planning in progress (home)."
+      "text": "S: Hospital day 3. Day before planned discharge; symptoms stable, discharge instructions reviewed.\nO: BP 113/74 mmHg, HR 104 bpm, RR 19 /min, SpO2 98% (RA), T 36.1°C (past 24 h: HR max 106 bpm, RR max 21 /min)\nA: Problem: Type 2 diabetes mellitus with ketoacidosis without coma (E11.10), hospital day 3. Vital signs improving compared with the previous day (low SpO2 resolved). Vital signs improving compared with the previous day (tachypnea improved, not yet sustained). Abnormal vital signs persisting (tachycardia); no improvement yet. Notable labs (past 24 h): pH 7.27 [L] (prior 7.04), Na 146 mmol/L [H] (prior 144; hypernatremia), BUN 24.8 mg/dL [H] (prior 35.0), HCO3 12.3 mmol/L [L] (prior 5.0), PaCO2 30.5 mmHg [L] (prior 22.0), Cl 109 mmol/L [H] (prior 107), +1 other abnormal.\nP: Continue current medications: Enoxaparin, Insulin, Regular, Human, Normal Saline, Potassium Chloride. Diet changed to Regular diet. Discharge planning in progress (home)."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-05": {
@@ -280,7 +280,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 112/68, HR 114, SpO2 99%, T 36.4°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids.\nNo pain reported (NRS 0).\nCentral venous catheter in place; insertion site and securement observation continued.\nNPO, nothing by mouth.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - day shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 112/68, HR 114, SpO2 99%, T 36.4°C.\nMeds administered: Insulin, Regular, Human, Normal Saline, Potassium Chloride.\nNo pain reported (NRS 0).\nCentral venous catheter in place; insertion site and securement observation continued.\nNPO, nothing by mouth.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-08-evening": {
@@ -308,7 +308,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 117/72, HR 107, SpO2 93%, T 35.7°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), Enoxaparin.\nabdominal pain reported, NRS peak 3, latest 2.\nSpO2 fell to 93% at 23:54; no oxygen given, observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nNPO, nothing by mouth.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - evening shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 117/72, HR 107, SpO2 93%, T 35.7°C.\nMeds administered: Insulin, Regular, Human, Normal Saline, Potassium Chloride, Enoxaparin.\nabdominal pain reported, NRS peak 3, latest 2.\nSpO2 fell to 93% at 23:54; no oxygen given, observation continued.\nCentral venous catheter in place; insertion site and securement observation continued.\nNPO, nothing by mouth.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-09-night": {
@@ -336,7 +336,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 112/75, HR 106, SpO2 97%, T 36.5°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids.\nabdominal pain reported, NRS 1.\nPrevious day (6/15) fluid balance: intake 1234 mL, output 1182 mL (urine 396 mL), net +52 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nNPO continued.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - night shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 112/75, HR 106, SpO2 97%, T 36.5°C.\nMeds administered: Insulin, Regular, Human, Normal Saline, Potassium Chloride.\nabdominal pain reported, NRS 1.\nPrevious day (6/15) fluid balance: intake 1234 mL, output 1182 mL (urine 396 mL), net +52 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nNPO continued.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-10-day": {
@@ -364,7 +364,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 117/71, HR 104, SpO2 98%, T 37.0°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids.\nNo pain reported (NRS 0).\nPrevious day (6/15) fluid balance: intake 1234 mL, output 1182 mL (urine 396 mL), net +52 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Regular diet, feeding independent, oral intake the previous day 90 mL.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - day shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 117/71, HR 104, SpO2 98%, T 37.0°C.\nMeds administered: Insulin, Regular, Human, Normal Saline.\nNo pain reported (NRS 0).\nPrevious day (6/15) fluid balance: intake 1234 mL, output 1182 mL (urine 396 mL), net +52 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Regular diet, feeding independent, oral intake the previous day 90 mL.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-11-evening": {
@@ -392,7 +392,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 115/75, HR 105, SpO2 98%, T 37.1°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids, Enoxaparin.\nNo pain reported (NRS 0).\nPrevious day (6/15) fluid balance: intake 1234 mL, output 1182 mL (urine 396 mL), net +52 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Regular diet, feeding independent, oral intake the previous day 90 mL.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - evening shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 115/75, HR 105, SpO2 98%, T 37.1°C.\nMeds administered: Insulin, Regular, Human, Normal Saline, Potassium Chloride, Enoxaparin.\nNo pain reported (NRS 0).\nPrevious day (6/15) fluid balance: intake 1234 mL, output 1182 mL (urine 396 mL), net +52 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Regular diet, feeding independent, oral intake the previous day 90 mL.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-12-night": {
@@ -420,7 +420,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 119/71, HR 107, SpO2 96%, T 36.4°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids.\nabdominal pain reported, NRS 3.\nPrevious day (6/16) fluid balance: intake 2451 mL, output 2439 mL (urine 1798 mL), net +12 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Regular diet, feeding independent, oral intake the previous day 1107 mL.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - night shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 119/71, HR 107, SpO2 96%, T 36.4°C.\nMeds administered: Insulin, Regular, Human, Normal Saline, Potassium Chloride.\nabdominal pain reported, NRS 3.\nPrevious day (6/16) fluid balance: intake 2451 mL, output 2439 mL (urine 1798 mL), net +12 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Regular diet, feeding independent, oral intake the previous day 1107 mL.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-13-day": {
@@ -448,7 +448,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 115/75, HR 103, SpO2 97%, T 36.5°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids.\nabdominal pain reported, NRS 2.\nPrevious day (6/16) fluid balance: intake 2451 mL, output 2439 mL (urine 1798 mL), net +12 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Regular diet, feeding independent, oral intake the previous day 1107 mL.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - day shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 115/75, HR 103, SpO2 97%, T 36.5°C.\nMeds administered: Insulin, Regular, Human, Normal Saline, Potassium Chloride.\nabdominal pain reported, NRS 2.\nPrevious day (6/16) fluid balance: intake 2451 mL, output 2439 mL (urine 1798 mL), net +12 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Regular diet, feeding independent, oral intake the previous day 1107 mL.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-14-evening": {
@@ -476,7 +476,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 113/72, HR 101, SpO2 96%, T 36.7°C.\nMeds administered: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), KCl 20 mEq/L in IV fluids, Ampicillin/Sulbactam, Rivaroxaban.\nabdominal pain reported, NRS 1.\nPrevious day (6/16) fluid balance: intake 2451 mL, output 2439 mL (urine 1798 mL), net +12 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Regular diet, feeding needs partial help, oral intake the previous day 1107 mL.\nADL: Barthel Index 70/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - evening shift] Day 3\nRecorded by: Clara Pittman\nPatient status: BP 113/72, HR 101, SpO2 96%, T 36.7°C.\nMeds administered: Insulin, Regular, Human, Normal Saline, Potassium Chloride, Ampicillin/Sulbactam, Rivaroxaban.\nabdominal pain reported, NRS 1.\nPrevious day (6/16) fluid balance: intake 2451 mL, output 2439 mL (urine 1798 mL), net +12 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Regular diet, feeding needs partial help, oral intake the previous day 1107 mL.\nADL: Barthel Index 70/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-15": {
@@ -504,7 +504,7 @@
       "sections": {
         "admission_status": "Hospital stay: 3 days. Admission reason: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Complications: aspiration pneumonia, DVT. Discharge criteria met.",
         "discharge_readiness": "Discharge readiness: Discharge Barthel 70/100.",
-        "nursing_interventions_provided": "Medication administration: 46 doses (6 drugs); Vital-sign monitoring: 24 sets; Procedures: Central venous catheter insertion; Cumulative IN 6605 mL / OUT 5785 mL (net +820 mL); Education: Explain hypo- and hyperglycemia symptoms and ask the patient to report feeling unwell early.",
+        "nursing_interventions_provided": "Medication administration: 49 doses (6 drugs); Vital-sign monitoring: 24 sets; Procedures: Central venous catheter insertion; Cumulative IN 6605 mL / OUT 5785 mL (net +820 mL); Education: Explain hypo- and hyperglycemia symptoms and ask the patient to report feeling unwell early.",
         "patient_education": "Patient education: sick-day rules (insulin dose + when to seek care during illness); self blood-glucose monitoring + urine-ketone strips; hypoglycemia recognition + rescue (glucose tabs / glucagon); importance of routine follow-up + insulin adherence."
       },
       "text": ""
@@ -540,7 +540,7 @@
         "assessment": "ED diagnosis: Diabetic ketoacidosis (DKA). Chief complaint: Nausea, vomiting, abdominal pain, polyuria, altered consciousness.",
         "chief_complaint": "Nausea, vomiting, abdominal pain, polyuria, altered consciousness",
         "disposition": "Admitted (Nausea, vomiting, abdominal pain, polyuria, altered consciousness)",
-        "ed_workup": "Labs: β-hydroxybutyrate pending, anion gap pending, phosphate 4.5 mg/dL, Mg 2.1 mg/dL, lactate 3.0 mmol/L [H], urinalysis pending, HbA1c pending, CRP 0.3 mg/L. Imaging: ECG (Sinus tachycardia without ischemic changes), chest X-ray AP (Left lower lobe consolidation). Medications: IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0. Abnormal: pH 7.04 [critical], PaCO2 22.0 mmHg [L], HCO3 5.0 mmol/L [L]",
+        "ed_workup": "Labs: β-hydroxybutyrate pending, anion gap pending, phosphate 4.5 mg/dL, Mg 2.1 mg/dL, lactate 3.0 mmol/L [H], urinalysis pending, HbA1c pending, CRP 0.3 mg/L. Imaging: ECG (Sinus tachycardia without ischemic changes), chest X-ray AP (Left lower lobe consolidation). Medications: Insulin, Regular, Human, Normal Saline, Potassium Chloride. Abnormal: pH 7.04 [critical], PaCO2 22.0 mmHg [L], HCO3 5.0 mmol/L [L]",
         "hpi": "34 y/o female patient. Chief complaint: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Symptoms that began over the preceding days worsened rapidly, prompting today's presentation. History: Type 2 diabetes (DM), Dyslipidemia. ROS: no fever, no diarrhea.",
         "physical_exam": "On arrival: BP 105/69 mmHg, HR 125 bpm, RR 21 /min, SpO2 100%, T 36.1°C. General: alert, dehydrated, in distress. Skin: dry mucous membranes, decreased skin turgor. Respiratory: deep, rapid (Kussmaul) respirations, fruity breath odor. Abdomen: diffuse mild tenderness without guarding.",
         "triage_details": "Triage level: ESI Level 1. Arrival mode: Helicopter/air transport. Allergies: No known drug allergies (NKDA)."

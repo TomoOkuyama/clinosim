@@ -25,7 +25,7 @@
         "lang": "ja"
       },
       "sections": {
-        "admission_results": "検査（異常値）: CRP 1.13 mg/dL [H]、WBC 10583 /uL [H]、PCT 0.38 ng/mL [H]、クレアチニン 1.18 mg/dL [H]、K 4.9 mmol/L [H]、BUN 24.0 mg/dL [H]、ほか異常値 4 項目。画像・生理検査: 胸部 CT（今回撮像範囲内に急性期異常所見を認めず）、胸部単純X線撮影 PA・側面（肺過膨張、横隔膜平坦化、胸骨後腔拡大）",
+        "admission_results": "検査（異常値）: CRP 1.13 mg/dL [H]、WBC 10484 /uL [H]、PCT 0.35 ng/mL [H]、クレアチニン 1.18 mg/dL [H]、K 4.9 mmol/L [H]、BUN 24.0 mg/dL [H]、ほか異常値 4 項目。画像・生理検査: 胸部 CT（今回撮像範囲内に急性期異常所見を認めず）、胸部単純X線撮影 PA・側面（肺過膨張、横隔膜平坦化、胸骨後腔拡大）",
         "allergies": "薬物アレルギーなし（NKDA）",
         "assessment_and_plan": "[Mock LLM response #1 — assessment_and_plan]",
         "chief_complaint": "1週間前より痰の量と粘稠度が増加",
@@ -79,11 +79,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #2 — assessment]",
-        "objective": "BP 126/79 mmHg, HR 94 回/分, RR 25 回/分, SpO2 92% (酸素マスク 4 L/分), T 37.2°C (直近24時間: RR 最大 28 回/分、SpO2 最低 81%)。一般状態: 意識清明、中等度の苦痛様。呼吸器: 喘鳴、呼吸音減弱、呼気延長、呼吸数増加、酸素投与下",
+        "objective": "BP 124/75 mmHg, HR 90 回/分, RR 25 回/分, SpO2 90% (鼻カニューラ 3.5 L/分), T 37.0°C (直近24時間: RR 最大 28 回/分、SpO2 最低 81%)。一般状態: 意識清明、中等度の苦痛様。呼吸器: 喘鳴、呼吸音減弱、呼気延長、呼吸数増加、酸素投与下",
         "plan": "[Mock LLM response #2 — plan]",
         "subjective": "[Mock LLM response #2 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #2 — subjective]\nO（客観） BP 126/79 mmHg, HR 94 回/分, RR 25 回/分, SpO2 92% (酸素マスク 4 L/分), T 37.2°C (直近24時間: RR 最大 28 回/分、SpO2 最低 81%)。一般状態: 意識清明、中等度の苦痛様。呼吸器: 喘鳴、呼吸音減弱、呼気延長、呼吸数増加、酸素投与下\nA（評価） [Mock LLM response #2 — assessment]\nP（計画） [Mock LLM response #2 — plan]"
+      "text": "S（主観） [Mock LLM response #2 — subjective]\nO（客観） BP 124/75 mmHg, HR 90 回/分, RR 25 回/分, SpO2 90% (鼻カニューラ 3.5 L/分), T 37.0°C (直近24時間: RR 最大 28 回/分、SpO2 最低 81%)。一般状態: 意識清明、中等度の苦痛様。呼吸器: 喘鳴、呼吸音減弱、呼気延長、呼吸数増加、酸素投与下\nA（評価） [Mock LLM response #2 — assessment]\nP（計画） [Mock LLM response #2 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-03": {
@@ -126,11 +126,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #3 — assessment]",
-        "objective": "BP 126/73 mmHg, HR 89 回/分, RR 20 回/分, SpO2 89% (鼻カニューラ 2 L/分), T 37.6°C (直近24時間: 最高体温 38.5°C、RR 最大 25 回/分、SpO2 最低 86%)。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇、酸素投与下。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+        "objective": "BP 125/76 mmHg, HR 91 回/分, RR 19 回/分, SpO2 92% (鼻カニューラ 1.5 L/分), T 37.4°C (直近24時間: 最高体温 38.4°C、RR 最大 28 回/分、SpO2 最低 86%)。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇、酸素投与下。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
         "plan": "[Mock LLM response #3 — plan]",
         "subjective": "[Mock LLM response #3 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #3 — subjective]\nO（客観） BP 126/73 mmHg, HR 89 回/分, RR 20 回/分, SpO2 89% (鼻カニューラ 2 L/分), T 37.6°C (直近24時間: 最高体温 38.5°C、RR 最大 25 回/分、SpO2 最低 86%)。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇、酸素投与下。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #3 — assessment]\nP（計画） [Mock LLM response #3 — plan]"
+      "text": "S（主観） [Mock LLM response #3 — subjective]\nO（客観） BP 125/76 mmHg, HR 91 回/分, RR 19 回/分, SpO2 92% (鼻カニューラ 1.5 L/分), T 37.4°C (直近24時間: 最高体温 38.4°C、RR 最大 28 回/分、SpO2 最低 86%)。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇、酸素投与下。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #3 — assessment]\nP（計画） [Mock LLM response #3 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-04": {
@@ -174,11 +174,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #4 — assessment]",
-        "objective": "BP 128/77 mmHg, HR 92 回/分, RR 20 回/分, SpO2 93% (鼻カニューラ 1 L/分), T 36.6°C (直近24時間: RR 最大 23 回/分、SpO2 最低 88%)。身体所見: 前日と著変なし",
+        "objective": "BP 125/75 mmHg, HR 91 回/分, RR 24 回/分, SpO2 93% (鼻カニューラ 1 L/分), T 36.9°C (直近24時間: 最高体温 38.4°C、RR 最大 26 回/分、SpO2 最低 89%)。身体所見: 前日と著変なし",
         "plan": "[Mock LLM response #4 — plan]",
         "subjective": "[Mock LLM response #4 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #4 — subjective]\nO（客観） BP 128/77 mmHg, HR 92 回/分, RR 20 回/分, SpO2 93% (鼻カニューラ 1 L/分), T 36.6°C (直近24時間: RR 最大 23 回/分、SpO2 最低 88%)。身体所見: 前日と著変なし\nA（評価） [Mock LLM response #4 — assessment]\nP（計画） [Mock LLM response #4 — plan]"
+      "text": "S（主観） [Mock LLM response #4 — subjective]\nO（客観） BP 125/75 mmHg, HR 91 回/分, RR 24 回/分, SpO2 93% (鼻カニューラ 1 L/分), T 36.9°C (直近24時間: 最高体温 38.4°C、RR 最大 26 回/分、SpO2 最低 89%)。身体所見: 前日と著変なし\nA（評価） [Mock LLM response #4 — assessment]\nP（計画） [Mock LLM response #4 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-05": {
@@ -222,11 +222,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #5 — assessment]",
-        "objective": "BP 127/78 mmHg, HR 88 回/分, RR 19 回/分, SpO2 94% (鼻カニューラ 1 L/分), T 37.2°C (直近24時間: RR 最大 26 回/分、SpO2 最低 88%)。一般状態: 意識清明。呼吸器: 呼吸音清明、酸素投与下。神経: 麻痺なし。循環器、腹部: 前日と著変なし",
+        "objective": "BP 124/72 mmHg, HR 88 回/分, RR 19 回/分, SpO2 94% (鼻カニューラ 1 L/分), T 37.1°C (直近24時間: 最高体温 38.6°C、SpO2 最低 89%)。一般状態: 意識清明。呼吸器: 呼吸音清明、呼吸数正常、酸素投与下。神経: 麻痺なし。循環器、腹部: 前日と著変なし",
         "plan": "[Mock LLM response #5 — plan]",
         "subjective": "[Mock LLM response #5 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #5 — subjective]\nO（客観） BP 127/78 mmHg, HR 88 回/分, RR 19 回/分, SpO2 94% (鼻カニューラ 1 L/分), T 37.2°C (直近24時間: RR 最大 26 回/分、SpO2 最低 88%)。一般状態: 意識清明。呼吸器: 呼吸音清明、酸素投与下。神経: 麻痺なし。循環器、腹部: 前日と著変なし\nA（評価） [Mock LLM response #5 — assessment]\nP（計画） [Mock LLM response #5 — plan]"
+      "text": "S（主観） [Mock LLM response #5 — subjective]\nO（客観） BP 124/72 mmHg, HR 88 回/分, RR 19 回/分, SpO2 94% (鼻カニューラ 1 L/分), T 37.1°C (直近24時間: 最高体温 38.6°C、SpO2 最低 89%)。一般状態: 意識清明。呼吸器: 呼吸音清明、呼吸数正常、酸素投与下。神経: 麻痺なし。循環器、腹部: 前日と著変なし\nA（評価） [Mock LLM response #5 — assessment]\nP（計画） [Mock LLM response #5 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-06": {
@@ -270,11 +270,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #6 — assessment]",
-        "objective": "BP 122/76 mmHg, HR 84 回/分, RR 22 回/分, SpO2 91% (RA), T 36.6°C, 酸素投与終了 (直近24時間: SpO2 最低 89%)。呼吸器: 呼吸音清明、頻呼吸。一般状態、循環器、腹部、神経: 前日と著変なし",
+        "objective": "BP 122/74 mmHg, HR 88 回/分, RR 25 回/分, SpO2 91% (RA), T 36.5°C, 酸素投与終了 (直近24時間: SpO2 最低 90%)。呼吸器: 呼吸音清明、頻呼吸。一般状態、循環器、腹部、神経: 前日と著変なし",
         "plan": "[Mock LLM response #6 — plan]",
         "subjective": "[Mock LLM response #6 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #6 — subjective]\nO（客観） BP 122/76 mmHg, HR 84 回/分, RR 22 回/分, SpO2 91% (RA), T 36.6°C, 酸素投与終了 (直近24時間: SpO2 最低 89%)。呼吸器: 呼吸音清明、頻呼吸。一般状態、循環器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #6 — assessment]\nP（計画） [Mock LLM response #6 — plan]"
+      "text": "S（主観） [Mock LLM response #6 — subjective]\nO（客観） BP 122/74 mmHg, HR 88 回/分, RR 25 回/分, SpO2 91% (RA), T 36.5°C, 酸素投与終了 (直近24時間: SpO2 最低 90%)。呼吸器: 呼吸音清明、頻呼吸。一般状態、循環器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #6 — assessment]\nP（計画） [Mock LLM response #6 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-07": {
@@ -318,11 +318,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #7 — assessment]",
-        "objective": "BP 122/73 mmHg, HR 84 回/分, RR 19 回/分, SpO2 96% (RA), T 36.9°C (直近24時間: SpO2 最低 91%)。一般状態: 意識清明、症状改善傾向。呼吸器: 呼吸音清明、呼吸数正常。循環器、腹部、神経: 前日と著変なし",
+        "objective": "BP 126/72 mmHg, HR 85 回/分, RR 20 回/分, SpO2 93% (RA), T 37.7°C (直近24時間: RR 最大 22 回/分、SpO2 最低 91%)。呼吸器: 呼吸音清明。一般状態、循環器、腹部、神経: 前日と著変なし",
         "plan": "[Mock LLM response #7 — plan]",
         "subjective": "[Mock LLM response #7 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #7 — subjective]\nO（客観） BP 122/73 mmHg, HR 84 回/分, RR 19 回/分, SpO2 96% (RA), T 36.9°C (直近24時間: SpO2 最低 91%)。一般状態: 意識清明、症状改善傾向。呼吸器: 呼吸音清明、呼吸数正常。循環器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #7 — assessment]\nP（計画） [Mock LLM response #7 — plan]"
+      "text": "S（主観） [Mock LLM response #7 — subjective]\nO（客観） BP 126/72 mmHg, HR 85 回/分, RR 20 回/分, SpO2 93% (RA), T 37.7°C (直近24時間: RR 最大 22 回/分、SpO2 最低 91%)。呼吸器: 呼吸音清明。一般状態、循環器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #7 — assessment]\nP（計画） [Mock LLM response #7 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-08": {
@@ -332,7 +332,6 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_6",
-        "ctx.complications_events:pe_consciousness_delirium",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -366,11 +365,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #8 — assessment]",
-        "objective": "BP 120/74 mmHg, HR 84 回/分, RR 17 回/分, SpO2 96% (RA), T 36.4°C (直近24時間: SpO2 最低 89%)。一般状態: 覚醒しているが注意が持続せず、見当識障害を認める。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+        "objective": "BP 124/73 mmHg, HR 86 回/分, RR 19 回/分, SpO2 92% (RA), T 36.5°C (直近24時間: 最高体温 38.1°C、SpO2 最低 90%)。一般状態: 意識清明。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
         "plan": "[Mock LLM response #8 — plan]",
         "subjective": "[Mock LLM response #8 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #8 — subjective]\nO（客観） BP 120/74 mmHg, HR 84 回/分, RR 17 回/分, SpO2 96% (RA), T 36.4°C (直近24時間: SpO2 最低 89%)。一般状態: 覚醒しているが注意が持続せず、見当識障害を認める。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #8 — assessment]\nP（計画） [Mock LLM response #8 — plan]"
+      "text": "S（主観） [Mock LLM response #8 — subjective]\nO（客観） BP 124/73 mmHg, HR 86 回/分, RR 19 回/分, SpO2 92% (RA), T 36.5°C (直近24時間: 最高体温 38.1°C、SpO2 最低 90%)。一般状態: 意識清明。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #8 — assessment]\nP（計画） [Mock LLM response #8 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-09": {
@@ -380,7 +379,6 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_7",
-        "ctx.complications_events:pe_consciousness_delirium",
         "ctx.exam.unchanged_from_previous_day",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
@@ -415,11 +413,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #9 — assessment]",
-        "objective": "BP 125/75 mmHg, HR 83 回/分, RR 20 回/分, SpO2 95% (RA), T 38.2°C (直近24時間: RR 最大 23 回/分、SpO2 最低 91%)。一般状態: 覚醒しているが注意が持続せず、見当識障害を認める。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし。循環器: 前日と著変なし",
+        "objective": "BP 122/77 mmHg, HR 87 回/分, RR 15 回/分, SpO2 91% (RA), T 37.0°C (直近24時間: RR 最大 21 回/分、SpO2 最低 90%)。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし。一般状態、循環器: 前日と著変なし",
         "plan": "[Mock LLM response #9 — plan]",
         "subjective": "[Mock LLM response #9 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #9 — subjective]\nO（客観） BP 125/75 mmHg, HR 83 回/分, RR 20 回/分, SpO2 95% (RA), T 38.2°C (直近24時間: RR 最大 23 回/分、SpO2 最低 91%)。一般状態: 覚醒しているが注意が持続せず、見当識障害を認める。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし。循環器: 前日と著変なし\nA（評価） [Mock LLM response #9 — assessment]\nP（計画） [Mock LLM response #9 — plan]"
+      "text": "S（主観） [Mock LLM response #9 — subjective]\nO（客観） BP 122/77 mmHg, HR 87 回/分, RR 15 回/分, SpO2 91% (RA), T 37.0°C (直近24時間: RR 最大 21 回/分、SpO2 最低 90%)。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし。一般状態、循環器: 前日と著変なし\nA（評価） [Mock LLM response #9 — assessment]\nP（計画） [Mock LLM response #9 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-10": {
@@ -429,7 +427,6 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_8",
-        "ctx.complications_events:pe_consciousness_delirium",
         "ctx.exam.unchanged_from_previous_day",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
@@ -464,11 +461,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #10 — assessment]",
-        "objective": "BP 123/78 mmHg, HR 80 回/分, RR 18 回/分, SpO2 97% (RA), T 36.9°C (直近24時間: RR 最大 21 回/分、SpO2 最低 92%)。一般状態: 覚醒しているが注意が持続せず、見当識障害を認める。循環器、呼吸器、腹部、神経: 前日と著変なし",
+        "objective": "BP 125/73 mmHg, HR 82 回/分, RR 21 回/分, SpO2 95% (RA), T 37.1°C (直近24時間: 最高体温 38.7°C、SpO2 最低 91%)。呼吸器: 呼吸音清明、頻呼吸。一般状態、循環器、腹部、神経: 前日と著変なし",
         "plan": "[Mock LLM response #10 — plan]",
         "subjective": "[Mock LLM response #10 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #10 — subjective]\nO（客観） BP 123/78 mmHg, HR 80 回/分, RR 18 回/分, SpO2 97% (RA), T 36.9°C (直近24時間: RR 最大 21 回/分、SpO2 最低 92%)。一般状態: 覚醒しているが注意が持続せず、見当識障害を認める。循環器、呼吸器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #10 — assessment]\nP（計画） [Mock LLM response #10 — plan]"
+      "text": "S（主観） [Mock LLM response #10 — subjective]\nO（客観） BP 125/73 mmHg, HR 82 回/分, RR 21 回/分, SpO2 95% (RA), T 37.1°C (直近24時間: 最高体温 38.7°C、SpO2 最低 91%)。呼吸器: 呼吸音清明、頻呼吸。一般状態、循環器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #10 — assessment]\nP（計画） [Mock LLM response #10 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-11": {
@@ -478,7 +475,6 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_9",
-        "ctx.vitals.consciousness_level:pe_consciousness",
         "ctx.exam.unchanged_from_previous_day",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
@@ -513,11 +509,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #11 — assessment]",
-        "objective": "BP 125/72 mmHg, HR 82 回/分, RR 20 回/分, SpO2 89% (RA), T 36.3°C。一般状態: JCS I-1、ややぼんやりしている。循環器、呼吸器、腹部、神経: 前日と著変なし",
+        "objective": "BP 124/72 mmHg, HR 84 回/分, RR 18 回/分, SpO2 93% (RA), T 37.1°C (直近24時間: SpO2 最低 92%)。一般状態: 意識清明、全身状態良好。呼吸器: 呼吸音清明。循環器、腹部、神経: 前日と著変なし",
         "plan": "[Mock LLM response #11 — plan]",
         "subjective": "[Mock LLM response #11 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #11 — subjective]\nO（客観） BP 125/72 mmHg, HR 82 回/分, RR 20 回/分, SpO2 89% (RA), T 36.3°C。一般状態: JCS I-1、ややぼんやりしている。循環器、呼吸器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #11 — assessment]\nP（計画） [Mock LLM response #11 — plan]"
+      "text": "S（主観） [Mock LLM response #11 — subjective]\nO（客観） BP 124/72 mmHg, HR 84 回/分, RR 18 回/分, SpO2 93% (RA), T 37.1°C (直近24時間: SpO2 最低 92%)。一般状態: 意識清明、全身状態良好。呼吸器: 呼吸音清明。循環器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #11 — assessment]\nP（計画） [Mock LLM response #11 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-12": {
@@ -527,7 +523,6 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_10",
-        "ctx.complications_events:pe_consciousness_delirium",
         "ctx.exam.unchanged_from_previous_day",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
@@ -562,11 +557,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #12 — assessment]",
-        "objective": "BP 121/75 mmHg, HR 82 回/分, RR 16 回/分, SpO2 96% (RA), T 36.8°C (直近24時間: RR 最大 22 回/分、SpO2 最低 93%)。一般状態: 覚醒しているが注意が持続せず、見当識障害を認める。循環器、呼吸器、腹部、神経: 前日と著変なし",
+        "objective": "BP 125/75 mmHg, HR 83 回/分, RR 15 回/分, SpO2 96% (RA), T 36.5°C (直近24時間: SpO2 最低 91%)。身体所見: 前日と著変なし",
         "plan": "[Mock LLM response #12 — plan]",
         "subjective": "[Mock LLM response #12 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #12 — subjective]\nO（客観） BP 121/75 mmHg, HR 82 回/分, RR 16 回/分, SpO2 96% (RA), T 36.8°C (直近24時間: RR 最大 22 回/分、SpO2 最低 93%)。一般状態: 覚醒しているが注意が持続せず、見当識障害を認める。循環器、呼吸器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #12 — assessment]\nP（計画） [Mock LLM response #12 — plan]"
+      "text": "S（主観） [Mock LLM response #12 — subjective]\nO（客観） BP 125/75 mmHg, HR 83 回/分, RR 15 回/分, SpO2 96% (RA), T 36.5°C (直近24時間: SpO2 最低 91%)。身体所見: 前日と著変なし\nA（評価） [Mock LLM response #12 — assessment]\nP（計画） [Mock LLM response #12 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-13": {
@@ -576,7 +571,6 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_11",
-        "ctx.complications_events:pe_consciousness_delirium",
         "ctx.exam.unchanged_from_previous_day",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
@@ -611,11 +605,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #13 — assessment]",
-        "objective": "BP 121/75 mmHg, HR 82 回/分, RR 17 回/分, SpO2 100% (RA), T 36.7°C (直近24時間: SpO2 最低 93%)。一般状態: 覚醒しているが注意が持続せず、見当識障害を認める。循環器、呼吸器、腹部、神経: 前日と著変なし",
+        "objective": "BP 123/76 mmHg, HR 82 回/分, RR 21 回/分, SpO2 96% (RA), T 36.2°C (直近24時間: SpO2 最低 93%)。一般状態: 意識清明。呼吸器: 呼吸音清明、頻呼吸。循環器、腹部、神経: 前日と著変なし",
         "plan": "[Mock LLM response #13 — plan]",
         "subjective": "[Mock LLM response #13 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #13 — subjective]\nO（客観） BP 121/75 mmHg, HR 82 回/分, RR 17 回/分, SpO2 100% (RA), T 36.7°C (直近24時間: SpO2 最低 93%)。一般状態: 覚醒しているが注意が持続せず、見当識障害を認める。循環器、呼吸器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #13 — assessment]\nP（計画） [Mock LLM response #13 — plan]"
+      "text": "S（主観） [Mock LLM response #13 — subjective]\nO（客観） BP 123/76 mmHg, HR 82 回/分, RR 21 回/分, SpO2 96% (RA), T 36.2°C (直近24時間: SpO2 最低 93%)。一般状態: 意識清明。呼吸器: 呼吸音清明、頻呼吸。循環器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #13 — assessment]\nP（計画） [Mock LLM response #13 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-14": {
@@ -625,7 +619,6 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_12",
-        "ctx.complications_events:pe_consciousness_delirium",
         "ctx.exam.unchanged_from_previous_day",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
@@ -660,11 +653,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #14 — assessment]",
-        "objective": "BP 123/75 mmHg, HR 81 回/分, RR 18 回/分, SpO2 94% (RA), T 35.9°C (直近24時間: 最高体温 38.2°C、SpO2 最低 90%)。一般状態: 覚醒しているが注意が持続せず、見当識障害を認める。循環器、呼吸器、腹部、神経: 前日と著変なし",
+        "objective": "BP 123/73 mmHg, HR 84 回/分, RR 17 回/分, SpO2 96% (RA), T 36.4°C (直近24時間: RR 最大 23 回/分、SpO2 最低 94%)。呼吸器: 呼吸音清明。一般状態、循環器、腹部、神経: 前日と著変なし",
         "plan": "[Mock LLM response #14 — plan]",
         "subjective": "[Mock LLM response #14 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #14 — subjective]\nO（客観） BP 123/75 mmHg, HR 81 回/分, RR 18 回/分, SpO2 94% (RA), T 35.9°C (直近24時間: 最高体温 38.2°C、SpO2 最低 90%)。一般状態: 覚醒しているが注意が持続せず、見当識障害を認める。循環器、呼吸器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #14 — assessment]\nP（計画） [Mock LLM response #14 — plan]"
+      "text": "S（主観） [Mock LLM response #14 — subjective]\nO（客観） BP 123/73 mmHg, HR 84 回/分, RR 17 回/分, SpO2 96% (RA), T 36.4°C (直近24時間: RR 最大 23 回/分、SpO2 最低 94%)。呼吸器: 呼吸音清明。一般状態、循環器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #14 — assessment]\nP（計画） [Mock LLM response #14 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-15": {
@@ -674,7 +667,6 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_13",
-        "ctx.complications_events:pe_consciousness_delirium",
         "ctx.exam.unchanged_from_previous_day",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
@@ -709,11 +701,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #15 — assessment]",
-        "objective": "BP 126/73 mmHg, HR 78 回/分, RR 19 回/分, SpO2 95% (RA), T 37.0°C (直近24時間: SpO2 最低 92%)。一般状態: 覚醒しているが注意が持続せず、見当識障害を認める。循環器、呼吸器、腹部、神経: 前日と著変なし",
+        "objective": "BP 124/75 mmHg, HR 84 回/分, RR 15 回/分, SpO2 95% (RA), T 36.5°C (直近24時間: SpO2 最低 92%)。身体所見: 前日と著変なし",
         "plan": "[Mock LLM response #15 — plan]",
         "subjective": "[Mock LLM response #15 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #15 — subjective]\nO（客観） BP 126/73 mmHg, HR 78 回/分, RR 19 回/分, SpO2 95% (RA), T 37.0°C (直近24時間: SpO2 最低 92%)。一般状態: 覚醒しているが注意が持続せず、見当識障害を認める。循環器、呼吸器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #15 — assessment]\nP（計画） [Mock LLM response #15 — plan]"
+      "text": "S（主観） [Mock LLM response #15 — subjective]\nO（客観） BP 124/75 mmHg, HR 84 回/分, RR 15 回/分, SpO2 95% (RA), T 36.5°C (直近24時間: SpO2 最低 92%)。身体所見: 前日と著変なし\nA（評価） [Mock LLM response #15 — assessment]\nP（計画） [Mock LLM response #15 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-16": {
@@ -757,15 +749,63 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #16 — assessment]",
-        "objective": "BP 123/75 mmHg, HR 82 回/分, RR 17 回/分, SpO2 94% (RA), T 35.9°C (直近24時間: SpO2 最低 92%)。身体所見: 前日と著変なし",
+        "objective": "BP 122/76 mmHg, HR 87 回/分, RR 16 回/分, SpO2 98% (RA), T 36.5°C (直近24時間: SpO2 最低 94%)。一般状態: 意識清明、全身状態良好。循環器、呼吸器、腹部、神経: 前日と著変なし",
         "plan": "[Mock LLM response #16 — plan]",
         "subjective": "[Mock LLM response #16 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #16 — subjective]\nO（客観） BP 123/75 mmHg, HR 82 回/分, RR 17 回/分, SpO2 94% (RA), T 35.9°C (直近24時間: SpO2 最低 92%)。身体所見: 前日と著変なし\nA（評価） [Mock LLM response #16 — assessment]\nP（計画） [Mock LLM response #16 — plan]"
+      "text": "S（主観） [Mock LLM response #16 — subjective]\nO（客観） BP 122/76 mmHg, HR 87 回/分, RR 16 回/分, SpO2 98% (RA), T 36.5°C (直近24時間: SpO2 最低 94%)。一般状態: 意識清明、全身状態良好。循環器、呼吸器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #16 — assessment]\nP（計画） [Mock LLM response #16 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-17": {
     "document_id": "doc-ENC-FORCED-0001-616171532456-17",
+    "encounter_id": "ENC-FORCED-0001-616171532456",
+    "narrative": {
+      "facts_used": [
+        "ctx.vitals.today",
+        "physical_exam_findings.dip_then_recovery.day_15",
+        "ctx.exam.unchanged_from_previous_day",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2024-06-30T12:01:00+09:00",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 15,
+        "generator": "llm",
+        "lang": "ja",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S（主観）",
+              "subjective"
+            ],
+            [
+              "O（客観）",
+              "objective"
+            ],
+            [
+              "A（評価）",
+              "assessment"
+            ],
+            [
+              "P（計画）",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
+      },
+      "sections": {
+        "assessment": "[Mock LLM response #17 — assessment]",
+        "objective": "BP 121/72 mmHg, HR 85 回/分, RR 20 回/分, SpO2 95% (RA), T 37.3°C (直近24時間: RR 最大 21 回/分、SpO2 最低 91%)。一般状態: 意識清明。循環器、呼吸器、腹部、神経: 前日と著変なし",
+        "plan": "[Mock LLM response #17 — plan]",
+        "subjective": "[Mock LLM response #17 — subjective]"
+      },
+      "text": "S（主観） [Mock LLM response #17 — subjective]\nO（客観） BP 121/72 mmHg, HR 85 回/分, RR 20 回/分, SpO2 95% (RA), T 37.3°C (直近24時間: RR 最大 21 回/分、SpO2 最低 91%)。一般状態: 意識清明。循環器、呼吸器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #17 — assessment]\nP（計画） [Mock LLM response #17 — plan]"
+    }
+  },
+  "doc-ENC-FORCED-0001-616171532456-18": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-18",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -779,6 +819,7 @@
         "ctx.patient.chronic_conditions",
         "ctx.medications",
         "ctx.complications_events",
+        "ctx.lab_results",
         "ctx.discharge_medications",
         "ctx.vitals",
         "ctx.encounter.discharge_disposition",
@@ -790,7 +831,7 @@
         "discharge_instructions.baseline",
         "discharge_instructions.disease_specific.copd_exacerbation"
       ],
-      "generated_at": "2024-06-30T12:01:00+09:00",
+      "generated_at": "2024-07-01T09:01:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
         "generator": "llm",
@@ -801,18 +842,18 @@
         "admission_diagnoses": "1. COPD急性増悪（J44.1）",
         "admission_reason": "COPD急性増悪のため入院となった。",
         "chief_complaint": "1週間前より痰の量と粘稠度が増加",
-        "discharge_details": "2024-06-30自宅退院となった。",
-        "discharge_diagnoses": "COPD急性増悪（J44.1）。副病名: せん妄（F05）。",
-        "discharge_instructions": "[Mock LLM response #17 — discharge_instructions]",
+        "discharge_details": "2024-07-01自宅退院となった。",
+        "discharge_diagnoses": "COPD急性増悪（J44.1）。副病名: 不整脈（I49.9）。",
+        "discharge_instructions": "[Mock LLM response #18 — discharge_instructions]",
         "discharge_medications": "プレドニゾロン 20mg 経口 1日1回 7日分; アモキシシリン/クラブラン酸 250mg 経口 1日3回 5日分",
-        "hospital_course": "[Mock LLM response #17 — hospital_course]",
-        "present_illness": "[Mock LLM response #17 — present_illness]"
+        "hospital_course": "[Mock LLM response #18 — hospital_course]",
+        "present_illness": "[Mock LLM response #18 — present_illness]"
       },
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-18": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-18",
+  "doc-ENC-FORCED-0001-616171532456-19": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-19",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -829,7 +870,7 @@
         "lang": "ja"
       },
       "sections": {
-        "adl_assessment": "Barthel 指数 65/100 → 軽度介助（食事5、入浴5、移動10、トイレ動作5）",
+        "adl_assessment": "Barthel 指数 55/100 → 中等度介助（食事5、入浴0、移動10、トイレ動作5）",
         "care_plan": "看護計画: 看護問題「ガス交換障害」。目標: 呼吸困難が軽減し、SpO2 が指示範囲で保たれる。観察計画 (OP): SpO2 を持続モニタし、呼吸パターン・副雑音を勤務帯ごとに評価する、吸入手技を毎回付き添って確認する。ケア計画 (TP): 酸素投与量を指示に従い調整する、起坐位など呼吸の楽な体位保持を支援する。教育計画 (EP): 吸入器の使い方を一緒に確認し、息切れが強いときは早めに知らせるよう説明する。",
         "nursing_diagnosis": "看護診断: ガス交換障害、気道クリアランス不十分、活動耐性低下、不安 (呼吸困難関連)。",
         "nursing_history": "入院目的: 1週間前より痰の量と粘稠度が増加。既往: COPD（慢性閉塞性肺疾患）。",
@@ -838,8 +879,8 @@
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-19-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-19-evening",
+  "doc-ENC-FORCED-0001-616171532456-20-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-20-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -848,7 +889,6 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.vitals.shift.fever",
-        "ctx.vitals.shift.desaturation",
         "ctx.devices.shift",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
@@ -864,11 +904,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 1 日目\n記録者: 若林 淳\n患者状態: BP 123/75, HR 84, SpO2 91%, T 37.6°C、酸素投与: 鼻カニューラ 3 L/分。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n疼痛あり、NRS 4。\n38.5°Cの発熱あり、経過観察。\n22:01 SpO2 86%に低下、鼻カニューラ 3 L/分投与下で管理。\n酸素: 鼻カニューラ 3 L/分。装着状態の観察を継続。\n絶食中。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(準夜)】 入院 1 日目\n記録者: 若林 淳\n患者状態: BP 123/72, HR 87, SpO2 93%, T 37.7°C、酸素投与: 鼻カニューラ 3.5 L/分。\n与薬: サルブタモール、イプラトロピウム、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n38.4°Cの発熱あり、アセトアミノフェン投与、経過観察。\n酸素: 鼻カニューラ 3.5 L/分。装着状態の観察を継続。\n絶食中。内服薬は少量の水で投与。\nADL: Barthel 指数 55/100 (中等度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-20-night": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-20-night",
+  "doc-ENC-FORCED-0001-616171532456-21-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-21-night",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -876,6 +916,7 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
         "ctx.orders.diet.shift",
@@ -892,11 +933,11 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 2 日目\n記録者: 若林 淳\n患者状態: BP 128/75, HR 84, SpO2 88%, T 36.9°C、酸素投与: 鼻カニューラ 2 L/分。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 2。\n前日 (6/15) の水分出納: 摂取 809 mL、排出 826 mL (うち尿 50 mL)、バランス -17 mL。\n酸素: 鼻カニューラ 2 L/分。装着状態の観察を継続。\n絶食継続。内服薬は少量の水で投与。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(深夜)】 入院 2 日目\n記録者: 若林 淳\n患者状態: BP 125/76, HR 84, SpO2 89%, T 37.4°C、酸素投与: 鼻カニューラ 2.5 L/分。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン。\n疼痛あり、NRS 最大 4、最終 3。\n38.0°Cの発熱あり、経過観察。\n前日 (6/15) の水分出納: 摂取 1008 mL、排出 1052 mL (うち尿 276 mL)、バランス -44 mL。\n酸素: 鼻カニューラ 2.5 L/分。装着状態の観察を継続。\n絶食継続。内服薬は少量の水で投与。\nADL: Barthel 指数 55/100 (中等度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-21-day": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-21-day",
+  "doc-ENC-FORCED-0001-616171532456-22-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-22-day",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -920,11 +961,11 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 2 日目\n記録者: 若林 淳\n患者状態: BP 126/73, HR 92, SpO2 91%, T 37.6°C、酸素投与: 鼻カニューラ 2 L/分。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n疼痛あり、NRS 2。\n前日 (6/15) の水分出納: 摂取 809 mL、排出 826 mL (うち尿 50 mL)、バランス -17 mL。\n酸素: 鼻カニューラ 2 L/分。装着状態の観察を継続。\n絶食継続。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(日勤)】 入院 2 日目\n記録者: 若林 淳\n患者状態: BP 126/74, HR 94, SpO2 94%, T 37.8°C、酸素投与: 鼻カニューラ 1 L/分。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n疼痛あり、NRS 2。\n前日 (6/15) の水分出納: 摂取 1008 mL、排出 1052 mL (うち尿 276 mL)、バランス -44 mL。\n酸素: 鼻カニューラ 1 L/分。装着状態の観察を継続。\n絶食継続。\nADL: Barthel 指数 55/100 (中等度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-22-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-22-evening",
+  "doc-ENC-FORCED-0001-616171532456-23-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-23-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -932,8 +973,8 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
-        "ctx.devices.shift",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
         "ctx.medications.today",
@@ -948,11 +989,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 2 日目\n記録者: 若林 淳\n患者状態: BP 122/73, HR 90, SpO2 89%, T 36.5°C、酸素投与: 鼻カニューラ 2 L/分。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n疼痛あり、NRS 3。\n前日 (6/15) の水分出納: 摂取 809 mL、排出 826 mL (うち尿 50 mL)、バランス -17 mL。\n酸素: 鼻カニューラ 2 L/分。装着状態の観察を継続。\n食事: 流動食、摂食は一部介助、前日の経口摂取量 194 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(準夜)】 入院 2 日目\n記録者: 若林 淳\n患者状態: BP 123/74, HR 89, SpO2 89%, T 38.4°C。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n疼痛あり、NRS 1。\n38.4°Cの発熱あり、経過観察。\n前日 (6/15) の水分出納: 摂取 1008 mL、排出 1052 mL (うち尿 276 mL)、バランス -44 mL。\n食事: 流動食、摂食は一部介助、前日の経口摂取量 254 mL。\nADL: Barthel 指数 55/100 (中等度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-23-night": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-23-night",
+  "doc-ENC-FORCED-0001-616171532456-24-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-24-night",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -976,11 +1017,11 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 3 日目\n記録者: 若林 淳\n患者状態: BP 128/77, HR 88, SpO2 92%, T 36.6°C、酸素投与: 鼻カニューラ 1 L/分。\n与薬: サルブタモール、イプラトロピウム、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 最大 4、最終 2。\n前日 (6/16) の水分出納: 摂取 750 mL、排出 797 mL (うち尿 166 mL)、バランス -47 mL。\n酸素: 鼻カニューラ 1 L/分。装着状態の観察を継続。\n食事: 流動食、摂食は一部介助、前日の経口摂取量 185 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(深夜)】 入院 3 日目\n記録者: 若林 淳\n患者状態: BP 123/73, HR 89, SpO2 92%, T 36.7°C、酸素投与: 鼻カニューラ 1.5 L/分。\n与薬: サルブタモール、イプラトロピウム、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）。\n疼痛あり、NRS 最大 5、最終 3。\n前日 (6/16) の水分出納: 摂取 604 mL、排出 681 mL (うち尿 50 mL)、バランス -77 mL。\n酸素: 鼻カニューラ 1.5 L/分。装着状態の観察を継続。\n食事: 流動食、摂食は一部介助、前日の経口摂取量 53 mL。\nADL: Barthel 指数 55/100 (中等度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-24-day": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-24-day",
+  "doc-ENC-FORCED-0001-616171532456-25-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-25-day",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1004,11 +1045,11 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 3 日目\n記録者: 若林 淳\n患者状態: BP 129/75, HR 97, SpO2 89%, T 37.2°C、酸素投与: 鼻カニューラ 1 L/分。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、ヘパリン。\n疼痛あり、NRS 3。\n前日 (6/16) の水分出納: 摂取 750 mL、排出 797 mL (うち尿 166 mL)、バランス -47 mL。\n酸素: 鼻カニューラ 1 L/分。装着状態の観察を継続。\n食事: 流動食、摂食は一部介助、前日の経口摂取量 185 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(日勤)】 入院 3 日目\n記録者: 若林 淳\n患者状態: BP 125/75, HR 91, SpO2 92%, T 36.9°C、酸素投与: 鼻カニューラ 1 L/分。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 7。\n前日 (6/16) の水分出納: 摂取 604 mL、排出 681 mL (うち尿 50 mL)、バランス -77 mL。\n酸素: 鼻カニューラ 1 L/分。装着状態の観察を継続。\n食事: 流動食、摂食は一部介助、前日の経口摂取量 53 mL。\nADL: Barthel 指数 55/100 (中等度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-25-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-25-evening",
+  "doc-ENC-FORCED-0001-616171532456-26-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-26-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1016,6 +1057,7 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.devices.shift",
         "ctx.orders.diet.shift",
@@ -1032,11 +1074,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 3 日目\n記録者: 若林 淳\n患者状態: BP 125/73, HR 87, SpO2 94%, T 37.4°C、酸素投与: 鼻カニューラ 1 L/分。\n与薬: サルブタモール、イプラトロピウム、セフトリアキソン 1g 静注 1日1回、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 6。\n前日 (6/16) の水分出納: 摂取 750 mL、排出 797 mL (うち尿 166 mL)、バランス -47 mL。\n酸素: 鼻カニューラ 1 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 185 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(準夜)】 入院 3 日目\n記録者: 若林 淳\n患者状態: BP 122/77, HR 89, SpO2 90%, T 37.9°C、酸素投与: 鼻カニューラ 1 L/分。\n与薬: サルブタモール、イプラトロピウム、セフトリアキソン 1g 静注 1日1回、ヘパリン。\n疼痛あり、NRS 1。\n38.6°Cの発熱あり、経過観察。\n前日 (6/16) の水分出納: 摂取 604 mL、排出 681 mL (うち尿 50 mL)、バランス -77 mL。\n酸素: 鼻カニューラ 1 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 53 mL。\nADL: Barthel 指数 55/100 (中等度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-26-night": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-26-night",
+  "doc-ENC-FORCED-0001-616171532456-27-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-27-night",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1060,11 +1102,11 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 4 日目\n記録者: 若林 淳\n患者状態: BP 127/78, HR 85, SpO2 88%, T 37.2°C、酸素投与: 鼻カニューラ 1 L/分。\n与薬: サルブタモール、イプラトロピウム、セフトリアキソン 1g 静注 1日1回。\n疼痛あり、NRS 1。\n前日 (6/17) の水分出納: 摂取 1254 mL、排出 1244 mL (うち尿 613 mL)、バランス +10 mL。\n酸素: 鼻カニューラ 1 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 364 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(深夜)】 入院 4 日目\n記録者: 若林 淳\n患者状態: BP 124/72, HR 85, SpO2 92%, T 37.1°C、酸素投与: 鼻カニューラ 1 L/分。\n与薬: サルブタモール、イプラトロピウム、セフトリアキソン 1g 静注 1日1回。\n疼痛あり、NRS 3。\n前日 (6/17) の水分出納: 摂取 1254 mL、排出 1155 mL (うち尿 524 mL)、バランス +99 mL。\n酸素: 鼻カニューラ 1 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 534 mL。\nADL: Barthel 指数 55/100 (中等度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-27-day": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-27-day",
+  "doc-ENC-FORCED-0001-616171532456-28-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-28-day",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1088,11 +1130,11 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 4 日目\n記録者: 若林 淳\n患者状態: BP 127/75, HR 90, SpO2 91%, T 37.2°C、酸素投与: 鼻カニューラ 1 L/分。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、ヘパリン。\n疼痛あり、NRS 2。\n前日 (6/17) の水分出納: 摂取 1254 mL、排出 1244 mL (うち尿 613 mL)、バランス +10 mL。\n酸素: 鼻カニューラ 1 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 364 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(日勤)】 入院 4 日目\n記録者: 若林 淳\n患者状態: BP 128/74, HR 91, SpO2 94%, T 36.7°C、酸素投与: 鼻カニューラ 1 L/分。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、ヘパリン。\n疼痛あり、NRS 1。\n前日 (6/17) の水分出納: 摂取 1254 mL、排出 1155 mL (うち尿 524 mL)、バランス +99 mL。\n酸素: 鼻カニューラ 1 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 534 mL。\nADL: Barthel 指数 55/100 (中等度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-28-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-28-evening",
+  "doc-ENC-FORCED-0001-616171532456-29-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-29-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1116,11 +1158,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 4 日目\n記録者: 若林 淳\n患者状態: BP 126/73, HR 87, SpO2 94%, T 37.3°C、酸素投与: 鼻カニューラ 1 L/分。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛あり、NRS 3。\n前日 (6/17) の水分出納: 摂取 1254 mL、排出 1244 mL (うち尿 613 mL)、バランス +10 mL。\n酸素: 鼻カニューラ 1 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 364 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(準夜)】 入院 4 日目\n記録者: 若林 淳\n患者状態: BP 121/73, HR 80, SpO2 94%, T 37.7°C、酸素投与: 鼻カニューラ 1 L/分。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 6。\n前日 (6/17) の水分出納: 摂取 1254 mL、排出 1155 mL (うち尿 524 mL)、バランス +99 mL。\n酸素: 鼻カニューラ 1 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 534 mL。\nADL: Barthel 指数 55/100 (中等度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-29-night": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-29-night",
+  "doc-ENC-FORCED-0001-616171532456-30-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-30-night",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1129,7 +1171,6 @@
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
         "ctx.intake_output_records.previous_day",
-        "ctx.devices.shift",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
         "ctx.medications.today",
@@ -1144,11 +1185,11 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 5 日目\n記録者: 若林 淳\n患者状態: BP 122/76, HR 80, SpO2 93%, T 36.6°C、酸素投与: 鼻カニューラ 1 L/分。\n与薬: サルブタモール、イプラトロピウム。\n疼痛の訴えなし (NRS 0)。\n前日 (6/18) の水分出納: 摂取 1133 mL、排出 1028 mL (うち尿 152 mL)、バランス +105 mL。\n酸素: 鼻カニューラ 1 L/分。装着状態の観察を継続。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 608 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(深夜)】 入院 5 日目\n記録者: 若林 淳\n患者状態: BP 122/74, HR 83, SpO2 92%, T 36.5°C。\n与薬: サルブタモール、イプラトロピウム。\n疼痛あり、NRS 1。\n前日 (6/18) の水分出納: 摂取 592 mL、排出 926 mL (うち尿 50 mL)、バランス -334 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 123 mL。\nADL: Barthel 指数 55/100 (中等度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-30-day": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-30-day",
+  "doc-ENC-FORCED-0001-616171532456-31-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-31-day",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1171,11 +1212,11 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 5 日目\n記録者: 若林 淳\n患者状態: BP 123/77, HR 89, SpO2 98%, T 37.7°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛あり、NRS 3。\n前日 (6/18) の水分出納: 摂取 1133 mL、排出 1028 mL (うち尿 152 mL)、バランス +105 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 608 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(日勤)】 入院 5 日目\n記録者: 若林 淳\n患者状態: BP 121/76, HR 88, SpO2 94%, T 37.2°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n前日 (6/18) の水分出納: 摂取 592 mL、排出 926 mL (うち尿 50 mL)、バランス -334 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 123 mL。\nADL: Barthel 指数 55/100 (中等度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-31-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-31-evening",
+  "doc-ENC-FORCED-0001-616171532456-32-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-32-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1198,11 +1239,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 5 日目\n記録者: 若林 淳\n患者状態: BP 126/77, HR 84, SpO2 97%, T 37.2°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛あり、NRS 3。\n前日 (6/18) の水分出納: 摂取 1133 mL、排出 1028 mL (うち尿 152 mL)、バランス +105 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 608 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(準夜)】 入院 5 日目\n記録者: 若林 淳\n患者状態: BP 122/77, HR 87, SpO2 94%, T 37.5°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛あり、NRS 3。\n前日 (6/18) の水分出納: 摂取 592 mL、排出 926 mL (うち尿 50 mL)、バランス -334 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 123 mL。\nADL: Barthel 指数 55/100 (中等度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-32-night": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-32-night",
+  "doc-ENC-FORCED-0001-616171532456-33-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-33-night",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1225,11 +1266,11 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 6 日目\n記録者: 若林 淳\n患者状態: BP 122/73, HR 79, SpO2 94%, T 36.9°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎。\n疼痛の訴えなし (NRS 0)。\n前日 (6/19) の水分出納: 摂取 638 mL、排出 853 mL (うち尿 112 mL)、バランス -215 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 349 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(深夜)】 入院 6 日目\n記録者: 若林 淳\n患者状態: BP 126/72, HR 82, SpO2 91%, T 37.7°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎。\n疼痛あり、NRS 1。\n前日 (6/19) の水分出納: 摂取 967 mL、排出 867 mL (うち尿 126 mL)、バランス +100 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 486 mL。\nADL: Barthel 指数 55/100 (中等度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-33-day": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-33-day",
+  "doc-ENC-FORCED-0001-616171532456-34-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-34-day",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1237,6 +1278,7 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
@@ -1252,11 +1294,11 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 6 日目\n記録者: 若林 淳\n患者状態: BP 122/76, HR 84, SpO2 89%, T 36.9°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n前日 (6/19) の水分出納: 摂取 638 mL、排出 853 mL (うち尿 112 mL)、バランス -215 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 349 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(日勤)】 入院 6 日目\n記録者: 若林 淳\n患者状態: BP 125/72, HR 92, SpO2 97%, T 38.1°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン、ヘパリン。\n疼痛あり、NRS 3。\n38.1°Cの発熱あり、経過観察。\n前日 (6/19) の水分出納: 摂取 967 mL、排出 867 mL (うち尿 126 mL)、バランス +100 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 486 mL。\nADL: Barthel 指数 55/100 (中等度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-34-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-34-evening",
+  "doc-ENC-FORCED-0001-616171532456-35-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-35-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1279,11 +1321,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 6 日目\n記録者: 若林 淳\n患者状態: BP 122/73, HR 84, SpO2 96%, T 37.8°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n前日 (6/19) の水分出納: 摂取 638 mL、排出 853 mL (うち尿 112 mL)、バランス -215 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 349 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(準夜)】 入院 6 日目\n記録者: 若林 淳\n患者状態: BP 124/72, HR 85, SpO2 95%, T 36.7°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛あり、NRS 2。\n前日 (6/19) の水分出納: 摂取 967 mL、排出 867 mL (うち尿 126 mL)、バランス +100 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 486 mL。\nADL: Barthel 指数 55/100 (中等度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-35-night": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-35-night",
+  "doc-ENC-FORCED-0001-616171532456-36-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-36-night",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1307,11 +1349,11 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 7 日目\n記録者: 若林 淳\n患者状態: BP 120/74, HR 80, SpO2 94%, T 36.4°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン。\n疼痛の訴えなし (NRS 0)。\nサルブタモール投与を拒否。\n前日 (6/20) の水分出納: 摂取 774 mL、排出 835 mL (うち尿 50 mL)、バランス -61 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 277 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(深夜)】 入院 7 日目\n記録者: 若林 淳\n患者状態: BP 124/73, HR 81, SpO2 95%, T 36.5°C。\n与薬: サルブタモール、イプラトロピウム、プレドニゾロン。\n疼痛あり、NRS 1。\nサルブタモール投与を拒否。\n前日 (6/20) の水分出納: 摂取 930 mL、排出 936 mL (うち尿 151 mL)、バランス -6 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 609 mL。\nADL: Barthel 指数 55/100 (中等度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-36-day": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-36-day",
+  "doc-ENC-FORCED-0001-616171532456-37-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-37-day",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1334,11 +1376,11 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 7 日目\n記録者: 若林 淳\n患者状態: BP 122/76, HR 86, SpO2 97%, T 37.7°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛あり、NRS 1。\n前日 (6/20) の水分出納: 摂取 774 mL、排出 835 mL (うち尿 50 mL)、バランス -61 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 277 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(日勤)】 入院 7 日目\n記録者: 若林 淳\n患者状態: BP 126/75, HR 87, SpO2 94%, T 37.0°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n前日 (6/20) の水分出納: 摂取 930 mL、排出 936 mL (うち尿 151 mL)、バランス -6 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 609 mL。\nADL: Barthel 指数 55/100 (中等度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-37-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-37-evening",
+  "doc-ENC-FORCED-0001-616171532456-38-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-38-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1361,11 +1403,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 7 日目\n記録者: 若林 淳\n患者状態: BP 124/74, HR 84, SpO2 94%, T 37.2°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n前日 (6/20) の水分出納: 摂取 774 mL、排出 835 mL (うち尿 50 mL)、バランス -61 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 277 mL。\nADL: Barthel 指数 70/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(準夜)】 入院 7 日目\n記録者: 若林 淳\n患者状態: BP 122/71, HR 81, SpO2 98%, T 37.5°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛あり、NRS 3。\n前日 (6/20) の水分出納: 摂取 930 mL、排出 936 mL (うち尿 151 mL)、バランス -6 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 609 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-38-night": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-38-night",
+  "doc-ENC-FORCED-0001-616171532456-39-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-39-night",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1373,7 +1415,6 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
-        "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
@@ -1389,11 +1430,11 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 8 日目\n記録者: 若林 淳\n患者状態: BP 125/75, HR 79, SpO2 94%, T 38.2°C。\n与薬: サルブタモール、イプラトロピウム。\n疼痛あり、NRS 2。\n38.2°Cの発熱あり、経過観察。\n前日 (6/21) の水分出納: 摂取 883 mL、排出 807 mL (うち尿 176 mL)、バランス +76 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 336 mL。\nADL: Barthel 指数 70/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(深夜)】 入院 8 日目\n記録者: 若林 淳\n患者状態: BP 122/77, HR 80, SpO2 96%, T 37.0°C。\n与薬: サルブタモール、イプラトロピウム。\n疼痛あり、NRS 3。\n前日 (6/21) の水分出納: 摂取 361 mL、排出 690 mL (うち尿 59 mL)、バランス -329 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 206 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-39-day": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-39-day",
+  "doc-ENC-FORCED-0001-616171532456-40-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-40-day",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1401,6 +1442,7 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
+        "ctx.vitals.shift.fever",
         "ctx.intake_output_records.previous_day",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
@@ -1416,11 +1458,11 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 8 日目\n記録者: 若林 淳\n患者状態: BP 127/73, HR 85, SpO2 92%, T 37.6°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛あり、NRS 1。\n前日 (6/21) の水分出納: 摂取 883 mL、排出 807 mL (うち尿 176 mL)、バランス +76 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 336 mL。\nADL: Barthel 指数 70/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(日勤)】 入院 8 日目\n記録者: 若林 淳\n患者状態: BP 125/75, HR 86, SpO2 94%, T 38.7°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛あり、NRS 2。\n38.7°Cの発熱あり、経過観察。\n前日 (6/21) の水分出納: 摂取 361 mL、排出 690 mL (うち尿 59 mL)、バランス -329 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 206 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-40-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-40-evening",
+  "doc-ENC-FORCED-0001-616171532456-41-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-41-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1443,11 +1485,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 8 日目\n記録者: 若林 淳\n患者状態: BP 124/72, HR 82, SpO2 92%, T 37.5°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n前日 (6/21) の水分出納: 摂取 883 mL、排出 807 mL (うち尿 176 mL)、バランス +76 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 336 mL。\nADL: Barthel 指数 70/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(準夜)】 入院 8 日目\n記録者: 若林 淳\n患者状態: BP 123/74, HR 86, SpO2 95%, T 37.1°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛あり、NRS 3。\n前日 (6/21) の水分出納: 摂取 361 mL、排出 690 mL (うち尿 59 mL)、バランス -329 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 206 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-41-night": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-41-night",
+  "doc-ENC-FORCED-0001-616171532456-42-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-42-night",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1470,11 +1512,11 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 9 日目\n記録者: 若林 淳\n患者状態: BP 123/78, HR 78, SpO2 95%, T 36.9°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎。\n疼痛あり、NRS 1。\n前日 (6/22) の水分出納: 摂取 887 mL、排出 769 mL (うち尿 138 mL)、バランス +118 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 502 mL。\nADL: Barthel 指数 70/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(深夜)】 入院 9 日目\n記録者: 若林 淳\n患者状態: BP 125/73, HR 84, SpO2 94%, T 37.1°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎。\n疼痛あり、NRS 1。\n前日 (6/22) の水分出納: 摂取 649 mL、排出 681 mL (うち尿 50 mL)、バランス -32 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 446 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-42-day": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-42-day",
+  "doc-ENC-FORCED-0001-616171532456-43-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-43-day",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1497,11 +1539,11 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 9 日目\n記録者: 若林 淳\n患者状態: BP 125/77, HR 83, SpO2 92%, T 36.6°C。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n前日 (6/22) の水分出納: 摂取 887 mL、排出 769 mL (うち尿 138 mL)、バランス +118 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 502 mL。\nADL: Barthel 指数 70/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(日勤)】 入院 9 日目\n記録者: 若林 淳\n患者状態: BP 128/74, HR 86, SpO2 97%, T 36.2°C。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n疼痛あり、NRS 1。\n前日 (6/22) の水分出納: 摂取 649 mL、排出 681 mL (うち尿 50 mL)、バランス -32 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 446 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-43-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-43-evening",
+  "doc-ENC-FORCED-0001-616171532456-44-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-44-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1524,11 +1566,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 9 日目\n記録者: 若林 淳\n患者状態: BP 125/76, HR 82, SpO2 96%, T 36.4°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n前日 (6/22) の水分出納: 摂取 887 mL、排出 769 mL (うち尿 138 mL)、バランス +118 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 502 mL。\nADL: Barthel 指数 70/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(準夜)】 入院 9 日目\n記録者: 若林 淳\n患者状態: BP 128/74, HR 84, SpO2 97%, T 36.8°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛あり、NRS 2。\n前日 (6/22) の水分出納: 摂取 649 mL、排出 681 mL (うち尿 50 mL)、バランス -32 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 446 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-44-night": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-44-night",
+  "doc-ENC-FORCED-0001-616171532456-45-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-45-night",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1536,7 +1578,6 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
-        "ctx.vitals.shift.consciousness",
         "ctx.intake_output_records.previous_day",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
@@ -1552,11 +1593,11 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 10 日目\n記録者: 若林 淳\n患者状態: BP 125/72, HR 79, SpO2 95%, T 36.3°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎。\n疼痛の訴えなし (NRS 0)。\n意識レベル低下あり (AVPU V)、観察継続。\n前日 (6/23) の水分出納: 摂取 647 mL、排出 681 mL (うち尿 50 mL)、バランス -34 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 264 mL。\nADL: Barthel 指数 70/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(深夜)】 入院 10 日目\n記録者: 若林 淳\n患者状態: BP 124/72, HR 86, SpO2 93%, T 37.1°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎。\n疼痛あり、NRS 2。\n前日 (6/23) の水分出納: 摂取 582 mL、排出 681 mL (うち尿 50 mL)、バランス -99 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 91 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-45-day": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-45-day",
+  "doc-ENC-FORCED-0001-616171532456-46-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-46-day",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1564,7 +1605,6 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
-        "ctx.vitals.shift.consciousness",
         "ctx.intake_output_records.previous_day",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
@@ -1580,11 +1620,11 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 10 日目\n記録者: 若林 淳\n患者状態: BP 127/72, HR 86, SpO2 96%, T 37.0°C。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n意識レベル低下あり (AVPU V)、観察継続。\n前日 (6/23) の水分出納: 摂取 647 mL、排出 681 mL (うち尿 50 mL)、バランス -34 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 264 mL。\nADL: Barthel 指数 70/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(日勤)】 入院 10 日目\n記録者: 若林 淳\n患者状態: BP 124/71, HR 82, SpO2 99%, T 37.0°C。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n前日 (6/23) の水分出納: 摂取 582 mL、排出 681 mL (うち尿 50 mL)、バランス -99 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 91 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-46-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-46-evening",
+  "doc-ENC-FORCED-0001-616171532456-47-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-47-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1592,7 +1632,6 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
-        "ctx.vitals.shift.consciousness",
         "ctx.intake_output_records.previous_day",
         "ctx.orders.diet.shift",
         "ctx.adl_assessments.shift",
@@ -1608,11 +1647,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 10 日目\n記録者: 若林 淳\n患者状態: BP 122/74, HR 79, SpO2 93%, T 36.8°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n意識レベル低下あり (AVPU V)、観察継続。\n前日 (6/23) の水分出納: 摂取 647 mL、排出 681 mL (うち尿 50 mL)、バランス -34 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 264 mL。\nADL: Barthel 指数 70/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(準夜)】 入院 10 日目\n記録者: 若林 淳\n患者状態: BP 126/71, HR 83, SpO2 93%, T 37.1°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n前日 (6/23) の水分出納: 摂取 582 mL、排出 681 mL (うち尿 50 mL)、バランス -99 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 91 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-47-night": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-47-night",
+  "doc-ENC-FORCED-0001-616171532456-48-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-48-night",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1635,11 +1674,11 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 11 日目\n記録者: 若林 淳\n患者状態: BP 121/75, HR 80, SpO2 97%, T 36.8°C。\n与薬: サルブタモール、イプラトロピウム。\n疼痛あり、NRS 2。\n前日 (6/24) の水分出納: 摂取 878 mL、排出 784 mL (うち尿 153 mL)、バランス +94 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 631 mL。\nADL: Barthel 指数 70/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(深夜)】 入院 11 日目\n記録者: 若林 淳\n患者状態: BP 125/75, HR 83, SpO2 94%, T 36.5°C。\n与薬: サルブタモール、イプラトロピウム。\n疼痛の訴えなし (NRS 0)。\n前日 (6/24) の水分出納: 摂取 1439 mL、排出 1383 mL (うち尿 752 mL)、バランス +56 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 995 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-48-day": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-48-day",
+  "doc-ENC-FORCED-0001-616171532456-49-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-49-day",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1662,11 +1701,11 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 11 日目\n記録者: 若林 淳\n患者状態: BP 122/75, HR 80, SpO2 95%, T 37.2°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n前日 (6/24) の水分出納: 摂取 878 mL、排出 784 mL (うち尿 153 mL)、バランス +94 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 631 mL。\nADL: Barthel 指数 70/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(日勤)】 入院 11 日目\n記録者: 若林 淳\n患者状態: BP 125/71, HR 89, SpO2 98%, T 37.5°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n前日 (6/24) の水分出納: 摂取 1439 mL、排出 1383 mL (うち尿 752 mL)、バランス +56 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 995 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-49-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-49-evening",
+  "doc-ENC-FORCED-0001-616171532456-50-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-50-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1689,11 +1728,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 11 日目\n記録者: 若林 淳\n患者状態: BP 125/76, HR 82, SpO2 94%, T 37.2°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛あり、NRS 1。\n前日 (6/24) の水分出納: 摂取 878 mL、排出 784 mL (うち尿 153 mL)、バランス +94 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 631 mL。\nADL: Barthel 指数 70/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(準夜)】 入院 11 日目\n記録者: 若林 淳\n患者状態: BP 125/76, HR 80, SpO2 96%, T 37.3°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛あり、NRS 1。\n前日 (6/24) の水分出納: 摂取 1439 mL、排出 1383 mL (うち尿 752 mL)、バランス +56 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 995 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-50-night": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-50-night",
+  "doc-ENC-FORCED-0001-616171532456-51-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-51-night",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1716,11 +1755,11 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 12 日目\n記録者: 若林 淳\n患者状態: BP 121/75, HR 80, SpO2 94%, T 36.7°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎。\n疼痛の訴えなし (NRS 0)。\n前日 (6/25) の水分出納: 摂取 1483 mL、排出 1569 mL (うち尿 818 mL)、バランス -86 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 1077 mL。\nADL: Barthel 指数 70/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(深夜)】 入院 12 日目\n記録者: 若林 淳\n患者状態: BP 123/76, HR 82, SpO2 95%, T 36.2°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎。\n疼痛の訴えなし (NRS 0)。\n前日 (6/25) の水分出納: 摂取 1403 mL、排出 1545 mL (うち尿 794 mL)、バランス -142 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 1215 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-51-day": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-51-day",
+  "doc-ENC-FORCED-0001-616171532456-52-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-52-day",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1728,7 +1767,6 @@
         "ctx.author_practitioner_id",
         "ctx.vitals.shift",
         "ctx.vitals.shift.pain",
-        "ctx.vitals.shift.fever",
         "ctx.medications.shift.not_given",
         "ctx.intake_output_records.previous_day",
         "ctx.orders.diet.shift",
@@ -1745,11 +1783,11 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 12 日目\n記録者: 若林 淳\n患者状態: BP 125/70, HR 83, SpO2 97%, T 38.2°C。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n38.2°Cの発熱あり、経過観察。\nサルブタモール投与を拒否。\n前日 (6/25) の水分出納: 摂取 1483 mL、排出 1569 mL (うち尿 818 mL)、バランス -86 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 1077 mL。\nADL: Barthel 指数 70/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(日勤)】 入院 12 日目\n記録者: 若林 淳\n患者状態: BP 125/77, HR 90, SpO2 96%, T 37.2°C。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n疼痛の訴えなし (NRS 0)。\nサルブタモール投与を拒否。\n前日 (6/25) の水分出納: 摂取 1403 mL、排出 1545 mL (うち尿 794 mL)、バランス -142 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 1215 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-52-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-52-evening",
+  "doc-ENC-FORCED-0001-616171532456-53-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-53-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1772,11 +1810,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 12 日目\n記録者: 若林 淳\n患者状態: BP 124/75, HR 80, SpO2 93%, T 37.8°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n前日 (6/25) の水分出納: 摂取 1483 mL、排出 1569 mL (うち尿 818 mL)、バランス -86 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 1077 mL。\nADL: Barthel 指数 70/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(準夜)】 入院 12 日目\n記録者: 若林 淳\n患者状態: BP 122/74, HR 83, SpO2 94%, T 36.2°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n前日 (6/25) の水分出納: 摂取 1403 mL、排出 1545 mL (うち尿 794 mL)、バランス -142 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 1215 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-53-night": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-53-night",
+  "doc-ENC-FORCED-0001-616171532456-54-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-54-night",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1799,11 +1837,11 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 13 日目\n記録者: 若林 淳\n患者状態: BP 123/75, HR 80, SpO2 97%, T 35.9°C。\n与薬: サルブタモール、イプラトロピウム。\n疼痛の訴えなし (NRS 0)。\n前日 (6/26) の水分出納: 摂取 1646 mL、排出 1635 mL (うち尿 815 mL)、バランス +11 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 910 mL。\nADL: Barthel 指数 70/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(深夜)】 入院 13 日目\n記録者: 若林 淳\n患者状態: BP 123/73, HR 87, SpO2 94%, T 36.4°C。\n与薬: サルブタモール、イプラトロピウム。\n疼痛あり、NRS 2。\n前日 (6/26) の水分出納: 摂取 1396 mL、排出 1436 mL (うち尿 616 mL)、バランス -40 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 920 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-54-day": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-54-day",
+  "doc-ENC-FORCED-0001-616171532456-55-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-55-day",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1827,11 +1865,11 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 13 日目\n記録者: 若林 淳\n患者状態: BP 125/76, HR 85, SpO2 94%, T 37.8°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛あり、NRS 1。\nサルブタモール投与を拒否。\n前日 (6/26) の水分出納: 摂取 1646 mL、排出 1635 mL (うち尿 815 mL)、バランス +11 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 910 mL。\nADL: Barthel 指数 70/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(日勤)】 入院 13 日目\n記録者: 若林 淳\n患者状態: BP 123/74, HR 83, SpO2 94%, T 36.7°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛の訴えなし (NRS 0)。\nサルブタモール投与を拒否。\n前日 (6/26) の水分出納: 摂取 1396 mL、排出 1436 mL (うち尿 616 mL)、バランス -40 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 920 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-55-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-55-evening",
+  "doc-ENC-FORCED-0001-616171532456-56-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-56-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1854,11 +1892,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 13 日目\n記録者: 若林 淳\n患者状態: BP 123/74, HR 80, SpO2 96%, T 37.2°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n前日 (6/26) の水分出納: 摂取 1646 mL、排出 1635 mL (うち尿 815 mL)、バランス +11 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 910 mL。\nADL: Barthel 指数 70/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(準夜)】 入院 13 日目\n記録者: 若林 淳\n患者状態: BP 125/73, HR 84, SpO2 93%, T 36.9°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n前日 (6/26) の水分出納: 摂取 1396 mL、排出 1436 mL (うち尿 616 mL)、バランス -40 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 920 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-56-night": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-56-night",
+  "doc-ENC-FORCED-0001-616171532456-57-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-57-night",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1881,11 +1919,11 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 14 日目\n記録者: 若林 淳\n患者状態: BP 126/73, HR 76, SpO2 97%, T 37.0°C。\n与薬: サルブタモール、イプラトロピウム。\n疼痛あり、NRS 3。\n前日 (6/27) の水分出納: 摂取 1424 mL、排出 1329 mL (うち尿 488 mL)、バランス +95 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 1148 mL。\nADL: Barthel 指数 70/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(深夜)】 入院 14 日目\n記録者: 若林 淳\n患者状態: BP 124/75, HR 83, SpO2 93%, T 36.5°C。\n与薬: サルブタモール、イプラトロピウム。\n疼痛あり、NRS 2。\n前日 (6/27) の水分出納: 摂取 973 mL、排出 926 mL (うち尿 85 mL)、バランス +47 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 694 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-57-day": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-57-day",
+  "doc-ENC-FORCED-0001-616171532456-58-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-58-day",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1909,11 +1947,11 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 14 日目\n記録者: 若林 淳\n患者状態: BP 127/73, HR 81, SpO2 94%, T 37.1°C。\n与薬: サルブタモール、イプラトロピウム、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\nメロペネム投与を拒否。\n前日 (6/27) の水分出納: 摂取 1424 mL、排出 1329 mL (うち尿 488 mL)、バランス +95 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 1148 mL。\nADL: Barthel 指数 70/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(日勤)】 入院 14 日目\n記録者: 若林 淳\n患者状態: BP 122/76, HR 89, SpO2 95%, T 37.1°C。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n疼痛の訴えなし (NRS 0)。\nメロペネム投与を拒否。\n前日 (6/27) の水分出納: 摂取 973 mL、排出 926 mL (うち尿 85 mL)、バランス +47 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 694 mL。\nADL: Barthel 指数 65/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-58-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-58-evening",
+  "doc-ENC-FORCED-0001-616171532456-59-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-59-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1936,11 +1974,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 14 日目\n記録者: 若林 淳\n患者状態: BP 124/75, HR 83, SpO2 96%, T 37.2°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n前日 (6/27) の水分出納: 摂取 1424 mL、排出 1329 mL (うち尿 488 mL)、バランス +95 mL。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 1148 mL。\nADL: Barthel 指数 75/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(準夜)】 入院 14 日目\n記録者: 若林 淳\n患者状態: BP 122/72, HR 86, SpO2 96%, T 36.3°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛あり、NRS 2。\n前日 (6/27) の水分出納: 摂取 973 mL、排出 926 mL (うち尿 85 mL)、バランス +47 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 694 mL。\nADL: Barthel 指数 70/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-59-night": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-59-night",
+  "doc-ENC-FORCED-0001-616171532456-60-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-60-night",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1963,11 +2001,11 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 15 日目\n記録者: 若林 淳\n患者状態: BP 123/75, HR 85, SpO2 97%, T 35.9°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎。\n疼痛の訴えなし (NRS 0)。\n前日 (6/28) の水分出納: 摂取 1565 mL、排出 1837 mL (うち尿 1206 mL)、バランス -272 mL。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 1200 mL。\nADL: Barthel 指数 75/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(深夜)】 入院 15 日目\n記録者: 若林 淳\n患者状態: BP 122/76, HR 86, SpO2 97%, T 36.5°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎。\n疼痛の訴えなし (NRS 0)。\n前日 (6/28) の水分出納: 摂取 1689 mL、排出 1687 mL (うち尿 1056 mL)、バランス +2 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 959 mL。\nADL: Barthel 指数 70/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-60-day": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-60-day",
+  "doc-ENC-FORCED-0001-616171532456-61-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-61-day",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1990,11 +2028,11 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 15 日目\n記録者: 若林 淳\n患者状態: BP 124/77, HR 82, SpO2 95%, T 37.3°C。\n与薬: サルブタモール、イプラトロピウム、アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、ヘパリン。\n疼痛あり、NRS 4。\n前日 (6/28) の水分出納: 摂取 1565 mL、排出 1837 mL (うち尿 1206 mL)、バランス -272 mL。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 1200 mL。\nADL: Barthel 指数 75/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(日勤)】 入院 15 日目\n記録者: 若林 淳\n患者状態: BP 123/76, HR 88, SpO2 95%, T 37.6°C。\n与薬: サルブタモール、イプラトロピウム、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n前日 (6/28) の水分出納: 摂取 1689 mL、排出 1687 mL (うち尿 1056 mL)、バランス +2 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 959 mL。\nADL: Barthel 指数 70/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-61-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-61-evening",
+  "doc-ENC-FORCED-0001-616171532456-62-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-62-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -2017,11 +2055,93 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 15 日目\n記録者: 若林 淳\n患者状態: BP 126/72, HR 86, SpO2 95%, T 37.4°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛あり、NRS 1。\n前日 (6/28) の水分出納: 摂取 1565 mL、排出 1837 mL (うち尿 1206 mL)、バランス -272 mL。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 1200 mL。\nADL: Barthel 指数 75/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+      "text": "【看護記録(準夜)】 入院 15 日目\n記録者: 若林 淳\n患者状態: BP 125/76, HR 85, SpO2 95%, T 36.6°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛あり、NRS 1。\n前日 (6/28) の水分出納: 摂取 1689 mL、排出 1687 mL (うち尿 1056 mL)、バランス +2 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 959 mL。\nADL: Barthel 指数 70/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-62": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-62",
+  "doc-ENC-FORCED-0001-616171532456-63-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-63-night",
+    "encounter_id": "ENC-FORCED-0001-616171532456",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.author_practitioner_id",
+        "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.medications.shift.not_given",
+        "ctx.intake_output_records.previous_day",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
+        "ctx.medications.today",
+        "ctx.day_index"
+      ],
+      "generated_at": "2024-06-30T08:00:00+09:00",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 15,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "night"
+      },
+      "sections": {},
+      "text": "【看護記録(深夜)】 入院 16 日目\n記録者: 若林 淳\n患者状態: BP 121/72, HR 85, SpO2 91%, T 37.3°C。\n与薬: サルブタモール、イプラトロピウム。\n疼痛あり、NRS 1。\nイプラトロピウム投与を拒否。\n前日 (6/29) の水分出納: 摂取 1430 mL、排出 1291 mL (うち尿 525 mL)、バランス +139 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 1115 mL。\nADL: Barthel 指数 70/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+    }
+  },
+  "doc-ENC-FORCED-0001-616171532456-64-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-64-day",
+    "encounter_id": "ENC-FORCED-0001-616171532456",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.author_practitioner_id",
+        "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.intake_output_records.previous_day",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
+        "ctx.medications.today",
+        "ctx.day_index"
+      ],
+      "generated_at": "2024-06-30T16:00:00+09:00",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 15,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "day"
+      },
+      "sections": {},
+      "text": "【看護記録(日勤)】 入院 16 日目\n記録者: 若林 淳\n患者状態: BP 125/79, HR 81, SpO2 94%, T 37.0°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛あり、NRS 2。\n前日 (6/29) の水分出納: 摂取 1430 mL、排出 1291 mL (うち尿 525 mL)、バランス +139 mL。\n食事: 軟菜食、摂食は一部介助、前日の経口摂取量 1115 mL。\nADL: Barthel 指数 70/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+    }
+  },
+  "doc-ENC-FORCED-0001-616171532456-65-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-65-evening",
+    "encounter_id": "ENC-FORCED-0001-616171532456",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.author_practitioner_id",
+        "ctx.vitals.shift",
+        "ctx.vitals.shift.pain",
+        "ctx.intake_output_records.previous_day",
+        "ctx.orders.diet.shift",
+        "ctx.adl_assessments.shift",
+        "ctx.medications.today",
+        "ctx.day_index"
+      ],
+      "generated_at": "2024-07-01T00:00:00+09:00",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 15,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "evening"
+      },
+      "sections": {},
+      "text": "【看護記録(準夜)】 入院 16 日目\n記録者: 若林 淳\n患者状態: BP 125/74, HR 81, SpO2 96%, T 36.7°C。\n与薬: サルブタモール、イプラトロピウム、メロペネム 1g 静注 12時間毎、ヘパリン。\n疼痛の訴えなし (NRS 0)。\n前日 (6/29) の水分出納: 摂取 1430 mL、排出 1291 mL (うち尿 525 mL)、バランス +139 mL。\n食事: 軟菜食、摂食は自立、前日の経口摂取量 1115 mL。\nADL: Barthel 指数 75/100 (軽度介助)、移動は介助歩行、排泄は一部介助。必要な介助を実施。"
+    }
+  },
+  "doc-ENC-FORCED-0001-616171532456-66": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-66",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -2035,23 +2155,23 @@
         "ctx.disease_protocol.disease_id",
         "ctx.adl_assessments@authored"
       ],
-      "generated_at": "2024-06-30T12:01:00+09:00",
+      "generated_at": "2024-07-01T09:01:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
         "generator": "template",
         "lang": "ja"
       },
       "sections": {
-        "admission_status": "入院期間: 15日間。入院理由: 1週間前より痰の量と粘稠度が増加。経過中の合併症: せん妄。退院基準を満たし退院となった。",
+        "admission_status": "入院期間: 16日間。入院理由: 1週間前より痰の量と粘稠度が増加。経過中の合併症: 心不整脈。退院基準を満たし退院となった。",
         "discharge_readiness": "退院準備: 退院時 Barthel 75/100。",
-        "nursing_interventions_provided": "与薬 210 回 (薬剤 7 種類)、バイタルサイン測定 223 回、酸素投与下の観察 62 回、入院期間合計 IN 16907 mL / OUT 17174 mL (差 -267 mL)、指導: 吸入器の使い方を一緒に確認し、息切れが強いときは早めに知らせるよう説明する。",
+        "nursing_interventions_provided": "与薬 222 回 (薬剤 7 種類)、バイタルサイン測定 238 回、酸素投与下の観察 59 回、入院期間合計 IN 16433 mL / OUT 16906 mL (差 -473 mL)、指導: 吸入器の使い方を一緒に確認し、息切れが強いときは早めに知らせるよう説明する。",
         "patient_education": "患者教育: 吸入器手技の再確認 (定量吸入・スペーサ使用法)、増悪の早期サイン認識 (痰の色調変化・SpO2 低下)、呼吸リハビリの継続方法。"
       },
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-63": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-63",
+  "doc-ENC-FORCED-0001-616171532456-67": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-67",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -2084,8 +2204,8 @@
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-64": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-64",
+  "doc-ENC-FORCED-0001-616171532456-68": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-68",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -2094,6 +2214,7 @@
         "ctx.roster_map",
         "patient.bmi",
         "patient.bmi",
+        "ctx.adl_assessments@authored",
         "patient.bmi",
         "ctx.orders.diet",
         "patient.weight_kg",
@@ -2113,7 +2234,7 @@
         "dietitian": "担当管理栄養士：仲野 沙織",
         "discharge_evaluation": "退院時及び終了時の総合的評価：退院時に評価予定",
         "dysphagia_diet": "嚥下調整食の必要性：未評価（絶食中）",
-        "nutrition_assessment": "栄養状態評価: BMI 22.0 (普通)。",
+        "nutrition_assessment": "栄養状態評価: BMI 22.0 (普通)、摂食動作に介助必要。",
         "nutrition_counseling": "栄養食事相談：必要に応じて実施",
         "nutrition_goals": "栄養管理計画の目標：絶食中の栄養状態の維持と、経口摂取再開時の食上げ",
         "nutrition_risk": "低栄養リスク：低（BMI 22.0、リスクなし）",
@@ -2125,8 +2246,8 @@
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-ED-65": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-ED-65",
+  "doc-ENC-FORCED-0001-616171532456-ED-69": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-ED-69",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -2151,19 +2272,19 @@
         "lang": "ja"
       },
       "sections": {
-        "assessment": "[Mock LLM response #18 — assessment]",
+        "assessment": "[Mock LLM response #19 — assessment]",
         "chief_complaint": "1週間前より痰の量と粘稠度が増加",
-        "disposition": "[Mock LLM response #18 — disposition]",
-        "ed_workup": "検査: WBC 10583.0 /uL [H]、CRP 1.13 mg/dL [H]、PCT 結果待ち、クレアチニン 1.18 mg/dL [H]、BUN 24.0 mg/dL [H]、Na 140.0 mmol/L、K 4.9 mmol/L [H]、血糖 117.0 mg/dL [H]。画像: 胸部 CT（今回撮像範囲内に急性期異常所見を認めず）、胸部レントゲン (正面・側面)（肺過膨張、横隔膜平坦化、胸骨後腔拡大）。投薬: プレドニゾロン 40mg 経口 1日1回 5日間、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）。処置指示: 気管支拡張薬: サルブタモール 2.5mg ネブライザー 4時間毎 (急性期は1時間毎に頓用)、気管支拡張薬: イプラトロピウム 0.5mg ネブライザー 6時間毎",
-        "hpi": "[Mock LLM response #18 — hpi]",
+        "disposition": "[Mock LLM response #19 — disposition]",
+        "ed_workup": "検査: WBC 10484.0 /uL [H]、CRP 1.13 mg/dL [H]、PCT 結果待ち、クレアチニン 1.18 mg/dL [H]、BUN 24.0 mg/dL [H]、Na 140.0 mmol/L、K 4.9 mmol/L [H]、血糖 116.0 mg/dL [H]。画像: 胸部 CT（今回撮像範囲内に急性期異常所見を認めず）、胸部レントゲン (正面・側面)（肺過膨張、横隔膜平坦化、胸骨後腔拡大）。投薬: プレドニゾロン、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）。処置指示: 気管支拡張薬: サルブタモール 2.5mg ネブライザー 4時間毎 (急性期は1時間毎に頓用)、気管支拡張薬: イプラトロピウム 0.5mg ネブライザー 6時間毎",
+        "hpi": "[Mock LLM response #19 — hpi]",
         "physical_exam": "来院時所見: BP 126/79 mmHg, HR 83 回/分, RR 28 回/分, SpO2 81%, T 36.8°C。一般状態: 意識清明、中等度の苦痛様。呼吸器: 喘鳴、呼吸音減弱、呼気延長、呼吸数増加。",
         "triage_details": "トリアージレベル: JTAS レベル2。来院形態: 救急車搬送。アレルギー: 薬物アレルギーなし（NKDA）。"
       },
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-ED-66": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-ED-66",
+  "doc-ENC-FORCED-0001-616171532456-ED-70": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-ED-70",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [

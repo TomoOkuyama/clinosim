@@ -161,20 +161,10 @@ order_protocols:
     supportive:
       - {type: "bronchodilator", detail: "Salbutamol 2.5mg nebulizer q4h (q1h PRN acute)"}
       - {type: "bronchodilator", detail: "Ipratropium 0.5mg nebulizer q6h"}
-      # Issue #1323: locale-aware corticosteroid emit. Prior to the
-      # locale_detail split the shared ``detail`` string was Prednisolone
-      # (JP-form) on every locale, and the US-side drugs.discharge_oral
-      # block emitted Prednisone (US-form) — 65 % of US COPD exacerbation
-      # encounters carried both names for the same active drug (Prednisone
-      # is the prodrug converted to Prednisolone in liver). Splitting per
-      # locale here keeps the JA output unchanged and lets the US path
-      # emit the US drug name consistently between admission-supportive
-      # and discharge-oral.
-      - type: "steroid"
-        detail: "Prednisolone 40mg PO daily x5 days"
-        locale_detail:
-          jp: "Prednisolone 40mg PO daily x5 days"
-          us: "Prednisone 40mg PO daily x5 days"
+      # Issue #3915: the systemic corticosteroid is ordered once, from the
+      # country's `drugs.first_line` block (prednisolone in Japan, prednisone in
+      # the US; Issue #1323 made the names locale-aware). A supportive `steroid:`
+      # line was a second order of the same drug with another dose.
       - {type: "O2", detail: "Controlled O2 target SpO2 88-92% (avoid hyperoxia in CO2 retainers)"}
       - {type: "DVT_prophylaxis", detail: "Enoxaparin 2000IU SC daily"}
       - {type: "antipyretic", detail: "Acetaminophen 500mg PO q6h PRN temp >= 38.5"}

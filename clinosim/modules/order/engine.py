@@ -17,7 +17,7 @@ from pydantic import BaseModel, ConfigDict, Field, StrictStr
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import system_key_for
-from clinosim.codes.drugs import protocol_drug_name
+from clinosim.codes.drugs import drug_ref, protocol_drug_name
 from clinosim.countries import country_slot
 from clinosim.country_profile import implementation, register_implementation
 from clinosim.datafiles import load_validated_yaml
@@ -676,7 +676,7 @@ def _catalog_drug_order_code(spec: dict, country: str) -> str:
     RxCUI; Issue #2378: the inline ``code_rxnorm`` values named other drugs —
     labetalol carried ketoconazole's RxCUI — and are removed from the disease
     YAMLs); ``""`` when the drug is not catalogued."""
-    from clinosim.codes.drugs import drug_ref, get_drug
+    from clinosim.codes.drugs import get_drug
 
     rec = get_drug(str(spec.get("drug_id") or "") or drug_ref(str(spec.get("drug") or "")))
     return rec.codes.get(system_key_for("drug", country), "") if rec is not None else ""
@@ -885,6 +885,18 @@ def protocol_medication_orders(
 
 
 _SHARED_DOSE_TAIL = re.compile(r"^[A-Za-z][\w'-]*\s+(\d.*)$", re.DOTALL)
+
+
+def _ingredient_already_ordered(order: Order, placed: list[Order]) -> bool:
+    """Whether a medication order of the same ingredient as ``order`` (by drug
+    catalogue identity; an unidentified drug is never a duplicate) is already
+    among ``placed`` (Issue #3915)."""
+
+    def _ingredient(o: Order) -> str:
+        return o.drug_id or drug_ref((o.display_name or "").split(": ", 1)[-1])
+
+    drug = _ingredient(order)
+    return bool(drug) and any(o.order_type == OrderType.MEDICATION and _ingredient(o) == drug for o in placed)
 
 
 def supportive_detail_raw(sup: dict[str, Any], country: str) -> str:
@@ -1179,6 +1191,12 @@ def place_admission_orders(
         # drug comes from ``drugs.first_line`` of the patient's country. Kept
         # after the order build so the RNG cursor above stays unchanged.
         if is_drugs_section_pointer(detail_raw):
+            continue
+        # Issue #3915: a supportive medication is not ordered when the same
+        # ingredient is already ordered (the first-line drug, or an earlier
+        # supportive line); the first order stays. Kept after the order build
+        # so the RNG cursor above stays unchanged.
+        if order_type == OrderType.MEDICATION and _ingredient_already_ordered(order, orders):
             continue
         orders.append(order)
 
