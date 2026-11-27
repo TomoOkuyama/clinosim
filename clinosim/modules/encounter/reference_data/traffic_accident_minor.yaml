@@ -44,7 +44,7 @@ treatment:
   - {name: "Cervical collar application", probability: 0.6, route: "topical", intent: "c-spine precaution"}
   - {name: "Ibuprofen 400mg", locale_name: {jp: "Ibuprofen 200mg"}, probability: 0.7, route: "PO", intent: "anti-inflammatory"}
   - {name: "Acetaminophen 500mg", probability: 0.5, route: "PO"}
-  - {name: "Diclofenac gel 4 g", probability: 0.3, route: "topical", intent: "local pain relief"}
+  - {name: "Diclofenac gel 4 g", locale_name: {jp: "Diclofenac gel 適量", us: "Diclofenac gel 4 g"}, probability: 0.3, route: "topical", intent: "local pain relief"}
   - {name: "Observation", probability: 0.4, route: "other", intent: "monitor for delayed symptoms"}
 
 discharge_instructions:

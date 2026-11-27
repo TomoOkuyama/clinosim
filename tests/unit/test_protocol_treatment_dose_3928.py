@@ -14,6 +14,13 @@ from clinosim.types.encounter import Order, OrderType
 pytestmark = pytest.mark.unit
 
 
+# Entries whose package insert states a non-numeric amount; each carries its source.
+_INSERT_STATED_AMOUNT = {
+    # PMDA ボルタレンゲル1% 用法及び用量: "症状により、適量を1日数回患部に塗擦する。"
+    ("traffic_accident_minor", "Diclofenac gel 適量"),
+}
+
+
 def _drug_names(entry: dict) -> set[str]:
     return {str(entry.get("name", "")), *(str(v) for v in (entry.get("locale_name") or {}).values())} - {""}
 
@@ -26,6 +33,8 @@ def test_every_drug_treatment_entry_carries_a_dose_and_a_route() -> None:
                 continue  # screening-visit sedation: dose stated in its own field
             for name in _drug_names(tx):
                 if classify_encounter_treatment(name) != OrderType.MEDICATION:
+                    continue
+                if (cid, name) in _INSERT_STATED_AMOUNT:
                     continue
                 if parse_dose_string(name).get("dose_quantity") is None or not (
                     tx.get("route") or parse_dose_string(name).get("route")
