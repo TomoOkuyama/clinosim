@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import replace
 from datetime import datetime, timedelta
 
@@ -408,6 +409,7 @@ def _ed_discharge_prescription(
     indication_codes: list[str],
     country: str,
     cond_name: str,
+    ed_medications: Sequence[str] = (),
 ) -> PrescriptionRecord | None:
     """Take-home prescriptions of a treat-and-release or clinic visit (Issue #2155).
 
@@ -416,8 +418,9 @@ def _ed_discharge_prescription(
     seed, AD-16), so the draw leaves every other event of the cohort
     unchanged. ``locale_exclude`` / ``locale_name`` work as on
     ``treatment[]``; the demographic and drug-drug gates of ED treatment
-    orders apply against the chronic medications and the drugs already
-    prescribed. Visits that do not end at home carry no prescription.
+    orders apply against the chronic medications, the drugs given during the
+    visit (``ed_medications``, Issue #3925: a second NSAID is not sent home
+    after ketorolac) and the drugs already prescribed. Visits that do not end at home carry no prescription.
     """
     from clinosim.modules import drug_safety
     from clinosim.seeding import discharge_prescription_seed
@@ -454,8 +457,21 @@ def _ed_discharge_prescription(
         return within_label(name, _frequency(spec), country)[0] if name else ""
 
     def _skipped(name: str) -> bool:
-        return not name or _ed_medication_skipped(
-            name, patient, indication_codes, active, encounter.encounter_id, issued, cond_name, "ed_discharge_rx"
+        if not name:
+            return True
+        # Issue #3925: the drugs given in the department count as active, except the
+        # same drug (ibuprofen in the department, ibuprofen to take home, is one course).
+        own = drug_safety.canonical_name(name)
+        given = [m for m in ed_medications if m and drug_safety.canonical_name(m) != own]
+        return _ed_medication_skipped(
+            name,
+            patient,
+            indication_codes,
+            active + given,
+            encounter.encounter_id,
+            issued,
+            cond_name,
+            "ed_discharge_rx",
         )
 
     done_groups: set[str] = set()
@@ -999,7 +1015,15 @@ def _simulate_ed_visit(
         disposition=ed_disposition(protocol, severity),
         priority=ActPriority.EM,
     )
-    discharge_rx = _ed_discharge_prescription(protocol, patient, encounter, _indication_codes, country, cond_name)
+    discharge_rx = _ed_discharge_prescription(
+        protocol,
+        patient,
+        encounter,
+        _indication_codes,
+        country,
+        cond_name,
+        ed_medications=[str(o.display_name) for o in orders if o.order_type == OrderType.MEDICATION and o.display_name],
+    )
 
     # C1-09: emit bedside procedures for ED severe cases.
     # Reuse the existing procedure engine (already keyed by internal condition
