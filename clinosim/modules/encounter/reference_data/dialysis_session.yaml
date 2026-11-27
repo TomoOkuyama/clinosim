@@ -35,7 +35,7 @@ workup:
 treatment:
   - {name: "Hemodialysis 4-hour session", probability: 1.0, route: "extracorporeal", intent: "renal replacement therapy"}
   - {name: "Heparin 25 units/kg bolus", probability: 0.7, route: "IV", intent: "circuit anticoagulation"}
-  - {name: "EPO (epoetin alfa 50 units/kg)", probability: 0.3, route: "IV", intent: "anemia management"}
+  - {name: "EPO (epoetin alfa 50 units/kg)", locale_name: {jp: "EPO (epoetin alfa 3000 units)", us: "EPO (epoetin alfa 50 units/kg)"}, probability: 0.3, route: "IV", intent: "anemia management"}
 
 followup_instructions:
   - "Next dialysis session per regular schedule (typically 3x/week)"
