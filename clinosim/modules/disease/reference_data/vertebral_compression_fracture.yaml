@@ -421,6 +421,9 @@ drugs:
         note: "Continue osteoporosis treatment"
       - drug_id: alfacalcidol
         dose: "1mcg PO daily"
+        # Issue #3924: a daily maintenance vitamin D analogue of the osteoporosis
+        # treatment; without a supply the 7-day default dropped it from the carried list.
+        duration_days: 28
     us:
       - drug_id: acetaminophen
         dose: "650mg PO TID PRN"
