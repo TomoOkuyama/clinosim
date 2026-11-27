@@ -1849,7 +1849,7 @@ def _start_complication_treatment(
         action,
         stay.country_key,
         treatment_severity(action, run.lab_results, when),
-        has_recurrence_risk(action, stay.patient, stay.admission_time),
+        has_recurrence_risk(action, stay.patient, stay.admission_time, accepted),
     )
     weight_kg = (
         float(encounter_weight_kg(stay.patient, stay.encounter_id, stay.admission_time, stay.country_key))

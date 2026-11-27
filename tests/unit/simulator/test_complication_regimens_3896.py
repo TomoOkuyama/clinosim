@@ -474,6 +474,88 @@ def test_severity_alone_is_not_a_recurrence_risk(monkeypatch) -> None:
     assert [o.drug_id for o in _cdiff_orders(run)] == ["vancomycin"]
 
 
+# --- an immunosuppressive drug is an immunocompromised host (Issue #3908) ---
+
+
+def _cdiff_on(monkeypatch, country: str, home=(), inpatient=(), wbc: float = 9000.0, age: int = 40):
+    """A C. difficile onset of a patient under 65 who takes the ``home`` drugs at admission and has
+    the ``inpatient`` drugs ordered before the onset."""
+    from clinosim.types.encounter import Order, OrderType
+    from clinosim.types.patient import HomeMedication
+
+    stay = _stay(country)
+    orders = [
+        Order(
+            order_id=f"ORD-E1-HM-{i:02d}",
+            order_type=OrderType.MEDICATION,
+            display_name=drug.title(),
+            drug_id=drug,
+            ordered_datetime=ADMIT,
+            status=OrderStatus.PLACED,
+            route="PO",
+        )
+        for i, drug in enumerate(inpatient)
+    ]
+    run = _run(orders, creatinine=0.9)
+    stay.patient.age = age
+    stay.patient.current_medications = [HomeMedication(drug_name=d, route="PO") for d in home]
+    _lab(run, "WBC", wbc, "/uL")
+    _fire(monkeypatch, stay, run, "c_diff_colitis", _CDIFF)
+    return run
+
+
+@pytest.mark.parametrize("drug", ["prednisolone", "prednisone", "azathioprine", "tacrolimus", "ciclosporin"])
+@pytest.mark.parametrize("wbc", [9000.0, 18000.0])
+def test_jp_home_systemic_immunosuppressant_under_65_gets_fidaxomicin(monkeypatch, drug, wbc) -> None:
+    _fidaxomicin_ok(_cdiff_on(monkeypatch, "japan", home=[drug], wbc=wbc))
+
+
+@pytest.mark.parametrize("drug", ["capecitabine", "carboplatin", "paclitaxel", "pemetrexed"])
+def test_jp_home_antineoplastic_chemotherapy_under_65_gets_fidaxomicin(monkeypatch, drug) -> None:
+    _fidaxomicin_ok(_cdiff_on(monkeypatch, "japan", home=[drug]))
+
+
+def test_jp_inpatient_corticosteroid_started_before_the_onset_counts(monkeypatch) -> None:
+    _fidaxomicin_ok(_cdiff_on(monkeypatch, "japan", inpatient=["methylprednisolone"]))
+
+
+@pytest.mark.parametrize(("wbc", "drug"), [(9000.0, "metronidazole"), (16000.0, "vancomycin")])
+def test_jp_home_drugs_without_immunosuppression_keep_the_metronidazole_or_vancomycin_arm(
+    monkeypatch, wbc, drug
+) -> None:
+    home = ["metformin", "amlodipine", "budesonide", "fluticasone_propionate"]
+    run = _cdiff_on(monkeypatch, "japan", home=home, wbc=wbc)
+    assert [o.drug_id for o in _cdiff_orders(run)] == [drug]
+
+
+def test_us_keeps_oral_vancomycin_with_a_home_immunosuppressant(monkeypatch) -> None:
+    run = _cdiff_on(monkeypatch, "us", home=["prednisolone", "tacrolimus"], inpatient=["methylprednisolone"])
+    assert [o.drug_id for o in _cdiff_orders(run)] == ["vancomycin"]
+
+
+def test_the_immunosuppressive_drug_classes_are_data_and_name_catalog_classes() -> None:
+    from clinosim.codes.drugs import all_drug_ids, drug_classes
+    from clinosim.simulator.complication_actions import complication_action_rules
+
+    rule = complication_action_rules().treatment_actions["start_oral_vancomycin"].recurrence_risk
+    assert rule is not None and rule.drug_classes
+    catalog = {c for d in all_drug_ids() for c in drug_classes(d)}
+    assert set(rule.drug_classes) <= catalog
+    for systemic in ("prednisolone", "azathioprine", "tacrolimus", "capecitabine"):
+        assert set(drug_classes(systemic)) & set(rule.drug_classes), systemic
+    for local in ("budesonide", "fluticasone_propionate", "bcg_intravesical", "metformin"):
+        assert not set(drug_classes(local)) & set(rule.drug_classes), local
+
+
+def test_an_unknown_immunosuppressive_drug_class_is_rejected_at_load() -> None:
+    from pydantic import ValidationError
+
+    from clinosim.simulator.complication_actions import RecurrenceRisk
+
+    with pytest.raises(ValidationError):
+        RecurrenceRisk(age_at_least=65, drug_classes=("no_such_class",))
+
+
 @pytest.mark.parametrize("age", [30, 70, 90])
 def test_us_keeps_oral_vancomycin_at_any_age(monkeypatch, age) -> None:
     run = _cdiff(monkeypatch, "us", wbc=9000.0, age=age, conditions=["D80.0"])
