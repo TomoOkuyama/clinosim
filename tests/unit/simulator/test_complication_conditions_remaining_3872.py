@@ -18,8 +18,8 @@ import yaml
 from clinosim.codes import code_exists, lookup
 from clinosim.locale.loader import map_diagnosis_code
 from clinosim.simulator.complication_dx import (
+    complication_diagnoses,
     complication_diagnosis_code,
-    complication_diagnosis_entries,
     non_diagnosis_tokens,
     pending_tokens,
 )
@@ -27,6 +27,12 @@ from clinosim.simulator.complications import build_complication
 from clinosim.simulator.delirium import delirium_rules
 
 pytestmark = pytest.mark.unit
+
+
+def complication_diagnosis_entries(complications, existing_codes):
+    """The working-diagnosis entries for one list of the codes the stay carries."""
+    return complication_diagnoses(complications, existing_codes)[0]
+
 
 # token -> (US ICD-10-CM leaf, JP WHO ICD-10 code), each read in the CMS FY2027
 # order file and the MHLW 基本分類表 (ICD-10 2013).
