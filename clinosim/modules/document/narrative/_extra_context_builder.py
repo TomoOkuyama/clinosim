@@ -268,10 +268,12 @@ def _build_extra_context(
     # 4-layer narrative integration; Layer 2 (deterministic template) is
     # in template_generator._render_safety_skips_line.
     safety_skips = list(getattr(ctx, "safety_skips", []) or [])
-    # Issue #3914: a day-of note (progress / nursing) does not state a switch
-    # dated after its day.
-    if _WRITING_DAY_SCOPE.get(doc_type) == "day_of_stub":
-        safety_skips = known_by_hospital_day(safety_skips, int(getattr(ctx, "day_index", 0) or 0) + 1)
+    # Issues #3914 / #3943: a document's prompt carries only the switches dated
+    # at or before its own hospital day (a day-of note: its day; an admission
+    # document: the first); whole-stay documents (the discharge and death
+    # summaries) keep every event.
+    _writing_day = _writing_day_of(spec, ctx)
+    safety_skips = known_by_hospital_day(safety_skips, None if _writing_day is None else _writing_day + 1)
     if safety_skips:
         lang = ctx.target_lang
         # Cap the payload (~200 tokens). Phrasing per event_type is shared

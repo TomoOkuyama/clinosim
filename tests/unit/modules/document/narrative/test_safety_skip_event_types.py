@@ -63,8 +63,11 @@ class _Spec:
 
 
 def _render(safety_skips: list[dict], target_lang: str = "en") -> str:
+    # Issue #3943: an admission document is prompted only with the events dated
+    # by its own day; these tests are about the phrasing of the dated events, so
+    # they read the prompt of the discharge summary, which sees the whole stay.
     ctx = _make_ctx(safety_skips, target_lang=target_lang)
-    extra = _build_extra_context(ctx, _Spec("admission_hp"))
+    extra = _build_extra_context(ctx, _Spec("discharge_summary"))
     return extra.get("considered_but_not_prescribed", "")
 
 
