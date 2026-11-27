@@ -473,7 +473,8 @@ def _generate_home_medication_orders(
     # path; structured dose is plumbed into Order.dose_quantity/dose_unit via
     # enrich_medication_order. clinical_intent re-appends dose for narrative
     # continuity ("Home medication (continue): Amlodipine 5mg").
-    from clinosim.modules.order.engine import enrich_medication_order
+    from clinosim.locale.loaders.medical_display import home_medication_max_order_interval_days
+    from clinosim.modules.order.engine import dosing_interval_days, enrich_medication_order
 
     for med in getattr(patient, "current_medications", None) or []:
         drug_name = med.drug_name
@@ -556,6 +557,12 @@ def _generate_home_medication_orders(
         )
         if med.dose:
             enrich_medication_order(order, med.dose)
+        # Issue #3912: a home medication due less often than any stay (a 6-monthly
+        # denosumab) is not ordered in the stay; it stays on the home-medication
+        # list and is continued on the discharge prescription.
+        _interval = dosing_interval_days(order.frequency or "")
+        if _interval and _interval > home_medication_max_order_interval_days():
+            continue
         orders.append(order)
         med_idx += 1
 

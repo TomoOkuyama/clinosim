@@ -17,7 +17,7 @@
 #   <token>:
 #     frequency: <int>      # count per period
 #     period: <int>         # period magnitude
-#     period_unit: <str>    # FHIR period-unit (d / wk / mo / etc.)
+#     period_unit: <str>    # FHIR period-unit (d / wk / mo / a)
 #
 # `_FREQ_PER_DAY` derives from this by filtering `period_unit == "d"`
 # and taking `frequency / period`; `_FREQ_LABEL_TIMING` is a direct
@@ -27,6 +27,13 @@ metadata:
   kind: map
   name: frequency-tokens
   source: clinosim
+
+# A home medication whose dosing interval is longer than this many days is not
+# ordered in the hospital stay (Issue #3912): its next dose falls due after
+# any stay, so it stays on the home-medication list and the discharge
+# prescription as continued. Weekly (7) and monthly (30) cadences are ordered.
+home_medication_continuation:
+  max_order_interval_days: 30
 
 tokens:
   # Once daily
@@ -90,3 +97,24 @@ tokens:
   q4weeks:              {frequency: 1,  period: 4, period_unit: wk}
   q4wks:                {frequency: 1,  period: 4, period_unit: wk}
   "every 4 weeks":      {frequency: 1,  period: 4, period_unit: wk}
+
+  # Every N days (Issue #3912; "every_other_day" / "every_3_days" above)
+  q48h:                 {frequency: 1,  period: 2,   period_unit: d}
+  q72h:                 {frequency: 1,  period: 3,   period_unit: d}
+
+  # Long-interval injections and checks (Issue #3912). Weeks, so one dose is
+  # given every 91 / 182 days exactly (13 / 26 weeks; a month is 30 days in the
+  # order engine) and the unit stays a FHIR UnitsOfTime code the JP dosage
+  # profile leaves alone (it rewrites a day period); a year is 365 days.
+  q3months:             {frequency: 1,  period: 13, period_unit: wk}
+  "every 3 months":     {frequency: 1,  period: 13, period_unit: wk}
+  quarterly:            {frequency: 1,  period: 13, period_unit: wk}
+  q6months:             {frequency: 1,  period: 26, period_unit: wk}
+  "every 6 months":     {frequency: 1,  period: 26, period_unit: wk}
+  every_6_months:       {frequency: 1,  period: 26, period_unit: wk}
+  q12months:            {frequency: 1,  period: 1,  period_unit: a}
+  "every 12 months":    {frequency: 1,  period: 1,  period_unit: a}
+  yearly:               {frequency: 1,  period: 1,  period_unit: a}
+  annual:               {frequency: 1,  period: 1,  period_unit: a}
+  annually:             {frequency: 1,  period: 1,  period_unit: a}
+  "once yearly":        {frequency: 1,  period: 1,  period_unit: a}

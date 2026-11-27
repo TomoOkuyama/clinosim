@@ -115,8 +115,8 @@ def _freq_per_day() -> dict[str, int]:
 
 
 # Days per FHIR Timing period unit, for cadences longer than a day. A month is
-# counted as 30 days (one dose per calendar-month-length interval).
-_DAYS_PER_PERIOD_UNIT = {"d": 1, "wk": 7, "mo": 30}
+# counted as 30 days (one dose per calendar-month-length interval), a year as 365.
+_DAYS_PER_PERIOD_UNIT = {"d": 1, "wk": 7, "mo": 30, "a": 365}
 
 
 def _interval_days_by_token() -> dict[str, int]:
@@ -349,6 +349,9 @@ def enrich_medication_order(order: Order, dose_str: str = "") -> Order:
         order.frequency = parsed["frequency"]
     if order.frequency_per_day is None and parsed.get("frequency_per_day") is not None:
         order.frequency_per_day = parsed["frequency_per_day"]
+    if parsed.get("single_dose") and not order.single_dose:
+        order.single_dose = True
+        order.frequency_per_day = order.frequency_per_day or 1
     # Issue #1337: chronic home meds arrive with ``order.frequency = "DAILY"``
     # (from ``HomeMedication.frequency = "daily"`` upstream), but
     # ``parse_dose_string("50mcg")`` finds no frequency token in the numeric
@@ -379,6 +382,14 @@ def enrich_medication_order(order: Order, dose_str: str = "") -> Order:
     # timed infusion ("IV over 2h") is a single dose (Issue #3043); anything
     # else is assumed daily.
     if order.dose_quantity is not None and not order.frequency:
+        # Issue #3912: a stated cadence the engine does not know is a data
+        # error, never "once a day".
+        _unknown = unrecognized_cadence(f"{dose_str} {order.display_name}")
+        if _unknown is not None:
+            raise ValueError(
+                f"unrecognized dosing frequency {_unknown!r} in {dose_str or order.display_name!r}: "
+                "add it to codes/data/frequency-tokens.yaml"
+            )
         from clinosim.modules.order.absolute_dose import is_continuous_infusion, is_one_time_infusion
 
         # The rate unit may survive only in dose_unit (a renamed product order).
@@ -437,6 +448,58 @@ _STATED_COURSE = re.compile(r"\bx\s*(\d+)(?:\s*-\s*(\d+))?\s*days?\b(?!.*\bthen\
 
 # Issue #3864: a first phase that states its own length, then a later regimen.
 _PHASED_THEN = re.compile(r"^(?P<first>.+?\bx\s*\d+(?:\s*-\s*\d+)?\s*days?)\s*,?\s*then\b.+$", re.IGNORECASE)
+
+
+# Issue #3912: a cadence written as a range of hours ("q8-12h") is given at its
+# longer interval (the lower dose count), and a repeat interval shorter than an
+# hour ("q5min x3", "q10-20min") is an acute bolus series given as one bolus on
+# the order's day: neither is the daily default.
+_HOUR_RANGE_CADENCE = re.compile(r"\bq\s?(\d+)\s?-\s?(\d+)\s?h\b")
+_MINUTE_CADENCE = re.compile(r"\bq\s?\d+(?:\s?-\s?\d+)?\s?min\b")
+# A cadence-looking phrase of a dose or frequency string: "q6months", "q8-12h",
+# "q5min", "every 6 months".
+_CADENCE_PHRASE = re.compile(r"\bq\s?\d+(?:\s?-\s?\d+)?\s?[a-z]+\b|\bevery[\s_]+\d+[\s_]+[a-z]+\b")
+_HOURS_PER_DAY = 24
+
+
+def _apply_range_cadence(s_lower: str, result: dict[str, Any]) -> None:
+    if re.search(r"\bprn\b", s_lower):
+        return  # an as-needed range keeps the PRN label (Issue #2085)
+    m = _HOUR_RANGE_CADENCE.search(s_lower)
+    if m:
+        longer = int(m.group(2))
+        if longer > 0:
+            result["frequency"] = re.sub(r"\s+", "", m.group(0)).upper()
+            result["frequency_per_day"] = max(1, _HOURS_PER_DAY // longer)
+        return
+    m = _MINUTE_CADENCE.search(s_lower)
+    if m:
+        result["frequency"] = re.sub(r"\s+", "", m.group(0)).upper()
+        result["single_dose"] = True
+
+
+def _cadence_recognized(phrase: str) -> bool:
+    key = " ".join(phrase.lower().replace("_", " ").split())
+    known = {t.replace("_", " ") for t in (*_freq_per_day(), *_interval_days_by_token())}
+    compact = key.replace(" ", "")
+    return (
+        key in known
+        or compact in known
+        or bool(_HOUR_RANGE_CADENCE.fullmatch(compact))
+        or bool(_MINUTE_CADENCE.fullmatch(compact))
+    )
+
+
+def unrecognized_cadence(text: str) -> str | None:
+    """The first cadence phrase of a dose or frequency string that the order
+    engine cannot resolve, ``None`` when every one resolves (Issue #3912).
+
+    An unresolved cadence used to fall through to the daily default, so a
+    "60mg SC q6months" injection was given every day."""
+    for m in _CADENCE_PHRASE.finditer((text or "").lower()):
+        if not _cadence_recognized(m.group(0)):
+            return m.group(0)
+    return None
 
 
 def parse_dose_string(dose_str: str) -> dict[str, Any]:
@@ -540,6 +603,8 @@ def parse_dose_string(dose_str: str) -> dict[str, Any]:
             if re.search(rf"\b{re.escape(token)}\b", s_lower):
                 result["frequency"] = token.upper()
                 break
+        else:
+            _apply_range_cadence(s_lower, result)
     # Issue #2085: keep the PRN qualifier ("1000mg IV q6h PRN" -> "Q6H PRN") so
     # the MAR gives the drug on demand and FHIR emits asNeededBoolean.
     if re.search(r"\bprn\b", s_lower):
