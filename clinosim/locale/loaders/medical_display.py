@@ -150,6 +150,16 @@ def load_frequency_tokens() -> dict[str, tuple[int, int, str]]:
 
 
 @lru_cache(maxsize=1)
+def home_medication_max_order_interval_days() -> int:
+    """Longest dosing interval (days) of a home medication that is still ordered
+    in the stay (Issue #3912): ``home_medication_continuation.max_order_interval_days``
+    of ``frequency-tokens.yaml``. A longer cadence stays on the home-medication
+    list and the discharge prescription."""
+    raw = data_table("frequency-tokens").get("home_medication_continuation") or {}
+    return int(raw["max_order_interval_days"])
+
+
+@lru_cache(maxsize=1)
 def load_occupation_display() -> dict[str, dict[str, str]]:
     """Load the occupation display table ({slug: {en, ja}}): the
     ``occupation`` section of ``locale/shared/vocabulary.yaml``, shared with
