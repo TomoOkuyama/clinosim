@@ -165,7 +165,7 @@ Unit test: `tests/unit/test_prophylaxis.py` が以下をカバー
 - 短 LOS / 非入院 encounter → order なし
 - 治療量抗凝固中の患者 → 正しい reason で skip
 - 活動性出血の診断 → skip
-- 分娩の診断 (Z37/Z38) → skip
+- 分娩の診断 (O 章 / Z37 / Z38) → skip
 - 活動性 DVT/PE の診断 → skip (自身の治療が予防を置き換える)
 - 小児 (18 歳未満) の入院 → skip (Issue #1276, #3082)
 - 慢性 aspirin / encounter 内 NSAID → drug_safety ペア経由で skip (Issue #1087)

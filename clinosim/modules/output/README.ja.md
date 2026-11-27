@@ -33,7 +33,7 @@ FHIR R4 emission 本体は [`fhir_r4/`](fhir_r4/README.ja.md) subpackage に。
 経由で FHIR に到達する (新規 resource-type builder は不要)。FHIR R4
 subpackage は `_BUNDLE_BUILDERS` registry 経由で CIF から拾う:
 
-- **産科 — 母親側分娩 Encounter** (admit dx `O80`、discharge dx
+- **産科 — 母親側分娩 Encounter** (admit / discharge dx `O80`、secondary dx
   `Z37.0`、分娩 Procedure US CPT `59400`、JP は保険外のため K コードなし) と **新生児
   Encounter** (`admit_source = "born"` —
   `AdmitSource.BORN` enum 値、詳細

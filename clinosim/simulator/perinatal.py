@@ -725,8 +725,9 @@ def simulate_delivery_encounter(
         discharge_datetime = ``visit_date + LOS`` (LOS from
         ``perinatal.yaml.encounter.length_of_stay_days.{jp|us}``).
       * ``admission_diagnosis_code = "O80"`` (WHO ICD-10 single
-        spontaneous delivery), ``discharge_diagnosis_code = "Z37.0"``
-        (single liveborn, mother-side outcome).
+        spontaneous delivery) is also the ``discharge_diagnosis_code``;
+        ``secondary_diagnosis_codes = ["Z37.0"]`` (single liveborn,
+        mother-side outcome of delivery; Issue #3913).
       * One Procedure with the JP/US billing code from
         ``perinatal.yaml.procedure``.
 
@@ -808,9 +809,11 @@ def simulate_delivery_encounter(
         admit_dx = str(cs_cfg.get("admission_diagnosis_code") or "O82")
     else:
         admit_dx = str(enc_cfg.get("admission_diagnosis_code") or "O80")
-    # discharge diagnosis Z37.0 (single liveborn — outcome) applies to
-    # both delivery modes; ICD-10 does not sub-divide Z37 by mode.
-    discharge_dx = str(enc_cfg.get("discharge_diagnosis_code") or "Z37.0")
+    # Z37.0 (single liveborn — outcome) applies to both delivery modes; ICD-10
+    # does not sub-divide Z37 by mode. It is a secondary diagnosis of the
+    # mother's record, never the principal or the sole one (ICD-10-CM Official
+    # Guidelines I.C.15.b.5; Issue #3913).
+    outcome_dx = str(enc_cfg.get("outcome_diagnosis_code") or "Z37.0")
 
     # Issue #1285: surface pre-sampled pregnancy complications on the
     # delivery encounter. `_pregnancy_lifecycle_events` (population/
@@ -866,13 +869,20 @@ def simulate_delivery_encounter(
             }
         )
 
+    # The stay's principal obstetric code (O80 / O82, or the first
+    # complication) is also its discharge diagnosis; the outcome of delivery
+    # follows as a secondary diagnosis.
     clinical_diagnosis = encounter_diagnosis(
-        admit_dx, country, discharge_code=discharge_dx, working_diagnoses=working_diagnoses
+        admit_dx,
+        country,
+        discharge_code=admit_dx,
+        working_diagnoses=working_diagnoses,
+        secondary_diagnosis_codes=[outcome_dx],
     )
     condition_event = ConditionEvent(
         condition_id=f"COND-{patient.patient_id}-DELIVERY",
         condition_type=("mixed" if complications else "perinatal_delivery"),
-        ground_truth_diseases=[discharge_dx, *complications],
+        ground_truth_diseases=[outcome_dx, *complications],
     )
 
     from clinosim.types.procedure import ProcedureRecord

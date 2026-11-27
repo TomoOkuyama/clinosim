@@ -48,8 +48,8 @@
 [`clinosim/locale/shared/chronic_followup.yaml`](../../locale/shared/chronic_followup.yaml)
 に直接持つ:
 
-- **周産期分娩 Encounter** (母親側、IMP admission、admit dx `O80`、
-  discharge dx `Z37.0`、LOS JP 5 日 / US 2 日、部門は `obstetrics_gynecology`、
+- **周産期分娩 Encounter** (母親側、IMP admission、admit / discharge dx `O80`、
+  secondary dx `Z37.0`、LOS JP 5 日 / US 2 日、部門は `obstetrics_gynecology`、
   `department_rollup` で集約 (同梱の病院設定では `primary_care`)。delivery Procedure
   US CPT `59400`、JP は正常分娩が保険外のため K コードなし)。母親は分娩の `labor_hours_before_delivery` 時間前 (経腟 2 時間 / 帝王切開 1 時間) に陣痛期として入院し、全ての order が入院期間内に入る。分娩 Procedure と新生児の入院は分娩時刻、退院は分娩 + LOS。`O80` (帝王切開は `O82`) は合併症のない分娩のみ: 妊娠合併症を引いた分娩は最初の合併症を主病名として入院し (残りは working diagnosis)、出産に合わない合併症は落とす (`O60.1` は 37 週未満のみ、`O64.9` は帝王切開のみ。`perinatal.yaml complications.bernoulli_draws`)。残った各合併症は record にデータを残す (`complications.effects`: 妊娠高血圧腎症は 48 時間 140/90 mmHg 以上の血圧、血小板・AST・ALT・クレアチニン、硫酸マグネシウムとラベタロールの order。妊娠糖尿病は血糖と HbA1c。前期破水は WBC と CRP)。母親は入院日ごとの Barthel (ADL) 評価を持ち (`maternal_adl`)、nursing enricher が Braden / Morse を導出する。母親の record は notes 用に `extensions["delivery"]` (`mode` / `gestational_age_days` / `complication_codes` / `estimated_blood_loss_ml`。値は delivery Procedure と同じで `delivery_outcome.ebl_ml` から) を持つ。
 - **新生児の出生時体重・身長** (Issue #3667): 新生児 profile の `weight_kg` / `height_cm` / `bmi` は出生日の体重・身長 Observation の値 (出生 encounter の `encounter_anthropometrics`) で、定数ではない。
