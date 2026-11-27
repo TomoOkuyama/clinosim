@@ -155,6 +155,7 @@ procedures:
   "O2: PRN SpO2 < 94%": {ja: "酸素投与: SpO2 < 94% で頓用"}
   "O2: Target SpO2 >= 94%": {ja: "酸素投与: 目標 SpO2 >= 94%"}
   "antibiotic_prophylaxis: Cefazolin 2g IV (preoperative)": {ja: "予防的抗菌薬: セファゾリン 2g 静注 (術前)"}
+  "antibiotic_prophylaxis: Cefmetazole 1g IV (preoperative)": {ja: "予防的抗菌薬: セフメタゾール 1g 静注 (術前)"}
   "anticoagulant_reversal: Vitamin K + FFP if on warfarin; idarucizumab if dabigatran": {ja: "抗凝固薬の拮抗: ワルファリン服用中ならビタミンK + FFP、ダビガトラン服用中ならイダルシズマブ"}
   "aspiration_precautions: Suction at bedside, HOB elevation, lateral positioning": {ja: "誤嚥予防: ベッドサイドに吸引器を準備、頭部挙上、側臥位"}
   "bed_rest: Bed rest for initial 12-24h": {ja: "安静: 当初 12-24 時間は床上安静"}
@@ -200,7 +201,6 @@ procedures:
   "seizure_prophylaxis: Not routine; only if seizure occurs": {ja: "痙攣予防: 通常は行わず、痙攣が起きた場合のみ"}
   "splint: Sugar-tong splint pending surgery": {ja: "術前シュガートングシーネ固定"}
   "sodium_restriction: <2g Na/day": {ja: "塩分制限: Na 2 g/日未満"}
-  "stress_ulcer_prophylaxis: Famotidine 20mg IV BID": {ja: "ストレス潰瘍予防: ファモチジン 20mg 静注 1日2回"}
   "suicide_precautions: Ligature-safe room, belongings search, observation level per risk": {ja: "自殺予防: 縊頸防止対策を施した病室、持ち物の確認、リスクに応じた観察レベル"}
   "telemetry: Continuous cardiac monitoring": {ja: "テレメトリー心電図モニター: 持続モニタリング"}
   "tetanus_prophylaxis: Td booster if > 5 years": {ja: "破傷風予防: 5 年超の場合は Td 追加接種 (最終接種から)"}
@@ -234,6 +234,10 @@ medication_orders:
   "pain_management: Acetaminophen 1000mg IV + NSAIDs": {ja: "疼痛管理: アセトアミノフェン 1000mg 静注 + 非ステロイド性抗炎症薬 (NSAIDs)"}
   "lactulose: 30mL PO TID if encephalopathy": {ja: "ラクツロース: 30mL 経口 1日3回 (肝性脳症がある場合)"}
   "PPI: Omeprazole 80mg IV bolus, then 8mg/h continuous infusion": {ja: "PPI: オメプラゾール 80mg 静注ボーラス、その後 8mg/h で持続静注"}
+  "stress_ulcer_prophylaxis: Famotidine 20mg IV q12h x7 days": {ja: "ストレス潰瘍予防: ファモチジン 20mg 静注 12時間毎 (7 日間)"}
+  # The renal-dose variants of the line (renal_antibiotic_dosing.yaml rewrites the written dose and interval).
+  "stress_ulcer_prophylaxis: Famotidine 10mg IV q12h x7 days": {ja: "ストレス潰瘍予防: ファモチジン 10mg 静注 12時間毎 (7 日間)"}
+  "stress_ulcer_prophylaxis: Famotidine 5mg IV daily x7 days": {ja: "ストレス潰瘍予防: ファモチジン 5mg 静注 1日1回 (7 日間)"}
 
 # Issue #3428: the `dose` strings of the disease protocols that carry a free-text
 # annotation, condition or schedule. Each is looked up whole (as the tail of a
@@ -303,6 +307,10 @@ dose_phrases:
   "15mg PO BID x21d then 20mg daily": {ja: "15mg 経口 1日2回 21日間、その後 20mg 1日1回"}
   "1g IV daily x 7 days": {ja: "1g 静注 1日1回 7日間"}
   "2000IU SC daily x14 days": {ja: "2000IU 皮下注 1日1回 14日間"}
+  # Issue #3917: famotidine for sepsis stress-ulcer prophylaxis and its renal-dose variants.
+  "20mg IV q12h x7 days": {ja: "20mg 静注 12時間毎 7日間"}
+  "10mg IV q12h x7 days": {ja: "10mg 静注 12時間毎 7日間"}
+  "5mg IV daily x7 days": {ja: "5mg 静注 1日1回 7日間"}
   "30-40mg PO daily x5-7 days": {ja: "30-40mg 経口 1日1回 5-7日間"}
   "40mg PO daily x5 days": {ja: "40mg 経口 1日1回 5日間"}
   "500mg PO qid x7d": {ja: "500mg 経口 1日4回 7日間"}
