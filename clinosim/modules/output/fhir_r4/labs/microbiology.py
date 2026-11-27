@@ -219,7 +219,11 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         return []
     lang = lang_for(ctx.country)
     subject = patient_ref(ctx.patient_id)
-    enc_ref = encounter_ref(ctx.primary_enc_id) if ctx.primary_enc_id else None
+    # Each resource gets its own copy of this Reference (Issue #3919): the
+    # time-based ED routing rewrites ``encounter.reference`` in place, so one
+    # shared dict would carry an ED culture's rerouting to every later culture.
+    base_enc_ref = encounter_ref(ctx.primary_enc_id) if ctx.primary_enc_id else None
+    enc_ref = base_enc_ref
     # p=500 review finding (session 89): populate `.text` so the JP
     # post-process normalizer (`_normalize_jp_observation_category`)
     # carries a JP-language label forward on mb-org Observations. The
@@ -249,8 +253,13 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         [o for o in orders if get_attr_or_key(o, "order_type") in (OrderType.LAB, "lab")]
     )
 
+    record_enc_ids = {str(get_attr_or_key(e, "encounter_id", "") or "") for e in ctx.record.get("encounters", []) or []}
     for i, mb in enumerate(cultures):
         base = f"{ctx.primary_enc_id or ctx.patient_id}-{i}"
+        # The culture's own Encounter (the one its order is in) when the record
+        # has it; the primary Encounter otherwise (Issue #3919).
+        _mb_enc = str(mb.get("encounter_id") or "")
+        enc_ref = encounter_ref(_mb_enc) if _mb_enc in record_enc_ids else base_enc_ref
         # Issue #2585: the culture order(s) this result reports.
         based_on = [
             {"reference": f"ServiceRequest/{sid}"}
@@ -347,7 +356,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         if based_on:
             org_obs["basedOn"] = based_on
         if enc_ref:
-            org_obs["encounter"] = enc_ref
+            org_obs["encounter"] = dict(enc_ref)
         # Issue #3039: a culture result is effective at the specimen
         # collection (the physiologically relevant time); the report time is
         # `issued`.
@@ -423,7 +432,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             # Issue #2585: the susceptibility is of this isolate.
             sus_obs["derivedFrom"] = [{"reference": f"Observation/{org_id}"}]
             if enc_ref:
-                sus_obs["encounter"] = enc_ref
+                sus_obs["encounter"] = dict(enc_ref)
             # C1-13: the same times as the organism observation above (both
             # belong to the same reported result).
             if _effective:
@@ -488,7 +497,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         if based_on:
             report["basedOn"] = based_on
         if enc_ref:
-            report["encounter"] = enc_ref
+            report["encounter"] = dict(enc_ref)
         if _effective:
             report["effectiveDateTime"] = _effective
         if _mb_performer_ref:

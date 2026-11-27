@@ -311,7 +311,9 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
             "subject": subject,
         }
         if encounter or enc_ref:
-            resource["encounter"] = encounter or enc_ref
+            resource["encounter"] = dict(
+                encounter or enc_ref or {}
+            )  # own copy: ED routing edits it in place (Issue #3919)
         if effective:
             resource["effectiveDateTime"] = effective
         if performer_id:
