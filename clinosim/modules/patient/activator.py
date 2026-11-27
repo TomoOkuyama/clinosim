@@ -819,12 +819,14 @@ def activate_patient(
     # person already takes (an earlier pick, or an escalation's substitute —
     # Rosuvastatin for Atorvastatin) is not added back; the existing agent
     # stays. Filtering only: the derivation's draws are unchanged.
-    _reconcile = _ds.discharge_reconciliation_rules()
     _seen = {m.drug_name for m in current_meds if m.drug_name}
     for _hm in _derived_meds:
         if not _hm.drug_name or _hm.drug_name in _seen:
             continue
-        if any(v.rule_id in _reconcile for v in _ds.check_candidate_against_active(_hm.drug_name, sorted(_seen))):
+        if any(
+            _ds.reconciliation_drops_candidate(v, _hm.drug_name)
+            for v in _ds.check_candidate_against_active(_hm.drug_name, sorted(_seen))
+        ):
             continue
         current_meds.append(_hm)
         _seen.add(_hm.drug_name)

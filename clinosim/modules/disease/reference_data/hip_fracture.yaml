@@ -295,7 +295,8 @@ drugs:
       - {drug_id: enoxaparin, dose: "40mg SC daily", note: "DVT prophylaxis"}
   post_op:
     japan:
-      - {drug_id: celecoxib, dose: "200mg PO daily"}
+      # Issue #3923: no NSAID beside the enoxaparin of the fracture prophylaxis (the
+      # anticoagulant-plus-nsaid rule is contraindicated); acetaminophen is the analgesic.
       - {drug_id: enoxaparin, dose: "2000IU SC daily x14 days"}
     us:
       - {drug_id: oxycodone, dose: "5mg PO q4-6h PRN"}
@@ -307,7 +308,6 @@ drugs:
     # catalog as single drug_ids) and stay on legacy fields; the
     # dual-path resolver preserves their emit path byte-identical.
     japan:
-      - {drug_id: celecoxib, dose: "200mg PO daily", duration_days: 14}
       - {drug_id: acetaminophen, dose: "500mg PO q6h PRN", duration_days: 28}
       # Issue #455: Enoxaparin is a subcutaneous-only LMWH. Without an explicit
       # `route`, `build_discharge_rx._append_item` substitutes "PO" and the CIF

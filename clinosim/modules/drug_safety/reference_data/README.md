@@ -68,6 +68,7 @@ rules:
         source: "<citation>"
 
 discharge_reconciliation_rules: [<rule id>, ...]   # rules the discharge Rx reconciles (Issue #2713)
+discharge_reconciliation_keeps: {<rule id>: <class>}   # optional (Issue #3923): the class a reconciled rule keeps; the other side is dropped
 
 triple_therapy_after_acs:          # antithrombotic plan: anticoagulant + DAPT after ACS
   aspirin_days: <int >= 1>
@@ -81,6 +82,10 @@ triple_therapy_after_acs:          # antithrombotic plan: anticoagulant + DAPT a
 
 `discharge_reconciliation_rules` must name rule ids defined in
 `rules` (read by `discharge_reconciliation_rules()`);
+`discharge_reconciliation_keeps` must name reconciled rule ids and catalog
+classes (read by `discharge_reconciliation_keeps()`); a reconciled rule
+without an entry keeps the earlier item, one with an entry keeps its class
+(`anticoagulant-plus-nsaid` keeps the anticoagulant);
 `triple_therapy_after_acs` is read by `triple_therapy_after_acs_plan()`;
 its `replaces_rules` must name rule ids too. Issue #3234: in-stay, a
 protocol with `acs_antithrombotic_plan: true` applies the plan when every

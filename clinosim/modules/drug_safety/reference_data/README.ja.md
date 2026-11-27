@@ -69,6 +69,7 @@ rules:
         source: "<出典>"
 
 discharge_reconciliation_rules: [<rule id>, ...]   # 退院処方で reconcile する rule (Issue #2713)
+discharge_reconciliation_keeps: {<rule id>: <class>}   # 任意 (Issue #3923): reconcile rule が残す class。他方の薬は外す
 
 triple_therapy_after_acs:          # ACS 後に抗凝固薬 + DAPT で退院する場合の抗血栓療法 plan
   aspirin_days: <1 以上の int>
@@ -82,6 +83,10 @@ triple_therapy_after_acs:          # ACS 後に抗凝固薬 + DAPT で退院す�
 
 `discharge_reconciliation_rules` は `rules` で定義済みの rule id を
 指す必要がある (`discharge_reconciliation_rules()` が読む)。
+`discharge_reconciliation_keeps` は reconcile 対象の rule id とカタログの
+class を指す必要がある (`discharge_reconciliation_keeps()` が読む)。
+エントリのない reconcile rule は先の item を残し、エントリのある rule は
+その class を残す (`anticoagulant-plus-nsaid` は抗凝固薬を残す)。
 `triple_therapy_after_acs` は `triple_therapy_after_acs_plan()` が
 読み、その `replaces_rules` も rule id を指す必要がある。Issue #3234:
 `acs_antithrombotic_plan: true` のプロトコルでは、抗血小板薬オーダーを
