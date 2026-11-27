@@ -117,6 +117,10 @@ def ucum_prose(unit: str | None) -> str:
       (returns ``<real>``); the mL/min/1.73m² special-case is handled
       at its callsite for the ² typography, so this helper leaves the
       raw underscore/digit form untouched.
+    - A composite unit that *starts* with an annotation, ``{events}/h``,
+      prints the annotation as the word it carries (``events/h``): the
+      annotation is the thing counted, so it is kept without braces
+      (Issue #3926).
     - UCUM special-unit brackets ``[X]`` (e.g. ``mm[Hg]`` for mmHg,
       ``cm[H2O]`` for cmH2O) are stripped so blood-gas / airway-
       pressure units render as clinicians write them (`PaCO2 46.4
@@ -136,6 +140,12 @@ def ucum_prose(unit: str | None) -> str:
         anno_start = u.rfind("/{")
         if anno_start > 0:
             u = u[:anno_start]
+    # A leading annotation of a composite unit is the counted thing:
+    # "{events}/h" -> "events/h".
+    if u.startswith("{"):
+        anno_end = u.find("}/")
+        if anno_end > 1:
+            u = u[1:anno_end] + u[anno_end + 1 :]
     # Strip UCUM special-unit brackets — `mm[Hg]` → `mmHg`,
     # `cm[H2O]` → `cmH2O`, `[in_i]` → `in_i`. The brackets carry no
     # information beyond marking a UCUM special unit family; prose
