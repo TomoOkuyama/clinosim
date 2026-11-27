@@ -175,7 +175,7 @@ output/
   - 妊婦健診 `Encounter` (AMB、obstetrics_gynecology) は妊娠週 12 / 24 / 36 で
     encounter reason Z34。Z34 は problem-list-item Condition を
     emit しない (妊娠は state、慢性状態ではない)。
-  - 母親側分娩 `Encounter` (IMP 入院、admit dx O80、discharge dx
+  - 母親側分娩 `Encounter` (IMP 入院、admit / discharge dx O80、secondary dx
     Z37.0、分娩 `Procedure` — JP K894 / US CPT 59400)。帝王切開
     (US 32.1 % / JP 20.4 %、`perinatal.yaml::cesarean`) では admit dx
     O82、JP K898 / US CPT 59510 を代わりに使用。

@@ -46,7 +46,7 @@
 | 過去分娩 Z37 problem-list-item | delivered pregnancy period 毎に 1 件、onsetDateTime = 分娩日。生物学的整合 — 複数出産で複数 Z37。FHIR emit 時に `state_history("pregnancy")` から導出、**Incr 1 前の chronic-sample proxy を置換**。 | `modules/output/fhir_r4/conditions/conditions.py::_build_conditions` (past-pregnancies adapter) |
 | 妊娠中サプリ Rx | 葉酸 + 鉄剤。pregnancy 履歴のある patient にのみ home medication として付与。emit path は不変 (`chronic_medications.yaml::Z34`)、gate が `chronic_conditions` から `state_periods` へ移動 — activator で仮想 Z34 `ChronicCondition` を med-derivation 入力に注入。 | `locale/shared/chronic_medications.yaml` の Z34 block + `modules/patient/activator.py` (state 起点 hook) |
 | 妊婦健診 encounter | AMB encounter、妊娠週 12/24/36 (Incr 1 は簡易版、q4w/q2w/q1w cadence は Incr 1.5)、`disease_id="Z34"`、`_CHRONIC_DISEASE_SPECIALTY` で obstetrics_gynecology に routing。 | `perinatal.yaml::lifecycle.prenatal_visit_gestational_weeks` + `population/_pregnancy.py::_pregnancy_lifecycle_events` |
-| 母親側分娩入院 encounter | delivered pregnancy period 毎に 1 件 IMP encounter、planned delivery date (EDD ± 7 d jitter) を含む年で発火。LOS JP 5 d / US 2 d、admission dx `O80`、discharge dx `Z37.0`、delivery Procedure。帝王切開 (US 32.1 % / JP 20.4 %) では admission dx `O82`、LOS JP 8 d / US 4 d。 | `locale/shared/perinatal.yaml::encounter` + `population/_pregnancy.py::_pregnancy_lifecycle_events` + `simulator/perinatal.py` |
+| 母親側分娩入院 encounter | delivered pregnancy period 毎に 1 件 IMP encounter、planned delivery date (EDD ± 7 d jitter) を含む年で発火。LOS JP 5 d / US 2 d、admission / discharge dx `O80`、secondary dx `Z37.0`、delivery Procedure。帝王切開 (US 32.1 % / JP 20.4 %) では admission dx `O82`、LOS JP 8 d / US 4 d。 | `locale/shared/perinatal.yaml::encounter` + `population/_pregnancy.py::_pregnancy_lifecycle_events` + `simulator/perinatal.py` |
 | 分娩 Procedure | JP: `K894` 分娩介助 / US: CPT `59400` routine obstetric care。帝王切開: JP `K898` 帝王切開術 / US CPT `59510` | `perinatal.yaml::procedure` + `perinatal.yaml::cesarean` |
 | 新生児 `Patient` チェーン | Baby id `<mother>-BABY` (同じ母親の N 人目は `<mother>-<N>-BABY`)、世帯継承、性別は per-mother sub-RNG、birthDate = 分娩日。新生児は出生入院の退院翌日にシミュレーション人口へ加入し (`PersonRecord.enrolled_from`)、以降は他の人と同様にシミュレーションされる。 | `simulator/perinatal.py` |
 | 新生児 Encounter | IMP、`admit_source = born` (`AdmitSource.BORN`) + `admit_source_encounter_id` → 新生児側 FHIR `Encounter.partOf` | `simulator/perinatal.py` + `codes/hl7_encounter.py::AdmitSource.BORN` |
@@ -121,7 +121,7 @@ simulator/engine.py::run_beta() → 前進月次ループ
   event_type == "delivery"          →  simulate_delivery_encounter(...)
                                           → Encounter (IMP, obstetrics_gynecology dept, LOS 5/2d)
                                           → ProcedureRecord (delivery)
-                                          → ClinicalDiagnosis(admission=O80 または O82 (帝王切開), discharge=Z37.0)
+                                          → ClinicalDiagnosis(admission=O80 または O82 (帝王切開), discharge=O80 / O82、secondary=[Z37.0])
                                           → 新生児 Patient chain
   event_type == "abortion"          →  simulate_abortion_encounter(...) (period 既に close)
   event_type == "chronic_visit" with condition_type == "prenatal_visit" or "postpartum"
@@ -282,7 +282,7 @@ encounter:
     en: "Delivery (spontaneous vaginal delivery)"
     ja: "分娩 (自然分娩)"
   admission_diagnosis_code: "O80"       # 単胎自然分娩
-  discharge_diagnosis_code: "Z37.0"     # 単胎生児出生、母親側
+  outcome_diagnosis_code: "Z37.0"       # 単胎生児出生、母親側。secondary dx
   length_of_stay_days:
     jp: 5                               # JSOG 正常分娩 LOS
     us: 2                               # US Medicare/HEDIS 48h stay

@@ -62,8 +62,8 @@ longitudinal service lines (see
 - **Delivery encounter (mother side)** — a standard inpatient
   Encounter with `type` reflecting the OB visit reason (from
   `perinatal.yaml::encounter.visit_reason`) and no special
-  builder-side handling beyond the standard admission dx `O80` /
-  discharge dx `Z37.0` routing.
+  builder-side handling beyond the standard admission / discharge dx `O80`
+  (DD) with `Z37.0` as a secondary diagnosis (CM, Issue #3913) routing.
 - **Chemo / radiation encounters** — outpatient Encounters
   emitted from `chemo_visit` / radiation LifeEvents. No new
   builder needed; the accompanying MedicationRequest +

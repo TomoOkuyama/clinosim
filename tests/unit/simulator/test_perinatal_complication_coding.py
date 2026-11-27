@@ -68,6 +68,7 @@ def test_uncomplicated_delivery_keeps_the_mode_code(pid: str, uncomplicated: str
     rec = _deliver(pid, [])
     assert rec.clinical_diagnosis.admission_diagnosis_code == uncomplicated
     assert _working(rec) == []
+    assert rec.clinical_diagnosis.discharge_diagnosis_code == uncomplicated  # Issue #3913
     assert rec.condition_event.ground_truth_diseases == ["Z37.0"]
 
 
@@ -77,7 +78,8 @@ def test_complicated_delivery_is_not_admitted_as_uncomplicated(pid: str, country
     rec = _deliver(pid, ["O24.9", "O14.9"], country=country)
     assert rec.clinical_diagnosis.admission_diagnosis_code == "O24.9"
     assert _working(rec) == ["O14.9"]
-    assert rec.clinical_diagnosis.discharge_diagnosis_code == "Z37.0"
+    assert rec.clinical_diagnosis.discharge_diagnosis_code == "O24.9"  # Issue #3913: Z37.0 is secondary
+    assert rec.clinical_diagnosis.secondary_diagnosis_codes == ["Z37.0"]
     assert rec.condition_event.ground_truth_diseases == ["Z37.0", "O24.9", "O14.9"]
     assert rec.condition_event.condition_type == "mixed"
     # the chief complaint still names the mode of delivery

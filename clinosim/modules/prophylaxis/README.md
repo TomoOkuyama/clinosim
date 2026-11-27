@@ -175,7 +175,7 @@ Unit tests: `tests/unit/test_prophylaxis.py` covering
 - Short-LOS / non-inpatient encounter → no order
 - Therapeutic-AC patient → skipped with correct reason
 - Active hemorrhage dx → skipped
-- Delivery dx (Z37/Z38) → skipped
+- Delivery dx (O chapter / Z37 / Z38) → skipped
 - Active DVT/PE dx → skipped (own therapy replaces prophylaxis)
 - Pediatric (age < 18) admission → skipped (Issue #1276, #3082)
 - Chronic aspirin / in-encounter NSAID → skipped via drug_safety pair (Issue #1087)

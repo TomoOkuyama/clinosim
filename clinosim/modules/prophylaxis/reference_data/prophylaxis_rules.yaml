@@ -106,12 +106,13 @@ skip_conditions:
       - "K26.0"   # Acute duodenal ulcer with hemorrhage
       - "K92.2"   # Gastrointestinal hemorrhage, unspecified
 
-  # Delivery admissions (Z37/Z38) — postpartum VTE prophylaxis follows a
+  # Delivery admissions (O / Z37 / Z38) — postpartum VTE prophylaxis follows a
   # different protocol (mechanical compression + selective LMWH by risk
   # score); handled by the perinatal module, not this generic rule.
   perinatal_delivery:
     description: "Delivery admission — postpartum VTE prophylaxis is protocol-specific and out of the generic DVT rule."
     icd_prefixes:
+      - "O"       # Pregnancy, childbirth and the puerperium: the discharge diagnosis of a delivery stay (O80, O82 or its principal complication; Issue #3913)
       - "Z37"     # Outcome of delivery
       - "Z38"     # Liveborn infants according to place of birth
 

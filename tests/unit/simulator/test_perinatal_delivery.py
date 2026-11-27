@@ -257,7 +257,9 @@ def test_delivery_encounter_returns_mother_and_newborn_records_jp() -> None:
     assert m_enc.admission_datetime == visit_dt - timedelta(hours=2)
     assert (m_enc.discharge_datetime - visit_dt).days == 5, "JP delivery LOS should be 5 days"
     assert mother_rec.clinical_diagnosis.admission_diagnosis_code == "O80"
-    assert mother_rec.clinical_diagnosis.discharge_diagnosis_code == "Z37.0"
+    # Issue #3913: the obstetric code is the discharge diagnosis, Z37.0 a secondary one.
+    assert mother_rec.clinical_diagnosis.discharge_diagnosis_code == "O80"
+    assert mother_rec.clinical_diagnosis.secondary_diagnosis_codes == ["Z37.0"]
     assert len(mother_rec.procedures) == 1
     # 正常分娩 is uninsured in Japan: no K-code (K894 is forceps delivery; Issue #2340).
     assert mother_rec.procedures[0].procedure_code == ""

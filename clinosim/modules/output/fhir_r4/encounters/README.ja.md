@@ -59,7 +59,7 @@ export 時に 1 回生成)、および JP `CareLevel` (要介護度) の custom 
   歴史的 ED→入院リンク (CY7-05) にも再利用される。
 - **分娩 encounter (母親側)** — 通常の入院 Encounter で、`type` は
   産科受診理由 (`perinatal.yaml::encounter.visit_reason`) を反映。
-  admit dx `O80` / discharge dx `Z37.0` の routing は標準経路。
+  admit / discharge dx `O80` (DD)、secondary dx `Z37.0` (CM、Issue #3913) の routing は標準経路。
   builder 側の特別処理は不要。
 - **化学療法 / 放射線 encounter** — `chemo_visit` / 放射線 LifeEvent
   から発生する外来 Encounter。新 builder は不要 — 付随の

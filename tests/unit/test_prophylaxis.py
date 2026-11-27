@@ -10,6 +10,8 @@ from datetime import datetime
 from types import SimpleNamespace
 from typing import Any
 
+import pytest
+
 from clinosim.modules.prophylaxis.engine import (
     build_dvt_prophylaxis_orders,
     should_skip_dvt_prophylaxis,
@@ -107,11 +109,13 @@ def test_skip_on_gi_bleed() -> None:
     assert reason == "active_bleeding_or_hemorrhage"
 
 
-def test_skip_on_delivery_admission() -> None:
+@pytest.mark.parametrize("dx", ["Z37.0", "O80", "O82", "O14.9"])
+def test_skip_on_delivery_admission(dx: str) -> None:
+    # Issue #3913: a delivery stay's discharge diagnosis is the obstetric code.
     skip, reason = should_skip_dvt_prophylaxis(
         patient=_patient([]),
         encounter=_encounter(72),
-        admission_dx_code="Z37.0",
+        admission_dx_code=dx,
     )
     assert skip is True
     assert reason == "perinatal_delivery"
@@ -191,8 +195,9 @@ def test_hemorrhagic_stroke_no_order() -> None:
     assert build_dvt_prophylaxis_orders(record=record, country="US") == []
 
 
-def test_delivery_no_order() -> None:
-    record = _record(_patient([]), _encounter(los_hours=48), dx="Z37.0")
+@pytest.mark.parametrize("dx", ["Z37.0", "O80", "O82"])
+def test_delivery_no_order(dx: str) -> None:
+    record = _record(_patient([]), _encounter(los_hours=48), dx=dx)
     assert build_dvt_prophylaxis_orders(record=record, country="US") == []
 
 

@@ -24,7 +24,11 @@ encounter:
     en: "Delivery (spontaneous vaginal delivery)"
     ja: "分娩 (自然分娩)"
   admission_diagnosis_code: "O80"       # WHO ICD-10: Single spontaneous delivery
-  discharge_diagnosis_code: "Z37.0"     # Single liveborn (mother-side outcome)
+  # Z37.0 single live birth: the mother-side outcome of delivery. A secondary
+  # diagnosis, never the principal or the sole one (ICD-10-CM Official
+  # Guidelines I.C.15.b.5); the discharge diagnosis is the obstetric code above
+  # (or the delivery's principal complication). Issue #3913.
+  outcome_diagnosis_code: "Z37.0"
   length_of_stay_days:
     jp: 5                               # JSOG normal delivery LOS ~4-5 days
     us: 2                               # US Medicare/HEDIS ~2 days (48h stay)
@@ -304,8 +308,9 @@ complications:
 # Emitted shape (when the C-section roll succeeds):
 #   * admission_diagnosis_code = "O82" (WHO ICD-10 Single delivery by
 #     cesarean section)
-#   * discharge_diagnosis_code stays "Z37.0" (single liveborn — outcome
-#     code, applies to both vaginal and cesarean)
+#   * the discharge diagnosis is that same O82; Z37.0 (single liveborn —
+#     outcome code, applies to both vaginal and cesarean) is a secondary
+#     diagnosis (`encounter.outcome_diagnosis_code`)
 #   * procedure code switches to the C-section CPT / MHLW code
 #   * length_of_stay_days uses cesarean-specific values (higher: post-op
 #     recovery adds 2-3 days)

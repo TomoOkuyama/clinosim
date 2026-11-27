@@ -195,8 +195,8 @@ described in
     weeks 12 / 24 / 36 with encounter reason Z34. Z34 does NOT emit
     a problem-list-item Condition (pregnancy is a state, not a
     chronic condition).
-  - Mother-side delivery `Encounter` (IMP admission, admit dx O80,
-    discharge dx Z37.0, delivery `Procedure` — JP K894 / US CPT
+  - Mother-side delivery `Encounter` (IMP admission, admit and discharge dx O80,
+    secondary dx Z37.0, delivery `Procedure` — JP K894 / US CPT
     59400). Cesarean deliveries (US 32.1 % / JP 20.4 %,
     `perinatal.yaml::cesarean`) use admit dx O82 and JP K898 / US CPT
     59510 instead.
