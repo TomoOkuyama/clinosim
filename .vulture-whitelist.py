@@ -1059,3 +1059,4 @@ _.admission_result_delay_hours  # _Timing field (validated yaml key, read by key
 _.type_text  # _VisitTypeTable field (validated yaml key, read by key in _check_up_type_text, Issue #3875)
 _.non_diagnosis_tokens  # used by the classification guard test (Issue #3872)
 _.pending_tokens  # used by the classification guard test (Issue #3872)
+_.carried_complications  # ClinicalDiagnosis field (CIF, read by key in the discharge summary and the Encounter builder, Issue #3905)

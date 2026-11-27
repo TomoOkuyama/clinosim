@@ -18,7 +18,7 @@ from clinosim.locale.loader import map_diagnosis_code
 from clinosim.modules.document.narrative.renderers.section_builders.discharge_summary import build_discharge_diagnoses
 from clinosim.modules.document.narrative.template_generator import TemplateNarrativeGenerator
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import carrying_condition_ids
-from clinosim.simulator.complication_dx import complication_diagnoses, complication_diagnosis_entries
+from clinosim.simulator.complication_dx import complication_diagnoses
 from clinosim.simulator.complications import build_complication
 from clinosim.types.clinical import ClinicalDiagnosis
 from clinosim.types.document import NarrativeContext
@@ -62,10 +62,6 @@ def test_an_earlier_complication_carries_a_later_one_of_its_category() -> None:
 def test_an_unblocked_complication_is_not_carried() -> None:
     entries, carried = complication_diagnoses([_AKI], stay_codes=["I21.9"], chronic_codes=["N18.3"])
     assert len(entries) == 1 and carried == []
-
-
-def test_the_entry_function_is_unchanged() -> None:
-    assert complication_diagnosis_entries([_ILEUS], existing_codes=["K59"]) == []
 
 
 def test_the_cif_field_defaults_to_empty() -> None:

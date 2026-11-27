@@ -168,7 +168,9 @@ clinosim/simulator/
                          (AVPU) が数日続いた場合にせん妄を導出: 合併症エントリ (発症・
                          持続・回復) と副診断 ICD-10-CM / ICD-10 F05。乱数なし (Issue #3519)
   complication_dx.py     診断名を持つ入院中の合併症を、その合併症自身の発症時刻を持つ
-                         `working_diagnoses` エントリにする (入院が既に持つコードは省く)。FHIR では
+                         `working_diagnoses` エントリにする (入院が既に持つコードは省く。省いた合併症は
+                         それを担うコードと共に `clinical_diagnosis.carried_complications` に残す、
+                         Issue #3905)。FHIR では
                          副診断の encounter-diagnosis Condition になる。表は
                          `reference_data/complication_diagnosis_codes.yaml`。乱数なし (Issue #3673)。
                          プロトコルが起こしうる合併症トークンは全て、コード化か `non_diagnosis`

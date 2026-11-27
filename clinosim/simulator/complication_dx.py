@@ -3,7 +3,7 @@
 A complication the daily loop (or the delirium rule) records in
 ``complications_occurred`` is only an event until it names a diagnosis. The
 table ``reference_data/complication_diagnosis_codes.yaml`` says which tokens
-do; :func:`complication_diagnosis_entries` turns the coded ones into
+do; :func:`complication_diagnoses` turns the coded ones into
 ``clinical_diagnosis.working_diagnoses`` entries carrying the complication's
 own onset, which the FHIR output emits as secondary encounter-diagnosis
 Conditions. Nothing here draws from an RNG.
@@ -124,9 +124,3 @@ def complication_diagnoses(
             }
         )
     return entries, carried
-
-
-def complication_diagnosis_entries(complications: Iterable[Any], existing_codes: Iterable[str]) -> list[dict[str, Any]]:
-    """The ``entries`` of :func:`complication_diagnoses`, for a caller that has
-    one list of the codes the stay already carries."""
-    return complication_diagnoses(complications, existing_codes)[0]

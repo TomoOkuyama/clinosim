@@ -180,7 +180,9 @@ clinosim/simulator/
   complication_dx.py     in-hospital complications that name a diagnosis become dated
                          `working_diagnoses` entries (the complication's own onset,
                          skipping codes the stay already carries), emitted as secondary
-                         encounter-diagnosis Conditions; table in
+                         encounter-diagnosis Conditions; a skipped complication is kept
+                         on `clinical_diagnosis.carried_complications` with the code that
+                         carries it (Issue #3905); table in
                          `reference_data/complication_diagnosis_codes.yaml`; no RNG
                          (Issue #3673). Every complication token a protocol can fire is
                          coded or a `non_diagnosis` event (guard test; `pending` is empty
