@@ -145,6 +145,23 @@ def test_hour_range_cadence_is_given_at_its_longer_interval(dose: str, per_day: 
     assert parsed["frequency"].startswith("Q")
 
 
+def test_a_protocol_bolus_series_is_one_bolus_not_a_scheduled_order() -> None:
+    from clinosim.modules.order.engine import protocol_medication_orders
+
+    spec = {"drug_id": "labetalol", "dose": "10-20mg IV bolus q10-20min, max 300mg", "route": "IV"}
+    (order,) = protocol_medication_orders(
+        spec,
+        order_id="O1",
+        encounter_id="E1",
+        patient_id="P1",
+        country="us",
+        ordered_datetime=_ADM,
+        ordered_by="DR-1",
+    )
+    assert (order.single_dose, order.frequency_per_day) == (True, 1)
+    assert len(_given(order, 5)) == 1
+
+
 def test_a_cadence_the_engine_does_not_know_never_becomes_daily() -> None:
     assert unrecognized_cadence("10mg PO q7fortnights") is not None
     order = Order(

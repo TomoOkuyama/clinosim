@@ -816,7 +816,9 @@ def protocol_medication_orders(
         dose_quantity=parsed.get("dose_quantity"),
         dose_unit=parsed.get("dose_unit", ""),
         frequency=parsed.get("frequency", ""),
-        frequency_per_day=parsed.get("frequency_per_day"),
+        # Issue #3912: a repeat bolus series ("q5min x3") is one bolus.
+        frequency_per_day=parsed.get("frequency_per_day") or (1 if parsed.get("single_dose") else None),
+        single_dose=bool(parsed.get("single_dose")),
         route=parsed.get("route") or med_spec.get("route", ""),
         duration_days=med_spec.get("duration_days", parsed.get("duration_days")),
         dose_max_quantity=parsed.get("dose_max_quantity"),
