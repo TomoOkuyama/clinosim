@@ -152,6 +152,8 @@ clinosim/simulator/
   oral_intake.py         nil by mouth while the AVPU level is P / U or the patient is ventilated:
                          NPO diet and the oral-route doses held then; no RNG (Issue #3552;
                          reference_data/oral_intake.yaml)
+  outpatient_order_timing.py  when an outpatient order is placed inside its visit: the 10-minute offset capped at a fraction of a short visit (Issue #3918;
+                         reference_data/outpatient_order_timing.yaml)
   oxygen_course.py       the supplemental-oxygen course of a stay: on / off state, device and flow
                          carried across readings, titration up and down, weaning, extubation of a ventilated
                          stay, non-invasive ventilation of a respiratory-failure complication (Issue #3705) and stepped flow values (one flow step up per reading below the target, Issues #3469, #3632, #3643; reference_data/oxygen_course.yaml)
@@ -394,6 +396,7 @@ Reference data (`reference_data/`, 22 YAMLs):
   reference_data/vasopressor_initiation.yaml  starting a vasopressor from low pressure after fluids (vasopressor_initiation.py)
   reference_data/vasoactive_weaning.yaml      vasopressor / inotrope weaning and the discharge gate after it (vasoactive_support.py)
   reference_data/oxygen_course.yaml           when supplemental oxygen is titrated down and weaned, a ventilated stay is extubated, and recorded flows are stepped (oxygen_course.py)
+  reference_data/outpatient_order_timing.yaml when an outpatient order is placed inside its visit (outpatient_order_timing.py)
   reference_data/oral_intake.yaml             nil by mouth while the AVPU level is P / U or the patient is ventilated, and the oral doses held then (oral_intake.py)
   reference_data/maintenance_iv_fluid.yaml    when the maintenance IV-fluid order is stopped (maintenance_iv_fluid.py)
   reference_data/ketoacidosis_resolution.yaml DKA resolution criteria and the IV-to-subcutaneous insulin transition (ketoacidosis_resolution.py)

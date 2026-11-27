@@ -60,6 +60,7 @@ from clinosim.simulator.encounter_setup import (
 )
 from clinosim.simulator.lab_pipeline import patient_true_labs, relate_egfr_to_creatinine
 from clinosim.simulator.medication_pipeline import allergy_blocked
+from clinosim.simulator.outpatient_order_timing import outpatient_order_time
 from clinosim.simulator.perinatal import epds_screening_cutoff, sample_epds_score
 from clinosim.simulator.sleep_study import sleep_study_result_order
 from clinosim.types.clinical import ConditionEvent, PhysiologicalState
@@ -584,7 +585,7 @@ def _result_followup_labs(
             # `test_name` is the analyte name (e.g. "Creatinine") — kept as-is
             # so consumers can still string-match; the shell is translated.
             clinical_intent_ja=t(intent_key, "ja", test=order_test_display(test_name, "ja")),
-            ordered_datetime=visit_date + timedelta(minutes=OUTPATIENT_LAB_ORDER_OFFSET_MIN),
+            ordered_datetime=outpatient_order_time(visit_date, encounter.discharge_datetime),
             ordered_by=encounter.attending_physician_id,
             status=OrderStatus.PLACED,
             panel_key=panel_key,
@@ -1310,7 +1311,7 @@ def _visit_imaging_orders(
                 urgency="routine",
                 clinical_intent=t("encounter_intent.screening_workup", "en", test=test),
                 clinical_intent_ja=t("encounter_intent.screening_workup", "ja", test=order_test_display(test, "ja")),
-                ordered_datetime=visit_date + timedelta(minutes=OUTPATIENT_LAB_ORDER_OFFSET_MIN),
+                ordered_datetime=outpatient_order_time(visit_date, encounter.discharge_datetime),
                 ordered_by=encounter.attending_physician_id,
                 status=OrderStatus.PLACED,
                 imaging_spec_meta={"abnormal_rate_by_severity": dict(item.get("abnormal_rate_by_severity") or {})},

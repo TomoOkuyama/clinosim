@@ -148,6 +148,8 @@ clinosim/simulator/
   oral_intake.py         AVPU が P / U の間と人工呼吸管理中の絶飲食: 食事オーダーを NPO にし、
                          その間の経口投与を保留。乱数なし (Issue #3552;
                          reference_data/oral_intake.yaml)
+  outpatient_order_timing.py  外来オーダーを受診時間内に置く時刻: 10 分後を短い受診では受診時間の一定割合で頭打ちにする (Issue #3918;
+                         reference_data/outpatient_order_timing.yaml)
   oxygen_course.py       入院中の補助酸素の経過: オン/オフの状態・デバイス・流量を測定間で引き継ぎ、
                          増減量、離脱、人工呼吸管理中の抜管、呼吸不全合併症に対する非侵襲的陽圧換気、刻みの流量値を決める (Issues #3469, #3632, #3643, #3705;
                          reference_data/oxygen_course.yaml)
@@ -361,6 +363,7 @@ CLI サブコマンドハンドラ (12 ファイル):
   reference_data/vasopressor_initiation.yaml  低血圧と輸液後の昇圧薬開始条件 (vasopressor_initiation.py)
   reference_data/vasoactive_weaning.yaml      昇圧薬・強心薬の離脱条件と離脱後の退院判定 (vasoactive_support.py)
   reference_data/oxygen_course.yaml           入院中の補助酸素を減量・中止する条件、人工呼吸の抜管条件、記録する流量の刻み (oxygen_course.py)
+  reference_data/outpatient_order_timing.yaml 外来オーダーを受診時間内に置く時刻 (outpatient_order_timing.py)
   reference_data/oral_intake.yaml             AVPU が P / U の間と人工呼吸管理中の絶飲食と、その間に保留する経口投与 (oral_intake.py)
   reference_data/maintenance_iv_fluid.yaml    維持輸液オーダーの終了条件 (maintenance_iv_fluid.py)
   reference_data/ketoacidosis_resolution.yaml DKA の改善基準と静注から皮下インスリンへの移行 (ketoacidosis_resolution.py)

@@ -1,0 +1,19 @@
+# When an outpatient order is placed inside its visit (Issue #3918).
+#
+# Read by clinosim/simulator/outpatient_order_timing.py (`outpatient_order_time`).
+# An order is placed OUTPATIENT_LAB_ORDER_OFFSET_MIN (10) minutes after the visit
+# starts ("vitals, brief history, order"), but a visit shorter than that ends
+# before the order. The order is then placed at `max_fraction_of_visit` of the
+# visit length, so it never falls after the Encounter's end (the same rule
+# Issue #3867 set for the drug-monitoring labs). A visit long enough for the
+# 10-minute offset keeps it unchanged.
+#
+# Source status: a clinosim modelling choice; no guideline fixes the minute at
+# which a clinician places a routine order. The fraction is the midpoint of the
+# 0.2-0.6 band medication_monitoring.yaml uses for the same purpose.
+metadata:
+  kind: reference
+  name: outpatient_order_timing
+  source: clinosim
+
+max_fraction_of_visit: 0.4
