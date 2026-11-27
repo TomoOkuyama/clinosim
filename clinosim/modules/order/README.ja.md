@@ -327,6 +327,7 @@ from clinosim.modules.order.label_dose import within_label  # (name, frequency, 
   検査・処置として記載する。生成時に設定し、乱数は引かない。
 - **薬剤セクション参照行** (同ファイルの `drugs_section_pointer_phrases`、`engine.is_drugs_section_pointer`、Issue #3596): 詳細に「... (see drugs section)」のような句を含む支持療法行は、プロトコルの `drugs` セクションを指すだけなので、`place_admission_orders` は薬剤オーダーにしない (そのままだと代替薬の先頭 1 剤を既定の PO 経路で出していた)。薬剤・用量・経路は `drugs.first_line` の患者の国のエントリから来る。
 - **薬剤名を含む supportive 行** (Issue #3917): `MEDICATION_TYPE_HINTS` の type は薬剤オーダーになる (`stress_ulcer_prophylaxis`: ファモチジン注 20mg 静注 12時間毎 x7 日、`renal_antibiotic_dosing.yaml` で腎機能調整)。カタログ薬剤名を含みながら therapy のままの行は、プロトコルの first-line 薬剤を指すケア計画の言い換え (虫垂炎 `antibiotic_prophylaxis` など) か、処方でない行として列挙されたものに限る。`tests/unit/order/test_sepsis_stress_ulcer_order_3917.py` が全プロトコルで検証する。
+- **成分ごとに 1 オーダー** (Issue #3915): 同一成分 (薬剤カタログの同一性) の薬剤オーダーが first-line 薬剤または先行する supportive 行として既にある場合、supportive の薬剤オーダーは出さない。先のオーダーが残る (`engine._ingredient_already_ordered`)。COPD 急性増悪のコルチコステロイドは `drugs.first_line` から 1 回だけ発行される。
 - **アーキタイプの中止マーカー** (`daily_loop._stop_archetype_medications`、Issue #3596): `treatment_modifications.<day>.stop` は国別ではないため、`DISCONTINUE: <薬剤>` マーカーは、その入院に当該薬剤の実行中オーダーがあるときだけ書く (`_running_order`)。その国のレジメンが使わない薬剤の中止 (米国入院でのセフメタゾール) や、中止済みの薬剤の再中止は何も書かない。乱数は引かない。
 - **救急外来経由入院のオーダー時刻** (Issue #3434): 救急外来経由で入院する
   患者には、simulator が `ed_period=(救急外来到着, 入院)` (救急外来の期間は
