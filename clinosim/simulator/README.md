@@ -214,7 +214,8 @@ clinosim/simulator/
                          continues at discharge, Issue #3896); staff
                          draws use `complication_treatment_seed`; C. difficile colitis
                          (Issue #3864): `start_oral_vancomycin` (authored in the reference data
-                         by country and severity, Issue #3896: Japan metronidazole 500 mg TID x10 days
+                         by country, severity and recurrence risk, Issue #3896: Japan fidaxomicin
+                         200 mg BID x10 days at age 65 or more or an immunosuppressed condition, otherwise Japan metronidazole 500 mg TID x10 days
                          for a non-severe episode, oral vancomycin 125 mg QID x10 days when severe,
                          WBC >= 15,000/uL or creatinine > 1.5 mg/dL; US oral vancomycin) and `stop_offending_antibiotic` (stop markers for the
                          running antibiotics but nitroimidazoles; no other systemic antibiotic at

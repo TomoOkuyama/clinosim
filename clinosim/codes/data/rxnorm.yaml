@@ -208,6 +208,9 @@ codes:
   '6809':
     en: Metformin (Glucophage)
     ja: メトホルミン（メトグルコ）
+  '1111103':
+    en: Fidaxomicin
+    ja: フィダキソマイシン
   '6902':
     en: Methylprednisolone
     ja: メチルプレドニゾロン
