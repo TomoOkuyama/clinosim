@@ -76,24 +76,45 @@ def _category(code: str) -> str:
     return code if category in _table().distinct_code_categories else category
 
 
-def complication_diagnosis_entries(complications: Iterable[Any], existing_codes: Iterable[str]) -> list[dict[str, Any]]:
-    """One dated ``working_diagnoses`` entry per coded complication.
+def complication_diagnoses(
+    complications: Iterable[Any], stay_codes: Iterable[str], chronic_codes: Iterable[str] = ()
+) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
+    """``(entries, carried)`` for the coded complications of a stay.
 
-    Skips a code whose 3-character category (full code for a
+    ``entries``: one dated ``working_diagnoses`` entry per coded complication.
+    A code whose 3-character category (full code for a
     ``distinct_code_categories`` category) the stay already carries
-    (``existing_codes``: principal, secondary, working and chronic codes) and
-    a category already entered by an earlier complication (the first onset
-    wins); a complication that started as a new disease keeps its own entry.
+    (``stay_codes``: principal, secondary and working codes; ``chronic_codes``:
+    the patient's chronic codes) or an earlier complication already entered
+    (the first onset wins) adds no entry; a complication that started as a new
+    disease keeps its own entry.
+
+    ``carried`` (Issue #3905): for each complication blocked that way, the code
+    that carries its category, so the complication is still accounted for by
+    an existing diagnosis. ``carrier`` says where that code is from: ``stay``
+    (searched first), ``chronic`` or ``complication`` (an earlier entry).
     """
-    seen = {_category(c) for c in existing_codes if c}
+    carriers: dict[str, tuple[str, str]] = {}
+    for carrier, codes in (("stay", stay_codes), ("chronic", chronic_codes)):
+        for code in codes:
+            if code:
+                carriers.setdefault(_category(code), (code, carrier))
     entries: list[dict[str, Any]] = []
+    carried: list[dict[str, str]] = []
     for event in normalized_complications(list(complications)):
         if event["source"] in _OWN_ENTRY_SOURCES:
             continue
         code = complication_diagnosis_code(str(event["name"]))
-        if not code or _category(code) in seen:
+        if not code:
             continue
-        seen.add(_category(code))
+        category = _category(code)
+        if category in carriers:
+            carrying_code, carrier = carriers[category]
+            if any(c["name"] == str(event["name"]) for c in carried):
+                continue
+            carried.append({"name": str(event["name"]), "carrying_code": carrying_code, "carrier": carrier})
+            continue
+        carriers[category] = (code, "complication")
         entries.append(
             {
                 "disease_id": code,
@@ -102,4 +123,10 @@ def complication_diagnosis_entries(complications: Iterable[Any], existing_codes:
                 "source": WORKING_DIAGNOSIS_SOURCE,
             }
         )
-    return entries
+    return entries, carried
+
+
+def complication_diagnosis_entries(complications: Iterable[Any], existing_codes: Iterable[str]) -> list[dict[str, Any]]:
+    """The ``entries`` of :func:`complication_diagnoses`, for a caller that has
+    one list of the codes the stay already carries."""
+    return complication_diagnoses(complications, existing_codes)[0]

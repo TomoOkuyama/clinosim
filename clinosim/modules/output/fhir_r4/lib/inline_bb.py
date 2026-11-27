@@ -31,7 +31,10 @@ from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.immunization.visits import IMMUNIZATION_VISIT_DX, vaccination_visit_reason_codes
 from clinosim.modules.output.fhir_r4.conditions.conditions import _build_conditions
 from clinosim.modules.output.fhir_r4.conditions.hai import hai_condition_ids_by_encounter
-from clinosim.modules.output.fhir_r4.conditions.primary_ref import encounter_diagnosis_condition_ids
+from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
+    carrying_condition_ids,
+    encounter_diagnosis_condition_ids,
+)
 from clinosim.modules.output.fhir_r4.demographics.patient import (
     _build_coverage_resources,
     _build_occupation_observation,
@@ -276,6 +279,19 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
             diagnosis_condition_ids=[
                 *encounter_diagnosis_condition_ids(_emitted_conditions, encounter_ref(_enc_key)["reference"]),
                 *_hai_ids_by_encounter.get(encounter_ref(_enc_key)["reference"], []),
+                # Issue #3905: the Condition that carries a complication of
+                # the stay (the record's own encounter).
+                *(
+                    carrying_condition_ids(
+                        _emitted_conditions,
+                        list((ctx.record.get("clinical_diagnosis") or {}).get("carried_complications") or []),
+                        country=ctx.country,
+                        patient_sex=str((ctx.patient_data or {}).get("sex", "") or ""),
+                        encounter_reference=encounter_ref(_enc_key)["reference"],
+                    )
+                    if _enc_key == ctx.primary_enc_id
+                    else []
+                ),
             ]
             if _enc_key
             else None,

@@ -83,7 +83,7 @@ from clinosim.simulator.complication_actions import (
     complication_stopped_antibiotic_classes,
     held_home_anticoagulants,
 )
-from clinosim.simulator.complication_dx import complication_diagnosis_entries
+from clinosim.simulator.complication_dx import complication_diagnoses
 from clinosim.simulator.complications import complication_names
 from clinosim.simulator.daily_loop import SYMPTOM_AXES, _run_daily_loop
 from clinosim.simulator.delirium import delirium_code, derive_delirium, has_delirium
@@ -1098,14 +1098,19 @@ def _simulate_patient(
     # Issue #3673: every coded complication (acute kidney injury, deep vein
     # thrombosis, delirium, ...) is a dated working diagnosis of the stay, with
     # the onset of the complication, unless the stay already carries the code.
-    _carried = [
+    _stay_codes = [
         clinical_diagnosis.admission_diagnosis_code,
         clinical_diagnosis.discharge_diagnosis_code,
         *clinical_diagnosis.secondary_diagnosis_codes,
         *(working_diagnosis_code(str(wd.get("disease_id") or "")) for wd in clinical_diagnosis.working_diagnoses),
-        *iter_chronic_codes(patient.chronic_conditions),
     ]
-    clinical_diagnosis.working_diagnoses.extend(complication_diagnosis_entries(complications_occurred, _carried))
+    _complication_entries, _carried_complications = complication_diagnoses(
+        complications_occurred, _stay_codes, iter_chronic_codes(patient.chronic_conditions)
+    )
+    clinical_diagnosis.working_diagnoses.extend(_complication_entries)
+    # Issue #3905: a complication the stay already carries is recorded with the
+    # carrying code.
+    clinical_diagnosis.carried_complications = _carried_complications
 
     # Issue #3519: a delirium of the stay (derived, or an ICU / postoperative
     # delirium complication) is a coded secondary diagnosis.
