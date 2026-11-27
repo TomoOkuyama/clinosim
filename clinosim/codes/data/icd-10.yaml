@@ -1599,3 +1599,6 @@ codes:
   T81.4:
     en: Infection following a procedure, not elsewhere classified
     ja: "処置に続発する感染症，他に分類されないもの"
+  I42.8:
+    en: Other cardiomyopathies
+    ja: "その他の心筋症"

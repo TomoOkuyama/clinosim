@@ -5,7 +5,7 @@
     "source_file": "kihon2013.xlsx (sheet 基本分類表データ, columns コード / コード名)",
     "extracted_at": "2026-11-01",
     "note": "Japanese official names of the ICD-10 codes clinosim emits for JP, filtered from the full table (15,296 codes).",
-    "later_additions": "E11.2, E11.3 and E11.4 (Issue #3259), G35, I69.1 and I69.3 (Issue #3327) were added on 2026-11-16 from the same kihon2013.xlsx table. T20.0-T25.0 (Issue #3258) were added on 2026-11-18 from the same kihon2013.xlsx table. F05 (Issue #3519) was added on 2026-11-21 from the same kihon2013.xlsx table. J14 and J15.5 (Issue #3645) were added on 2026-11-24 from the same kihon2013.xlsx table. A40.3, A41.3 and A41.8 (Issue #3833) were added on 2026-11-26 from the same kihon2013.xlsx table. A04.7, A49.9, E16.2, E87.5, E87.6, J98.1, L89.9, N15.1 and R56.8 (Issue #3872) were added on 2026-11-26 from the same kihon2013.xlsx table. D68.4, D69.1, D75.8, E46, E87.8, F06.3, G56.1, G62.8, G91.1, G93.4, I24.1, I27.2, I47.2, I51.8, I82.8, I87.0, I89.0, J11.8, J70.8, J81, J86.9, J91, K63.1, K76.8, K86.3, K86.8, K91.8, M62.8, R57.8, T79.6, T81.3 and T81.4 (Issue #3872, the remaining in-hospital complication diagnosis codes) were added on 2026-11-27 from the same kihon2013.xlsx table."
+    "later_additions": "E11.2, E11.3 and E11.4 (Issue #3259), G35, I69.1 and I69.3 (Issue #3327) were added on 2026-11-16 from the same kihon2013.xlsx table. T20.0-T25.0 (Issue #3258) were added on 2026-11-18 from the same kihon2013.xlsx table. F05 (Issue #3519) was added on 2026-11-21 from the same kihon2013.xlsx table. J14 and J15.5 (Issue #3645) were added on 2026-11-24 from the same kihon2013.xlsx table. A40.3, A41.3 and A41.8 (Issue #3833) were added on 2026-11-26 from the same kihon2013.xlsx table. A04.7, A49.9, E16.2, E87.5, E87.6, J98.1, L89.9, N15.1 and R56.8 (Issue #3872) were added on 2026-11-26 from the same kihon2013.xlsx table. D68.4, D69.1, D75.8, E46, E87.8, F06.3, G56.1, G62.8, G91.1, G93.4, I24.1, I27.2, I47.2, I51.8, I82.8, I87.0, I89.0, J11.8, J70.8, J81, J86.9, J91, K63.1, K76.8, K86.3, K86.8, K91.8, M62.8, R57.8, T79.6, T81.3 and T81.4 (Issue #3872, the remaining in-hospital complication diagnosis codes) were added on 2026-11-27 from the same kihon2013.xlsx table. I42.8 (Issue #3907) was added on 2026-11-27 from the same kihon2013.xlsx table."
   },
   "concept": [
     {
@@ -511,6 +511,10 @@
     {
       "code": "I33.0",
       "display": "急性及び亜急性感染性心内膜炎"
+    },
+    {
+      "code": "I42.8",
+      "display": "その他の心筋症"
     },
     {
       "code": "I47.1",

@@ -1105,7 +1105,7 @@ def _simulate_patient(
         *(working_diagnosis_code(str(wd.get("disease_id") or "")) for wd in clinical_diagnosis.working_diagnoses),
     ]
     _complication_entries, _carried_complications = complication_diagnoses(
-        complications_occurred, _stay_codes, iter_chronic_codes(patient.chronic_conditions)
+        complications_occurred, _stay_codes, iter_chronic_codes(patient.chronic_conditions), disease_id
     )
     clinical_diagnosis.working_diagnoses.extend(_complication_entries)
     # Issue #3905: a complication the stay already carries is recorded with the

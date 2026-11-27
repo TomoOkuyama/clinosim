@@ -187,8 +187,12 @@ clinosim/simulator/
                          (Issue #3673). Every complication token a protocol can fire is
                          coded or a `non_diagnosis` event (guard test; `pending` is empty
                          and holds a new disease-like token until it is coded);
-                         `distinct_code_categories` (E87, F10, K86, T81) key the
-                         first-onset rule on the full code (Issue #3872)
+                         `distinct_code_categories` (E10, E11, E87, F10, K86, T79, T81)
+                         key the first-onset rule on the full code (Issue #3872);
+                         `protocol_codes` gives a token its own code in one protocol
+                         (septic cardiomyopathy, burn wound infection, traumatic
+                         rhabdomyolysis) and a diabetic stay's hypoglycemia the
+                         E10.649 / E11.649 code of its diabetes type (Issue #3907)
   sustained_complication.py  a complication's `sustained_state`: an effect on a state variable
                          held while its driver lasts (DIC consumption follows the septic
                          inflammation), full for `full_days` then fading to a release

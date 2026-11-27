@@ -1552,3 +1552,11 @@ codes:
     en: Infection following a procedure, unspecified, initial encounter
   T81.49XA:
     en: Infection following a procedure, other surgical site, initial encounter
+  E10.649:
+    en: Type 1 diabetes mellitus with hypoglycemia without coma
+  E11.649:
+    en: Type 2 diabetes mellitus with hypoglycemia without coma
+  I42.89:
+    en: Other cardiomyopathies not elsewhere classified
+  T79.6XXA:
+    en: Traumatic ischemia of muscle, initial encounter

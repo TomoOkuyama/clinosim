@@ -29,7 +29,7 @@ from clinosim.modules.document.narrative._localization import _localize_complica
 from clinosim.modules.document.narrative._prescription_line import prescription_bits
 from clinosim.modules.document.narrative.renderers._shared_helpers import diagnosis_coded, secondary_diagnosis_codes
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section, section_builder
-from clinosim.simulator.complication_dx import complication_diagnosis_code
+from clinosim.simulator.complication_dx import complication_diagnosis_code, diagnosis_category
 from clinosim.types.document import NarrativeContext
 
 if TYPE_CHECKING:
@@ -206,24 +206,28 @@ def _secondary_diagnoses(ctx: NarrativeContext, diagnoses: list) -> list[str]:
     country = country_code(ctx.locale)
     sex = str(_o(ctx.patient, "sex", "") or "") if ctx.patient is not None else ""
     seen: set[str] = set()
+    principal_codes: list[str] = []
     for dx in diagnoses:
         code = str(_o(dx, "discharge_diagnosis_code", "") or "") or str(_o(dx, "admission_diagnosis_code", "") or "")
         if code:
-            seen.add(code.split(".")[0])
+            seen.add(diagnosis_category(code))
+            principal_codes.append(code)
+    # Issue #3907: the stay's protocol and diagnosis pick a complication's code.
+    protocol_id = str(_o(ctx.disease_protocol, "disease_id", "") or "") if ctx.disease_protocol else ""
     items: list[str] = []
     # Issue #3392: the secondary diagnosis codes of the stay (the co-disease of
     # a mixed admission), which the FHIR output codes as secondary Conditions.
     for code in secondary_diagnosis_codes(diagnoses):
-        seen.add(code.split(".")[0])
+        seen.add(diagnosis_category(code))
         emitted, display = diagnosis_coded(code, country, lang, sex)
         items.append(
             t("list_item.inline_dx_with_code", lang, display=display, code=emitted) if display != emitted else emitted
         )
     for wd in ctx.working_diagnoses or []:
         code = working_diagnosis_code(str(_o(wd, "disease_id", "") or ""))
-        if not code or code.split(".")[0] in seen:
+        if not code or diagnosis_category(code) in seen:
             continue
-        seen.add(code.split(".")[0])
+        seen.add(diagnosis_category(code))
         emitted, display = diagnosis_coded(code, country, lang, sex)
         items.append(
             t("list_item.inline_dx_with_code", lang, display=display, code=emitted) if display != emitted else emitted
@@ -252,15 +256,19 @@ def _secondary_diagnoses(ctx: NarrativeContext, diagnoses: list) -> list[str]:
                 names.add(label)
                 items.append(t("list_item.inline_dx_with_code", lang, display=label, code=emitted))
             continue
-        code = complication_diagnosis_code(key) or complication_codes.get(key) or ""
-        if not token or (code and code.split(".")[0] in seen):
+        code = (
+            complication_diagnosis_code(key, protocol_id, [str(c) for c in principal_codes])
+            or complication_codes.get(key)
+            or ""
+        )
+        if not token or (code and diagnosis_category(code) in seen):
             continue
         label = _localize_complication(token, lang)
         if label and label not in names:
             names.add(label)
             items.append(label)
             if code:
-                seen.add(code.split(".")[0])
+                seen.add(diagnosis_category(code))
     return items
 
 

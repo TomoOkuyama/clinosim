@@ -176,7 +176,10 @@ clinosim/simulator/
                          プロトコルが起こしうる合併症トークンは全て、コード化か `non_diagnosis`
                          (病名を持たない事象) に分類する (ガードテスト。`pending` は空で、
                          新しい病名トークンをコード化するまでの置き場)。`distinct_code_categories`
-                         (E87, F10, K86, T81) は初回発症規則を完全コードで判定する (Issue #3872)
+                         (E10, E11, E87, F10, K86, T79, T81) は初回発症規則を完全コードで判定する (Issue #3872)。
+                         `protocol_codes` は特定プロトコルでのトークンに別のコードを与える
+                         (敗血症性心筋症、熱傷創感染、外傷性横紋筋融解症)。糖尿病入院の低血糖は
+                         病型に応じた E10.649 / E11.649 とする (Issue #3907)
   sustained_complication.py  合併症の `sustained_state`: 原因が続く間保たれる状態変数への効果
                          (DIC の消費は敗血症の炎症に従う)。`full_days` の間は全量、その後は
                          解除点へ向けて減衰。その間は合併症の `monitoring_labs` を採血。
