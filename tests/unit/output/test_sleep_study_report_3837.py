@@ -85,3 +85,13 @@ def test_ahi_service_request_is_an_evaluation_procedure(country: str) -> None:
     sr = _build_standalone_sr(_order(), "ja" if country == "JP" else "en", country.lower())
     codes = [c["code"] for cc in sr["category"] for c in cc["coding"]]
     assert "386053000" in codes
+
+
+@pytest.mark.parametrize("country", ["US", "JP"])
+def test_ahi_report_conclusion_prints_events_per_hour_without_braces_3926(country: str) -> None:
+    orders = [_order()]
+    groups = single_test_report_groups(orders, group_lab_orders(orders, "ENC-1"), {})
+    dr = build_single_test_report(groups[0], orders, "pt-1", "ENC-1", country, None)
+    conclusion = dr["conclusion"]
+    assert "{" not in conclusion and "}" not in conclusion, conclusion
+    assert "events/h" in conclusion

@@ -112,3 +112,16 @@ def test_ucum_prose() -> None:
     assert ucum_prose("mL/min/{1.73_m2}") == "mL/min"
     assert ucum_prose("mm[Hg]") == "mmHg"
     assert ucum_prose("{INR}") == ""
+
+
+def test_ucum_prose_leading_annotation_3926() -> None:
+    """An annotation at the start of a composite unit is printed as its word."""
+    assert ucum_prose("{events}/h") == "events/h"
+    assert ucum_prose("{beats}/min") == "beats/min"
+    # existing rules unchanged
+    assert ucum_prose("mL/min/{1.73_m2}") == "mL/min"
+    assert ucum_prose("{INR}") == ""
+    assert ucum_prose("{score}") == ""
+    assert ucum_prose("mm[Hg]") == "mmHg"
+    assert ucum_prose("mg/dL") == "mg/dL"
+    assert ucum_prose(None) == ""
