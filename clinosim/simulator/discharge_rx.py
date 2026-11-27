@@ -360,7 +360,10 @@ def build_discharge_rx(
 
     def _record_hold(**kwargs: Any) -> None:
         """Issue #3441: queue a discharge hold; ``pending_holds`` is logged
-        after the item list is final, for the drugs it does not contain."""
+        after the item list is final, for the drugs it does not contain. A drug
+        held twice (a protocol entry and its home-medication twin) is one hold."""
+        if any(drug_key(h["held_drug_name"]) == drug_key(kwargs["held_drug_name"]) for h in pending_holds):
+            return
         pending_holds.append(kwargs)
 
     # A' Phase 1 (Issue #440) dedup: with `patient.current_medications` now
@@ -400,13 +403,28 @@ def build_discharge_rx(
     def _reconcile_conflict(drug_name: str, drug_name_ja: str) -> bool:
         """Issue #2713: True (and logged) when ``drug_name`` duplicates the
         class of an item already on this prescription (ACE inhibitor + ARB,
-        two P2Y12 inhibitors, DOAC + warfarin); the earlier item is kept."""
+        two P2Y12 inhibitors, DOAC + warfarin); the earlier item is kept.
+
+        Issue #3923: a rule whose sides differ (anticoagulant + NSAID) keeps
+        its named class whichever came first: an NSAID candidate is dropped, and
+        an anticoagulant candidate removes the NSAID item already listed."""
         from clinosim.modules import drug_safety
 
-        rules = drug_safety.discharge_reconciliation_rules()
         on_rx = [it["drug_name"] for it in items if it.get("drug_name")]
         for verdict in drug_safety.check_candidate_against_active(drug_name, on_rx):
-            if verdict.rule_id in rules:
+            if drug_safety.reconciliation_keeps_candidate(verdict, drug_name):
+                evicted = drug_key(str(verdict.matched_active_drug or ""))
+                for it in [it for it in items if drug_key(str(it.get("drug_name", ""))) == evicted]:
+                    items.remove(it)
+                    _record_hold(
+                        encounter_id=encounter_id,
+                        held_drug_name=it["drug_name"],
+                        held_drug_name_ja=it.get("drug_name_ja") or it["drug_name"],
+                        hold_reason=verdict.rationale_en or str(verdict.rule_id),
+                        hold_reason_ja=verdict.rationale_ja or str(verdict.rule_id),
+                        taken=taken,
+                    )
+            elif drug_safety.reconciliation_drops_candidate(verdict, drug_name):
                 _record_hold(
                     encounter_id=encounter_id,
                     held_drug_name=drug_name,
@@ -660,7 +678,6 @@ def build_discharge_rx(
     # Atorvastatin after the Rosuvastatin switch) yields to the current agent.
     from clinosim.modules import drug_safety as _ds
 
-    _reconcile = _ds.discharge_reconciliation_rules()
     _current_names = [m.drug_name for m in patient.current_medications if m.drug_name]
     _current_keys = {_dedup_key(n) for n in _current_names}
     from clinosim.simulator.antithrombotic_plan import started_in_stay_keys
@@ -673,7 +690,8 @@ def build_discharge_rx(
         if _dedup_key(drug_name) in plan_agents and _dedup_key(drug_name) not in baseline_keys:
             continue  # Issue #3277: an antithrombotic of the stay follows the plan below
         if _dedup_key(drug_name) not in _current_keys and any(
-            v.rule_id in _reconcile for v in _ds.check_candidate_against_active(drug_name, _current_names)
+            _ds.reconciliation_drops_candidate(v, drug_name)
+            for v in _ds.check_candidate_against_active(drug_name, _current_names)
         ):
             continue
         if final_renal_function < DISCHARGE_RENAL_HOLD_THRESHOLD and drug_key(drug_name) in renal_hold_drugs():

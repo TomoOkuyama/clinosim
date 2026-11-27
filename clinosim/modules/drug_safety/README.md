@@ -112,6 +112,11 @@ dv = drug_safety.check_demographic_gate(
 
 # Rule ids the discharge prescription reconciles (contraindications.yaml)
 drug_safety.discharge_reconciliation_rules()  # → frozenset[str]
+# Reconciled rules whose sides differ keep one class (Issue #3923): {"anticoagulant-plus-nsaid": "anticoagulant"}
+drug_safety.discharge_reconciliation_keeps()  # → dict[str, str]
+# Does the candidate lose / win a reconciled verdict (same-class duplicate, or the non-kept side)?
+drug_safety.reconciliation_drops_candidate(verdict, "Celecoxib")  # → True
+drug_safety.reconciliation_keeps_candidate(verdict, "Enoxaparin")  # → True
 
 # Utility
 drug_safety.resolve_classes("warfarin")   # → ["anticoagulant.vka", "anticoagulant"]

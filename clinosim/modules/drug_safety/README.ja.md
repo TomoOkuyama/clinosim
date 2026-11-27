@@ -100,6 +100,11 @@ dv = drug_safety.check_demographic_gate(
 
 # 退院処方で reconcile する rule id (contraindications.yaml)
 drug_safety.discharge_reconciliation_rules()  # → frozenset[str]
+# 両辺が異なる reconcile rule は残す class を持つ (Issue #3923): {"anticoagulant-plus-nsaid": "anticoagulant"}
+drug_safety.discharge_reconciliation_keeps()  # → dict[str, str]
+# 候補が reconcile の verdict に負ける / 残る (同 class の重複、または残す class でない側)
+drug_safety.reconciliation_drops_candidate(verdict, "Celecoxib")  # → True
+drug_safety.reconciliation_keeps_candidate(verdict, "Enoxaparin")  # → True
 
 # Utility
 drug_safety.resolve_classes("warfarin")   # → ["anticoagulant.vka", "anticoagulant"]

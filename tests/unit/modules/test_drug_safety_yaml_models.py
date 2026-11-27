@@ -50,6 +50,14 @@ def test_a_reconciliation_rule_must_name_a_rule() -> None:
     _bad("contraindications", lambda d: d["discharge_reconciliation_rules"].append("no_such_rule"))
 
 
+def test_a_kept_class_must_name_a_reconciled_rule_and_a_catalog_class() -> None:
+    _bad(
+        "contraindications",
+        lambda d: d["discharge_reconciliation_keeps"].update({"bb-plus-non-dhp-ccb": "beta_blocker"}),
+    )
+    _bad("contraindications", lambda d: d["discharge_reconciliation_keeps"].update({"anticoagulant-plus-nsaid": "x.y"}))
+
+
 def test_a_misspelled_key_fails() -> None:
     _bad("disease_contraindications", lambda d: d["rules"][0].update(severty="major"))
 

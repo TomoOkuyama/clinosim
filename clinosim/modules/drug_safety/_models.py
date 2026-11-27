@@ -98,6 +98,9 @@ class ContraindicationsFile(BaseModel):
     model_config = ConfigDict(extra="forbid")
     rules: list[_InteractionRule] = Field(min_length=1)
     discharge_reconciliation_rules: list[str] = []
+    # Issue #3923: a reconciled rule whose two sides are not alike (an anticoagulant
+    # and an NSAID) names the class the prescription keeps; the other side is dropped.
+    discharge_reconciliation_keeps: dict[str, str] = {}
     triple_therapy_after_acs: _TripleTherapyPlan
 
     _ids = field_validator("rules")(classmethod(lambda cls, v: _unique_ids(v)))
@@ -108,6 +111,11 @@ class ContraindicationsFile(BaseModel):
         unknown = sorted(set(self.discharge_reconciliation_rules) - ids)
         if unknown:
             raise ValueError(f"discharge_reconciliation_rules names no rule: {unknown}")
+        unknown = sorted(set(self.discharge_reconciliation_keeps) - set(self.discharge_reconciliation_rules))
+        if unknown:
+            raise ValueError(f"discharge_reconciliation_keeps names a rule that is not reconciled: {unknown}")
+        for kept in self.discharge_reconciliation_keeps.values():
+            _check_class(kept)
         unknown = sorted(set(self.triple_therapy_after_acs.replaces_rules) - ids)
         if unknown:
             raise ValueError(f"triple_therapy_after_acs.replaces_rules names no rule: {unknown}")

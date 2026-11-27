@@ -300,6 +300,14 @@ discharge_reconciliation_rules:
   - statin-plus-statin
   # Issue #3274: the admission gate's no-second-beta-blocker rule.
   - beta-blocker-plus-beta-blocker
+  # Issue #3923: an NSAID does not leave beside an anticoagulant (the rule's own source);
+  # the prescription keeps the anticoagulant and drops the NSAID.
+  - anticoagulant-plus-nsaid
+
+# Issue #3923: the rules above whose two sides are not alike name the class the
+# prescription keeps; the other side is the one dropped.
+discharge_reconciliation_keeps:
+  anticoagulant-plus-nsaid: anticoagulant
 
 # Issue #2717: antithrombotic plan when an anticoagulated patient (DOAC /
 # warfarin) leaves on dual antiplatelet therapy after an ACS / PCI. Aspirin

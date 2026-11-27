@@ -163,13 +163,12 @@ def _add_base_chronic_meds_for_new_icd(
     # Issue #2713: a new condition's medication that duplicates the class of
     # one the person already takes (DOAC + warfarin, two P2Y12 inhibitors,
     # ACE inhibitor + ARB) is not added; the existing agent stays.
-    reconcile = drug_safety.discharge_reconciliation_rules()
     existing_drug_names = {hm.drug_name for hm in person.current_medications if hm.drug_name}
     for hm in sampled:
         if not hm.drug_name or hm.drug_name in existing_drug_names:
             continue
         verdicts = drug_safety.check_candidate_against_active(hm.drug_name, sorted(existing_drug_names))
-        if any(v.rule_id in reconcile for v in verdicts):
+        if any(drug_safety.reconciliation_drops_candidate(v, hm.drug_name) for v in verdicts):
             continue
         person.current_medications.append(hm)
         existing_drug_names.add(hm.drug_name)

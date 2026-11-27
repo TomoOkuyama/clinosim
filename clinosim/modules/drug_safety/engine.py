@@ -72,6 +72,27 @@ def discharge_reconciliation_rules() -> frozenset[str]:
     return frozenset(str(r) for r in _contraindications_file().get("discharge_reconciliation_rules") or [])
 
 
+@lru_cache(maxsize=1)
+def discharge_reconciliation_keeps() -> dict[str, str]:
+    """``{rule id: class kept}`` of the reconciled rules whose sides differ (Issue #3923)."""
+    return {str(k): str(v) for k, v in (_contraindications_file().get("discharge_reconciliation_keeps") or {}).items()}
+
+
+def reconciliation_keeps_candidate(verdict: SafetyVerdict, candidate: str) -> bool:
+    """True when ``verdict`` is a reconciled rule whose kept class (``discharge_reconciliation_keeps``)
+    is the ``candidate``'s: the candidate stays and the active drug it conflicts with is the one dropped."""
+    kept = discharge_reconciliation_keeps().get(str(verdict.rule_id))
+    return kept is not None and kept in resolve_classes(candidate)
+
+
+def reconciliation_drops_candidate(verdict: SafetyVerdict, candidate: str) -> bool:
+    """True when ``verdict`` is a reconciled rule (Issue #2713) the ``candidate`` loses: a second agent of
+    the same class, or (Issue #3923) the side of the rule that is not its kept class."""
+    return verdict.rule_id in discharge_reconciliation_rules() and not reconciliation_keeps_candidate(
+        verdict, candidate
+    )
+
+
 def triple_therapy_after_acs_plan() -> dict[str, Any]:
     """The antithrombotic plan for a patient on an anticoagulant who leaves on
     DAPT after ACS (``contraindications.yaml`` ``triple_therapy_after_acs``)."""
