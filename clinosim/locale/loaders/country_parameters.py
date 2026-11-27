@@ -58,6 +58,8 @@ class CarePractice(_Frozen):
     """``locale/<cc>/care_practice.yaml``."""
 
     discharge_criteria: DischargeCriteria
+    # Japanese practice: a clinically stable patient stays until the stay's sampled target length (Issue #3931).
+    hold_stable_patient_to_sampled_target: bool
     time_to_surgery_hours: TimeToSurgery
     rehab_session_minutes: int = Field(gt=0)
 
