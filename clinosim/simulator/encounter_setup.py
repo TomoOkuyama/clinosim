@@ -12,13 +12,13 @@ procedure ends, while a stay with a fixed end holds its procedures within it.
 from __future__ import annotations
 
 from collections.abc import Iterable
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
 from clinosim.codes import system_key_for
 from clinosim.types.clinical import ClinicalDiagnosis
 from clinosim.types.encounter import Encounter, EncounterType, Order
-from clinosim.types.procedure import ProcedureRecord
+from clinosim.types.procedure import ProcedureRecord, RehabSession
 
 # Visits that admit and discharge nobody (Issue #3691).
 _AMBULATORY_TYPES = frozenset({EncounterType.OUTPATIENT, EncounterType.PRENATAL_VISIT})
@@ -84,6 +84,25 @@ def fit_procedures_in_stay(procedures: Iterable[ProcedureRecord], start: datetim
         if end is not None and p.end_datetime > end:
             p.start_datetime, p.end_datetime = max(start, end - length), end
             p.duration_minutes = int((p.end_datetime - p.start_datetime).total_seconds() // 60)
+
+
+def fit_rehab_sessions_in_stay(
+    sessions: Iterable[RehabSession], start: datetime, end: datetime | None
+) -> list[RehabSession]:
+    """The rehabilitation sessions that lie inside the stay ``[start, end]`` (Issue #3921).
+
+    Sessions are generated from the surgery date up to the planned length of
+    stay, so one can fall after the actual discharge (a stay that ended early,
+    a surgery after the admission day). Unlike a procedure, a session is not
+    moved: one that does not fit between ``start`` and ``end`` (its whole
+    length) is dropped. ``end`` None: the stay is still in progress and every
+    session is kept.
+    """
+    return [
+        s
+        for s in sessions
+        if s.session_date >= start and (end is None or s.session_date + timedelta(minutes=s.duration_minutes) <= end)
+    ]
 
 
 _ECHO_PROCEDURE = "echocardiography"

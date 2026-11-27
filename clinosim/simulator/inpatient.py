@@ -94,6 +94,7 @@ from clinosim.simulator.encounter_setup import (
     attach_orders,
     encounter_diagnosis,
     fit_procedures_in_stay,
+    fit_rehab_sessions_in_stay,
 )
 from clinosim.simulator.implied_chronic import implied_chronic_codes_to_add
 from clinosim.simulator.injury_coding import (
@@ -1219,6 +1220,10 @@ def _simulate_patient(
 
     # Issue #2863: procedures lie between admission and discharge (or death).
     fit_procedures_in_stay(procedures, encounter.admission_datetime, encounter.discharge_datetime)
+    # Issue #3921: so do the rehabilitation sessions; one that cannot fit is dropped.
+    rehab_sessions = fit_rehab_sessions_in_stay(
+        rehab_sessions, encounter.admission_datetime, encounter.discharge_datetime
+    )
     # Issue #3451: an echo is one study — its procedure takes the imaging study's
     # time, which for a via-ED admission is the ED work-up time (Issue #3434).
     align_echo_procedures_to_imaging(procedures, all_orders)
