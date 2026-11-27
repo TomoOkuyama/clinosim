@@ -112,10 +112,11 @@ class TestFileSeparation:
           toxoid, mannitol) → 268.
         - #3232: 50% dextrose injection (hyperkalemia insulin-glucose) → 269.
         - #3264: pediatric asthma controllers (budesonide inhalation suspension, fluticasone propionate pMDI) → 271.
+        - #3896: fidaxomicin (Dafclir tablets 200 mg, 6119001F1025) → 272.
         """
         yj_n = len(_load(_YJ_FILE).get("codes") or {})
         hot7_n = len(_load(_HOT7_FILE).get("codes") or {})
-        assert yj_n == 271, f"yj.yaml YJ12 count expected 271, got {yj_n}"
+        assert yj_n == 272, f"yj.yaml YJ12 count expected 272, got {yj_n}"
         assert hot7_n == 0, f"hot7.yaml HOT7 count expected 0, got {hot7_n}"
 
 
