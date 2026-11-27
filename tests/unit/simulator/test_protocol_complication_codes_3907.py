@@ -164,3 +164,11 @@ def test_the_shipped_table_passes_the_guard() -> None:
     from clinosim.simulator.complication_dx import _table
 
     assert _table().protocol_codes  # loading validated every override
+
+
+def test_the_sepsis_cardiomyopathy_label_names_septic_cardiomyopathy_not_takotsubo() -> None:
+    """The token is declared by the sepsis protocol only, so its narrative label follows the code."""
+    from clinosim.modules.document.narrative._localization import _localize_complication
+
+    assert _localize_complication("stress_cardiomyopathy", "en") == "septic cardiomyopathy"
+    assert _localize_complication("stress_cardiomyopathy", "ja") == "敗血症性心筋症"
