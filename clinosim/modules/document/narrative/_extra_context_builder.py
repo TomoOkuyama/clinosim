@@ -46,7 +46,7 @@ from clinosim.modules.document.narrative._replacement_renderers import (
     _render_vitals_range,
     _stay_phase,
 )
-from clinosim.modules.document.narrative._safety_skips import safety_skip_line
+from clinosim.modules.document.narrative._safety_skips import known_by_hospital_day, safety_skip_line
 from clinosim.modules.document.narrative.context import newborn_workup_known_at
 from clinosim.modules.document.reference_data_loaders import NarrativeExtrasWhitelists
 from clinosim.modules.population.condition_mutex import without_redundant_uncomplicated_diabetes
@@ -268,6 +268,10 @@ def _build_extra_context(
     # 4-layer narrative integration; Layer 2 (deterministic template) is
     # in template_generator._render_safety_skips_line.
     safety_skips = list(getattr(ctx, "safety_skips", []) or [])
+    # Issue #3914: a day-of note (progress / nursing) does not state a switch
+    # dated after its day.
+    if _WRITING_DAY_SCOPE.get(doc_type) == "day_of_stub":
+        safety_skips = known_by_hospital_day(safety_skips, int(getattr(ctx, "day_index", 0) or 0) + 1)
     if safety_skips:
         lang = ctx.target_lang
         # Cap the payload (~200 tokens). Phrasing per event_type is shared

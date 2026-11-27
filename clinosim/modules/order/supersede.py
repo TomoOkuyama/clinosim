@@ -292,9 +292,14 @@ def close_orders_at_discharge(encounters: list[Any], orders: list[Any], administ
 
 def enrich_supersede_orders(ctx: Any) -> None:
     """POST_ENCOUNTER enricher entry point."""
+    from clinosim.modules.order.discontinue_flip import align_switch_stop_days
+
     for record in ctx.records:
         orders = getattr(record, "orders", None) or []
         mars = getattr(record, "medication_administrations", None) or []
         mars = drop_doses_after_hold(orders, mars)
         record.medication_administrations = supersede_orders(orders, mars)
         close_orders_at_discharge(getattr(record, "encounters", None) or [], orders, record.medication_administrations)
+        # Issue #3914: the orders now carry their end, so a switch event is
+        # dated by the day its drug really stopped.
+        align_switch_stop_days(record)
