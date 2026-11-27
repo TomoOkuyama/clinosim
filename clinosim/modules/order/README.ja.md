@@ -130,7 +130,8 @@ from clinosim.modules.order.engine import (
     first_line_alternative_groups,      # (protocol, encounter_id, country, id_infix="") -> tuple[tuple[order_id, ...], ...]; `select: one_of` と宣言した `drugs.first_line` のオーダー ID (Issue #3274)
     protocol_drug_order_code,           # (spec, country) -> 疾患 YAML の薬剤項目のオーダーコード (Issue #2351)
     protocol_drug_order_code_system,    # (spec, country) -> その code system キー、コードが無ければ "" (Issue #2378)
-    dosing_interval_days,               # (frequency) -> 1 日より長い周期の投与間隔 (日)、それ以外は None (Issue #2982)
+    dosing_interval_days,               # (frequency) -> 1 日より長い周期の投与間隔 (日)、それ以外は None (Issue #2982。3 か月 / 6 か月 / 年 1 回のトークンを含む、Issue #3912)
+    unrecognized_cadence,               # (text) -> 用量・頻度文字列のうちエンジンが解決できない最初の周期表現、すべて解決できれば None。enrich_medication_order では DAILY にせず例外にする (Issue #3912)
     imaging_study_keys,                 # (orders) -> 画像オーダーの (modality, report group) の集合 (Issue #3392)
     calculate_lab_result_time,          # (order, rng) -> datetime
     calculate_imaging_result_time,      # (order, rng) -> datetime
