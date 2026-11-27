@@ -24,13 +24,14 @@ from clinosim.codes.drugs import drug_classes, has_drug, protocol_drug_name, sam
 from clinosim.countries import country_code
 from clinosim.locale.free_text import localize_drug_name
 from clinosim.locale.i18n import t
-from clinosim.locale.loader import load_diet_type_display, narrative_label
+from clinosim.locale.loader import load_care_practice, load_diet_type_display, narrative_label
 from clinosim.locale.localized import language_slot, localized
 from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER, sanitize_id_token
 from clinosim.modules.clinical_course._complication_risk_conditions import ComplicationContext, in_drug_class
 from clinosim.modules.clinical_course.engine import (
     apply_diagnosis_modifier,
     compute_diagnosis_effectiveness,
+    course_time_scale,
     evaluate_complications,
     get_daily_directive,
     natural_recovery_directive,
@@ -470,6 +471,8 @@ def _advance_state(stay: _Stay, run: _Run, day: int) -> PhysiologicalState | Non
     """Apply the day's course directive, dampened when the working diagnosis is
     wrong, plus natural recovery. Returns the pre-update state on DKA day 0."""
     patient, protocol = stay.patient, stay.protocol
+    # Issue #3931: the course is calibrated to the time to clinical stability.
+    time_scale = course_time_scale(stay.disease_id, stay.severity)
     directive = get_daily_directive(
         stay.archetype,
         day,
@@ -477,6 +480,7 @@ def _advance_state(stay: _Stay, run: _Run, day: int) -> PhysiologicalState | Non
         protocol_archetypes=protocol.course_archetypes or None,
         age=patient.age,
         rng=stay.rng,
+        time_scale=time_scale,
     )
 
     # Phase 1: Dampen recovery if diagnosis is wrong
@@ -507,6 +511,7 @@ def _advance_state(stay: _Stay, run: _Run, day: int) -> PhysiologicalState | Non
         stay.severity,
         patient.physiological_profile,
         treatment_effectiveness=effectiveness,
+        time_scale=time_scale,
     )
     for var, delta in nat_directive.changes.items():
         directive.changes[var] = directive.changes.get(var, 0.0) + delta
@@ -2433,6 +2438,12 @@ def _run_daily_loop(
     # ``max_extension_days`` past max_los while on vasoactive support (Issue
     # #3270). Stays that never extend run exactly ``target_los`` days as before.
     los_ceiling = target_los
+    # Issue #3931: Japanese practice keeps a stable patient until the sampled target length.
+    first_release_day = (
+        max(min_los, target_los - 1)
+        if load_care_practice(country_key).hold_stable_patient_to_sampled_target
+        else min_los
+    )
     actual_los = max(1, target_los)  # a stay whose loop never runs
     on_support = False
     unresolved = False
@@ -2534,7 +2545,7 @@ def _run_daily_loop(
         # (not for protocols whose recovery the physiology does not model,
         # e.g. psychiatric admissions, Issue #2132).
         if (
-            day >= min_los
+            day >= first_release_day
             and getattr(protocol, "state_based_discharge", True)
             and not rate_uncontrolled
             and not ventilated

@@ -19,6 +19,11 @@ discharge_criteria:
   volume_abs_max: 0.2
   ph_abs_max: 0.15
 
+# Japanese practice (Issue #3931): a clinically stable patient is not discharged before the stay's sampled
+# target length (`target_los.japan`); the days after stability are the practice of continuing the stay, not
+# slower recovery. The clinical gates above still hold a patient who is not stable past the target.
+hold_stable_patient_to_sampled_target: true
+
 # Hours from admission to incision, normal(mean, sd) floored at `floor`
 # (clinosim/modules/procedure/engine.py _hours_to_surgery). Default when the
 # disease YAML declares no procedure.time_to_surgery. JP acute-care hospitals

@@ -21,6 +21,10 @@ discharge_criteria:
   volume_abs_max: 0.3
   ph_abs_max: 0.2
 
+# US practice (Issue #3931): a patient is discharged as soon as the criteria above are met (and the protocol's
+# minimum stay has passed); the sampled target length is a ceiling, not a floor.
+hold_stable_patient_to_sampled_target: false
+
 # Hours from admission to incision, normal(mean, sd) floored at `floor`
 # (clinosim/modules/procedure/engine.py _hours_to_surgery). Default when the
 # disease YAML declares no procedure.time_to_surgery. Mean 24 h: the AAOS

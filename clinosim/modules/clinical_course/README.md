@@ -51,11 +51,12 @@ the next day".
 ```python
 from clinosim.modules.clinical_course.engine import (
     select_archetype,                # (severity, profile, rng, protocol_archetypes=None, protocol_modifiers=None, patient=None) -> archetype_name
-    get_daily_directive,             # (archetype_name, day, profile, protocol_archetypes=None, age=70, rng=None) -> StateChangeDirective
+    get_daily_directive,             # (archetype_name, day, profile, protocol_archetypes=None, age=70, rng=None, time_scale=1.0) -> StateChangeDirective
+    course_time_scale,               # (disease_id, severity) -> float — calibrated course speed (Issue #3931)
     evaluate_complications,          # (day, state, patient, complications, active_complications, rng, severity="moderate", context=None) -> list[dict]
     compute_diagnosis_effectiveness, # (working_diagnosis, ground_truth_disease, diagnosis_confidence, day, diagnostic_difficulty=0.3) -> float
     apply_diagnosis_modifier,        # (directive, effectiveness, current_volume=0.0, current_ph=0.0) -> StateChangeDirective
-    natural_recovery_directive,      # (day, disease_id, severity, profile, treatment_effectiveness=1.0) -> StateChangeDirective
+    natural_recovery_directive,      # (day, disease_id, severity, profile, treatment_effectiveness=1.0, time_scale=1.0) -> StateChangeDirective
     validate_complication_risk_factors,  # (disease_id, complications) -> None — fail-loud vocabulary check
     is_supported_risk_condition,     # (condition) -> bool
 )
@@ -167,6 +168,8 @@ clinosim/modules/clinical_course/
     fallback_archetypes.yaml         six built-in archetypes (trajectory + probability)
     treatment_response.yaml          when a deteriorating course turns: response delay and
                                      minimum inflammation fall (Issue #3838)
+    course_time_scale.yaml           course speed per disease and severity, calibrated to the
+                                     time to clinical stability (Issue #3931)
   SPEC.md                            extended design reference (not runtime)
 ```
 

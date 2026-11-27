@@ -1,0 +1,72 @@
+# course_time_scale.yaml — how much faster than authored a disease course runs, per disease and severity (Issue #3931).
+#
+# The disease trajectories (`course_archetypes`) and the daily natural recovery were authored on the Japanese stay
+# length (`target_los.japan`, which includes days a recovered patient is kept for the practice, see below). The
+# time a patient takes to become clinically stable is not that long: US practice discharges at clinical
+# stability, so the US target length of stay (`target_los.us`) is the best available proxy for it. Run at the
+# authored speed, a US patient was still febrile, hypoperfused or on vasoactive support at the end of the
+# sampled US stay and the discharge gates held him past the protocol's maximum (the US pneumonia stay of the
+# nightly fixture ran a median 11 days against a target of 5).
+#
+# The scale is therefore calibrated once per disease and severity, and is the same in every country: it is
+# `target_los.japan mean / target_los.us mean` of the protocol (bounded by `min_scale` / `max_scale`, rounded to
+# two decimals; a test keeps the table equal to that ratio). Each daily trajectory delta is taken at the
+# compressed day and multiplied by the scale, so the total change over the course is kept and only its duration
+# shortens; the marrow recovery of the anemia axis is not a course speed and is not scaled. A disease or severity
+# absent from the table runs at the authored speed.
+#
+# Country practice is separate: the Japanese practice of keeping a clinically stable patient until the sampled
+# stay is `locale/jp/care_practice.yaml` `hold_stable_patient_to_sampled_target`.
+#
+# Evidence for the order of magnitude: Halm EA et al., JAMA 1998;279:1452-7 (PMID 9600479; abstract read through
+# Europe PMC): in 686 adults hospitalised with community-acquired pneumonia the "median time to overall clinical
+# stability was 3 days for the most lenient definition of stability and 7 days for the most conservative
+# definition" (heart rate and systolic blood pressure 2 days; respiratory rate, oxygen saturation and temperature
+# 3 days). The US pneumonia target means (3 / 5 / 8 days by severity) lie in that range. The scales, their
+# bounds and the use of the US target as the time to stability are clinosim modelling choices. The upper bound
+# keeps one-day steps meaningful: the surgical and psychiatric stays (knee arthroplasty 10x, depression 7x) are
+# bounded by their procedures or admission criteria, not by the physiology.
+metadata:
+  kind: reference
+  name: course_time_scale
+  source: clinosim
+
+min_scale: 1.0
+max_scale: 4.0
+scales:
+  acute_appendicitis: {mild: 4.0, moderate: 4.0, severe: 2.8}
+  acute_cholecystitis: {mild: 4.0, moderate: 3.0, severe: 2.57}
+  acute_kidney_injury: {mild: 2.8, moderate: 2.57, severe: 2.08}
+  acute_mi: {moderate: 3.0, severe: 3.0}
+  acute_pancreatitis: {mild: 3.0, moderate: 3.0, severe: 2.33}
+  alcohol_withdrawal: {moderate: 2.5, severe: 2.67}
+  aspiration_pneumonia: {mild: 2.8, moderate: 2.57, severe: 2.33}
+  asthma_exacerbation: {mild: 3.5, moderate: 2.5, severe: 2.0}
+  atrial_fibrillation_rvr: {mild: 3.5, moderate: 3.0, severe: 2.8}
+  bacterial_pneumonia: {mild: 3.33, moderate: 2.8, severe: 2.62}
+  cellulitis: {mild: 2.33, moderate: 2.5, severe: 2.33}
+  cerebral_infarction: {moderate: 4.0, severe: 4.0}
+  copd_exacerbation: {mild: 2.67, moderate: 2.4, severe: 2.25}
+  crush_injury_hand: {moderate: 3.33, severe: 3.0}
+  deep_vein_thrombosis: {mild: 3.5, moderate: 3.33, severe: 2.8}
+  depression_inpatient: {moderate: 4.0, severe: 4.0}
+  diabetic_ketoacidosis: {moderate: 3.43, severe: 3.2}
+  elective_knee_arthroplasty: {moderate: 4.0, severe: 4.0}
+  electrical_injury: {moderate: 3.5, severe: 2.33}
+  fall_from_height: {moderate: 3.0, severe: 2.81}
+  gi_bleeding: {mild: 3.33, moderate: 3.0, severe: 2.67}
+  heart_failure_exacerbation: {mild: 3.33, moderate: 3.4, severe: 3.0}
+  hemorrhagic_stroke: {moderate: 3.5, severe: 2.86}
+  hip_fracture: {moderate: 4.0, severe: 4.0}
+  ileus: {mild: 2.67, moderate: 2.4, severe: 2.25}
+  industrial_burn_severe: {moderate: 2.14, severe: 1.79}
+  influenza: {mild: 2.5, moderate: 2.33, severe: 2.0}
+  liver_cirrhosis_decompensated: {mild: 2.8, moderate: 2.57, severe: 2.5}
+  psychosis_inpatient: {moderate: 4.0, severe: 4.0}
+  pulmonary_embolism: {mild: 3.33, moderate: 2.6, severe: 2.25}
+  sepsis: {moderate: 2.1, severe: 1.94}
+  subdural_hematoma: {moderate: 3.0, severe: 2.14}
+  traffic_accident_severe: {moderate: 2.8, severe: 2.86}
+  urinary_tract_infection: {mild: 2.33, moderate: 3.0, severe: 2.57}
+  vertebral_compression_fracture: {mild: 4.0, moderate: 4.0, severe: 4.0}
+  wrist_fracture_surgical: {moderate: 4.0, severe: 4.0}
