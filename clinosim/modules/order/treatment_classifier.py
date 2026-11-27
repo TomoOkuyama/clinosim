@@ -184,6 +184,7 @@ MEDICATION_TYPE_HINTS: frozenset[str] = frozenset(
         "antipyretic",
         "DVT_prophylaxis",
         "PPI",
+        "stress_ulcer_prophylaxis",
         "lactulose",
         "bronchodilator",
         "steroid",

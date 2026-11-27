@@ -33,6 +33,20 @@
 #     "1回あたりの投与量を減量せず12時間ごとに投与"; 10-25 "1回あたりの投与量を
 #     1/2に減量し12時間ごとに投与"; < 10 "1回あたりの投与量を1/2に減量し24時間ごと
 #     に投与".
+#   - US famotidine injection (Issue #3917): openFDA drug label "Famotidine"
+#     (api.fda.gov /drug/label.json, generic_name famotidine, route
+#     intravenous), "Dosage Adjustments for Patients with Moderate or Severe
+#     Renal Insufficiency": "In adult patients with moderate (creatinine
+#     clearance < 50 mL/min) or severe (creatinine clearance < 10 mL/min) renal
+#     insufficiency ... the dose of Famotidine Injection may be reduced to half
+#     the dose, or the dosing interval may be prolonged to 36 to 48 hours".
+#     The half dose below 50 mL/min is the rule kept (interval unchanged).
+#   - JP famotidine injection (Issue #3917): ガスター注射液20mg 用法・用量に関連する
+#     注意 (read as reproduced at medley.life/medicines/prescription/2325401A2027/doc/,
+#     the package insert text): "1回20mg1日2回投与を基準とする場合" Ccr 60以上
+#     1回20mg1日2回; 60未満30超 "1回20mg1日1回又は1回10mg1日2回"; 30以下
+#     "1回10mg2日に1回又は1回5mg1日1回". Kept: 10 mg twice daily (60 to 31) and
+#     5 mg once daily (30 or below).
 #   Not listed: JP piperacillin / tazobactam (the PMDA package insert of
 #     ゾシン静注用, 2023-02 revision, section 9.2, says only to reduce the dose or
 #     lengthen the interval by the degree of impairment, without Ccr bands),
@@ -67,3 +81,13 @@ drugs:
       bands:
         - {max_crcl: 19, dose_factor: 0.5, interval_hours: 6}
         - {max_crcl: 40, dose_factor: 0.75, interval_hours: 6}
+  famotidine:
+    US:
+      reference_dose_mg: 20
+      bands:
+        - {max_crcl: 49, dose_factor: 0.5, interval_hours: 12}
+    JP:
+      reference_dose_mg: 20
+      bands:
+        - {max_crcl: 30, dose_factor: 0.25, interval_hours: 24}
+        - {max_crcl: 59, dose_factor: 0.5, interval_hours: 12}

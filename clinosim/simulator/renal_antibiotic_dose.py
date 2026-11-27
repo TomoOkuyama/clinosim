@@ -107,7 +107,8 @@ def _rewritten_name(name: str, mg: float, interval: str) -> str:
     """``name`` with a written strength and interval following the new regimen."""
     new = f"{mg / _MG_PER_G:g}g" if mg >= _MG_PER_G else f"{mg:g}mg"
     name = _STRENGTH.sub(new, name, count=1)
-    return _INTERVAL.sub(interval.lower(), name, count=1) if interval.upper().startswith("Q") else name
+    # A once-daily regimen drops the written "q12h" for "daily" (Issue #3917).
+    return _INTERVAL.sub("daily" if interval.upper() == "DAILY" else interval.lower(), name, count=1)
 
 
 def creatinine_clearance(

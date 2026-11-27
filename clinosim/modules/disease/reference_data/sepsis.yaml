@@ -188,7 +188,10 @@ order_protocols:
       - {type: "O2", detail: "Target SpO2 >= 94%"}
       - {type: "antipyretic", detail: "Acetaminophen 1000mg IV q6h PRN temp >= 38.5"}
       - {type: "DVT_prophylaxis", detail: "Enoxaparin 2000IU SC daily (hold if coagulopathy)"}
-      - {type: "stress_ulcer_prophylaxis", detail: "Famotidine 20mg IV BID or PPI"}
+      # Issue #3917: ordered as a medication (famotidine injection: 20 mg IV q12h, US label
+      # "Dosage and Administration"; JP ガスター注射液 1回20mg 1日2回 (12時間毎), 侵襲ストレス
+      # による上部消化管出血の抑制は7日間程度). Renal bands: renal_antibiotic_dosing.yaml.
+      - {type: "stress_ulcer_prophylaxis", detail: "Famotidine 20mg IV q12h x7 days or PPI"}
       - {type: "glucose_monitoring", detail: "BG q4-6h, target 140-180 mg/dL"}
       - {type: "foley_catheter", detail: "Strict I/O monitoring, target UO >= 0.5 mL/kg/h"}
 

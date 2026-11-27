@@ -155,7 +155,13 @@ order_protocols:
     supportive:
       - {type: "NPO", detail: "Nothing by mouth for surgery"}
       - {type: "IV_fluid", detail: "Lactated Ringer 125 mL/h"}
-      - {type: "antibiotic_prophylaxis", detail: "Cefazolin 2g IV (preoperative)"}
+      # Issue #3917: the plan names the drug the country's first-line block orders
+      # (JP cefmetazole, not cefazolin); this line is the care-plan wording of it.
+      - type: "antibiotic_prophylaxis"
+        detail: "Cefazolin 2g IV (preoperative)"
+        locale_detail:
+          jp: "Cefmetazole 1g IV (preoperative)"
+          us: "Cefazolin 2g IV (preoperative)"
       - {type: "pain_management", detail: "Acetaminophen 1000mg IV + Fentanyl 50mcg IV PRN"}
 
   daily_monitoring:
