@@ -54,10 +54,10 @@ workup:
 
 treatment:
   - {name: "Cool water irrigation", probability: 0.8, route: "topical", intent: "initial burn care"}
-  - {name: "Silver sulfadiazine cream", probability: 0.6, route: "topical", intent: "antimicrobial wound care"}
+  - {name: "Silver sulfadiazine 1% cream", locale_name: {us: "Silver sulfadiazine 1% cream 1/16 inch layer", jp: "Silver sulfadiazine 1% cream 2-3mm layer"}, probability: 0.6, route: "topical", intent: "antimicrobial wound care"}
   - {name: "Non-adherent dressing", probability: 0.9, route: "topical", intent: "wound protection"}
   - {name: "Ibuprofen 400mg", locale_name: {jp: "Ibuprofen 200mg"}, probability: 0.6, route: "PO", intent: "pain management"}
-  - {name: "Acetaminophen/codeine", probability: 0.2, route: "PO", intent: "pain management for moderate burns"}
+  - {name: "Acetaminophen/codeine 300mg/30mg", probability: 0.2, route: "PO", intent: "pain management for moderate burns"}
 
 discharge_instructions:
   - {en: "Partial thickness burn; expected to heal in 10-14 days", ja: "部分層熱傷で10〜14日で治癒する見込み"}

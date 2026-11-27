@@ -128,9 +128,16 @@ drugs:
 #     pediatric patients below 15 years of age have not been established".
 #   butylscopolamine (Buscopan): no pediatric dose or age limit was read, so it
 #     is kept to adults until one is.
+#   acetaminophen_codeine: label (acetaminophen and codeine phosphate tablets,
+#     Contraindications): "contraindicated for all children younger than 12 years
+#     of age" (openFDA label, read 2026-11).
+#   diclofenac: topical gel label, Pediatric Use: "should not be used by children"
+#     (openFDA label, read 2026-11); kept to adults.
 withheld_below_age_months:
   cyclobenzaprine: 180
   butylscopolamine: 216
+  acetaminophen_codeine: 144
+  diclofenac: 216
 
 fluids:
   normal_saline: {ml_per_kg: 20}

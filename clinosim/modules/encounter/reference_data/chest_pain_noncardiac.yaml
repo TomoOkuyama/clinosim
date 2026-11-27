@@ -53,7 +53,7 @@ workup:
 treatment:
   - {name: "Aspirin 325mg", probability: 0.6, route: "PO", intent: "empiric ACS protocol"}
   - {name: "Nitroglycerin 0.4mg SL", probability: 0.3, route: "SL", intent: "chest pain relief"}
-  - {name: "IV normal saline", probability: 0.3, route: "IV"}
+  - {name: "IV normal saline 500mL", probability: 0.3, route: "IV"}
 
 discharge_instructions:
   - {en: "Return immediately if chest pain recurs, worsens, or is associated with dyspnea", ja: "胸痛の再発・増悪、呼吸困難を伴う場合は直ちに受診"}
