@@ -90,13 +90,27 @@ class StepDown(BaseModel):
 
 class RecurrenceRisk(BaseModel):
     """A first episode has recurrence risk when the patient is at least
-    ``age_at_least`` years old at admission or has a chronic condition of one of
-    the named value sets (``codes/data/valuesets.yaml``, Issue #3896)."""
+    ``age_at_least`` years old at admission, has a chronic condition of one of
+    the named value sets (``codes/data/valuesets.yaml``, Issue #3896), or takes
+    a drug of one of ``drug_classes`` (catalog classes, ancestors included: the
+    home medications at admission and the medication orders running at the
+    onset, Issue #3908)."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     age_at_least: int = Field(gt=0)
     conditions: tuple[_Slug, ...] = ()
+    drug_classes: tuple[_Slug, ...] = ()
+
+    @model_validator(mode="after")
+    def _classes_are_catalog_classes(self) -> RecurrenceRisk:
+        from clinosim.codes.drugs import all_drug_ids, drug_classes
+
+        known = {c for d in all_drug_ids() for c in drug_classes(d)}
+        unknown = set(self.drug_classes) - known
+        if unknown:
+            raise ValueError(f"recurrence_risk.drug_classes names classes no catalog drug has: {sorted(unknown)}")
+        return self
 
 
 class TreatmentAction(BaseModel):
@@ -321,11 +335,13 @@ def treatment_severity(action: str, results: Iterable[Any], at: datetime) -> str
     return "non_severe"
 
 
-def has_recurrence_risk(action: str, patient: Any, admission_time: datetime) -> bool:
+def has_recurrence_risk(action: str, patient: Any, admission_time: datetime, active_drugs: Iterable[str] = ()) -> bool:
     """Whether the patient is a first episode with recurrence risk under an
     action's ``recurrence_risk`` rule (Issue #3896): the age at admission (the
     birth date when known, else the age field) at or above the limit, or a
-    chronic condition of a named value set. The guideline's other factors (a
+    chronic condition of a named value set, or a drug of a named class among the
+    home medications at admission and ``active_drugs`` (the medication orders
+    running at the onset; Issue #3908). The guideline's other factors (a
     previous CDI, the strain) and the severity (which already selects the
     severe regimen) are not used. ``False`` for an action without a rule."""
     from clinosim.codes.valuesets import has_condition
@@ -335,7 +351,12 @@ def has_recurrence_risk(action: str, patient: Any, admission_time: datetime) -> 
         return False
     dob = getattr(patient, "date_of_birth", None)
     age = (admission_time.date() - dob).days / 365.25 if dob is not None else float(getattr(patient, "age", 0))
-    return age >= rule.age_at_least or any(has_condition(patient, group) for group in rule.conditions)
+    if age >= rule.age_at_least or any(has_condition(patient, group) for group in rule.conditions):
+        return True
+    if not rule.drug_classes:
+        return False
+    names = [*(m.drug_name for m in patient.current_medications or [] if m.drug_name), *active_drugs]
+    return any(set(drug_classes(name)) & set(rule.drug_classes) for name in names)
 
 
 def treatment_candidates(

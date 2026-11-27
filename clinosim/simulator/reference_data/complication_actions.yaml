@@ -175,10 +175,15 @@ treatment_actions:
     # Issue #3896: a first episode with recurrence risk, evaluated for Japan only (the US
     # regimen table below has no at-risk entry): age 65 or more at admission, or an
     # immunosuppressed chronic condition (the `immunosuppressed` value set of
-    # codes/data/valuesets.yaml: B20, D80-D84, Z94).
+    # codes/data/valuesets.yaml: B20, D80-D84, Z94), or (Issue #3908) a systemic
+    # immunosuppressive drug among the home medications at admission or the
+    # medication orders running at the onset: the catalog classes below
+    # (codes/data/drugs.yaml; a class covers its dotted children). The inhaled and
+    # topical steroids (budesonide, fluticasone) have no class and do not count.
     recurrence_risk:
       age_at_least: 65
       conditions: [immunosuppressed]
+      drug_classes: [corticosteroid, immunosuppressant, chemo, antineoplastic]
     regimen_at_recurrence_risk:
       non_severe:
         japan:
@@ -295,9 +300,17 @@ stop_actions:
 #   guideline's recurrence-risk factors (literature review): "高齢（65 歳以上），CDI
 #   の既往，免疫不全宿主（免疫抑制剤の使用など），重症 CDI，強毒株による感染
 #   （RT 027/078/244）". The simulator evaluates age (65 or more at admission) and
-#   the `immunosuppressed` chronic-condition value set (B20, D80-D84, Z94; a drug-
-#   induced immunosuppression is not on the problem list, so it is not seen). A
-#   previous CDI and the strain are not modelled; the severity is not used as a
+#   the `immunosuppressed` chronic-condition value set (B20, D80-D84, Z94), and
+#   (Issue #3908) the guideline's "免疫抑制剤の使用など" (journal p.36, the paragraph
+#   after Table 1 "CDI 再発のリスク因子", on the IDSA/SHEA guideline's factors)
+#   as a drug: the catalog classes corticosteroid (prednisolone, prednisone,
+#   hydrocortisone, methylprednisolone), immunosuppressant (azathioprine,
+#   tacrolimus, ciclosporin), chemo and antineoplastic (the cytotoxic drugs) taken
+#   at home at admission or ordered before the onset. The guideline gives no dose
+#   or duration threshold, so none is applied; the inhaled and topical steroids
+#   are not in these classes. The catalog holds no methotrexate, mycophenolate
+#   or biologic immunosuppressant, so none is seen.
+#   A previous CDI and the strain are not modelled; the severity is not used as a
 #   factor, because it already selects the severe arm (using it would make every
 #   severe case fidaxomicin). Fidaxomicin: YJ 6119001F1025 (ダフクリア錠200mg),
 #   RxNorm 1111103, dose from the PMDA package insert (4th ed., July 2024):
