@@ -51,7 +51,9 @@ def test_treat_and_release_visit_carries_protocol_prescriptions(monkeypatch: pyt
     monkeypatch.setattr(protocol_mod, "load_encounter_condition", lambda _cid: cond)
     record = _visit(cond)
     assert record.encounters[0].discharge_disposition == DischargeDisposition.HOME
-    assert _drugs(record) == ["Tamsulosin", "Ibuprofen", "Oxycodone"]
+    # The visit's ED order is ketorolac, so the take-home ibuprofen is dropped (Issue #3925).
+    assert [o.display_name for o in record.orders if o.display_name.startswith("Ketorolac")]
+    assert _drugs(record) == ["Tamsulosin", "Oxycodone"]
     item = record.discharge_prescription.items[0]
     assert (item["dose"], item["route"], item["frequency"], item["duration_days"]) == ("0.4mg", "PO", "daily", 14)
     assert record.discharge_prescription.prescriber_id == record.encounters[0].attending_physician_id
