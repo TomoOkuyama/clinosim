@@ -27,6 +27,7 @@ from clinosim.simulator.maintenance_iv_fluid import MaintenanceIVFluidRules
 from clinosim.simulator.medication_pipeline import RenalMedicationRules, VasoactiveHoldRules
 from clinosim.simulator.mixed_condition import MixedConditionRules
 from clinosim.simulator.oral_intake import OralIntakeRules
+from clinosim.simulator.outpatient_order_timing import OutpatientOrderTiming
 from clinosim.simulator.oxygen_course import OxygenCourseRules
 from clinosim.simulator.permissive_hypertension import PermissiveHypertensionRules
 from clinosim.simulator.renal_antibiotic_dose import RenalAntibioticDosing
@@ -59,6 +60,7 @@ _MODELS: dict[str, type[BaseModel]] = {
     "maintenance_iv_fluid.yaml": MaintenanceIVFluidRules,
     "mixed_condition.yaml": MixedConditionRules,
     "oral_intake.yaml": OralIntakeRules,
+    "outpatient_order_timing.yaml": OutpatientOrderTiming,
     "oxygen_course.yaml": OxygenCourseRules,
     "permissive_hypertension_hold.yaml": PermissiveHypertensionRules,
     "renal_antibiotic_dosing.yaml": RenalAntibioticDosing,
@@ -118,6 +120,7 @@ _NESTED: dict[str, Callable[[dict[str, Any]], None]] = {
     "maintenance_iv_fluid.yaml": lambda d: d.update(grace_days={"days": 1}),
     "mixed_condition.yaml": lambda d: d.update(recovery_days={"days": 1}),
     "oral_intake.yaml": lambda d: d.update(npo_consciousness_levels=["X"]),
+    "outpatient_order_timing.yaml": lambda d: d.update(max_fraction_of_visit=1.5),
     "oxygen_course.yaml": lambda d: d.update(wean_hours={"hours": 12}),
     "permissive_hypertension_hold.yaml": lambda d: d["held_classes"].append("antihypertensives"),
     "renal_antibiotic_dosing.yaml": lambda d: d["drugs"]["meropenem"]["US"]["bands"][0].update(dose_factr=0.5),
