@@ -147,6 +147,7 @@ Governing specs: [`medication-lifecycle-spec.ja.md`](medication-lifecycle-spec.j
 | `clinosim/modules/order/pediatric_dose.py` `pediatric_order_name(name, age_months, weight_kg)` | 成人固定用量のオーダーを小児の体重から再計算する。最小月齢未満なら None。 |
 | `clinosim/simulator/encounter_setup.py` `extend_visit_to_procedures(encounter, procedures)` | 受診が最後の処置の終了まで続くよう延長する。 |
 | `clinosim/simulator/encounter_setup.py` `fit_procedures_in_stay(procedures, start, end)` | 各処置を在院期間内に収める (`end` が None なら在院中)。 |
+| `clinosim/simulator/encounter_setup.py` `fit_rehab_sessions_in_stay(sessions, start, end)` | 在院期間内にあるリハビリテーションセッションだけを残す。収まらないセッションは移動せず除外する (`end` が None なら在院中)。 |
 | `clinosim/modules/observation/pediatric_ranges.py` `age_in_completed_months(birth, when)` | 小児の満月齢 (日付不明なら None)。 |
 | `clinosim/modules/observation/pediatric_ranges.py` `pediatric_vital_range(vital, age_months)` / `pediatric_vital_range_text` / `age_independent_vital_range_text` | 月齢に応じた小児バイタル基準範囲と `referenceRange.text`。None は成人範囲を使う。 |
 | `clinosim/modules/observation/pediatric_ranges.py` `pediatric_lab_range(lab_name, age_years, sex)` / `pediatric_lab_center` / `pediatric_lab_band` / `pediatric_lab_range_text` | 小児の検査基準範囲 (中点・年齢帯・表示文を含む)。None は成人範囲を使う。 |
