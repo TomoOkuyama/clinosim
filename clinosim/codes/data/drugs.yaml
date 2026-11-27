@@ -687,6 +687,15 @@ drugs:
       rxnorm: "6922"
       yj: {oral: "6419002F1131", injection: "6419401A1027"}
     classes: ["antibiotic.nitroimidazole"]
+  # Issue #3896: oral fidaxomicin, the Clostridioides difficile agent. RxCUI 1111103
+  # verified on NLM RxNav (TTY=IN fidaxomicin; the 200 MG Oral Tablet SCD is 1111106);
+  # YJ 6119001F1025 (ダフクリア錠200mg) read on the PMDA package insert page.
+  fidaxomicin:
+    names: {en: "Fidaxomicin", ja: "フィダキソマイシン"}
+    codes:
+      rxnorm: "1111103"
+      yj: {oral: "6119001F1025"}
+    classes: ["antibiotic.macrocyclic"]
   fluconazole:
     names: {en: "Fluconazole", ja: "フルコナゾール"}
     codes:

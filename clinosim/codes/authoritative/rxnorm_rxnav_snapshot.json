@@ -8699,6 +8699,18 @@
    "status": "Active",
    "name": "varicella zoster virus glycoprotein E, recombinant",
    "tty": "PIN"
+  },
+  {
+   "code": "1111103",
+   "status": "Active",
+   "name": "fidaxomicin",
+   "tty": "IN"
+  },
+  {
+   "code": "1111106",
+   "status": "Active",
+   "name": "fidaxomicin 200 MG Oral Tablet",
+   "tty": "SCD"
   }
  ]
 }

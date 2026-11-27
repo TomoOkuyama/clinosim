@@ -88,6 +88,17 @@ class StepDown(BaseModel):
     total_days: int = Field(gt=0)
 
 
+class RecurrenceRisk(BaseModel):
+    """A first episode has recurrence risk when the patient is at least
+    ``age_at_least`` years old at admission or has a chronic condition of one of
+    the named value sets (``codes/data/valuesets.yaml``, Issue #3896)."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    age_at_least: int = Field(gt=0)
+    conditions: tuple[_Slug, ...] = ()
+
+
 class TreatmentAction(BaseModel):
     """One executed treatment action (Issue #3864): the regimen is the entries
     of a protocol block (``protocol`` + ``block``), ``regimen`` (country ->
@@ -103,6 +114,8 @@ class TreatmentAction(BaseModel):
     regimen: dict[_Slug, tuple[dict[str, Any], ...]] | None = None
     regimen_by_severity: dict[_Slug, dict[_Slug, tuple[dict[str, Any], ...]]] | None = None
     severity: SeverityRule | None = None
+    recurrence_risk: RecurrenceRisk | None = None
+    regimen_at_recurrence_risk: dict[_Slug, dict[_Slug, tuple[dict[str, Any], ...]]] | None = None
     intent: _Slug
     drug_class: _Slug
     route: _Slug | None = None
@@ -126,6 +139,13 @@ class TreatmentAction(BaseModel):
             raise ValueError("regimen_by_severity and severity go together")
         if self.step_down is not None and (self.course_days is None or self.step_down.total_days <= self.course_days):
             raise ValueError("a step-down follows a course_days course and ends after it")
+        if (self.recurrence_risk is None) != (self.regimen_at_recurrence_risk is None):
+            raise ValueError("recurrence_risk and regimen_at_recurrence_risk go together")
+        if self.regimen_at_recurrence_risk is not None:
+            if self.regimen_by_severity is None or not set(self.regimen_at_recurrence_risk) <= set(
+                self.regimen_by_severity
+            ):
+                raise ValueError("regimen_at_recurrence_risk names levels of regimen_by_severity")
         if self.regimen_by_severity is not None and set(self.regimen_by_severity) != {"non_severe", "severe"}:
             raise ValueError("regimen_by_severity has the levels non_severe and severe")
         return self
@@ -301,18 +321,42 @@ def treatment_severity(action: str, results: Iterable[Any], at: datetime) -> str
     return "non_severe"
 
 
-def treatment_candidates(action: str, country_key: str, severity: str | None = None) -> list[dict[str, Any]]:
+def has_recurrence_risk(action: str, patient: Any, admission_time: datetime) -> bool:
+    """Whether the patient is a first episode with recurrence risk under an
+    action's ``recurrence_risk`` rule (Issue #3896): the age at admission (the
+    birth date when known, else the age field) at or above the limit, or a
+    chronic condition of a named value set. The guideline's other factors (a
+    previous CDI, the strain) and the severity (which already selects the
+    severe regimen) are not used. ``False`` for an action without a rule."""
+    from clinosim.codes.valuesets import has_condition
+
+    rule = complication_action_rules().treatment_actions[action].recurrence_risk
+    if rule is None:
+        return False
+    dob = getattr(patient, "date_of_birth", None)
+    age = (admission_time.date() - dob).days / 365.25 if dob is not None else float(getattr(patient, "age", 0))
+    return age >= rule.age_at_least or any(has_condition(patient, group) for group in rule.conditions)
+
+
+def treatment_candidates(
+    action: str, country_key: str, severity: str | None = None, recurrence_risk: bool = False
+) -> list[dict[str, Any]]:
     """The protocol entries a treatment action chooses from, in order (Issue
     #3864): the entries of the named block for the country whose drug is of the
     action's class (and route) and that are given without a draw (no
     ``probability``); ``first_only`` keeps the first alone. An action with
     ``regimen_by_severity`` takes the entries of ``severity`` (``non_severe``
-    when not given, Issue #3896)."""
+    when not given, Issue #3896); with ``recurrence_risk`` the entries of
+    ``regimen_at_recurrence_risk`` replace them where that table has the level
+    and country."""
     from clinosim.modules.disease.protocol import load_disease_protocol
 
     spec = complication_action_rules().treatment_actions[action]
     if spec.regimen_by_severity is not None:
-        entries: Any = list(spec.regimen_by_severity[severity or "non_severe"].get(country_key, ()))
+        level = severity or "non_severe"
+        entries: Any = list(spec.regimen_by_severity[level].get(country_key, ()))
+        if recurrence_risk and spec.regimen_at_recurrence_risk is not None:
+            entries = list(spec.regimen_at_recurrence_risk.get(level, {}).get(country_key, entries))
     elif spec.regimen is not None:
         entries = list(spec.regimen.get(country_key, ()))
     else:

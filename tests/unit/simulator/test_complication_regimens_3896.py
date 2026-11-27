@@ -11,6 +11,7 @@ import pytest
 
 from clinosim.simulator import daily_loop as dl
 from clinosim.types.encounter import OrderResult, OrderStatus
+from clinosim.types.patient import ChronicCondition
 from tests.unit.simulator.test_complication_treatment_3864 import (  # noqa: F401
     _CDIFF,
     ADMIT,
@@ -39,8 +40,12 @@ def _lab(run, name: str, value: float, unit: str) -> None:
     )
 
 
-def _cdiff(monkeypatch, country: str, wbc: float | None = None, creatinine: float = 0.9):
+def _cdiff(monkeypatch, country: str, wbc: float | None = None, creatinine: float = 0.9, age: int = 50, conditions=()):
+    """A C. difficile onset; the default patient is under 65 without an immune disorder, so the
+    regimen is the one of a first episode without recurrence risk."""
     stay, run = _stay(country), _run(creatinine=creatinine)
+    stay.patient.age = age
+    stay.patient.chronic_conditions = [ChronicCondition(code=c) for c in conditions]
     if wbc is not None:
         _lab(run, "WBC", wbc, "/uL")
     _fire(monkeypatch, stay, run, "c_diff_colitis", _CDIFF)
@@ -82,6 +87,7 @@ def test_us_cdi_keeps_oral_vancomycin_whatever_the_severity(monkeypatch, wbc) ->
 
 def test_the_severity_is_read_at_the_onset_not_from_a_later_result(monkeypatch) -> None:
     stay, run = _stay("japan"), _run(creatinine=0.9)
+    stay.patient.age = 50
     run.lab_results.append(
         OrderResult(
             result_datetime=ONSET_ORDER + timedelta(days=2),
@@ -428,3 +434,88 @@ def test_the_edoxaban_discharge_dose_of_every_protocol_follows_the_weight_and_th
     assert _jp_discharge_edoxaban(disease, 80.0)["dose"].startswith("60mg")
     with_verapamil = _jp_discharge_edoxaban(disease, 80.0, home=["Verapamil"])
     assert with_verapamil["dose"].startswith("30mg")
+
+
+# --- fidaxomicin for a first episode with recurrence risk, Japan (Issue #3896) ---
+
+
+def _fidaxomicin_ok(run) -> None:
+    (order,) = _cdiff_orders(run)
+    assert (order.drug_id, order.route, order.status) == ("fidaxomicin", "PO", OrderStatus.PLACED)
+    assert (order.dose_quantity, order.dose_unit, order.frequency_per_day, order.duration_days) == (200.0, "mg", 2, 10)
+    assert _given(run, order)
+
+
+@pytest.mark.parametrize("wbc", [9000.0, 16000.0])
+def test_jp_first_episode_at_65_or_over_gets_fidaxomicin_whatever_the_severity(monkeypatch, wbc) -> None:
+    _fidaxomicin_ok(_cdiff(monkeypatch, "japan", wbc=wbc, age=65))
+    _fidaxomicin_ok(_cdiff(monkeypatch, "japan", wbc=wbc, age=88))
+
+
+@pytest.mark.parametrize(("wbc", "drug"), [(9000.0, "metronidazole"), (16000.0, "vancomycin")])
+def test_jp_first_episode_under_65_keeps_the_metronidazole_or_vancomycin_arm(monkeypatch, wbc, drug) -> None:
+    run = _cdiff(monkeypatch, "japan", wbc=wbc, age=64)
+    assert [o.drug_id for o in _cdiff_orders(run)] == [drug]
+
+
+@pytest.mark.parametrize("code", ["D80.0", "D84.9", "B20", "Z94.0"])
+def test_jp_immunosuppressed_patient_under_65_gets_fidaxomicin(monkeypatch, code) -> None:
+    _fidaxomicin_ok(_cdiff(monkeypatch, "japan", wbc=9000.0, age=40, conditions=[code]))
+    _fidaxomicin_ok(_cdiff(monkeypatch, "japan", wbc=18000.0, age=40, conditions=[code]))
+
+
+def test_a_condition_outside_the_immunosuppressed_group_is_no_recurrence_risk(monkeypatch) -> None:
+    run = _cdiff(monkeypatch, "japan", wbc=9000.0, age=40, conditions=["E11.9", "I10"])
+    assert [o.drug_id for o in _cdiff_orders(run)] == ["metronidazole"]
+
+
+def test_severity_alone_is_not_a_recurrence_risk(monkeypatch) -> None:
+    run = _cdiff(monkeypatch, "japan", wbc=30000.0, creatinine=3.0, age=40)
+    assert [o.drug_id for o in _cdiff_orders(run)] == ["vancomycin"]
+
+
+@pytest.mark.parametrize("age", [30, 70, 90])
+def test_us_keeps_oral_vancomycin_at_any_age(monkeypatch, age) -> None:
+    run = _cdiff(monkeypatch, "us", wbc=9000.0, age=age, conditions=["D80.0"])
+    assert [o.drug_id for o in _cdiff_orders(run)] == ["vancomycin"]
+
+
+def test_the_age_comes_from_the_birth_date_at_admission_when_it_is_known(monkeypatch) -> None:
+    from datetime import date
+
+    stay, run = _stay("japan"), _run(creatinine=0.9)
+    stay.patient.age = 30  # a stale field: the birth date decides
+    stay.patient.date_of_birth = date(ADMIT.year - 66, 1, 1)
+    _lab(run, "WBC", 9000.0, "/uL")
+    _fire(monkeypatch, stay, run, "c_diff_colitis", _CDIFF)
+    _fidaxomicin_ok(run)
+
+
+def test_fidaxomicin_is_in_the_catalog_with_its_codes() -> None:
+    from clinosim.codes.drugs import get_drug
+
+    rec = get_drug("fidaxomicin")
+    assert rec is not None and rec.codes["rxnorm"] == "1111103" and rec.codes["yj"] == "6119001F1025"
+    assert rec.classes == ("antibiotic.macrocyclic",)
+
+
+def test_the_fidaxomicin_course_continues_at_discharge_and_is_not_held() -> None:
+    from clinosim.simulator.complication_actions import complication_discharge_specs
+    from clinosim.types.encounter import Order, OrderType
+
+    order = Order(
+        order_id="ORD-E1-COMPTX-D4-c_diff_colitis-0",
+        order_type=OrderType.MEDICATION,
+        display_name="Fidaxomicin",
+        drug_id="fidaxomicin",
+        ordered_datetime=ONSET_ORDER,
+        status=OrderStatus.PLACED,
+        dose_quantity=200.0,
+        dose_unit="mg",
+        frequency="BID",
+        frequency_per_day=2,
+        route="PO",
+        duration_days=10,
+    )
+    (spec,) = complication_discharge_specs([order], "japan", discharge_time=ONSET_ORDER + timedelta(days=4))
+    assert (spec["drug_id"], spec["duration_days"], spec["from_complication"]) == ("fidaxomicin", 6, True)

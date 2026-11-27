@@ -172,6 +172,20 @@ treatment_actions:
       criteria:
         - {lab: WBC, at_least: 15000}
         - {lab: Creatinine, above: 1.5}
+    # Issue #3896: a first episode with recurrence risk, evaluated for Japan only (the US
+    # regimen table below has no at-risk entry): age 65 or more at admission, or an
+    # immunosuppressed chronic condition (the `immunosuppressed` value set of
+    # codes/data/valuesets.yaml: B20, D80-D84, Z94).
+    recurrence_risk:
+      age_at_least: 65
+      conditions: [immunosuppressed]
+    regimen_at_recurrence_risk:
+      non_severe:
+        japan:
+          - {drug_id: fidaxomicin, dose: "200mg PO BID x10 days", route: PO, duration_days: 10}
+      severe:
+        japan:
+          - {drug_id: fidaxomicin, dose: "200mg PO BID x10 days", route: PO, duration_days: 10}
     regimen_by_severity:
       non_severe:
         us:
@@ -273,12 +287,28 @@ stop_actions:
 #   alternative). The guideline's fulminant regimen (shock, hypotension, toxic
 #   megacolon, paralytic ileus: vancomycin 500 mg four times daily) is not
 #   modelled: the stay carries none of those as a state at the onset.
+#   Recurrence risk (Japan only, Issue #3896). Same table, non-severe first
+#   episode: "再発リスクを有する場合または上記の場合 ・フィダキソマイシンを 1 回
+#   200 mg 1 日 2 回 10 日間経口投与する" ("上記" = metronidazole allergy or side
+#   effects, pregnancy or breastfeeding); severe first episode: "再発リスクを有する
+#   場合 ・フィダキソマイシンを 1 回 200 mg 1 日 2 回 10 日間経口投与する". The
+#   guideline's recurrence-risk factors (literature review): "高齢（65 歳以上），CDI
+#   の既往，免疫不全宿主（免疫抑制剤の使用など），重症 CDI，強毒株による感染
+#   （RT 027/078/244）". The simulator evaluates age (65 or more at admission) and
+#   the `immunosuppressed` chronic-condition value set (B20, D80-D84, Z94; a drug-
+#   induced immunosuppression is not on the problem list, so it is not seen). A
+#   previous CDI and the strain are not modelled; the severity is not used as a
+#   factor, because it already selects the severe arm (using it would make every
+#   severe case fidaxomicin). Fidaxomicin: YJ 6119001F1025 (ダフクリア錠200mg),
+#   RxNorm 1111103, dose from the PMDA package insert (4th ed., July 2024):
+#   "通常、成人にはフィダキソマイシンとして1回200mgを1日2回経口投与する" and 7.
+#   "本剤の投与期間は原則として10日間".
 #   US (IDSA/SHEA 2017 update: "vancomycin 125 mg orally 4 times per day or
 #   fidaxomicin 200 mg twice daily for 10 days"; 2021 focused update: fidaxomicin
 #   is suggested over standard vancomycin for an initial episode, the vancomycin
 #   comparator being "125 mg orally 4 times daily for 10 days"): oral vancomycin
-#   for both severities. Fidaxomicin is not in the drug catalog and is not
-#   ordered (neither a Japanese YJ code nor an FDA/PMDA dose was added here).
+#   for both severities (the 2021 update lists it as acceptable; no US label dose
+#   for fidaxomicin was read, so it is not ordered in the US).
 #   Metronidazole is the catalog drug of RxNorm 6922 (RxNav: TTY=IN
 #   metronidazole), classes antibiotic.nitroimidazole (so the stop action
 #   spares it, and it continues at discharge as the rest of the 10-day course).

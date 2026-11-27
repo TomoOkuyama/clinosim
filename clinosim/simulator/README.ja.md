@@ -196,8 +196,9 @@ clinosim/simulator/
                          静注 PPI を 3 日間、続けて経口 PPI を発症後 2 週間まで発注する (残りは退院処方が
                          継続, Issue #3896)。スタッフの乱数は
                          `complication_treatment_seed` を使う。C. difficile 腸炎 (Issue #3864):
-                         `start_oral_vancomycin` (国と重症度で選び参照データに記述, Issue #3896:
-                         日本は非重症ならメトロニダゾール 500 mg 1 日 3 回 10 日間、重症
+                         `start_oral_vancomycin` (国・重症度・再発リスクで選び参照データに記述, Issue #3896: 日本は 65 歳以上または
+                         免疫抑制の慢性疾患ならフィダキソマイシン 200 mg 1 日 2 回 10 日間、それ以外は
+                         非重症ならばメトロニダゾール 500 mg 1 日 3 回 10 日間、重症
                          (白血球 15,000/uL 以上またはクレアチニン 1.5 mg/dL 超) ならバンコマイシン
                          経口 125 mg 1 日 4 回 10 日間。米国はバンコマイシン経口) と
                          `stop_offending_antibiotic` (ニトロイミダゾール以外の実行中の抗菌薬に

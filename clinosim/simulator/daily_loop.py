@@ -1810,6 +1810,7 @@ def _start_complication_treatment(
     from clinosim.seeding import complication_treatment_seed
     from clinosim.simulator.complication_actions import (
         dose_reduction_rule,
+        has_recurrence_risk,
         is_therapeutic_anticoagulant_order,
         reduced_dose,
         renal_decision,
@@ -1844,7 +1845,12 @@ def _start_complication_treatment(
     ]
     from clinosim.modules.population.encounter_anthropometry import encounter_weight_kg
 
-    candidates_of = treatment_candidates(action, stay.country_key, treatment_severity(action, run.lab_results, when))
+    candidates_of = treatment_candidates(
+        action,
+        stay.country_key,
+        treatment_severity(action, run.lab_results, when),
+        has_recurrence_risk(action, stay.patient, stay.admission_time),
+    )
     weight_kg = (
         float(encounter_weight_kg(stay.patient, stay.encounter_id, stay.admission_time, stay.country_key))
         if any(dose_reduction_rule(str(e.get("drug_id"))) for e in candidates_of)
