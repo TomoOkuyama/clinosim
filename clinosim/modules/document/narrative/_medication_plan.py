@@ -22,6 +22,7 @@ from typing import TYPE_CHECKING, Any
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from clinosim.datafiles import load_validated_yaml
+from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.timeutil import parse_iso_datetime
 
@@ -32,6 +33,7 @@ __all__ = [
     "MedicationPlanRules",
     "NoteMedications",
     "cap_names",
+    "drug_stop_status",
     "drug_tier",
     "medication_plan_rules",
     "note_medications",
@@ -161,6 +163,57 @@ def _day(m: Any, admitted: datetime | None) -> int | None:
     return d
 
 
+_STOP_PREFIX = "DISCONTINUE:"
+
+
+def drug_stop_status(ctx: NarrativeContext) -> dict[str, str]:
+    """The drug stops a daily note can state, by drug key (Issue #3963): the
+    one source of its "Stopped" list, its "Continue" list and its stop lines.
+
+    A stop is the ``DISCONTINUE`` order of the record, read at the note's
+    authored time (its hospital day, as a calendar day, without one). It is
+    ``"now"`` when the order was placed in the note's period (the
+    ``window_hours`` up to the authored time) and ``"earlier"`` when before
+    it, so an earlier note reported it. An order placed after the note is not
+    a stop yet, and a dose given after the order (up to the note) means the
+    drug still runs: neither has an entry.
+    """
+    from clinosim.codes.drugs import drug_key
+
+    as_of = getattr(ctx, "authored_datetime", None)
+    if as_of is not None:
+        start, end = as_of - timedelta(hours=_window_hours()), as_of
+    else:
+        admitted = _admission(ctx)
+        if admitted is None:
+            return {}
+        day = admitted.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=ctx.day_index)
+        start, end = day, day + timedelta(days=1) - timedelta(microseconds=1)
+    stops: dict[str, datetime] = {}
+    for order in list(getattr(ctx, "orders", None) or []):
+        name = str(_o(order, "display_name", "") or "")
+        if MED_STOP_ORDER_ID_MARKER not in str(_o(order, "order_id", "") or "") or not name.startswith(_STOP_PREFIX):
+            continue
+        placed = parse_iso_datetime(_o(order, "ordered_datetime", None), lenient=True)
+        ref = drug_key(name[len(_STOP_PREFIX) :].strip())
+        if placed is not None and ref and placed <= end:
+            stops[ref] = min(placed, stops.get(ref, placed))
+    if not stops:
+        return {}
+    for m in list(getattr(ctx, "medications", None) or []):
+        ref = drug_key(str(_o(m, "drug_id", "") or _o(m, "drug_name", "") or ""))
+        when = _when(m)
+        if ref in stops and when is not None and stops[ref] < when <= end and _o(m, "status", "given") == "given":
+            del stops[ref]
+    return {ref: "now" if placed > start else "earlier" for ref, placed in stops.items()}
+
+
+def _window_hours() -> int:
+    from clinosim.modules.document.narrative._narrative_interpretation_thresholds import notable_lab_rules
+
+    return notable_lab_rules().window_hours
+
+
 def ranked_medication_names(ctx: NarrativeContext, day: int) -> list[str]:
     """The drugs of hospital ``day``'s medication record, ranked, in the
     note's language (the admission plan's initial medications)."""
@@ -192,6 +245,7 @@ def note_medications(ctx: NarrativeContext) -> NoteMedications:
     admitted = _admission(ctx)
     as_of = getattr(ctx, "authored_datetime", None)
     window = timedelta(hours=notable_lab_rules().window_hours)
+    stop_status = drug_stop_status(ctx)
     orders = {str(_o(o, "order_id", "")): o for o in list(getattr(ctx, "orders", None) or []) if _o(o, "order_id", "")}
     one_time = {f.casefold() for f in rules.one_time_frequencies}
 
@@ -265,6 +319,14 @@ def note_medications(ctx: NarrativeContext) -> NoteMedications:
     out = NoteMedications()
     for drug in _ranked(list(drugs.values()), keys):
         shown = localize_drug_name(drug.name, lang)
+        # Issue #3963: a drug whose stop an earlier note reported is not listed
+        # again; one stopped in this period is stopped, not continued.
+        stop = stop_status.get(drug_key(keys[drug.position]))
+        if stop == "earlier":
+            continue
+        if stop == "now" and drug.current and drug.current_scheduled and not drug.current_as_needed_only:
+            out.stopped.append(shown)
+            continue
         # A hold goes on until a dose is given (Issue #3411): a drug whose
         # latest earlier dose was held and has none in this period stays held.
         carried = not drug.current and drug.prior_held_reason is not None

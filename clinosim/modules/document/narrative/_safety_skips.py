@@ -10,7 +10,7 @@ Both read the event the same way through :func:`safety_skip_line`.
 
 from __future__ import annotations
 
-from collections.abc import Callable, Collection
+from collections.abc import Callable, Collection, Mapping
 
 from clinosim.codes.drugs import drug_key
 from clinosim.locale.i18n import t
@@ -47,6 +47,12 @@ def _identity(name: object) -> str:
     return drug_key(text) or text.lower()
 
 
+def _stop_not_for_this_note(skip: dict, stops: Mapping[str, str]) -> bool:
+    """True for a stop event (one with a ``stopped_on_day``) the note's stop
+    status does not put in its period (Issue #3963)."""
+    return bool(skip.get("stopped_on_day")) and stops.get(drug_key(str(skip.get("considered") or ""))) != "now"
+
+
 def known_by_hospital_day(skips: list[dict], hospital_day: int | None) -> list[dict]:
     """The events a note written on ``hospital_day`` (1-based; the admission
     day is 1) can state (Issue #3914): an event dated ``stopped_on_day`` later
@@ -58,7 +64,11 @@ def known_by_hospital_day(skips: list[dict], hospital_day: int | None) -> list[d
 
 
 def progress_note_safety_skips(
-    skips: list[dict], held_refs: Collection[str] = (), *, hospital_day: int | None = None
+    skips: list[dict],
+    held_refs: Collection[str] = (),
+    *,
+    hospital_day: int | None = None,
+    stops: Mapping[str, str] | None = None,
 ) -> list[dict]:
     """The safety events a daily progress note's plan states (Issue #3411):
     the in-stay ones, one hold per drug and each other event once.
@@ -69,9 +79,15 @@ def progress_note_safety_skips(
     the day's medication record already names as held (``held_refs``: drug
     keys) is not stated a second time, its record carrying the day's reason. With
     ``hospital_day`` a switch dated after the note's own day is left out
-    (Issue #3914).
+    (Issue #3914). With ``stops`` (``_medication_plan.drug_stop_status``, the
+    source of the note's medication lists) a stop is stated only in the note
+    whose period holds the stop order (Issue #3963): a stop order placed after
+    the note, or one the drug was given after, and one an earlier note
+    reported are left out.
     """
     skips = known_by_hospital_day(skips, hospital_day)
+    if stops is not None:
+        skips = [s for s in skips if not _stop_not_for_this_note(s, stops)]
     out: list[dict] = []
     held = set(held_refs)
     seen: set[tuple] = set()
