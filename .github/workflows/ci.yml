@@ -50,7 +50,10 @@ jobs:
   unit:
     name: Unit tests (Py 3.12 shard ${{ matrix.shard }}/2)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # A push to master also measures coverage (COV_ARGS below), which takes
+    # the shards to 10-15 min against 4-9 min on a pull request; at 15 the
+    # push runs of 2026-11-28 were cut off at 90-93 % with every test passing.
+    timeout-minutes: 25
     # Historical:
     #   * Single-worker serial (pre-S114):                    ~8-9 min
     #   * S115 (2026-09-14) N=3 shards × xdist -n 2:          ~3-4 min per shard
