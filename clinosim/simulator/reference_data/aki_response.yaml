@@ -75,8 +75,10 @@
 # later result is back within that fraction of the peak, so a creatinine
 # plateau does not end it and the held drugs do not return mid-plateau. A
 # pre-admission baseline is not modelled.
-# Not covered: vancomycin renal dose adjustment (no vancomycin level model
-# exists). Enoxaparin: the prophylactic dose follows the Cockcroft-Gault
+# Vancomycin: the US renal dose follows the label's clearance table
+# (renal_antibiotic_dosing.yaml, Issue #3961; no vancomycin level model is
+# needed); JP is not covered (the PMDA insert gives no readable clearance
+# numbers). Enoxaparin: the prophylactic dose follows the Cockcroft-Gault
 # creatinine clearance (modules/prophylaxis, Issue #3449); renal_medication_rules.yaml
 # reduces or holds the home-medication order. Aspirin, a member of the catalog class `nsaid`, is not
 # held: the antiplatelet dose is not the nephrotoxic NSAID exposure, so the
