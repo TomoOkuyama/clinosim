@@ -54,7 +54,7 @@ from clinosim.modules.output.fhir_r4.labs.observations import (
 )
 from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, system_coding
 from clinosim.modules.output.fhir_r4.lib.context import BundleContext
-from clinosim.modules.output.fhir_r4.lib.ed_reattribution import vital_sign_encounter_id
+from clinosim.modules.output.fhir_r4.lib.ed_reattribution import vital_sign_encounter_end, vital_sign_encounter_id
 from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
 from clinosim.modules.output.fhir_r4.lib.profile_meta import profile_meta
 from clinosim.modules.output.fhir_r4.medications.medications import (
@@ -389,6 +389,7 @@ def _bb_vitals(ctx: BundleContext) -> list[dict]:
             vital_sign_encounter_id(vs, ctx),
             birth_date=patient.get("date_of_birth"),
             age_years=patient.get("age"),
+            encounter_end=vital_sign_encounter_end(vs, ctx),
         ):
             out.append(bundle_entry["resource"])
     return out

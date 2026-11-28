@@ -38,6 +38,7 @@ Related specs: medication and lab state at export ([`medication-lifecycle-spec.m
 |---|---|---|
 | Every resource of the facility bundle and of every patient bundle is finished by one function, in a fixed order: JP Core / JP-CLINS or US Core profiles, JP observation categories, display stripping on English-only systems, eCS dosage fields, Observation identifiers, reference-range extension scrub, companion Specimen, ... The passes are called nowhere else in the builder. | `fhir_r4/builder.py::_finalize_resource` | `tests/unit/test_encounter_export_spec_guards.py::test_finishing_passes_run_only_in_finalize_resource` |
 | Every Condition resource starts from one skeleton: identifier, JP Core profile and JP eCS diagnosis type on JP output, statuses, category, code, subject. | `fhir_r4/conditions/conditions.py::_condition_skeleton` | `tests/unit/test_encounter_export_spec_guards.py::test_condition_resources_start_from_the_skeleton` |
+| A vital-sign Observation lies inside the Encounter it references: the per-field time offsets of a set (temperature +30 s, respiratory rate +60 s, SpO2 +5 s) never carry an Observation past the end of that Encounter (the end of the ED window for the ED bridge, the discharge time otherwise), and never move it earlier than the set itself (Issue #3959). | `fhir_r4/labs/observations.py::_shifted_vital_time`, `fhir_r4/lib/ed_reattribution.py::vital_sign_encounter_end` | `tests/unit/output/test_fhir_vitals_inside_short_visit_3959.py` |
 
 ## 5. Reading a cohort
 

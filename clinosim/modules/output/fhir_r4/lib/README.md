@@ -100,7 +100,7 @@ rename).
     `ed_window_of_record(record)` and `time_in_ed_window(window, value)` (the one ED-window predicate, also used to group lab panel reports by Encounter, Issue #3958),
     and `vital_sign_encounter_id(vs, ctx)`, which
     places the ED arrival vital-sign set (`data_source == "ed_triage"`)
-    and its NEWS2 / GCS on that bridge (Issue #3243), and a set taken outside the primary encounter's period on the record's other outpatient encounter whose period holds it (the companion vaccination visit, Issue #3656).
+    and its NEWS2 / GCS on that bridge (Issue #3243), and a set taken outside the primary encounter's period on the record's other outpatient encounter whose period holds it (the companion vaccination visit, Issue #3656); `vital_sign_encounter_end(vs, ctx)` gives the end of that Encounter (the ED window end for the bridge), which the vital-sign time offsets do not pass (Issue #3959).
   - `ids.py` — opaque Resource.id derivation (Issue #349):
     `CLINOSIM_IDENTIFIER_SYSTEM_PREFIX = "urn:clinosim:identifier:"`,
     `structural_key_system(kind)` (returns

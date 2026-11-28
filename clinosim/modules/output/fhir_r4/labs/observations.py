@@ -12,7 +12,7 @@ from _fhir_common, so this module never imports back through the adapter
 from __future__ import annotations
 
 import dataclasses
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Any
 
 from clinosim.codes import display as registry_display
@@ -549,6 +549,18 @@ def _vital_reference_ranges(
     return ranges
 
 
+def _shifted_vital_time(base: datetime, offset_sec: int, encounter_end: datetime | None) -> datetime:
+    """``base`` plus the field's offset, not past ``encounter_end`` (Issue #3959).
+
+    A set already stamped after the end (or with no end known) is not pulled
+    earlier than the set itself.
+    """
+    shifted = base + timedelta(seconds=offset_sec)
+    if encounter_end is None or shifted <= encounter_end:
+        return shifted
+    return max(base, encounter_end)
+
+
 def _build_vital_observations(
     vs: dict,
     patient_id: str,
@@ -558,8 +570,12 @@ def _build_vital_observations(
     *,
     birth_date: Any = None,
     age_years: int | None = None,
+    encounter_end: datetime | None = None,
 ) -> list[dict]:
     """Build FHIR Observation resources for vital signs (one per parameter).
+
+    ``encounter_end`` is the end of the Encounter the set is attributed to: a
+    per-field time offset never carries an Observation past it (Issue #3959).
 
     Blood-pressure special case (#210, 2026-07-17): systolic (LOINC 8480-6)
     and diastolic (LOINC 8462-4) are consolidated into a single Observation
@@ -629,11 +645,9 @@ def _build_vital_observations(
         if timestamp:
             try:
                 from datetime import datetime as _dt
-                from datetime import timedelta as _td
 
                 base_dt = _dt.fromisoformat(str(timestamp).replace("Z", "+00:00").split("+")[0])
-                shifted = base_dt + _td(seconds=offset_sec)
-                obs["effectiveDateTime"] = shifted.isoformat()
+                obs["effectiveDateTime"] = _shifted_vital_time(base_dt, offset_sec, encounter_end).isoformat()
             except (ValueError, TypeError):
                 obs["effectiveDateTime"] = to_fhir_datetime(timestamp)
 

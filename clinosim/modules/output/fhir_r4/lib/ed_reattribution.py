@@ -152,6 +152,23 @@ def vital_sign_encounter_id(vs: Any, ctx: Any) -> str:
     return held[0] if held else primary
 
 
+def vital_sign_encounter_end(vs: Any, ctx: Any) -> datetime | None:
+    """End of the Encounter a vital-sign set's Observations reference
+    (Issue #3959): the end of the ED window for the ED bridge, else the
+    discharge time of the CIF encounter :func:`vital_sign_encounter_id` names;
+    ``None`` when that encounter has no end (the offsets are left alone)."""
+    eid = vital_sign_encounter_id(vs, ctx)
+    imp_id = _resolve_ed_imp_id(ctx)
+    if imp_id is not None and eid == f"{imp_id}-ED":
+        window = _ed_window(ctx)
+        return window[1] if window is not None else None
+    record = getattr(ctx, "record", None)
+    for enc in record.get("encounters", []) if isinstance(record, dict) else []:
+        if str(get_attr_or_key(enc, "encounter_id", "") or "") == eid:
+            return _as_datetime(get_attr_or_key(enc, "discharge_datetime", None))
+    return None
+
+
 def _as_datetime(value: Any) -> datetime | None:
     """``value`` (a datetime or an ISO string, tz dropped) as a naive datetime."""
     if isinstance(value, str):
