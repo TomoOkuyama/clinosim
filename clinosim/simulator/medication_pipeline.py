@@ -1081,7 +1081,8 @@ def _generate_mar(
             apply_renal_dose(order, patient, admission_time, not_before, renal)
             # Issue #3961: where the label fixes the first dose (vancomycin,
             # 15 mg/kg), it is given as written and the adjusted regimen
-            # follows from the next day.
+            # follows: a once-daily or longer band from the next day, a
+            # shorter band at the order day's later slots (Issue #3971).
             if written is not None and order.renal_dose_adjusted and keeps_first_dose(order, renal.country):
                 first_dose = (_given_dose_text(written, patient, child_weight), written.display_name)
             # Issue #3871: the administrations of the day the order is
@@ -1214,9 +1215,16 @@ def _generate_mar(
             scheduled_times.append(scheduled)
 
         if first_dose is not None:
-            scheduled_times = sorted(scheduled_times)[:1]
+            # Issue #3971: after the written first dose, a band given more than
+            # once a day (aztreonam 1 g q8h after 2 g) keeps the order day's
+            # later slots at the band dose; a daily or longer band (vancomycin,
+            # levofloxacin q48h) gives the first dose only on that day.
+            scheduled_times = sorted(scheduled_times)
+            if not (order.frequency_per_day and order.frequency_per_day > 1):
+                scheduled_times = scheduled_times[:1]
 
-        for scheduled in scheduled_times:
+        for slot_index, scheduled in enumerate(scheduled_times):
+            written_first = first_dose if slot_index == 0 else None
             # Determine status
             status = "given"
             hold_reason = None
@@ -1273,12 +1281,12 @@ def _generate_mar(
                     dose_text += f" {order.frequency}"
             else:
                 dose_text = order.display_name
-            if first_dose is not None:
-                dose_text = first_dose[0]
+            if written_first is not None:
+                dose_text = written_first[0]
             mars.append(
                 MedicationAdministration(
                     order_id=order.order_id,
-                    drug_name=first_dose[1] if first_dose is not None else drug_name,
+                    drug_name=written_first[1] if written_first is not None else drug_name,
                     scheduled_datetime=scheduled,
                     actual_datetime=actual,
                     status=status,
