@@ -3085,6 +3085,7 @@
 <li><strong>データ alias</strong> (<code>_SYSTEM_DATA_ALIASES</code>): 同じデータを別の URI で使う。例: <code>icd-10-mhlw</code> → <code>icd-10</code>。</li>
 <li><strong>参照の兄弟体系</strong> (<code>_SYSTEM_LOOKUP_SIBLINGS</code>): 表示名の参照を別の体系にフォールバックさせる。例: <code>yj</code> → <code>hot7</code>、ICD-10-CM のコードが同じ WHO コードの MHLW 日本語名を使う。</li>
 <li>生成器がコードでなく slug で指す体系 (OMB の人種・民族) は、同じファイルに <code>slug_to_code</code> ブロックを置き、<code>slug_to_code</code> で読む。</li>
+<li><code>metadata.version</code> は、そのファイルを照合した <code>codes/authoritative/</code> のスナップショットの版を、スナップショットの記録どおりに書く (例: <code>loinc.yaml</code> は <code>loinc_2_83_tx.json</code> に対して <code>2.83</code>)。出力には出ない。<code>tests/unit/codes/test_code_file_versions_4027.py</code> が組み合わせを列挙し、版とスナップショットが食い違うと失敗する。スナップショットのないファイルは出典が示す版のままとする。</li>
 </ul>
 <h3 id="34-国別コード対応">3.4 国別コード対応<a class="headerlink" href="#34-国別コード対応" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># locale/jp/code_mapping_lab.yaml</span>

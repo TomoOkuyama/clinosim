@@ -3085,6 +3085,7 @@
 <li><strong>Data aliases.</strong> <code>_SYSTEM_DATA_ALIASES</code>: the same data under another URI, for example <code>icd-10-mhlw</code> → <code>icd-10</code>.</li>
 <li><strong>Lookup siblings.</strong> <code>_SYSTEM_LOOKUP_SIBLINGS</code>: display lookups that fall back to another system, for example <code>yj</code> → <code>hot7</code>, and an ICD-10-CM code taking the MHLW Japanese name of the same WHO code.</li>
 <li>A system the generator addresses by slug rather than by code (OMB race and ethnicity) keeps a <code>slug_to_code</code> block in the same file, read through <code>slug_to_code</code>.</li>
+<li><code>metadata.version</code> names the edition of the snapshot in <code>codes/authoritative/</code> the file is verified against, as the snapshot records it (for example <code>2.83</code> for <code>loinc.yaml</code> against <code>loinc_2_83_tx.json</code>). It is not emitted. <code>tests/unit/codes/test_code_file_versions_4027.py</code> lists the pairs and fails when a version and its snapshot disagree; a file without a snapshot keeps the version its source states.</li>
 </ul>
 <h3 id="34-country-code-mapping">3.4 Country code mapping<a class="headerlink" href="#34-country-code-mapping" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># locale/jp/code_mapping_lab.yaml</span>
