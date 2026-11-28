@@ -425,41 +425,73 @@ Consultation Note、シフト別追加 note) を追加する際は、スコー�
      ja: 診療依頼書
    ```
 
-2. **タスク種別を enum に追加** — 場所は
-   `clinosim/modules/llm_service/engine.py` (`TASK_CATEGORY` と
-   `DOCUMENT_LOINC` は手順 3 の yaml から構築される):
-   ```python
-   class LLMTaskType(StrEnum):
-       ...
-       CONSULTATION_NOTE = "consultation_note"  # LOINC 11488-4
-   ```
+2. **文書種別を enum に追加** — 2 つの enum は一致していなければならず、
+   一致しないと import が失敗する ("DocumentType ↔ LLMTaskType drift"):
+   - `clinosim/types/document.py` の `DocumentType`:
+     ```python
+     class DocumentType(StrEnum):
+         ...
+         CONSULTATION_NOTE = "consultation_note"  # LOINC 11488-4
+     ```
+   - `clinosim/modules/llm_service/engine.py` の `LLMTaskType` に同じ値を追加
+     し、`clinosim/modules/llm_service/reference_data/task_categories.yaml`
+     に行 `consultation_note: narrative` を追加する (`TASK_CATEGORY` はこの
+     yaml から構築され、行が無いと `ImportError`)。
 
-3. **task_loincs.yaml + task_categories.yaml に登録**
-   (`clinosim/modules/llm_service/reference_data/`)。engine は
-   import 時に完全被覆を検証 — `task_loincs.yaml` に行がない新
-   `LLMTaskType` 値は fail-loud。
+   `task_loincs.yaml` には文書種別を**追加しない**: `DOCUMENT_LOINC` は全文書
+   種別のコードを `document_type_specs.yaml` (手順 3) から取り、
+   `task_loincs.yaml` に重複があると `_document_loinc_from_yaml` が
+   `ImportError` を送出する。
 
-4. **`DocumentTypeSpec` を登録** —
-   `clinosim/modules/document/reference_data/document_type_specs.yaml`:
-   ```yaml
-   consultation_note:
-     loinc_code: "11488-4"
-     format_type: free_text              # または `composition`
-     countries_supported: [us, jp]
-     encounter_types_supported: [outpatient]
-     generation_frequency: per_encounter # or `admission_once` / `daily` ...
-     composition_sections:               # `format_type: composition` 時のみ
-       - reason_for_consult
-       - findings
-       - recommendation
-     stage2_strategy: template_seed_bundle
-     llm_enabled_sections: [recommendation]
-   ```
+3. **`DocumentTypeSpec` を登録** — 一致していなければならない 2 か所
+   (`_validate_document_type_specs` が "document_type_specs.yaml ↔
+   SUPPORTED_DOCUMENT_TYPES drift" の `ValueError` を送出する):
+   - `clinosim/modules/document/narrative/registry.py` の
+     `SUPPORTED_DOCUMENT_TYPES` に `DocumentType.CONSULTATION_NOTE` を追加
+     (enum から導出されない Python の frozenset)
+   - `clinosim/modules/document/reference_data/document_type_specs.yaml`
+     にエントリを追加:
+     ```yaml
+     consultation_note:
+       loinc_code: "11488-4"
+       format_type: composition            # または `free_text`
+       countries_supported: [us, jp]
+       encounter_types_supported: [inpatient]
+       generation_frequency: admission_once  # GENERATION_FREQUENCIES の値
+       composition_sections:               # `format_type: composition` 時のみ
+         - reason_for_consult
+         - findings
+         - recommendation
+       stage2_strategy: template_seed_bundle
+       llm_enabled_sections: [recommendation]
+     ```
    `format_type: composition` は named `section[]` 付き
    `Composition` を emit、`free_text` は本文全体を
    `content.attachment.data` に収めた `DocumentReference` を emit。
+   composition の文書種別では FHIR ビルダー側の編集は不要だった (上記の手順
+   だけを加えた試験用の種別が、手順 4 のカタログのタイトル付きセクションを持つ
+   `Composition` として出力された)。
 
-5. **bundle プロンプトに LLM 指示を追加** — 文書種別ごとの
+4. **新しいセクション slug を全て登録** —
+   `clinosim/modules/document/reference_data/section_catalog.yaml`
+   (`title.en`、`title.ja`、セクションの `loinc`。そのセクションを意味する
+   LOINC セクションコードが無ければ `""`)。`composition_sections` のエントリに
+   行が無いと、カタログのロードが "slug(s) authored in
+   document_type_specs.yaml are missing from the catalog" で失敗する。意味が
+   合う既存 slug があれば再利用する。
+
+5. **planner を選ぶ** — `generation_frequency` が、エンカウンターに何件の
+   文書をいつ作成するかを決める planner を選ぶ
+   (`clinosim/modules/document/engine.py` の `_PLANNERS`)。既存の値
+   (`admission_once`、`daily`、`daily_3shift`、`discharge_once`、
+   `encounter_once` など。全一覧は `registry.py` の
+   `GENERATION_FREQUENCIES`) を使う。まだ無い頻度は core ファイルを 3 か所
+   編集する: `engine.py` の `_plan_<name>` 関数と `_PLANNERS` エントリ、
+   `GENERATION_FREQUENCIES` への名前追加。
+   `tests/unit/modules/document/test_document_planners_2532.py` が両者の一致を
+   保つ。なお `per_encounter` は頻度ではない。
+
+6. **bundle プロンプトに LLM 指示を追加** — 文書種別ごとの
    プロンプトファイルは存在しない (Issue #2556 で削除)。
    `clinosim/modules/llm_service/prompts/<lang>/narrative_seed_bundle.yaml`
    (`en/` と `ja/` の両方) の `system:` テキストに
@@ -468,20 +500,33 @@ Consultation Note、シフト別追加 note) を追加する際は、スコー�
    bump する。`llm_enabled_sections` に無いセクションはテンプレート
    テキストのまま残る。
 
-6. **Section builder を実装** —
-   `clinosim/modules/document/narrative/renderers/section_builders/<section>.py`
-   に `build_<section>(generator, ctx)` 自由関数として実装。C1a-s
-   分割後、per-section ロジックは全てここに置く
-   (`template_generator.py` はビルダーを re-export する thin façade)。
-   `format_type: free_text` タスクは単一 body builder、`composition`
-   は `composition_sections` 1 エントリにつき 1 builder。dispatcher の
-   配線は `clinosim/modules/document/narrative/renderers/composition_sections.py`。
+7. **テンプレート本文を実装**
+   - `format_type: composition`: `composition_sections` の各エントリに
+     つき 1 つ、`@section("<name>")` を付けた関数 (`document_type=` で 1
+     文書種別に限定) を
+     `clinosim/modules/document/narrative/renderers/section_builders/` 配下の
+     モジュールに書く。関数は `(generator, ctx)` を受け取り `(text, facts)`
+     (セクション本文と使用した fact のリスト、型 `SectionBuilder`) を返す。
+     registry (`section_builders/_registry.py`) がそのパッケージの
+     アンダースコアで始まらない全モジュールを import し、
+     `render_composition_sections` がセクション名で引くため、編集すべき
+     dispatcher は無い。builder の無いセクション名はエラーにならず、汎用の
+     fallback 文 (`fallback.generic_fallback`、英語では "No special findings")
+     になる。新しい種別は builder ができるまでこれが出力される。
+   - `format_type: free_text`: registry は無い。
+     `TemplateNarrativeGenerator._render_free_text`
+     (`clinosim/modules/document/narrative/template_generator.py`) が文書種別
+     ごとに専用 renderer (`renderers/` 配下の `nursing_shift_note`、
+     `ed_triage_note`) へ分岐し、**それ以外の全種別は progress note の renderer
+     に落ちる**。progress note のように読めてはならない新しい free-text 種別は、
+     `renderers/` に renderer モジュールを追加し `_render_free_text` に分岐を
+     追加する必要がある — この core ファイルの編集になる。
 
-7. **単体テスト追加** —
+8. **単体テスト追加** —
    `tests/unit/modules/document/narrative/` (per-section builder テスト) と
    `tests/unit/test_clinical_documents.py` (end-to-end emit)。
 
-8. **このドキュメント** (`docs/clinical_documents.ja.md`) と
+9. **このドキュメント** (`docs/clinical_documents.ja.md`) と
    `README.ja.md`、EN sibling を更新。
 
 ---

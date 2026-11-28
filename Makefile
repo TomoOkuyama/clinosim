@@ -5,17 +5,21 @@
 # `src/` prefix so `make lint`/`make typecheck`/`make format` all failed
 # immediately. CI depends on these targets now.
 
+# The test targets select by directory, never by marker (not every test file carries
+# its marker, so `-m unit` silently skips tests). `test-unit` runs the
+# directories the CI unit job runs (.github/workflows/ci.yml).
+
 install:
 	pip install -e ".[all]"
 
 test-unit:
-	pytest tests/unit/ -m unit -v --tb=short
+	pytest tests/unit tests/modules tests/simulator -v --tb=short
 
 test-integration:
-	pytest tests/integration/ -m integration -v --tb=short
+	pytest tests/integration -v --tb=short
 
 test-e2e:
-	pytest tests/e2e/ -m e2e -v --tb=long
+	pytest tests/e2e -v --tb=long
 
 test-all:
 	pytest tests/ -v

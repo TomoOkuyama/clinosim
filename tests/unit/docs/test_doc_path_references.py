@@ -47,14 +47,10 @@ _MD_LINK = re.compile(r"\]\(([^)\s#]+)(?:#[^)]*)?\)")
 _ALLOWED: dict[tuple[str, str], str] = {
     ("docs/add-your-country.md", "clinosim/locale/xx"): "placeholder country code in the how-to",
     ("docs/add-your-country.ja.md", "clinosim/locale/xx"): "placeholder country code in the how-to",
-    (
-        "docs/add-your-country.md",
-        "clinosim/codes/data/fhir-profiles-xx-core.yaml",
-    ): "placeholder country code in the how-to",
-    (
-        "docs/add-your-country.ja.md",
-        "clinosim/codes/data/fhir-profiles-xx-core.yaml",
-    ): "placeholder country code in the how-to",
+    ("docs/add-your-country.md", "clinosim/locale/xx/"): "placeholder country code in the how-to",
+    ("docs/add-your-country.ja.md", "clinosim/locale/xx/"): "placeholder country code in the how-to",
+    ("docs/add-your-country.md", "clinosim/locale/xx/country.yaml"): "placeholder country code in the how-to",
+    ("docs/add-your-country.ja.md", "clinosim/locale/xx/country.yaml"): "placeholder country code in the how-to",
     ("docs/design-guides/country-profile-spec.md", "clinosim/countries/__init__.py"): (
         "created by step 6 of the country-profile migration"
     ),

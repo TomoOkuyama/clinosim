@@ -648,7 +648,7 @@ system = system_key_for("procedure", country)  # JP → "k-codes", 他 → "cpt"
 pytest tests/unit/test_diagnosis_code_coverage.py
 ```
 
-> RxNorm/YJ/CPT/K-codes/CVX には同等の coverage test がまだありません (CODES-6)。drug/procedure コードを追加したら手動で mapping → codes の存在を確認してください。
+> RxNorm・YJ・CPT・K コードには `tests/unit/codes/` に専用のテストがあります: `test_rxnorm_codes_name_their_drug.py` (出荷する全 RxCUI が有効で、その薬剤名を指すことを RxNav snapshot で検査)、`test_jp_yj_codes_3013.py` と `test_jp_yj_class_codes_name_their_drug.py` (YJ コードを MHLW 薬価基準収載品目リストと YJ master snapshot で検査)、`test_procedure_codes_registered_2340.py` (emit される全 CPT / K コードが登録済みであること)。drug / procedure コードを追加したら `pytest tests/unit/codes` を実行してください。CVX ワクチンコードにはこのような coverage test がありません: mapping → `codes/data/cvx.yaml` の存在を手動で確認してください。
 
 ---
 
