@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 __all__ = ["DATA_KINDS", "data_metadata", "load_data_yaml", "load_validated_yaml"]
 
@@ -55,9 +55,15 @@ def load_data_yaml(path: Path) -> dict[str, Any]:
 def load_validated_yaml(path: Path, model: type[BaseModel]) -> dict[str, Any]:
     """``load_data_yaml(path)`` checked against ``model``; the content is
     returned as loaded, and a shape or cross-reference error raises
-    ``pydantic.ValidationError`` (a ``ValueError``)."""
+    ``pydantic.ValidationError`` (a ``ValueError``). The error carries the note
+    ``in <path>`` so the traceback names the file; its type, message and
+    ``errors()`` are unchanged (Issue #3987)."""
     data = load_data_yaml(path)
-    model.model_validate(data)
+    try:
+        model.model_validate(data)
+    except ValidationError as exc:
+        exc.add_note(f"in {path}")
+        raise
     return data
 
 
