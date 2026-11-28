@@ -18,7 +18,7 @@ from clinosim.eval.axes.us_core_compliance import (
     _check_patient_birthsex_extension,
     _check_patient_ethnicity_extension_shape,
     _check_patient_identifier,
-    _check_patient_name_family_given,
+    _check_patient_name_present,
     _check_patient_race_extension_shape,
 )
 from clinosim.eval.engine import Outcome
@@ -59,27 +59,42 @@ class TestPatientIdentifier:
 
 
 # --------------------------------------------------------------------------- #
-# Patient name.family + name.given check
+# Patient name check (us-core-6)
 
 
 @pytest.mark.unit
-class TestPatientNameFamilyGiven:
+class TestPatientNamePresent:
+    """US Core 9.0.0 us-core-6: name.given and/or name.family, or the Data Absent Reason extension."""
+
     def test_both_present_pass(self):
         patients = [{"name": [{"family": "Smith", "given": ["Jane"]}]}]
-        assert _check_patient_name_family_given(patients).outcome is Outcome.PASS
+        assert _check_patient_name_present(patients).outcome is Outcome.PASS
 
-    def test_family_only_fail(self):
-        patients = [{"name": [{"family": "Smith"}]}]
-        assert _check_patient_name_family_given(patients).outcome is Outcome.FAIL
+    def test_family_only_pass(self):
+        # An unnamed newborn carries the family name only (Issue #3954).
+        patients = [{"name": [{"family": "Smith", "text": "Baby Smith"}]}]
+        assert _check_patient_name_present(patients).outcome is Outcome.PASS
 
-    def test_given_only_fail(self):
+    def test_given_only_pass(self):
         patients = [{"name": [{"given": ["Jane"]}]}]
-        assert _check_patient_name_family_given(patients).outcome is Outcome.FAIL
+        assert _check_patient_name_present(patients).outcome is Outcome.PASS
 
-    def test_multiple_names_one_complete_passes(self):
-        patients = [{"name": [{"family": "Smith"}, {"given": ["Jane"]}]}]
-        # `any()` semantics — different names in the list can jointly satisfy.
-        assert _check_patient_name_family_given(patients).outcome is Outcome.PASS
+    def test_data_absent_reason_pass(self):
+        dar = {"url": "http://hl7.org/fhir/StructureDefinition/data-absent-reason", "valueCode": "unknown"}
+        patients = [{"name": [{"extension": [dar]}]}]
+        assert _check_patient_name_present(patients).outcome is Outcome.PASS
+
+    def test_neither_fail(self):
+        patients = [{"name": [{"text": "Smith"}]}]
+        assert _check_patient_name_present(patients).outcome is Outcome.FAIL
+
+    def test_empty_given_string_fail(self):
+        patients = [{"name": [{"given": [""]}]}]
+        assert _check_patient_name_present(patients).outcome is Outcome.FAIL
+
+    def test_no_name_fail(self):
+        patients = [{"id": "p1"}]
+        assert _check_patient_name_present(patients).outcome is Outcome.FAIL
 
 
 # --------------------------------------------------------------------------- #

@@ -29,8 +29,9 @@ Checks
    JP-CLINS 準拠必須).
 2. **jp_core_patient_identifier_present** — every JP Patient carries
    at least one identifier (must-support on JP Core Patient).
-3. **jp_core_patient_name_family_given** — every JP Patient has at
-   least one name with both ``family`` and ``given`` set.
+3. **jp_core_patient_name_present** — every JP Patient has at least
+   one name with ``family`` and/or ``given`` (JP Core requires neither;
+   an unnamed newborn has the family name only, Issue #3954).
 4. **jp_core_patient_kanji_representation** — every JP Patient has
    at least one name carrying the ISO 21090
    ``EN-representation = IDE`` extension (kanji name variant, the
@@ -96,7 +97,7 @@ def run(cohort: Cohort, country: str) -> list[EvalCheck]:
     return [
         _check_patient_profile_declared(patients),
         _check_patient_identifier(patients),
-        _check_patient_name_family_given(patients),
+        _check_patient_name_present(patients),
         _check_patient_kanji_representation(patients),
         _check_encounter_class_present(encounters),
         _check_encounter_period_present(encounters),
@@ -148,23 +149,23 @@ def _check_patient_identifier(patients: list[dict]) -> EvalCheck:
     )
 
 
-def _check_patient_name_family_given(patients: list[dict]) -> EvalCheck:
-    name = "jp_core_patient_name_family_given"
+def _check_patient_name_present(patients: list[dict]) -> EvalCheck:
+    """Every JP Patient has a name with ``family`` and/or ``given``. JP Core
+    1.1.2 JP_Patient requires neither part (Patient.name 0..*, family 0..1,
+    given 0..*, no Must Support); an unnamed newborn has the family name
+    only (Issue #3954)."""
+    name = "jp_core_patient_name_present"
     total = len(patients)
     if total == 0:
         return _na(name, "No JP Patients found.")
-    ok = 0
-    for p in patients:
-        names = p.get("name") or []
-        has_family = any(n.get("family") for n in names)
-        has_given = any(n.get("given") for n in names)
-        if has_family and has_given:
-            ok += 1
+    ok = sum(
+        1 for p in patients if any(n.get("family") or any(g for g in n.get("given") or []) for n in p.get("name") or [])
+    )
     return _ratio(
         name=name,
         numerator=ok,
         denominator=total,
-        message_template="{hits}/{total} JP Patients have name.family + name.given",
+        message_template="{hits}/{total} JP Patients have a name with family and/or given",
     )
 
 
