@@ -109,8 +109,14 @@ class TestPneumoniaPipeline:
     def test_sudden_deterioration_produces_shock(self, profile, conditions):
         """Sudden deterioration should produce shock (low perfusion, high lactate)."""
         state = initialize_state(profile, conditions)
+        # Issue #3962: lactate follows the acute perfusion deficit, so the scenario
+        # carries the deficit through the volume state (the coupling rule rebuilds
+        # perfusion_status from cardiac function and volume, so a perfusion_status
+        # delta alone does not persist).
         state = apply_disease_onset(
-            state, "severe", {"severe": {"inflammation_level": 0.75, "perfusion_status": -0.20}}
+            state,
+            "severe",
+            {"severe": {"inflammation_level": 0.75, "perfusion_status": -0.20, "volume_status": -0.8}},
         )
 
         for day in range(3):

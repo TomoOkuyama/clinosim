@@ -64,6 +64,7 @@ from clinosim.modules.order.treatment_classifier import (
 from clinosim.modules.physiology.engine import (
     apply_state_delta,
     medication_flags_from_context,
+    perfusion_relative_to_baseline,
     scenario_flags_from_protocol,
     update,
 )
@@ -262,10 +263,13 @@ def airway_escalation_needed(state: PhysiologicalState) -> bool:
 
 def in_shock(state: PhysiologicalState) -> bool:
     """Shock-level perfusion or distributive (septic) shock: vasopressor-level
-    care (Issues #2110, #3270)."""
-    return state.perfusion_status < ICU_SHOCK_PERFUSION_MAX or (
+    care (Issues #2110, #3270). The perfusion bounds apply to the drop below the
+    patient's chronic baseline (Issue #3962), as the lactate does: a chronic
+    reduction alone is not shock."""
+    perfusion = perfusion_relative_to_baseline(state)
+    return perfusion < ICU_SHOCK_PERFUSION_MAX or (
         state.inflammation_level >= ICU_DISTRIBUTIVE_SHOCK_INFLAMMATION
-        and state.perfusion_status < ICU_DISTRIBUTIVE_SHOCK_PERFUSION_MAX
+        and perfusion < ICU_DISTRIBUTIVE_SHOCK_PERFUSION_MAX
     )
 
 

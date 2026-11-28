@@ -302,7 +302,7 @@ def _cohort(tmp_path, disease: str, country: str) -> list[dict]:
 
     out = tmp_path / f"{disease}_{country}"
     r = subprocess.run(
-        [sys.executable, "-m", "clinosim.simulator.cli", "test-disease", disease, "-n", "6", "-s", "11"]
+        [sys.executable, "-m", "clinosim.simulator.cli", "test-disease", disease, "-n", "6", "-s", "13"]
         + ["--format", "cif", "-o", str(out), "--country", country],
         capture_output=True,
         text=True,

@@ -374,6 +374,8 @@ def initialize_state(
     state.perfusion_status = clamp(
         state.cardiac_function * PERFUSION_CARDIAC_SCALE + PERFUSION_CARDIAC_BASE_OFFSET, 0.0, 1.0
     )
+    # Issue #3962: the chronic perfusion the lactate is measured against.
+    state.perfusion_baseline = _coupled_perfusion(state)
 
     # Clamp all
     state.renal_function = clamp(state.renal_function, RENAL_FUNCTION_FLOOR, 1.0)
@@ -554,6 +556,11 @@ def apply_state_delta(state: PhysiologicalState, var: str, delta: float) -> None
     if current is not None:
         lo, hi = _variable_range(var)
         setattr(state, var, clamp(current + delta, lo, hi))
+        if var == "perfusion_status":
+            # Issue #3962: an authored perfusion delta is an acute deficit (or its
+            # recovery) that the coupling rule keeps on top of the cardiac / volume
+            # perfusion; recovery stops at zero deficit.
+            state.perfusion_acute_offset = clamp(state.perfusion_acute_offset + delta, -1.0, 0.0)
 
 
 def apply_disease_onset(
@@ -590,8 +597,16 @@ def update(
     """Apply state changes proportional to time_step, then coupling rules."""
     scale = time_step.total_seconds() / 86400.0  # fraction of a day
 
+    inflammation_before = state.inflammation_level
     for variable, daily_delta in directive.changes.items():
         apply_state_delta(state, variable, daily_delta * scale)
+
+    # Issue #3962: the acute perfusion deficit resolves with the infection — it
+    # shrinks by the fraction the inflammation level fell, so a recovered patient
+    # is back at the chronic baseline even when the authored perfusion recovery
+    # deltas do not add up to the onset deficit.
+    if inflammation_before > 0 and state.inflammation_level < inflammation_before:
+        state.perfusion_acute_offset *= state.inflammation_level / inflammation_before
 
     apply_coupling_rules(state)
     state.timestamp += time_step
@@ -603,9 +618,8 @@ def update(
 # ---------------------------------------------------------------------------
 
 
-def apply_coupling_rules(state: PhysiologicalState) -> None:
-    """Apply physiological coupling between state variables. Order matters."""
-    # Perfusion depends on cardiac + volume
+def _coupled_perfusion(state: PhysiologicalState) -> float:
+    """Perfusion implied by the current cardiac function and volume status."""
     volume_effect = 0.0
     if state.volume_status < VOLUME_HYPOVOLEMIA_THRESHOLD:
         volume_effect = state.volume_status * VOLUME_HYPOVOLEMIA_PERFUSION_SCALE
@@ -614,9 +628,28 @@ def apply_coupling_rules(state: PhysiologicalState) -> None:
         and state.cardiac_function < VOLUME_HYPERVOLEMIA_CARDIAC_DYSFUNCTION_THRESHOLD
     ):
         volume_effect = VOLUME_HYPERVOLEMIA_PERFUSION_PENALTY
-    state.perfusion_status = clamp(
-        state.cardiac_function * PERFUSION_CARDIAC_SCALE + PERFUSION_CARDIAC_BASE_OFFSET + volume_effect, 0.0, 1.0
+    return clamp(
+        state.cardiac_function * PERFUSION_CARDIAC_SCALE
+        + PERFUSION_CARDIAC_BASE_OFFSET
+        + volume_effect
+        + state.perfusion_acute_offset,
+        0.0,
+        1.0,
     )
+
+
+def perfusion_relative_to_baseline(state: PhysiologicalState) -> float:
+    """``perfusion_status`` as it would read in a patient with full chronic
+    perfusion: the current value plus the shortfall of the chronic baseline from
+    1.0, i.e. 1.0 minus the drop below the patient's baseline (Issue #3962). Equal
+    to ``perfusion_status`` when no baseline is recorded."""
+    return state.perfusion_status + (1.0 - state.perfusion_baseline)
+
+
+def apply_coupling_rules(state: PhysiologicalState) -> None:
+    """Apply physiological coupling between state variables. Order matters."""
+    # Perfusion depends on cardiac + volume
+    state.perfusion_status = _coupled_perfusion(state)
 
     # Renal depends on perfusion (pre-renal)
     # Issue #3355: the pre-renal loss follows the CURRENT perfusion deficit — it
@@ -1121,9 +1154,17 @@ def _add_coagulation_labs(labs: dict[str, float], state: PhysiologicalState, age
 
 
 def _add_perfusion_labs(labs: dict[str, float], state: PhysiologicalState) -> None:
-    """Lactate."""
-    perfusion = state.perfusion_status
-    labs["Lactate"] = LACTATE_BASELINE_MMOL_L + (1 - perfusion) * LACTATE_PERFUSION_SCALE
+    """Lactate, from the acute perfusion deficit (Issue #3962).
+
+    The deficit is the drop of ``perfusion_status`` below the patient's chronic
+    baseline, as a fraction of that baseline: a stable chronic patient has the
+    baseline lactate, it rises with an acute deficit, returns when the deficit
+    resolves, and reaches ``LACTATE_BASELINE_MMOL_L + LACTATE_PERFUSION_SCALE`` at
+    zero perfusion whatever the baseline.
+    """
+    baseline = state.perfusion_baseline
+    deficit = max(0.0, baseline - state.perfusion_status) / baseline if baseline > 0 else 0.0
+    labs["Lactate"] = LACTATE_BASELINE_MMOL_L + min(deficit, 1.0) * LACTATE_PERFUSION_SCALE
 
 
 def _add_blood_gas_labs(labs: dict[str, float], state: PhysiologicalState, sao2_pct: float | None = None) -> None:

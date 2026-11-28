@@ -26,7 +26,7 @@
         "lang": "en"
       },
       "sections": {
-        "admission_results": "Laboratory (abnormal): glucose 578 mg/dL [critical]; pH 7.04 [critical]; lactate 3.0 mmol/L [H]; BUN 35.0 mg/dL [H]; Cl 107 mmol/L [H]; HCO3 5.0 mmol/L [L]; +1 other abnormal. Imaging and studies: ECG (Normal ECG); chest X-ray AP (Left lower lobe consolidation)",
+        "admission_results": "Laboratory (abnormal): glucose 578 mg/dL [critical]; pH 7.04 [critical]; lactate 4.9 mmol/L [H]; BUN 36.7 mg/dL [H]; Cl 107 mmol/L [H]; HCO3 5.0 mmol/L [L]; +2 other abnormal. Imaging and studies: ECG (Sinus tachycardia without ischemic changes); chest X-ray AP (Left lower lobe consolidation)",
         "allergies": "No known drug allergies (NKDA)",
         "assessment_and_plan": "Assessment: Admitted for evaluation and management of: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Working diagnosis: diabetic ketoacidosis (severity: severe). Comorbidities: Type 2 diabetes (DM), Dyslipidemia. Plan: Estimated length of stay: ~5 days. Initial medications: Enoxaparin, Insulin, Regular, Human, Normal Saline, Potassium Chloride. Workup / procedures: Central venous catheter insertion. Admission work-up: β-hydroxybutyrate, anion gap, phosphate, Mg, lactate, urinalysis, HbA1c, CRP, ECG, chest X-ray AP. Supportive care and monitoring: monitoring: Continuous cardiac monitoring, glucose check: Fingerstick glucose q1h, intake and output: Strict intake and output monitoring.",
         "chief_complaint": "Nausea, vomiting, abdominal pain, polyuria, altered consciousness",
@@ -34,7 +34,7 @@
         "hpi": "34 y/o female patient. Chief complaint: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Symptoms that began over the preceding days worsened rapidly, prompting today's presentation. History: Type 2 diabetes (DM), Dyslipidemia. ROS: no fever, no diarrhea.",
         "medications_at_home": "No home medications",
         "past_medical_history": "Type 2 diabetes mellitus without complications [E11.9]; Hyperlipidemia, unspecified [E78.5]",
-        "physical_examination": "Vital signs: BP 105/69 mmHg, HR 125/min, T 36.1°C, SpO2 100% (RA), RR 21/min. General: alert, dehydrated, in distress. Skin: dry mucous membranes, decreased skin turgor. Respiratory: deep, rapid (Kussmaul) respirations, fruity breath odor. Abdomen: diffuse mild tenderness without guarding",
+        "physical_examination": "Vital signs: BP 93/63 mmHg, HR 137/min, T 36.1°C, SpO2 100% (RA), RR 21/min. General: responds only to painful stimulus, dehydrated, in distress. Skin: dry mucous membranes, decreased skin turgor. Respiratory: deep, rapid (Kussmaul) respirations, fruity breath odor. Abdomen: diffuse mild tenderness without guarding",
         "social_history": "Smoking: Non-smoker; Alcohol: Non-drinker; Occupation: Other"
       },
       "text": ""
@@ -82,12 +82,12 @@
         }
       },
       "sections": {
-        "assessment": "Problem: Type 2 diabetes mellitus with ketoacidosis without coma (E11.10), hospital day 1. Notable labs (past 24 h): glucose 578 mg/dL [critical], pH 7.04 [critical], lactate 3.0 mmol/L [H], BUN 35.0 mg/dL [H], Cl 107 mmol/L [H], HCO3 5.0 mmol/L [L], +2 other abnormal.",
-        "objective": "BP 116/72 mmHg, HR 96 bpm, RR 18 /min, SpO2 94% (RA), T 36.2°C (past 24 h: HR max 125 bpm, RR max 21 /min)",
+        "assessment": "Problem: Type 2 diabetes mellitus with ketoacidosis without coma (E11.10), hospital day 1. Notable labs (past 24 h): glucose 578 mg/dL [critical], pH 7.04 [critical], lactate 4.9 mmol/L [H], BUN 36.7 mg/dL [H], Cl 107 mmol/L [H], HCO3 5.0 mmol/L [L], +3 other abnormal.",
+        "objective": "BP 109/68 mmHg, HR 103 bpm, RR 18 /min, SpO2 94% (RA), T 36.2°C (past 24 h: HR max 137 bpm, RR max 21 /min)",
         "plan": "Continue current medications: Insulin, Regular, Human, Normal Saline, Potassium Chloride. Procedures today: Central venous catheter insertion.",
-        "subjective": "Hospital day 1. No new subjective complaints."
+        "subjective": "Hospital day 1. Level of consciousness decreased (AVPU P) in the past 24 h; now alert (AVPU A)."
       },
-      "text": "S: Hospital day 1. No new subjective complaints.\nO: BP 116/72 mmHg, HR 96 bpm, RR 18 /min, SpO2 94% (RA), T 36.2°C (past 24 h: HR max 125 bpm, RR max 21 /min)\nA: Problem: Type 2 diabetes mellitus with ketoacidosis without coma (E11.10), hospital day 1. Notable labs (past 24 h): glucose 578 mg/dL [critical], pH 7.04 [critical], lactate 3.0 mmol/L [H], BUN 35.0 mg/dL [H], Cl 107 mmol/L [H], HCO3 5.0 mmol/L [L], +2 other abnormal.\nP: Continue current medications: Insulin, Regular, Human, Normal Saline, Potassium Chloride. Procedures today: Central venous catheter insertion."
+      "text": "S: Hospital day 1. Level of consciousness decreased (AVPU P) in the past 24 h; now alert (AVPU A).\nO: BP 109/68 mmHg, HR 103 bpm, RR 18 /min, SpO2 94% (RA), T 36.2°C (past 24 h: HR max 137 bpm, RR max 21 /min)\nA: Problem: Type 2 diabetes mellitus with ketoacidosis without coma (E11.10), hospital day 1. Notable labs (past 24 h): glucose 578 mg/dL [critical], pH 7.04 [critical], lactate 4.9 mmol/L [H], BUN 36.7 mg/dL [H], Cl 107 mmol/L [H], HCO3 5.0 mmol/L [L], +3 other abnormal.\nP: Continue current medications: Insulin, Regular, Human, Normal Saline, Potassium Chloride. Procedures today: Central venous catheter insertion."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-03": {
@@ -132,12 +132,12 @@
         }
       },
       "sections": {
-        "assessment": "Problem: Type 2 diabetes mellitus with ketoacidosis without coma (E11.10), hospital day 2. Vital signs improving compared with the previous day (tachypnea resolved). Vital signs improving compared with the previous day (tachycardia, low SpO2 improved, not yet sustained). Notable labs (past 24 h): HbA1c 11.8 % [H].",
-        "objective": "BP 116/74 mmHg, HR 94 bpm, RR 16 /min, SpO2 95% (RA), T 35.8°C (past 24 h: HR max 102 bpm, SpO2 min 94%)",
+        "assessment": "Problem: Type 2 diabetes mellitus with ketoacidosis without coma (E11.10), hospital day 2. Vital signs improving compared with the previous day (tachypnea, reduced consciousness resolved). Vital signs improving compared with the previous day (tachycardia, low SpO2 improved, not yet sustained). Notable labs (past 24 h): HbA1c 11.8 % [H].",
+        "objective": "BP 113/73 mmHg, HR 97 bpm, RR 16 /min, SpO2 95% (RA), T 35.8°C (past 24 h: HR max 109 bpm, SpO2 min 94%)",
         "plan": "Continue current medications: Enoxaparin, Insulin, Regular, Human, Normal Saline, Potassium Chloride. Diet changed to NPO (nothing by mouth). Discharge planning in progress (home).",
         "subjective": "Hospital day 2. Tolerating initial therapy without adverse reaction."
       },
-      "text": "S: Hospital day 2. Tolerating initial therapy without adverse reaction.\nO: BP 116/74 mmHg, HR 94 bpm, RR 16 /min, SpO2 95% (RA), T 35.8°C (past 24 h: HR max 102 bpm, SpO2 min 94%)\nA: Problem: Type 2 diabetes mellitus with ketoacidosis without coma (E11.10), hospital day 2. Vital signs improving compared with the previous day (tachypnea resolved). Vital signs improving compared with the previous day (tachycardia, low SpO2 improved, not yet sustained). Notable labs (past 24 h): HbA1c 11.8 % [H].\nP: Continue current medications: Enoxaparin, Insulin, Regular, Human, Normal Saline, Potassium Chloride. Diet changed to NPO (nothing by mouth). Discharge planning in progress (home)."
+      "text": "S: Hospital day 2. Tolerating initial therapy without adverse reaction.\nO: BP 113/73 mmHg, HR 97 bpm, RR 16 /min, SpO2 95% (RA), T 35.8°C (past 24 h: HR max 109 bpm, SpO2 min 94%)\nA: Problem: Type 2 diabetes mellitus with ketoacidosis without coma (E11.10), hospital day 2. Vital signs improving compared with the previous day (tachypnea, reduced consciousness resolved). Vital signs improving compared with the previous day (tachycardia, low SpO2 improved, not yet sustained). Notable labs (past 24 h): HbA1c 11.8 % [H].\nP: Continue current medications: Enoxaparin, Insulin, Regular, Human, Normal Saline, Potassium Chloride. Diet changed to NPO (nothing by mouth). Discharge planning in progress (home)."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-04": {
@@ -278,7 +278,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 114/73, HR 97, SpO2 96%, T 37.2°C.\nMeds administered: Insulin, Regular, Human, Normal Saline, Potassium Chloride.\nNo pain reported (NRS 0).\nCentral venous catheter in place; insertion site and securement observation continued.\nNPO, nothing by mouth.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - day shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 107/69, HR 104, SpO2 96%, T 37.2°C.\nMeds administered: Insulin, Regular, Human, Normal Saline, Potassium Chloride.\nNo pain reported (NRS 0).\nCentral venous catheter in place; insertion site and securement observation continued.\nNPO, nothing by mouth.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-08-evening": {
@@ -305,7 +305,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 116/74, HR 94, SpO2 95%, T 35.8°C.\nMeds administered: Insulin, Regular, Human, Normal Saline, Potassium Chloride, Enoxaparin.\nabdominal pain reported, NRS 2.\nCentral venous catheter in place; insertion site and securement observation continued.\nNPO, nothing by mouth.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - evening shift] Day 1\nRecorded by: Clara Pittman\nPatient status: BP 113/73, HR 97, SpO2 95%, T 35.8°C.\nMeds administered: Insulin, Regular, Human, Normal Saline, Potassium Chloride, Enoxaparin.\nabdominal pain reported, NRS 2.\nCentral venous catheter in place; insertion site and securement observation continued.\nNPO, nothing by mouth.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-09-night": {
@@ -333,7 +333,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 118/78, HR 93, SpO2 97%, T 35.2°C.\nMeds administered: Insulin, Regular, Human, Normal Saline, Potassium Chloride.\nabdominal pain reported, NRS 2.\nPrevious day (6/15) fluid balance: intake 1086 mL, output 964 mL (urine 178 mL), net +122 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nNPO continued.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - night shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 115/77, HR 96, SpO2 97%, T 35.2°C.\nMeds administered: Insulin, Regular, Human, Normal Saline, Potassium Chloride.\nabdominal pain reported, NRS 2.\nPrevious day (6/15) fluid balance: intake 1086 mL, output 964 mL (urine 178 mL), net +122 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nNPO continued.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-10-day": {
@@ -361,7 +361,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 118/79, HR 94, SpO2 96%, T 37.0°C.\nMeds administered: Insulin, Regular, Human, Normal Saline.\nabdominal pain reported, NRS 1.\nPrevious day (6/15) fluid balance: intake 1086 mL, output 964 mL (urine 178 mL), net +122 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Regular diet, feeding independent, oral intake the previous day 178 mL.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
+      "text": "[Nursing Shift Note - day shift] Day 2\nRecorded by: Clara Pittman\nPatient status: BP 115/78, HR 97, SpO2 96%, T 37.0°C.\nMeds administered: Insulin, Regular, Human, Normal Saline.\nabdominal pain reported, NRS 1.\nPrevious day (6/15) fluid balance: intake 1086 mL, output 964 mL (urine 178 mL), net +122 mL.\nCentral venous catheter in place; insertion site and securement observation continued.\nDiet: Regular diet, feeding independent, oral intake the previous day 178 mL.\nADL: Barthel Index 80/100 (minimal assistance); mobility walks with help, toileting needs partial help. Assistance provided as needed."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-11-evening": {
@@ -536,10 +536,10 @@
         "assessment": "ED diagnosis: Diabetic ketoacidosis (DKA). Chief complaint: Nausea, vomiting, abdominal pain, polyuria, altered consciousness.",
         "chief_complaint": "Nausea, vomiting, abdominal pain, polyuria, altered consciousness",
         "disposition": "Admitted (Nausea, vomiting, abdominal pain, polyuria, altered consciousness)",
-        "ed_workup": "Labs: β-hydroxybutyrate pending, anion gap pending, phosphate 4.5 mg/dL, Mg 2.1 mg/dL, lactate 3.0 mmol/L [H], urinalysis pending, HbA1c pending, CRP 0.3 mg/L. Imaging: ECG (Normal ECG), chest X-ray AP (Left lower lobe consolidation). Medications: Insulin, Regular, Human, Normal Saline, Potassium Chloride. Abnormal: pH 7.04 [critical], PaCO2 22.0 mmHg [L], HCO3 5.0 mmol/L [L]",
+        "ed_workup": "Labs: β-hydroxybutyrate pending, anion gap pending, phosphate 4.6 mg/dL [H], Mg 2.1 mg/dL, lactate 4.9 mmol/L [H], urinalysis pending, HbA1c pending, CRP 0.3 mg/L. Imaging: ECG (Sinus tachycardia without ischemic changes), chest X-ray AP (Left lower lobe consolidation). Medications: Insulin, Regular, Human, Normal Saline, Potassium Chloride. Abnormal: pH 7.04 [critical], PaCO2 22.0 mmHg [L], HCO3 5.0 mmol/L [L]",
         "hpi": "34 y/o female patient. Chief complaint: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Symptoms that began over the preceding days worsened rapidly, prompting today's presentation. History: Type 2 diabetes (DM), Dyslipidemia. ROS: no fever, no diarrhea.",
-        "physical_exam": "On arrival: BP 105/69 mmHg, HR 125 bpm, RR 21 /min, SpO2 100%, T 36.1°C. General: alert, dehydrated, in distress. Skin: dry mucous membranes, decreased skin turgor. Respiratory: deep, rapid (Kussmaul) respirations, fruity breath odor. Abdomen: diffuse mild tenderness without guarding.",
-        "triage_details": "Triage level: ESI Level 1. Arrival mode: Helicopter/air transport. Allergies: No known drug allergies (NKDA)."
+        "physical_exam": "On arrival: BP 93/63 mmHg, HR 137 bpm, RR 21 /min, SpO2 100%, T 36.1°C. General: responds only to painful stimulus, dehydrated, in distress. Skin: dry mucous membranes, decreased skin turgor. Respiratory: deep, rapid (Kussmaul) respirations, fruity breath odor. Abdomen: diffuse mild tenderness without guarding.",
+        "triage_details": "Triage level: ESI Level 2. Arrival mode: Ambulance. Allergies: No known drug allergies (NKDA)."
       },
       "text": ""
     }
@@ -560,7 +560,7 @@
         "lang": "en"
       },
       "sections": {},
-      "text": "Triage level: ESI Level 1\nArrival mode: Helicopter/air transport\nChief complaint: Nausea, vomiting, abdominal pain, polyuria, altered consciousness\nTriage vital signs: BP 105/69 mmHg, HR 125/min, T 36.1°C, SpO2 100% (RA), RR 21/min, pain 1/10\nAllergies: No known drug allergies (NKDA)"
+      "text": "Triage level: ESI Level 2\nArrival mode: Ambulance\nChief complaint: Nausea, vomiting, abdominal pain, polyuria, altered consciousness\nTriage vital signs: BP 93/63 mmHg, HR 137/min, T 36.1°C, SpO2 100% (RA), RR 21/min, pain 1/10\nAllergies: No known drug allergies (NKDA)"
     }
   }
 }
