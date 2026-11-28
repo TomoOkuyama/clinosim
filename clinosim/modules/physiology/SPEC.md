@@ -41,7 +41,7 @@ Define the hidden physiological state variables that represent a patient's clini
 | `anemia_level` | 0.0–1.0 | 0 = normal, 1 = severe | Hb, Hct, RBC, MCV, reticulocyte |
 | `coagulation_status` | 0.0–1.0 | 0 = normal, 1 = DIC | PT-INR, aPTT, fibrinogen, D-dimer, platelets |
 | `volume_status` | -1.0–+1.0 | -1 = dehydration, +1 = overload | BUN/Cr ratio, urine specific gravity, Na, Hct (hemoconcentration) |
-| `perfusion_status` | 0.0–1.0 | 1 = normal, 0 = shock | Lactate, base excess, urine output |
+| `perfusion_status` | 0.0–1.0 | 1 = normal, 0 = shock | Lactate (acute drop below `perfusion_baseline`), base excess, urine output |
 | `ph_status` | -1.0–+1.0 | -1 = acidosis, +1 = alkalosis | pH, pCO2, HCO3, base excess, anion gap |
 | `sympathetic_activation` | 0.0–1.0 | 0 = none, 1 = maximal autonomic hyperactivity | HR, BP, RR, temperature |
 | `pain_level` | 0.0–1.0 | 0 = none, 1 = worst pain (NRS ≈ 10 × value) | pain score; HR / BP above 0.4 |
@@ -202,8 +202,10 @@ def apply_coupling_rules(state: PhysiologicalState):
         if state.cardiac_function < 0.5:
             volume_effect = -0.1        # pulmonary edema worsens perfusion
     
+    # Issue #3962: + state.perfusion_acute_offset (the authored perfusion_status
+    # deltas, <= 0; recovery deltas and the fall of inflammation shrink it).
     state.perfusion_status = clamp(
-        state.cardiac_function * 0.8 + 0.2 + volume_effect,
+        state.cardiac_function * 0.8 + 0.2 + volume_effect + state.perfusion_acute_offset,
         0.0, 1.0
     )
     
@@ -355,7 +357,13 @@ def derive_lab_values(state: PhysiologicalState, patient: PatientProfile,
     perfusion = state.perfusion_status
     
     # Lactate: rises with poor perfusion
-    labs["Lactate"] = 1.0 + (1 - perfusion) * 12  # normal ~1.0, shock ~13
+    # Issue #3962: lactate follows the ACUTE perfusion deficit — the drop of
+    # perfusion below the patient's chronic baseline (state.perfusion_baseline, set
+    # by initialize_state) as a fraction of that baseline. A stable chronic patient
+    # keeps ~1.0; zero perfusion still gives ~13 whatever the baseline.
+    base = state.perfusion_baseline
+    deficit = max(0.0, base - perfusion) / base if base > 0 else 0.0
+    labs["Lactate"] = 1.0 + min(deficit, 1.0) * 12  # normal ~1.0, shock ~13
     
     # === pH / BLOOD GAS ===
     ph = state.ph_status

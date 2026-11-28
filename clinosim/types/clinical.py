@@ -29,6 +29,16 @@ class PhysiologicalState:
     coagulation_status: float = 0.0  # 0.0–1.0
     volume_status: float = 0.0  # -1.0–+1.0
     perfusion_status: float = 1.0  # 0.0–1.0
+    # Issue #3962: the patient's chronic perfusion (from the chronic cardiac
+    # function and volume state, set by initialize_state). Lactate follows the drop
+    # of perfusion_status below this baseline, so a stable chronic patient has a
+    # normal lactate. 1.0 (the default) = no chronic reduction recorded.
+    perfusion_baseline: float = 1.0  # 0.0–1.0
+    # Issue #3962: the acute perfusion deficit authored by disease onsets, course
+    # trajectories and complications (perfusion_status deltas), kept apart so the
+    # coupling rule adds it on top of the cardiac / volume perfusion instead of
+    # overwriting it. Negative = deficit; recovery deltas shrink it toward 0.
+    perfusion_acute_offset: float = 0.0  # -1.0 - 0.0
     ph_status: float = 0.0  # -1.0–+1.0  (acid-base disturbance magnitude; neg = acidemia)
     # Routes the ph_status disturbance between the metabolic (HCO3) and respiratory (pCO2)
     # axes: 0.0 = purely metabolic (e.g. DKA, lactic acidosis, uremia), 1.0 = purely

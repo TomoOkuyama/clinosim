@@ -96,6 +96,22 @@ from clinosim.modules.physiology.engine import (
   in-place mutation される** (後 2 者は同じ instance を返す) —
   immutable ではない。決定論は決定論的 caller + 決定論的 `rng` から
   来るのであり、fresh instance を返す設計からではない。
+- **乳酸は急性の灌流低下に追従する (Issue #3962)**:
+  `initialize_state` が患者の慢性的な灌流を
+  `PhysiologicalState.perfusion_baseline` に記録し、`Lactate` は
+  `perfusion_status` がこの基準値を下回った分 (基準値に対する割合) から
+  導出する。安定した慢性患者は基準の乳酸のままで、急性の低下で上昇し、
+  低下が解消すると基準に戻り、灌流ゼロでは
+  `LACTATE_BASELINE_MMOL_L + LACTATE_PERFUSION_SCALE` に達する。
+  `initialize_state` を通さずに作った状態は既定の基準値 1.0 のままで、
+  従来どおり `1 - perfusion_status` から導出する。
+  疾患の発症・経過・合併症が書いた `perfusion_status` の delta は急性の
+  低下として `perfusion_acute_offset` に保持され、`apply_coupling_rules` は
+  心機能・volume 由来の灌流に上乗せする (上書きしない)。回復の (正の)
+  delta は 0 に向けて縮め、`update` は炎症レベルが下がった割合だけ縮める
+  ので、低下は感染とともに解消する。`perfusion_relative_to_baseline` は
+  慢性の基準値からの低下として灌流を返し、daily loop の shock 判定
+  (`in_shock`) が使う。
 - **Per-order lab RNG 分離 (AD-59)**: `derive_lab_values` は
   per-order サブ RNG (`clinosim/seeding.py` の
   `panel_specimen_seed` / `individual_lab_seed`) で呼ばれ、患者

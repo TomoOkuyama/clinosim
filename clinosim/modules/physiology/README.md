@@ -98,6 +98,23 @@ from clinosim.modules.physiology.engine import (
   and `update` (the latter two also return the same instance) — it is
   NOT immutable. Determinism comes from the deterministic caller +
   deterministic `rng`, not from returning fresh instances.
+- **Lactate follows the acute perfusion deficit (Issue #3962)**:
+  `initialize_state` records the patient's chronic perfusion in
+  `PhysiologicalState.perfusion_baseline`; `Lactate` is derived from the
+  drop of `perfusion_status` below that baseline (as a fraction of it), so
+  a stable chronic patient keeps the baseline lactate, it rises with an
+  acute deficit, returns when the deficit resolves, and reaches
+  `LACTATE_BASELINE_MMOL_L + LACTATE_PERFUSION_SCALE` at zero perfusion.
+  A state built without `initialize_state` keeps the default baseline 1.0
+  (the previous `1 - perfusion_status` derivation). A `perfusion_status`
+  delta authored by a disease onset, course trajectory or complication is
+  an acute deficit kept in `perfusion_acute_offset`: `apply_coupling_rules`
+  adds it on top of the cardiac / volume perfusion instead of overwriting
+  it, positive (recovery) deltas shrink it toward zero, and `update`
+  shrinks it by the fraction the inflammation level falls, so the deficit
+  resolves with the infection. `perfusion_relative_to_baseline` gives the
+  perfusion as a drop below the chronic baseline; the daily loop's shock
+  check (`in_shock`) uses it.
 - **Per-order lab RNG isolation (AD-59)**: `derive_lab_values` is
   called with a per-order sub-RNG (via `clinosim/seeding.py`
   helpers `panel_specimen_seed` / `individual_lab_seed`), NOT the

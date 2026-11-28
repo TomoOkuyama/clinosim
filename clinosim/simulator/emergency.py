@@ -118,6 +118,7 @@ def ed_treatment_response(state: PhysiologicalState) -> PhysiologicalState:
     if after.volume_status < 0:
         after.volume_status *= ED_TREATMENT_RESPONSE_FACTOR
     after.perfusion_status = 1.0 - (1.0 - after.perfusion_status) * ED_TREATMENT_RESPONSE_FACTOR
+    after.perfusion_acute_offset *= ED_TREATMENT_RESPONSE_FACTOR
     return after
 
 

@@ -736,11 +736,15 @@ higher are typically reported as ">20"."""
 # ---------------------------------------------------------------------------
 
 LACTATE_BASELINE_MMOL_L: float = 1.0
-"""Baseline lactate (mmol/L) at full perfusion — matches the healthy
-adult reference upper bound (< 2.0)."""
+"""Baseline lactate (mmol/L) with no acute perfusion deficit — within the
+healthy adult reference range (< 2.0)."""
 
 LACTATE_PERFUSION_SCALE: int = 12
-"""Lactate lift (mmol/L per unit ``(1 - perfusion_status)``).
+"""Lactate lift (mmol/L per unit of the acute perfusion deficit).
+
+The deficit is the drop of ``perfusion_status`` below the patient's chronic
+``perfusion_baseline``, as a fraction of that baseline (Issue #3962), so a
+stable chronic patient keeps ``LACTATE_BASELINE_MMOL_L``.
 
 Empirical tuning for the synthetic simulator: at perfusion_status
 = 0, lactate rises to 13 mmol/L (extreme lactic acidosis / shock),
