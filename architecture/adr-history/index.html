@@ -75,7 +75,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#part-9-japanese-narrative-localization-2026-04-13" class="md-skip">
+        <a href="#recording-a-decision" class="md-skip">
           Skip to content
         </a>
       
@@ -2352,6 +2352,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#recording-a-decision" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recording a decision
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#part-9-japanese-narrative-localization-2026-04-13" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2665,6 +2676,56 @@
 
   <h1>Adr history</h1>
 
+<h2 id="recording-a-decision">Recording a decision<a class="headerlink" href="#recording-a-decision" title="Permanent link">&para;</a></h2>
+<p>This file holds the full text of the architecture decision records (ADRs) AD-42 to AD-48 and AD-61 onward; the other records are summarized in the ADR tables of <a href="../design-principles/"><code>design-principles.md</code></a> and <a href="../architecture-notes/"><code>architecture-notes.md</code></a>. The practice below describes how the records are kept; AD-72 and AD-73 (2026-11-28) are the latest examples of it.</p>
+<p><strong>When a record is needed.</strong> A pull request adds an ADR when it:</p>
+<ul>
+<li>adds or changes an extension point — a registry, a hook, or a list that contributors add entries to (AD-56, AD-58, AD-72);</li>
+<li>changes the CIF schema or what CIF stores (AD-30, AD-48, AD-65);</li>
+<li>deviates from a binding spec in <a href="../../design-guides/"><code>docs/design-guides/</code></a> or from an earlier ADR. The spec is revised in the same pull request; an earlier ADR is not rewritten — the new record names it and says what changes (AD-72 does this for the entry-point path of AD-58).</li>
+</ul>
+<p>A design document that settles several such questions gets one record per decision (AD-72 and AD-73 come from one design). A fix, a data addition or a refactoring that follows the existing records and specs needs no record.</p>
+<p><strong>Who approves.</strong> The maintainer approves every record. A record is merged only when the maintainer approves its pull request, and it is merged with <code>**Status:** Accepted</code>.</p>
+<p><strong>Where it lives.</strong> Append the record at the end of this file and of <a href="../adr-history.ja/"><code>adr-history.ja.md</code></a> (Japanese) in the same pull request, with the next unused AD number. Numbers are never reused; the reserved or withdrawn numbers are listed under the ADR table of <code>architecture-notes.md</code>. Add a row (number, date, title) to that table ("Updated ADR list") in <code>architecture-notes.md</code> and <code>architecture-notes.ja.md</code>.</p>
+<p><strong>Template.</strong> The headings below are the ones the records use; "Deferred and why", "Alternatives considered" and "Objection recorded" are optional.</p>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>---
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="gu">### AD-NN · &lt;the decision in one line&gt;</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="gs">**Date:**</span> YYYY-MM-DD
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="gs">**Status:**</span> Accepted
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="gs">**Context:**</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>&lt;the problem and the facts that force a decision, with file paths, issue numbers or measured numbers&gt;
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="gs">**Decision:**</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="k">1.</span> &lt;rule&gt;
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="k">2.</span> &lt;rule&gt;
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="gs">**Deferred and why:**</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="k">-</span><span class="w"> </span>&lt;what is not decided now, and the trigger for revisiting it&gt;
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="gs">**Consequences:**</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>Positive:
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="k">-</span><span class="w"> </span>&lt;...&gt;
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>Negative/neutral:
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="k">-</span><span class="w"> </span>&lt;...&gt;
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="gs">**Related ADRs:**</span> AD-NN (&lt;one-line reason&gt;)
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="gs">**Related documents:**</span>
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="k">-</span><span class="w"> </span>&lt;design document, binding spec section, issue&gt;
+</span></code></pre></div>
+<hr />
 <h2 id="part-9-japanese-narrative-localization-2026-04-13">Part 9: Japanese narrative localization (2026-04-13)<a class="headerlink" href="#part-9-japanese-narrative-localization-2026-04-13" title="Permanent link">&para;</a></h2>
 <h3 id="ad-42-code-side-unit-conversion-for-japanese-locale">AD-42: Code-side unit conversion for Japanese locale<a class="headerlink" href="#ad-42-code-side-unit-conversion-for-japanese-locale" title="Permanent link">&para;</a></h3>
 <p>CIF stores lab values in SI units (CRP in mg/L). Japanese clinical convention uses mg/dL for CRP.
@@ -2687,7 +2748,7 @@ Rather than asking the LLM to convert (which was inconsistent), conversion happe
 <p><code>chronic_medications.yaml</code> keys are specific ICD codes (e.g., <code>E11.9</code>). After discharge,
 <code>_deactivate_to_layer1()</code> normalizes codes to base form (<code>E11</code>). The medication lookup in
 <code>inpatient.py</code> now falls back to base code:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">spec</span> <span class="o">=</span> <span class="n">chronic_meds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">code</span><span class="p">)</span> <span class="ow">or</span> <span class="n">chronic_meds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">code</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"."</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">spec</span> <span class="o">=</span> <span class="n">chronic_meds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">code</span><span class="p">)</span> <span class="ow">or</span> <span class="n">chronic_meds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">code</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"."</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
 </span></code></pre></div>
 <p>This matches the existing fallback in <code>activator.py:326</code> and prevents medication loss on readmission.</p>
 <h3 id="jp-fhir-localization-summary">JP FHIR localization summary<a class="headerlink" href="#jp-fhir-localization-summary" title="Permanent link">&para;</a></h3>
@@ -2782,9 +2843,9 @@ Rather than asking the LLM to convert (which was inconsistent), conversion happe
 <p><strong>Conclusion</strong>: LLM translates free text well, but fails at math (CRP) and code normalization
 (ICD display). Keep code_lookup + CRP conversion only. Everything else English.</p>
 <h3 id="ad-45-occupation-model">AD-45: Occupation model<a class="headerlink" href="#ad-45-occupation-model" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>PersonRecord.occupation: str  →  PatientProfile.occupation: str
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>                                  ↓
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>                         FHIR Observation (LOINC 11341-5, social-history)
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>PersonRecord.occupation: str  →  PatientProfile.occupation: str
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>                                  ↓
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>                         FHIR Observation (LOINC 11341-5, social-history)
 </span></code></pre></div>
 <p>Categories: manufacturing, construction, agriculture, healthcare, service, office,
 transportation, education, homemaker, student, retired, unemployed, other.</p>
@@ -2793,13 +2854,13 @@ transportation, education, homemaker, student, retired, unemployed, other.</p>
 - <code>occupation_risk_multipliers</code> — per-injury-type risk by occupation (e.g. crush_injury_hand × 6.0 for manufacturing)</p>
 <h3 id="ad-46-multilingual-fhir-coding">AD-46: Multilingual FHIR coding<a class="headerlink" href="#ad-46-multilingual-fhir-coding" title="Permanent link">&para;</a></h3>
 <p>Condition and Procedure resources emit dual <code>coding[]</code> entries:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">"coding"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="p">{</span><span class="nt">"system"</span><span class="p">:</span><span class="w"> </span><span class="s2">"icd-10"</span><span class="p">,</span><span class="w"> </span><span class="nt">"code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"J44.1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"display"</span><span class="p">:</span><span class="w"> </span><span class="s2">"その他の慢性閉塞性肺疾患"</span><span class="p">},</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="p">{</span><span class="nt">"system"</span><span class="p">:</span><span class="w"> </span><span class="s2">"icd-10"</span><span class="p">,</span><span class="w"> </span><span class="nt">"code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"J44.1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"display"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Other chronic obstructive pulmonary disease"</span><span class="p">}</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="p">],</span>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="nt">"text"</span><span class="p">:</span><span class="w"> </span><span class="s2">"COPD（慢性閉塞性肺疾患）"</span>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">"coding"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="p">{</span><span class="nt">"system"</span><span class="p">:</span><span class="w"> </span><span class="s2">"icd-10"</span><span class="p">,</span><span class="w"> </span><span class="nt">"code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"J44.1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"display"</span><span class="p">:</span><span class="w"> </span><span class="s2">"その他の慢性閉塞性肺疾患"</span><span class="p">},</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="p">{</span><span class="nt">"system"</span><span class="p">:</span><span class="w"> </span><span class="s2">"icd-10"</span><span class="p">,</span><span class="w"> </span><span class="nt">"code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"J44.1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"display"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Other chronic obstructive pulmonary disease"</span><span class="p">}</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="p">],</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="nt">"text"</span><span class="p">:</span><span class="w"> </span><span class="s2">"COPD（慢性閉塞性肺疾患）"</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="p">}</span>
 </span></code></pre></div>
 <p><code>_build_diagnosis_codeable_concept()</code> tries <code>icd-10</code> → falls back to <code>icd-10-cm</code> → <code>"(display unavailable)"</code>.
 <code>code.text</code> uses <code>_CONDITION_SHORT_NAME</code> for search-friendly abbreviations (AD-49).</p>

@@ -3659,6 +3659,11 @@ observations.</p>
 <td><strong>clinosim audit framework.</strong> Unified verification gate built as a <code>clinosim/audit/</code> package + CLI subcommand (<code>clinosim audit run/smoke/list</code>). Absorbs the previous 3-axis DQR scratchpad scripts and adds a fourth <strong>silent_no_op</strong> axis (canonical-constants cross-check + lift-firing proof) specifically designed to catch the PR-90 class of bug (case-mismatch silent no-op that left the entire Phase 3a HAI lift no-op'd in production while test green + byte-diff PASS + DQR cohort PASS still held). Architecture: <code>clinosim/audit/registry.py</code> (ModuleAuditSpec dataclass + register_audit_module + discover) + <code>clinosim/audit/engine.py</code> (AuditEngine orchestrates module × axis matrix) + <code>clinosim/audit/axes/</code> (4 axes: structural / clinical / jp_language / silent_no_op) + <code>clinosim/audit/reporter.py</code> (Markdown). Per-Module checks live in <code>clinosim/modules/&lt;name&gt;/audit.py</code> and side-effect-import register_audit_module(spec) at discovery; new Modules get all 4 axes for free by declaring <code>structural_obs_codes</code>, <code>clinical_acceptance</code>, <code>canonical_constants</code> + <code>yaml_keys_to_validate</code>, and <code>lift_firing_proof</code>. Phase 1 ships only <code>modules/hai/audit.py</code> (the absorption point for scratchpad/phase3a_lift_fired_proof.py). byte-diff vs master @ p=2000 seed=42 confirms 37/37 NDJSON byte-IDENTICAL — the audit framework is a pure read-only consumer of generated output, no simulation-path imports leaked, AD-16 preserved. First self-audit baseline report: <code>docs/reviews/2026-06-25-clinosim-audit-baseline.md</code>. byte-diff stays separate as a refactor-PR mechanic; the audit framework is for new-feature / realism PRs. See <code>docs/CONTRIBUTING-modules.md</code> "PR 検証ガイド" for the decision matrix. <strong>2026-06-25 PR3b-1 = second per-Module plug-in</strong>: <code>modules/antibiotic/audit.py</code> adds the second concrete plug-in after <code>hai</code>. Its <code>lift_firing_proof</code> drives the actual enricher path (<code>enrich_antibiotic</code>) against a synthetic CAUTI HAIEvent and asserts the closed-form Ceftriaxone q24h × 7d delta (1 regimen, 1 MedicationRequest, 7 MARs, first/last at exact expected datetimes). <code>clinosim audit list</code> now reports 2 modules with the same 4-axis matrix, confirming the framework's repeatability. <strong>2026-06-26 PR3b-2 audit framework expansion</strong>: <code>modules/antibiotic/audit.py</code> extended with (1) <code>_ABX_LOINCS</code> frozenset of 8 susceptibility LOINCs for structural axis Observation.code coverage; (2) <code>_NHSN_RESISTANCE_BANDS</code> metadata (CLABSI MRSA 40-55%, CAUTI ESBL 12-22%, VAP MRSA 30-45%) and <code>HAI_EMPTY_SUSCEPTIBILITIES_MAX_RATE = 0.05</code> — wired to clinical axis active enforcement in PR3b-3 (2026-06-27, per-(hai_type, antibiotic) R-rate gate + per-HAI cohort empty-rate gate + per-hai_type narrow-rate gate, each <code>n&lt;30 → WARN</code> for rare-event safety); <strong>PR3b-3 D1+D2 (2026-06-29, PR #112) completed the chain</strong> by adding <code>_organism_per_encounter</code> (per-(hai_type, organism, antibiotic) R-rate filter) and <code>_panel_eligible_organisms</code> (panel-eligible empty-rate denominator via <code>load_hai_antibiogram()</code> keys — auto-excludes E.faecalis / C.albicans), removing both <code># TODO(post-PR3b-3)</code> markers; (3) <code>antibiogram_firing_proof</code> using PR-94 <code>equality_checks</code> format — drives <code>_append_hai_culture()</code> against a synthetic CLABSI S. aureus record and asserts Vancomycin susceptibility = S via <code>ANTIBIOTIC_LOINC_LOOKUP["vancomycin"]</code> (not hardcoded LOINC), closing the same silent-no-op class of bug for the susceptibility chain.</td>
 </tr>
 <tr>
+<td>AD-61</td>
+<td>2026-06-29</td>
+<td>Lab ServiceRequest emission, panel-aware grouping</td>
+</tr>
+<tr>
 <td>AD-62</td>
 <td>2026-06-30</td>
 <td><strong>Imaging metadata-only chain with WADO-RS placeholder.</strong></td>
@@ -3668,9 +3673,59 @@ observations.</p>
 <td>2026-07-01</td>
 <td><strong>Document narrative + structured event density foundation. Two new always-on Modules (allergy = POST_POPULATION order=10 / document = POST_ENCOUNTER order=95), 3 FHIR builders (DocumentReference / Composition / ClinicalImpression), 17-check lift_firing_proof. Closes Stage 1 document-density gap (DR 0→23,760, Comp 0→9,275, CI 0→23,760 US p=10k).</strong></td>
 </tr>
+<tr>
+<td>AD-64</td>
+<td>2026-07-01</td>
+<td>Nursing + Outpatient + ED + CareTeam density foundation</td>
+</tr>
+<tr>
+<td>AD-65</td>
+<td>2026-07-02</td>
+<td>Structural + Narrative CIF file separation (two-pass generation)</td>
+</tr>
+<tr>
+<td>AD-66</td>
+<td>2026-07-03</td>
+<td>Canonical patient profile fixture library for narrative regression</td>
+</tr>
+<tr>
+<td>AD-67</td>
+<td>2026-07-06</td>
+<td>Severity single source of truth (disease YAML canonical, hybrid c2)</td>
+</tr>
+<tr>
+<td>AD-68</td>
+<td>2026-07-06</td>
+<td>archetype_modifiers wiring (dead YAML activation, sibling to AD-67)</td>
+</tr>
+<tr>
+<td>AD-69</td>
+<td>2026-07-06</td>
+<td>DiseaseProtocol extra="forbid" (author-time silent-drop defense)</td>
+</tr>
+<tr>
+<td>AD-70</td>
+<td>2026-07-26</td>
+<td>JP-CLINS lab coding: JLAC10 primary + LOINC secondary (international interoperability)</td>
+</tr>
+<tr>
+<td>AD-71</td>
+<td>2026-09-01</td>
+<td>Temporal state pattern — <code>TemporalStatePeriod</code> (state-scoped generators for time-boxed episodes)</td>
+</tr>
+<tr>
+<td>AD-72</td>
+<td>2026-11-28</td>
+<td>Stay extension points: a complication action handler registry and a discharge criteria list; other in-stay responses are fixed-order calls in their owning modules</td>
+</tr>
+<tr>
+<td>AD-73</td>
+<td>2026-11-28</td>
+<td>Course clock declared per authored day-keyed item, default calendar</td>
+</tr>
 </tbody>
 </table>
-<p><em>Numbering gaps AD-1, AD-2, AD-12, AD-14, AD-15, AD-27 are reserved/withdrawn — never assigned to a shipped decision. AD-61/AD-64/AD-65/AD-66/AD-67/AD-68/AD-69/AD-70/AD-71 are documented in their own <code>### AD-6N</code> / <code>### AD-7N</code> sections below rather than in this compact table. AD-67 (severity single source of truth), AD-68 (archetype_modifiers wiring), AD-69 (DiseaseProtocol extra="forbid") are the 2026-07-06 FHIR-completeness chain — see <code>docs/design-notes/2026-07-06-fix-point-registry.md</code>. AD-70 (JLAC10 primary + LOINC secondary) is the 2026-07-26 JP-CLINS lab-coding migration. AD-71 (<code>TemporalStatePeriod</code> temporal-state pattern) is the 2026-09-01 META #957 Incr 1 pregnancy-lifecycle refactor.</em></p>
+<p><em>Numbering gaps AD-1, AD-2, AD-12, AD-14, AD-15, AD-27 are reserved/withdrawn — never assigned to a shipped decision. From AD-61 on, a row gives the date and title only; the full record is its <code>### AD-NN</code> section in <a href="../adr-history/"><code>adr-history.md</code></a> (AD-71 also has section 9 below). How a record is added: <a href="../adr-history/#recording-a-decision"><code>adr-history.md</code> — Recording a decision</a>. AD-67 (severity single source of truth), AD-68 (archetype_modifiers wiring), AD-69 (DiseaseProtocol extra="forbid") are the 2026-07-06 FHIR-completeness chain — see <code>docs/design-notes/2026-07-06-fix-point-registry.md</code>. AD-70 (JLAC10 primary + LOINC secondary) is the 2026-07-26 JP-CLINS lab-coding migration. AD-71 (<code>TemporalStatePeriod</code> temporal-state pattern) is the 2026-09-01 META #957 Incr 1 pregnancy-lifecycle refactor.</em></p>
 <hr />
 <h2 id="69-resident-identifier--insurance-numbering-ad-54">6.9 Resident identifier &amp; insurance numbering (AD-54)<a class="headerlink" href="#69-resident-identifier--insurance-numbering-ad-54" title="Permanent link">&para;</a></h2>
 <h3 id="problem_5">Problem<a class="headerlink" href="#problem_5" title="Permanent link">&para;</a></h3>

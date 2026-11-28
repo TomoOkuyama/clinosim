@@ -75,7 +75,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#part-9-日本語-narrative-localization-2026-04-13" class="md-skip">
+        <a href="#決定の記録" class="md-skip">
           Skip to content
         </a>
       
@@ -2352,6 +2352,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#決定の記録" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        決定の記録
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#part-9-日本語-narrative-localization-2026-04-13" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2665,6 +2676,56 @@
 
   <h1>Adr history.ja</h1>
 
+<h2 id="決定の記録">決定の記録<a class="headerlink" href="#決定の記録" title="Permanent link">&para;</a></h2>
+<p>このファイルはアーキテクチャ決定記録 (ADR) のうち AD-42〜AD-48 と AD-61 以降の本文を収める。それ以外の記録は <a href="../design-principles.ja/"><code>design-principles.ja.md</code></a> と <a href="../architecture-notes.ja/"><code>architecture-notes.ja.md</code></a> の ADR 表に要約がある。以下は記録の運用方法であり、最新の例は AD-72 と AD-73 (2026-11-28) である。</p>
+<p><strong>記録が必要なとき。</strong> 次のいずれかに当たるプルリクエストは ADR を追加する。</p>
+<ul>
+<li>拡張ポイントを追加・変更する — レジストリ、フック、コントリビューターが項目を足していく一覧 (AD-56、AD-58、AD-72)。</li>
+<li>CIF のスキーマ、または CIF が保持する内容を変える (AD-30、AD-48、AD-65)。</li>
+<li><a href="../../design-guides/README.ja/"><code>docs/design-guides/</code></a> の拘束力のある仕様、または過去の ADR から外れる。仕様は同じプルリクエストで改訂する。過去の ADR は書き換えず、新しい記録がその ADR を名指しして何が変わるかを書く (AD-72 は AD-58 の entry-point の方針についてそうしている)。</li>
+</ul>
+<p>複数の論点を決める設計文書は、決定ごとに 1 件の記録にする (AD-72 と AD-73 は 1 つの設計から出ている)。既存の記録と仕様に沿った修正・データ追加・リファクタリングには記録は要らない。</p>
+<p><strong>承認者。</strong> すべての記録はメンテナーが承認する。記録はメンテナーがそのプルリクエストを承認したときにだけマージされ、<code>**Status:** Accepted</code> としてマージされる。</p>
+<p><strong>置き場所。</strong> 記録は同じプルリクエストで、このファイルと <a href="../adr-history/"><code>adr-history.md</code></a> (英語) の末尾に、未使用の次の AD 番号で追記する。番号は再利用しない。予約済み・撤回済みの番号は <code>architecture-notes.ja.md</code> の ADR 表の下に列挙してある。その表 (「更新 ADR 一覧」) に行 (番号・日付・表題) を <code>architecture-notes.md</code> と <code>architecture-notes.ja.md</code> の両方で追加する。</p>
+<p><strong>テンプレート。</strong> 見出しは既存の記録が使っているものである。「Deferred and why」「Alternatives considered」「Objection recorded」は任意。</p>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>---
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="gu">### AD-NN · &lt;決定を 1 行で&gt;</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="gs">**Date:**</span> YYYY-MM-DD
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="gs">**Status:**</span> Accepted
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="gs">**Context:**</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>&lt;問題と、決定を迫る事実。ファイルパス・Issue 番号・実測値を添える&gt;
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="gs">**Decision:**</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="k">1.</span> &lt;規則&gt;
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="k">2.</span> &lt;規則&gt;
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="gs">**Deferred and why:**</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="k">-</span><span class="w"> </span>&lt;今は決めないことと、見直すきっかけ&gt;
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="gs">**Consequences:**</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>Positive:
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="k">-</span><span class="w"> </span>&lt;...&gt;
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>Negative/neutral:
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="k">-</span><span class="w"> </span>&lt;...&gt;
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="gs">**Related ADRs:**</span> AD-NN (&lt;1 行の理由&gt;)
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="gs">**Related documents:**</span>
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="k">-</span><span class="w"> </span>&lt;設計文書、拘束力のある仕様の節、Issue&gt;
+</span></code></pre></div>
+<hr />
 <h2 id="part-9-日本語-narrative-localization-2026-04-13">Part 9: 日本語 narrative localization (2026-04-13)<a class="headerlink" href="#part-9-日本語-narrative-localization-2026-04-13" title="Permanent link">&para;</a></h2>
 <h3 id="ad-42-日本語-locale-用のコード側単位変換">AD-42: 日本語 locale 用のコード側単位変換<a class="headerlink" href="#ad-42-日本語-locale-用のコード側単位変換" title="Permanent link">&para;</a></h3>
 <p>CIF は lab 値を SI 単位で保持 (CRP は mg/L)。日本の臨床慣習は CRP を
@@ -2697,7 +2758,7 @@ mg/dL で扱う。LLM に変換を依頼すると (一貫性がなかったた�
 <code>E11.9</code>)。退院後、<code>_deactivate_to_layer1()</code> はコードを base 形式
 (<code>E11</code>) に正規化する。<code>inpatient.py</code> の薬剤 lookup は base コードに
 フォールバックする:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">spec</span> <span class="o">=</span> <span class="n">chronic_meds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">code</span><span class="p">)</span> <span class="ow">or</span> <span class="n">chronic_meds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">code</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"."</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">spec</span> <span class="o">=</span> <span class="n">chronic_meds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">code</span><span class="p">)</span> <span class="ow">or</span> <span class="n">chronic_meds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">code</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"."</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
 </span></code></pre></div>
 <p>これは <code>activator.py:326</code> の既存フォールバックと一致し、再入院時の
 薬剤消失を防止する。</p>
@@ -2796,9 +2857,9 @@ mg/dL で扱う。LLM に変換を依頼すると (一貫性がなかったた�
 (ICD display) は失敗する。code_lookup + CRP 変換のみ残す。それ以外
 は全て英語。</p>
 <h3 id="ad-45-職業モデル">AD-45: 職業モデル<a class="headerlink" href="#ad-45-職業モデル" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>PersonRecord.occupation: str  →  PatientProfile.occupation: str
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>                                  ↓
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>                         FHIR Observation (LOINC 11341-5, social-history)
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>PersonRecord.occupation: str  →  PatientProfile.occupation: str
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>                                  ↓
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>                         FHIR Observation (LOINC 11341-5, social-history)
 </span></code></pre></div>
 <p>Category: manufacturing / construction / agriculture / healthcare /
 service / office / transportation / education / homemaker / student /
@@ -2809,13 +2870,13 @@ retired / unemployed / other。</p>
   crush_injury_hand × 6.0 for manufacturing)</p>
 <h3 id="ad-46-多言語-fhir-coding">AD-46: 多言語 FHIR coding<a class="headerlink" href="#ad-46-多言語-fhir-coding" title="Permanent link">&para;</a></h3>
 <p>Condition + Procedure リソースは dual <code>coding[]</code> エントリを emit:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">"coding"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="p">{</span><span class="nt">"system"</span><span class="p">:</span><span class="w"> </span><span class="s2">"icd-10"</span><span class="p">,</span><span class="w"> </span><span class="nt">"code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"J44.1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"display"</span><span class="p">:</span><span class="w"> </span><span class="s2">"その他の慢性閉塞性肺疾患"</span><span class="p">},</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="p">{</span><span class="nt">"system"</span><span class="p">:</span><span class="w"> </span><span class="s2">"icd-10"</span><span class="p">,</span><span class="w"> </span><span class="nt">"code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"J44.1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"display"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Other chronic obstructive pulmonary disease"</span><span class="p">}</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="p">],</span>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="nt">"text"</span><span class="p">:</span><span class="w"> </span><span class="s2">"COPD（慢性閉塞性肺疾患）"</span>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">"coding"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="p">{</span><span class="nt">"system"</span><span class="p">:</span><span class="w"> </span><span class="s2">"icd-10"</span><span class="p">,</span><span class="w"> </span><span class="nt">"code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"J44.1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"display"</span><span class="p">:</span><span class="w"> </span><span class="s2">"その他の慢性閉塞性肺疾患"</span><span class="p">},</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="p">{</span><span class="nt">"system"</span><span class="p">:</span><span class="w"> </span><span class="s2">"icd-10"</span><span class="p">,</span><span class="w"> </span><span class="nt">"code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"J44.1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"display"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Other chronic obstructive pulmonary disease"</span><span class="p">}</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="p">],</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="nt">"text"</span><span class="p">:</span><span class="w"> </span><span class="s2">"COPD（慢性閉塞性肺疾患）"</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="p">}</span>
 </span></code></pre></div>
 <p><code>_build_diagnosis_codeable_concept()</code> は <code>icd-10</code> を試行 → <code>icd-10-cm</code>
 → <code>"(display unavailable)"</code> にフォールバック。<code>code.text</code> は

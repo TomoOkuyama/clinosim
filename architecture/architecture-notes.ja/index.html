@@ -3673,6 +3673,11 @@ observation から計算可能。</p>
 <td><strong>clinosim 監査フレームワーク。</strong> <code>clinosim/audit/</code> パッケージ + CLI サブコマンド (<code>clinosim audit run/smoke/list</code>) として構築された統一検証ゲート。従来の 3-axis DQR スクラッチパッドスクリプトを吸収し、PR-90 クラスのバグ (case-mismatch silent no-op、test 緑 + byte-diff PASS + DQR cohort PASS が成立したまま production で Phase 3a HAI lift 全体が no-op となった) を catch するために設計された第 4 の <strong>silent_no_op</strong> axis (canonical-constants クロスチェック + lift-firing 証明) を追加。アーキテクチャ: <code>clinosim/audit/registry.py</code> (ModuleAuditSpec dataclass + register_audit_module + discover) + <code>clinosim/audit/engine.py</code> (AuditEngine が module × axis マトリクスを orchestrate) + <code>clinosim/audit/axes/</code> (4 axes: structural / clinical / jp_language / silent_no_op) + <code>clinosim/audit/reporter.py</code> (Markdown)。Per-Module チェックは <code>clinosim/modules/&lt;name&gt;/audit.py</code> に存在し、発見時に register_audit_module(spec) を副作用 import; 新 Module は <code>structural_obs_codes</code>、<code>clinical_acceptance</code>、<code>canonical_constants</code> + <code>yaml_keys_to_validate</code>、<code>lift_firing_proof</code> を宣言することで 4 axes 全てを無料で得る。Phase 1 は <code>modules/hai/audit.py</code> のみ ship (scratchpad/phase3a_lift_fired_proof.py の吸収点)。master @ p=2000 seed=42 vs byte-diff で 37/37 NDJSON byte-IDENTICAL を確認 — 監査フレームワークは生成出力の純粋な read-only 消費者、simulation-path import は漏れず AD-16 維持。初回セルフ監査ベースラインレポート: <code>docs/reviews/2026-06-25-clinosim-audit-baseline.md</code>。byte-diff は refactor-PR 手法として分離維持; 監査フレームワークは新機能 / リアリズム PR 用。<code>docs/CONTRIBUTING-modules.md</code> の「PR 検証ガイド」の判定マトリクス参照。<strong>2026-06-25 PR3b-1 = 第 2 の per-Module プラグイン</strong>: <code>modules/antibiotic/audit.py</code> が <code>hai</code> に続く 2 番目の具体プラグインを追加。その <code>lift_firing_proof</code> は合成 CAUTI HAIEvent に対し実際の enricher path (<code>enrich_antibiotic</code>) を駆動し、Ceftriaxone q24h × 7d デルタ (1 regimen、1 MedicationRequest、7 MAR、first/last が期待日時に一致) の closed-form を assert。<code>clinosim audit list</code> は 2 モジュールを同 4-axis マトリクスで報告し、フレームワークの再現性を確認。<strong>2026-06-26 PR3b-2 監査フレームワーク拡張</strong>: <code>modules/antibiotic/audit.py</code> を以下で拡張: (1) 構造 axis Observation.code カバレッジ用に 8 感受性 LOINC の <code>_ABX_LOINCS</code> frozenset; (2) <code>_NHSN_RESISTANCE_BANDS</code> メタデータ (CLABSI MRSA 40-55%、CAUTI ESBL 12-22%、VAP MRSA 30-45%) と <code>HAI_EMPTY_SUSCEPTIBILITIES_MAX_RATE = 0.05</code> — PR3b-3 (2026-06-27、per-(hai_type, antibiotic) R-rate ゲート + per-HAI cohort empty-rate ゲート + per-hai_type narrow-rate ゲート、rare-event 安全のため各 <code>n&lt;30 → WARN</code>) で clinical axis の active enforcement に配線; <strong>PR3b-3 D1+D2 (2026-06-29、PR #112) がチェーンを完了</strong>、<code>_organism_per_encounter</code> (per-(hai_type, organism, antibiotic) R-rate フィルタ) と <code>_panel_eligible_organisms</code> (<code>load_hai_antibiogram()</code> キー経由の panel-eligible empty-rate 分母 — E.faecalis / C.albicans を自動除外) を追加し、両 <code># TODO(post-PR3b-3)</code> マーカーを削除; (3) PR-94 <code>equality_checks</code> フォーマットを使った <code>antibiogram_firing_proof</code> — 合成 CLABSI S. aureus レコードに対し <code>_append_hai_culture()</code> を駆動し <code>ANTIBIOTIC_LOINC_LOOKUP["vancomycin"]</code> 経由 (LOINC hardcode なし) で Vancomycin 感受性 = S を assert、感受性チェーンで同じ silent-no-op クラスのバグを閉じる。</td>
 </tr>
 <tr>
+<td>AD-61</td>
+<td>2026-06-29</td>
+<td>Lab ServiceRequest emission、panel-aware grouping</td>
+</tr>
+<tr>
 <td>AD-62</td>
 <td>2026-06-30</td>
 <td><strong>メタデータのみの Imaging チェーンと WADO-RS プレースホルダ。</strong></td>
@@ -3682,9 +3687,59 @@ observation から計算可能。</p>
 <td>2026-07-01</td>
 <td><strong>Document narrative + structured event density 基盤。2 つの新 always-on Module (allergy = POST_POPULATION order=10 / document = POST_ENCOUNTER order=95)、3 FHIR builder (DocumentReference / Composition / ClinicalImpression)、17 チェックの lift_firing_proof。Stage 1 document-density ギャップを解消 (DR 0→23,760、Comp 0→9,275、CI 0→23,760 US p=10k)。</strong></td>
 </tr>
+<tr>
+<td>AD-64</td>
+<td>2026-07-01</td>
+<td>Nursing + Outpatient + ED + CareTeam 密度基盤</td>
+</tr>
+<tr>
+<td>AD-65</td>
+<td>2026-07-02</td>
+<td>Structural + Narrative CIF ファイル分離 (two-pass generation)</td>
+</tr>
+<tr>
+<td>AD-66</td>
+<td>2026-07-03</td>
+<td>narrative 回帰用の canonical patient profile fixture library</td>
+</tr>
+<tr>
+<td>AD-67</td>
+<td>2026-07-06</td>
+<td>Severity single source of truth (disease YAML canonical、hybrid c2)</td>
+</tr>
+<tr>
+<td>AD-68</td>
+<td>2026-07-06</td>
+<td>archetype_modifiers 配線 (dead YAML activation、AD-67 sibling)</td>
+</tr>
+<tr>
+<td>AD-69</td>
+<td>2026-07-06</td>
+<td>DiseaseProtocol extra="forbid" (author-time silent-drop 防御)</td>
+</tr>
+<tr>
+<td>AD-70</td>
+<td>2026-07-26</td>
+<td>JP-CLINS lab coding: JLAC10 primary + LOINC secondary (国際相互運用性)</td>
+</tr>
+<tr>
+<td>AD-71</td>
+<td>2026-09-01</td>
+<td>時限 state パターン — <code>TemporalStatePeriod</code> (時限エピソード用の state-scoped generator)</td>
+</tr>
+<tr>
+<td>AD-72</td>
+<td>2026-11-28</td>
+<td>Stay の拡張ポイント: complication action handler registry と discharge criteria list。それ以外の在院中の応答は所有モジュール内の固定順呼び出し</td>
+</tr>
+<tr>
+<td>AD-73</td>
+<td>2026-11-28</td>
+<td>Course clock は作成する day-keyed 項目ごとに宣言し、既定は calendar</td>
+</tr>
 </tbody>
 </table>
-<p><em>番号ギャップ AD-1、AD-2、AD-12、AD-14、AD-15、AD-27 は予約 / 撤回済 — ship された決定に一切割当てられていない。AD-61/AD-64/AD-65/AD-66/AD-67/AD-68/AD-69/AD-70/AD-71 はこのコンパクトなテーブルではなく <a href="../adr-history.ja/"><code>adr-history.ja.md</code></a> の独自 <code>### AD-6N</code> / <code>### AD-7N</code> セクションでドキュメント化。AD-67 (severity single source of truth)、AD-68 (archetype_modifiers wiring)、AD-69 (DiseaseProtocol extra="forbid") は 2026-07-06 の FHIR-completeness chain — <code>docs/design-notes/2026-07-06-fix-point-registry.md</code> 参照。AD-70 (JLAC10 primary + LOINC secondary) は 2026-07-26 JP-CLINS 検体検査 coding migration。AD-71 (<code>TemporalStatePeriod</code> 時限 state パターン) は 2026-09-01 META #957 Incr 1 妊娠 lifecycle refactor。</em></p>
+<p><em>番号ギャップ AD-1、AD-2、AD-12、AD-14、AD-15、AD-27 は予約 / 撤回済 — ship された決定に一切割当てられていない。AD-61 以降の行は日付と表題だけを載せ、記録の本体は <a href="../adr-history.ja/"><code>adr-history.ja.md</code></a> の <code>### AD-NN</code> セクションにある (AD-71 は下の 9 章にもある)。記録の追加手順は <a href="../adr-history.ja/#決定の記録"><code>adr-history.ja.md</code> — 決定の記録</a>。AD-67 (severity single source of truth)、AD-68 (archetype_modifiers wiring)、AD-69 (DiseaseProtocol extra="forbid") は 2026-07-06 の FHIR-completeness chain — <code>docs/design-notes/2026-07-06-fix-point-registry.md</code> 参照。AD-70 (JLAC10 primary + LOINC secondary) は 2026-07-26 JP-CLINS 検体検査 coding migration。AD-71 (<code>TemporalStatePeriod</code> 時限 state パターン) は 2026-09-01 META #957 Incr 1 妊娠 lifecycle refactor。</em></p>
 <hr />
 <h2 id="69-resident-identifier--保険番号-ad-54">6.9 Resident identifier &amp; 保険番号 (AD-54)<a class="headerlink" href="#69-resident-identifier--保険番号-ad-54" title="Permanent link">&para;</a></h2>
 <h3 id="問題_5">問題<a class="headerlink" href="#問題_5" title="Permanent link">&para;</a></h3>
