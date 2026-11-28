@@ -132,12 +132,12 @@
         }
       },
       "sections": {
-        "assessment": "Problem: Type 2 diabetes mellitus with ketoacidosis without coma (E11.10), hospital day 2. Vital signs improving compared with the previous day (tachypnea, reduced consciousness resolved). Vital signs improving compared with the previous day (tachycardia, low SpO2 improved, not yet sustained). Notable labs (past 24 h): HbA1c 11.8 % [H].",
+        "assessment": "Problem: Type 2 diabetes mellitus with ketoacidosis without coma (E11.10), hospital day 2. Vital signs improving compared with the previous day (reduced consciousness resolved). Vital signs improving compared with the previous day (tachypnea, low SpO2 improved, not yet sustained). Notable labs (past 24 h): HbA1c 11.8 % [H].",
         "objective": "BP 113/73 mmHg, HR 97 bpm, RR 16 /min, SpO2 95% (RA), T 35.8°C (past 24 h: HR max 109 bpm, SpO2 min 94%)",
         "plan": "Continue current medications: Enoxaparin, Insulin, Regular, Human, Normal Saline, Potassium Chloride. Diet changed to NPO (nothing by mouth). Discharge planning in progress (home).",
         "subjective": "Hospital day 2. Tolerating initial therapy without adverse reaction."
       },
-      "text": "S: Hospital day 2. Tolerating initial therapy without adverse reaction.\nO: BP 113/73 mmHg, HR 97 bpm, RR 16 /min, SpO2 95% (RA), T 35.8°C (past 24 h: HR max 109 bpm, SpO2 min 94%)\nA: Problem: Type 2 diabetes mellitus with ketoacidosis without coma (E11.10), hospital day 2. Vital signs improving compared with the previous day (tachypnea, reduced consciousness resolved). Vital signs improving compared with the previous day (tachycardia, low SpO2 improved, not yet sustained). Notable labs (past 24 h): HbA1c 11.8 % [H].\nP: Continue current medications: Enoxaparin, Insulin, Regular, Human, Normal Saline, Potassium Chloride. Diet changed to NPO (nothing by mouth). Discharge planning in progress (home)."
+      "text": "S: Hospital day 2. Tolerating initial therapy without adverse reaction.\nO: BP 113/73 mmHg, HR 97 bpm, RR 16 /min, SpO2 95% (RA), T 35.8°C (past 24 h: HR max 109 bpm, SpO2 min 94%)\nA: Problem: Type 2 diabetes mellitus with ketoacidosis without coma (E11.10), hospital day 2. Vital signs improving compared with the previous day (reduced consciousness resolved). Vital signs improving compared with the previous day (tachypnea, low SpO2 improved, not yet sustained). Notable labs (past 24 h): HbA1c 11.8 % [H].\nP: Continue current medications: Enoxaparin, Insulin, Regular, Human, Normal Saline, Potassium Chloride. Diet changed to NPO (nothing by mouth). Discharge planning in progress (home)."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-04": {
@@ -182,12 +182,12 @@
         }
       },
       "sections": {
-        "assessment": "Problem: Type 2 diabetes mellitus with ketoacidosis without coma (E11.10), hospital day 3. Vital signs improving compared with the previous day (tachycardia, low SpO2 resolved). Notable labs (past 24 h): glucose 233 mg/dL [H] (prior 578).",
+        "assessment": "Problem: Type 2 diabetes mellitus with ketoacidosis without coma (E11.10), hospital day 3. Notable labs (past 24 h): glucose 233 mg/dL [H] (prior 578).",
         "objective": "BP 113/74 mmHg, HR 97 bpm, RR 14 /min, SpO2 95% (RA), T 36.2°C",
         "plan": "Continue current medications: Enoxaparin, Insulin, Regular, Human, Normal Saline, Potassium Chloride. Diet changed to Regular diet. Discharge planning in progress (home).",
         "subjective": "Hospital day 3. Day before planned discharge; symptoms stable, discharge instructions reviewed."
       },
-      "text": "S: Hospital day 3. Day before planned discharge; symptoms stable, discharge instructions reviewed.\nO: BP 113/74 mmHg, HR 97 bpm, RR 14 /min, SpO2 95% (RA), T 36.2°C\nA: Problem: Type 2 diabetes mellitus with ketoacidosis without coma (E11.10), hospital day 3. Vital signs improving compared with the previous day (tachycardia, low SpO2 resolved). Notable labs (past 24 h): glucose 233 mg/dL [H] (prior 578).\nP: Continue current medications: Enoxaparin, Insulin, Regular, Human, Normal Saline, Potassium Chloride. Diet changed to Regular diet. Discharge planning in progress (home)."
+      "text": "S: Hospital day 3. Day before planned discharge; symptoms stable, discharge instructions reviewed.\nO: BP 113/74 mmHg, HR 97 bpm, RR 14 /min, SpO2 95% (RA), T 36.2°C\nA: Problem: Type 2 diabetes mellitus with ketoacidosis without coma (E11.10), hospital day 3. Notable labs (past 24 h): glucose 233 mg/dL [H] (prior 578).\nP: Continue current medications: Enoxaparin, Insulin, Regular, Human, Normal Saline, Potassium Chloride. Diet changed to Regular diet. Discharge planning in progress (home)."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-05": {

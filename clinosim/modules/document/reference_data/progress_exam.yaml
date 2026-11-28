@@ -39,6 +39,20 @@ metadata:
 # observation/reference_data/pediatric_reference_ranges.yaml where it lists
 # the vital (not temperature, pain).
 #
+# ``exit_margin`` (Issue #3964): hysteresis of the course statements. A finding
+# is entered at the limit above and left only once the value is ``exit_margin``
+# (the vital's unit) inside it: heart rate 100 -> exit below 95, respiratory
+# rate 20 -> below 18, temperature 38.0 -> below 37.7, SpO2 94 -> above 95
+# (the low edge of the heart rate, 60, is left above 65). A value between
+# the two is borderline: the Assessment states neither "new" nor "resolved"
+# for it, so a heart rate of 98-104 over several days is not reported as
+# tachycardia appearing and disappearing on alternate days. The margins are
+# clinosim modelling choices (about half of the vital's ``min_change`` in
+# ``course_items``); no clinical source gives such a number and none was
+# verified. A vital without a margin (blood pressure, pain) keeps the single
+# limit. A margin is relative to the limit, so it follows the child's age band
+# and a patient's own SpO2 target.
+#
 # Statements about how the patient is NOW (an added exam finding, the
 # Assessment's course line) are judged on the latest reading of each vital,
 # the value the Objective prints (``current_states``); a clause of the
@@ -46,10 +60,10 @@ metadata:
 # (``period_states``). A peak earlier in the period is stated only
 # time-qualified (Issue #3401).
 limits:
-  temperature_celsius: {high: 38.0, high_inclusive: true}
-  heart_rate: {low: 60, high: 100}
-  respiratory_rate: {low: 12, high: 20}
-  spo2: {low: 94}
+  temperature_celsius: {high: 38.0, high_inclusive: true, exit_margin: 0.3}
+  heart_rate: {low: 60, high: 100, exit_margin: 5}
+  respiratory_rate: {low: 12, high: 20, exit_margin: 2}
+  spo2: {low: 94, exit_margin: 1}
   systolic_bp: {low: 90, child_low: critical_low}
   pain_score: {high: 3}
 
