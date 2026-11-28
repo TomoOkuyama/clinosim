@@ -2438,8 +2438,12 @@ properties the project relies on:</p>
 </span></code></pre></div>
 <p>Sanity check:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>clinosim<span class="w"> </span>--help
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>pytest<span class="w"> </span>tests/unit<span class="w"> </span>-q<span class="w">               </span><span class="c1"># ~1 minute, must be green</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>pytest<span class="w"> </span>tests/unit<span class="w"> </span>tests/modules<span class="w"> </span>tests/simulator<span class="w"> </span>-q<span class="w"> </span>-n<span class="w"> </span><span class="m">4</span><span class="w">   </span><span class="c1"># the directories CI runs; must be green</span>
 </span></code></pre></div>
+<p>The unit suite is about 17,000 tests: roughly 32 minutes of summed test time
+(<code>.test_durations</code>, measured nightly on the CI runner, serial), so run it with
+<code>-n &lt;workers&gt;</code> (pytest-xdist, part of the <code>dev</code> extras). On CI it typically takes about
+9 minutes per shard on two shards with <code>-n 4</code> (measured on 2026-11-28).</p>
 <hr />
 <h2 id="workflow">Workflow<a class="headerlink" href="#workflow" title="Permanent link">&para;</a></h2>
 <ol>
@@ -2454,11 +2458,12 @@ properties the project relies on:</p>
 <li><strong>Sign your commits (DCO — required).</strong> See <a href="#dco--signed-off-by-required">DCO</a> below.</li>
 <li><strong>Run the tests locally</strong> before opening the PR:</li>
 </ol>
-<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>pytest<span class="w"> </span>tests/unit<span class="w"> </span>tests/modules<span class="w"> </span>tests/simulator<span class="w"> </span>-q<span class="w">   </span><span class="c1"># required; the set CI runs</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>pytest<span class="w"> </span>tests/integration<span class="w"> </span>-q<span class="w">                </span><span class="c1"># recommended when touching</span>
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>pytest<span class="w"> </span>tests/unit<span class="w"> </span>tests/modules<span class="w"> </span>tests/simulator<span class="w"> </span>-q<span class="w"> </span>-n<span class="w"> </span><span class="m">4</span><span class="w">   </span><span class="c1"># required (the CI directories)</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>pytest<span class="w"> </span>tests/integration<span class="w"> </span>-q<span class="w"> </span>-n<span class="w"> </span><span class="m">4</span><span class="w">           </span><span class="c1"># recommended when touching</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">                                           </span><span class="c1"># simulator / output / FHIR</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">                                           </span><span class="c1"># code paths (~18 min local,</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">                                           </span><span class="c1"># ~30 min in CI)</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">                                           </span><span class="c1"># code paths (about 2.7 hours of</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">                                           </span><span class="c1"># summed serial test time; 9-16</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">                                           </span><span class="c1"># min per shard on 4 shards in CI)</span>
 </span></code></pre></div>
 <p>Lint, format and type checks (the same commands CI runs; they block
    merge):</p>

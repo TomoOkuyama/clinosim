@@ -3580,29 +3580,39 @@ FHIR export.</p>
 </span></code></pre></div></p>
 </li>
 <li>
-<p><strong>Add the task type to the enum</strong> in
-   <code>clinosim/modules/llm_service/engine.py</code> (<code>TASK_CATEGORY</code> and
-   <code>DOCUMENT_LOINC</code> are built from the yaml files in step 3):
-   <div class="highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">LLMTaskType</span><span class="p">(</span><span class="n">StrEnum</span><span class="p">):</span>
+<p><strong>Add the document type to the enums.</strong> Two enums must agree, and the
+   import fails ("DocumentType ↔ LLMTaskType drift") when they do not:</p>
+</li>
+<li><code>DocumentType</code> in <code>clinosim/types/document.py</code>:
+     <div class="highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">DocumentType</span><span class="p">(</span><span class="n">StrEnum</span><span class="p">):</span>
 </span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>    <span class="o">...</span>
 </span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>    <span class="n">CONSULTATION_NOTE</span> <span class="o">=</span> <span class="s2">"consultation_note"</span>  <span class="c1"># LOINC 11488-4</span>
-</span></code></pre></div></p>
-</li>
+</span></code></pre></div></li>
+<li><code>LLMTaskType</code> in <code>clinosim/modules/llm_service/engine.py</code>, with the same
+     value, plus a row <code>consultation_note: narrative</code> in
+     <code>clinosim/modules/llm_service/reference_data/task_categories.yaml</code>
+     (<code>TASK_CATEGORY</code> is built from it; a missing row raises <code>ImportError</code>).</li>
+</ol>
+<p>Do <strong>not</strong> add the document type to <code>task_loincs.yaml</code>:
+   <code>DOCUMENT_LOINC</code> takes the code of every document type from
+   <code>document_type_specs.yaml</code> (step 3), and <code>_document_loinc_from_yaml</code> raises
+   <code>ImportError</code> when <code>task_loincs.yaml</code> repeats one.</p>
+<ol>
+<li><strong>Register the <code>DocumentTypeSpec</code></strong> in two places that must agree
+   (<code>_validate_document_type_specs</code> raises <code>ValueError</code> "document_type_specs.yaml
+   ↔ SUPPORTED_DOCUMENT_TYPES drift" otherwise):</li>
+<li>add <code>DocumentType.CONSULTATION_NOTE</code> to <code>SUPPORTED_DOCUMENT_TYPES</code> in
+     <code>clinosim/modules/document/narrative/registry.py</code> (a Python frozenset, not
+     derived from the enum);</li>
 <li>
-<p><strong>Register task_loincs.yaml + task_categories.yaml</strong>
-   (<code>clinosim/modules/llm_service/reference_data/</code>). The engine
-   validates full coverage at import — a new <code>LLMTaskType</code> value
-   with no row in <code>task_loincs.yaml</code> fails loud.</p>
-</li>
-<li>
-<p><strong>Register the <code>DocumentTypeSpec</code></strong> in
-   <code>clinosim/modules/document/reference_data/document_type_specs.yaml</code>:
-   <div class="highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nt">consultation_note</span><span class="p">:</span>
+<p>add the entry to
+     <code>clinosim/modules/document/reference_data/document_type_specs.yaml</code>:
+     <div class="highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nt">consultation_note</span><span class="p">:</span>
 </span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">  </span><span class="nt">loinc_code</span><span class="p">:</span><span class="w"> </span><span class="s">"11488-4"</span>
-</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span><span class="nt">format_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">free_text</span><span class="w">              </span><span class="c1"># or `composition`</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span><span class="nt">format_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">composition</span><span class="w">            </span><span class="c1"># or `free_text`</span>
 </span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">  </span><span class="nt">countries_supported</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">us</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">jp</span><span class="p p-Indicator">]</span>
-</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">  </span><span class="nt">encounter_types_supported</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">outpatient</span><span class="p p-Indicator">]</span>
-</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">  </span><span class="nt">generation_frequency</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">per_encounter</span><span class="w"> </span><span class="c1"># or `admission_once` / `daily` / ...</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">  </span><span class="nt">encounter_types_supported</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">inpatient</span><span class="p p-Indicator">]</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">  </span><span class="nt">generation_frequency</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">admission_once</span><span class="w">  </span><span class="c1"># a value of GENERATION_FREQUENCIES</span>
 </span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="w">  </span><span class="nt">composition_sections</span><span class="p">:</span><span class="w">               </span><span class="c1"># only when format_type: composition</span>
 </span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">reason_for_consult</span>
 </span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">findings</span>
@@ -3612,7 +3622,30 @@ FHIR export.</p>
 </span></code></pre></div>
    <code>format_type: composition</code> lands the doc on <code>Composition</code> with
    named <code>section[]</code> entries; <code>free_text</code> lands on
-   <code>DocumentReference</code> with the full body in <code>content.attachment.data</code>.</p>
+   <code>DocumentReference</code> with the full body in <code>content.attachment.data</code>.
+   A composition document type needed no edit in the FHIR builders (a test
+   type with only the steps above was exported as a <code>Composition</code> with its
+   sections titled from the catalog of step 4).</p>
+</li>
+<li>
+<p><strong>Register every new section slug</strong> in
+   <code>clinosim/modules/document/reference_data/section_catalog.yaml</code> (<code>title.en</code>,
+   <code>title.ja</code>, and a section <code>loinc</code>, or <code>""</code> when no LOINC section code means
+   the section). Loading the catalog fails with "slug(s) authored in
+   document_type_specs.yaml are missing from the catalog" when a
+   <code>composition_sections</code> entry has no row. Reuse an existing slug where the
+   meaning matches.</p>
+</li>
+<li>
+<p><strong>Pick the planner.</strong> <code>generation_frequency</code> selects the planner that decides
+   how many documents an encounter gets and when they are authored
+   (<code>_PLANNERS</code> in <code>clinosim/modules/document/engine.py</code>). Use an existing value
+   (<code>admission_once</code>, <code>daily</code>, <code>daily_3shift</code>, <code>discharge_once</code>,
+   <code>encounter_once</code>, ...; the full list is <code>GENERATION_FREQUENCIES</code> in
+   <code>registry.py</code>). A frequency that does not exist yet needs three edits in core
+   files: a <code>_plan_&lt;name&gt;</code> function and its <code>_PLANNERS</code> entry in <code>engine.py</code>, and
+   the name in <code>GENERATION_FREQUENCIES</code>; <code>tests/unit/modules/document/test_document_planners_2532.py</code>
+   keeps the two equal. Note that <code>per_encounter</code> is not a frequency.</p>
 </li>
 <li>
 <p><strong>Add the LLM instructions to the bundle prompt</strong> — there is no
@@ -3624,15 +3657,29 @@ FHIR export.</p>
    in <code>llm_enabled_sections</code> keep their template text.</p>
 </li>
 <li>
-<p><strong>Implement the section builder(s)</strong> under
-   <code>clinosim/modules/document/narrative/renderers/section_builders/&lt;section&gt;.py</code>
-   as free functions <code>build_&lt;section&gt;(generator, ctx)</code> returning the
-   rendered section text. The post-C1a-s split places all per-section
-   logic here; <code>template_generator.py</code> is a thin façade that re-exports
-   the builders. For <code>format_type: free_text</code> tasks, implement a
-   single body builder; for <code>composition</code>, one builder per entry in
-   <code>composition_sections</code>. Wire the dispatcher in
-   <code>clinosim/modules/document/narrative/renderers/composition_sections.py</code>.</p>
+<p><strong>Implement the template text.</strong></p>
+</li>
+<li><code>format_type: composition</code>: write one builder per entry of
+     <code>composition_sections</code> as a function decorated with <code>@section("&lt;name&gt;")</code>
+     (<code>document_type=</code> limits it to one document type) in a module under
+     <code>clinosim/modules/document/narrative/renderers/section_builders/</code>. The
+     function takes <code>(generator, ctx)</code> and returns <code>(text, facts)</code> — the
+     section text and the list of facts used (type <code>SectionBuilder</code>). The
+     registry (<code>section_builders/_registry.py</code>) imports every module of that
+     package that does not start with an underscore, and
+     <code>render_composition_sections</code> looks each section up by name, so there is no
+     dispatcher to edit. A section name with no builder is not an error: the
+     document gets the generic fallback text
+     (<code>fallback.generic_fallback</code>, "No special findings" in English), which is
+     what a new type shows until its builders exist.</li>
+<li>
+<p><code>format_type: free_text</code>: there is no registry. <code>TemplateNarrativeGenerator._render_free_text</code>
+     (<code>clinosim/modules/document/narrative/template_generator.py</code>) branches on the
+     document type to a dedicated renderer (<code>nursing_shift_note</code>, <code>ed_triage_note</code>
+     under <code>renderers/</code>) and <strong>every other type falls through to the progress-note
+     renderer</strong>. A new free-text type that should not read like a progress note
+     therefore needs a renderer module under <code>renderers/</code> and a new branch in
+     <code>_render_free_text</code> — an edit to that core file.</p>
 </li>
 <li>
 <p><strong>Add unit tests</strong> under <code>tests/unit/modules/document/narrative/</code> (per-section

@@ -2387,6 +2387,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#国プロファイル-countryyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        国プロファイル: country.yaml
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="国プロファイル: country.yaml">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#実装-implementations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        実装 (implementations)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#必須-yaml-ファイル" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2396,6 +2424,34 @@
   </a>
   
     <nav class="md-nav" aria-label="必須 YAML ファイル">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#失敗するものとフォールバックするもの" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        失敗するものとフォールバックするもの
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#locale-の外のエントリ" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        locale/&lt;cc&gt;/ の外のエントリ
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="locale/&lt;cc&gt;/ の外のエントリ">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2448,52 +2504,24 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#コード登録" class="md-nav__link">
+  <a href="#fhir-プロファイル" class="md-nav__link">
     <span class="md-ellipsis">
       
-        コード登録
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="コード登録">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-_iopy-に国を登録" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        1. _io.py に国を登録
+        FHIR プロファイル
       
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#2-fhir-プロファイル-emit-任意" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#国の-feature-opt-in-モジュール" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. FHIR プロファイル emit (任意)
+        国の feature (opt-in モジュール)
       
     </span>
   </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-国別-opt-in-モジュール" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. 国別 opt-in モジュール
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -2567,16 +2595,29 @@
 
 
 <h1 id="clinosim-に国を追加する">clinosim に国を追加する<a class="headerlink" href="#clinosim-に国を追加する" title="Permanent link">&para;</a></h1>
-<p><em>P2-14 (2026-07-13)。本ガイドは、clinosim が新規国向けの locale
-適合合成 EHR/EMR データを生成できるように国別パックを追加する手順
-を示します。</em></p>
+<p><em>P2-14 (2026-07-13)、2026-11-28 に
+<a href="../design-guides/country-profile-spec.ja/">国プロファイル仕様</a> に基づき書き直し。
+本ガイドは、clinosim が新規国向けの locale 適合合成 EHR/EMR データを生成
+できるように国を追加する手順を示します。</em></p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>clinosim の <strong>locale レイヤ</strong> (<code>clinosim/locale/&lt;country&gt;/</code>) は
-1 国 = 1 フォルダのプラグイン設計です。新規国追加とは:</p>
+<p><code>clinosim/locale/&lt;cc&gt;/country.yaml</code> が存在すると、その国が clinosim に存在
+します (<code>&lt;cc&gt;</code> は小文字の ISO 3166-1 alpha-2 コード)。このファイルが国
+プロファイルです。<code>clinosim.country_profile.supported_countries()</code> は
+<code>country.yaml</code> を持つ locale ディレクトリを列挙し、<code>--country</code> の値、
+<code>SimulatorConfig.country</code>、<code>country_profile(...)</code> の呼び出しはすべてこの
+一覧に照らして検査されます。登録手順は別になく、国 → ディレクトリの
+対応表もありません (<code>clinosim/locale/_io.py::_country_dir</code> がコードから
+ディレクトリを導出します)。</p>
+<p>国の追加は主にデータ作業です:</p>
 <ol>
-<li><code>clinosim/locale/&lt;xx&gt;/</code> を YAML データファイル一式で作成</li>
-<li>ISO 3166-1 コードを <code>_COUNTRY_DIR_MAP</code> に登録</li>
-<li>(任意) locale 固有 FHIR プロファイルを適用するかを判断</li>
+<li><code>clinosim/locale/&lt;cc&gt;/country.yaml</code> (プロファイル) と、そのディレクトリ
+   の残りの locale YAML 一式</li>
+<li><code>clinosim/config/</code> のヘルスケアシステム設定</li>
+<li>国をキーとする共有ファイル・モジュール reference data への新規国の
+   エントリ (下記一覧。欠けると失敗するものがある)</li>
+<li>コードが必要なのは、既存のどの国にも無いアルゴリズム (名前付き実装)
+   または clinosim がまだ知らない FHIR プロファイルが要る場合のみ。どちらも
+   core ファイルの編集になる (後述)</li>
 <li>標準 CLI を country フラグ経由でテスト</li>
 </ol>
 <p>Locale データは厳密に <strong>文化 / 規制 / 言語</strong> のみ。国際臨床コード
@@ -2593,21 +2634,101 @@
   US Core / DE Basisprofil 等)。</li>
 </ul>
 <h2 id="quick-start">Quick start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># 1. JP フォルダを起動 scaffold としてコピー</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>cp<span class="w"> </span>-R<span class="w"> </span>clinosim/locale/jp<span class="w"> </span>clinosim/locale/xx
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># 2. 各 YAML を locale 適合値に置換 (スキーマは下記参照)</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># 3. 国マップに登録:</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1">#    clinosim/locale/_io.py:_COUNTRY_DIR_MAP を編集</span>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># 1. US フォルダを作業用 scaffold としてコピー (完結していて実行可能。</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1">#    clinosim/locale/_template/ はスキーマコメントのみで実行不可)</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>cp<span class="w"> </span>-R<span class="w"> </span>clinosim/locale/us<span class="w"> </span>clinosim/locale/xx
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># 2. clinosim/locale/xx/country.yaml を編集: `code: XX`、ヘルスケア</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1">#    システム、言語、タイムゾーン、コードシステム、FHIR プロファイル、</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1">#    features を設定</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># 3. 各 YAML を locale 適合値に置換 (下記参照)</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1"># 4. locale/xx/ の外にあるエントリを追加 (「locale/&lt;cc&gt;/ の外のエントリ」参照)</span>
 </span></code></pre></div>
 <p>そして:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>XX<span class="w"> </span>--population<span class="w"> </span><span class="m">100</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>--format<span class="w"> </span>fhir-r4<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span>--output<span class="w"> </span>./out
 </span></code></pre></div>
+<h2 id="国プロファイル-countryyaml">国プロファイル: <code>country.yaml</code><a class="headerlink" href="#国プロファイル-countryyaml" title="Permanent link">&para;</a></h2>
+<p><code>clinosim/locale/&lt;cc&gt;/country.yaml</code> は <code>clinosim/locale/_root/country.yaml</code>
+と異なる値だけを持ち、両者は deep-merge されます (map は key 単位で
+merge、list と scalar は置換)。<code>clinosim/locale/_template/country.yaml</code>
+または <code>us</code> / <code>jp</code> のファイルから始めます。各 key は
+<a href="../design-guides/country-profile-spec.ja/"><code>design-guides/country-profile-spec.ja.md</code></a>
+§3.2 に仕様があります:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>設定内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>code</code></td>
+<td>大文字の ISO コード。ディレクトリ名と一致させる (<code>locale/qq/country.yaml</code> が <code>US</code> を宣言すると <code>ValueError</code>)</td>
+</tr>
+<tr>
+<td><code>healthcare_system</code></td>
+<td><code>clinosim/config/</code> のヘルスケアシステム設定の stem (<code>us</code> → <code>us.yaml</code>、<code>japan</code> → <code>japan.yaml</code>)。<strong>root に既定値なし</strong>: <code>clinosim/config/&lt;stem&gt;.yaml</code> を作成する (<code>HealthcareSystemConfig</code> として検証、<code>clinosim/types/config.py</code>)</td>
+</tr>
+<tr>
+<td><code>language</code>, <code>timezone</code></td>
+<td>出力言語 (ISO 639-1) と FHIR タイムスタンプの UTC オフセット</td>
+</tr>
+<tr>
+<td><code>code_systems</code></td>
+<td><code>lab</code>、<code>diagnosis</code>、<code>drug</code>、<code>procedure</code>、<code>microbiology</code> の 5 種を過不足なく。各値は <code>clinosim.codes</code> の key であること</td>
+</tr>
+<tr>
+<td><code>fhir_profiles</code></td>
+<td><code>us_core</code>、<code>jp_core</code>、<code>jp_clins</code>、<code>jp_echeckup</code> から選んだ list (<code>clinosim/country_profile.py</code> の <code>FHIR_PROFILES</code>)。<code>[]</code> は base FHIR</td>
+</tr>
+<tr>
+<td><code>features</code></td>
+<td>root で宣言済みのスイッチ (<code>health_checkup</code>、<code>care_level</code>、<code>maternal_tdap</code>)。国が単独で新しい feature 名を追加することはできない</td>
+</tr>
+<tr>
+<td><code>formats</code></td>
+<td>氏名順、日付 / 時刻 / 日時フォーマット、医師名の接頭辞</td>
+</tr>
+<tr>
+<td><code>implementations</code></td>
+<td>アルゴリズム種別ごとの名前付き実装 (<code>egfr_equation</code>、<code>triage_scale</code>、<code>identity_provider</code>、<code>lab_coding</code>、<code>drug_system</code>、<code>drug_order_code</code>、<code>copay_rule</code> など)</td>
+</tr>
+</tbody>
+</table>
+<p>プロファイルが誤っている場合に起きること (いずれも実測):</p>
+<ul>
+<li><code>country.yaml</code> が無い: <code>country_profile(...)</code> が
+  <code>KeyError: no country profile for 'XX'; supported: [...]</code> を送出し、
+  <code>simulate --country XX</code> はこのエラーで停止する</li>
+<li><code>code</code> がディレクトリと異なる: <code>ValueError</code></li>
+<li><code>healthcare_system</code> が無い: ヘルスケア設定のロード時に
+  <code>KeyError: country XX names no healthcare_system</code>。指定したファイルが
+  無い場合は <code>FileNotFoundError: Healthcare config not found</code></li>
+<li>未知のコードシステム・FHIR プロファイル・feature・実装種別: ロード時の
+  検証エラー</li>
+<li>誰も登録していない実装名:
+  <code>ValueError: country XX: unregistered implementations {...}</code></li>
+</ul>
+<h3 id="実装-implementations">実装 (implementations)<a class="headerlink" href="#実装-implementations" title="Permanent link">&para;</a></h3>
+<p>新しい国は既定で root の実装 (米国のもの: eGFR は <code>ckd_epi_2021</code>、triage は
+<code>esi</code>、identity provider は <code>us</code>、lab coding は <code>loinc</code>、copay は
+<code>category_rate</code> など) を継承します。別の登録済み実装を選ぶには
+<code>implementations:</code> に名前を書きます。登録済みの名前は、
+<code>IMPLEMENTATION_MODULES</code> (<code>clinosim/country_profile.py</code>) に載っているモ
+ジュール内の <code>@register_implementation(kind, name)</code> デコレータです。
+<code>clinosim/locale/jp/country.yaml</code> に全種別の例があります。</p>
+<p>まだ無いアルゴリズムが必要な場合は、名前付き実装として書き (国専用のものは
+<code>clinosim/countries/&lt;cc&gt;/</code>)、<code>@register_implementation(kind, name)</code> を付け、
+<strong>そのモジュールを <code>IMPLEMENTATION_MODULES</code> に追加</strong>します。discovery は
+無く、載っていないモジュールは import されないため、プロファイルは
+"unregistered implementations" で失敗します。これは core ファイル
+<code>clinosim/country_profile.py</code> の編集です。</p>
 <h2 id="必須-yaml-ファイル">必須 YAML ファイル<a class="headerlink" href="#必須-yaml-ファイル" title="Permanent link">&para;</a></h2>
-<p><code>xx/</code> ディレクトリは以下を <strong>必ず</strong> 含める必要あり。スキーマコメントと
-skeleton 値は <code>_template/</code> scaffold (<code>clinosim/locale/_template/</code>)
-参照。<code>_template/demographics.yaml</code> は us/jp と同じスキーマ。</p>
+<p><code>clinosim/locale/xx/</code> に以下を作成します。スキーマコメントと skeleton 値は
+<code>_template/</code> scaffold (<code>clinosim/locale/_template/</code>) 参照。
+<code>_template/demographics.yaml</code> は us/jp と同じスキーマ。</p>
 <table>
 <thead>
 <tr>
@@ -2618,13 +2739,18 @@ skeleton 値は <code>_template/</code> scaffold (<code>clinosim/locale/_templat
 </thead>
 <tbody>
 <tr>
+<td><code>country.yaml</code></td>
+<td>国プロファイル (上記)。これがあることで国が存在する</td>
+<td>—</td>
+</tr>
+<tr>
 <td><code>names.yaml</code></td>
 <td>姓 + 名 と頻度重み</td>
 <td>国家統計局 / 戸籍</td>
 </tr>
 <tr>
 <td><code>addresses.yaml</code></td>
-<td>地域 (都道府県 / 県 / 州) + 郵便コード</td>
+<td>地域 (都道府県 / 県 / 州) + 郵便コード + 電話パターン</td>
 <td>国営郵便サービス</td>
 </tr>
 <tr>
@@ -2662,11 +2788,104 @@ skeleton 値は <code>_template/</code> scaffold (<code>clinosim/locale/_templat
 <td>性別 / 年齢別検査 reference range</td>
 <td>現地臨床学会標準</td>
 </tr>
+<tr>
+<td><code>care_practice.yaml</code></td>
+<td>入院診療の慣行: 退院基準、手術までの時間、リハビリ時間</td>
+<td>国の診療実態調査 / 診療ガイドライン</td>
+</tr>
+<tr>
+<td><code>population_genetics.yaml</code></td>
+<td>Rh 陽性割合、ABO 対立遺伝子頻度、薬物代謝表現型</td>
+<td>集団遺伝学の文献</td>
+</tr>
 </tbody>
 </table>
-<p>各ファイルはロード時に検証されます; ファイル欠如は組み込みデフォルト
-にフォールバックしますが、生成データが真に locale 代表とはならない
-ことを意味します。</p>
+<p><code>care_practice.yaml</code> と <code>population_genetics.yaml</code> は <code>us/</code> と <code>jp/</code> にあり
+ますが <code>_template/</code> にはありません。<code>us/</code> からコピーして値を置換します。</p>
+<h3 id="失敗するものとフォールバックするもの">失敗するものとフォールバックするもの<a class="headerlink" href="#失敗するものとフォールバックするもの" title="Permanent link">&para;</a></h3>
+<p><code>us/</code> のコピーを <code>XX</code> として登録し、ファイルを 1 つずつ削除して
+<code>clinosim simulate --country XX --population 5 --seed 42 --format fhir-r4</code>
+を実行して観測した結果:</p>
+<table>
+<thead>
+<tr>
+<th>欠けているもの</th>
+<th>結果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>addresses.yaml</code></td>
+<td>実行が停止する (<code>KeyError: 'phone'</code>)</td>
+</tr>
+<tr>
+<td><code>care_practice.yaml</code>、<code>population_genetics.yaml</code></td>
+<td>実行が停止する (<code>FileNotFoundError: locale/xx/&lt;file&gt; is missing or empty</code>、<code>clinosim/locale/loaders/country_parameters.py</code>)</td>
+</tr>
+<tr>
+<td><code>names.yaml</code>、<code>formatting.yaml</code>、<code>demographics.yaml</code></td>
+<td>実行は止まらない: ローダーが <code>clinosim/locale/shared/fallback_defaults.yaml</code> の中立な組み込みデフォルトにフォールバックするため、データは locale を代表しない</td>
+</tr>
+<tr>
+<td><code>code_mapping_*.yaml</code>、<code>reference_range_lab.yaml</code>、下記の任意ファイル</td>
+<td>実行は止まらない: ローダーは空の表を返し、対応する値は出力に無いかコード化されない。出力を確認すること (5 人の実行ではすべてのコードパスを通らない)</td>
+</tr>
+</tbody>
+</table>
+<p>存在するが形式が誤っているファイルはロード時に検証され、エラーになります。</p>
+<h2 id="locale-の外のエントリ"><code>locale/&lt;cc&gt;/</code> の外のエントリ<a class="headerlink" href="#locale-の外のエントリ" title="Permanent link">&para;</a></h2>
+<p>国をキーとするデータの一部は、国フォルダの外のファイルにあります。新規国
+では、そこにも自国の key を追加します。上記のコホートコマンドを <code>locale/xx/</code>
+のファイルだけで実行して観測した結果:</p>
+<table>
+<thead>
+<tr>
+<th>ファイル</th>
+<th>追加するエントリ</th>
+<th>欠けた場合</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>clinosim/locale/shared/naming_rules.yaml</code></td>
+<td>トップレベルの <code>xx:</code> ブロック (氏名順、ミドルネーム・姓の規則)</td>
+<td>実行が停止する: <code>KeyError: 'xx'</code> (<code>load_naming_rules</code>)</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/population/reference_data/anthropometric_reference.yaml</code></td>
+<td><code>pediatric_growth</code> 配下の <code>XX:</code> ブロック (年齢・性別ごとの身長 / 体重 / 頭囲)</td>
+<td>import 時の <code>ValidationError</code>: "pediatric_growth countries must be the supported countries"</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/encounter/reference_data/minor_burn.yaml</code>、<code>minor_laceration.yaml</code></td>
+<td><code>diagnosis_variants</code> の各 <code>codes:</code> mapping に <code>xx:</code> key (対応する全ての国にコードが必要)</td>
+<td><code>ValueError: Invalid encounter condition YAML</code></td>
+</tr>
+<tr>
+<td><code>clinosim/locale/shared/actuarial_life_table.yaml</code></td>
+<td><code>annual_mortality_qx</code> と <code>community_death_share</code> の両方に <code>xx:</code> エントリ</td>
+<td>US ブロックにフォールバック (<code>clinosim/modules/population/mortality.py::_locale_key</code>)</td>
+</tr>
+<tr>
+<td><code>clinosim/locale/shared/country_language.yaml</code></td>
+<td><code>xx: &lt;language&gt;</code></td>
+<td>言語は <code>en</code> にフォールバック</td>
+</tr>
+<tr>
+<td>疾患 YAML (<code>clinosim/modules/disease/reference_data/*.yaml</code>)</td>
+<td><code>target_los</code> は <code>japan</code> / <code>us</code> を key とする</td>
+<td>自国ブロックの無い国は <code>us</code> ブロックを使う (<code>clinosim/modules/disease/localization.py::target_los_config</code>)</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/drug_safety/</code> の hyperkalemia <code>treatment</code> と <code>clinosim/modules/order/label_dose.py</code> の <code>limits</code></td>
+<td>任意。大文字の国コード key</td>
+<td>対応国コードでない key はロード時に拒否される。これらは部分集合で、全ての国に必須ではない</td>
+</tr>
+</tbody>
+</table>
+<p>最初の 3 行は他モジュールが所有するファイルの編集です。これらを 1 か所に
+列挙したものは無いので、上記コマンドを実行し、エラーが指す箇所を、完走する
+まで直してください。</p>
 <h3 id="demographicsyamlchronic_prevalence-スキーマの-2-形式"><code>demographics.yaml::chronic_prevalence</code> スキーマの 2 形式<a class="headerlink" href="#demographicsyamlchronic_prevalence-スキーマの-2-形式" title="Permanent link">&para;</a></h3>
 <p>エントリごとに 2 つの形式を受け付けます:</p>
 <ul>
@@ -2716,7 +2935,8 @@ key が無いと率 0 扱いとなり、ED のみの受診は生成されない�
 自国の locale には両 key に <code>xx</code> エントリを追加する。エントリの無い
 locale は US のブロックを使う。</p>
 <h2 id="任意-yaml-ファイル-opt-in-モジュール">任意 YAML ファイル (opt-in モジュール)<a class="headerlink" href="#任意-yaml-ファイル-opt-in-モジュール" title="Permanent link">&para;</a></h2>
-<p>対応国が特定 opt-in モジュールをサポートする場合のみ追加:</p>
+<p>対応国が特定 opt-in モジュールをサポートする場合のみ追加します。ファイルが
+無くても実行は止まりません (上記の表参照):</p>
 <table>
 <thead>
 <tr>
@@ -2768,52 +2988,50 @@ locale は US のブロックを使う。</p>
 </tr>
 </tbody>
 </table>
-<h2 id="コード登録">コード登録<a class="headerlink" href="#コード登録" title="Permanent link">&para;</a></h2>
-<h3 id="1-_iopy-に国を登録">1. <code>_io.py</code> に国を登録<a class="headerlink" href="#1-_iopy-に国を登録" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># clinosim/locale/_io.py</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">_COUNTRY_DIR_MAP</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"JP"</span><span class="p">:</span> <span class="s2">"jp"</span><span class="p">,</span> <span class="s2">"US"</span><span class="p">:</span> <span class="s2">"us"</span><span class="p">,</span> <span class="s2">"XX"</span><span class="p">:</span> <span class="s2">"xx"</span><span class="p">}</span>
-</span></code></pre></div>
-<p>ローダーは要求コードがマップにない場合 <code>country.lower()</code> にフォール
-バックしますが、明示登録が完全性 / 発見可能性のために推奨。</p>
-<h3 id="2-fhir-プロファイル-emit-任意">2. FHIR プロファイル emit (任意)<a class="headerlink" href="#2-fhir-プロファイル-emit-任意" title="Permanent link">&para;</a></h3>
-<p>国が国別 FHIR IG (JP Core / US Core / German Basisprofil / AU Core
-等) を持つ場合、そのプロファイル URL を emit するかを判断。プロファイル
-付与は <code>_build_bundle</code> (<code>clinosim/modules/output/fhir_r4/builder.py</code>) で
-<code>is_jp(country)</code> により分岐する: JP 出力は <code>_apply_jp_core_profile</code> +
-<code>_apply_jp_clins_profile</code>、<strong>それ以外の全ての国</strong>は
-<code>_apply_us_core_profile</code> (helper は
-<code>clinosim/modules/output/fhir_r4/post_process/profile.py</code>)。URL
-レジストリは yaml:
-<code>clinosim/codes/data/fhir-profiles-{jp-core,us-core,jp-clins}.yaml</code>。</p>
-<p>新規国の場合の選択肢:</p>
-<ol>
-<li>JP Core / US Core と同形状の
-   <code>clinosim/codes/data/fhir-profiles-xx-core.yaml</code> レジストリ、
-   <code>_apply_xx_core_profile</code> helper、<code>_build_bundle</code> 内の自国分岐を追加。</li>
-<li>そうしない場合、bundle は国別プロファイルを宣言しない (US Core は
-   US の出力だけ、JP Core は JP の出力だけ)。</li>
-</ol>
-<h3 id="3-国別-opt-in-モジュール">3. 国別 opt-in モジュール<a class="headerlink" href="#3-国別-opt-in-モジュール" title="Permanent link">&para;</a></h3>
-<p>一部の enricher は <code>register_builtin_enrichers</code> 内で country に
-gate:</p>
+<h2 id="fhir-プロファイル">FHIR プロファイル<a class="headerlink" href="#fhir-プロファイル" title="Permanent link">&para;</a></h2>
+<p>国別 FHIR プロファイルを適用するかは国プロファイルで宣言します: <code>country.yaml</code>
+の <code>fhir_profiles:</code> に列挙します。出力ビルダーは国ではなくプロファイルで分岐
+します: <code>_finalize_resource</code>
+(<code>clinosim/modules/output/fhir_r4/builder.py</code>) が
+<code>profile.uses("jp_core")</code>、<code>profile.uses("jp_clins")</code>、
+<code>profile.uses("us_core")</code> を呼び、<code>_apply_jp_core_profile</code>、
+<code>_apply_jp_clins_profile</code>、<code>_apply_us_core_profile</code> を適用します (helper は
+<code>clinosim/modules/output/fhir_r4/post_process/profile.py</code>、URL レジストリは
+<code>clinosim/codes/data/fhir-profiles-{jp-core,us-core,jp-clins}.yaml</code>)。
+<code>fhir_profiles: []</code> の国は base FHIR となり、第三の国に他国のプロファイルが
+付くことはありません。</p>
+<p>したがって US Core または JP プロファイルを使う国は <code>fhir_profiles</code> を設定
+するだけで済みます。clinosim が知らないプロファイル (DE Basisprofil、AU Core
+など) は core ファイルの編集が必要です: <code>clinosim/country_profile.py</code> の
+<code>FHIR_PROFILES</code> に名前を追加し、既存と同形状のレジストリ YAML を追加し、
+<code>_apply_&lt;name&gt;_profile</code> helper を追加し、<code>_finalize_resource</code> に
+<code>if profile.uses("&lt;name&gt;"):</code> の gate を追加します。仕様 (§5) どおり、この
+分岐はプロファイルが要求する構造を emit するかどうかだけを決め、その中の値は
+YAML から取ります。</p>
+<h2 id="国の-feature-opt-in-モジュール">国の feature (opt-in モジュール)<a class="headerlink" href="#国の-feature-opt-in-モジュール" title="Permanent link">&para;</a></h2>
+<p>国固有のモジュールは、国の判定ではなくプロファイルの <code>features:</code> で切り替わります:</p>
 <ul>
-<li><code>identity</code> — JP 以外の国では常に有効 (JP は <code>--no-jp-insurance</code> に従う)。
-  locale に <code>identity.yaml</code> が無ければ <code>assign_identities</code> は no-op</li>
-<li><code>care_level</code> — JP のみ; スキップ</li>
-<li><code>health_checkup</code> — JP-eCheckup; 同等物を設計する場合以外はスキップ</li>
+<li><code>identity</code> — 常に有効 (JP は <code>--no-jp-insurance</code> に従う)。locale に
+  <code>identity.yaml</code> が無ければ <code>assign_identities</code> は no-op</li>
+<li><code>care_level</code> — <code>features.care_level</code> (現状 JP のみ); スキップ</li>
+<li><code>health_checkup</code> — <code>features.health_checkup</code> (JP-eCheckup); 同等物を設計
+  する場合以外はスキップ</li>
+<li><code>maternal_tdap</code> — <code>features.maternal_tdap</code> (US は on)</li>
 </ul>
 <h2 id="テストチェックリスト">テストチェックリスト<a class="headerlink" href="#テストチェックリスト" title="Permanent link">&para;</a></h2>
 <p>国フォルダ作成後:</p>
 <ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>python -c "from clinosim.country_profile import country_profile; print(country_profile('XX'))"</code>
+      がエラーなくプロファイルをロードする</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>clinosim simulate --country XX --population 10 --seed 42 --format cif</code>
       がエラーなく走行し、空でない CIF 出力を作成</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>clinosim simulate --country XX --population 10 --format fhir-r4</code>
       が有効な FHIR R4 リソースを emit</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 同 seed の 2 実行がバイト同一出力を生成 (決定性チェック —
       clinosim のコア不変条件、AD-16):
-      <div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>XX<span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>-o<span class="w"> </span>/tmp/xx-run1
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>XX<span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>-o<span class="w"> </span>/tmp/xx-run2
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>diff<span class="w"> </span>-r<span class="w"> </span>/tmp/xx-run1<span class="w"> </span>/tmp/xx-run2<span class="w">  </span><span class="c1"># manifest transactionTime のみが差分</span>
+      <div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>XX<span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>-o<span class="w"> </span>/tmp/xx-run1
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>XX<span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>-o<span class="w"> </span>/tmp/xx-run2
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>diff<span class="w"> </span>-r<span class="w"> </span>/tmp/xx-run1<span class="w"> </span>/tmp/xx-run2<span class="w">  </span><span class="c1"># manifest transactionTime のみが差分</span>
 </span></code></pre></div></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 氏名 / 住所 / 日付が期待される現地慣習でレンダリング</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 検査 reference range が権威ソースと一致</li>
@@ -2822,6 +3040,10 @@ gate:</p>
       <code>pytest tests/unit/test_diagnosis_code_coverage.py</code> を fail
       させる (期待通り)。適切な <code>codes/data/*.yaml</code> に登録
       (<code>AGENTS.md</code> の「Diagnosis code coverage」節参照)。</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>pytest tests/unit tests/modules tests/simulator</code> (CI が走らせる
+      ディレクトリ) が通る。診断ルールのコード検査
+      (<code>clinosim/simulator/diagnosis_rules.py</code>) のようなロード時検査は
+      <code>supported_countries()</code> を走査するため、新規国もそこで検証される</li>
 </ul>
 <h2 id="よくある落とし穴">よくある落とし穴<a class="headerlink" href="#よくある落とし穴" title="Permanent link">&para;</a></h2>
 <ul>
@@ -2837,9 +3059,13 @@ gate:</p>
   clinosim の AD-27 ルールは LLM 駆動臨床翻訳を禁止。</li>
 <li><strong>分布が現実的かを判断する前に population ≥ 100 でテスト</strong>。
   小規模コホートは long-tail サンプリング問題を隠す。</li>
+<li><strong><code>jp/country.yaml</code> や <code>us/country.yaml</code> をそのまま使わない</strong>: コピーした
+  <code>code</code> は検証で失敗し、コピーしたプロファイル・feature・実装はその国の
+  ものであって自国のものではない。</li>
 </ul>
 <h2 id="次に読むもの">次に読むもの<a class="headerlink" href="#次に読むもの" title="Permanent link">&para;</a></h2>
 <ul>
+<li>国プロファイル仕様: <a href="../design-guides/country-profile-spec.ja/"><code>docs/design-guides/country-profile-spec.md</code></a></li>
 <li>プロジェクト全体概念: <a href="../design-guides/project-concept-and-design.ja/"><code>docs/design-guides/project-concept-and-design.md</code></a></li>
 <li>Locale モジュールリファレンス: <a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/locale/README.ja.md"><code>clinosim/locale/README.ja.md</code></a></li>
 <li>診断コードカバレッジルール: <a href="https://github.com/TomoOkuyama/clinosim/blob/master/AGENTS.md"><code>AGENTS.md</code></a> §"Diagnosis code coverage"</li>
@@ -2848,9 +3074,10 @@ gate:</p>
 <h2 id="scaffold-テンプレート">Scaffold テンプレート<a class="headerlink" href="#scaffold-テンプレート" title="Permanent link">&para;</a></h2>
 <p><code>clinosim/locale/_template/</code> はスキーマコメント付きプレースホルダ
 YAML セットを含みます。<strong>これらのプレースホルダは非機能</strong> —
-<code>clinosim simulate --country _template</code> を実行すると値が TODO マーカー
-でありデータではないため失敗します。テンプレートは実国別パックを
-authoring する際の必須スキーマ形状を示す目的のみで存在します。</p>
+<code>clinosim simulate --country _template</code> を実行すると、<code>_template</code> は国では
+なく (ディレクトリ名がアンダースコアで始まるため <code>country_profile</code> が拒否する)、
+値も TODO マーカーでありデータではないため失敗します。テンプレートは実国別
+パックを authoring する際の必須スキーマ形状を示す目的のみで存在します。</p>
 
 
 

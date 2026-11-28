@@ -3245,29 +3245,39 @@ Consultation Note、シフト別追加 note) を追加する際は、スコー�
 </span></code></pre></div></p>
 </li>
 <li>
-<p><strong>タスク種別を enum に追加</strong> — 場所は
-   <code>clinosim/modules/llm_service/engine.py</code> (<code>TASK_CATEGORY</code> と
-   <code>DOCUMENT_LOINC</code> は手順 3 の yaml から構築される):
-   <div class="highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">LLMTaskType</span><span class="p">(</span><span class="n">StrEnum</span><span class="p">):</span>
+<p><strong>文書種別を enum に追加</strong> — 2 つの enum は一致していなければならず、
+   一致しないと import が失敗する ("DocumentType ↔ LLMTaskType drift"):</p>
+</li>
+<li><code>clinosim/types/document.py</code> の <code>DocumentType</code>:
+     <div class="highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">DocumentType</span><span class="p">(</span><span class="n">StrEnum</span><span class="p">):</span>
 </span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>    <span class="o">...</span>
 </span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>    <span class="n">CONSULTATION_NOTE</span> <span class="o">=</span> <span class="s2">"consultation_note"</span>  <span class="c1"># LOINC 11488-4</span>
-</span></code></pre></div></p>
-</li>
+</span></code></pre></div></li>
+<li><code>clinosim/modules/llm_service/engine.py</code> の <code>LLMTaskType</code> に同じ値を追加
+     し、<code>clinosim/modules/llm_service/reference_data/task_categories.yaml</code>
+     に行 <code>consultation_note: narrative</code> を追加する (<code>TASK_CATEGORY</code> はこの
+     yaml から構築され、行が無いと <code>ImportError</code>)。</li>
+</ol>
+<p><code>task_loincs.yaml</code> には文書種別を<strong>追加しない</strong>: <code>DOCUMENT_LOINC</code> は全文書
+   種別のコードを <code>document_type_specs.yaml</code> (手順 3) から取り、
+   <code>task_loincs.yaml</code> に重複があると <code>_document_loinc_from_yaml</code> が
+   <code>ImportError</code> を送出する。</p>
+<ol>
+<li><strong><code>DocumentTypeSpec</code> を登録</strong> — 一致していなければならない 2 か所
+   (<code>_validate_document_type_specs</code> が "document_type_specs.yaml ↔
+   SUPPORTED_DOCUMENT_TYPES drift" の <code>ValueError</code> を送出する):</li>
+<li><code>clinosim/modules/document/narrative/registry.py</code> の
+     <code>SUPPORTED_DOCUMENT_TYPES</code> に <code>DocumentType.CONSULTATION_NOTE</code> を追加
+     (enum から導出されない Python の frozenset)</li>
 <li>
-<p><strong>task_loincs.yaml + task_categories.yaml に登録</strong>
-   (<code>clinosim/modules/llm_service/reference_data/</code>)。engine は
-   import 時に完全被覆を検証 — <code>task_loincs.yaml</code> に行がない新
-   <code>LLMTaskType</code> 値は fail-loud。</p>
-</li>
-<li>
-<p><strong><code>DocumentTypeSpec</code> を登録</strong> —
-   <code>clinosim/modules/document/reference_data/document_type_specs.yaml</code>:
-   <div class="highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nt">consultation_note</span><span class="p">:</span>
+<p><code>clinosim/modules/document/reference_data/document_type_specs.yaml</code>
+     にエントリを追加:
+     <div class="highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nt">consultation_note</span><span class="p">:</span>
 </span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">  </span><span class="nt">loinc_code</span><span class="p">:</span><span class="w"> </span><span class="s">"11488-4"</span>
-</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span><span class="nt">format_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">free_text</span><span class="w">              </span><span class="c1"># または `composition`</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span><span class="nt">format_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">composition</span><span class="w">            </span><span class="c1"># または `free_text`</span>
 </span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">  </span><span class="nt">countries_supported</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">us</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">jp</span><span class="p p-Indicator">]</span>
-</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">  </span><span class="nt">encounter_types_supported</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">outpatient</span><span class="p p-Indicator">]</span>
-</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">  </span><span class="nt">generation_frequency</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">per_encounter</span><span class="w"> </span><span class="c1"># or `admission_once` / `daily` ...</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">  </span><span class="nt">encounter_types_supported</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">inpatient</span><span class="p p-Indicator">]</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">  </span><span class="nt">generation_frequency</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">admission_once</span><span class="w">  </span><span class="c1"># GENERATION_FREQUENCIES の値</span>
 </span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="w">  </span><span class="nt">composition_sections</span><span class="p">:</span><span class="w">               </span><span class="c1"># `format_type: composition` 時のみ</span>
 </span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">reason_for_consult</span>
 </span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">findings</span>
@@ -3277,7 +3287,31 @@ Consultation Note、シフト別追加 note) を追加する際は、スコー�
 </span></code></pre></div>
    <code>format_type: composition</code> は named <code>section[]</code> 付き
    <code>Composition</code> を emit、<code>free_text</code> は本文全体を
-   <code>content.attachment.data</code> に収めた <code>DocumentReference</code> を emit。</p>
+   <code>content.attachment.data</code> に収めた <code>DocumentReference</code> を emit。
+   composition の文書種別では FHIR ビルダー側の編集は不要だった (上記の手順
+   だけを加えた試験用の種別が、手順 4 のカタログのタイトル付きセクションを持つ
+   <code>Composition</code> として出力された)。</p>
+</li>
+<li>
+<p><strong>新しいセクション slug を全て登録</strong> —
+   <code>clinosim/modules/document/reference_data/section_catalog.yaml</code>
+   (<code>title.en</code>、<code>title.ja</code>、セクションの <code>loinc</code>。そのセクションを意味する
+   LOINC セクションコードが無ければ <code>""</code>)。<code>composition_sections</code> のエントリに
+   行が無いと、カタログのロードが "slug(s) authored in
+   document_type_specs.yaml are missing from the catalog" で失敗する。意味が
+   合う既存 slug があれば再利用する。</p>
+</li>
+<li>
+<p><strong>planner を選ぶ</strong> — <code>generation_frequency</code> が、エンカウンターに何件の
+   文書をいつ作成するかを決める planner を選ぶ
+   (<code>clinosim/modules/document/engine.py</code> の <code>_PLANNERS</code>)。既存の値
+   (<code>admission_once</code>、<code>daily</code>、<code>daily_3shift</code>、<code>discharge_once</code>、
+   <code>encounter_once</code> など。全一覧は <code>registry.py</code> の
+   <code>GENERATION_FREQUENCIES</code>) を使う。まだ無い頻度は core ファイルを 3 か所
+   編集する: <code>engine.py</code> の <code>_plan_&lt;name&gt;</code> 関数と <code>_PLANNERS</code> エントリ、
+   <code>GENERATION_FREQUENCIES</code> への名前追加。
+   <code>tests/unit/modules/document/test_document_planners_2532.py</code> が両者の一致を
+   保つ。なお <code>per_encounter</code> は頻度ではない。</p>
 </li>
 <li>
 <p><strong>bundle プロンプトに LLM 指示を追加</strong> — 文書種別ごとの
@@ -3290,14 +3324,29 @@ Consultation Note、シフト別追加 note) を追加する際は、スコー�
    テキストのまま残る。</p>
 </li>
 <li>
-<p><strong>Section builder を実装</strong> —
-   <code>clinosim/modules/document/narrative/renderers/section_builders/&lt;section&gt;.py</code>
-   に <code>build_&lt;section&gt;(generator, ctx)</code> 自由関数として実装。C1a-s
-   分割後、per-section ロジックは全てここに置く
-   (<code>template_generator.py</code> はビルダーを re-export する thin façade)。
-   <code>format_type: free_text</code> タスクは単一 body builder、<code>composition</code>
-   は <code>composition_sections</code> 1 エントリにつき 1 builder。dispatcher の
-   配線は <code>clinosim/modules/document/narrative/renderers/composition_sections.py</code>。</p>
+<p><strong>テンプレート本文を実装</strong></p>
+</li>
+<li><code>format_type: composition</code>: <code>composition_sections</code> の各エントリに
+     つき 1 つ、<code>@section("&lt;name&gt;")</code> を付けた関数 (<code>document_type=</code> で 1
+     文書種別に限定) を
+     <code>clinosim/modules/document/narrative/renderers/section_builders/</code> 配下の
+     モジュールに書く。関数は <code>(generator, ctx)</code> を受け取り <code>(text, facts)</code>
+     (セクション本文と使用した fact のリスト、型 <code>SectionBuilder</code>) を返す。
+     registry (<code>section_builders/_registry.py</code>) がそのパッケージの
+     アンダースコアで始まらない全モジュールを import し、
+     <code>render_composition_sections</code> がセクション名で引くため、編集すべき
+     dispatcher は無い。builder の無いセクション名はエラーにならず、汎用の
+     fallback 文 (<code>fallback.generic_fallback</code>、英語では "No special findings")
+     になる。新しい種別は builder ができるまでこれが出力される。</li>
+<li>
+<p><code>format_type: free_text</code>: registry は無い。
+     <code>TemplateNarrativeGenerator._render_free_text</code>
+     (<code>clinosim/modules/document/narrative/template_generator.py</code>) が文書種別
+     ごとに専用 renderer (<code>renderers/</code> 配下の <code>nursing_shift_note</code>、
+     <code>ed_triage_note</code>) へ分岐し、<strong>それ以外の全種別は progress note の renderer
+     に落ちる</strong>。progress note のように読めてはならない新しい free-text 種別は、
+     <code>renderers/</code> に renderer モジュールを追加し <code>_render_free_text</code> に分岐を
+     追加する必要がある — この core ファイルの編集になる。</p>
 </li>
 <li>
 <p><strong>単体テスト追加</strong> —

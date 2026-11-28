@@ -2387,6 +2387,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#the-country-profile-countryyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The country profile: country.yaml
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The country profile: country.yaml">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#implementations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implementations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#required-yaml-files" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2396,6 +2424,34 @@
   </a>
   
     <nav class="md-nav" aria-label="Required YAML files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-fails-loudly-and-what-falls-back" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What fails loudly and what falls back
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#entries-outside-locale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Entries outside locale/&lt;cc&gt;/
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Entries outside locale/&lt;cc&gt;/">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2448,52 +2504,24 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#code-registration" class="md-nav__link">
+  <a href="#fhir-profiles" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Code registration
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Code registration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-register-the-country-in-_iopy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        1. Register the country in _io.py
+        FHIR profiles
       
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#2-fhir-profile-emission-optional" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#country-features-opt-in-modules" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. FHIR profile emission (optional)
+        Country features (opt-in modules)
       
     </span>
   </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-country-specific-opt-in-modules" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Country-specific opt-in modules
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -2567,15 +2595,28 @@
 
 
 <h1 id="add-your-country-to-clinosim">Add Your Country to clinosim<a class="headerlink" href="#add-your-country-to-clinosim" title="Permanent link">&para;</a></h1>
-<p><em>P2-14 (2026-07-13). This guide walks you through adding a new country pack
-so clinosim can generate locale-appropriate synthetic EHR/EMR data for it.</em></p>
+<p><em>P2-14 (2026-07-13); rewritten 2026-11-28 from the
+<a href="../design-guides/country-profile-spec/">country profile spec</a>. This guide walks
+you through adding a new country so clinosim can generate locale-appropriate
+synthetic EHR/EMR data for it.</em></p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>clinosim's <strong>locale layer</strong> (<code>clinosim/locale/&lt;country&gt;/</code>) is designed as a
-1-country-1-folder plug-in. Adding a new country means:</p>
+<p>A country exists in clinosim when <code>clinosim/locale/&lt;cc&gt;/country.yaml</code> exists
+(<code>&lt;cc&gt;</code> is the lower-case ISO 3166-1 alpha-2 code). That file is the country
+profile; <code>clinosim.country_profile.supported_countries()</code> lists the locale
+directories that have one, and every <code>--country</code> value, <code>SimulatorConfig.country</code>
+and <code>country_profile(...)</code> call is checked against that list. There is no
+separate registration step and no country-to-directory map
+(<code>clinosim/locale/_io.py::_country_dir</code> derives the directory from the code).</p>
+<p>Adding a country is mostly data:</p>
 <ol>
-<li>Creating <code>clinosim/locale/&lt;xx&gt;/</code> with a set of YAML data files</li>
-<li>Registering the ISO 3166-1 code in <code>_COUNTRY_DIR_MAP</code></li>
-<li>(Optional) Deciding whether locale-specific FHIR profiles apply</li>
+<li><code>clinosim/locale/&lt;cc&gt;/country.yaml</code> (the profile) and the rest of the locale
+   YAML files of that directory</li>
+<li>A healthcare-system config in <code>clinosim/config/</code></li>
+<li>Entries for the new country in a few shared and module reference-data files
+   that are keyed by country (listed below; some fail loudly when missing)</li>
+<li>Code only when the country needs an algorithm no existing country has
+   (a named implementation) or a FHIR profile clinosim does not know yet — both
+   edit core files, as described below</li>
 <li>Testing against the country flag through the standard CLI</li>
 </ol>
 <p>Locale data is strictly <strong>culture / regulatory / linguistic</strong>. International
@@ -2593,19 +2634,96 @@ require no country-specific work.</p>
   for downstream profile emission.</li>
 </ul>
 <h2 id="quick-start">Quick start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># 1. Copy the JP folder as a starting scaffold</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>cp<span class="w"> </span>-R<span class="w"> </span>clinosim/locale/jp<span class="w"> </span>clinosim/locale/xx
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># 2. Replace each YAML with locale-appropriate values (see schemas below)</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># 3. Register in the country map:</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1">#    Edit clinosim/locale/_io.py:_COUNTRY_DIR_MAP</span>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># 1. Copy the US folder as a working scaffold (it is complete and runnable;</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1">#    clinosim/locale/_template/ holds schema comments only and is not runnable)</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>cp<span class="w"> </span>-R<span class="w"> </span>clinosim/locale/us<span class="w"> </span>clinosim/locale/xx
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># 2. Edit clinosim/locale/xx/country.yaml: set `code: XX`, the healthcare</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1">#    system, language, timezone, code systems, FHIR profiles and features</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># 3. Replace each YAML with locale-appropriate values (see below)</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># 4. Add the entries that live outside locale/xx/ (see "Entries outside</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1">#    locale/&lt;cc&gt;/")</span>
 </span></code></pre></div>
 <p>Then:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>XX<span class="w"> </span>--population<span class="w"> </span><span class="m">100</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>--format<span class="w"> </span>fhir-r4<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span>--output<span class="w"> </span>./out
 </span></code></pre></div>
+<h2 id="the-country-profile-countryyaml">The country profile: <code>country.yaml</code><a class="headerlink" href="#the-country-profile-countryyaml" title="Permanent link">&para;</a></h2>
+<p><code>clinosim/locale/&lt;cc&gt;/country.yaml</code> holds only the values that differ from
+<code>clinosim/locale/_root/country.yaml</code>; the two are deep-merged (maps merge key by
+key, lists and scalars replace). Start from <code>clinosim/locale/_template/country.yaml</code>
+or from the <code>us</code> / <code>jp</code> file. The keys are specified in
+<a href="../design-guides/country-profile-spec/"><code>design-guides/country-profile-spec.md</code></a> §3.2:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>What to set</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>code</code></td>
+<td>Upper-case ISO code; it must equal the directory name (<code>locale/qq/country.yaml</code> declaring <code>US</code> raises <code>ValueError</code>)</td>
+</tr>
+<tr>
+<td><code>healthcare_system</code></td>
+<td>Stem of the healthcare-system config in <code>clinosim/config/</code> (<code>us</code> → <code>us.yaml</code>, <code>japan</code> → <code>japan.yaml</code>). <strong>No root default</strong>: create <code>clinosim/config/&lt;stem&gt;.yaml</code> (validated as <code>HealthcareSystemConfig</code>, <code>clinosim/types/config.py</code>)</td>
+</tr>
+<tr>
+<td><code>language</code>, <code>timezone</code></td>
+<td>Output language (ISO 639-1) and the UTC offset used for FHIR timestamps</td>
+</tr>
+<tr>
+<td><code>code_systems</code></td>
+<td>Exactly the five kinds <code>lab</code>, <code>diagnosis</code>, <code>drug</code>, <code>procedure</code>, <code>microbiology</code>; each value must be a key of <code>clinosim.codes</code></td>
+</tr>
+<tr>
+<td><code>fhir_profiles</code></td>
+<td>A list drawn from <code>us_core</code>, <code>jp_core</code>, <code>jp_clins</code>, <code>jp_echeckup</code> (<code>FHIR_PROFILES</code> in <code>clinosim/country_profile.py</code>); <code>[]</code> means base FHIR</td>
+</tr>
+<tr>
+<td><code>features</code></td>
+<td>Switches declared in the root (<code>health_checkup</code>, <code>care_level</code>, <code>maternal_tdap</code>); a country cannot add a new feature name by itself</td>
+</tr>
+<tr>
+<td><code>formats</code></td>
+<td>Name order, date / time / date-time formats, physician name prefix</td>
+</tr>
+<tr>
+<td><code>implementations</code></td>
+<td>The named implementation per algorithm kind (<code>egfr_equation</code>, <code>triage_scale</code>, <code>identity_provider</code>, <code>lab_coding</code>, <code>drug_system</code>, <code>drug_order_code</code>, <code>copay_rule</code>, ...)</td>
+</tr>
+</tbody>
+</table>
+<p>What fails when the profile is wrong (all observed):</p>
+<ul>
+<li>no <code>country.yaml</code>: <code>KeyError: no country profile for 'XX'; supported: [...]</code>
+  from <code>country_profile(...)</code>, and a <code>simulate --country XX</code> run stops with it;</li>
+<li><code>code</code> different from the directory: <code>ValueError</code>;</li>
+<li><code>healthcare_system</code> missing: <code>KeyError: country XX names no healthcare_system</code>
+  when the healthcare config is loaded; the named file missing:
+  <code>FileNotFoundError: Healthcare config not found</code>;</li>
+<li>an unknown code system, FHIR profile, feature or implementation kind: a
+  validation error at load;</li>
+<li>an implementation name nobody registered:
+  <code>ValueError: country XX: unregistered implementations {...}</code>.</li>
+</ul>
+<h3 id="implementations">Implementations<a class="headerlink" href="#implementations" title="Permanent link">&para;</a></h3>
+<p>By default a new country inherits the root implementations (the US ones:
+<code>ckd_epi_2021</code> eGFR, <code>esi</code> triage, <code>us</code> identity provider, <code>loinc</code> lab coding,
+<code>category_rate</code> copay, ...). To select another registered implementation, name
+it in <code>implementations:</code>. The registered names are the <code>@register_implementation(kind, name)</code>
+decorators in the modules listed in <code>IMPLEMENTATION_MODULES</code>
+(<code>clinosim/country_profile.py</code>); <code>clinosim/locale/jp/country.yaml</code> shows every kind.</p>
+<p>If the country needs an algorithm that does not exist yet, write it as a named
+implementation (a country-only one lives in <code>clinosim/countries/&lt;cc&gt;/</code>), decorate
+it with <code>@register_implementation(kind, name)</code>, and <strong>add its module to
+<code>IMPLEMENTATION_MODULES</code></strong> — there is no discovery, and an unlisted module is
+never imported, so the profile fails with "unregistered implementations".
+This edits <code>clinosim/country_profile.py</code>, a core file.</p>
 <h2 id="required-yaml-files">Required YAML files<a class="headerlink" href="#required-yaml-files" title="Permanent link">&para;</a></h2>
-<p>The <code>xx/</code> directory MUST contain the following. See the <code>_template/</code> scaffold
+<p>Create these under <code>clinosim/locale/xx/</code>. See the <code>_template/</code> scaffold
 (<code>clinosim/locale/_template/</code>) for schema comments and skeleton values;
 <code>_template/demographics.yaml</code> follows the same schema as the us/jp files.</p>
 <table>
@@ -2618,13 +2736,18 @@ require no country-specific work.</p>
 </thead>
 <tbody>
 <tr>
+<td><code>country.yaml</code></td>
+<td>The country profile (above); it is what makes the country exist</td>
+<td>—</td>
+</tr>
+<tr>
 <td><code>names.yaml</code></td>
 <td>Family + given names with frequency weights</td>
 <td>National statistics office / civil registry</td>
 </tr>
 <tr>
 <td><code>addresses.yaml</code></td>
-<td>Regions (state / prefecture / province) + postal codes</td>
+<td>Regions (state / prefecture / province) + postal codes + phone patterns</td>
 <td>National postal service</td>
 </tr>
 <tr>
@@ -2662,10 +2785,104 @@ require no country-specific work.</p>
 <td>Sex / age lab reference ranges</td>
 <td>Local clinical society standard</td>
 </tr>
+<tr>
+<td><code>care_practice.yaml</code></td>
+<td>Inpatient care practice: discharge criteria, time to surgery, rehabilitation minutes</td>
+<td>National practice survey / clinical guideline</td>
+</tr>
+<tr>
+<td><code>population_genetics.yaml</code></td>
+<td>Rh fraction, ABO allele frequencies, drug-metabolism phenotypes</td>
+<td>Population genetics publications</td>
+</tr>
 </tbody>
 </table>
-<p>Each file is validated at load time; a missing file falls back to built-in
-defaults but that means the generated data is not truly locale-representative.</p>
+<p><code>care_practice.yaml</code> and <code>population_genetics.yaml</code> exist in <code>us/</code> and <code>jp/</code>
+but not in <code>_template/</code>; copy them from <code>us/</code> and replace the values.</p>
+<h3 id="what-fails-loudly-and-what-falls-back">What fails loudly and what falls back<a class="headerlink" href="#what-fails-loudly-and-what-falls-back" title="Permanent link">&para;</a></h3>
+<p>Observed by deleting one file at a time from a copy of <code>us/</code> registered as
+<code>XX</code> and running <code>clinosim simulate --country XX --population 5 --seed 42
+--format fhir-r4</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Missing</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>addresses.yaml</code></td>
+<td>The run stops (<code>KeyError: 'phone'</code>)</td>
+</tr>
+<tr>
+<td><code>care_practice.yaml</code>, <code>population_genetics.yaml</code></td>
+<td>The run stops (<code>FileNotFoundError: locale/xx/&lt;file&gt; is missing or empty</code>, <code>clinosim/locale/loaders/country_parameters.py</code>)</td>
+</tr>
+<tr>
+<td><code>names.yaml</code>, <code>formatting.yaml</code>, <code>demographics.yaml</code></td>
+<td>The run does not stop: the loader falls back to the neutral built-in defaults of <code>clinosim/locale/shared/fallback_defaults.yaml</code>, so the data are not locale-representative</td>
+</tr>
+<tr>
+<td><code>code_mapping_*.yaml</code>, <code>reference_range_lab.yaml</code>, and the optional files below</td>
+<td>The run does not stop: the loader returns an empty table and the corresponding values are simply absent or uncoded in the output. Check the output; a five-person run does not exercise every code path</td>
+</tr>
+</tbody>
+</table>
+<p>A file that is present but malformed is validated at load and raises.</p>
+<h2 id="entries-outside-locale">Entries outside <code>locale/&lt;cc&gt;/</code><a class="headerlink" href="#entries-outside-locale" title="Permanent link">&para;</a></h2>
+<p>Some reference data are keyed by country inside files that are not in the
+country folder. Adding the country means adding its key there too. Observed by
+running the cohort command above with only the files of <code>locale/xx/</code>:</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Entry to add</th>
+<th>If missing</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>clinosim/locale/shared/naming_rules.yaml</code></td>
+<td>A top-level <code>xx:</code> block (name order, middle-name and surname rules)</td>
+<td>The run stops: <code>KeyError: 'xx'</code> (<code>load_naming_rules</code>)</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/population/reference_data/anthropometric_reference.yaml</code></td>
+<td>An <code>XX:</code> block under <code>pediatric_growth</code> (height / weight / head circumference by age and sex)</td>
+<td>Import-time <code>ValidationError</code>: "pediatric_growth countries must be the supported countries"</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/encounter/reference_data/minor_burn.yaml</code>, <code>minor_laceration.yaml</code></td>
+<td>An <code>xx:</code> key in each <code>codes:</code> mapping of <code>diagnosis_variants</code> (every supported country needs a code)</td>
+<td><code>ValueError: Invalid encounter condition YAML</code></td>
+</tr>
+<tr>
+<td><code>clinosim/locale/shared/actuarial_life_table.yaml</code></td>
+<td>An <code>xx:</code> entry under both <code>annual_mortality_qx</code> and <code>community_death_share</code></td>
+<td>Falls back to the US block (<code>clinosim/modules/population/mortality.py::_locale_key</code>)</td>
+</tr>
+<tr>
+<td><code>clinosim/locale/shared/country_language.yaml</code></td>
+<td><code>xx: &lt;language&gt;</code></td>
+<td>The language falls back to <code>en</code></td>
+</tr>
+<tr>
+<td>Disease YAMLs (<code>clinosim/modules/disease/reference_data/*.yaml</code>)</td>
+<td><code>target_los</code> is keyed <code>japan</code> / <code>us</code></td>
+<td>A country without its own block uses the <code>us</code> one (<code>clinosim/modules/disease/localization.py::target_los_config</code>)</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/drug_safety/</code> hyperkalemia <code>treatment</code> and <code>clinosim/modules/order/label_dose.py</code> <code>limits</code></td>
+<td>Optional upper-case country keys</td>
+<td>A key that is not a supported country code is rejected at load; these are subsets, not required for every country</td>
+</tr>
+</tbody>
+</table>
+<p>The first three rows are edits to files owned by other modules; there is no
+single place that lists them, so run the cohort command and fix the error it
+names until it completes.</p>
 <h3 id="demographicsyamlchronic_prevalence-schema-variants"><code>demographics.yaml::chronic_prevalence</code> schema variants<a class="headerlink" href="#demographicsyamlchronic_prevalence-schema-variants" title="Permanent link">&para;</a></h3>
 <p>Two accepted shapes per entry:</p>
 <ul>
@@ -2717,7 +2934,8 @@ SMR × <code>community_death_share</code>. Both <code>annual_mortality_qx</code>
 yaml. Add an <code>xx</code> entry under both keys for your locale; a locale with
 no entry falls back to the US block.</p>
 <h2 id="optional-yaml-files-opt-in-modules">Optional YAML files (opt-in modules)<a class="headerlink" href="#optional-yaml-files-opt-in-modules" title="Permanent link">&para;</a></h2>
-<p>Only add these when your country supports a specific opt-in module:</p>
+<p>Only add these when your country supports a specific opt-in module; without
+the file the run does not stop (see the table above):</p>
 <table>
 <thead>
 <tr>
@@ -2769,52 +2987,51 @@ no entry falls back to the US block.</p>
 </tr>
 </tbody>
 </table>
-<h2 id="code-registration">Code registration<a class="headerlink" href="#code-registration" title="Permanent link">&para;</a></h2>
-<h3 id="1-register-the-country-in-_iopy">1. Register the country in <code>_io.py</code><a class="headerlink" href="#1-register-the-country-in-_iopy" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># clinosim/locale/_io.py</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">_COUNTRY_DIR_MAP</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"JP"</span><span class="p">:</span> <span class="s2">"jp"</span><span class="p">,</span> <span class="s2">"US"</span><span class="p">:</span> <span class="s2">"us"</span><span class="p">,</span> <span class="s2">"XX"</span><span class="p">:</span> <span class="s2">"xx"</span><span class="p">}</span>
-</span></code></pre></div>
-<p>The loader falls back to <code>country.lower()</code> when the map does not contain
-the requested code, but registering it explicitly is preferred for
-completeness / discoverability.</p>
-<h3 id="2-fhir-profile-emission-optional">2. FHIR profile emission (optional)<a class="headerlink" href="#2-fhir-profile-emission-optional" title="Permanent link">&para;</a></h3>
-<p>If your country has a national FHIR IG (JP Core / US Core / German Basisprofil
-/ AU Core / etc.), decide whether to emit its profile URLs. Profile stacking
-happens in <code>_build_bundle</code> (<code>clinosim/modules/output/fhir_r4/builder.py</code>),
-which branches on <code>is_jp(country)</code>: JP output gets <code>_apply_jp_core_profile</code>
-+ <code>_apply_jp_clins_profile</code>, and <strong>every other country</strong> gets
+<h2 id="fhir-profiles">FHIR profiles<a class="headerlink" href="#fhir-profiles" title="Permanent link">&para;</a></h2>
+<p>Whether a national FHIR profile is applied is declared in the country profile:
+list it under <code>fhir_profiles:</code> in <code>country.yaml</code>. The output builder gates on the
+profile, not on the country: <code>_finalize_resource</code>
+(<code>clinosim/modules/output/fhir_r4/builder.py</code>) calls
+<code>profile.uses("jp_core")</code>, <code>profile.uses("jp_clins")</code> and <code>profile.uses("us_core")</code>
+and applies <code>_apply_jp_core_profile</code>, <code>_apply_jp_clins_profile</code> and
 <code>_apply_us_core_profile</code> (helpers in
-<code>clinosim/modules/output/fhir_r4/post_process/profile.py</code>). The URL
-registries are yaml files:
-<code>clinosim/codes/data/fhir-profiles-{jp-core,us-core,jp-clins}.yaml</code>.</p>
-<p>For a new country you can:</p>
-<ol>
-<li>Add a <code>clinosim/codes/data/fhir-profiles-xx-core.yaml</code> registry
-   mirroring the JP Core / US Core ones, an <code>_apply_xx_core_profile</code>
-   helper, and a branch for your country in <code>_build_bundle</code>.</li>
-<li>Otherwise your bundles carry no national profile: only US output
-   declares US Core and only JP output JP Core.</li>
-</ol>
-<h3 id="3-country-specific-opt-in-modules">3. Country-specific opt-in modules<a class="headerlink" href="#3-country-specific-opt-in-modules" title="Permanent link">&para;</a></h3>
-<p>Some enrichers gate on country in <code>register_builtin_enrichers</code>:</p>
+<code>clinosim/modules/output/fhir_r4/post_process/profile.py</code>; URL registries
+<code>clinosim/codes/data/fhir-profiles-{jp-core,us-core,jp-clins}.yaml</code>). A country
+with <code>fhir_profiles: []</code> gets base FHIR; a third country is never given a
+foreign profile.</p>
+<p>So for a country that uses US Core or the JP profiles, setting <code>fhir_profiles</code>
+is all that is needed. For a profile clinosim does not know (DE Basisprofil,
+AU Core, ...) you must edit core files: add the name to <code>FHIR_PROFILES</code> in
+<code>clinosim/country_profile.py</code>, add a registry YAML mirroring the existing ones,
+add an <code>_apply_&lt;name&gt;_profile</code> helper, and add an <code>if profile.uses("&lt;name&gt;"):</code>
+gate in <code>_finalize_resource</code>. Per the spec (§5) such a branch only decides
+whether the structure the profile mandates is emitted; the values inside it
+come from YAML.</p>
+<h2 id="country-features-opt-in-modules">Country features (opt-in modules)<a class="headerlink" href="#country-features-opt-in-modules" title="Permanent link">&para;</a></h2>
+<p>Country-specific modules are switched by <code>features:</code> in the profile, not by a
+country check:</p>
 <ul>
-<li><code>identity</code> — always on for non-JP countries (JP honours <code>--no-jp-insurance</code>);
-  <code>assign_identities</code> no-ops when the locale has no <code>identity.yaml</code></li>
-<li><code>care_level</code> — JP-only; skip</li>
-<li><code>health_checkup</code> — JP-eCheckup; skip unless designing an equivalent</li>
+<li><code>identity</code> — always on (JP honours <code>--no-jp-insurance</code>); <code>assign_identities</code>
+  no-ops when the locale has no <code>identity.yaml</code></li>
+<li><code>care_level</code> — <code>features.care_level</code> (JP only today); skip</li>
+<li><code>health_checkup</code> — <code>features.health_checkup</code> (JP-eCheckup); skip unless
+  designing an equivalent</li>
+<li><code>maternal_tdap</code> — <code>features.maternal_tdap</code> (on for the US)</li>
 </ul>
 <h2 id="testing-checklist">Testing checklist<a class="headerlink" href="#testing-checklist" title="Permanent link">&para;</a></h2>
 <p>After creating the country folder:</p>
 <ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>python -c "from clinosim.country_profile import country_profile; print(country_profile('XX'))"</code>
+      loads the profile without an error</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>clinosim simulate --country XX --population 10 --seed 42 --format cif</code>
       runs without errors and creates non-empty CIF output</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>clinosim simulate --country XX --population 10 --format fhir-r4</code> emits
       valid FHIR R4 resources</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Two independent runs with the same seed produce byte-identical output
       (determinism check — clinosim's core invariant, AD-16):
-      <div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>XX<span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>-o<span class="w"> </span>/tmp/xx-run1
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>XX<span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>-o<span class="w"> </span>/tmp/xx-run2
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>diff<span class="w"> </span>-r<span class="w"> </span>/tmp/xx-run1<span class="w"> </span>/tmp/xx-run2<span class="w">  </span><span class="c1"># must show only manifest transactionTime</span>
+      <div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>XX<span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>-o<span class="w"> </span>/tmp/xx-run1
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>XX<span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>-o<span class="w"> </span>/tmp/xx-run2
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>diff<span class="w"> </span>-r<span class="w"> </span>/tmp/xx-run1<span class="w"> </span>/tmp/xx-run2<span class="w">  </span><span class="c1"># must show only manifest transactionTime</span>
 </span></code></pre></div></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Names / addresses / dates render in the expected local convention</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Lab reference ranges match the authoritative source</li>
@@ -2823,6 +3040,10 @@ registries are yaml files:
       <code>pytest tests/unit/test_diagnosis_code_coverage.py</code> — expected. Register
       the code in the appropriate <code>codes/data/*.yaml</code> per
       "Diagnosis code coverage" section of <code>AGENTS.md</code>.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>pytest tests/unit tests/modules tests/simulator</code> (the directories CI
+      runs) still passes; load-time checks such as the diagnosis-rule code check
+      (<code>clinosim/simulator/diagnosis_rules.py</code>) iterate <code>supported_countries()</code>, so
+      the new country is validated by them</li>
 </ul>
 <h2 id="common-pitfalls">Common pitfalls<a class="headerlink" href="#common-pitfalls" title="Permanent link">&para;</a></h2>
 <ul>
@@ -2840,9 +3061,13 @@ registries are yaml files:
   clinical translation.</li>
 <li><strong>Test with population ≥ 100 before deciding a distribution is realistic</strong>.
   Small cohorts hide long-tail sampling problems.</li>
+<li><strong>Do not copy <code>jp/country.yaml</code> or <code>us/country.yaml</code> unchanged</strong>: the copied
+  <code>code</code> fails validation, and the copied profiles, features and implementations
+  describe that country, not yours.</li>
 </ul>
 <h2 id="where-to-go-next">Where to go next<a class="headerlink" href="#where-to-go-next" title="Permanent link">&para;</a></h2>
 <ul>
+<li>Country profile specification: <a href="../design-guides/country-profile-spec/"><code>docs/design-guides/country-profile-spec.md</code></a></li>
 <li>Overall project concept: <a href="../design-guides/project-concept-and-design/"><code>docs/design-guides/project-concept-and-design.md</code></a></li>
 <li>Locale module reference: <a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/locale/README.md"><code>clinosim/locale/README.md</code></a></li>
 <li>Diagnosis code coverage rules: <a href="https://github.com/TomoOkuyama/clinosim/blob/master/AGENTS.md"><code>AGENTS.md</code></a> §"Diagnosis code coverage"</li>
@@ -2851,9 +3076,10 @@ registries are yaml files:
 <h2 id="scaffold-template">Scaffold template<a class="headerlink" href="#scaffold-template" title="Permanent link">&para;</a></h2>
 <p><code>clinosim/locale/_template/</code> contains a placeholder set of YAMLs with schema
 comments. <strong>These placeholders are non-functional</strong> — running <code>clinosim simulate
---country _template</code> will fail because the values are TODO markers, not data.
-The template exists purely to show the required schema shapes for authoring
-a real country pack.</p>
+--country _template</code> will fail because <code>_template</code> is not a country (the
+directory starts with an underscore, so <code>country_profile</code> rejects it), and the
+values are TODO markers, not data. The template exists purely to show the
+required schema shapes for authoring a real country pack.</p>
 
 
 

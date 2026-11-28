@@ -3643,7 +3643,7 @@ URI 等)を hard-coded literal で書かないこと。<strong>writer 側 module
 <div class="highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>pytest<span class="w"> </span>tests/unit/test_diagnosis_code_coverage.py
 </span></code></pre></div>
 <blockquote>
-<p>RxNorm/YJ/CPT/K-codes/CVX には同等の coverage test がまだありません (CODES-6)。drug/procedure コードを追加したら手動で mapping → codes の存在を確認してください。</p>
+<p>RxNorm・YJ・CPT・K コードには <code>tests/unit/codes/</code> に専用のテストがあります: <code>test_rxnorm_codes_name_their_drug.py</code> (出荷する全 RxCUI が有効で、その薬剤名を指すことを RxNav snapshot で検査)、<code>test_jp_yj_codes_3013.py</code> と <code>test_jp_yj_class_codes_name_their_drug.py</code> (YJ コードを MHLW 薬価基準収載品目リストと YJ master snapshot で検査)、<code>test_procedure_codes_registered_2340.py</code> (emit される全 CPT / K コードが登録済みであること)。drug / procedure コードを追加したら <code>pytest tests/unit/codes</code> を実行してください。CVX ワクチンコードにはこのような coverage test がありません: mapping → <code>codes/data/cvx.yaml</code> の存在を手動で確認してください。</p>
 </blockquote>
 <hr />
 <h2 id="追加時チェックリスト">追加時チェックリスト<a class="headerlink" href="#追加時チェックリスト" title="Permanent link">&para;</a></h2>

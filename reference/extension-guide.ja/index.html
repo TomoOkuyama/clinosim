@@ -2438,8 +2438,17 @@
    に mapping エントリを追加。未登録だと FHIR Condition display が
    prefix 近似 fallback に落ちる。<code>AGENTS.md</code> 「Diagnosis code
    coverage」参照。</li>
+<li>疾患 YAML が重症度ごとに <code>target_los.japan</code> と <code>target_los.us</code> の両方を持つ
+   場合、<code>clinosim/modules/clinical_course/reference_data/course_time_scale.yaml</code>
+   に疾患の行を追加 (重症度ごとの日本平均 / 米国平均の比を上下限で丸めた値)。
+   表がその比と異なると <code>tests/unit/test_course_time_scale_3931.py</code> が失敗する
+   (行の無い疾患は設計時の速度、倍率 1.0 で進む)。</li>
+<li><a href="https://github.com/TomoOkuyama/clinosim/blob/master/AGENTS.md"><code>AGENTS.md</code></a> 「Disease protocol YAML files」の Python
+   disease-id 集合を確認: 救急入院扱い、1〜2 時間ごとのバイタル、連続 SpO2、
+   画像検査が必要な疾患は core ファイルの編集が必要なので、「データのみ」で
+   済むのは他の疾患だけ。</li>
 <li>テスト: <code>clinosim test-disease &lt;disease_id&gt;</code> および
-   <code>pytest tests/unit/test_diagnosis_code_coverage.py</code>。</li>
+   <code>pytest tests/unit/test_diagnosis_code_coverage.py tests/unit/test_course_time_scale_3931.py</code>。</li>
 </ol>
 <p>詳細: <code>clinosim/modules/disease/README.ja.md</code></p>
 <h3 id="新規-encounter-型追加-ed外来">新規 encounter 型追加 (ED/外来)<a class="headerlink" href="#新規-encounter-型追加-ed外来" title="Permanent link">&para;</a></h3>
@@ -2453,10 +2462,23 @@
 </ol>
 <h3 id="新規国追加">新規国追加<a class="headerlink" href="#新規国追加" title="Permanent link">&para;</a></h3>
 <ol>
-<li><code>clinosim/locale/&lt;country_code&gt;/</code> フォルダを作成</li>
+<li><code>clinosim/locale/&lt;country_code&gt;/</code> フォルダを <code>country.yaml</code> (国プロファイル)
+   付きで作成。このファイルがあることで国が存在する (国 → ディレクトリの
+   対応表は無い)</li>
 <li><code>names.yaml</code>、<code>addresses.yaml</code>、<code>demographics.yaml</code>、
-   <code>reference_range_lab.yaml</code>、<code>formatting.yaml</code> と <code>code_mapping_*.yaml</code> を追加</li>
-<li><code>clinosim/locale/shared/naming_rules.yaml</code> にエントリ追加</li>
+   <code>reference_range_lab.yaml</code>、<code>formatting.yaml</code>、<code>care_practice.yaml</code>、
+   <code>population_genetics.yaml</code> と <code>code_mapping_*.yaml</code> を追加</li>
+<li><code>country.yaml</code> の <code>healthcare_system</code> が指すヘルスケアシステム設定
+   <code>clinosim/config/&lt;stem&gt;.yaml</code> を作成</li>
+<li>国フォルダの外のエントリを追加: <code>clinosim/locale/shared/naming_rules.yaml</code>、
+   <code>clinosim/modules/population/reference_data/anthropometric_reference.yaml</code>
+   の <code>pediatric_growth</code> ブロック、<code>clinosim/modules/encounter/reference_data/minor_burn.yaml</code>
+   と <code>minor_laceration.yaml</code> の <code>diagnosis_variants</code> の <code>codes</code> (欠けるといずれも
+   ロード時に失敗する)</li>
+<li>(オプション) どの国にも無いアルゴリズムの名前付き実装
+   (<code>clinosim/country_profile.py</code> の <code>IMPLEMENTATION_MODULES</code> に載るモジュールで
+   登録) または clinosim が知らない FHIR プロファイル (<code>FHIR_PROFILES</code> と
+   ビルダー側の gate): いずれも core ファイルの編集になる</li>
 <li>(オプション) 国固有コードシステムを <code>codes/data/</code> に追加</li>
 </ol>
 <p>完全なチェックリスト: <a href="../../add-your-country.ja/"><code>../add-your-country.ja.md</code></a>。</p>

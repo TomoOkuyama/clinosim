@@ -4800,9 +4800,15 @@ similarly, and have consumers import it.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>pytest<span class="w"> </span>tests/unit/test_diagnosis_code_coverage.py
 </span></code></pre></div>
 <blockquote>
-<p>There is no equivalent coverage test yet for RxNorm / YJ / CPT /
-K-codes / CVX (CODES-6). After adding a drug / procedure code,
-manually verify that the mapping → codes existence chain resolves.</p>
+<p>RxNorm, YJ, CPT and K codes have their own tests under <code>tests/unit/codes/</code>:
+<code>test_rxnorm_codes_name_their_drug.py</code> (every shipped RxCUI is current and
+names its drug, checked against an RxNav snapshot),
+<code>test_jp_yj_codes_3013.py</code> and <code>test_jp_yj_class_codes_name_their_drug.py</code>
+(YJ codes against the MHLW drug-price list and YJ master snapshot) and
+<code>test_procedure_codes_registered_2340.py</code> (every emitted CPT / K code is
+registered). Run <code>pytest tests/unit/codes</code> after adding a drug or procedure
+code. CVX vaccine codes have no such coverage test: verify by hand that the
+mapping → <code>codes/data/cvx.yaml</code> chain resolves.</p>
 </blockquote>
 <hr />
 <h2 id="checklist-when-adding">Checklist when adding<a class="headerlink" href="#checklist-when-adding" title="Permanent link">&para;</a></h2>

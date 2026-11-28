@@ -2419,8 +2419,12 @@
 </span></code></pre></div>
 <p>Sanity check:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>clinosim<span class="w"> </span>--help
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>pytest<span class="w"> </span>tests/unit<span class="w"> </span>-q<span class="w">               </span><span class="c1"># ~1 分、green 必須</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>pytest<span class="w"> </span>tests/unit<span class="w"> </span>tests/modules<span class="w"> </span>tests/simulator<span class="w"> </span>-q<span class="w"> </span>-n<span class="w"> </span><span class="m">4</span><span class="w">   </span><span class="c1"># CI が走らせるディレクトリ。green 必須</span>
 </span></code></pre></div>
+<p>unit スイートは約 17,000 件のテストで、テスト時間の合計は約 32 分 (<code>.test_durations</code>、
+CI ランナーで毎晩計測、直列)。そのため <code>-n &lt;ワーカー数&gt;</code> (pytest-xdist、<code>dev</code>
+extras に含まれる) を付けて実行する。CI では 2 shard、<code>-n 4</code> で 1 shard あたり約
+9 分 (2026-11-28 計測)。</p>
 <hr />
 <h2 id="ワークフロー">ワークフロー<a class="headerlink" href="#ワークフロー" title="Permanent link">&para;</a></h2>
 <ol>
@@ -2435,10 +2439,11 @@
    <a href="#dco--signed-off-by-必須">DCO</a> 参照。</li>
 <li><strong>PR を開く前に local で test 実行</strong>:</li>
 </ol>
-<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>pytest<span class="w"> </span>tests/unit<span class="w"> </span>tests/modules<span class="w"> </span>tests/simulator<span class="w"> </span>-q<span class="w">   </span><span class="c1"># 必須、CI と同じ範囲</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>pytest<span class="w"> </span>tests/integration<span class="w"> </span>-q<span class="w">                </span><span class="c1"># simulator / output / FHIR</span>
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>pytest<span class="w"> </span>tests/unit<span class="w"> </span>tests/modules<span class="w"> </span>tests/simulator<span class="w"> </span>-q<span class="w"> </span>-n<span class="w"> </span><span class="m">4</span><span class="w">   </span><span class="c1"># 必須 (CI のディレクトリ)</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>pytest<span class="w"> </span>tests/integration<span class="w"> </span>-q<span class="w"> </span>-n<span class="w"> </span><span class="m">4</span><span class="w">           </span><span class="c1"># simulator / output / FHIR</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">                                           </span><span class="c1"># コード経路に触るとき推奨</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">                                           </span><span class="c1"># (local ~18 分、CI ~30 分)</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">                                           </span><span class="c1"># (直列のテスト時間合計は約 2.7 時間。</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">                                           </span><span class="c1"># CI は 4 shard で 1 shard あたり 9〜16 分)</span>
 </span></code></pre></div>
 <p>lint / format / 型チェック (CI と同じ command。merge をブロックする):</p>
 <div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>make<span class="w"> </span>lint<span class="w">                                  </span><span class="c1"># ruff check + ruff format --check</span>

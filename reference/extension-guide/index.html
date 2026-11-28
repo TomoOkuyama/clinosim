@@ -2530,7 +2530,9 @@
 <li>Create <code>clinosim/modules/disease/reference_data/&lt;disease_id&gt;.yaml</code> (use existing disease as template).</li>
 <li>Add to incidence list in <code>clinosim/locale/&lt;country&gt;/demographics.yaml</code>.</li>
 <li><strong>Register every <code>icd_codes</code> value (primary AND variants) in the code data</strong> — US billable leaves in <code>clinosim/codes/data/icd-10-cm.yaml</code>, JP WHO codes in <code>clinosim/codes/data/icd-10.yaml</code>, with a mapping entry in <code>clinosim/locale/&lt;country&gt;/code_mapping_diagnosis.yaml</code> when the disease code needs folding (e.g. CM-granularity → WHO parent). Skipping this makes the FHIR Condition display fall back to approximate prefix-matched text. See <code>AGENTS.md</code> → "Diagnosis code coverage".</li>
-<li>Test: <code>clinosim test-disease &lt;disease_id&gt;</code> and <code>pytest tests/unit/test_diagnosis_code_coverage.py</code>.</li>
+<li>If the disease YAML has both <code>target_los.japan</code> and <code>target_los.us</code> for a severity, add the disease's row to <code>clinosim/modules/clinical_course/reference_data/course_time_scale.yaml</code>: the bounded ratio of the Japan mean to the US mean per severity. <code>tests/unit/test_course_time_scale_3931.py</code> fails when the table differs from that ratio (a disease with no row runs at the authored speed, scale 1.0).</li>
+<li>Check the Python disease-id sets in <a href="https://github.com/TomoOkuyama/clinosim/blob/master/AGENTS.md"><code>AGENTS.md</code></a> → "Disease protocol YAML files": a disease that should be an emergency admission, get q1-2h vitals, continuous SpO2 or imaging needs an edit to a core file, so "data only" is true only for the other diseases.</li>
+<li>Test: <code>clinosim test-disease &lt;disease_id&gt;</code> and <code>pytest tests/unit/test_diagnosis_code_coverage.py tests/unit/test_course_time_scale_3931.py</code>.</li>
 </ol>
 <p>Details: <code>clinosim/modules/disease/README.md</code></p>
 <h3 id="add-a-new-encounter-type-edoutpatient">Add a new encounter type (ED/outpatient)<a class="headerlink" href="#add-a-new-encounter-type-edoutpatient" title="Permanent link">&para;</a></h3>
@@ -2542,10 +2544,12 @@
 </ol>
 <h3 id="add-a-new-country">Add a new country<a class="headerlink" href="#add-a-new-country" title="Permanent link">&para;</a></h3>
 <ol>
-<li>Create <code>clinosim/locale/&lt;country_code&gt;/</code> folder</li>
-<li>Add <code>names.yaml</code>, <code>addresses.yaml</code>, <code>demographics.yaml</code>, <code>reference_range_lab.yaml</code>, <code>formatting.yaml</code> and the <code>code_mapping_*.yaml</code> files</li>
-<li>Add entry in <code>clinosim/locale/shared/naming_rules.yaml</code></li>
-<li>(Optional) Add country-specific code system to <code>codes/data/</code></li>
+<li>Create <code>clinosim/locale/&lt;country_code&gt;/</code> with <code>country.yaml</code> — the country profile; a country exists when this file exists (there is no country-to-directory map)</li>
+<li>Add <code>names.yaml</code>, <code>addresses.yaml</code>, <code>demographics.yaml</code>, <code>reference_range_lab.yaml</code>, <code>formatting.yaml</code>, <code>care_practice.yaml</code>, <code>population_genetics.yaml</code> and the <code>code_mapping_*.yaml</code> files</li>
+<li>Create the healthcare-system config <code>clinosim/config/&lt;stem&gt;.yaml</code> named by <code>healthcare_system</code> in <code>country.yaml</code></li>
+<li>Add the entries that live outside the country folder: <code>clinosim/locale/shared/naming_rules.yaml</code>, the <code>pediatric_growth</code> block of <code>clinosim/modules/population/reference_data/anthropometric_reference.yaml</code>, and the <code>codes</code> of the <code>diagnosis_variants</code> in <code>clinosim/modules/encounter/reference_data/minor_burn.yaml</code> and <code>minor_laceration.yaml</code> (each fails loudly when missing)</li>
+<li>(Optional) A named implementation for an algorithm no country has (registered in a module listed in <code>IMPLEMENTATION_MODULES</code>, <code>clinosim/country_profile.py</code>) or a FHIR profile clinosim does not know (<code>FHIR_PROFILES</code> plus a builder gate): these edit core files</li>
+<li>(Optional) Add a country-specific code system to <code>codes/data/</code></li>
 </ol>
 <p>Full checklist: <a href="../../add-your-country/"><code>../add-your-country.md</code></a>.</p>
 <h3 id="add-a-new-language">Add a new language<a class="headerlink" href="#add-a-new-language" title="Permanent link">&para;</a></h3>
