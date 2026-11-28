@@ -113,6 +113,40 @@ clinosim は **ロジックをコードに、定数・変数・パラメータ�
 | AD-55/56 | module は `CIFPatientRecord.extensions[<module>]` に書く(typed field 追加は Base のみ)。拡張は 3 registry(`register_bundle_builder` / `register_output_adapter` / `register_enricher`)経由 — dispatch 本体を編集しない |
 | AD-11 | **LLM 呼出しは `llm_service` 経由のみ**。narrative 層からは `LLMService.complete_prompt()` が唯一の seam。provider SDK の直接 import 禁止 |
 
+## 2.1 モジュール境界
+
+依存は下向きに限る: 基盤 → ドメインモジュール → シミュレータ (全体の進行)。
+出力アダプタ、QA (`clinosim/eval/`、`clinosim/audit/`)、国別パッケージは、基盤と
+モジュールの公開名を読み、シミュレータは読まない。`clinosim/` 内の
+すべての import 文 (関数内と `TYPE_CHECKING` の import を含む) と、`reference_data`
+ディレクトリへ組み立てるすべてのパスについて、次の 6 規則が成り立つ:
+
+| # | 規則 |
+|---|---|
+| 1 | 基盤パッケージ — `datafiles`、`determinism`、`seeding`、`age_bands`、`timeutil`、`reference_data`、`countries/__init__`、`country_profile`、`codes`、`locale`、`types`、`modules/_shared` — は、`clinosim.modules` (`modules/_shared` を除く)、`clinosim.simulator`、`clinosim.eval`、`clinosim.audit` を import しない。 |
+| 2 | ドメインモジュール `clinosim/modules/<m>/` (`output` 以外のすべての `m`) は `clinosim.simulator` を import しない。 |
+| 3 | どのパッケージも、別のパッケージの `_` で始まるモジュールや名前を import しない。パッケージとは `clinosim/modules/<m>/`、`clinosim/countries/<cc>/`、またはそれ以外の `clinosim/` 直下のディレクトリ・ファイルである。 |
+| 4 | `clinosim/modules/output/` は `clinosim.simulator` を import しない (AD-17、AD-58)。 |
+| 5 | `clinosim/eval/` と `clinosim/audit/` は `clinosim.simulator` を import しない。 |
+| 6 | どのパッケージも、別のパッケージの `reference_data` ディレクトリへのパスを組み立てない。所有モジュールのアクセサを通して読む (§5)。 |
+
+規則 3 の明文化した例外: 式定数モジュール `_<topic>_thresholds` /
+`_<topic>_defaults` (ポリシー §5.1)、`clinosim/modules/output/fhir_r4/builder.py`
+または `audit.py` が import する `_bb_*` バンドルビルダー、
+`clinosim/modules/_shared.py` (その中の `_` で始まる名前は非公開のまま)。
+
+ラチェットテスト (`tests/unit/test_module_boundaries.py`、計数は
+`tests/unit/module_boundaries.py`) は、各規則の合計を
+`tests/unit/module_boundaries_baseline.json` に記録した合計に保つ。import した
+名前 1 つ (相対 import は絶対名に解決する) とパス式 1 つをそれぞれ 1 件と数え、
+ファイル単独では所有者を解決できないパスも数える。記録はコード/データのラチェットと
+同じ改名・移動に強い形式である: 増えれば失敗し、減ればベースラインを編集せずに
+通り、ファイルの移動・改名は増加ではない。新しい内容キーはテスト出力に報告される。
+機能の変更でベースラインを編集しない。記録した合計は
+`python -m tests.unit.module_boundaries --write` で下げる (合計は上げられない)。
+`python -m tests.unit.module_boundaries --clusters 10` は、合計と、規則ごとに
+件数の多い `<import 元パッケージ> -> <対象>` のまとまり上位 10 件を表示する。
+
 ## 3. 決定性(AD-16 / AD-59)— 絶対規則
 
 **規範仕様:** [`determinism-and-rng-spec.ja.md`](determinism-and-rng-spec.ja.md) が生成器の生成元・シード導出・乱数をずらさない変更・時計の規則とそのガードを定める。以下は要約。

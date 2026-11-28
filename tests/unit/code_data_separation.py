@@ -23,21 +23,21 @@ the stored totals (never inside a feature change) with::
 
 The command refuses to raise any total: a new branch or literal is moved to
 data (YAML, a country profile, a thresholds module), not added to the baseline.
+The baseline machinery is shared with the module-boundary ratchet
+(``tests/unit/ratchet_baseline.py``).
 """
 
 from __future__ import annotations
 
-import argparse
 import ast
-import json
-import sys
 from collections import Counter
 from collections.abc import Iterator
-from dataclasses import dataclass, field
 from functools import cache
 from pathlib import Path
 
 import clinosim
+from tests.unit.ratchet_baseline import Ratchet, Scan, content_key
+from tests.unit.ratchet_baseline import walk_qualified as _walk
 
 ROOT = Path(clinosim.__file__).parent
 BASELINE = Path(__file__).with_name("code_data_separation_baseline.json")
@@ -80,16 +80,6 @@ def _language_literals(node: ast.AST) -> bool:
     if isinstance(node, (ast.Tuple, ast.List, ast.Set)):
         return any(_language_literals(e) for e in node.elts)
     return False
-
-
-def _walk(tree: ast.AST, qual: tuple[str, ...] = ()) -> Iterator[tuple[ast.AST, str]]:
-    """Every node of ``tree`` with the qualified name of its enclosing class / function chain."""
-    for child in ast.iter_child_nodes(tree):
-        yield child, ".".join(qual) or "<module>"
-        inner = (
-            (*qual, child.name) if isinstance(child, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)) else qual
-        )
-        yield from _walk(child, inner)
 
 
 def _branch_nodes(source: str) -> Iterator[tuple[ast.AST, str]]:
@@ -158,11 +148,8 @@ def counts_branches(rel_path: str) -> bool:
     return not any(rel_path == p or (p.endswith("/") and rel_path.startswith(p)) for p in COUNTRY_PACKAGES)
 
 
-Scan = dict[str, Counter[str]]
-
-
 def _key(kind: str, qual: str, node: ast.AST) -> str:
-    return f"{kind}::{qual}::{ast.unparse(node)}"
+    return content_key(kind, qual, ast.unparse(node))
 
 
 def scan(root: Path) -> Scan:
@@ -183,75 +170,16 @@ def current_scan() -> Scan:
     return scan(ROOT)
 
 
-def totals(found: Scan) -> dict[str, int]:
-    return {k: sum(found.get(k, Counter()).values()) for k in KINDS}
-
-
-def baseline_from(found: Scan) -> dict:
-    """The baseline document for ``found``: totals per rule plus the informational entries."""
-    return {
-        "totals": totals(found),
-        "entries": {k: dict(sorted(found.get(k, Counter()).items())) for k in KINDS},
-    }
-
-
-def load_baseline() -> dict:
-    data = json.loads(BASELINE.read_text(encoding="utf-8"))
-    return {
-        "totals": {k: int(data["totals"].get(k, 0)) for k in KINDS},
-        "entries": {k: dict(data.get("entries", {}).get(k, {})) for k in KINDS},
-    }
-
-
-@dataclass
-class Verdict:
-    raised: dict[str, tuple[int, int]] = field(default_factory=dict)  # rule -> (found, stored)
-    lowered: dict[str, tuple[int, int]] = field(default_factory=dict)
-    new_keys: list[str] = field(default_factory=list)
-
-
-def compare(baseline: dict, found: Scan) -> Verdict:
-    """Totals above the stored total are ``raised`` (the failure); below, ``lowered``.
-    ``new_keys`` are content keys absent from the stored entries or with a higher
-    count, reported so a net-zero swap is visible."""
-    verdict = Verdict()
-    now = totals(found)
-    for kind in KINDS:
-        stored = baseline["totals"][kind]
-        if now[kind] > stored:
-            verdict.raised[kind] = (now[kind], stored)
-        elif now[kind] < stored:
-            verdict.lowered[kind] = (now[kind], stored)
-        known = baseline["entries"].get(kind, {})
-        verdict.new_keys += sorted(k for k, n in found.get(kind, Counter()).items() if n > known.get(k, 0))
-    return verdict
-
-
-def lowered_baseline(baseline: dict, found: Scan) -> dict:
-    """The new baseline for ``found``, provided no rule's total rose. Raises
-    ``ValueError`` naming the rules that would raise the baseline."""
-    raised = compare(baseline, found).raised
-    if raised:
-        raise ValueError(f"refusing to raise the baseline (found, stored): {raised}")
-    return baseline_from(found)
+RATCHET = Ratchet(kinds=KINDS, baseline=BASELINE, regenerate=REGENERATE)
+totals = RATCHET.totals
+baseline_from = RATCHET.baseline_from
+load_baseline = RATCHET.load_baseline
+compare = RATCHET.compare
+lowered_baseline = RATCHET.lowered_baseline
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--write", action="store_true", help="lower the committed totals to the current counts")
-    args = parser.parse_args(argv)
-    found = current_scan()
-    if not args.write:
-        print(json.dumps(totals(found)))
-        return 0
-    try:
-        new = lowered_baseline(load_baseline(), found)
-    except ValueError as exc:
-        print(exc, file=sys.stderr)
-        return 1
-    BASELINE.write_text(json.dumps(new, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    print(f"wrote {BASELINE}: " + json.dumps(new["totals"]))
-    return 0
+    return RATCHET.main(argv, current_scan, __doc__.splitlines()[0])
 
 
 if __name__ == "__main__":
