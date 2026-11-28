@@ -357,23 +357,7 @@ simulator-internal test names (e.g. `"WBC"`) to standard codes (e.g.
 
 ## Licensing and provenance
 
-Each code system follows its own upstream license:
-
-- **ICD-10-CM**: public domain (CMS).
-- **WHO ICD-10**: WHO terms of use.
-- **LOINC**: LOINC License (free commercial use, redistribution
-  permitted).
-- **RxNorm**: NLM Open Use (public domain).
-- **SNOMED CT**: SNOMED International terms; clinosim ships only a
-  small curated subset that appears in generated data.
-- **JLAC10**: published by JCCLS.
-- **CPT**: AMA copyright — clinosim ships only a minimal educational
-  / research subset.
-- **YJ code**: MHLW open data.
-- **K codes**: MHLW reimbursement schedule.
-- **HL7 terminology (v2 / v3 / condition-clinical / …)**: HL7 IPR
-  policy — CC BY-SA 4.0 for HL7 terminology CodeSystems.
-- **JP Core / JP-CLINS eCS**: MHLW / JAMI open publications.
+Every bundled terminology — the files, the edition, what is copied, the source and the license page its owner publishes — is listed in [`THIRD_PARTY_TERMINOLOGIES.md`](../../THIRD_PARTY_TERMINOLOGIES.md), together with the open licensing questions and the rule for contributors who add codes or code-system text.
 
 `codes/data/` extracts only the subset needed to drive clinosim's
 synthetic-data generation. For commercial EHR integration, pull the

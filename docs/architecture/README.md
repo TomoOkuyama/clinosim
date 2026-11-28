@@ -20,7 +20,9 @@ module's own `README.md`.
   DocumentReference. LLM service architecture.
 - [`adr-history.md`](adr-history.md) — clean `### AD-NN:` sections:
   Japanese localization (AD-42, AD-43), FHIR standards compliance +
-  occupational injuries (AD-44 through AD-48, AD-61 through AD-71).
+  occupational injuries (AD-44 through AD-48, AD-61 through AD-73).
+
+**Architecture decision records.** A pull request adds an ADR when it adds or changes an extension point, changes the CIF schema or what CIF stores, or deviates from a binding spec or an earlier ADR. The maintainer approves every record. New records are appended to [`adr-history.md`](adr-history.md) and [`adr-history.ja.md`](adr-history.ja.md) with the next AD number and get a row in the ADR table of [`architecture-notes.md`](architecture-notes.md) (and its `.ja.md`). The template and the details are in [`adr-history.md` — Recording a decision](adr-history.md#recording-a-decision).
 
 **Extracted from the root `README.md`** (Issue #568 PR A):
 

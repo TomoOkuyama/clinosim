@@ -106,7 +106,7 @@ GitHub 上で扱われ、InterSystems のサポート窓口では受け付けて
 
 ## ライセンス
 
-MIT — [`LICENSE`](LICENSE) 参照。同梱コード体系データは各上流レジストリのライセンスに従う。詳細は [`clinosim/codes/README.ja.md`](clinosim/codes/README.ja.md)。
+MIT — [`LICENSE`](LICENSE) 参照。リポジトリには第三者の用語体系 (ICD-10、LOINC、SNOMED CT、RxNorm、YJ / MEDIS、JLAC10 など) のコードとコード体系の文言も同梱している。[`THIRD_PARTY_TERMINOLOGIES.ja.md`](THIRD_PARTY_TERMINOLOGIES.ja.md) に、それぞれのファイル、出典、所有者が公開しているライセンスページを列挙している。
 
 ---
 

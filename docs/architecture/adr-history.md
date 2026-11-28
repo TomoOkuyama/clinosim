@@ -1,3 +1,62 @@
+## Recording a decision
+
+This file holds the full text of the architecture decision records (ADRs) AD-42 to AD-48 and AD-61 onward; the other records are summarized in the ADR tables of [`design-principles.md`](design-principles.md) and [`architecture-notes.md`](architecture-notes.md). The practice below describes how the records are kept; AD-72 and AD-73 (2026-11-28) are the latest examples of it.
+
+**When a record is needed.** A pull request adds an ADR when it:
+
+- adds or changes an extension point — a registry, a hook, or a list that contributors add entries to (AD-56, AD-58, AD-72);
+- changes the CIF schema or what CIF stores (AD-30, AD-48, AD-65);
+- deviates from a binding spec in [`docs/design-guides/`](../design-guides/README.md) or from an earlier ADR. The spec is revised in the same pull request; an earlier ADR is not rewritten — the new record names it and says what changes (AD-72 does this for the entry-point path of AD-58).
+
+A design document that settles several such questions gets one record per decision (AD-72 and AD-73 come from one design). A fix, a data addition or a refactoring that follows the existing records and specs needs no record.
+
+**Who approves.** The maintainer approves every record. A record is merged only when the maintainer approves its pull request, and it is merged with `**Status:** Accepted`.
+
+**Where it lives.** Append the record at the end of this file and of [`adr-history.ja.md`](adr-history.ja.md) (Japanese) in the same pull request, with the next unused AD number. Numbers are never reused; the reserved or withdrawn numbers are listed under the ADR table of `architecture-notes.md`. Add a row (number, date, title) to that table ("Updated ADR list") in `architecture-notes.md` and `architecture-notes.ja.md`.
+
+**Template.** The headings below are the ones the records use; "Deferred and why", "Alternatives considered" and "Objection recorded" are optional.
+
+```markdown
+---
+
+### AD-NN · <the decision in one line>
+
+**Date:** YYYY-MM-DD
+
+**Status:** Accepted
+
+**Context:**
+
+<the problem and the facts that force a decision, with file paths, issue numbers or measured numbers>
+
+**Decision:**
+
+1. <rule>
+2. <rule>
+
+**Deferred and why:**
+
+- <what is not decided now, and the trigger for revisiting it>
+
+**Consequences:**
+
+Positive:
+
+- <...>
+
+Negative/neutral:
+
+- <...>
+
+**Related ADRs:** AD-NN (<one-line reason>)
+
+**Related documents:**
+
+- <design document, binding spec section, issue>
+```
+
+---
+
 ## Part 9: Japanese narrative localization (2026-04-13)
 
 ### AD-42: Code-side unit conversion for Japanese locale
