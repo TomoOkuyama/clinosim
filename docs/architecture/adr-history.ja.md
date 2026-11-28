@@ -1,3 +1,62 @@
+## 決定の記録
+
+このファイルはアーキテクチャ決定記録 (ADR) のうち AD-42〜AD-48 と AD-61 以降の本文を収める。それ以外の記録は [`design-principles.ja.md`](design-principles.ja.md) と [`architecture-notes.ja.md`](architecture-notes.ja.md) の ADR 表に要約がある。以下は記録の運用方法であり、最新の例は AD-72 と AD-73 (2026-11-28) である。
+
+**記録が必要なとき。** 次のいずれかに当たるプルリクエストは ADR を追加する。
+
+- 拡張ポイントを追加・変更する — レジストリ、フック、コントリビューターが項目を足していく一覧 (AD-56、AD-58、AD-72)。
+- CIF のスキーマ、または CIF が保持する内容を変える (AD-30、AD-48、AD-65)。
+- [`docs/design-guides/`](../design-guides/README.ja.md) の拘束力のある仕様、または過去の ADR から外れる。仕様は同じプルリクエストで改訂する。過去の ADR は書き換えず、新しい記録がその ADR を名指しして何が変わるかを書く (AD-72 は AD-58 の entry-point の方針についてそうしている)。
+
+複数の論点を決める設計文書は、決定ごとに 1 件の記録にする (AD-72 と AD-73 は 1 つの設計から出ている)。既存の記録と仕様に沿った修正・データ追加・リファクタリングには記録は要らない。
+
+**承認者。** すべての記録はメンテナーが承認する。記録はメンテナーがそのプルリクエストを承認したときにだけマージされ、`**Status:** Accepted` としてマージされる。
+
+**置き場所。** 記録は同じプルリクエストで、このファイルと [`adr-history.md`](adr-history.md) (英語) の末尾に、未使用の次の AD 番号で追記する。番号は再利用しない。予約済み・撤回済みの番号は `architecture-notes.ja.md` の ADR 表の下に列挙してある。その表 (「更新 ADR 一覧」) に行 (番号・日付・表題) を `architecture-notes.md` と `architecture-notes.ja.md` の両方で追加する。
+
+**テンプレート。** 見出しは既存の記録が使っているものである。「Deferred and why」「Alternatives considered」「Objection recorded」は任意。
+
+```markdown
+---
+
+### AD-NN · <決定を 1 行で>
+
+**Date:** YYYY-MM-DD
+
+**Status:** Accepted
+
+**Context:**
+
+<問題と、決定を迫る事実。ファイルパス・Issue 番号・実測値を添える>
+
+**Decision:**
+
+1. <規則>
+2. <規則>
+
+**Deferred and why:**
+
+- <今は決めないことと、見直すきっかけ>
+
+**Consequences:**
+
+Positive:
+
+- <...>
+
+Negative/neutral:
+
+- <...>
+
+**Related ADRs:** AD-NN (<1 行の理由>)
+
+**Related documents:**
+
+- <設計文書、拘束力のある仕様の節、Issue>
+```
+
+---
+
 ## Part 9: 日本語 narrative localization (2026-04-13)
 
 ### AD-42: 日本語 locale 用のコード側単位変換

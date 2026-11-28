@@ -348,22 +348,7 @@ codes:
 
 ## ライセンスと出典
 
-各コードシステムは自身の上流ライセンスに従います:
-
-- **ICD-10-CM**: パブリックドメイン (CMS)。
-- **WHO ICD-10**: WHO 使用条件。
-- **LOINC**: LOINC License (商用利用無料、再配布可)。
-- **RxNorm**: NLM Open Use (パブリックドメイン)。
-- **SNOMED CT**: SNOMED International 条件。clinosim は生成データ
-  に出現する小規模 curated subset のみを同梱。
-- **JLAC10**: JCCLS 発行。
-- **CPT**: AMA copyright — clinosim は教育・研究用の最小 subset のみ
-  同梱。
-- **YJ code**: MHLW open data。
-- **K codes**: MHLW 診療報酬体系。
-- **HL7 terminology (v2 / v3 / condition-clinical / …)**: HL7 IPR
-  policy — HL7 terminology CodeSystem は CC BY-SA 4.0。
-- **JP Core / JP-CLINS eCS**: MHLW / JAMI 公開資料。
+同梱している用語体系 — ファイル、版、複製している内容、出典、所有者が公開しているライセンスページ — は、ライセンスの未決事項とコードやコード体系の文言を追加するコントリビューター向けの規則とともに [`THIRD_PARTY_TERMINOLOGIES.ja.md`](../../THIRD_PARTY_TERMINOLOGIES.ja.md) に一覧がある。
 
 `codes/data/` は clinosim の合成データ生成を駆動するのに必要な subset
 のみを抽出。商用 EHR 統合には、上流当局から最新版フルセットを取得

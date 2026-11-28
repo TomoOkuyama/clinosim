@@ -423,6 +423,7 @@ These rules are common to every resolver in §4, in both layers.
 3. **Update the snapshot** in `codes/authoritative/` when one exists for the system.
 4. **Add the mapping or catalog entry** that uses the code (§3.4–3.6).
 5. **Run the coverage tests:** diagnosis coverage, the authoritative-snapshot tests and the system-URI coverage test.
+6. **Name the source and its license in the pull request.** Give the source (organization, edition or version, the file or service the code and its text were taken from) and the license name and URL as the source publishes them, and flag a source whose license has not been confirmed. Do not paste descriptor text (display names, synonyms, definitions) from a source whose license has not been checked. A new or changed snapshot, or a new code system, is also recorded in [`THIRD_PARTY_TERMINOLOGIES.md`](../../THIRD_PARTY_TERMINOLOGIES.md).
 
 ## 9. Prohibited patterns
 

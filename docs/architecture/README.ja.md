@@ -20,7 +20,9 @@ clinosim のアーキテクチャリファレンス。モジュール境界や c
   文書。LLM service アーキテクチャ。
 - [`adr-history.md`](adr-history.ja.md) — clean `### AD-NN:` セクション:
   日本語 localization (AD-42、AD-43)、FHIR standards 準拠 + 労災
-  (AD-44 〜 AD-48、AD-61 〜 AD-71)。
+  (AD-44 〜 AD-48、AD-61 〜 AD-73)。
+
+**アーキテクチャ決定記録 (ADR)。** 拡張ポイントを追加・変更する、CIF のスキーマや CIF が保持する内容を変える、拘束力のある仕様や過去の ADR から外れる、のいずれかに当たるプルリクエストは ADR を追加する。すべての記録はメンテナーが承認する。新しい記録は次の AD 番号で [`adr-history.ja.md`](adr-history.ja.md) と [`adr-history.md`](adr-history.md) に追記し、[`architecture-notes.ja.md`](architecture-notes.ja.md) (と英語版) の ADR 表に行を追加する。テンプレートと詳細は [`adr-history.ja.md` — 決定の記録](adr-history.ja.md#決定の記録) にある。
 
 **ルート `README.md` から抽出** (Issue #568 PR A):
 
