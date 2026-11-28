@@ -2477,6 +2477,11 @@
 <td><code>tests/unit/simulator/test_procedures_in_encounter_2863.py</code></td>
 </tr>
 <tr>
+<td>An order is never dated before the start of its encounter (the ED arrival for a stay admitted through the ED). A placement time drawn as an anchor plus a normal offset is held at the window start after the draw, so the random stream does not change; <code>clamp_to_window</code> enforces it at generation, at the ED lab, imaging and treatment orders and at the admission work-up orders (Issue #3957).</td>
+<td><code>simulator/encounter_setup.py::clamp_to_window</code></td>
+<td><code>tests/unit/test_orders_not_before_encounter_start_3957.py</code></td>
+</tr>
+<tr>
 <td>The simulation advances month by month in one loop: year boundary (population advance, healthcare calendar), monthly life events, ED slots (a slot that falls inside an inpatient stay is dropped, not deferred), then dispatch of the month's queued events in date order.</td>
 <td><code>simulator/phases/_forward_loop.py</code>, <code>simulator/phases/_ed_slot.py::dispatch_ed_slot</code></td>
 <td><code>tests/unit/simulator/test_forward_loop_2169.py</code>, <code>tests/unit/simulator/test_ed_slot_inpatient_gate_3393.py</code></td>

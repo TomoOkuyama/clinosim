@@ -2477,6 +2477,11 @@
 <td><code>tests/unit/simulator/test_procedures_in_encounter_2863.py</code></td>
 </tr>
 <tr>
+<td>オーダーは、その受診の開始より前の日時にしない(救急経由の入院では救急の到着時刻)。基準時刻に正規乱数のオフセットを足して決める配置時刻は、抽選の後で期間の始点に留めるので、乱数列は変わらない。<code>clamp_to_window</code> が生成時にこれを守り、救急の検査・画像・治療オーダーと入院時のワークアップオーダーで使う (Issue #3957)。</td>
+<td><code>simulator/encounter_setup.py::clamp_to_window</code></td>
+<td><code>tests/unit/test_orders_not_before_encounter_start_3957.py</code></td>
+</tr>
+<tr>
 <td>シミュレーションは一つのループで月ごとに進む: 年の境目(人口の前進、医療カレンダー)、月次のライフイベント、救急枠 (入院中に当たる枠は、後ろに回さず捨てる)、その月に積まれた事象の日付順の実行。</td>
 <td><code>simulator/phases/_forward_loop.py</code>、<code>simulator/phases/_ed_slot.py::dispatch_ed_slot</code></td>
 <td><code>tests/unit/simulator/test_forward_loop_2169.py</code>, <code>tests/unit/simulator/test_ed_slot_inpatient_gate_3393.py</code></td>

@@ -2907,6 +2907,10 @@
 <td>成人固定用量のオーダーを小児の体重から再計算する。最小月齢未満なら None。</td>
 </tr>
 <tr>
+<td><code>clinosim/simulator/encounter_setup.py</code> <code>clamp_to_window(when, start, end)</code></td>
+<td>基準時刻に乱数オフセットを足した配置時刻を、抽選の後でエンカウンターの期間内に収める。オーダーがエンカウンター開始より前の日時にならない (<code>end</code> が None なら上限なし)。</td>
+</tr>
+<tr>
 <td><code>clinosim/simulator/encounter_setup.py</code> <code>extend_visit_to_procedures(encounter, procedures)</code></td>
 <td>受診が最後の処置の終了まで続くよう延長する。</td>
 </tr>

@@ -3062,6 +3062,10 @@
 <td>Re-dosing an adult fixed-strength order for a child from the weight; None when the child is below the drug's minimum age.</td>
 </tr>
 <tr>
+<td><code>clinosim/simulator/encounter_setup.py</code> <code>clamp_to_window(when, start, end)</code></td>
+<td>Holding a placement time (anchor plus a drawn offset) inside its encounter window after the draw, so an order is never dated before the encounter starts (<code>end</code> None: open).</td>
+</tr>
+<tr>
 <td><code>clinosim/simulator/encounter_setup.py</code> <code>extend_visit_to_procedures(encounter, procedures)</code></td>
 <td>Extending a visit so it lasts at least until its last procedure ends.</td>
 </tr>
