@@ -1727,6 +1727,14 @@ def _treat_complication(stay: _Stay, run: _Run, day: int, comp: dict, onset_dt: 
 
 def _stop_complication_drugs(stay: _Stay, run: _Run, day: int, comp_name: str, action: str, onset_dt: datetime) -> None:
     """Stop the running drugs a complication's stop action names (Issue #3864):
+    the markers of :func:`_complication_stop_orders`, appended to the stay's orders."""
+    run.orders.extend(_complication_stop_orders(stay, run, day, comp_name, action, onset_dt))
+
+
+def _complication_stop_orders(
+    stay: _Stay, run: _Run, day: int, comp_name: str, action: str, onset_dt: datetime
+) -> list[Order]:
+    """The stop markers of a complication's stop action (Issue #3864):
     a ``DISCONTINUE`` marker (``MED_STOP_ORDER_ID_MARKER`` +
     ``COMPLICATION_HOLD_ORDER_ID_MARKER``) at the onset order time for every
     running drug of the action's ``classes`` (not its ``spared_classes``) and,
@@ -1770,8 +1778,9 @@ def _stop_complication_drugs(stay: _Stay, run: _Run, day: int, comp_name: str, a
     intent = spec.intent
     if spec.replacement_block and not (stay.protocol.drugs or {}).get(spec.replacement_block):
         intent = f"{spec.intent}_no_replacement"
+    markers: list[Order] = []
     for idx, (key, name) in enumerate(held.items()):
-        run.orders.append(
+        markers.append(
             Order(
                 order_id=(
                     f"ORD-{stay.encounter_id}{MED_STOP_ORDER_ID_MARKER}D{day}"
@@ -1787,6 +1796,7 @@ def _stop_complication_drugs(stay: _Stay, run: _Run, day: int, comp_name: str, a
                 status=OrderStatus.PLACED,
             )
         )
+    return markers
 
 
 def _localize_complication_name(comp_name: str, lang: str) -> str:
@@ -1814,6 +1824,7 @@ def _start_complication_treatment(
     from clinosim.modules.order.engine import protocol_medication_orders
     from clinosim.seeding import complication_treatment_seed
     from clinosim.simulator.complication_actions import (
+        complication_note_entry,
         dose_reduction_rule,
         has_recurrence_risk,
         is_therapeutic_anticoagulant_order,
@@ -1827,15 +1838,35 @@ def _start_complication_treatment(
     from clinosim.simulator.renal_antibiotic_dose import creatinine_clearance
 
     spec = complication_action_rules().treatment_actions[action]
-    if set(spec.blocked_by) & run.active_complications:
-        return
-    if spec.drug_class == "anticoagulant" and any(
+    blocked = set(spec.blocked_by) & run.active_complications
+    anticoagulant_running = spec.drug_class == "anticoagulant" and any(
         is_therapeutic_anticoagulant_order(o)
         and o.status == OrderStatus.PLACED
         and _running_order(run.orders, o.drug_id or o.display_name) is not None
         for o in run.orders
         if o.order_type == OrderType.MEDICATION and not (o.display_name or "").startswith("DISCONTINUE:")
-    ):
+    )
+    if blocked and spec.drug_class == "anticoagulant" and not anticoagulant_running:
+        # Issue #3960: the anticoagulant withheld for an active bleed is stated in the notes.
+        first = next(iter(treatment_candidates(action, stay.country_key)), None)
+        if first is not None:
+            held_name = protocol_drug_name(first)
+            bleed = sorted(blocked)[0]
+            stay.patient.safety_skip_log.append(
+                complication_note_entry(
+                    event_type="hold",
+                    rule_id="complication-anticoagulation-withheld",
+                    matched_classes=("anticoagulant", "bleeding"),
+                    encounter_id=stay.encounter_id,
+                    drug=held_name,
+                    drug_ja=localize_drug_name(held_name, "ja"),
+                    reason_key="anticoagulant_withheld_for_bleeding",
+                    complication={lang: _localize_complication_name(bleed, lang) for lang in ("en", "ja")},
+                    stopped_on_day=None,
+                    timestamp=onset_dt,
+                )
+            )
+    if blocked or anticoagulant_running:
         return
     when = onset_dt.replace(hour=complication_action_rules().order_hour)
     renal = RenalDoseContext(run.lab_results, stay.country_key)
@@ -1861,9 +1892,28 @@ def _start_complication_treatment(
         if any(dose_reduction_rule(str(e.get("drug_id"))) for e in candidates_of)
         else None
     )
-    active_names = [*(m.drug_name for m in stay.patient.current_medications or [] if m.drug_name), *accepted]
-    intent_key = f"order_intent.{spec.intent}"
     complication = {lang: _localize_complication_name(comp_name, lang) for lang in ("en", "ja")}
+    # Issue #3960: an NSAID beside the anticoagulant is the drug that leaves (the
+    # anticoagulant-plus-nsaid rule keeps the anticoagulant): its stop markers are
+    # kept for when the anticoagulant is ordered, and no NSAID counts as active
+    # for the gate (a home NSAID without a running order is not active either).
+    nsaid_stops: list[Order] = []
+    if spec.stops_interacting:
+        stop_spec = complication_action_rules().stop_actions[spec.stops_interacting]
+        nsaid_stops = _complication_stop_orders(stay, run, day, comp_name, spec.stops_interacting, onset_dt)
+
+        def _leaves(name: str) -> bool:
+            classes = set(drug_classes(name))
+            return bool(classes & set(stop_spec.classes)) and not classes & set(stop_spec.spared_classes)
+
+        accepted = [n for n in accepted if not _leaves(n)]
+        home_names = [
+            m.drug_name for m in stay.patient.current_medications or [] if m.drug_name and not _leaves(m.drug_name)
+        ]
+    else:
+        home_names = [m.drug_name for m in stay.patient.current_medications or [] if m.drug_name]
+    active_names = [*home_names, *accepted]
+    intent_key = f"order_intent.{spec.intent}"
     gated: list[Order] = []
     chosen = 0
     for idx, entry in enumerate(candidates_of):
@@ -1907,7 +1957,7 @@ def _start_complication_treatment(
             protocol=stay.protocol,
             country=stay.country_key,
             already_accepted_meds=[
-                *(m.drug_name for m in stay.patient.current_medications or [] if m.drug_name),
+                *home_names,
                 *accepted,
             ],
         )
@@ -1916,6 +1966,26 @@ def _start_complication_treatment(
             break
     if not gated:
         return
+    if nsaid_stops:
+        # Issue #3960: the NSAID is stopped from the anticoagulant's order time, with the reason.
+        run.orders.extend(nsaid_stops)
+        for marker in nsaid_stops:
+            name = marker.display_name.removeprefix("DISCONTINUE:").strip()
+            stay.patient.safety_skip_log.append(
+                complication_note_entry(
+                    event_type="switch",
+                    rule_id="anticoagulant-plus-nsaid",
+                    matched_classes=("anticoagulant", "nsaid"),
+                    encounter_id=stay.encounter_id,
+                    drug=name,
+                    drug_ja=localize_drug_name(name, "ja"),
+                    reason_key=complication_action_rules().stop_actions[spec.stops_interacting or ""].reason or "",
+                    complication=complication,
+                    stopped_on_day=(marker.ordered_datetime.date() - stay.admission_time.date()).days + 1,
+                    timestamp=marker.ordered_datetime,
+                    matched_active_drug=gated[0].display_name,
+                )
+            )
     if spec.lead_in_days and str(candidates_of[chosen].get("route", "")).upper() == "IV":
         # The parenteral agent runs for the lead-in; the oral agent the block
         # lists after it is ordered with it and given from the lead-in's end.
@@ -1959,7 +2029,7 @@ def _start_complication_treatment(
                 protocol=stay.protocol,
                 country=stay.country_key,
                 already_accepted_meds=[
-                    *(m.drug_name for m in stay.patient.current_medications or [] if m.drug_name),
+                    *home_names,
                     *accepted,
                     *(o.display_name for o in gated),
                 ],
@@ -2017,7 +2087,7 @@ def _start_complication_treatment(
                     protocol=stay.protocol,
                     country=stay.country_key,
                     already_accepted_meds=[
-                        *(m.drug_name for m in stay.patient.current_medications or [] if m.drug_name),
+                        *home_names,
                         *(a for a in accepted if a not in iv_names),
                     ],
                 )
@@ -2331,6 +2401,19 @@ def _gate_new_medication_orders(
     if not new_orders:
         return orders
     accepted = [o.display_name for o in pre_new if o.order_type == OrderType.MEDICATION and o.display_name]
+    # Issue #3960: a drug a complication stopped (the NSAID beside a therapeutic
+    # anticoagulant, a held anticoagulant) is no longer active for the new orders.
+    from clinosim.modules._shared import COMPLICATION_HOLD_ORDER_ID_MARKER
+
+    stopped = [
+        o.display_name.removeprefix("DISCONTINUE:").strip()
+        for o in new_orders
+        if o.order_type == OrderType.MEDICATION
+        and (o.display_name or "").startswith("DISCONTINUE:")
+        and MED_STOP_ORDER_ID_MARKER in o.order_id
+        and COMPLICATION_HOLD_ORDER_ID_MARKER in o.order_id
+    ]
+    accepted = [n for n in accepted if not any(same_drug(n, drug) for drug in stopped)]
     # Issue #3283: a rate change of an admission order follows its verdict,
     # and a re-order of an accepted drug is not checked against that drug.
     gated_new = apply_drug_safety_gate_to_orders(

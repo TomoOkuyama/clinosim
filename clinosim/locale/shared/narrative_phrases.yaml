@@ -3928,6 +3928,9 @@ order_intent:
   complication_anticoagulant_hold:
     ja: "第{day}病日 {complication}の発症に対し抗凝固薬を中止"
     en: "Day {day}: anticoagulant stopped for {complication}"
+  complication_nsaid_stop:
+    ja: "第{day}病日 {complication}に対する治療量の抗凝固療法の開始に伴い NSAID を中止"
+    en: "Day {day}: NSAID stopped because therapeutic anticoagulation was started for {complication}"
   complication_antibiotic_stop:
     ja: "第{day}病日 {complication}の発症に対し原因となった抗菌薬を中止"
     en: "Day {day}: inciting antibiotic stopped for {complication}"
@@ -4050,6 +4053,12 @@ safety_text:
   active_pregnancy:
     ja: "妊娠中"
     en: "active pregnancy"
+  nsaid_stopped_for_anticoagulation:
+    ja: "{complication}に対する治療量の抗凝固療法を開始したため"
+    en: "therapeutic anticoagulation started for {complication}"
+  anticoagulant_withheld_for_bleeding:
+    ja: "{complication}の合併中で出血リスクが高く抗凝固療法を行わないため"
+    en: "active {complication}, which rules out therapeutic anticoagulation"
   treatment_plan_change:
     ja: "治療計画変更"
     en: "treatment plan change"
