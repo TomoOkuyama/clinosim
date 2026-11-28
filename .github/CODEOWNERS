@@ -1,0 +1,68 @@
+# Path-to-domain ownership, following the domain map of the modular-hooks design (section 3.2).
+# Later matching patterns win, so entries run from general to specific.
+# Today the maintainer owns every domain. To add a domain owner, replace the handle on that one line.
+# Code-owner review is not required by the branch ruleset (required approvals: 0); it is turned on for a path when a second maintainer or a named domain owner exists for it.
+
+*  @TomoOkuyama
+
+# Complications, sustained effects, delirium, terminal course (clinical_course)
+clinosim/modules/clinical_course/  @TomoOkuyama
+
+# Holds, drug-safety gate, reconciliation (drug_safety)
+clinosim/modules/drug_safety/  @TomoOkuyama
+
+# Orders, MAR scheduling, dose text, medication course (order)
+clinosim/modules/order/  @TomoOkuyama
+clinosim/modules/antibiotic/  @TomoOkuyama
+clinosim/modules/prophylaxis/  @TomoOkuyama
+
+# Metabolic, device, nursing
+clinosim/modules/metabolic/  @TomoOkuyama
+clinosim/modules/device/  @TomoOkuyama
+clinosim/modules/nursing/  @TomoOkuyama
+
+# Disease traits and protocols (disease)
+clinosim/modules/disease/  @TomoOkuyama
+
+# Diagnosis rules and coded-diagnosis view (diagnosis)
+clinosim/modules/diagnosis/  @TomoOkuyama
+
+# Observation: vitals, labs, finding thresholds (observation)
+clinosim/modules/observation/  @TomoOkuyama
+
+# Physiology state (physiology)
+clinosim/modules/physiology/  @TomoOkuyama
+
+# Encounter, triage and ED rules; HAI
+clinosim/modules/encounter/  @TomoOkuyama
+clinosim/modules/triage/  @TomoOkuyama
+clinosim/modules/hai/  @TomoOkuyama
+
+# Documents and narrative
+clinosim/modules/document/  @TomoOkuyama
+
+# Output adapters, FHIR and CIF export (output)
+clinosim/modules/output/  @TomoOkuyama
+
+# Code tables and terminology data
+clinosim/codes/  @TomoOkuyama
+
+# Country locale data: JP
+clinosim/locale/jp/  @TomoOkuyama
+
+# Country locale data: US
+clinosim/locale/us/  @TomoOkuyama
+
+# Simulator core: engine, dispatch, phases, encounter drivers (most specific last)
+clinosim/simulator/  @TomoOkuyama
+
+# Repository process and CI
+.github/  @TomoOkuyama
+scripts/  @TomoOkuyama
+
+# Binding specs, ADRs and contributor docs
+docs/design-guides/  @TomoOkuyama
+docs/architecture/  @TomoOkuyama
+CONTRIBUTING.md  @TomoOkuyama
+CONTRIBUTING.ja.md  @TomoOkuyama
+AGENTS.md  @TomoOkuyama

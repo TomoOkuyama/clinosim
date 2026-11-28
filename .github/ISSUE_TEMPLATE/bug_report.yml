@@ -20,7 +20,7 @@ body:
     attributes:
       label: What went wrong?
       description: One or two sentences on the observed behavior.
-      placeholder: "`clinosim generate ...` produces X, but should produce Y."
+      placeholder: "`clinosim simulate ...` produces X, but should produce Y."
     validations:
       required: true
 
@@ -31,8 +31,8 @@ body:
       description: The exact commands and inputs. Include seed, country, population, and any custom hospital config so the run is reproducible.
       render: bash
       placeholder: |
-        clinosim generate --country JP --population 100 --seed 42 \
-          --start 2026-01-01 --end 2026-03-31 --output ./out --format fhir
+        clinosim simulate --country JP --population 100 --seed 42 \
+          --start 2026-01-01 --end 2026-03-31 --output ./out --format fhir-r4
     validations:
       required: true
 
@@ -58,7 +58,7 @@ body:
     attributes:
       label: clinosim version
       description: "Output of: python -c 'import clinosim; print(clinosim.__version__)'"
-      placeholder: "0.2.0"
+      placeholder: "0.7.5"
     validations:
       required: true
 
