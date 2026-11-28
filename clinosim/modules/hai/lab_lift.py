@@ -28,7 +28,7 @@ Code-review hardening (post PR-90 xhigh review, 2026-06-25):
     to derive day-N labs (state_history[0] = admission state).
   - Multi-event semantics: max across matching events (consistent with
     sibling helper documentation), not additive.
-  - ``round_to_precision`` + ``determine_flag`` are re-applied so the
+  - ``clamp_to_physiologic_limits`` + ``round_to_precision`` + ``determine_flag`` are re-applied so the
     lifted value respects the same integer-WBC convention the daily loop
     uses and so CSV / CIF consumers do not see WBC ≈ 16,000 flagged "N".
   - Hour passed to the closed-form is the ORDER'S draw hour
@@ -51,7 +51,11 @@ from pydantic import BaseModel, ConfigDict, model_validator
 
 from clinosim.datafiles import load_validated_yaml
 from clinosim.modules.hai import HAI_TYPES
-from clinosim.modules.observation.engine import determine_flag, round_to_precision
+from clinosim.modules.observation.engine import (
+    clamp_to_physiologic_limits,
+    determine_flag,
+    round_to_precision,
+)
 from clinosim.modules.physiology._lab_derivation_thresholds import (
     WBC_BASE,
     WBC_CIRCADIAN_AMPLITUDE,
@@ -216,7 +220,7 @@ def apply_hai_lab_lift(
     For each WBC + CRP observation whose result_datetime.date() falls on or
     after a matching ``extensions["hai"]`` event's onset_date, add a closed-
     form forward delta to obs.value (preserving original noise + circadian),
-    then re-apply ``round_to_precision`` + ``determine_flag`` so consumers
+    then re-apply ``clamp_to_physiologic_limits`` + ``round_to_precision`` + ``determine_flag`` so consumers
     that read ``obs.flag`` directly (CSV adapter, audit scripts) see the
     correct H/L marker on the lifted value.
 
@@ -314,7 +318,10 @@ def apply_hai_lab_lift(
         if delta == 0:
             continue
 
-        new_val = round_to_precision(lab_name, float(val) + delta)
+        # The lift is added after the lab pipeline clamped the value, so
+        # clamp again: a lifted value must stay inside the generator's
+        # physiologic limits like every other derived lab value.
+        new_val = round_to_precision(lab_name, clamp_to_physiologic_limits(lab_name, float(val) + delta))
         obs.value = new_val
         obs.flag = determine_flag(lab_name, new_val, sex=sex, country=country, age=age)
         modified += 1
