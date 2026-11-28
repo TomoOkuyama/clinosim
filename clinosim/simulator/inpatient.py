@@ -9,6 +9,7 @@ import numpy as np
 
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource
 from clinosim.codes.valuesets import code_by_chronic_prefix, iter_chronic_codes
+from clinosim.fired_counters import count
 from clinosim.modules._shared import CO_DISEASE_SEVERITY
 from clinosim.modules.clinical_course.engine import (
     select_archetype,
@@ -830,6 +831,7 @@ def _simulate_patient(
         if _admission_route_fields(protocol, disease_id)[0] == AdmitSource.EMD
         else None
     )
+    count("admission.via_ed", when=ed_period is not None)
     admission_orders = place_admission_orders(
         protocol.model_dump(),
         patient.patient_id,

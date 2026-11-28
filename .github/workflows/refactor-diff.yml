@@ -1,0 +1,63 @@
+# Refactoring diff (Issue #3976): a pull request labelled `refactoring` must
+# not change any output. `scripts/refactor-diff.sh` generates the
+# forced-scenario corpus (tests/refactor_corpus/) and a US and a JP cohort on
+# the pull request's merge base and on its head, compares every CIF,
+# narrative and FHIR file, and prints the fired counters of the paths the
+# corpus exercises (docs/development/testing.md, "Refactoring proof").
+#
+# The job runs when the label is present (on open, push and when the label is
+# added); it is not one of the required checks of `CI result`, so a pull
+# request without the label is not held by it. The work directory (outputs,
+# differences, counters) is uploaded as an artifact.
+name: Refactor diff
+
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened, labeled]
+
+concurrency:
+  group: refactor-diff-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  refactor-diff:
+    name: Refactoring diff (corpus, US and JP cohorts)
+    if: contains(github.event.pull_request.labels.*.name, 'refactoring')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.13.7"  # pinned: an unpinned "latest" lookup can fail the job; bump on purpose
+          enable-cache: true
+          cache-dependency-glob: pyproject.toml
+      - name: Install (with dev extras)
+        run: uv pip install --system -e ".[dev]"
+      - name: Compare the merge base with the head
+        env:
+          REFACTOR_DIFF_WORK: ${{ runner.temp }}/refactor-diff
+          PYTHON: python
+        run: |
+          base="$(git merge-base "origin/${{ github.base_ref }}" HEAD)"
+          bash scripts/refactor-diff.sh "$base" HEAD
+      - name: Upload the differences and counters
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: refactor-diff
+          path: |
+            ${{ runner.temp }}/refactor-diff/differences.txt
+            ${{ runner.temp }}/refactor-diff/counters.txt
+            ${{ runner.temp }}/refactor-diff/counters/
+            ${{ runner.temp }}/refactor-diff/*.log
+          retention-days: 7
+          if-no-files-found: ignore

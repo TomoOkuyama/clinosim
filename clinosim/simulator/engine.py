@@ -7,7 +7,7 @@ from datetime import date
 from pathlib import Path
 
 from clinosim import __version__ as _clinosim_version
-from clinosim import determinism
+from clinosim import determinism, fired_counters
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_demographics
@@ -97,6 +97,7 @@ from clinosim.simulator.enrichers import (
     register_builtin_enrichers,
     run_stage,
 )
+from clinosim.simulator.forced_complications import forced_complication_protocol
 from clinosim.simulator.helpers import load_all_disease_protocols
 from clinosim.simulator.inpatient import _simulate_patient
 from clinosim.simulator.phases._forward_loop import ForwardContext, run_forward_loop
@@ -149,6 +150,8 @@ def run_beta(
     from clinosim.modules.newborn import reset_perinatal_baseline_tracker as _reset_perinatal
 
     _reset_perinatal()
+    # Issue #3976: the fired counters are those of this run.
+    fired_counters.reset()
 
     rng = determinism.default_rng(config.random_seed)
     # F1: P1/P2/P3/P4/P4' below derive per-key sub-seeds from
@@ -353,12 +356,14 @@ def run_forced(scenario: ForcedScenario, config: SimulatorConfig | None = None) 
     if scenario.force_hai_event is not None and scenario not in config.forced_scenarios:
         config = config.model_copy(update={"forced_scenarios": [*config.forced_scenarios, scenario]})
 
+    fired_counters.reset()
     rng = determinism.default_rng(config.random_seed)
     healthcare = load_healthcare_config(config.country)
     roster = generate_roster(config.hospital_scale, config.country, rng)
     _demo = load_demographics(config.country)
 
-    protocol = load_disease_protocol(scenario.disease_id)
+    # Issue #3976: test-only forced complications (the protocol itself when none).
+    protocol = forced_complication_protocol(load_disease_protocol(scenario.disease_id), scenario.force_complications)
 
     # Register built-in enrichers so the POST_ENCOUNTER stage that
     # ``_simulate_patient`` invokes (device + hai + Phase 3a lab lift) has

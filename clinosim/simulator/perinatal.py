@@ -35,6 +35,7 @@ from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisp
 from clinosim.codes.procedures import country_procedure_code
 from clinosim.countries import country_slot
 from clinosim.country_profile import country_profile
+from clinosim.fired_counters import count
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_perinatal_config
 from clinosim.modules.encounter.engine import create_inpatient_encounter
@@ -757,6 +758,7 @@ def simulate_delivery_encounter(
     cs_prob = float(cs_cfg["probability"][country_slot(country)])
     cs_rng = determinism.default_rng(newborn_seed(f"cesarean|{patient.patient_id}"))
     is_cesarean = float(cs_rng.random()) < cs_prob
+    count("perinatal.delivery.cesarean" if is_cesarean else "perinatal.delivery.vaginal")
 
     dept = resolve_department(enc_cfg.get("department") or "obstetrics_gynecology", hospital_ops)
 

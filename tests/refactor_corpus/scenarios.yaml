@@ -1,0 +1,206 @@
+# Forced-scenario corpus for refactoring proofs (Issue #3976).
+#
+# Each scenario is one forced stay (run_forced: disease, severity, archetype,
+# patient, and the test-only force_complications / force_hai_event) or a set
+# of delivery admissions, generated for the countries listed (default US and
+# JP) with seed 42 by run_corpus.py. `expect` names the fired counters
+# (clinosim.fired_counters) the scenario must fire, for every country (`all`)
+# or for one (`US`, `JP`); `run_corpus.py check` fails when one did not fire.
+#
+# The corpus exists so that a refactoring that moves one of these paths is
+# proven on a run in which the path executed: a population cohort of a few
+# hundred patients is often byte-identical without ever reaching it.
+# A scenario is added here when a refactoring moves a path no scenario fires.
+
+scenarios:
+  # --- complication action kinds ---------------------------------------------
+  - id: antibiotic_hospital_acquired_pneumonia
+    disease: bacterial_pneumonia
+    severity: moderate
+    archetype: smooth_recovery
+    patient: {age: 72, sex: M}
+    force_complications: [{name: hospital_acquired_pneumonia, day: 2}]
+    expect:
+      all: [complication.antibiotic.ordered, admission.via_ed]
+
+  - id: antibiotic_uti_after_stroke
+    disease: cerebral_infarction
+    severity: moderate
+    archetype: treatment_resistant
+    patient: {age: 78, sex: F}
+    force_complications: [{name: urinary_tract_infection, day: 3}]
+    expect:
+      all: [complication.antibiotic.ordered]
+
+  - id: anticoagulation_dvt
+    disease: urinary_tract_infection
+    severity: moderate
+    archetype: smooth_recovery
+    patient: {age: 70, sex: F}
+    force_complications: [{name: dvt, day: 3}]
+    expect:
+      all: [complication.treatment.start_anticoagulation]
+      JP: [complication.treatment.lead_in_to_oral]
+
+  - id: anticoagulation_pe
+    disease: copd_exacerbation
+    severity: moderate
+    archetype: treatment_resistant
+    patient: {age: 74, sex: M}
+    force_complications: [{name: pulmonary_embolism, day: 2}]
+    expect:
+      all: [complication.treatment.start_anticoagulation]
+
+  - id: anticoagulation_stops_nsaid
+    disease: acute_cholecystitis
+    severity: moderate
+    archetype: treatment_resistant
+    patient: {age: 60, sex: F}
+    force_complications: [{name: dvt, day: 2}]
+    expect:
+      all: [complication.treatment.start_anticoagulation, complication.stop.nsaid_for_anticoagulation]
+
+  - id: gi_bleed_ppi_and_hold
+    disease: acute_mi
+    severity: moderate
+    patient: {age: 68, sex: M}
+    force_complications: [{name: gi_bleeding, day: 2}]
+    expect:
+      all:
+        - complication.treatment.IV_PPI
+        - complication.treatment.step_down_built
+        - complication.stop_markers.hold_anticoagulation
+
+  - id: bleed_hold_anticoagulant
+    disease: atrial_fibrillation_rvr
+    severity: moderate
+    archetype: treatment_resistant
+    patient: {age: 79, sex: F}
+    force_complications: [{name: bleeding_on_anticoagulation, day: 2}]
+    expect:
+      all: [complication.stop_markers.hold_anticoagulation]
+
+  - id: bleed_withholds_vte_anticoagulation
+    disease: acute_kidney_injury
+    severity: moderate
+    archetype: treatment_resistant
+    patient: {age: 71, sex: M}
+    force_complications:
+      - {name: bleeding_uremic_platelet_dysfunction, day: 2}
+      - {name: dvt, day: 4}
+    expect:
+      all: [complication.treatment.withheld_for_bleeding]
+
+  - id: hemorrhagic_stroke_vte_withhold
+    disease: hemorrhagic_stroke
+    severity: moderate
+    archetype: treatment_resistant
+    patient: {age: 69, sex: M}
+    force_complications: [{name: dvt, day: 3}]
+    expect:
+      all: [complication.action.start_anticoagulation_cautiously]
+
+  - id: c_difficile_course
+    disease: bacterial_pneumonia
+    severity: moderate
+    archetype: treatment_resistant
+    patient: {age: 70, sex: F}
+    force_complications: [{name: c_diff_colitis, day: 5}]
+    expect:
+      all: [complication.treatment.start_oral_vancomycin, complication.stop_markers.stop_offending_antibiotic]
+
+  - id: niv
+    disease: copd_exacerbation
+    severity: severe
+    patient: {age: 75, sex: M}
+    force_complications: [{name: respiratory_failure_requiring_niv, day: 1}]
+    expect:
+      all: [complication.niv.started, discharge.held.ventilation]
+
+  - id: airway_and_icu
+    disease: asthma_exacerbation
+    severity: severe
+    patient: {age: 45, sex: F}
+    force_complications: [{name: respiratory_failure, day: 1}]
+    expect:
+      all: [complication.airway.secured, complication.icu_transfer, discharge.held.ventilation]
+
+  - id: icu_transfer
+    disease: acute_mi
+    severity: severe
+    patient: {age: 66, sex: M}
+    force_complications: [{name: cardiogenic_shock, day: 1}]
+    expect:
+      all: [complication.icu_transfer]
+
+  # --- responses and transitions -----------------------------------------------
+  - id: vasopressor_start
+    disease: sepsis
+    severity: severe
+    archetype: gradual_deterioration
+    patient: {age: 77, sex: M}
+    expect:
+      all: [response.vasopressor.started, discharge.held.vasoactive_support]
+
+  - id: ketoacidosis_transition
+    disease: diabetic_ketoacidosis
+    severity: moderate
+    patient: {age: 34, sex: F}
+    expect:
+      all: [response.ketoacidosis.subcutaneous_transition]
+
+  - id: hyperkalemia_aki_dialysis
+    disease: acute_kidney_injury
+    severity: severe
+    patient: {age: 73, sex: M}
+    expect:
+      all:
+        - response.hyperkalemia.order_set
+        - response.renal_replacement.session
+        - discharge.held.findings_unresolved
+        - discharge.ceiling_extended
+
+  - id: potassium_dose_hold
+    disease: heart_failure_exacerbation
+    severity: severe
+    archetype: gradual_deterioration
+    patient: {age: 75, sex: M, chronic_conditions: [I50.9, N18]}
+    expect:
+      all: [response.hyperkalemia.order_set, mar_hold.potassium]
+
+  - id: lactate_and_aki_dose_holds
+    disease: bacterial_pneumonia
+    severity: severe
+    archetype: gradual_deterioration
+    patient: {age: 68, sex: F, chronic_conditions: [E11.9]}
+    expect:
+      all: [mar_hold.lactate, mar_hold.aki]
+
+  - id: ventricular_rate
+    disease: atrial_fibrillation_rvr
+    severity: severe
+    archetype: treatment_resistant
+    patient: {age: 81, sex: F}
+    expect:
+      all: [discharge.held.ventricular_rate]
+
+  # --- hospital-acquired infection --------------------------------------------
+  # The infection needs an ICU line of three days or more (the forced HAI
+  # mirrors the sampled one), hence the forced respiratory failure.
+  - id: hai_clabsi
+    disease: asthma_exacerbation
+    severity: severe
+    archetype: dip_then_recovery
+    patient: {age: 55, sex: M}
+    force_complications: [{name: respiratory_failure, day: 1}]
+    force_hai_event: {hai_type: clabsi, onset_offset_days: 3, organism_snomed: "3092008"}
+    expect:
+      all: [hai.event.clabsi]
+
+  # --- perinatal --------------------------------------------------------------
+  - id: deliveries
+    kind: delivery
+    count: 12
+    mother_age: 31
+    expect:
+      all: [perinatal.delivery.vaginal, perinatal.delivery.cesarean]

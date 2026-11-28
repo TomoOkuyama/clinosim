@@ -136,6 +136,9 @@ clinosim/simulator/
   __init__.py            public API (5 exports)
   cli.py                 argparse entry, top-level subcommand dispatch
   engine.py              run_alpha / run_beta / run_forced
+  forced_complications.py  test-only forcing of a protocol complication on a stated day for
+                         run_forced (ForcedScenario.force_complications; the refactoring corpus,
+                         Issue #3976)
   _setup.py              run setup / pre-flight helpers (re-exported by engine)
   _dispatch.py           hospital-event dispatch + overlap handling
                          (`_dispatch_hospital_events`)

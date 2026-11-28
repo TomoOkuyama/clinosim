@@ -33,6 +33,7 @@ Governing spec: [`determinism-and-rng-spec.md`](determinism-and-rng-spec.md).
 | `clinosim/modules/_shared.py` `random_day_of_month(rng, year, month)` | A uniform calendar day inside a month (leap-year aware). |
 | `clinosim/modules/_shared.py` `select_with_exclusive_classes(drug_specs, exclusive_classes, rng)` | Drug selection where at most one drug of each exclusive class may be chosen. |
 | `clinosim/modules/order/placed_order_mar.py` `stable_nurse(roster, key, ward=, department=)` | The giving nurse on an administration row, picked by stable hash (no draw). |
+| `clinosim/fired_counters.py` `count(path, n, when=)` / `count_each(prefix, names)` | Record that a named code path ran (Issue #3976). Draws nothing and is not written into CIF or FHIR; `scripts/refactor-diff.sh` prints the counts. Add one call at each path a refactoring moves. |
 
 ## 2. Reference data, configuration and age bands
 

@@ -110,6 +110,7 @@ from clinosim.modules.hai.lab_lift import (
   `source_device_type` が `devices.yaml` の device を指すことを検証)。
 - `clinosim.audit.registry` (`audit.py` 経由) — AD-60 audit 登録。
 - `clinosim.determinism` — 患者単位 sub-RNG 用の `default_rng`。
+- `clinosim.fired_counters` — `count` (リファクタリング検証用の発火カウンタ `hai.event.<type>`、Issue #3976。乱数を消費しない)。
 - `clinosim.codes` — `code_exists` (YAML model での code 検証)。
 - `clinosim.datafiles` — `load_data_yaml`, `load_validated_yaml`。
 - `clinosim.locale` — `loader.load_code_mapping` (`engine.py`)、

@@ -132,6 +132,9 @@ clinosim/simulator/
   cli.py                 argparse エントリ、トップレベルサブコマンド
                          dispatch
   engine.py              run_alpha / run_beta / run_forced
+  forced_complications.py  run_forced 用のテスト専用強制: プロトコルの合併症を指定日に発症させる
+                         (ForcedScenario.force_complications。リファクタリング用コーパス、
+                         Issue #3976)
   _setup.py              実行セットアップ / pre-flight ヘルパー (engine が再 export)
   _dispatch.py           病院イベント dispatch + 重複処理
                          (`_dispatch_hospital_events`)

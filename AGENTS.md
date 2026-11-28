@@ -161,7 +161,7 @@ Normative: [`narrative-and-document-generation-spec.md`](docs/design-guides/narr
 
 ### Module independence and extension points (AD-55 / AD-56 / AD-58)
 
-- A module under `clinosim/modules/` depends only on `clinosim/types/`, `clinosim/codes/`, `clinosim/locale/`, the top-level helpers (`clinosim/determinism.py`, `seeding.py`, `datafiles.py`, `countries.py`, `age_bands.py`) and the modules listed in its README's Dependencies section.
+- A module under `clinosim/modules/` depends only on `clinosim/types/`, `clinosim/codes/`, `clinosim/locale/`, the top-level helpers (`clinosim/determinism.py`, `seeding.py`, `datafiles.py`, `countries.py`, `age_bands.py`, `fired_counters.py`) and the modules listed in its README's Dependencies section.
 - **Near-essential data → Base** (types / population / observation / simulator / output); **specialised data → a module**, one theme per module. Always-on modules are the near-essential clinical cascade (`device` → `hai` → `antibiotic`, `imaging`, `allergy`, `document`, `triage`, `nursing`), registered with `enabled=lambda c: True` and a no-op when their input is empty.
 - Modules write to `CIFPatientRecord.extensions[<module>]`; only Base adds typed fields to core types.
 - Extend through the registries, never by editing the dispatch body: `register_bundle_builder()` (a FHIR resource), `register_output_adapter()` (an output format), `register_enricher()` in `simulator/enrichers.py::register_builtin_enrichers` (a post-population / post-encounter / post-records pass).

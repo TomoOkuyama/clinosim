@@ -52,6 +52,7 @@
 
 - `bash scripts/reproduce.sh` は実行を再現し、全出力ファイルの sha256 を比べる。
 - 出力不変のはずの変更は、同じ基点コミットから作った master に対して CIF・FHIR のバイト差分 0 を示す(US と JP)。
+- リファクタリングは `scripts/refactor-diff.sh <base> <head>` で示す。US・JP コホートに強制シナリオのコーパス(`tests/refactor_corpus/`)を加え、移した経路ごとの発火回数を表示する(`docs/development/testing.ja.md`)。発火カウンタ(`clinosim/fired_counters.py` の `count`)は乱数を消費せず CIF にも FHIR にも書かれないので、カウンタ呼び出しは常に RNG 中立。ガード: `tests/unit/test_fired_counters_3976.py`。`ForcedScenario.force_complications` を読むのは `run_forced` だけで、人口ベースの実行は読まない(`tests/unit/simulator/test_forced_complications_3976.py`)。
 - 結果を変える変更は、同じ基点コミットのコホートを比べ、変わったパス(例 `orders[].result`, `microbiology`)と差分のある患者数を PR に書く。意図しないストリームのずれが見えるようにするため。
 
 ## 7. 反復順とキャッシュ
