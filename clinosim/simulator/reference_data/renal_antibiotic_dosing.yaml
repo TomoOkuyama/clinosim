@@ -8,11 +8,17 @@
 # A drug is listed for a country only where the label of that country was read
 # and states creatinine-clearance bands. Each band applies to a rounded
 # clearance up to `max_crcl` (mL/min, inclusive); the order's dose becomes
-# `dose_factor` x the written dose and its interval `interval_hours`. A clearance
-# above the last band leaves the order unchanged. `reference_dose_mg`, when
-# set, limits the rule to an order written with exactly that dose (the dose
-# the label's table is stated for); an order written with another dose is not
-# adjusted.
+# `dose_factor` x the written dose and its interval `interval_hours`. A band
+# whose label states an absolute daily dose gives `daily_dose_mg` (mg per 24 h)
+# instead of `dose_factor`: the order is then written as that dose spread over
+# `interval_hours` (a weight-based order, mg/kg, included), and is not raised
+# when it already is at or below it. A clearance above the last band leaves
+# the order unchanged. `reference_dose_mg`, when set, limits the rule to an
+# order written with exactly that dose (the dose the label's table is stated
+# for); an order written with another dose is not adjusted.
+# `first_dose_unchanged: true` keeps the order's written first dose (the label
+# fixes the initial dose apart from the maintenance table): the first
+# administration is the written dose and the adjusted regimen follows.
 #
 # Sources (read on 2026-11-24):
 #   - US meropenem: openFDA drug label "Meropenem for injection" (api.fda.gov
@@ -47,11 +53,32 @@
 #     1回20mg1日2回; 60未満30超 "1回20mg1日1回又は1回10mg1日2回"; 30以下
 #     "1回10mg2日に1回又は1回5mg1日1回". Kept: 10 mg twice daily (60 to 31) and
 #     5 mg once daily (30 or below).
-#   Not listed: JP piperacillin / tazobactam (the PMDA package insert of
+#   - US vancomycin (Issue #3961): openFDA drug label "Vancomycin Hydrochloride"
+#     (api.fda.gov /drug/label.json, generic_name vancomycin hydrochloride,
+#     route intravenous; e.g. Gland Pharma, effective 2026-01-30), Dosage and
+#     Administration, "Patients with Impaired Renal Function and Elderly
+#     Patients": "The dosage of vancomycin hydrochloride for injection per day
+#     in mg is about 15 times the glomerular filtration rate in mL/min (see
+#     following table)", table of creatinine clearance (mL/min) -> vancomycin
+#     dose (mg/24 h): 100 1,545; 90 1,390; 80 1,235; 70 1,080; 60 925; 50 770;
+#     40 620; 30 465; 20 310; 10 155. "The initial dose should be no less than
+#     15 mg/kg, even in patients with mild to moderate renal insufficiency."
+#     A clearance between two rows takes the row at or above it (the bands are
+#     "up to" the row's clearance), and a clearance below 10 takes the 10 row;
+#     the label's table "is not valid for functionally anephric patients" and
+#     states no clearance cut for them. The table is a daily dose, so the
+#     regimen is that dose once every 24 hours.
+#   Not listed: JP vancomycin (the PMDA package insert of vancomycin
+#     hydrochloride for intravenous infusion (pmda.go.jp iyakuDetail
+#     180024_6113400A1200_1_04), section 7, says to correct the dose for renal
+#     impairment "クレアチニンクリアランスから投与量を修正する目安は下図により
+#     算出できる" with the nomogram as a figure only, and section 9.2 says to
+#     adjust dose and interval and to monitor blood levels; no readable
+#     numbers), JP piperacillin / tazobactam (the PMDA package insert of
 #     ゾシン静注用, 2023-02 revision, section 9.2, says only to reduce the dose or
 #     lengthen the interval by the degree of impairment, without Ccr bands),
 #     and every antibiotic whose label was not read (cefepime, ampicillin /
-#     sulbactam and others).
+#     sulbactam, levofloxacin, cefazolin and others).
 metadata:
   kind: reference
   name: renal_antibiotic_dosing
@@ -81,6 +108,20 @@ drugs:
       bands:
         - {max_crcl: 19, dose_factor: 0.5, interval_hours: 6}
         - {max_crcl: 40, dose_factor: 0.75, interval_hours: 6}
+  vancomycin:
+    US:
+      first_dose_unchanged: true
+      bands:
+        - {max_crcl: 10, daily_dose_mg: 155, interval_hours: 24}
+        - {max_crcl: 20, daily_dose_mg: 310, interval_hours: 24}
+        - {max_crcl: 30, daily_dose_mg: 465, interval_hours: 24}
+        - {max_crcl: 40, daily_dose_mg: 620, interval_hours: 24}
+        - {max_crcl: 50, daily_dose_mg: 770, interval_hours: 24}
+        - {max_crcl: 60, daily_dose_mg: 925, interval_hours: 24}
+        - {max_crcl: 70, daily_dose_mg: 1080, interval_hours: 24}
+        - {max_crcl: 80, daily_dose_mg: 1235, interval_hours: 24}
+        - {max_crcl: 90, daily_dose_mg: 1390, interval_hours: 24}
+        - {max_crcl: 100, daily_dose_mg: 1545, interval_hours: 24}
   famotidine:
     US:
       reference_dose_mg: 20

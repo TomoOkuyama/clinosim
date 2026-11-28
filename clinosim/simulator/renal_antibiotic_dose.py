@@ -1,7 +1,8 @@
 """Renal dose adjustment of inpatient antibiotics (Issue #3638).
 
 A listed antibiotic (``reference_data/renal_antibiotic_dosing.yaml``: meropenem
-and, in the US, piperacillin / tazobactam, the drugs whose labels were read) is
+and, in the US, piperacillin / tazobactam and vancomycin, the drugs whose labels
+were read) is
 given at a dose and interval chosen from the patient's creatinine clearance
 (Cockcroft-Gault). The decision is made once per order, at its first dose, from
 the latest creatinine resulted by the order time, else the stay's first result
@@ -20,7 +21,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, NamedTuple
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from clinosim.codes.drugs import drug_ref
 from clinosim.countries import country_code
@@ -30,7 +31,8 @@ from clinosim.types.encounter import Order, OrderResult
 
 _REF = Path(__file__).resolve().parent / "reference_data" / "renal_antibiotic_dosing.yaml"
 _STRENGTH = re.compile(r"(\d+(?:\.\d+)?)\s*(mg|g)\b", re.IGNORECASE)
-_INTERVAL = re.compile(r"\bq\d+h\b", re.IGNORECASE)
+_PER_KG_STRENGTH = re.compile(r"(\d+(?:\.\d+)?)\s*mg\s*/\s*kg\b", re.IGNORECASE)
+_INTERVAL = re.compile(r"\bq\d+(?:-\d+)?h\b", re.IGNORECASE)
 _MG_PER_UNIT = {"mg": 1.0, "g": 1000.0}
 _MG_PER_G = _MG_PER_UNIT["g"]
 _SAME_DOSE_TOLERANCE_MG = 1e-6
@@ -49,13 +51,21 @@ class _CockcroftGault(BaseModel):
 class _Band(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     max_crcl: int = Field(gt=0)
-    dose_factor: float = Field(gt=0, le=1)
+    dose_factor: float | None = Field(default=None, gt=0, le=1)
+    daily_dose_mg: float | None = Field(default=None, gt=0)
     interval_hours: int = Field(gt=0, le=24)
+
+    @model_validator(mode="after")
+    def _one_dose_rule(self) -> _Band:
+        if (self.dose_factor is None) == (self.daily_dose_mg is None):
+            raise ValueError("a band gives exactly one of dose_factor and daily_dose_mg")
+        return self
 
 
 class _CountryRule(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     reference_dose_mg: float | None = Field(default=None, gt=0)
+    first_dose_unchanged: bool = False
     bands: list[_Band] = Field(min_length=1)
 
 
@@ -103,10 +113,12 @@ def _creatinine_at(results: Sequence[OrderResult], at: datetime, lab: str) -> fl
     return before[-1] if before else series[0][1]
 
 
-def _rewritten_name(name: str, mg: float, interval: str) -> str:
+def _rewritten_name(name: str, mg: float, interval: str, *, in_mg: bool = False) -> str:
     """``name`` with a written strength and interval following the new regimen."""
-    new = f"{mg / _MG_PER_G:g}g" if mg >= _MG_PER_G else f"{mg:g}mg"
-    name = _STRENGTH.sub(new, name, count=1)
+    new = f"{mg / _MG_PER_G:g}g" if mg >= _MG_PER_G and not in_mg else f"{mg:g}mg"
+    name = (
+        _PER_KG_STRENGTH.sub(new, name, count=1) if _PER_KG_STRENGTH.search(name) else _STRENGTH.sub(new, name, count=1)
+    )
     # A once-daily regimen drops the written "q12h" for "daily" (Issue #3917).
     return _INTERVAL.sub("daily" if interval.upper() == "DAILY" else interval.lower(), name, count=1)
 
@@ -137,6 +149,28 @@ def creatinine_clearance(
     return cockcroft_gault_ml_min(age_years, weight, creatinine, str(patient.sex))
 
 
+def _written_mg(order: Order, patient: Any, admission_time: datetime, context: RenalDoseContext) -> float | None:
+    """The mg of one written dose; a per-kg dose is for the weight charted on
+    the encounter, capped at the written maximum. ``None`` for any other unit."""
+    from clinosim.modules.population.encounter_anthropometry import encounter_weight_kg
+
+    unit = str(order.dose_unit).lower()
+    quantity = float(order.dose_quantity or 0.0)
+    if unit in _MG_PER_UNIT:
+        return quantity * _MG_PER_UNIT[unit]
+    if unit == "mg/kg":
+        mg = quantity * encounter_weight_kg(patient, order.encounter_id, admission_time, context.country)
+        return min(mg, float(order.dose_max_quantity)) if order.dose_max_quantity else mg
+    return None
+
+
+def keeps_first_dose(order: Order, country: str) -> bool:
+    """Whether the label of ``order``'s drug fixes the first dose apart from
+    the renal maintenance regimen (``first_dose_unchanged``)."""
+    rule = _rules().drugs.get(order.drug_id or drug_ref(order.display_name or ""), {}).get(country_code(country))
+    return bool(rule and rule.first_dose_unchanged)
+
+
 def apply_renal_dose(
     order: Order, patient: Any, admission_time: datetime, at: datetime, context: RenalDoseContext
 ) -> None:
@@ -146,6 +180,8 @@ def apply_renal_dose(
     age at admission and the weight the one charted on the encounter."""
     if order.renal_crcl_ml_min is not None or order.dose_quantity is None:
         return
+    if str(order.route or "").upper() == "PO":
+        return  # the labels' tables are for the injections (oral vancomycin is not absorbed)
     rules = _rules()
     key = order.drug_id or drug_ref(order.display_name or "")
     rule = rules.drugs.get(key, {}).get(country_code(context.country))
@@ -156,21 +192,33 @@ def apply_renal_dose(
         return
     order.renal_crcl_ml_min = round(crcl, 1)
     band = next((b for b in sorted(rule.bands, key=lambda b: b.max_crcl) if round(crcl) <= b.max_crcl), None)
-    per_unit = _MG_PER_UNIT.get(str(order.dose_unit).lower())
-    if band is None or per_unit is None:
+    if band is None:
         return
-    written_mg = float(order.dose_quantity) * per_unit
-    if rule.reference_dose_mg is not None and abs(written_mg - rule.reference_dose_mg) > _SAME_DOSE_TOLERANCE_MG:
-        return
-    mg = written_mg * band.dose_factor
+    if band.daily_dose_mg is not None:
+        # An absolute daily dose (vancomycin): the written dose may be weight
+        # based, and a regimen already at or below the label dose is kept.
+        written_mg = _written_mg(order, patient, admission_time, context)
+        if written_mg is None or written_mg * (order.frequency_per_day or 1) <= band.daily_dose_mg:
+            return
+        mg = band.daily_dose_mg * band.interval_hours / _HOURS_PER_DAY
+    else:
+        per_unit = _MG_PER_UNIT.get(str(order.dose_unit).lower())
+        if per_unit is None or band.dose_factor is None:
+            return
+        written_mg = float(order.dose_quantity) * per_unit
+        if rule.reference_dose_mg is not None and abs(written_mg - rule.reference_dose_mg) > _SAME_DOSE_TOLERANCE_MG:
+            return
+        mg = written_mg * band.dose_factor
     frequency = "DAILY" if band.interval_hours == _HOURS_PER_DAY else f"Q{band.interval_hours}H"
     if abs(mg - written_mg) < _SAME_DOSE_TOLERANCE_MG and (order.frequency or "").upper() == frequency:
         return
-    order.dose_unit = "mg" if mg < _MG_PER_G else "g"
-    order.dose_quantity = round(mg if mg < _MG_PER_G else mg / _MG_PER_G, 3)
+    in_mg = mg < _MG_PER_G or band.daily_dose_mg is not None  # a label table stated in mg stays in mg
+    order.dose_unit = "mg" if in_mg else "g"
+    order.dose_quantity = round(mg if in_mg else mg / _MG_PER_G, 3)
+    order.dose_max_quantity = None  # a per-kg order's cap does not apply to the absolute dose
     order.frequency = frequency
     order.frequency_per_day = _HOURS_PER_DAY // band.interval_hours
-    order.display_name = _rewritten_name(order.display_name or "", mg, frequency)
+    order.display_name = _rewritten_name(order.display_name or "", mg, frequency, in_mg=in_mg)
     order.renal_dose_adjusted = True
     order.clinical_intent = (order.clinical_intent or "") + t(
         "order_intent.dose_adjusted_crcl", "en", crcl=f"{crcl:.0f}"

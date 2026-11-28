@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import functools
 from collections.abc import Collection, Iterable
+from dataclasses import replace
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Literal, NamedTuple
@@ -64,7 +65,7 @@ from clinosim.simulator.aki_response import (
 )
 from clinosim.simulator.helpers import _determine_route
 from clinosim.simulator.permissive_hypertension import permissive_hold_reason, permissive_windows
-from clinosim.simulator.renal_antibiotic_dose import RenalDoseContext, apply_renal_dose
+from clinosim.simulator.renal_antibiotic_dose import RenalDoseContext, apply_renal_dose, keeps_first_dose
 from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.encounter import (
     MedicationAdministration,
@@ -1073,8 +1074,15 @@ def _generate_mar(
         # 0 / None is open-ended.
         if order.duration_days and day - max(order_day, _start_day(order, admission_time)) >= order.duration_days:
             continue
+        first_dose: tuple[str, str] | None = None
         if renal is not None and day == order_day and child is None:
+            written = replace(order) if order.renal_crcl_ml_min is None else None
             apply_renal_dose(order, patient, admission_time, not_before, renal)
+            # Issue #3961: where the label fixes the first dose (vancomycin,
+            # 15 mg/kg), it is given as written and the adjusted regimen
+            # follows from the next day.
+            if written is not None and order.renal_dose_adjusted and keeps_first_dose(order, renal.country):
+                first_dose = (_given_dose_text(written, patient, child_weight), written.display_name)
             # Issue #3871: the administrations of the day the order is
             # adjusted carry its adjusted name, not the one it had on entry.
             drug_name = order.display_name
@@ -1204,6 +1212,9 @@ def _generate_mar(
                 continue
             scheduled_times.append(scheduled)
 
+        if first_dose is not None:
+            scheduled_times = sorted(scheduled_times)[:1]
+
         for scheduled in scheduled_times:
             # Determine status
             status = "given"
@@ -1257,10 +1268,12 @@ def _generate_mar(
                     dose_text += f" {order.frequency}"
             else:
                 dose_text = order.display_name
+            if first_dose is not None:
+                dose_text = first_dose[0]
             mars.append(
                 MedicationAdministration(
                     order_id=order.order_id,
-                    drug_name=drug_name,
+                    drug_name=first_dose[1] if first_dose is not None else drug_name,
                     scheduled_datetime=scheduled,
                     actual_datetime=actual,
                     status=status,
