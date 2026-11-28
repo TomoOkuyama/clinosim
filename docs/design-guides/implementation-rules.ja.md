@@ -60,6 +60,11 @@ clinosim は **ロジックをコードに、定数・変数・パラメータ�
 - 国・年齢・性別のデータをコードに直書きする変更はレビューで差し戻す。既存の
   直書きに触れたら、小さければ同じ PR で YAML に移し、大きければ Issue に
   する。
+- ラチェットテスト (`tests/unit/test_code_data_separation_3137.py`) は、国・言語の
+  分岐と比較中の数値リテラルの合計を、記録した合計に保つ。増えれば失敗し、減れば
+  ベースラインを編集せずに通り、ファイルの移動・改名は増加ではない。機能の変更で
+  ベースラインを編集しない。記録した合計は
+  `python -m tests.unit.code_data_separation --write` で下げる (合計は上げられない)。
 
 置き場所の詳細: [文書・コード品質ポリシー §5](documentation-and-code-quality-policy.ja.md#5-定数と設定)、
 [設定・参照データ仕様](configuration-and-reference-data-spec.ja.md)。
