@@ -39,9 +39,11 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+## [0.7.5] - 2026-11-28
+
 ### Highlights
 
-About 65 commits since v0.7.4, from a per-patient review of the v0.7.4 sample cohorts (5 patients per country, stratified), a whole-cohort and per-patient review of the release candidate, and their follow-ups.
+About 70 commits since v0.7.4, from a per-patient review of the v0.7.4 sample cohorts (5 patients per country, stratified), a whole-cohort and per-patient review of the release candidate, and their follow-ups.
 
 - **In-hospital complications are treated and coded.** A complication now gets the treatment it declares (therapeutic anticoagulation for venous thromboembolism, an anticoagulant hold and a proton pump inhibitor for a gastrointestinal bleed, a C. difficile regimen chosen by country, severity and recurrence risk), and every disease-like complication becomes a dated Condition with the code of the disease its protocol describes; a complication whose diagnosis the stay already carries is named with that code.
 - **Orders, labs and doses.** Weight-based heparin boluses and infusions, labs drawn once per analyte and inside the visit, steadier serial CRP, renally adjusted first-day doses, edoxaban dosed by the Japanese package insert, and cancer surveillance procedures done for their cancer.
