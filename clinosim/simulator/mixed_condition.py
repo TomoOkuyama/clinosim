@@ -40,6 +40,7 @@ from clinosim.modules.order.engine import (
 )
 from clinosim.modules.order.supersede import orders_replace_each_other
 from clinosim.seeding import co_disease_orders_seed
+from clinosim.simulator.encounter_setup import clamp_to_window
 from clinosim.types.encounter import Order, OrderType
 
 CO_DISEASE_ID_INFIX = "C"
@@ -228,6 +229,9 @@ def co_disease_orders(
         rng=rng,
         sequence_counter=imaging_seq,
     )
+    # Issue #3957: a negative placement draw does not date an order before the start.
+    for _o in (*orders, *imaging):
+        _o.ordered_datetime = clamp_to_window(_o.ordered_datetime, start)
     merged = merge_co_disease_orders(existing, orders, imaging)
     if treat_day > 0:
         # A late recognition is not part of the initial (ED) orders.

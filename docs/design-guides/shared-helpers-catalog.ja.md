@@ -145,6 +145,7 @@ Governing specs: [`medication-lifecycle-spec.ja.md`](medication-lifecycle-spec.j
 | `clinosim/simulator/medication_pipeline.py` `allergy_blocked(patient, drug_name, ...)` | 代替薬を出せない処方 (継続処方・固定バンドル項目) で、アレルギーにより除外なら True (スキップを記録)。 |
 | `clinosim/simulator/medication_pipeline.py` `log_allergy_skip(patient, drug_name, verdict, ...)` | アレルギーで除外した処方項目を、代替薬があればそれも添えて `patient.safety_skip_log` に記録する。 |
 | `clinosim/modules/order/pediatric_dose.py` `pediatric_order_name(name, age_months, weight_kg)` | 成人固定用量のオーダーを小児の体重から再計算する。最小月齢未満なら None。 |
+| `clinosim/simulator/encounter_setup.py` `clamp_to_window(when, start, end)` | 基準時刻に乱数オフセットを足した配置時刻を、抽選の後でエンカウンターの期間内に収める。オーダーがエンカウンター開始より前の日時にならない (`end` が None なら上限なし)。 |
 | `clinosim/simulator/encounter_setup.py` `extend_visit_to_procedures(encounter, procedures)` | 受診が最後の処置の終了まで続くよう延長する。 |
 | `clinosim/simulator/encounter_setup.py` `fit_procedures_in_stay(procedures, start, end)` | 各処置を在院期間内に収める (`end` が None なら在院中)。 |
 | `clinosim/simulator/encounter_setup.py` `fit_rehab_sessions_in_stay(sessions, start, end)` | 在院期間内にあるリハビリテーションセッションだけを残す。収まらないセッションは移動せず除外する (`end` が None なら在院中)。 |
