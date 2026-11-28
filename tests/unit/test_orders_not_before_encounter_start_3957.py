@@ -142,10 +142,14 @@ def _stay(disease: str):
 
 
 @pytest.mark.parametrize("disease", ["elective_knee_arthroplasty", "bacterial_pneumonia"])
-def test_admission_orders_are_not_before_the_admission_for_a_negative_draw(monkeypatch, disease: str) -> None:
-    """A direct admission has no ED period: a negative placement draw must not
-    put an admission lab, imaging or medication order before the admission."""
+def test_admission_orders_are_not_before_the_encounter_start_for_a_negative_draw(monkeypatch, disease: str) -> None:
+    """With every placement draw forced negative, no admission work-up order is
+    dated before the start of its encounter: the admission for a direct
+    admission, the ED arrival (the start of the ED phase, ``admission -
+    admitted_ed_stay()``) for a stay admitted through the ED."""
+    from clinosim.codes.hl7_encounter import AdmitSource
     from clinosim.modules.order import engine
+    from clinosim.modules.triage.engine import admitted_ed_stay
 
     for name in (
         "ADMISSION_LAB_PLACEMENT_MEAN_MIN",
@@ -154,14 +158,15 @@ def test_admission_orders_are_not_before_the_admission_for_a_negative_draw(monke
         "ADMISSION_SUPPORTIVE_PLACEMENT_MEAN_MIN",
         "DAILY_IMAGING_PLACEMENT_MEAN_MIN",
     ):
-        monkeypatch.setattr(engine, name, -90.0)
+        monkeypatch.setattr(engine, name, -600.0)
     record = _stay(disease)
     enc = record.encounters[0]
-    # A stay admitted through the ED places its work-up from the ED arrival.
-    floor = enc.admission_datetime - timedelta(hours=12)
-    ward_floor = enc.admission_datetime
-    early = [o.order_id for o in record.orders if o.ordered_datetime < floor]
+    via_ed = enc.admit_source == AdmitSource.EMD
+    assert via_ed == (disease == "bacterial_pneumonia")
+    floor = enc.admission_datetime - (admitted_ed_stay() if via_ed else timedelta(0))
+    admission_work_up = [o for o in record.orders if "-ADM-" in o.order_id or o.order_id.split("-")[-1].startswith("I")]
+    assert admission_work_up
+    early = [(o.order_id, o.ordered_datetime) for o in admission_work_up if o.ordered_datetime < floor]
     assert early == []
-    if disease == "elective_knee_arthroplasty":
-        before = [(o.order_id, o.ordered_datetime) for o in record.orders if o.ordered_datetime < ward_floor]
-        assert before == []
+    # the forced draw reaches the floor, so the rule (not the draw) holds the time
+    assert any(o.ordered_datetime == floor for o in admission_work_up)
