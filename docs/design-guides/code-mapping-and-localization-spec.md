@@ -124,6 +124,7 @@ codes:
   - **Data aliases.** `_SYSTEM_DATA_ALIASES`: the same data under another URI, for example `icd-10-mhlw` → `icd-10`.
   - **Lookup siblings.** `_SYSTEM_LOOKUP_SIBLINGS`: display lookups that fall back to another system, for example `yj` → `hot7`, and an ICD-10-CM code taking the MHLW Japanese name of the same WHO code.
 - A system the generator addresses by slug rather than by code (OMB race and ethnicity) keeps a `slug_to_code` block in the same file, read through `slug_to_code`.
+- `metadata.version` names the edition of the snapshot in `codes/authoritative/` the file is verified against, as the snapshot records it (for example `2.83` for `loinc.yaml` against `loinc_2_83_tx.json`). It is not emitted. `tests/unit/codes/test_code_file_versions_4027.py` lists the pairs and fails when a version and its snapshot disagree; a file without a snapshot keeps the version its source states.
 
 ### 3.4 Country code mapping
 

@@ -17,7 +17,7 @@ metadata:
   kind: code-system
   name: LOINC
   uri: http://loinc.org
-  version: '2.76'
+  version: '2.83'  # edition of codes/authoritative/loinc_2_83_tx.json (Issue #4027)
   source: "Regenstrief LOINC; US lab codes verified vs NLM Clinical Tables LOINC API (2026-06)"
   description: Logical Observation Identifiers Names and Codes
 codes:

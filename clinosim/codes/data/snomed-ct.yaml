@@ -2,7 +2,7 @@ metadata:
   kind: code-system
   name: SNOMED CT
   uri: http://snomed.info/sct
-  version: '2024-03'
+  version: '2025-02-01'  # edition of codes/authoritative/snomed_ct_tx.json (International Edition) (Issue #4027)
   description: |
     SNOMED Clinical Terms — subset used by clinosim for FHIR Procedure
     category, performer functions, outcomes, complications, and body sites.

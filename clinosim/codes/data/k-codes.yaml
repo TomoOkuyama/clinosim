@@ -11,7 +11,7 @@ metadata:
   kind: code-system
   name: K-codes
   uri: urn:oid:1.2.392.200119.4.401
-  version: '2024'
+  version: '2026-10-13'  # edition of codes/authoritative/shinryo_koui_ssk_20261013_ja.json (s_ALL20261013.csv) (Issue #4027)
   source: "MHLW 診療報酬点数表 (K/D/G/J codes)"
   description: |
     Japanese procedure codes (診療報酬点数表: K手術, D検査, G処置, J処置).

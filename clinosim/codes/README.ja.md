@@ -253,7 +253,7 @@ DiagnosticServiceSection)、US Core documentreference-category。
 metadata:
   name: "ICD-10-CM"                              # 人間可読名
   uri: "http://hl7.org/fhir/sid/icd-10-cm"       # FHIR canonical URI
-  version: "2024"                                # 版 / 年
+  version: "FY2027"                              # 照合したスナップショットの版
   description: "International Classification..." # 説明
 
 codes:

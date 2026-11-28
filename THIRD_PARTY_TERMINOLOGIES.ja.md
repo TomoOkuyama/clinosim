@@ -6,7 +6,7 @@ clinosim は MIT ライセンスである ([`LICENSE`](LICENSE) 参照)。リポ
 
 - **時点:** 2026-11-28。事実は各ファイル自身の `metadata` ブロックとヘッダーコメント、[`clinosim/codes/authoritative/README.ja.md`](clinosim/codes/authoritative/README.ja.md)、およびファイルを数えた結果による。4 章のライセンスページは 2026-11-28 に開いた。
 - **「ライセンス未確認」** は、所有者のライセンスページを読めなかったか、読んだページにこの内容のライセンスが書かれていなかったことを意味する。ライセンスが存在しないという意味ではない。
-- **配布されるもの:** sdist は `clinosim/**/*.yaml` と `clinosim/**/*.json` を含む ([`pyproject.toml`](pyproject.toml) の `[tool.hatch.build.targets.sdist]`) ので、以下のファイルはすべて sdist に入る。wheel のターゲットは `clinosim` をパッケージし (`packages = ["clinosim"]`)、sdist の節のコメントは wheel がヒントなしで YAML データを含めると述べている。このファイルのために wheel をビルドして中身を確認してはいない。
+- **配布されるもの:** sdist は `clinosim/**/*.yaml` と `clinosim/**/*.json` を含む ([`pyproject.toml`](pyproject.toml) の `[tool.hatch.build.targets.sdist]`) ので、以下のファイルはすべて sdist に入る。wheel のターゲットは `clinosim` をパッケージし (`packages = ["clinosim"]`)、sdist の節のコメントは wheel がヒントなしで YAML データを含めると述べている。このファイルのために wheel をビルドして中身を確認してはいない。Issue #4027 以降、sdist は `NOTICE` とこのファイル (英語版・日本語版) も含み、ビルドした wheel は `clinosim-<version>.dist-info/licenses/` に `NOTICE` と `LICENSE` を含む (ビルドして確認)。
 - **同梱していないもの:** JP-CLINS の `clinical-information-sharing` と `jpfhir-terminology` の FHIR パッケージ。検体検査コーディングのローダーは実行時に `$CLINOSIM_JP_CLINS_PKG_DIR`、`~/.fhir/packages/` のキャッシュ、または隣接する `../fhir-jp-validator` チェックアウトから読む (`clinosim/modules/output/fhir_r4/labs/coding_package.py::_find_pkg_files`)。
 
 ## 1. `clinosim/codes/authoritative/` のスナップショット
@@ -36,15 +36,15 @@ clinosim は MIT ライセンスである ([`LICENSE`](LICENSE) 参照)。リポ
 
 | ファイル | 記録された体系と所有者 | 記録された版 | 件数 | 複製している内容 | スナップショットとの一致 |
 |---|---|---|---|---|---|
-| `icd-10-cm.yaml` | ICD-10-CM、CMS / NCHS | `2024` (スナップショット: FY2027) | 621 (`en`)、193 (`ja`) | `en` = CMS の long description。CM のみのコードの `ja` は clinosim の翻訳 (ファイルヘッダー) | `en` 621 件中 602 件がスナップショットと一致 (19 コードはスナップショットにない) |
+| `icd-10-cm.yaml` | ICD-10-CM、CMS / NCHS | `FY2027` | 621 (`en`)、193 (`ja`) | `en` = CMS の long description。CM のみのコードの `ja` は clinosim の翻訳 (ファイルヘッダー) | `en` 621 件中 602 件がスナップショットと一致 (19 コードはスナップショットにない) |
 | `icd-10.yaml` | WHO ICD-10。`ja` は厚労省の基本分類表 | `WHO 2019` | 491 | `en` = WHO の display、`ja` = 厚労省の正式名称 (そのまま) | `en`: 491 件中 427 件が WHO スナップショットの語と一致。`ja`: 491 件中 475 件が厚労省スナップショットと一致 |
-| `loinc.yaml` | LOINC、Regenstrief Institute | `2.76` (スナップショット: 2.83) | 373 | `en` = LOINC の designation (注記がなければ LONG_COMMON_NAME)。`ja` の出典は記録なし | 373 件中 373 件 |
-| `snomed-ct.yaml` | SNOMED CT、SNOMED International | `2024-03` (スナップショット: 2025-02-01 / 20260701) | 289 | `en` = preferred term、synonym または FSN。`ja` の出典は記録なし | 289 件中 286 件 |
-| `rxnorm.yaml` | RxNorm、NLM | `2024` | 1,450 (`en`)、241 (`ja`) | `en` = 薬剤名 | `en` 1,450 件中 1,269 件が RxNav の name と一致 |
+| `loinc.yaml` | LOINC、Regenstrief Institute | `2.83` | 373 | `en` = LOINC の designation (注記がなければ LONG_COMMON_NAME)。`ja` の出典は記録なし | 373 件中 373 件 |
+| `snomed-ct.yaml` | SNOMED CT、SNOMED International | `2025-02-01` (スナップショット: 2025-02-01 / 20260701) | 289 | `en` = preferred term、synonym または FSN。`ja` の出典は記録なし | 289 件中 286 件 |
+| `rxnorm.yaml` | RxNorm、NLM | `RxNav 2026-10-28` (スナップショットが RxNav を読んだ日。RxNorm のリリースは記録なし) | 1,450 (`en`)、241 (`ja`) | `en` = 薬剤名 | `en` 1,450 件中 1,269 件が RxNav の name と一致 |
 | `rxnorm_scd.yaml` | NLM RxNav 経由の RxNorm SCD | 取得 2026-11-09 | 204 薬剤、1,225 RxCUI | RxCUI、規格量、単位 (名称なし) | — |
-| `yj.yaml` | YJ コード (厚労省 薬価基準 YJ / MEDIS HOT-YJ マスター / JP Core) | `2024` | 272 | `ja` = 販売名、`en` = 英語の成分名 | `ja`: 268 件が MEDIS 2026-10-31 スナップショットと一致。272 コードすべてが `yj_medis_hot_used.json` にある |
+| `yj.yaml` | YJ コード (厚労省 薬価基準 YJ / MEDIS HOT-YJ マスター / JP Core) | `2026-10-31` (名称のスナップショット。照合用サブセットは版 2026.8.31) | 272 | `ja` = 販売名、`en` = 英語の成分名 | `ja`: 268 件が MEDIS 2026-10-31 スナップショットと一致。272 コードすべてが `yj_medis_hot_used.json` にある |
 | `jlac10.yaml` | JLAC10、JSLM | `137` | 53 | `ja` = マスターの名称または略称、`en` 英名 | `ja` 53 件中 48 件がマスターの名称または略称と一致 |
-| `k-codes.yaml` | 診療報酬点数表 (厚労省)。診療行為マスターで照合 | `2024` | 49 | `ja` = マスター名称、またはそれが始まる区分名 (ファイルヘッダー)。`en` = 英訳 (ファイルヘッダー) | `ja` 49 件中 23 件がマスター名称と完全一致 |
+| `k-codes.yaml` | 診療報酬点数表 (厚労省)。診療行為マスターで照合 | `2026-10-13` | 49 | `ja` = マスター名称、またはそれが始まる区分名 (ファイルヘッダー)。`en` = 英訳 (ファイルヘッダー) | `ja` 49 件中 23 件がマスター名称と完全一致 |
 | `cpt.yaml` | CPT、American Medical Association | `2024` | 95 | 英語と日本語のラベル。ヘッダーには "CPT is proprietary (AMA license)" と "not yet machine-verified" とある。`en` ラベルが AMA の descriptor の文言かどうかは記録なし | スナップショットなし |
 | `cvx.yaml` | CVX、CDC IIS | `2026-06` | 39 | `en` は CDC の CVX 一覧で照合 (ファイルヘッダー) | スナップショットなし |
 | `medis-disease-keyno.yaml` | MEDIS 標準病名マスター 病名管理番号。jpfhir-terminology 2.2606.0 の CodeSystem `medis-codesystem-diseasekanricodes` (MEDIS 5.18 の fragment) から | `5.18-fragment-seed` | 2 | コードと MEDIS の名称 | — |
@@ -96,14 +96,14 @@ tx.fhir.org、RxNav、`fhir.tx.support.r4` パッケージは入手経路とし�
 各項目は、それを提起する事実を挙げる。判断のための一覧であり、ここでは答えない。
 
 1. **完全版の YJ CodeSystem。** Issue #4026 まで、リポジトリは MEDIS 医薬品HOTコードマスターから作った完全なコード体系 `JP_MedicationCodeYJ_CS_full.json` (23,923 概念、`content` `complete`) を同梱し、実行時に読んでいた。その `copyright` フィールドは "MEDIS-DC retains ownership; clinosim redistributes for FHIR terminology resolution alongside the upstream tx-server fragment. Contact hot@medis.or.jp for licensing questions." と書いていた。このファイルはソースツリーにも、そこから作るパッケージにもない。`yj_medis_hot_used.json` が `yj.yaml` の 272 コード (いずれも完全版に載っていた) を、`yj.yaml` がすでに持っていた名称とともに収める。完全版のファイルは git の履歴と、その変更より前に作られたパッケージには残っている。MEDIS 標準マスターのページには 4 章に引用した使用許諾申請書と、それが必要なマスター種についての文がある。リポジトリには申請や許諾の記録がない。残る問いは、同梱している YJ コードと名称、および履歴と以前のパッケージにあるファイルについて、何らかの対応が要るかどうかである。
-2. **その他の MEDIS 由来の名称。** `yj_medis_hot_20261031.json` (販売名 268 件)、`yj.yaml` の `ja` (販売名 272 件。`yj_medis_hot_used.json` にも同じ名称がある)、`medis-disease-keyno.yaml` (病名 2 件) は MEDIS マスターの文言を複製している。MEDIS のページには「ダウンロードしたマスターを改変し配布する場合は、MEDIS-DCの標準マスターを利用したことを必ず明記してください。」(4 章) という文がある。リポジトリに帰属表示のファイルはない。
+2. **その他の MEDIS 由来の名称。** `yj_medis_hot_20261031.json` (販売名 268 件)、`yj.yaml` の `ja` (販売名 272 件。`yj_medis_hot_used.json` にも同じ名称がある)、`medis-disease-keyno.yaml` (病名 2 件) は MEDIS マスターの文言を複製している。MEDIS のページには「ダウンロードしたマスターを改変し配布する場合は、MEDIS-DCの標準マスターを利用したことを必ず明記してください。」(4 章) という文がある。[`NOTICE`](NOTICE) に MEDIS-DC 標準マスターの利用の明記を載せた (Issue #4027。問い 8 を参照)。
 3. **CPT の descriptor。** `cpt.yaml` は英語ラベル付きの CPT コード 95 件を同梱する。ヘッダーは CPT を "proprietary (AMA license)" と書く。AMA のライセンスページは読めなかった。ラベルが AMA の descriptor の文言かどうかは記録がない。
 4. **SNOMED CT の文言。** 288 + 12 概念を preferred term、synonym、fully specified name とともに同梱し、`snomed-ct.yaml` は 289 件の英語の語を持つ。SNOMED のページは Affiliate License を挙げ、Member countries に言及している。パッケージは国の制限なく PyPI と GitHub で配布されている。
 5. **LOINC の文言。** LONG_COMMON_NAME、SHORTNAME、その他の designation 付きの 373 コードを同梱している。LOINC のライセンスページは読めなかった。
 6. **WHO ICD-10 の内容。** `icd10_who_tx.json` は、出典が `complete` とされたパッケージから 427 コードの display、definition、inclusion の文言を複製している。読んだ WHO のページに ICD-10 のライセンスの記載は見つからなかった。
 7. **ライセンス名が示されていない日本のマスター。** 医科診療行為マスターの名称 (149)、JLAC10 マスターの名称 (53)、JAMI の CodeSystem の display (2 章) を同梱している。読んだページにライセンス名はない。
-8. **帰属表示の文言。** リポジトリには NOTICE ファイルも、どの用語体系の帰属表示もない。`README.md` はこのファイルを指している。
-9. **版のメタデータ。** いくつかのファイルの `metadata.version` はスナップショットの版と異なる (`loinc.yaml` 2.76 と 2.83、`snomed-ct.yaml` 2024-03 と 2025-02-01、`icd-10-cm.yaml` 2024 と FY2027)。`rxnorm.yaml`、`yj.yaml`、`k-codes.yaml`、`cpt.yaml` は `2024` とある。どの版を同梱版として示すかは未決。
+8. **帰属表示の文言。** [`NOTICE`](NOTICE) (Issue #4027) が用語体系ごとに所有者、同梱している版、所有者のページを挙げ、2026-11-28 にそのページで読んだ記述を引用し、読めなかったページは未確認と示す。4 章に引用した MEDIS の文に応えて clinosim のために書いた MEDIS-DC 標準マスターの利用の明記と、RxNorm Terms of Service のページが求める文を載せている。sdist は `NOTICE` とこのファイルを含む。この文言が各所有者にとって十分かどうかは未決。
+9. **版のメタデータ。** Issue #4027 以降、スナップショットのあるコードファイルの `metadata.version` は、そのスナップショットが記録する版と一致する: `loinc.yaml` 2.83、`snomed-ct.yaml` 2025-02-01、`icd-10-cm.yaml` FY2027、`rxnorm.yaml` RxNav 2026-10-28 (読んだ日。RxNav のスナップショットには RxNorm のリリースの記録がない)、`yj.yaml` 2026-10-31、`k-codes.yaml` 2026-10-13、`jlac10.yaml` 137 (`tests/unit/codes/test_code_file_versions_4027.py`)。スナップショットのない `cpt.yaml` は `2024` のまま、`icd-10.yaml` は `WHO 2019` で、そのパッケージのスナップショット (`fhir.tx.support.r4 0.37.0`) はこれを版として示していない。
 
 ## 6. コントリビューター向けの規則
 
