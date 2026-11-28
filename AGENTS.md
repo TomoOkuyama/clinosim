@@ -193,9 +193,9 @@ Normative: [`fhir-data-generation-logic.md`](docs/design-guides/fhir-data-genera
 
 ## Testing
 
-- `pytest tests/unit` — unit tests (use the path, not `-m unit`: not every unit file carries the marker).
-- `pytest -m integration` — module chain tests.
-- `pytest -m e2e` — golden file comparison.
+- `pytest tests/unit tests/modules tests/simulator` (or `make test-unit`) — the unit tests, the directories CI runs. Select by path, not by marker: `-m unit` skips 3,595 of the 16,711 tests in `tests/unit` (`pytest --collect-only` at v0.7.5).
+- `pytest tests/integration` (or `make test-integration`) — module chain tests; `-m integration` would skip 44 of the 427 (same measurement).
+- `pytest tests/e2e` (or `make test-e2e`) — golden file comparison (CI runs only `tests/e2e/test_alpha_golden.py` and `tests/e2e/test_identity_jp.py`).
 - `pytest tests/regression -m regression` — narrative golden byte-diff (opt-in locally; runs in CI).
 - Before pushing: `ruff check`, `ruff format --check`, `mypy clinosim/` and the unit tests.
 
@@ -299,7 +299,7 @@ Before a release tag is pushed, every item of [`docs/development/release-checkli
 5. Update the module's `README.md` (and `README.ja.md`) if its API, files or data changed
 6. Update `clinosim/types/*.py` if shared data types changed
 7. If adding a new code, add it to `clinosim/codes/data/<system>.yaml` with at least an `en` field
-8. Run tests: `pytest tests/unit -x -q`
+8. Run tests: `pytest tests/unit tests/modules tests/simulator -x -q`
 
 ## Key directories
 
@@ -382,9 +382,24 @@ Adding a new disease:
 5. **Register every `icd_codes` value (primary AND variants) in the code data** — see
    "Diagnosis code coverage" below. Skipping this makes the FHIR Condition display fall
    back to approximate prefix-matched text instead of the authoritative entry.
-6. Test: `clinosim test-disease <disease_id>` and `pytest tests/unit/test_diagnosis_code_coverage.py`
+6. If the YAML has both `target_los.japan` and `target_los.us` for a severity, add the disease to `clinosim/modules/clinical_course/reference_data/course_time_scale.yaml` (the bounded ratio of the Japan mean to the US mean; `tests/unit/test_course_time_scale_3931.py` asserts the table equals it)
+7. Test: `clinosim test-disease <disease_id>` and `pytest tests/unit/test_diagnosis_code_coverage.py tests/unit/test_course_time_scale_3931.py`
 
-No engine code changes required.
+A disease YAML plus the steps above is enough for the disease to be simulated (a copy of `influenza.yaml` under a new `disease_id` ran under `clinosim test-disease` with no other change). Two more kinds of per-disease content exist, and the second needs core code.
+
+**Per-disease YAML tables (data only, optional).** Existing diseases also appear in the tables below; a new disease that is missing from one gets the generic behavior of that module instead of a specific one, and no test requires an entry (imaging is the exception, in the table of sets below). Find them for a similar disease with `rg '\b<similar_disease_id>\b' clinosim --glob '*.yaml'`. The directories today: `clinosim/locale/shared/` (`chronic_followup.yaml`, `narrative_complications.yaml`), `clinosim/modules/diagnosis/reference_data/builtin_differentials.yaml`, `clinosim/modules/document/reference_data/` (`disease_exam.yaml`, `hpi_pertinent_negatives.yaml`, `progress_vitals.yaml`, `progress_symptoms.yaml`, `visit_reason_soap.yaml`, `clinosim-discharge-instruction.yaml`, `clinosim-nursing-content.yaml`), `clinosim/modules/document/narrative/reference_data/chief_complaint_variants.yaml`, `clinosim/modules/nursing/reference_data/nursing_assessment.yaml`, `clinosim/modules/procedure/reference_data/` (`procedure_details.yaml`, `procedure_rules.yaml`), `clinosim/modules/observation/reference_data/microbiology.yaml`, `clinosim/modules/patient/reference_data/stage_severity.yaml`.
+
+**Python disease-id sets (core code).** "No engine code changes required" is not true for a disease that belongs to one of these sets; each edit is a data-quality change in a core file, so say so in the PR:
+
+| Set | File | Effect of membership |
+|---|---|---|
+| `EMERGENCY_PRIORITY_DISEASES` | `clinosim/modules/disease/acuity.py` | `Encounter.priority = "EM"` for the inpatient admission (`inpatient.py`) |
+| `CRITICAL_MONITORING_DISEASES` | `clinosim/modules/disease/acuity.py` | q1-2h vital signs in the first days (`vitals_pipeline.py`); keep it aligned with the set above |
+| `_RESPIRATORY_DISEASES` | `clinosim/simulator/vitals_pipeline.py` | continuous SpO2 monitoring |
+| `_NEURO_DISEASES` | `clinosim/simulator/vitals_pipeline.py` | perfusion-based level-of-consciousness assessment |
+| `SUPPORTED_IMAGING_DISEASES` | `clinosim/modules/imaging/engine.py` | imaging orders. `clinosim/modules/imaging/reference_data/impression_templates.yaml` must name exactly the diseases of this set (`ImpressionTemplates` rejects missing and stale entries at load), so imaging for a new disease needs the set and that YAML edited together |
+
+A few behaviors are also written as a branch on one disease id in core code, for example diabetic ketoacidosis day-0 labs (`clinosim/simulator/daily_loop.py`), the COPD SpO2 target (`clinosim/simulator/vitals_pipeline.py`), the hip-fracture procedure choice (`clinosim/modules/procedure/engine.py`) and the hemorrhagic-stroke and DKA consistency checks (`clinosim/modules/validator/consistency.py`). A new disease that should behave like one of them needs a code edit there; the others need none.
 
 ### Diagnosis code coverage (REQUIRED when adding/editing any disease or encounter)
 

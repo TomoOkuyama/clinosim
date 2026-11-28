@@ -1106,9 +1106,15 @@ similarly, and have consumers import it.
 pytest tests/unit/test_diagnosis_code_coverage.py
 ```
 
-> There is no equivalent coverage test yet for RxNorm / YJ / CPT /
-> K-codes / CVX (CODES-6). After adding a drug / procedure code,
-> manually verify that the mapping → codes existence chain resolves.
+> RxNorm, YJ, CPT and K codes have their own tests under `tests/unit/codes/`:
+> `test_rxnorm_codes_name_their_drug.py` (every shipped RxCUI is current and
+> names its drug, checked against an RxNav snapshot),
+> `test_jp_yj_codes_3013.py` and `test_jp_yj_class_codes_name_their_drug.py`
+> (YJ codes against the MHLW drug-price list and YJ master snapshot) and
+> `test_procedure_codes_registered_2340.py` (every emitted CPT / K code is
+> registered). Run `pytest tests/unit/codes` after adding a drug or procedure
+> code. CVX vaccine codes have no such coverage test: verify by hand that the
+> mapping → `codes/data/cvx.yaml` chain resolves.
 
 ---
 

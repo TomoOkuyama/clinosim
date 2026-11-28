@@ -54,8 +54,13 @@ Sanity check:
 
 ```bash
 clinosim --help
-pytest tests/unit -q               # ~1 分、green 必須
+pytest tests/unit tests/modules tests/simulator -q -n 4   # CI が走らせるディレクトリ。green 必須
 ```
+
+unit スイートは約 17,000 件のテストで、テスト時間の合計は約 32 分 (`.test_durations`、
+CI ランナーで毎晩計測、直列)。そのため `-n <ワーカー数>` (pytest-xdist、`dev`
+extras に含まれる) を付けて実行する。CI では 2 shard、`-n 4` で 1 shard あたり約
+9 分 (2026-11-28 計測)。
 
 ---
 
@@ -73,10 +78,11 @@ pytest tests/unit -q               # ~1 分、green 必須
 5. **PR を開く前に local で test 実行**:
 
    ```bash
-   pytest tests/unit tests/modules tests/simulator -q   # 必須、CI と同じ範囲
-   pytest tests/integration -q                # simulator / output / FHIR
+   pytest tests/unit tests/modules tests/simulator -q -n 4   # 必須 (CI のディレクトリ)
+   pytest tests/integration -q -n 4           # simulator / output / FHIR
                                               # コード経路に触るとき推奨
-                                              # (local ~18 分、CI ~30 分)
+                                              # (直列のテスト時間合計は約 2.7 時間。
+                                              # CI は 4 shard で 1 shard あたり 9〜16 分)
    ```
 
    lint / format / 型チェック (CI と同じ command。merge をブロックする):

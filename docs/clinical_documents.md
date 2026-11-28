@@ -422,41 +422,72 @@ FHIR export.
      ja: 診療依頼書
    ```
 
-2. **Add the task type to the enum** in
-   `clinosim/modules/llm_service/engine.py` (`TASK_CATEGORY` and
-   `DOCUMENT_LOINC` are built from the yaml files in step 3):
-   ```python
-   class LLMTaskType(StrEnum):
-       ...
-       CONSULTATION_NOTE = "consultation_note"  # LOINC 11488-4
-   ```
+2. **Add the document type to the enums.** Two enums must agree, and the
+   import fails ("DocumentType ↔ LLMTaskType drift") when they do not:
+   - `DocumentType` in `clinosim/types/document.py`:
+     ```python
+     class DocumentType(StrEnum):
+         ...
+         CONSULTATION_NOTE = "consultation_note"  # LOINC 11488-4
+     ```
+   - `LLMTaskType` in `clinosim/modules/llm_service/engine.py`, with the same
+     value, plus a row `consultation_note: narrative` in
+     `clinosim/modules/llm_service/reference_data/task_categories.yaml`
+     (`TASK_CATEGORY` is built from it; a missing row raises `ImportError`).
 
-3. **Register task_loincs.yaml + task_categories.yaml**
-   (`clinosim/modules/llm_service/reference_data/`). The engine
-   validates full coverage at import — a new `LLMTaskType` value
-   with no row in `task_loincs.yaml` fails loud.
+   Do **not** add the document type to `task_loincs.yaml`:
+   `DOCUMENT_LOINC` takes the code of every document type from
+   `document_type_specs.yaml` (step 3), and `_document_loinc_from_yaml` raises
+   `ImportError` when `task_loincs.yaml` repeats one.
 
-4. **Register the `DocumentTypeSpec`** in
-   `clinosim/modules/document/reference_data/document_type_specs.yaml`:
-   ```yaml
-   consultation_note:
-     loinc_code: "11488-4"
-     format_type: free_text              # or `composition`
-     countries_supported: [us, jp]
-     encounter_types_supported: [outpatient]
-     generation_frequency: per_encounter # or `admission_once` / `daily` / ...
-     composition_sections:               # only when format_type: composition
-       - reason_for_consult
-       - findings
-       - recommendation
-     stage2_strategy: template_seed_bundle
-     llm_enabled_sections: [recommendation]
-   ```
+3. **Register the `DocumentTypeSpec`** in two places that must agree
+   (`_validate_document_type_specs` raises `ValueError` "document_type_specs.yaml
+   ↔ SUPPORTED_DOCUMENT_TYPES drift" otherwise):
+   - add `DocumentType.CONSULTATION_NOTE` to `SUPPORTED_DOCUMENT_TYPES` in
+     `clinosim/modules/document/narrative/registry.py` (a Python frozenset, not
+     derived from the enum);
+   - add the entry to
+     `clinosim/modules/document/reference_data/document_type_specs.yaml`:
+     ```yaml
+     consultation_note:
+       loinc_code: "11488-4"
+       format_type: composition            # or `free_text`
+       countries_supported: [us, jp]
+       encounter_types_supported: [inpatient]
+       generation_frequency: admission_once  # a value of GENERATION_FREQUENCIES
+       composition_sections:               # only when format_type: composition
+         - reason_for_consult
+         - findings
+         - recommendation
+       stage2_strategy: template_seed_bundle
+       llm_enabled_sections: [recommendation]
+     ```
    `format_type: composition` lands the doc on `Composition` with
    named `section[]` entries; `free_text` lands on
    `DocumentReference` with the full body in `content.attachment.data`.
+   A composition document type needed no edit in the FHIR builders (a test
+   type with only the steps above was exported as a `Composition` with its
+   sections titled from the catalog of step 4).
 
-5. **Add the LLM instructions to the bundle prompt** — there is no
+4. **Register every new section slug** in
+   `clinosim/modules/document/reference_data/section_catalog.yaml` (`title.en`,
+   `title.ja`, and a section `loinc`, or `""` when no LOINC section code means
+   the section). Loading the catalog fails with "slug(s) authored in
+   document_type_specs.yaml are missing from the catalog" when a
+   `composition_sections` entry has no row. Reuse an existing slug where the
+   meaning matches.
+
+5. **Pick the planner.** `generation_frequency` selects the planner that decides
+   how many documents an encounter gets and when they are authored
+   (`_PLANNERS` in `clinosim/modules/document/engine.py`). Use an existing value
+   (`admission_once`, `daily`, `daily_3shift`, `discharge_once`,
+   `encounter_once`, ...; the full list is `GENERATION_FREQUENCIES` in
+   `registry.py`). A frequency that does not exist yet needs three edits in core
+   files: a `_plan_<name>` function and its `_PLANNERS` entry in `engine.py`, and
+   the name in `GENERATION_FREQUENCIES`; `tests/unit/modules/document/test_document_planners_2532.py`
+   keeps the two equal. Note that `per_encounter` is not a frequency.
+
+6. **Add the LLM instructions to the bundle prompt** — there is no
    per-document prompt file (removed in Issue #2556). Add a
    `### consultation_note` block to the `system:` text of
    `clinosim/modules/llm_service/prompts/<lang>/narrative_seed_bundle.yaml`
@@ -464,21 +495,33 @@ FHIR export.
    `llm_enabled_sections`, and bump the file's `version:`. Sections not
    in `llm_enabled_sections` keep their template text.
 
-6. **Implement the section builder(s)** under
-   `clinosim/modules/document/narrative/renderers/section_builders/<section>.py`
-   as free functions `build_<section>(generator, ctx)` returning the
-   rendered section text. The post-C1a-s split places all per-section
-   logic here; `template_generator.py` is a thin façade that re-exports
-   the builders. For `format_type: free_text` tasks, implement a
-   single body builder; for `composition`, one builder per entry in
-   `composition_sections`. Wire the dispatcher in
-   `clinosim/modules/document/narrative/renderers/composition_sections.py`.
+7. **Implement the template text.**
+   - `format_type: composition`: write one builder per entry of
+     `composition_sections` as a function decorated with `@section("<name>")`
+     (`document_type=` limits it to one document type) in a module under
+     `clinosim/modules/document/narrative/renderers/section_builders/`. The
+     function takes `(generator, ctx)` and returns `(text, facts)` — the
+     section text and the list of facts used (type `SectionBuilder`). The
+     registry (`section_builders/_registry.py`) imports every module of that
+     package that does not start with an underscore, and
+     `render_composition_sections` looks each section up by name, so there is no
+     dispatcher to edit. A section name with no builder is not an error: the
+     document gets the generic fallback text
+     (`fallback.generic_fallback`, "No special findings" in English), which is
+     what a new type shows until its builders exist.
+   - `format_type: free_text`: there is no registry. `TemplateNarrativeGenerator._render_free_text`
+     (`clinosim/modules/document/narrative/template_generator.py`) branches on the
+     document type to a dedicated renderer (`nursing_shift_note`, `ed_triage_note`
+     under `renderers/`) and **every other type falls through to the progress-note
+     renderer**. A new free-text type that should not read like a progress note
+     therefore needs a renderer module under `renderers/` and a new branch in
+     `_render_free_text` — an edit to that core file.
 
-7. **Add unit tests** under `tests/unit/modules/document/narrative/` (per-section
+8. **Add unit tests** under `tests/unit/modules/document/narrative/` (per-section
    builder tests) and `tests/unit/test_clinical_documents.py`
    (end-to-end emit).
 
-8. **Update this doc** (`docs/clinical_documents.md`), `README.md`,
+9. **Update this doc** (`docs/clinical_documents.md`), `README.md`,
    and the matching `.ja.md` siblings.
 
 ---

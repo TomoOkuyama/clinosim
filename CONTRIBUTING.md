@@ -54,8 +54,13 @@ Sanity check:
 
 ```bash
 clinosim --help
-pytest tests/unit -q               # ~1 minute, must be green
+pytest tests/unit tests/modules tests/simulator -q -n 4   # the directories CI runs; must be green
 ```
+
+The unit suite is about 17,000 tests: roughly 32 minutes of summed test time
+(`.test_durations`, measured nightly on the CI runner, serial), so run it with
+`-n <workers>` (pytest-xdist, part of the `dev` extras). On CI it typically takes about
+9 minutes per shard on two shards with `-n 4` (measured on 2026-11-28).
 
 ---
 
@@ -73,11 +78,12 @@ pytest tests/unit -q               # ~1 minute, must be green
 5. **Run the tests locally** before opening the PR:
 
    ```bash
-   pytest tests/unit tests/modules tests/simulator -q   # required; the set CI runs
-   pytest tests/integration -q                # recommended when touching
+   pytest tests/unit tests/modules tests/simulator -q -n 4   # required (the CI directories)
+   pytest tests/integration -q -n 4           # recommended when touching
                                               # simulator / output / FHIR
-                                              # code paths (~18 min local,
-                                              # ~30 min in CI)
+                                              # code paths (about 2.7 hours of
+                                              # summed serial test time; 9-16
+                                              # min per shard on 4 shards in CI)
    ```
 
    Lint, format and type checks (the same commands CI runs; they block
