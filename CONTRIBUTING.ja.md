@@ -62,8 +62,8 @@ pytest tests/unit -q               # ~1 分、green 必須
 ## ワークフロー
 
 1. **非自明な変更はまず issue を開く** — scope とアプローチに合意
-   してから時間を投じるため。バグ報告と機能要望は専用テンプレート
-   あり。
+   してから時間を投じるため。バグ報告・機能要望・臨床データの修正
+   (自分で読んだ出典が必須)・リファクタリングは専用の issue フォームあり。
 2. **`master` から fork + branch**。descriptive な branch 名
    (`fix/…` / `feat/…` / `docs/…`) を使う。
 3. **小さく focus した commit**。1 PR = 1 論点は mega-diff より
@@ -73,7 +73,7 @@ pytest tests/unit -q               # ~1 分、green 必須
 5. **PR を開く前に local で test 実行**:
 
    ```bash
-   pytest tests/unit -q                       # 必須、~1 分
+   pytest tests/unit tests/modules tests/simulator -q   # 必須、CI と同じ範囲
    pytest tests/integration -q                # simulator / output / FHIR
                                               # コード経路に触るとき推奨
                                               # (local ~18 分、CI ~30 分)
@@ -88,7 +88,7 @@ pytest tests/unit -q               # ~1 分、green 必須
 
 6. **`CHANGELOG.md` を更新** — `[Unreleased]` 節にユーザー向け挙動
    変更の bullet を追記。docs-only PR のみ省略可。
-7. **PR を開く** — PR テンプレートが checklist を案内。
+7. **PR を開く** — PR テンプレートが checklist を案内する: issue 行、リファクタリング (byte-identical の証拠、golden 無変更) か挙動変更 (`CIF changes:` 段落、変更前後の数値、profile ごとの golden 差分) か、臨床数値・コード・用量すべての出典、実行した check。[`.github/CODEOWNERS`](.github/CODEOWNERS) が path を domain に対応付ける。maintainer が対応する domain ラベル、`refactoring` / `behavior-change`、出典が無いときは `needs-source` を付ける。maintainer が 1 人の間は必須 approval 数は 0、code-owner review は off のまま。2 人目の maintainer か、その path の domain owner が決まった時点で、その path の code-owner review を on にする。
 8. **merge 前に CI が green**。master の ruleset が必須とするチェックは 2 つ:
    - `CI result` — [`ci.yml`](.github/workflows/ci.yml) の gate job
      (unit / integration の各 shard、`Static checks (ruff, format, mypy, vulture, build)`、

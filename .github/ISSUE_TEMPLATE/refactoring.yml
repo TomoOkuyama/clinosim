@@ -1,0 +1,68 @@
+name: Refactoring
+description: Restructure code or move logic without changing any output.
+title: "[refactor] "
+labels:
+  - refactoring
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A refactoring changes structure only: generated output stays byte-identical. A change that alters output is a behavior change and is a separate issue (use the feature request or clinical-data correction form). One issue is one pull request; larger work is a tracking issue plus child issues.
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Why restructure?
+      description: The concrete problem the current structure causes (file:line, duplicated logic, a contributor who cannot find where a rule lives).
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Files and symbols in scope
+      description: The files and functions that move or change. Name the callers and tests that must be updated in the same pull request.
+    validations:
+      required: true
+
+  - type: textarea
+    id: target
+    attributes:
+      label: Target structure
+      description: Where the code lives afterwards and which module owns it. Link the spec or ADR that supports the placement.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proof
+    attributes:
+      label: How byte-identity will be shown
+      description: The cohorts (country, seed, population, period) compared before and after, and the guard test for the new structure.
+      placeholder: "US and JP, seed 42, population 200, 2025-07-01..2026-06-30, CIF + FHIR; regression goldens unchanged."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: domain
+    attributes:
+      label: Domain
+      description: The area the change belongs to (the maintainer sets the matching domain label).
+      options:
+        - clinical_course
+        - drug_safety
+        - order
+        - diagnosis
+        - observation
+        - physiology
+        - output
+        - codes
+        - locale (US / JP)
+        - simulator
+        - Other / several
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?

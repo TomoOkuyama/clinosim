@@ -62,8 +62,9 @@ pytest tests/unit -q               # ~1 minute, must be green
 ## Workflow
 
 1. **Open an issue first** for non-trivial changes so scope and approach
-   can be agreed before you spend time. Bug reports and feature requests
-   have dedicated templates.
+   can be agreed before you spend time. Bug reports, feature requests,
+   clinical-data corrections (a source you have read is required) and
+   refactorings have dedicated issue forms.
 2. **Fork + branch** from `master`. Use a descriptive branch name
    (`fix/…` / `feat/…` / `docs/…`).
 3. **Small, focused commits.** One logical change per PR is much easier
@@ -72,7 +73,7 @@ pytest tests/unit -q               # ~1 minute, must be green
 5. **Run the tests locally** before opening the PR:
 
    ```bash
-   pytest tests/unit -q                       # required, ~1 min
+   pytest tests/unit tests/modules tests/simulator -q   # required; the set CI runs
    pytest tests/integration -q                # recommended when touching
                                               # simulator / output / FHIR
                                               # code paths (~18 min local,
@@ -89,7 +90,7 @@ pytest tests/unit -q               # ~1 minute, must be green
 
 6. **Update `CHANGELOG.md`** — add a bullet under `[Unreleased]`
    describing user-facing behaviour changes. Skip only for docs-only PRs.
-7. **Open the PR** — the PR template walks you through the checklist.
+7. **Open the PR** — the PR template walks you through the checklist: the issue line, whether it is a refactoring (byte-identity evidence, goldens unchanged) or a behavior change (`CIF changes:` paragraph, before and after numbers, golden diff per profile), sources for every clinical number, code or dose, and the checks run. [`.github/CODEOWNERS`](.github/CODEOWNERS) maps paths to domains; a maintainer adds the matching domain label, `refactoring` / `behavior-change`, and `needs-source` when a source is missing. Required approvals stay at 0 and code-owner review stays off while there is one maintainer; code-owner review is turned on for a path when a second maintainer or a named domain owner exists for it.
 8. **CI must be green** before the PR merges. The master ruleset requires two checks:
    - `CI result` — passes only when every gating job of
      [`ci.yml`](.github/workflows/ci.yml) succeeded: the unit and

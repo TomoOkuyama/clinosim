@@ -1,0 +1,80 @@
+name: Clinical-data correction
+description: A generated value, code, dose, rule or text is clinically wrong or unsupported by a source.
+title: "[clinical] "
+labels:
+  - data-quality
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form when generated data contradicts clinical knowledge or a published source. A correction needs a source that you have read: please do not cite from memory. Maintainers add the domain label (for example `domain:order`) and `needs-source` when a source is missing.
+
+        Do not paste real patient data. clinosim output is synthetic; a synthetic record id is fine.
+
+  - type: textarea
+    id: wrong
+    attributes:
+      label: What is wrong?
+      description: Which output, rule or reference-data entry is wrong, and how it shows up (resource type, field, file).
+      placeholder: "The vancomycin dose for creatinine clearance 20 mL/min is 1 g q12h; ..."
+    validations:
+      required: true
+
+  - type: input
+    id: value
+    attributes:
+      label: Current value and proposed value
+      description: The value clinosim produces now and the value it should produce, with the unit.
+      placeholder: "now 1 g q12h; should be 1 g q24h"
+    validations:
+      required: true
+
+  - type: textarea
+    id: source
+    attributes:
+      label: Source you read, and where in it
+      description: Label, package insert, guideline or paper, with the section, table or page, and the quoted value. For a drug dose use the FDA label (US) or the PMDA package insert (JP); for a code use the terminology server or the code system's own publication. Give the PMID or DOI for a paper.
+      placeholder: |
+        DailyMed, <drug> label, section 2.4 "Dosage in renal impairment", table: ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: country
+    attributes:
+      label: Country
+      description: Which country profile does this apply to?
+      options:
+        - US
+        - JP
+        - Both
+        - Not country specific
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to see it
+      description: The command, seed and patient or encounter id where the value appears, or the file and line of the rule.
+      render: bash
+      placeholder: |
+        clinosim simulate --country JP --population 100 --seed 42 \
+          --start 2026-01-01 --end 2026-03-31 --output ./out --format fhir-r4
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: clinosim version
+      description: "Output of: python -c 'import clinosim; print(clinosim.__version__)'"
+      placeholder: "0.7.5"
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Related issues, the license of any text you quote, a proposed fix.
