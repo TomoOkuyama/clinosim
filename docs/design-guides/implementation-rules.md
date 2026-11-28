@@ -72,6 +72,13 @@ in data**. This is the governing rule above every other rule on this page.
 - A change that adds hard-coded country, age or sex data is rejected in
   review; when you touch code that already has some, move it to YAML in the
   same PR if small, otherwise file an Issue.
+- A ratchet test (`tests/unit/test_code_data_separation_3137.py`) holds the
+  total of country / language branches and of numeric literals in comparisons
+  at its stored total: a rise fails, a fall passes without a baseline edit, and
+  a move or rename of a file is not a raise. Do not edit the baseline in a
+  feature change; the stored totals are lowered by
+  `python -m tests.unit.code_data_separation --write`, which refuses to raise
+  a total.
 
 Placement details: [documentation-and-code-quality-policy §5](documentation-and-code-quality-policy.md#5-constants-and-configuration)
 and [configuration-and-reference-data-spec](configuration-and-reference-data-spec.md).

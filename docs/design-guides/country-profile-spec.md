@@ -154,9 +154,9 @@ YAML (policy §5.1).
 
 ## 6. Enforcement
 
-- A shrink-only ratchet counts country / language branches and numeric
-  literals in comparisons per file and fails when a file exceeds its
-  baseline (Issue #3137).
+- A rename-aware ratchet counts country / language branches and numeric
+  literals in comparisons and fails when a rule's total exceeds the stored
+  total; moving a file is not a raise (Issues #3137, #3977).
 - The profile model forbids unknown keys and validates every code system,
   profile, feature and implementation name it references.
 

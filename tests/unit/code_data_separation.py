@@ -10,12 +10,18 @@ file under ``clinosim/``, with the AST (not a text search):
   ``_<topic>_thresholds.py`` / ``_<topic>_defaults.py`` modules and other than
   :data:`TRIVIAL_NUMBERS`.
 
-The committed baseline is ``code_data_separation_baseline.json``. Lower it
-after removing branches or literals with::
+The committed baseline is ``code_data_separation_baseline.json``: the total per
+rule (the only thing the test compares) and an informational list of
+content-keyed entries. A key is ``<rule>::<qualified name>::<normalized node
+text>`` where the qualified name is the enclosing class / function chain
+without the module path (``<module>`` at module level), so a ``git mv`` keeps
+every key and a move is not a raise. The test fails only when a rule's total
+exceeds the stored total; a decrease passes without editing the baseline. Lower
+the stored totals (never inside a feature change) with::
 
     python -m tests.unit.code_data_separation --write
 
-The command refuses to raise any count: a new branch or literal is moved to
+The command refuses to raise any total: a new branch or literal is moved to
 data (YAML, a country profile, a thresholds module), not added to the baseline.
 """
 
@@ -25,6 +31,9 @@ import argparse
 import ast
 import json
 import sys
+from collections import Counter
+from collections.abc import Iterator
+from dataclasses import dataclass, field
 from functools import cache
 from pathlib import Path
 
@@ -73,18 +82,27 @@ def _language_literals(node: ast.AST) -> bool:
     return False
 
 
-def country_branches(source: str) -> list[int]:
-    """Line numbers of country / language branches in ``source``."""
-    lines: list[int] = []
-    for node in ast.walk(ast.parse(source)):
+def _walk(tree: ast.AST, qual: tuple[str, ...] = ()) -> Iterator[tuple[ast.AST, str]]:
+    """Every node of ``tree`` with the qualified name of its enclosing class / function chain."""
+    for child in ast.iter_child_nodes(tree):
+        yield child, ".".join(qual) or "<module>"
+        inner = (
+            (*qual, child.name) if isinstance(child, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)) else qual
+        )
+        yield from _walk(child, inner)
+
+
+def _branch_nodes(source: str) -> Iterator[tuple[ast.AST, str]]:
+    for node, qual in _walk(ast.parse(source)):
         if isinstance(node, ast.Call):
             f = node.func
             name = f.id if isinstance(f, ast.Name) else f.attr if isinstance(f, ast.Attribute) else ""
             if name in COUNTRY_PREDICATES:
-                lines.append(node.lineno)
+                yield node, qual
         elif isinstance(node, ast.Compare):
             operands = [node.left, *node.comparators]
             for op, left, right in zip(node.ops, operands, operands[1:]):
+                pair: tuple[tuple[ast.AST, ast.AST], ...]
                 if isinstance(op, (ast.Eq, ast.NotEq)):
                     pair = ((left, right), (right, left))
                 elif isinstance(op, (ast.In, ast.NotIn)) and isinstance(right, (ast.Tuple, ast.List, ast.Set)):
@@ -95,9 +113,13 @@ def country_branches(source: str) -> list[int]:
                     _language_literals(lit) and not any(w in _segment_names(other) for w in NOT_A_COUNTRY)
                     for lit, other in pair
                 ):
-                    lines.append(node.lineno)
+                    yield node, qual
                     break
-    return sorted(lines)
+
+
+def country_branches(source: str) -> list[int]:
+    """Line numbers of country / language branches in ``source``."""
+    return sorted(node.lineno for node, _ in _branch_nodes(source))  # type: ignore[attr-defined]
 
 
 def _number(node: ast.AST) -> float | None:
@@ -109,17 +131,20 @@ def _number(node: ast.AST) -> float | None:
     return None
 
 
-def numeric_literals(source: str) -> list[int]:
-    """Line numbers of non-trivial numeric literals in comparisons, one per literal."""
-    lines: list[int] = []
-    for node in ast.walk(ast.parse(source)):
+def _literal_nodes(source: str) -> Iterator[tuple[ast.AST, str]]:
+    """One ``(comparison, qualified name)`` per non-trivial literal operand."""
+    for node, qual in _walk(ast.parse(source)):
         if not isinstance(node, ast.Compare):
             continue
         for operand in (node.left, *node.comparators):
             value = _number(operand)
             if value is not None and value not in TRIVIAL_NUMBERS:
-                lines.append(node.lineno)
-    return sorted(lines)
+                yield node, qual
+
+
+def numeric_literals(source: str) -> list[int]:
+    """Line numbers of non-trivial numeric literals in comparisons, one per literal."""
+    return sorted(node.lineno for node, _ in _literal_nodes(source))  # type: ignore[attr-defined]
 
 
 def counts_literals(rel_path: str) -> bool:
@@ -133,54 +158,99 @@ def counts_branches(rel_path: str) -> bool:
     return not any(rel_path == p or (p.endswith("/") and rel_path.startswith(p)) for p in COUNTRY_PACKAGES)
 
 
-@cache
-def current_counts() -> dict[str, dict[str, int]]:
-    """Per-file counts of each kind, files with a zero count omitted."""
-    out: dict[str, dict[str, int]] = {k: {} for k in KINDS}
-    for path in sorted(ROOT.rglob("*.py")):
-        rel = path.relative_to(ROOT).as_posix()
+Scan = dict[str, Counter[str]]
+
+
+def _key(kind: str, qual: str, node: ast.AST) -> str:
+    return f"{kind}::{qual}::{ast.unparse(node)}"
+
+
+def scan(root: Path) -> Scan:
+    """Per rule, the count of each content key under ``root`` (same counting rules as always)."""
+    out: Scan = {k: Counter() for k in KINDS}
+    for path in sorted(root.rglob("*.py")):
+        rel = path.relative_to(root).as_posix()
         source = path.read_text(encoding="utf-8")
-        if counts_branches(rel) and (n := len(country_branches(source))):
-            out["country_branches"][rel] = n
-        if counts_literals(rel) and (n := len(numeric_literals(source))):
-            out["numeric_literals"][rel] = n
+        if counts_branches(rel):
+            out["country_branches"].update(_key("country_branches", q, n) for n, q in _branch_nodes(source))
+        if counts_literals(rel):
+            out["numeric_literals"].update(_key("numeric_literals", q, n) for n, q in _literal_nodes(source))
     return out
 
 
-def load_baseline() -> dict[str, dict[str, int]]:
-    data = json.loads(BASELINE.read_text(encoding="utf-8"))
-    return {k: dict(data.get(k, {})) for k in KINDS}
+@cache
+def current_scan() -> Scan:
+    return scan(ROOT)
 
 
-def merge_lowered(baseline: dict[str, dict[str, int]], found: dict[str, dict[str, int]]) -> dict[str, dict[str, int]]:
-    """The new baseline: ``found``, provided no file's count grew. Raises
-    ``ValueError`` naming the files that would raise the baseline."""
-    raised = {
-        f"{kind}:{f}": (n, baseline.get(kind, {}).get(f, 0))
-        for kind in KINDS
-        for f, n in found.get(kind, {}).items()
-        if n > baseline.get(kind, {}).get(f, 0)
+def totals(found: Scan) -> dict[str, int]:
+    return {k: sum(found.get(k, Counter()).values()) for k in KINDS}
+
+
+def baseline_from(found: Scan) -> dict:
+    """The baseline document for ``found``: totals per rule plus the informational entries."""
+    return {
+        "totals": totals(found),
+        "entries": {k: dict(sorted(found.get(k, Counter()).items())) for k in KINDS},
     }
+
+
+def load_baseline() -> dict:
+    data = json.loads(BASELINE.read_text(encoding="utf-8"))
+    return {
+        "totals": {k: int(data["totals"].get(k, 0)) for k in KINDS},
+        "entries": {k: dict(data.get("entries", {}).get(k, {})) for k in KINDS},
+    }
+
+
+@dataclass
+class Verdict:
+    raised: dict[str, tuple[int, int]] = field(default_factory=dict)  # rule -> (found, stored)
+    lowered: dict[str, tuple[int, int]] = field(default_factory=dict)
+    new_keys: list[str] = field(default_factory=list)
+
+
+def compare(baseline: dict, found: Scan) -> Verdict:
+    """Totals above the stored total are ``raised`` (the failure); below, ``lowered``.
+    ``new_keys`` are content keys absent from the stored entries or with a higher
+    count, reported so a net-zero swap is visible."""
+    verdict = Verdict()
+    now = totals(found)
+    for kind in KINDS:
+        stored = baseline["totals"][kind]
+        if now[kind] > stored:
+            verdict.raised[kind] = (now[kind], stored)
+        elif now[kind] < stored:
+            verdict.lowered[kind] = (now[kind], stored)
+        known = baseline["entries"].get(kind, {})
+        verdict.new_keys += sorted(k for k, n in found.get(kind, Counter()).items() if n > known.get(k, 0))
+    return verdict
+
+
+def lowered_baseline(baseline: dict, found: Scan) -> dict:
+    """The new baseline for ``found``, provided no rule's total rose. Raises
+    ``ValueError`` naming the rules that would raise the baseline."""
+    raised = compare(baseline, found).raised
     if raised:
-        raise ValueError(f"refusing to raise the baseline (found, baseline): {raised}")
-    return {k: dict(sorted(found.get(k, {}).items())) for k in KINDS}
+        raise ValueError(f"refusing to raise the baseline (found, stored): {raised}")
+    return baseline_from(found)
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--write", action="store_true", help="lower the committed baseline to the current counts")
+    parser.add_argument("--write", action="store_true", help="lower the committed totals to the current counts")
     args = parser.parse_args(argv)
-    found = current_counts()
+    found = current_scan()
     if not args.write:
-        print(json.dumps({k: sum(v.values()) for k, v in found.items()}))
+        print(json.dumps(totals(found)))
         return 0
     try:
-        new = merge_lowered(load_baseline(), found)
+        new = lowered_baseline(load_baseline(), found)
     except ValueError as exc:
         print(exc, file=sys.stderr)
         return 1
     BASELINE.write_text(json.dumps(new, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    print(f"wrote {BASELINE}: " + json.dumps({k: sum(v.values()) for k, v in new.items()}))
+    print(f"wrote {BASELINE}: " + json.dumps(new["totals"]))
     return 0
 
 

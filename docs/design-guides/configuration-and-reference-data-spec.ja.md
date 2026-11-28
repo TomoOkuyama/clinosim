@@ -37,7 +37,7 @@
 
 | 規則 | 正準コード | ガード |
 |---|---|---|
-| 領域の識別子(疾患・薬剤・検査・年齢区分・国)をキーとする表は YAML に置く。式の係数や臨床の閾値は、`_<topic>_thresholds.py` / `_defaults.py` の名前付き・説明付きの定数とし、出典を付ける。コードに名前の無い臨床リテラルを書かない。 | 方針 | [`documentation-and-code-quality-policy.ja.md`](documentation-and-code-quality-policy.ja.md) §5.1、`tests/unit/test_code_data_separation_3137.py`(減る一方のラチェット。`clinosim/` 配下のファイルごとに、国・言語の分岐 — `is_jp` / `is_us` / `uses_jp_clins_profile` の呼び出しと `"JP"` / `"US"` / `"ja"` / `"en"` との比較 — と、`_<topic>_thresholds.py` / `_<topic>_defaults.py` 以外の比較に書かれた自明でない数値リテラルを、`tests/unit/code_data_separation.py` が AST で数え、`tests/unit/code_data_separation_baseline.json` と照合する。件数は増やせない。減ったファイルは `python -m tests.unit.code_data_separation --write` で記録を下げる(このコマンドは記録を上げない)) |
+| 領域の識別子(疾患・薬剤・検査・年齢区分・国)をキーとする表は YAML に置く。式の係数や臨床の閾値は、`_<topic>_thresholds.py` / `_defaults.py` の名前付き・説明付きの定数とし、出典を付ける。コードに名前の無い臨床リテラルを書かない。 | 方針 | [`documentation-and-code-quality-policy.ja.md`](documentation-and-code-quality-policy.ja.md) §5.1、`tests/unit/test_code_data_separation_3137.py`(改名・移動に強いラチェット。`clinosim/` 配下で、国・言語の分岐 — `is_jp` / `is_us` / `uses_jp_clins_profile` の呼び出しと `"JP"` / `"US"` / `"ja"` / `"en"` との比較 — と、`_<topic>_thresholds.py` / `_<topic>_defaults.py` 以外の比較に書かれた自明でない数値リテラルを、`tests/unit/code_data_separation.py` が AST で数え、`tests/unit/code_data_separation_baseline.json` と照合する。記録には規則ごとの合計と、参考情報としての内容キー付きの項目一覧(キー = 規則 + モジュールパスを除く囲みの修飾名 + 正規化したノードのテキスト)を持つ。テストが失敗するのは、規則の合計が記録した合計を超えたときだけである。移動は増加ではない: 移動・改名したファイルは同じキーを保つ。減った場合は記録を編集せずに通り、記録した合計は 1 つのコマンド `python -m tests.unit.code_data_separation --write` で下げる(このコマンドは合計を上げず、機能の変更の中で実行する必要はない)。新しい内容キーはテスト出力に報告されるので、差し引きゼロの入れ替えもレビュアーに見える) |
 
 ## 5. 未対応
 
