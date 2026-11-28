@@ -13,12 +13,20 @@
 # instead of `dose_factor`: the order is then written as that dose spread over
 # `interval_hours` (a weight-based order, mg/kg, included), and is not raised
 # when it already is at or below it. A clearance above the last band leaves
-# the order unchanged. `reference_dose_mg`, when set, limits the rule to an
+# the order unchanged. A band whose label states the dose in mg per
+# administration gives `dose_mg` instead (one of `dose_factor`, `daily_dose_mg`
+# and `dose_mg`). `interval_hours` divides a day or is a whole number of days
+# (48: every other day, given on the order's day and every second day after).
+# A band never makes an order more frequent than written (a once-daily order
+# keeps its interval), and a one-time dose is not adjusted. `reference_dose_mg`, when set, limits the rule to an
 # order written with exactly that dose (the dose the label's table is stated
 # for); an order written with another dose is not adjusted.
 # `first_dose_unchanged: true` keeps the order's written first dose (the label
 # fixes the initial dose apart from the maintenance table): the first
-# administration is the written dose and the adjusted regimen follows.
+# administration is the written dose and the adjusted regimen follows; a band
+# given more than once a day keeps the order day's later slots at the band
+# dose (the initial dose replaces the first maintenance dose only), a daily or
+# longer band gives that first dose only on the order day.
 #
 # Sources (read on 2026-11-24):
 #   - US meropenem: openFDA drug label "Meropenem for injection" (api.fda.gov
@@ -68,6 +76,63 @@
 #     the label's table "is not valid for functionally anephric patients" and
 #     states no clearance cut for them. The table is a daily dose, so the
 #     regimen is that dose once every 24 hours.
+#   - Issue #3971 (FDA labels read through openFDA api.fda.gov /drug/label.json
+#     and PMDA package inserts read at pmda.go.jp PmdaSearch iyakuDetail, on
+#     2026-11-28; set id and effective date given per label). A clearance below
+#     a label's last row takes that row, as for vancomycin. Where a label gives
+#     a range, the written dose is kept when it lies in the dose range and the
+#     longest interval of the interval range is taken (the more conservative
+#     end for an impaired clearance, and a standard frequency): cefazolin "18
+#     to 24 hours" -> 24 h, ciprofloxacin "200 to 400 mg every 18 to 24 hours"
+#     -> the written 400 mg every 24 h, ampicillin / sulbactam "1.5 g to 3 g"
+#     -> the written 3 g.
+#   - US cefazolin: "Cefazolin for Injection" (WG Critical Care, set id
+#     00dd6da7-50a8-44c9-b2dc-7948973df392, effective 2026-01-07; the same text
+#     in Hikma 1dc9de56-e259-4546-a1db-23119a8a088e, 2026-05-14), "Dosage
+#     Adjustment for Patients With Reduced Renal Function": 55 or greater full
+#     doses; 35 to 54 "full doses but dosage should be restricted to at least 8
+#     hour intervals" (the q8h order stands, no band); 11 to 34 "1/2 the usual
+#     dose every 12 hours"; 10 or less "1/2 the usual dose every 18 to 24
+#     hours" (24 h kept); "All reduced dosage recommendations apply after an
+#     initial loading dose appropriate to the severity of the infection"
+#     (first_dose_unchanged).
+#   - US ampicillin / sulbactam: "Ampicillin and Sulbactam for Injection"
+#     (Hikma, a65a70bf-4283-4bc0-b576-00c9ab29bd64, 2026-03-25), Impaired Renal
+#     Function, Table 3 (creatinine clearance mL/min/1.73 m2): >= 30 "1.5 g to
+#     3 g every 6 to 8 hours"; 15 to 29 "1.5 g to 3 g every 12 hours"; 5 to 14
+#     "1.5 g to 3 g every 24 hours" (the written dose is kept, it is in the
+#     range).
+#   - US levofloxacin: "Levofloxacin Injection" (Hospira, 5a1534af-aa1c-4f1d-
+#     ba9f-9415b14e1af2, 2025-11-04), 2.3, Table 3, 750 mg row: 20 to 49 "750
+#     mg every 48 hours"; 10 to 19 "750 mg initial dose, then 500 mg every 48
+#     hours" (no row for a clearance below 10 without dialysis).
+#   - JP levofloxacin: クラビット点滴静注バッグ500mg/100mL (430574_6241402A1021_1_16,
+#     2020年8月改訂 第1版), 7.1: "20≦CLcr＜50 初日500mgを1回、2日目以降250mgを1日に
+#     1回投与する"; "CLcr＜20 初日500mgを1回、3日目以降250mgを2日に1回投与する".
+#   - US ciprofloxacin IV: "Ciprofloxacin in Dextrose" (Hospira, cbbbf939-
+#     3219-4515-a48e-ca264daa4d07, 2025-11-04), 2.3, Table 4: > 30 "See Usual
+#     Dosage"; 5 to 29 "200 to 400 mg every 18 to 24 hours" (the written 400 mg
+#     every 24 hours kept).
+#   - JP ciprofloxacin IV: シプロキサン注200mg／400mg (630004_6241400A4021_1_17,
+#     2026年9月改訂 第2版), 7.1 （参考）: "30≦Ccr≦60 1回200mgを12時間ごとに投与";
+#     "Ccr<30 1回200mgを24時間ごとに投与".
+#   - US cefotaxime: "Cefotaxime for Injection" (Hikma, ed23b6bc-32c7-4c50-
+#     a53d-313ae78e5623, 2024-04-11; the same text in CLAFORAN, SteriMax,
+#     434fb630-c8d6-4583-b3ee-8e4ba6552c3d, 2026-08-14), Precautions: "the dose
+#     of cefotaxime sodium be halved in patients with estimated creatinine
+#     clearances of less than 20 mL/min/1.73 m 2" (interval unchanged).
+#   - US aztreonam: AZACTAM (E.R. Squibb, 9a105eaf-ee77-4016-beeb-d425a5565db2,
+#     2025-12-15), Renal Impairment in Adult Patients: "halved in patients with
+#     estimated creatinine clearances between 10 and 30 mL/min/1.73 m 2 after an
+#     initial loading dose of 1g or 2 g"; below 10 "The maintenance dose should
+#     be one-fourth of the usual initial dose given at the usual fixed interval
+#     of 6, 8, or 12 hours" (first_dose_unchanged).
+#   - US imipenem / cilastatin: PRIMAXIN IV (Merck, f41d8abd-7792-4918-1b93-
+#     bd83ea01955e, 2024-07-05), 2.3, Table 3, the 500 mg every 6 hours row:
+#     < 90 to >= 60 400 mg every 6 hours; < 60 to >= 30 300 mg every 6 hours;
+#     < 30 to >= 15 200 mg every 6 hours. Below 15 the label says not to give it
+#     "unless hemodialysis is instituted within 48 hours" and doses a dialysis
+#     patient by the 15-29 row; the 15-29 row is kept (no "avoid" rule).
 #   Not listed: JP vancomycin (the PMDA package insert of vancomycin
 #     hydrochloride for intravenous infusion (pmda.go.jp iyakuDetail
 #     180024_6113400A1200_1_04), section 7, says to correct the dose for renal
@@ -76,9 +141,25 @@
 #     adjust dose and interval and to monitor blood levels; no readable
 #     numbers), JP piperacillin / tazobactam (the PMDA package insert of
 #     ゾシン静注用, 2023-02 revision, section 9.2, says only to reduce the dose or
-#     lengthen the interval by the degree of impairment, without Ccr bands),
-#     and every antibiotic whose label was not read (cefepime, ampicillin /
-#     sulbactam, levofloxacin, cefazolin and others).
+#     lengthen the interval by the degree of impairment, without Ccr bands);
+#     Issue #3971: JP cefazolin (セファメジンα注射用, 171911_6132401D1045_4_07,
+#     9.2.1 "腎障害の程度に応じて投与量を減量し、投与の間隔をあけて使用すること"),
+#     JP cefotaxime (セフォタックス注射用 530169_6132409D1041_4_03 and クラフォラン
+#     注射用 780069_6132409D1050_1_12, 9.2.1 "減量又は投与間隔をあけて投与すること"),
+#     JP aztreonam (アザクタム注射用, 780009_6122400D1028_2_01, 9.2 "投与量を減ずるか、
+#     投与間隔を開けて使用すること"), JP gentamicin (ゲンタシン注, 400186_6134407A1024_
+#     2_08, 7.1: by serum creatinine, "通常量を「血清クレアチニン値（mg/dL）×8」時間毎
+#     に投与する", not by clearance), JP ampicillin / sulbactam (スルバシリン静注用
+#     780009_6139504F1065_1_19 and ユナスピン静注用 260054_6139504F1030_1_21, 9.2.1
+#     "投与量及び投与間隔を調節する等、慎重に投与すること") and JP cefmetazole
+#     (セフメタゾン静注用, 530258_6132408F1021_3_03, 9.2.1 "投与量・投与間隔の適切な
+#     調節をするなど慎重に投与すること"): no clearance table in the dosing sections
+#     (7, 9.2); the pharmacokinetic table in 16.6 (a simulation of 3 g by CLcr;
+#     an example by Ccr for a 1 g every 12 hours base) is not used as a dose
+#     rule. Not ordered by
+#     the protocols whose orders this rule reads: cefepime (hospital-acquired
+#     infection regimens only, dosed by the antibiotic module; Issue #4019), US gentamicin,
+#     JP imipenem / cilastatin.
 metadata:
   kind: reference
   name: renal_antibiotic_dosing
@@ -122,6 +203,59 @@ drugs:
         - {max_crcl: 80, daily_dose_mg: 1235, interval_hours: 24}
         - {max_crcl: 90, daily_dose_mg: 1390, interval_hours: 24}
         - {max_crcl: 100, daily_dose_mg: 1545, interval_hours: 24}
+  cefazolin:
+    US:
+      first_dose_unchanged: true
+      bands:
+        - {max_crcl: 10, dose_factor: 0.5, interval_hours: 24}
+        - {max_crcl: 34, dose_factor: 0.5, interval_hours: 12}
+  ampicillin_sulbactam:
+    US:
+      bands:
+        - {max_crcl: 14, dose_factor: 1.0, interval_hours: 24}
+        - {max_crcl: 29, dose_factor: 1.0, interval_hours: 12}
+  levofloxacin:
+    US:
+      reference_dose_mg: 750
+      first_dose_unchanged: true
+      bands:
+        - {max_crcl: 19, dose_mg: 500, interval_hours: 48}
+        - {max_crcl: 49, dose_mg: 750, interval_hours: 48}
+    JP:
+      reference_dose_mg: 500
+      first_dose_unchanged: true
+      bands:
+        - {max_crcl: 19, dose_mg: 250, interval_hours: 48}
+        - {max_crcl: 49, dose_mg: 250, interval_hours: 24}
+  ciprofloxacin:
+    US:
+      reference_dose_mg: 400
+      bands:
+        - {max_crcl: 29, dose_factor: 1.0, interval_hours: 24}
+    JP:
+      reference_dose_mg: 400
+      bands:
+        - {max_crcl: 29, dose_mg: 200, interval_hours: 24}
+        - {max_crcl: 60, dose_mg: 200, interval_hours: 12}
+  cefotaxime:
+    US:
+      reference_dose_mg: 2000
+      bands:
+        - {max_crcl: 19, dose_factor: 0.5, interval_hours: 8}
+  aztreonam:
+    US:
+      reference_dose_mg: 2000
+      first_dose_unchanged: true
+      bands:
+        - {max_crcl: 9, dose_factor: 0.25, interval_hours: 8}
+        - {max_crcl: 30, dose_factor: 0.5, interval_hours: 8}
+  imipenem_cilastatin:
+    US:
+      reference_dose_mg: 500
+      bands:
+        - {max_crcl: 29, dose_mg: 200, interval_hours: 6}
+        - {max_crcl: 59, dose_mg: 300, interval_hours: 6}
+        - {max_crcl: 89, dose_mg: 400, interval_hours: 6}
   famotidine:
     US:
       reference_dose_mg: 20

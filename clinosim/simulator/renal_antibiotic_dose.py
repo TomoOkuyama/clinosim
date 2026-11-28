@@ -1,8 +1,7 @@
 """Renal dose adjustment of inpatient antibiotics (Issue #3638).
 
-A listed antibiotic (``reference_data/renal_antibiotic_dosing.yaml``: meropenem
-and, in the US, piperacillin / tazobactam and vancomycin, the drugs whose labels
-were read) is
+A listed antibiotic (``reference_data/renal_antibiotic_dosing.yaml``: the drugs
+and countries whose label was read and states creatinine-clearance bands) is
 given at a dose and interval chosen from the patient's creatinine clearance
 (Cockcroft-Gault). The decision is made once per order, at its first dose, from
 the latest creatinine resulted by the order time, else the stay's first result
@@ -32,11 +31,13 @@ from clinosim.types.encounter import Order, OrderResult
 _REF = Path(__file__).resolve().parent / "reference_data" / "renal_antibiotic_dosing.yaml"
 _STRENGTH = re.compile(r"(\d+(?:\.\d+)?)\s*(mg|g)\b", re.IGNORECASE)
 _PER_KG_STRENGTH = re.compile(r"(\d+(?:\.\d+)?)\s*mg\s*/\s*kg\b", re.IGNORECASE)
-_INTERVAL = re.compile(r"\bq\d+(?:-\d+)?h\b", re.IGNORECASE)
+_INTERVAL = re.compile(r"\bq\d+(?:-\d+)?h\b|\bdaily\b", re.IGNORECASE)
 _MG_PER_UNIT = {"mg": 1.0, "g": 1000.0}
 _MG_PER_G = _MG_PER_UNIT["g"]
 _SAME_DOSE_TOLERANCE_MG = 1e-6
 _HOURS_PER_DAY = 24
+# A band's interval: a whole fraction of a day or a whole number of days (q48h).
+_MAX_INTERVAL_HOURS = 48
 _DAYS_PER_YEAR = 365.25
 
 
@@ -53,12 +54,15 @@ class _Band(BaseModel):
     max_crcl: int = Field(gt=0)
     dose_factor: float | None = Field(default=None, gt=0, le=1)
     daily_dose_mg: float | None = Field(default=None, gt=0)
-    interval_hours: int = Field(gt=0, le=24)
+    dose_mg: float | None = Field(default=None, gt=0)
+    interval_hours: int = Field(gt=0, le=_MAX_INTERVAL_HOURS)
 
     @model_validator(mode="after")
     def _one_dose_rule(self) -> _Band:
-        if (self.dose_factor is None) == (self.daily_dose_mg is None):
-            raise ValueError("a band gives exactly one of dose_factor and daily_dose_mg")
+        if sum(v is not None for v in (self.dose_factor, self.daily_dose_mg, self.dose_mg)) != 1:
+            raise ValueError("a band gives exactly one of dose_factor, daily_dose_mg and dose_mg")
+        if _HOURS_PER_DAY % self.interval_hours and self.interval_hours % _HOURS_PER_DAY:
+            raise ValueError("interval_hours divides a day or is a whole number of days")
         return self
 
 
@@ -164,6 +168,23 @@ def _written_mg(order: Order, patient: Any, admission_time: datetime, context: R
     return None
 
 
+def _written_interval_hours(order: Order) -> float | None:
+    """Hours between the written doses; ``None`` when the order states no
+    per-day count."""
+    per_day = order.frequency_per_day
+    return _HOURS_PER_DAY / per_day if per_day else None
+
+
+def _frequency(interval_hours: int) -> tuple[str, int | None]:
+    """The frequency label and per-day count of a band's interval; a cadence
+    longer than a day ("Q48H") has no per-day count, like a weekly order."""
+    if interval_hours == _HOURS_PER_DAY:
+        return "DAILY", 1
+    if interval_hours > _HOURS_PER_DAY:
+        return f"Q{interval_hours}H", None
+    return f"Q{interval_hours}H", _HOURS_PER_DAY // interval_hours
+
+
 def keeps_first_dose(order: Order, country: str) -> bool:
     """Whether the label of ``order``'s drug fixes the first dose apart from
     the renal maintenance regimen (``first_dose_unchanged``)."""
@@ -178,8 +199,8 @@ def apply_renal_dose(
     (``at``), in place; a no-op for an order already decided, an unlisted drug
     or country, or a patient without a clearance. Idempotent. The age is the
     age at admission and the weight the one charted on the encounter."""
-    if order.renal_crcl_ml_min is not None or order.dose_quantity is None:
-        return
+    if order.renal_crcl_ml_min is not None or order.dose_quantity is None or order.single_dose:
+        return  # a one-time dose has no interval to adjust (the labels' tables follow the initial dose)
     if str(order.route or "").upper() == "PO":
         return  # the labels' tables are for the injections (oral vancomycin is not absorbed)
     rules = _rules()
@@ -194,6 +215,9 @@ def apply_renal_dose(
     band = next((b for b in sorted(rule.bands, key=lambda b: b.max_crcl) if round(crcl) <= b.max_crcl), None)
     if band is None:
         return
+    written_interval = _written_interval_hours(order)
+    if written_interval is not None and band.interval_hours < written_interval:
+        return  # an order given less often than the band is not made more frequent
     if band.daily_dose_mg is not None:
         # An absolute daily dose (vancomycin): the written dose may be weight
         # based, and a regimen already at or below the label dose is kept.
@@ -203,13 +227,14 @@ def apply_renal_dose(
         mg = band.daily_dose_mg * band.interval_hours / _HOURS_PER_DAY
     else:
         per_unit = _MG_PER_UNIT.get(str(order.dose_unit).lower())
-        if per_unit is None or band.dose_factor is None:
+        if per_unit is None:
             return
         written_mg = float(order.dose_quantity) * per_unit
         if rule.reference_dose_mg is not None and abs(written_mg - rule.reference_dose_mg) > _SAME_DOSE_TOLERANCE_MG:
             return
-        mg = written_mg * band.dose_factor
-    frequency = "DAILY" if band.interval_hours == _HOURS_PER_DAY else f"Q{band.interval_hours}H"
+        # A label table stated in mg per dose (``dose_mg``) or as a fraction of the written dose.
+        mg = band.dose_mg if band.dose_mg is not None else written_mg * (band.dose_factor or 1.0)
+    frequency, per_day = _frequency(band.interval_hours)
     if abs(mg - written_mg) < _SAME_DOSE_TOLERANCE_MG and (order.frequency or "").upper() == frequency:
         return
     in_mg = mg < _MG_PER_G or band.daily_dose_mg is not None  # a label table stated in mg stays in mg
@@ -217,7 +242,7 @@ def apply_renal_dose(
     order.dose_quantity = round(mg if in_mg else mg / _MG_PER_G, 3)
     order.dose_max_quantity = None  # a per-kg order's cap does not apply to the absolute dose
     order.frequency = frequency
-    order.frequency_per_day = _HOURS_PER_DAY // band.interval_hours
+    order.frequency_per_day = per_day
     order.display_name = _rewritten_name(order.display_name or "", mg, frequency, in_mg=in_mg)
     order.renal_dose_adjusted = True
     order.clinical_intent = (order.clinical_intent or "") + t(
