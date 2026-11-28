@@ -11,7 +11,7 @@ clinosim は MIT ライセンスである ([`LICENSE`](LICENSE) 参照)。リポ
 
 ## 1. `clinosim/codes/authoritative/` のスナップショット
 
-これらの JSON は照合用の参照データである。単体テストが `clinosim/codes/data/` の表示名をこれらと比較し、`JP_MedicationCodeYJ_CS_full.json` は `clinosim/codes/yj.py` が実行時にも読む。「件数」はファイル内の概念数 (`len(concept)`、または `codes` のキー数)。
+これらの JSON は照合用の参照データである。単体テストが `clinosim/codes/data/` の表示名をこれらと比較し、`yj_medis_hot_used.json` は `clinosim/codes/yj.py` が実行時にも読む。「件数」はファイル内の概念数 (`len(concept)`、または `codes` のキー数)。
 
 | ファイル | ファイルに記録された出典 | 記録された版・バージョン | 取得 (日付、取得元) | 複製している内容 | 件数 |
 |---|---|---|---|---|---|
@@ -22,7 +22,7 @@ clinosim は MIT ライセンスである ([`LICENSE`](LICENSE) 参照)。リポ
 | `snomed_ct_tx.json` | tx.fhir.org 経由の SNOMED CT International Edition | `http://snomed.info/sct/900000000000207008/version/20250201`。8 概念は edition 20260701 から追加 | 2026-11-10 (追加 2026-11-24、2026-11-26)、tx.fhir.org `$lookup` | コード、preferred term、synonym、fully specified name | 288 |
 | `snomed_allergy_tx.json` | tx.fhir.org 経由の SNOMED CT International Edition | 2025-02-01 | 2026-11-10、tx.fhir.org R4 `CodeSystem/$lookup` | コード、display、fully specified name、inactive フラグ | 12 |
 | `rxnorm_rxnav_snapshot.json` | RxNav (NLM) `/REST/rxcui/{code}/historystatus` | 記録なし | 2026-10-28 (SCD は 2026-11-09)、RxNav REST API | RxCUI、status、name、term type | 1,451 |
-| `JP_MedicationCodeYJ_CS_full.json` | MEDIS-DC 医薬品HOTコードマスター (`MEDIS20260831.TXT`) を FHIR CodeSystem `http://capstandard.jp/iyaku.info/CodeSystem/YJ-code` として書き出したもの | CodeSystem `version` 2026.8.31、`content` `complete` | 日付の記録なし。更新スクリプト [`scripts/refresh_authoritative_yj_full.py`](scripts/refresh_authoritative_yj_full.py) はダウンロードページ `https://www2.medis.or.jp/hcode/` を挙げる | マスターの全 YJ コードと表示名 (完全なコード体系) | 23,923 |
+| `yj_medis_hot_used.json` | MEDIS-DC 医薬品HOTコードマスター (`MEDIS20260831.TXT`)。Issue #4026 までリポジトリが同梱していた完全版 YJ CodeSystem `JP_MedicationCodeYJ_CS_full.json` (23,923 概念、`content` `complete`) から抽出 | 2026.8.31 (削除したファイルの CodeSystem `version`) | 取得日の記録なし (削除したファイルに記録がなく、その更新スクリプトはダウンロードページ `https://www2.medis.or.jp/hcode/` を挙げていた)。抽出 2026-11-28 | コードと、`yj.yaml` にあるそのコードの `ja` 名 (マスターの他の文字列は含まない) | 272 |
 | `yj_medis_hot_20261031.json` | MEDIS-DC 医薬品HOTコードマスター (2026-10-31) と jpfhir-terminology 2.2606.0 の YJ CodeSystem (fragment) | マスター 2026-10-31、パッケージ 2.2606.0 | 2026-11-10、`https://www2.medis.or.jp/hcode/moto_data/h20261031.zip` | コード、販売名、その他の販売名 (2) | 268 |
 | `yj_tx_fragment.json` | jpfhir-terminology 2.2606.0 `CodeSystem-jp-medicationcodeyj-cs.json` (content `fragment`) | 2.2606.0 | 2026-07-19、`https://github.com/iryohjoho/fhir-jp-validator` の `tx-server-build/` | コード、display | 9 |
 | `yj_mhlw_snapshot.json` | 厚生労働省 薬価基準収載品目リスト及び後発医薬品に関する情報 (令和8年6月12日適用) | 2026-06-12 適用 | 2026-10-31、`https://www.mhlw.go.jp/topics/2026/04/xls/tp20260612-01_05.xlsx` | YJ コードごとの成分名と品名 (3 件はリスト側のコード付き) | 224 |
@@ -42,7 +42,7 @@ clinosim は MIT ライセンスである ([`LICENSE`](LICENSE) 参照)。リポ
 | `snomed-ct.yaml` | SNOMED CT、SNOMED International | `2024-03` (スナップショット: 2025-02-01 / 20260701) | 289 | `en` = preferred term、synonym または FSN。`ja` の出典は記録なし | 289 件中 286 件 |
 | `rxnorm.yaml` | RxNorm、NLM | `2024` | 1,450 (`en`)、241 (`ja`) | `en` = 薬剤名 | `en` 1,450 件中 1,269 件が RxNav の name と一致 |
 | `rxnorm_scd.yaml` | NLM RxNav 経由の RxNorm SCD | 取得 2026-11-09 | 204 薬剤、1,225 RxCUI | RxCUI、規格量、単位 (名称なし) | — |
-| `yj.yaml` | YJ コード (厚労省 薬価基準 YJ / MEDIS HOT-YJ マスター / JP Core) | `2024` | 272 | `ja` = 販売名、`en` = 英語の成分名 | `ja`: 268 件が MEDIS 2026-10-31 スナップショットと一致。163 件が完全版 YJ CodeSystem の display と一致 |
+| `yj.yaml` | YJ コード (厚労省 薬価基準 YJ / MEDIS HOT-YJ マスター / JP Core) | `2024` | 272 | `ja` = 販売名、`en` = 英語の成分名 | `ja`: 268 件が MEDIS 2026-10-31 スナップショットと一致。272 コードすべてが `yj_medis_hot_used.json` にある |
 | `jlac10.yaml` | JLAC10、JSLM | `137` | 53 | `ja` = マスターの名称または略称、`en` 英名 | `ja` 53 件中 48 件がマスターの名称または略称と一致 |
 | `k-codes.yaml` | 診療報酬点数表 (厚労省)。診療行為マスターで照合 | `2024` | 49 | `ja` = マスター名称、またはそれが始まる区分名 (ファイルヘッダー)。`en` = 英訳 (ファイルヘッダー) | `ja` 49 件中 23 件がマスター名称と完全一致 |
 | `cpt.yaml` | CPT、American Medical Association | `2024` | 95 | 英語と日本語のラベル。ヘッダーには "CPT is proprietary (AMA license)" と "not yet machine-verified" とある。`en` ラベルが AMA の descriptor の文言かどうかは記録なし | スナップショットなし |
@@ -95,8 +95,8 @@ tx.fhir.org、RxNav、`fhir.tx.support.r4` パッケージは入手経路とし�
 
 各項目は、それを提起する事実を挙げる。判断のための一覧であり、ここでは答えない。
 
-1. **完全版の YJ CodeSystem。** `JP_MedicationCodeYJ_CS_full.json` は MEDIS 医薬品HOTコードマスターから作った完全なコード体系 (23,923 概念、`content` `complete`) で、実行時に読まれる。その `copyright` フィールドは "MEDIS-DC retains ownership; clinosim redistributes for FHIR terminology resolution alongside the upstream tx-server fragment. Contact hot@medis.or.jp for licensing questions." と書く。MEDIS 標準マスターのページには 4 章に引用した使用許諾申請書と、それが必要なマスター種についての文がある。リポジトリには申請や許諾の記録がない。また `clinosim/codes/authoritative/README.ja.md` は、完全な CodeSystem 定義はそのディレクトリに置かないと書いている。
-2. **その他の MEDIS 由来の名称。** `yj_medis_hot_20261031.json` (販売名 268 件)、`yj.yaml` の `ja` (販売名 272 件)、`medis-disease-keyno.yaml` (病名 2 件) は MEDIS マスターの文言を複製している。MEDIS のページには「ダウンロードしたマスターを改変し配布する場合は、MEDIS-DCの標準マスターを利用したことを必ず明記してください。」(4 章) という文がある。リポジトリに帰属表示のファイルはない。
+1. **完全版の YJ CodeSystem。** Issue #4026 まで、リポジトリは MEDIS 医薬品HOTコードマスターから作った完全なコード体系 `JP_MedicationCodeYJ_CS_full.json` (23,923 概念、`content` `complete`) を同梱し、実行時に読んでいた。その `copyright` フィールドは "MEDIS-DC retains ownership; clinosim redistributes for FHIR terminology resolution alongside the upstream tx-server fragment. Contact hot@medis.or.jp for licensing questions." と書いていた。このファイルはソースツリーにも、そこから作るパッケージにもない。`yj_medis_hot_used.json` が `yj.yaml` の 272 コード (いずれも完全版に載っていた) を、`yj.yaml` がすでに持っていた名称とともに収める。完全版のファイルは git の履歴と、その変更より前に作られたパッケージには残っている。MEDIS 標準マスターのページには 4 章に引用した使用許諾申請書と、それが必要なマスター種についての文がある。リポジトリには申請や許諾の記録がない。残る問いは、同梱している YJ コードと名称、および履歴と以前のパッケージにあるファイルについて、何らかの対応が要るかどうかである。
+2. **その他の MEDIS 由来の名称。** `yj_medis_hot_20261031.json` (販売名 268 件)、`yj.yaml` の `ja` (販売名 272 件。`yj_medis_hot_used.json` にも同じ名称がある)、`medis-disease-keyno.yaml` (病名 2 件) は MEDIS マスターの文言を複製している。MEDIS のページには「ダウンロードしたマスターを改変し配布する場合は、MEDIS-DCの標準マスターを利用したことを必ず明記してください。」(4 章) という文がある。リポジトリに帰属表示のファイルはない。
 3. **CPT の descriptor。** `cpt.yaml` は英語ラベル付きの CPT コード 95 件を同梱する。ヘッダーは CPT を "proprietary (AMA license)" と書く。AMA のライセンスページは読めなかった。ラベルが AMA の descriptor の文言かどうかは記録がない。
 4. **SNOMED CT の文言。** 288 + 12 概念を preferred term、synonym、fully specified name とともに同梱し、`snomed-ct.yaml` は 289 件の英語の語を持つ。SNOMED のページは Affiliate License を挙げ、Member countries に言及している。パッケージは国の制限なく PyPI と GitHub で配布されている。
 5. **LOINC の文言。** LONG_COMMON_NAME、SHORTNAME、その他の designation 付きの 373 コードを同梱している。LOINC のライセンスページは読めなかった。
@@ -126,6 +126,6 @@ tx.fhir.org、RxNav、`fhir.tx.support.r4` パッケージは入手経路とし�
 
 - この変更までは、出典のライセンスを求める文書も、何を複製してよいか (コード、表示名、完全なコード体系) を述べる文書もなかった。
 - 照合先の一覧が食い違う: `clinosim/codes/README.ja.md` は JLAC10 の出典を JCCLS とし、`AGENTS.md` も照合先に JCCLS を挙げるが、JLAC10 のデータファイルと仕様は JSLM としている。`AGENTS.md` の "Adding a new code" の一覧には、データファイルが挙げる Regenstrief、SNOMED International、MEDIS、CDC、JSLM がない (同ファイルの "Code systems and locale data" の項目は Regenstrief を加えている)。
-- `clinosim/codes/authoritative/README.ja.md` の更新手順はリポジトリ外のチェックアウト `../fhir-jp-validator/tx-server-build/` から始まり、抽出スクリプトを「TBD」としている。実際には 3 本 (`scripts/refresh_authoritative_loinc.py`、`scripts/refresh_authoritative_yj.py`、`scripts/refresh_authoritative_yj_full.py`) があり、他のスナップショットにはない。
-- スナップショットの `metadata` は同じ事実に別のキーを使う (`source` / `source_package`、`fetched` / `fetched_at` / `extracted_at` / `retrieved`)。`JP_MedicationCodeYJ_CS_full.json` には取得日がない。新しいスナップショットの来歴フィールドを定める文書はない。
+- `clinosim/codes/authoritative/README.ja.md` の更新手順はリポジトリ外のチェックアウト `../fhir-jp-validator/tx-server-build/` から始まり、抽出スクリプトを「TBD」としている。実際には 3 本 (`scripts/refresh_authoritative_loinc.py`、`scripts/refresh_authoritative_yj.py`、`scripts/refresh_authoritative_yj_used.py`) があり、他のスナップショットにはない。
+- スナップショットの `metadata` は同じ事実に別のキーを使う (`source` / `source_package`、`fetched` / `fetched_at` / `extracted_at` / `retrieved`)。`yj_medis_hot_used.json` には取得日がない (抽出元のファイルに記録がなかったため `fetched` は `null`)。新しいスナップショットの来歴フィールドを定める文書はない。
 - `clinosim/codes/README.ja.md` の「ライセンスと出典」の一覧は、根拠のページを示さずにライセンス条件を書いていた。現在はこのファイルを指している。

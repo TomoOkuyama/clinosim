@@ -22,7 +22,8 @@ override を許容する (下の allowlist に登録)。
 | `shinryo_koui_ssk_20261013_ja.json` | 社会保険診療報酬支払基金 基本マスター 医科診療行為マスター (`s_ALL20261013.csv`)、`https://www.ssk.or.jp/seikyushiharai/tensuhyo/kihonmasta/kihonmasta_01.html` | 2026-11-01 | `k-codes.yaml` 登録コードのマスター名称 (点数表区分番号または区分番号-枝番で引く)。`ja` はそのいずれか、または名称が始まる区分名と一致する (Issue #2340)。 |
 | `rxnorm_rxnav_snapshot.json` | RxNav (NLM) `/REST/rxcui/{code}/historystatus` | 2026-10-28 | clinosim 同梱の全 RxCUI (`rxnorm.yaml` / `drugs.yaml` / US 薬剤マッピング) の status / name / term type。`tests/unit/codes/test_rxnorm_codes_name_their_drug.py` がオフラインで読む。 |
 | `yj_mhlw_snapshot.json` | 厚労省 薬価基準収載品目リスト及び後発医薬品に関する情報 (令和8年6月12日適用)、`https://www.mhlw.go.jp/topics/2026/04/xls/tp20260612-01_05.xlsx` | 2026-10-31 | 薬剤カタログ (`drugs.yaml` の `codes.yj`) の YJ コードに対する厚労省の成分名・品名。JP 薬剤コードテスト (例: `tests/unit/codes/test_jp_yj_class_codes_name_their_drug.py`) がオフラインで読む (Issue #2347)。統一名収載の品目は MEDIS の製品コードをキーにし、リスト上のコードを `mhlw_code` に記録 (Issue #3013)。 |
-| `JP_MedicationCodeYJ_CS_full.json` | YJ-code CodeSystem 全体 (`http://capstandard.jp/iyaku.info/CodeSystem/YJ-code`、version `2026.8.31`、content `complete`) | — | 23,923 concept。YJ full-CS テスト (例: `tests/unit/output/test_fhir_yj_full_cs_gate_1220.py`) が使用。`yj.yaml` の各コードの `ja` はここの display と全角数字も含めて完全一致しなければならない (Issue #3127)。 |
+| `yj_medis_hot_used.json` | MEDIS-DC 医薬品HOTコードマスター `MEDIS20260831.TXT` (版 `2026.8.31`)。以前同梱していた YJ CodeSystem 全体 `JP_MedicationCodeYJ_CS_full.json` (23,923 concept、Issue #4026 で削除) から抽出 | 記録なし (削除したファイルに取得日の記録がない)。抽出 2026-11-28 | clinosim が使う YJ コード: `yj.yaml` の 272 コードと、`yj.yaml` が収める `ja` 名 (マスターの他の文字列は含まない)。実行時に `clinosim.codes.yj.is_verified_yj` が読む (YJ スライスか eCS `nocoded` か)。カタログまたはレジストリのコードが欠けると `tests/unit/codes/test_yj_used_subset_4026.py` が失敗する。下の「新しい YJ コードの照合」を参照。 |
+| `yj_medis_hot_20261031.json` | MEDIS-DC 医薬品HOTコードマスター (2026-10-31)、`https://www2.medis.or.jp/hcode/moto_data/h20261031.zip` (`MEDIS20261031.TXT`)、および jpfhir-terminology 2.2606.0 の YJ CodeSystem fragment | 2026-11-10 | `yj.yaml` の YJ コードと販売名。`yj.yaml` の各コードの `ja` はこのいずれかと一致しなければならない (`tests/unit/codes/test_display_matches_authoritative.py`、Issue #3127)。 |
 | `snomed_allergy_tx.json` | tx.fhir.org R4 `CodeSystem/$lookup`、SNOMED CT International Edition 2025-02-01 | 2026-11-10 | `allergens.yaml` のアレルゲン物質・アレルギー歴なし・反応 manifestation コード (display、FSN、`inactive`)。`tests/unit/modules/allergy/test_allergen_codes_3128.py` がオフラインで参照 (Issue #3128)。 |
 | `jfagy_jpfhir_terminology.json` | `jpfhir-terminology 2.2606.0` (`JP_AllergyIntolerance_VS` の JFAGY アレルゲン CodeSystem。医薬品 CodeSystem は fragment) | 2026-11-10 | JP AllergyIntolerance が emit する JFAGY コード (`allergens.yaml` `country_codes.JP`) と、各 `ja` が一致すべき CodeSystem display (Issue #3128)。 |
 | `jlac10_jslm_137.json` | 日本臨床検査医学会 検査項目コード委員会「JLAC10コード表_臨床検査」v137 (2026-06)、`https://www.jslm.org/committees/code/137jlac10_1.xlsx` (シート 分析物コード) | 2026-11-10 | `jlac10.yaml` に登録した分析物コードと、マスターの分析物名・略称・英名。`tests/unit/codes/test_jlac10_master_3164.py` がオフラインで参照 (Issue #3164)。 |
@@ -34,6 +35,26 @@ snapshot の件数は clinosim の emit 範囲に合わせて増えるため上�
 後続 snapshot (SNOMED / MEDIS / BCP-47 etc.) は
 design guide で追跡され、各 Chain がフレームワークに移行するたびに
 後続 PR で landing する。
+
+## 新しい YJ コードの照合
+
+clinosim が emit する YJ コードは MEDIS 医薬品HOTコードマスターに載っていな
+ければならない。載っていないコードは JP-CLINS eCS の `nocoded` スライスで
+出力される。マスターは同梱しない。コードを追加する手順:
+
+1. MEDIS のダウンロードページ (`https://www2.medis.or.jp/hcode/`、アーカイブ
+   `h<YYYYMMDD>.zip`) から最新のマスターを取得し、`MEDIS<YYYYMMDD>.TXT` を
+   取り出す。
+2. `個別医薬品コード` 列でコードを探し、同じ行で薬剤カタログが意図する製品
+   (剤形と規格) であることを確かめる。
+3. コードを `clinosim/codes/data/yj.yaml` に (薬が使う場合は `drugs.yaml` の
+   `codes.yj` にも) 追加し、
+   `python scripts/refresh_authoritative_yj_used.py --source h<YYYYMMDD>/MEDIS<YYYYMMDD>.TXT --fetched <YYYY-MM-DD>`
+   を実行する。マスターの版と取得日を記録した `yj_medis_hot_used.json` を書き
+   出し、`yj.yaml` のコードが 1 つでもマスターになければ書き出さずに止まる。
+4. 版と取得日を上の表と
+   [`THIRD_PARTY_TERMINOLOGIES.ja.md`](../../../THIRD_PARTY_TERMINOLOGIES.ja.md)
+   に記録する。
 
 ## Content mode: `fragment`
 
@@ -64,7 +85,7 @@ Drift (curated display ≠ 権威 かつ allowlist に無し) は CI fail。
 1. 最新の `../fhir-jp-validator/tx-server-build/` (または上流
    terminology パッケージ) を pull。
 2. 抽出スクリプトを再実行 (per-code-system スクリプトを `scripts/`
-   に配置、各 system の移行に伴い TBD)。
+   に配置、各 system の移行に伴い TBD。YJ は「新しい YJ コードの照合」を参照)。
 3. snapshot ファイルの diff を検査。
 4. 変更エントリごと:
    - Now 一致 → curated データが既に正しく、clinosim 変更不要。

@@ -46,7 +46,8 @@ clinosim/codes/
     loinc_2_83_tx.json                  # LOINC
     icd10cm_2027_cms.json               # ICD-10-CM (CMS)
     snomed_ct_tx.json                   # SNOMED CT International
-    JP_MedicationCodeYJ_CS_full.json    # YJ (full CodeSystem)
+    yj_medis_hot_20261031.json          # YJ (MEDIS HOT マスター抽出)
+    yj_medis_hot_used.json              # clinosim が使う YJ コード (is_verified_yj)
     <system>_<source>.json              # その他の snapshot (一覧は README.md)
   loader.py                             # lookup() は不変
 tests/unit/codes/
@@ -54,7 +55,7 @@ tests/unit/codes/
   authoritative_override_allowlist.yaml # 臨床略記 override
 scripts/
   refresh_authoritative_yj.py           # 抽出スクリプト (system ごと)
-  refresh_authoritative_yj_full.py
+  refresh_authoritative_yj_used.py
   refresh_authoritative_loinc.py
 ```
 
@@ -143,7 +144,7 @@ common name の代わりに臨床略記を保つ LOINC display (と追跡中の�
 
 | System        | Source                                          | Phase   | 状態 |
 | --------------- | ------------------------------------------------- | --------- | ------ |
-| YJ            | YJ-code CS 全体 (`JP_MedicationCodeYJ_CS_full.json`。Issue #3127 以前は fragment `yj_tx_fragment.json`) | Phase 1 | cross-check 済 |
+| YJ            | MEDIS HOT マスター抽出 (`yj_medis_hot_20261031.json`。Issue #3127 以前は fragment `yj_tx_fragment.json`) | Phase 1 | cross-check 済 |
 | ICD-10 (WHO)  | `fhir.tx.support.r4` ICD-10 CS (`icd10_who_tx.json`)、`en` display | Phase 2 | cross-check 済 |
 | ICD-10 (MHLW) | 厚労省 基本分類表 2013 (`icd10_mhlw_2013_ja.json`)、`ja` display | — | cross-check 済 |
 | LOINC         | LOINC 2.83 via tx.fhir.org (`loinc_2_83_tx.json`) | Phase 3 | cross-check 済 |

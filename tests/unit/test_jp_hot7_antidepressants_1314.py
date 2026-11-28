@@ -10,8 +10,9 @@ JP samples at all.
 The fix:
   * Registered ``1179052`` (Duloxetine), ``1179051`` (Mirtazapine),
     ``1179055`` (Venlafaxine — Effexor SR) in the JP drug catalog.
-    Each code was cross-verified against ``JP_MedicationCodeYJ_CS_full
-    .json`` (≥ 1 product-level entry).
+    Each code was cross-verified against the MEDIS master, then bundled
+    as ``JP_MedicationCodeYJ_CS_full.json`` (≥ 1 product-level entry;
+    the file was removed in Issue #4026).
   * Added ``locale_exclude: ["JP"]`` to the Fluoxetine entries in
     ``chronic_medications.yaml`` F32 / F33 so the sampler skips it
     for JP patients.
@@ -43,21 +44,20 @@ def test_jp_yj_not_registered_for_fluoxetine():
     assert "Fluoxetine" not in m
 
 
-def test_all_registered_yj_codes_exist_in_the_full_master():
+def test_all_registered_yj_codes_exist_in_the_medis_master():
     # Guard against future edits that might fabricate a YJ code: every
-    # registered code MUST be a product-level entry in
-    # ``JP_MedicationCodeYJ_CS_full.json`` (full YJ codes since Issue #2347).
+    # registered code MUST be a product-level entry of the MEDIS
+    # 医薬品HOTコードマスター. Checked against the retained extract of the
+    # 2026-10-31 master (``yj_medis_hot_20261031.json``), which was read from
+    # the master itself. The shipped gate subset (Issue #4026) lists only
+    # codes the registry already holds, so it cannot catch a fabricated one.
     import json
     from pathlib import Path
 
     master_path = (
-        Path(__file__).resolve().parents[2]
-        / "clinosim"
-        / "codes"
-        / "authoritative"
-        / "JP_MedicationCodeYJ_CS_full.json"
+        Path(__file__).resolve().parents[2] / "clinosim" / "codes" / "authoritative" / "yj_medis_hot_20261031.json"
     )
-    master = json.load(master_path.open())
+    master = json.load(master_path.open(encoding="utf-8"))
     all_master_codes: set[str] = {c.get("code", "") for c in (master.get("concept") or [])}
 
     # Only check the 5 antidepressants this PR touched to keep the

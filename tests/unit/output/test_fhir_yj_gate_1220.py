@@ -1,4 +1,4 @@
-"""Issue #1220: full JP national YJ CodeSystem gate.
+"""Issue #1220: JP national YJ CodeSystem gate.
 
 The tx-server-fragment-based gate (Issue #283) downgraded 41.8 % of MR /
 25.1 % of MA at JP p=10k to the JP-CLINS eCS ``nocoded`` slice because
@@ -7,16 +7,12 @@ the jpfhir-terminology 2.2606.0 CodeSystem ships as ``content=fragment``
 cardiovascular / respiratory / oncology drugs — real MHLW YJ codes —
 were consequently emitted without their code semantic.
 
-The fix ships the full JP national YJ CodeSystem
-(``clinosim/codes/authoritative/JP_MedicationCodeYJ_CS_full.json``,
-``content=complete``, MEDIS-sourced, 23,923 concepts) as a clinosim
-artifact and rewires the emit gate to use it. Every clinosim yj.yaml
-code was curated to a real MHLW YJ code (16 previously fictitious codes
-were replaced) so the gate passes for every clinosim-emitted code.
-Downstream validators can load the shipped CS ahead of the tx-server
-fragment to resolve the ``required`` binding on
-``codingYJ.code -> JP_MedicationCodeYJ_VS|1.1.0a`` against the complete
-concept set — spec-clean rather than defensive-downgrade.
+The fix checks clinosim's YJ codes against the MEDIS 医薬品HOTコードマスター
+instead. Every clinosim yj.yaml code was curated to a real MHLW YJ code
+(16 previously fictitious codes were replaced) so the gate passes for every
+clinosim-emitted code. Since Issue #4026 the gate reads only the codes of
+that master which clinosim uses (``codes/authoritative/
+yj_medis_hot_used.json``), not the complete code system.
 """
 
 from __future__ import annotations
@@ -31,6 +27,8 @@ from clinosim.modules.output.fhir_r4.medications.medications import _is_yj_code_
 
 pytestmark = pytest.mark.unit
 
+_SUBSET = Path(__file__).resolve().parents[3] / "clinosim" / "codes" / "authoritative" / "yj_medis_hot_used.json"
+
 
 def _clinosim_yj_yaml_codes() -> set[str]:
     _path = Path(__file__).resolve().parents[3] / "clinosim" / "codes" / "data" / "yj.yaml"
@@ -38,9 +36,14 @@ def _clinosim_yj_yaml_codes() -> set[str]:
     return set(data.get("codes", {}).keys())
 
 
-def test_full_cs_loaded_with_expected_scale() -> None:
-    """The MEDIS-sourced CS ships tens of thousands of concepts."""
-    assert len(_verified_yj_codes()) > 20000, f"expected > 20k concepts, got {len(_verified_yj_codes())}"
+def test_gate_loads_the_shipped_subset() -> None:
+    """The gate is loaded from the shipped MEDIS-master subset, not empty
+    (an empty set would downgrade every JP YJ coding to ``nocoded``)."""
+    import json
+
+    subset = json.loads(_SUBSET.read_text(encoding="utf-8"))
+    codes = frozenset(c["code"] for c in subset["concept"])
+    assert codes and _verified_yj_codes() == codes
 
 
 def test_every_clinosim_yj_yaml_code_passes_gate() -> None:
@@ -49,7 +52,7 @@ def test_every_clinosim_yj_yaml_code_passes_gate() -> None:
     assert yaml_codes, "clinosim yj.yaml is unexpectedly empty"
     unverified = [c for c in yaml_codes if not _is_yj_code_valid(c)]
     assert not unverified, (
-        f"clinosim yj.yaml contains {len(unverified)} codes not in the full MEDIS CS: {sorted(unverified)[:10]}"
+        f"clinosim yj.yaml contains {len(unverified)} codes not in the MEDIS master: {sorted(unverified)[:10]}"
     )
 
 
@@ -68,7 +71,7 @@ def test_gate_accepts_top_frequency_p10k_drugs() -> None:
         "2115001X1104",  # Aminophylline hydrate
     ]
     for code in top_codes:
-        assert _is_yj_code_valid(code), f"{code} should be in MEDIS full CS but is not"
+        assert _is_yj_code_valid(code), f"{code} should be in the MEDIS master but is not"
 
 
 def test_gate_rejects_bogus_codes() -> None:
@@ -78,20 +81,13 @@ def test_gate_rejects_bogus_codes() -> None:
     assert not _is_yj_code_valid("1234")
 
 
-def test_shipped_cs_metadata_is_semantic_honest() -> None:
-    """The shipped CS canonical URL matches the JP national registry, and
-    ``content=complete`` accurately describes what we ship (no lying about scope)."""
+def test_shipped_subset_metadata_is_semantic_honest() -> None:
+    """The shipped file names the JP national registry and the MEDIS master
+    edition it was checked against, and says it is a subset (no claim of a
+    complete code system)."""
     import json
 
-    _cs_path = (
-        Path(__file__).resolve().parents[3]
-        / "clinosim"
-        / "codes"
-        / "authoritative"
-        / "JP_MedicationCodeYJ_CS_full.json"
-    )
-    cs = json.loads(_cs_path.read_text())
-    assert cs["url"] == "http://capstandard.jp/iyaku.info/CodeSystem/YJ-code"
-    assert cs["content"] == "complete"
-    assert cs["count"] == len(cs["concept"]) > 20000
-    assert "MEDIS" in cs.get("copyright", ""), "copyright must attribute MEDIS as source"
+    meta = json.loads(_SUBSET.read_text(encoding="utf-8"))["metadata"]
+    assert meta["system"] == "http://capstandard.jp/iyaku.info/CodeSystem/YJ-code"
+    assert "MEDIS" in meta["source_package"], "metadata must attribute MEDIS as source"
+    assert meta["scope"].startswith("subset")

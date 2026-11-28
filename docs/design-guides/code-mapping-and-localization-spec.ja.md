@@ -45,7 +45,7 @@
 | LOINC | `loinc.yaml`、`loinc-maps.yaml` | `codes/loinc.py` | `loinc_2_83_tx.json` |
 | SNOMED CT | `snomed-ct.yaml`、`snomed-maps.yaml`、`procedure-phrase-to-snomed.yaml`、`procedure-snomed-metadata.yaml` | `codes/snomed.py`、`codes/snomed_concepts.py` | `snomed_ct_tx.json` |
 | RxNorm | `rxnorm.yaml` | `codes/drugs.py` 経由 | `rxnorm_rxnav_snapshot.json` |
-| YJ / HOT (MHLW、MEDIS) | `yj.yaml`、`hot7.yaml` | `codes/yj.py` (形式、YJ マスタ)。薬ごとの製品は `codes/drugs.py` のカタログ | `yj_mhlw_snapshot.json`、`JP_MedicationCodeYJ_CS_full.json`、`yj_tx_fragment.json` |
+| YJ / HOT (MHLW、MEDIS) | `yj.yaml`、`hot7.yaml` | `codes/yj.py` (形式、YJ マスタ)。薬ごとの製品は `codes/drugs.py` のカタログ | `yj_mhlw_snapshot.json`、`yj_medis_hot_used.json`、`yj_medis_hot_20261031.json`、`yj_tx_fragment.json` |
 | JLAC10 / JP-CLINS 検査 | `jlac10.yaml`、`jp-clins-lab-uncoded.yaml` | `codes/jlac10.py` | JP-CLINS パッケージ |
 | CPT / K コード | `cpt.yaml`、`k-codes.yaml` | `codes/procedures.py` | `shinryo_koui_ssk_20261013_ja.json` |
 | UCUM | `ucum-aliases.yaml` | `codes/ucum.py` | — |
@@ -153,7 +153,7 @@ CRP: "5C070"
 
 - **順序**: よく使う経路を先に書く。経路のない参照では、先頭の `codes["yj"]` を使う。
 - **選び方**: シミュレータの標準用量に合う製品を選び、先発品を優先する。
-- **照合**: すべて MHLW YJ マスタ (スナップショット `codes/authoritative/yj_mhlw_snapshot.json`) と `JP_MedicationCodeYJ_CS_full.json` に載っている。
+- **照合**: すべて MHLW YJ マスタ (スナップショット `codes/authoritative/yj_mhlw_snapshot.json`) と MEDIS 医薬品HOTコードマスターに載っている。同梱するのは clinosim が使うコードだけで (`codes/authoritative/yj_medis_hot_used.json`。`is_verified_yj` が読む。Issue #4026)、コード体系全体は同梱しない。カタログのコードがそこに欠けると `tests/unit/codes/test_yj_used_subset_4026.py` が失敗し、新しいコードの手順は `codes/authoritative/README.ja.md` の「新しい YJ コードの照合」にある。
 - **製品がない場合**: その経路に収載製品のない薬はコードを持たず、eCS の `nocoded` slice で出力する。
 - **使わないもの**: YJ の 7 桁接頭辞はコードとして使わない。`hot7.yaml` にはコードを登録しない。
 

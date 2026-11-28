@@ -45,7 +45,7 @@ Current layout:
 | LOINC | `loinc.yaml`, `loinc-maps.yaml` | `codes/loinc.py` | `loinc_2_83_tx.json` |
 | SNOMED CT | `snomed-ct.yaml`, `snomed-maps.yaml`, `procedure-phrase-to-snomed.yaml`, `procedure-snomed-metadata.yaml` | `codes/snomed.py`, `codes/snomed_concepts.py` | `snomed_ct_tx.json` |
 | RxNorm | `rxnorm.yaml` | through `codes/drugs.py` | `rxnorm_rxnav_snapshot.json` |
-| YJ / HOT (MHLW, MEDIS) | `yj.yaml`, `hot7.yaml` | `codes/yj.py` (formats, YJ master); products per drug in the `codes/drugs.py` catalog | `yj_mhlw_snapshot.json`, `JP_MedicationCodeYJ_CS_full.json`, `yj_tx_fragment.json` |
+| YJ / HOT (MHLW, MEDIS) | `yj.yaml`, `hot7.yaml` | `codes/yj.py` (formats, YJ master); products per drug in the `codes/drugs.py` catalog | `yj_mhlw_snapshot.json`, `yj_medis_hot_used.json`, `yj_medis_hot_20261031.json`, `yj_tx_fragment.json` |
 | JLAC10 / JP-CLINS lab | `jlac10.yaml`, `jp-clins-lab-uncoded.yaml` | `codes/jlac10.py` | the JP-CLINS package |
 | CPT / K-codes | `cpt.yaml`, `k-codes.yaml` | `codes/procedures.py` | `shinryo_koui_ssk_20261013_ja.json` |
 | UCUM | `ucum-aliases.yaml` | `codes/ucum.py` | — |
@@ -154,7 +154,7 @@ A catalog id (`drug_id`, procedure `type`, role, department) is the stable inter
 
 - **Order.** The most-used route comes first. `codes["yj"]` is that first code, for lookups that have no route.
 - **Choice.** The product is the one that matches the simulator's usual dose. The original brand is preferred.
-- **Verification.** Every code is listed in the MHLW YJ master (snapshot: `codes/authoritative/yj_mhlw_snapshot.json`) and in `JP_MedicationCodeYJ_CS_full.json`.
+- **Verification.** Every code is listed in the MHLW YJ master (snapshot: `codes/authoritative/yj_mhlw_snapshot.json`) and in the MEDIS 医薬品HOTコードマスター. Only the codes clinosim uses are shipped (`codes/authoritative/yj_medis_hot_used.json`, read by `is_verified_yj`; Issue #4026), not the complete code system; `tests/unit/codes/test_yj_used_subset_4026.py` fails when a catalog code is missing from it, and `codes/authoritative/README.md` ("Verifying a new YJ code") gives the procedure for a new code.
 - **No product.** A drug with no listed product for a route has no code there. It is emitted in the eCS `nocoded` slice.
 - **Not used.** A 7-digit YJ prefix is never a code, and `hot7.yaml` registers no codes.
 

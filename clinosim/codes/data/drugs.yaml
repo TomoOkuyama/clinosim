@@ -26,9 +26,10 @@
 #       yj: {<route_class>: "<YJ12>"}  # optional — JP product code per route
 #                                       # class (route_classes below), most-used
 #                                       # route first. Every code is listed in the
-#                                       # MHLW YJ master and in
-#                                       # codes/authoritative/JP_MedicationCodeYJ_CS_full.json
-#                                       # (snapshot: codes/authoritative/yj_mhlw_snapshot.json).
+#                                       # MHLW YJ master (snapshot:
+#                                       # codes/authoritative/yj_mhlw_snapshot.json)
+#                                       # and in the MEDIS HOT master
+#                                       # (codes/authoritative/yj_medis_hot_used.json).
 #                                       # A YJ code names one product (form and
 #                                       # strength): the product matching the
 #                                       # simulator's usual dose, original brand
@@ -1783,7 +1784,7 @@ drugs:
     classes: ["immunotherapy", "oncology.bladder"]
     aliases: ["BCG", "BCG intravesical"]
   # Issue #2136: JP alternatives for drugs not marketed in Japan. HOT7
-  # 7-digit class codes verified against JP_MedicationCodeYJ_CS_full.json.
+  # 7-digit class codes verified against the MEDIS HOT master.
   betahistine:
     # Vertigo (メリスロン) — replaces meclizine on JP.
     names: {en: "Betahistine", ja: "ベタヒスチンメシル酸塩"}

@@ -101,7 +101,7 @@ _UNCODED_BY_DESIGN = {
     "tacrolimus",
     "ciclosporin",
     # Non-lactated Ringer's: the MHLW master lists only the unified-name
-    # リンゲル液 (3319539A1015 / A2011), absent from JP_MedicationCodeYJ_CS_full.
+    # リンゲル液 (3319539A1015 / A2011), absent from the MEDIS HOT master.
     "ringer_solution",
     # Issue #2271: drugs only the drug-safety rules name (interaction /
     # contraindication candidates); the generator never prescribes them.

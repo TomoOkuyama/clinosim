@@ -45,7 +45,8 @@ clinosim/codes/
     loinc_2_83_tx.json                  # LOINC
     icd10cm_2027_cms.json               # ICD-10-CM (CMS)
     snomed_ct_tx.json                   # SNOMED CT International
-    JP_MedicationCodeYJ_CS_full.json    # YJ (full CodeSystem)
+    yj_medis_hot_20261031.json          # YJ (MEDIS HOT master extract)
+    yj_medis_hot_used.json              # YJ codes clinosim uses (is_verified_yj)
     <system>_<source>.json              # further snapshots (index in README.md)
   loader.py                             # lookup() unchanged
 tests/unit/codes/
@@ -53,7 +54,7 @@ tests/unit/codes/
   authoritative_override_allowlist.yaml # clinical shorthand overrides
 scripts/
   refresh_authoritative_yj.py           # extraction scripts (per system)
-  refresh_authoritative_yj_full.py
+  refresh_authoritative_yj_used.py
   refresh_authoritative_loinc.py
 ```
 
@@ -142,7 +143,7 @@ Myocardial infarction (disorder)).
 
 | System        | Source                                          | Phase   | Status |
 |---------------|-------------------------------------------------|---------|--------|
-| YJ            | full YJ-code CS (`JP_MedicationCodeYJ_CS_full.json`; fragment `yj_tx_fragment.json` before Issue #3127) | Phase 1 | cross-checked |
+| YJ            | MEDIS HOT master extract (`yj_medis_hot_20261031.json`; fragment `yj_tx_fragment.json` before Issue #3127) | Phase 1 | cross-checked |
 | ICD-10 (WHO)  | `fhir.tx.support.r4` ICD-10 CS (`icd10_who_tx.json`), `en` displays | Phase 2 | cross-checked |
 | ICD-10 (MHLW) | MHLW 基本分類表 2013 (`icd10_mhlw_2013_ja.json`), `ja` displays | — | cross-checked |
 | LOINC         | LOINC 2.83 via tx.fhir.org (`loinc_2_83_tx.json`) | Phase 3 | cross-checked |

@@ -141,7 +141,9 @@ clinosim/codes/
   snomed_concepts.py              名前付き SNOMED CT 概念定数
   ucum.py                         FHIR Quantity 用 UCUM 単位
   yj.py                           YJ / HOT の JP 薬剤コード形式と
-                                  YJ マスター
+                                  MEDIS マスターで照合済みの YJ コード
+                                  (clinosim が使うコードだけを同梱、
+                                  Issue #4026)
   data/                           YAML 85 件: コードシステム (下の
                                   「対応コードシステム」参照) と curated
                                   カタログ (drugs / frequency tokens /
@@ -351,7 +353,9 @@ codes:
 同梱している用語体系 — ファイル、版、複製している内容、出典、所有者が公開しているライセンスページ — は、ライセンスの未決事項とコードやコード体系の文言を追加するコントリビューター向けの規則とともに [`THIRD_PARTY_TERMINOLOGIES.ja.md`](../../THIRD_PARTY_TERMINOLOGIES.ja.md) に一覧がある。
 
 `codes/data/` は clinosim の合成データ生成を駆動するのに必要な subset
-のみを抽出。商用 EHR 統合には、上流当局から最新版フルセットを取得
+のみを抽出。`authoritative/` も同様で、たとえば YJ の照合には
+`data/yj.yaml` のコードのうち MEDIS 医薬品HOTコードマスターに載るものだけを
+同梱し、コード体系全体は同梱しない (Issue #4026)。商用 EHR 統合には、上流当局から最新版フルセットを取得
 してください。
 
 **subset は「出力に現れうるコード」を網羅する必要があります。**
