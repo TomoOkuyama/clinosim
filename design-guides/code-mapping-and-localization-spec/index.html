@@ -2926,7 +2926,7 @@
 <td>YJ / HOT (MHLW, MEDIS)</td>
 <td><code>yj.yaml</code>, <code>hot7.yaml</code></td>
 <td><code>codes/yj.py</code> (formats, YJ master); products per drug in the <code>codes/drugs.py</code> catalog</td>
-<td><code>yj_mhlw_snapshot.json</code>, <code>JP_MedicationCodeYJ_CS_full.json</code>, <code>yj_tx_fragment.json</code></td>
+<td><code>yj_mhlw_snapshot.json</code>, <code>yj_medis_hot_used.json</code>, <code>yj_medis_hot_20261031.json</code>, <code>yj_tx_fragment.json</code></td>
 </tr>
 <tr>
 <td>JLAC10 / JP-CLINS lab</td>
@@ -3135,7 +3135,7 @@
 <ul>
 <li><strong>Order.</strong> The most-used route comes first. <code>codes["yj"]</code> is that first code, for lookups that have no route.</li>
 <li><strong>Choice.</strong> The product is the one that matches the simulator's usual dose. The original brand is preferred.</li>
-<li><strong>Verification.</strong> Every code is listed in the MHLW YJ master (snapshot: <code>codes/authoritative/yj_mhlw_snapshot.json</code>) and in <code>JP_MedicationCodeYJ_CS_full.json</code>.</li>
+<li><strong>Verification.</strong> Every code is listed in the MHLW YJ master (snapshot: <code>codes/authoritative/yj_mhlw_snapshot.json</code>) and in the MEDIS 医薬品HOTコードマスター. Only the codes clinosim uses are shipped (<code>codes/authoritative/yj_medis_hot_used.json</code>, read by <code>is_verified_yj</code>; Issue #4026), not the complete code system; <code>tests/unit/codes/test_yj_used_subset_4026.py</code> fails when a catalog code is missing from it, and <code>codes/authoritative/README.md</code> ("Verifying a new YJ code") gives the procedure for a new code.</li>
 <li><strong>No product.</strong> A drug with no listed product for a route has no code there. It is emitted in the eCS <code>nocoded</code> slice.</li>
 <li><strong>Not used.</strong> A 7-digit YJ prefix is never a code, and <code>hot7.yaml</code> registers no codes.</li>
 </ul>

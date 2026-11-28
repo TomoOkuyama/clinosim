@@ -2518,16 +2518,17 @@ which motivated a systematic verification framework.</p>
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    loinc_2_83_tx.json                  # LOINC
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    icd10cm_2027_cms.json               # ICD-10-CM (CMS)
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    snomed_ct_tx.json                   # SNOMED CT International
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    JP_MedicationCodeYJ_CS_full.json    # YJ (full CodeSystem)
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    &lt;system&gt;_&lt;source&gt;.json              # further snapshots (index in README.md)
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>  loader.py                             # lookup() unchanged
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>tests/unit/codes/
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>  test_display_matches_authoritative.py # 5th layer of silent-no-op defense
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>  authoritative_override_allowlist.yaml # clinical shorthand overrides
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>scripts/
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>  refresh_authoritative_yj.py           # extraction scripts (per system)
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>  refresh_authoritative_yj_full.py
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>  refresh_authoritative_loinc.py
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    yj_medis_hot_20261031.json          # YJ (MEDIS HOT master extract)
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    yj_medis_hot_used.json              # YJ codes clinosim uses (is_verified_yj)
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    &lt;system&gt;_&lt;source&gt;.json              # further snapshots (index in README.md)
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>  loader.py                             # lookup() unchanged
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>tests/unit/codes/
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>  test_display_matches_authoritative.py # 5th layer of silent-no-op defense
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>  authoritative_override_allowlist.yaml # clinical shorthand overrides
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>scripts/
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>  refresh_authoritative_yj.py           # extraction scripts (per system)
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>  refresh_authoritative_yj_used.py
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>  refresh_authoritative_loinc.py
 </span></code></pre></div>
 <h2 id="snapshot-format">Snapshot format<a class="headerlink" href="#snapshot-format" title="Permanent link">&para;</a></h2>
 <p>Every snapshot is a JSON document with a <code>metadata</code> block and a <code>concept</code>
@@ -2614,7 +2615,7 @@ Myocardial infarction (disorder)).</p>
 <tbody>
 <tr>
 <td>YJ</td>
-<td>full YJ-code CS (<code>JP_MedicationCodeYJ_CS_full.json</code>; fragment <code>yj_tx_fragment.json</code> before Issue #3127)</td>
+<td>MEDIS HOT master extract (<code>yj_medis_hot_20261031.json</code>; fragment <code>yj_tx_fragment.json</code> before Issue #3127)</td>
 <td>Phase 1</td>
 <td>cross-checked</td>
 </tr>
