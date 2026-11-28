@@ -369,6 +369,28 @@ not_executed_treatment_actions:
   - optimize_anticoagulation
   - start_anticoagulation_cautiously
 
+# Issue #3972: the anticoagulation a stay with an intracranial hemorrhage as its
+# principal diagnosis does not execute (the hemorrhagic-stroke protocol declares
+# `start_anticoagulation_cautiously` for the DVT and `anticoagulation_if_safe` for
+# the PE, both listed above as not executed) is recorded as a withhold with its
+# reason, so the notes state it. No drug is ordered and no rule is added: the
+# decision exists (the protocol's `medication_holds` hold every anticoagulant for
+# the active intracranial hemorrhage); only the record was missing.
+#   principal_icd_prefixes  ICD-10 prefixes of the principal diagnosis that count as
+#                           an intracranial hemorrhage (I60 subarachnoid, I61
+#                           intracerebral, I62 other nontraumatic).
+#   actions                 the unexecuted anticoagulation actions that are recorded.
+#   regimen_action          the treatment action whose first candidate names the
+#                           withheld drug (the drug the stay would have been given).
+#   reason                  the `safety_text` phrase that states why.
+intracranial_hemorrhage_withhold:
+  principal_icd_prefixes: [I60, I61, I62]
+  actions:
+    - anticoagulation_if_safe
+    - start_anticoagulation_cautiously
+  regimen_action: start_anticoagulation
+  reason: anticoagulant_withheld_for_intracranial_hemorrhage
+
 # Issue #3896: dose reductions by patient state (drug -> rule), applied to the
 # anticoagulant a complication starts, its discharge dose and the discharge
 # entries of the protocols (pulmonary embolism, atrial fibrillation, stroke),

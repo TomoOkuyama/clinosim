@@ -188,6 +188,18 @@ class StopAction(BaseModel):
     reason: _Slug | None = None
 
 
+class IntracranialHemorrhageWithhold(BaseModel):
+    """Issue #3972: the unexecuted anticoagulation actions that a stay whose principal
+    diagnosis is an intracranial hemorrhage records as a withhold (see the YAML)."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    principal_icd_prefixes: tuple[_Slug, ...] = Field(min_length=1)
+    actions: tuple[_Slug, ...] = Field(min_length=1)
+    regimen_action: _Slug
+    reason: _Slug
+
+
 class ComplicationActionRules(BaseModel):
     """Schema of ``reference_data/complication_actions.yaml`` (Issue #3543)."""
 
@@ -204,12 +216,19 @@ class ComplicationActionRules(BaseModel):
     stop_actions: dict[_Slug, StopAction] = Field(min_length=1)
     not_executed_treatment_actions: tuple[_Slug, ...]
     dose_reductions: dict[_Slug, DoseReduction] = Field(default_factory=dict)
+    intracranial_hemorrhage_withhold: IntracranialHemorrhageWithhold
 
     @model_validator(mode="after")
     def _interacting_stops_exist(self) -> ComplicationActionRules:
         for name, action in self.treatment_actions.items():
             if action.stops_interacting is not None and action.stops_interacting not in self.stop_actions:
                 raise ValueError(f"treatment action {name!r} stops_interacting names no stop action")
+        withhold = self.intracranial_hemorrhage_withhold
+        if withhold.regimen_action not in self.treatment_actions:
+            raise ValueError("intracranial_hemorrhage_withhold.regimen_action names no treatment action")
+        for name in withhold.actions:
+            if name not in self.not_executed_treatment_actions:
+                raise ValueError(f"withheld action {name!r} is executed or unknown")
         return self
 
 
@@ -613,6 +632,19 @@ def candidates_in(block: Any, country_key: str) -> list[dict[str, Any]]:
     if isinstance(entries, dict):
         entries = [entries]
     return [e for e in entries if isinstance(e, dict)]
+
+
+def declares_withheld_anticoagulation(complication: dict[str, Any]) -> bool:
+    """Issue #3972: whether the complication declares an anticoagulation action that
+    is not executed and that a principal intracranial hemorrhage withholds. Pure."""
+    rule = complication_action_rules().intracranial_hemorrhage_withhold
+    return any(isinstance(a, str) and canonical_action(a) in rule.actions for a in complication.get("actions") or [])
+
+
+def is_intracranial_hemorrhage(principal_icd: str) -> bool:
+    """Issue #3972: whether the stay's principal diagnosis code is an intracranial
+    hemorrhage (``intracranial_hemorrhage_withhold.principal_icd_prefixes``)."""
+    return principal_icd.startswith(complication_action_rules().intracranial_hemorrhage_withhold.principal_icd_prefixes)
 
 
 def complication_note_entry(

@@ -109,6 +109,7 @@ def compose_hospital_course(ctx: NarrativeContext, *, with_results: bool = True)
         hc.notable_labs_sentence,
         hc.microbiology_sentence,
         hc.medication_changes_sentence,
+        hc.withheld_anticoagulation_sentence,
         hc.newborn_prophylaxis_sentence,
         hc.discharge_vitals_sentence,
         hc.discharge_condition_sentence,
