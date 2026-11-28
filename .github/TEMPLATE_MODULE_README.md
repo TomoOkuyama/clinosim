@@ -234,6 +234,9 @@ pytest tests/unit -k <name> -q                    # loader + validator + engine
 pytest tests/unit/output -k fhir_<related> -q     # FHIR emission (if any)
 ```
 
+To run every test of the module across the directories it lives in, use the recipe in
+[`tests/README.md`](../../../tests/README.md#run-the-tests-of-one-module).
+
 Individual files worth naming here (add each test path when you add
 its target):
 

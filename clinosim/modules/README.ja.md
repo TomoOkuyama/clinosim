@@ -36,6 +36,9 @@ module のドキュメントに、より広い architecture view は
 Optional 挿入: `Snapshot (AD-32)` (immunization),
 `Extending` / 拡張 (`sdoh` 等の data-only variant)。
 
+`Testing` 節は 1 行でよい。モジュールの全テストを実行するコマンドは
+[`tests/README.ja.md`](../../tests/README.ja.md#1-つのモジュールのテストを実行する) の「1 つのモジュールのテストを実行する」にある。
+
 Cross-module invariant:
 
 - **Boilerplate**: 新モジュールは

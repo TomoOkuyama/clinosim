@@ -38,6 +38,9 @@ structure** (established in the s88k full-revision campaign):
 Optional insertions: `Snapshot (AD-32)` (immunization),
 `Extending` (data-only variant packages such as `sdoh`).
 
+The `Testing` section may be one line: the command that runs every test of
+the module is in [`tests/README.md`](../../tests/README.md#run-the-tests-of-one-module).
+
 Cross-module invariants:
 
 - **Boilerplate**: new modules copy from
