@@ -8,11 +8,16 @@ authored time.
 
 States of an ``progress_exam.yaml`` course item:
 
-``new``            present at the latest reading, absent over the previous period
-``persisting``     present at the latest reading and over the previous period
+``new``            present at the latest reading, absent and clear of the limit over the
+                   previous period
+``persisting``     present at the latest reading and over the previous period (or
+                   the previous period only borderline, Issue #3964)
 ``improving``      absent at the latest reading, present in the previous period,
                    but not yet absent over the sustained window (``course_state``)
 ``resolved``       absent over the sustained window, with enough readings
+``borderline``     absent at the latest reading but within the vital's ``exit_margin``
+                   of the limit, present in the previous period: no course is stated
+                   (Issue #3964)
 ``absent``         absent now and in the previous period (a brief abnormal reading
                    earlier in the period is stated time-qualified by the
                    Subjective, not as a course)
@@ -63,7 +68,7 @@ def finding_states(ctx: NarrativeContext, readings: list, previous: list) -> dic
     """The state of each course item, keyed ``(vital, state)`` as in
     ``progress_exam.yaml`` ``course_items``, from the readings of the note's
     period and of the previous one (oldest first)."""
-    from clinosim.modules.document.narrative._progress_exam import progress_exam_rules
+    from clinosim.modules.document.narrative._progress_exam import in_exit_band, progress_exam_rules
 
     rules = progress_exam_rules()
     window = rules.course_state
@@ -77,6 +82,7 @@ def finding_states(ctx: NarrativeContext, readings: list, previous: list) -> dic
             for i, r in enumerate(readings)
             if (ts := parse_iso_datetime(_o(r, "timestamp", None), lenient=True)) is not None and ts > start
         ]
+    when = as_of or _o(getattr(ctx, "encounter", None), "admission_datetime", None)
     out: dict[tuple[str, str], str] = {}
     for item in rules.course_items:
         key = (item.vital, item.state)
@@ -85,15 +91,33 @@ def finding_states(ctx: NarrativeContext, readings: list, previous: list) -> dic
             picked = range(len(rows)) if idx is None else idx
             return [item.state in series[i].get(item.vital, set()) for i in picked if _measured(rows[i], item.vital)]
 
+        def borderline(rows: list, idx: list[int] | None = None) -> list[bool]:
+            """Per measured reading: inside the limit but within the exit margin."""
+            picked = range(len(rows)) if idx is None else idx
+            return [
+                in_exit_band(ctx, rows[i], item.vital, item.state, when)
+                for i in picked
+                if _measured(rows[i], item.vital)
+            ]
+
         cur, prev = flags(readings, cur_series), flags(previous, prev_series)
         if not cur:
             out[key] = "unknown"
         elif cur[-1]:
-            out[key] = "persisting" if any(prev) else ("new" if prev else "unobserved_before")
+            # Issue #3964: a previous period that only came near the limit is
+            # not clear of it, so the finding is not new.
+            clear = not any(borderline(previous))
+            out[key] = "persisting" if any(prev) or not clear else ("new" if prev else "unobserved_before")
         elif any(prev):
+            # Issue #3964: the course is stated only once the value left the
+            # limit by its margin, over the whole sustained window.
             held = flags(readings, cur_series, sustained)
-            ok = len(held) >= window.resolved_min_readings and not any(held)
-            out[key] = "resolved" if ok else "improving"
+            near = borderline(readings, sustained)
+            if borderline(readings)[-1]:
+                out[key] = "borderline"
+            else:
+                ok = len(held) >= window.resolved_min_readings and not any(held) and not any(near)
+                out[key] = "resolved" if ok else "improving"
         else:
             out[key] = "absent"
     return out

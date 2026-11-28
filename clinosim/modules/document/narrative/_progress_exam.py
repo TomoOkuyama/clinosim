@@ -41,6 +41,7 @@ __all__ = [
     "progress_exam_findings",
     "progress_exam_rules",
     "coma_avpu",
+    "in_exit_band",
     "unchanged_systems",
     "worst_avpu",
 ]
@@ -68,6 +69,10 @@ class _Limit(BaseModel):
     # Which edge of a child's age-banded range is the low limit: the band's
     # normal-range ``low``, or its ``critical_low`` (hypotension).
     child_low: Literal["low", "critical_low"] = "low"
+    # Hysteresis of a course statement (Issue #3964): a finding entered at the
+    # limit is left only once the value is this far (the vital's unit) inside
+    # it, so a value in between is borderline, neither new nor resolved.
+    exit_margin: float | None = Field(default=None, gt=0)
 
 
 class _LimitOverride(BaseModel):
@@ -274,6 +279,21 @@ def _abnormal(ctx: NarrativeContext, reading: Any, vital: str, when: Any) -> boo
     low, high, inclusive = _limit(ctx, vital, limit, when)
     x = float(value)
     return (low is not None and x < low) or (high is not None and (x >= high if inclusive else x > high))
+
+
+def in_exit_band(ctx: NarrativeContext, reading: Any, vital: str, state: str, when: Any) -> bool:
+    """Whether ``reading`` records ``vital`` inside its limits but within the
+    ``exit_margin`` of the ``state`` ("high" / "low") limit (Issue #3964): not
+    abnormal, yet not clear of it either. ``False`` for a vital without a margin."""
+    value = _o(reading, vital, None)
+    limit = progress_exam_rules().limits.get(vital)
+    if value is None or limit is None or limit.exit_margin is None or _abnormal(ctx, reading, vital, when):
+        return False
+    low, high, _inclusive = _limit(ctx, vital, limit, when)
+    x = float(value)
+    if state == "high":
+        return high is not None and x >= high - limit.exit_margin
+    return low is not None and x <= low + limit.exit_margin
 
 
 def _low_marks(ctx: NarrativeContext, vital: str, rows: list, when: Any) -> list[bool]:
