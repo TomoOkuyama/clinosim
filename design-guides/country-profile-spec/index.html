@@ -2686,9 +2686,9 @@ A branch that selects a value is a table written as code and moves to
 YAML (policy §5.1).</p>
 <h2 id="6-enforcement">6. Enforcement<a class="headerlink" href="#6-enforcement" title="Permanent link">&para;</a></h2>
 <ul>
-<li>A shrink-only ratchet counts country / language branches and numeric
-  literals in comparisons per file and fails when a file exceeds its
-  baseline (Issue #3137).</li>
+<li>A rename-aware ratchet counts country / language branches and numeric
+  literals in comparisons and fails when a rule's total exceeds the stored
+  total; moving a file is not a raise (Issues #3137, #3977).</li>
 <li>The profile model forbids unknown keys and validates every code system,
   profile, feature and implementation name it references.</li>
 </ul>

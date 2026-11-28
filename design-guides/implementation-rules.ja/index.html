@@ -2660,6 +2660,11 @@
 <li>国・年齢・性別のデータをコードに直書きする変更はレビューで差し戻す。既存の
   直書きに触れたら、小さければ同じ PR で YAML に移し、大きければ Issue に
   する。</li>
+<li>ラチェットテスト (<code>tests/unit/test_code_data_separation_3137.py</code>) は、国・言語の
+  分岐と比較中の数値リテラルの合計を、記録した合計に保つ。増えれば失敗し、減れば
+  ベースラインを編集せずに通り、ファイルの移動・改名は増加ではない。機能の変更で
+  ベースラインを編集しない。記録した合計は
+  <code>python -m tests.unit.code_data_separation --write</code> で下げる (合計は上げられない)。</li>
 </ul>
 <p>置き場所の詳細: <a href="../documentation-and-code-quality-policy.ja/#5-定数と設定">文書・コード品質ポリシー §5</a>、
 <a href="../configuration-and-reference-data-spec.ja/">設定・参照データ仕様</a>。</p>
