@@ -1650,6 +1650,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Module dependency graph
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -1666,6 +1684,36 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#enforced-import-boundaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enforced import boundaries
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -2366,6 +2414,25 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#enforced-import-boundaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enforced import boundaries
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -2437,6 +2504,28 @@ modules rarely import each other directly; <code>clinosim/simulator/</code> call
 <code>--no-jp-insurance</code>; US always runs it): it runs as a post-population pass via the
 enricher registry (AD-56) and its data is emitted as FHIR <code>Coverage</code> by <code>output</code>.</p>
 <p>See each module's <code>clinosim/modules/&lt;module&gt;/README.md</code> for details.</p>
+<h2 id="enforced-import-boundaries">Enforced import boundaries<a class="headerlink" href="#enforced-import-boundaries" title="Permanent link">&para;</a></h2>
+<p>The literal import graph is held by six rules, stated with their exceptions in
+<a href="../../design-guides/implementation-rules/#21-module-boundaries">implementation-rules §2.1</a>
+and counted by <code>tests/unit/test_module_boundaries.py</code>:</p>
+<ol>
+<li>foundation packages (<code>datafiles</code>, <code>determinism</code>, <code>seeding</code>, <code>age_bands</code>,
+   <code>timeutil</code>, <code>reference_data</code>, <code>countries/__init__</code>, <code>country_profile</code>,
+   <code>codes</code>, <code>locale</code>, <code>types</code>, <code>modules/_shared</code>) do not import modules,
+   the simulator, eval or audit;</li>
+<li>a domain module (<code>clinosim/modules/&lt;m&gt;/</code>, except <code>output</code>) does not import
+   <code>clinosim.simulator</code>;</li>
+<li>no package imports a <code>_</code>-prefixed module or name of another package
+   (exceptions: <code>_&lt;topic&gt;_thresholds</code> / <code>_&lt;topic&gt;_defaults</code> constant modules,
+   <code>_bb_*</code> bundle builders imported by <code>output/fhir_r4/builder.py</code> or an
+   <code>audit.py</code>, and <code>modules/_shared</code>);</li>
+<li><code>clinosim/modules/output/</code> does not import <code>clinosim.simulator</code>;</li>
+<li><code>clinosim/eval/</code> and <code>clinosim/audit/</code> do not import <code>clinosim.simulator</code>;</li>
+<li>no package builds a path into another package's <code>reference_data</code> directory.</li>
+</ol>
+<p>Existing violations are recorded as totals per rule; a total may fall but not
+rise. <code>python -m tests.unit.module_boundaries --clusters 10</code> prints today's
+totals and the largest <code>&lt;importing package&gt; -&gt; &lt;target&gt;</code> clusters per rule.</p>
 <hr />
 
 

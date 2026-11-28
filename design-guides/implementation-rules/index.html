@@ -933,6 +933,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#21-module-boundaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 Module boundaries
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#3-determinism-ad-16--ad-59--absolute-rules" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2630,6 +2641,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#21-module-boundaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 Module boundaries
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#3-determinism-ad-16--ad-59--absolute-rules" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2989,6 +3011,64 @@ and <a href="../configuration-and-reference-data-spec/">configuration-and-refere
 </tr>
 </tbody>
 </table>
+<h2 id="21-module-boundaries">2.1 Module boundaries<a class="headerlink" href="#21-module-boundaries" title="Permanent link">&para;</a></h2>
+<p>Dependencies point downwards: foundation → domain modules → the simulator
+(orchestration); output adapters, QA (<code>clinosim/eval/</code>, <code>clinosim/audit/</code>) and
+country packages read the foundation and the public names of modules, never
+the simulator. Six rules hold, over every import statement in
+<code>clinosim/</code> (function-local and <code>TYPE_CHECKING</code> imports included) and every
+path built into a <code>reference_data</code> directory:</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Rule</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Foundation packages — <code>datafiles</code>, <code>determinism</code>, <code>seeding</code>, <code>age_bands</code>, <code>timeutil</code>, <code>reference_data</code>, <code>countries/__init__</code>, <code>country_profile</code>, <code>codes</code>, <code>locale</code>, <code>types</code>, <code>modules/_shared</code> — do not import <code>clinosim.modules</code> (other than <code>modules/_shared</code>), <code>clinosim.simulator</code>, <code>clinosim.eval</code> or <code>clinosim.audit</code>.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>A domain module <code>clinosim/modules/&lt;m&gt;/</code> (every <code>m</code> except <code>output</code>) does not import <code>clinosim.simulator</code>.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>No package imports a <code>_</code>-prefixed module or name of another package. A package is <code>clinosim/modules/&lt;m&gt;/</code>, <code>clinosim/countries/&lt;cc&gt;/</code>, or any other top-level directory or file of <code>clinosim/</code>.</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>clinosim/modules/output/</code> does not import <code>clinosim.simulator</code> (AD-17, AD-58).</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>clinosim/eval/</code> and <code>clinosim/audit/</code> do not import <code>clinosim.simulator</code>.</td>
+</tr>
+<tr>
+<td>6</td>
+<td>No package builds a path into another package's <code>reference_data</code> directory; read it through the owner's accessor (§5).</td>
+</tr>
+</tbody>
+</table>
+<p>Written exceptions to rule 3: the formula-constant modules
+<code>_&lt;topic&gt;_thresholds</code> / <code>_&lt;topic&gt;_defaults</code> (policy §5.1); <code>_bb_*</code> bundle
+builders imported by <code>clinosim/modules/output/fhir_r4/builder.py</code> or by an
+<code>audit.py</code>; and <code>clinosim/modules/_shared.py</code> (its own <code>_</code>-prefixed names
+stay private).</p>
+<p>A ratchet test (<code>tests/unit/test_module_boundaries.py</code>, counter
+<code>tests/unit/module_boundaries.py</code>) holds each rule's total at the stored total
+in <code>tests/unit/module_boundaries_baseline.json</code>. It counts one finding per
+imported name (relative imports resolved to absolute names) and one per path
+expression; a path whose owner cannot be resolved from the file alone counts.
+The baseline has the rename-aware format of the code/data ratchet: a rise
+fails, a fall passes without a baseline edit, and a move or rename of a file is
+not a raise. New content keys are reported in the test output. Do not edit
+the baseline in a feature change; the stored totals are lowered by
+<code>python -m tests.unit.module_boundaries --write</code>, which refuses to raise a
+total. <code>python -m tests.unit.module_boundaries --clusters 10</code> prints the
+totals and the ten largest <code>&lt;importing package&gt; -&gt; &lt;target&gt;</code> clusters per rule.</p>
 <h2 id="3-determinism-ad-16--ad-59--absolute-rules">3. Determinism (AD-16 / AD-59) — absolute rules<a class="headerlink" href="#3-determinism-ad-16--ad-59--absolute-rules" title="Permanent link">&para;</a></h2>
 <p><strong>Normative spec:</strong> <a href="../determinism-and-rng-spec/"><code>determinism-and-rng-spec.md</code></a> defines the generator factory, seed derivation, RNG-neutral changes and clock rules, with their guards. Below is a summary.</p>
 <ul>

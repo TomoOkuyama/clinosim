@@ -2347,6 +2347,25 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#検査される-import-の境界" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        検査される import の境界
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -2419,6 +2438,29 @@
 の post-population pass として走行、そのデータは <code>output</code> が FHIR
 <code>Coverage</code> として emit。</p>
 <p>詳細は各モジュールの <code>clinosim/modules/&lt;module&gt;/README.md</code> 参照。</p>
+<h2 id="検査される-import-の境界">検査される import の境界<a class="headerlink" href="#検査される-import-の境界" title="Permanent link">&para;</a></h2>
+<p>実際の import グラフは 6 つの規則で保たれる。規則と例外は
+<a href="../../design-guides/implementation-rules.ja/#21-モジュール境界">実装ルール §2.1</a>
+に記し、<code>tests/unit/test_module_boundaries.py</code> が数える:</p>
+<ol>
+<li>基盤パッケージ (<code>datafiles</code>、<code>determinism</code>、<code>seeding</code>、<code>age_bands</code>、
+   <code>timeutil</code>、<code>reference_data</code>、<code>countries/__init__</code>、<code>country_profile</code>、
+   <code>codes</code>、<code>locale</code>、<code>types</code>、<code>modules/_shared</code>) は、モジュール、シミュレータ、
+   eval、audit を import しない;</li>
+<li>ドメインモジュール (<code>clinosim/modules/&lt;m&gt;/</code>、<code>output</code> を除く) は
+   <code>clinosim.simulator</code> を import しない;</li>
+<li>どのパッケージも、別のパッケージの <code>_</code> で始まるモジュールや名前を import しない
+   (例外: 式定数モジュール <code>_&lt;topic&gt;_thresholds</code> / <code>_&lt;topic&gt;_defaults</code>、
+   <code>output/fhir_r4/builder.py</code> または <code>audit.py</code> が import する <code>_bb_*</code> バンドル
+   ビルダー、<code>modules/_shared</code>);</li>
+<li><code>clinosim/modules/output/</code> は <code>clinosim.simulator</code> を import しない;</li>
+<li><code>clinosim/eval/</code> と <code>clinosim/audit/</code> は <code>clinosim.simulator</code> を import しない;</li>
+<li>どのパッケージも、別のパッケージの <code>reference_data</code> ディレクトリへのパスを
+   組み立てない。</li>
+</ol>
+<p>既存の違反は規則ごとの合計として記録し、合計は減ってよいが増えてはならない。
+<code>python -m tests.unit.module_boundaries --clusters 10</code> は、現在の合計と、規則ごとに
+件数の多い <code>&lt;import 元パッケージ&gt; -&gt; &lt;対象&gt;</code> のまとまりを表示する。</p>
 <hr />
 
 

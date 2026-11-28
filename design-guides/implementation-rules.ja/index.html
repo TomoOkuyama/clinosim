@@ -2409,6 +2409,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#21-モジュール境界" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 モジュール境界
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#3-決定性ad-16--ad-59-絶対規則" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2738,6 +2749,61 @@
 </tr>
 </tbody>
 </table>
+<h2 id="21-モジュール境界">2.1 モジュール境界<a class="headerlink" href="#21-モジュール境界" title="Permanent link">&para;</a></h2>
+<p>依存は下向きに限る: 基盤 → ドメインモジュール → シミュレータ (全体の進行)。
+出力アダプタ、QA (<code>clinosim/eval/</code>、<code>clinosim/audit/</code>)、国別パッケージは、基盤と
+モジュールの公開名を読み、シミュレータは読まない。<code>clinosim/</code> 内の
+すべての import 文 (関数内と <code>TYPE_CHECKING</code> の import を含む) と、<code>reference_data</code>
+ディレクトリへ組み立てるすべてのパスについて、次の 6 規則が成り立つ:</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>規則</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>基盤パッケージ — <code>datafiles</code>、<code>determinism</code>、<code>seeding</code>、<code>age_bands</code>、<code>timeutil</code>、<code>reference_data</code>、<code>countries/__init__</code>、<code>country_profile</code>、<code>codes</code>、<code>locale</code>、<code>types</code>、<code>modules/_shared</code> — は、<code>clinosim.modules</code> (<code>modules/_shared</code> を除く)、<code>clinosim.simulator</code>、<code>clinosim.eval</code>、<code>clinosim.audit</code> を import しない。</td>
+</tr>
+<tr>
+<td>2</td>
+<td>ドメインモジュール <code>clinosim/modules/&lt;m&gt;/</code> (<code>output</code> 以外のすべての <code>m</code>) は <code>clinosim.simulator</code> を import しない。</td>
+</tr>
+<tr>
+<td>3</td>
+<td>どのパッケージも、別のパッケージの <code>_</code> で始まるモジュールや名前を import しない。パッケージとは <code>clinosim/modules/&lt;m&gt;/</code>、<code>clinosim/countries/&lt;cc&gt;/</code>、またはそれ以外の <code>clinosim/</code> 直下のディレクトリ・ファイルである。</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>clinosim/modules/output/</code> は <code>clinosim.simulator</code> を import しない (AD-17、AD-58)。</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>clinosim/eval/</code> と <code>clinosim/audit/</code> は <code>clinosim.simulator</code> を import しない。</td>
+</tr>
+<tr>
+<td>6</td>
+<td>どのパッケージも、別のパッケージの <code>reference_data</code> ディレクトリへのパスを組み立てない。所有モジュールのアクセサを通して読む (§5)。</td>
+</tr>
+</tbody>
+</table>
+<p>規則 3 の明文化した例外: 式定数モジュール <code>_&lt;topic&gt;_thresholds</code> /
+<code>_&lt;topic&gt;_defaults</code> (ポリシー §5.1)、<code>clinosim/modules/output/fhir_r4/builder.py</code>
+または <code>audit.py</code> が import する <code>_bb_*</code> バンドルビルダー、
+<code>clinosim/modules/_shared.py</code> (その中の <code>_</code> で始まる名前は非公開のまま)。</p>
+<p>ラチェットテスト (<code>tests/unit/test_module_boundaries.py</code>、計数は
+<code>tests/unit/module_boundaries.py</code>) は、各規則の合計を
+<code>tests/unit/module_boundaries_baseline.json</code> に記録した合計に保つ。import した
+名前 1 つ (相対 import は絶対名に解決する) とパス式 1 つをそれぞれ 1 件と数え、
+ファイル単独では所有者を解決できないパスも数える。記録はコード/データのラチェットと
+同じ改名・移動に強い形式である: 増えれば失敗し、減ればベースラインを編集せずに
+通り、ファイルの移動・改名は増加ではない。新しい内容キーはテスト出力に報告される。
+機能の変更でベースラインを編集しない。記録した合計は
+<code>python -m tests.unit.module_boundaries --write</code> で下げる (合計は上げられない)。
+<code>python -m tests.unit.module_boundaries --clusters 10</code> は、合計と、規則ごとに
+件数の多い <code>&lt;import 元パッケージ&gt; -&gt; &lt;対象&gt;</code> のまとまり上位 10 件を表示する。</p>
 <h2 id="3-決定性ad-16--ad-59-絶対規則">3. 決定性(AD-16 / AD-59)— 絶対規則<a class="headerlink" href="#3-決定性ad-16--ad-59-絶対規則" title="Permanent link">&para;</a></h2>
 <p><strong>規範仕様:</strong> <a href="../determinism-and-rng-spec.ja/"><code>determinism-and-rng-spec.ja.md</code></a> が生成器の生成元・シード導出・乱数をずらさない変更・時計の規則とそのガードを定める。以下は要約。</p>
 <ul>
