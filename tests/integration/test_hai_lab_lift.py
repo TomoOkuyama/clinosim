@@ -396,3 +396,21 @@ def test_closed_form_matches_derive_lab_values_double_call():
             lifted["WBC"] - baseline["WBC"],
             abs=1.0,
         )
+
+
+@pytest.mark.integration
+def test_lifted_crp_stays_inside_the_physiologic_limit():
+    """A CRP already near the generator's physiologic limit (500 mg/L in
+    observation/reference_data/lab_constants.yaml) is not lifted past it:
+    the lifted value is clamped like every other derived lab value."""
+    from clinosim.modules.observation.engine import clamp_to_physiologic_limits
+
+    admission = datetime(2026, 1, 8, 0)
+    state_history = _build_state_history([0.4] * 8)
+    crp_obs, crp_order = _ordered_obs("CRP", datetime(2026, 1, 12, 8), 480.0)
+    record = _record([_hai_event(onset_date="2026-01-10")], [crp_obs], [crp_order])
+
+    n = apply_hai_lab_lift(record, _encounter(), state_history, admission, country="US")
+    assert n == 1
+    assert crp_obs.value == clamp_to_physiologic_limits("CRP", 1e9)
+    assert crp_obs.flag == "H"
