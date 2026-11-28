@@ -27,7 +27,11 @@ from clinosim.locale.free_text import localize_drug_name
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_care_practice, load_diet_type_display, narrative_label
 from clinosim.locale.localized import language_slot, localized
-from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER, sanitize_id_token
+from clinosim.modules._shared import (
+    COMPLICATION_ANTICOAGULATION_WITHHELD_RULE,
+    MED_STOP_ORDER_ID_MARKER,
+    sanitize_id_token,
+)
 from clinosim.modules.clinical_course._complication_risk_conditions import ComplicationContext, in_drug_class
 from clinosim.modules.clinical_course.engine import (
     apply_diagnosis_modifier,
@@ -1729,13 +1733,70 @@ def _treat_complication(stay: _Stay, run: _Run, day: int, comp: dict, onset_dt: 
     complication declares (Issue #3864): the stop actions first (a held
     anticoagulant, the stopped inciting antibiotic), then the treatment orders
     (therapeutic anticoagulation, IV PPI, oral vancomycin)."""
-    from clinosim.simulator.complication_actions import stop_actions_of, treatment_actions_of
+    from clinosim.simulator.complication_actions import (
+        complication_action_rules,
+        declares_withheld_anticoagulation,
+        is_intracranial_hemorrhage,
+        stop_actions_of,
+        treatment_actions_of,
+    )
 
     comp_name = comp.get("name", "unknown")
     for action in stop_actions_of(comp):
         _stop_complication_drugs(stay, run, day, comp_name, action, onset_dt)
     for action in treatment_actions_of(comp):
         _start_complication_treatment(stay, run, day, comp_name, action, onset_dt)
+    # Issue #3972: an anticoagulation the protocol declares but a principal intracranial
+    # hemorrhage does not allow is not executed; the notes state that it was withheld.
+    if declares_withheld_anticoagulation(comp) and is_intracranial_hemorrhage(
+        str((stay.protocol.icd_codes or {}).get("primary") or "")
+    ):
+        rule = complication_action_rules().intracranial_hemorrhage_withhold
+        _log_anticoagulation_withhold(
+            stay,
+            rule.regimen_action,
+            onset_dt,
+            rule.reason,
+            comp_name,
+            "intracranial_hemorrhage",
+            (onset_dt.date() - stay.admission_time.date()).days + 1,
+        )
+
+
+def _log_anticoagulation_withhold(
+    stay: _Stay,
+    regimen_action: str,
+    onset_dt: datetime,
+    reason_key: str,
+    complication_name: str,
+    blocker: str,
+    stopped_on_day: int | None,
+) -> None:
+    """Record, in the stay's safety-skip log, that the therapeutic anticoagulant the
+    ``regimen_action`` would order is withheld, with the ``safety_text`` reason
+    ``reason_key`` (``{complication}`` is ``complication_name``); the existing withhold
+    note renders it (Issues #3960, #3972). Orders nothing, draws nothing."""
+    from clinosim.simulator.complication_actions import complication_note_entry, treatment_candidates
+
+    first = next(iter(treatment_candidates(regimen_action, stay.country_key)), None)
+    if first is None:
+        return
+    held_name = protocol_drug_name(first)
+    count(f"complication.treatment.withheld_for_{blocker}")
+    stay.patient.safety_skip_log.append(
+        complication_note_entry(
+            event_type="hold",
+            rule_id=COMPLICATION_ANTICOAGULATION_WITHHELD_RULE,
+            matched_classes=("anticoagulant", blocker),
+            encounter_id=stay.encounter_id,
+            drug=held_name,
+            drug_ja=localize_drug_name(held_name, "ja"),
+            reason_key=reason_key,
+            complication={lang: _localize_complication_name(complication_name, lang) for lang in ("en", "ja")},
+            stopped_on_day=stopped_on_day,
+            timestamp=onset_dt,
+        )
+    )
 
 
 def _stop_complication_drugs(stay: _Stay, run: _Run, day: int, comp_name: str, action: str, onset_dt: datetime) -> None:
@@ -1862,25 +1923,9 @@ def _start_complication_treatment(
     )
     if blocked and spec.drug_class == "anticoagulant" and not anticoagulant_running:
         # Issue #3960: the anticoagulant withheld for an active bleed is stated in the notes.
-        first = next(iter(treatment_candidates(action, stay.country_key)), None)
-        if first is not None:
-            held_name = protocol_drug_name(first)
-            bleed = sorted(blocked)[0]
-            count("complication.treatment.withheld_for_bleeding")
-            stay.patient.safety_skip_log.append(
-                complication_note_entry(
-                    event_type="hold",
-                    rule_id="complication-anticoagulation-withheld",
-                    matched_classes=("anticoagulant", "bleeding"),
-                    encounter_id=stay.encounter_id,
-                    drug=held_name,
-                    drug_ja=localize_drug_name(held_name, "ja"),
-                    reason_key="anticoagulant_withheld_for_bleeding",
-                    complication={lang: _localize_complication_name(bleed, lang) for lang in ("en", "ja")},
-                    stopped_on_day=None,
-                    timestamp=onset_dt,
-                )
-            )
+        _log_anticoagulation_withhold(
+            stay, action, onset_dt, "anticoagulant_withheld_for_bleeding", sorted(blocked)[0], "bleeding", None
+        )
     if blocked or anticoagulant_running:
         return
     when = onset_dt.replace(hour=complication_action_rules().order_hour)

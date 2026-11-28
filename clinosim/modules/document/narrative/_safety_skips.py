@@ -16,8 +16,9 @@ from clinosim.codes.drugs import drug_key
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import hold_reason_change
 from clinosim.locale.localized import localized_field
+from clinosim.modules._shared import COMPLICATION_ANTICOAGULATION_WITHHELD_RULE
 
-__all__ = ["known_by_hospital_day", "progress_note_safety_skips", "safety_skip_line"]
+__all__ = ["complication_withhold_skips", "known_by_hospital_day", "progress_note_safety_skips", "safety_skip_line"]
 
 # event_type -> phrase-key stem; an absent or unknown event is the legacy
 # pair-conflict avoidance (Issue #1403).
@@ -49,8 +50,27 @@ def _identity(name: object) -> str:
 
 def _stop_not_for_this_note(skip: dict, stops: Mapping[str, str]) -> bool:
     """True for a stop event (one with a ``stopped_on_day``) the note's stop
-    status does not put in its period (Issue #3963)."""
+    status does not put in its period (Issue #3963). A hold is not a stop: no
+    stop order exists for a drug that was never ordered (Issue #3972), so only
+    its day (``known_by_hospital_day``) decides."""
+    if str(skip.get("event_type") or "avoid").lower() == "hold":
+        return False
     return bool(skip.get("stopped_on_day")) and stops.get(drug_key(str(skip.get("considered") or ""))) != "now"
+
+
+def complication_withhold_skips(skips: list[dict]) -> list[dict]:
+    """The anticoagulant withholds a complication's treatment recorded (Issues #3960,
+    #3972), one per drug (the first), for the discharge summary's hospital course."""
+    out: list[dict] = []
+    seen: set[str] = set()
+    for skip in skips:
+        if skip.get("rule_id") != COMPLICATION_ANTICOAGULATION_WITHHELD_RULE:
+            continue
+        ref = _identity(skip.get("considered"))
+        if ref not in seen:
+            seen.add(ref)
+            out.append(skip)
+    return out
 
 
 def known_by_hospital_day(skips: list[dict], hospital_day: int | None) -> list[dict]:

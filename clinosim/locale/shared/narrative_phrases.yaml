@@ -4059,6 +4059,9 @@ safety_text:
   anticoagulant_withheld_for_bleeding:
     ja: "{complication}の合併中で出血リスクが高く抗凝固療法を行わないため"
     en: "active {complication}, which rules out therapeutic anticoagulation"
+  anticoagulant_withheld_for_intracranial_hemorrhage:
+    ja: "頭蓋内出血の入院中で出血リスクが高く、{complication}に対する抗凝固療法を行わないため"
+    en: "the intracranial hemorrhage of this admission, which rules out anticoagulation for {complication}"
   treatment_plan_change:
     ja: "治療計画変更"
     en: "treatment plan change"

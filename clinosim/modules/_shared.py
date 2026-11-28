@@ -37,6 +37,12 @@ MED_STOP_ORDER_ID_MARKER: str = "-STOP-"
 COMPLICATION_TREATMENT_ORDER_ID_MARKER: str = "-COMPTX-"
 COMPLICATION_HOLD_ORDER_ID_MARKER: str = "-COMPHOLD-"
 
+# ``VerdictRule.rule_id`` of the safety-skip entry that records a therapeutic
+# anticoagulant a complication's treatment withholds (an active bleed, or an
+# intracranial hemorrhage as the principal diagnosis; Issues #3960, #3972): written
+# by the simulator, read by the discharge summary's hospital course.
+COMPLICATION_ANTICOAGULATION_WITHHELD_RULE: str = "complication-anticoagulation-withheld"
+
 # ``Order.order_set`` values (Issue #3242), shared by the writer (order
 # engine) and the readers (the ED note): the order set an admission order was
 # written in. ``ORDER_SET_ADMISSION_INITIAL`` is the initial workup and first

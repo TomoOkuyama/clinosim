@@ -16,6 +16,8 @@ record has nothing for it (silence, never a filler):
   drugs given for them;
 - :func:`medication_changes_sentence` — home medications at admission
   against the discharge prescription;
+- :func:`withheld_anticoagulation_sentence` — a therapeutic anticoagulant a
+  complication's treatment withheld, with the reason (Issue #3972);
 - :func:`discharge_condition_sentence` — disposition and the Barthel Index in
   force at discharge.
 
@@ -53,6 +55,7 @@ __all__ = [
     "procedures_sentence",
     "readmission_sentence",
     "treatments_sentence",
+    "withheld_anticoagulation_sentence",
 ]
 
 _RULES_YAML = Path(__file__).resolve().parents[1] / "reference_data" / "hospital_course.yaml"
@@ -448,6 +451,21 @@ def medication_changes_sentence(ctx: NarrativeContext) -> tuple[str, str]:
         return t("hospital_course.med_unchanged", lang), "ctx.discharge_medications"
     line = t("hospital_course.med_changes_line", lang, list=t("hospital_course.group_sep", lang).join(groups))
     return line, "ctx.discharge_medications"
+
+
+def withheld_anticoagulation_sentence(ctx: NarrativeContext) -> tuple[str, str]:
+    """The anticoagulant withholds the stay recorded (an active bleeding complication,
+    or an intracranial hemorrhage as the principal diagnosis; Issues #3960, #3972), in
+    the wording of the progress note's withhold line without its bullet. ``""`` when
+    the stay recorded none."""
+    from clinosim.modules.document.narrative._safety_skips import complication_withhold_skips
+    from clinosim.modules.document.narrative._template_helpers import _render_safety_skips_line
+
+    skips = complication_withhold_skips(list(getattr(ctx, "safety_skips", None) or []))
+    if not skips:
+        return "", ""
+    lines = _render_safety_skips_line(skips, ctx.target_lang).splitlines()
+    return " ".join(re.sub(r"^\W+", "", line) for line in lines), "ctx.safety_skips"
 
 
 def stay_vaccines(ctx: NarrativeContext) -> list[tuple[str, int | None]]:
