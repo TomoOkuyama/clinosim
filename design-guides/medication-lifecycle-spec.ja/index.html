@@ -2609,6 +2609,11 @@
 <td><code>tests/unit/simulator/test_complication_treatment_3864.py</code></td>
 </tr>
 <tr>
+<td>その抗凝固薬を指示する時点で NSAID が実行中の場合(アスピリンは抗血小板薬なので対象外)、抗凝固薬を skip する代わりに NSAID を中止する(Issue #3960、<code>treatment_actions.start_anticoagulation.stops_interacting</code>)。抗凝固薬の指示時刻に <code>DISCONTINUE:</code> の中止マーカー(id に <code>-STOP-</code> と <code>-COMPHOLD-</code>)を書き、それ以降の投与を切り、抗凝固療法の開始のため NSAID を中止した旨を plan 行に書く。退院処方では照合規則(<code>anticoagulant-plus-nsaid</code>)が NSAID を処方から外す。抗凝固薬の代わりに鎮痛薬を処方することはない。活動性の出血性合併症(<code>blocked_by</code>。<code>hemorrhagic_transformation</code> を含む)が抗凝固薬を見送る場合は何も中止せず、その旨を記録に書く。中止した薬のマーカーは、薬剤安全性の併用規則では実行中の薬として数えない。予防量の投与は従来どおり skip する。乱数は引かない。</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
 <td>合併症が <code>hold_anticoagulation</code>(出血)を宣言すると、発症の指示時刻に、実行中の抗凝固薬と予定の VTE 予防薬ごとに <code>DISCONTINUE:</code> の中止マーカー(id に <code>-STOP-</code> と <code>-COMPHOLD-</code>)を書く。マーカーは以後の action からは即座に指示を止め、退院後にそのマーカー以降の投与を除いて指示をそこで終える(<code>drop_doses_after_hold</code>。日々の MAR は引き直さない)。この保留で止めた在宅の抗凝固薬には退院時の判断を明示する(Issue #3896、<code>build_discharge_rx(held_anticoagulants=)</code>)。ACC 2020 の経口抗凝固薬服用中の出血に関する専門家合意パスウェイ(point 10)は、出血が制御されたら「All other patients should likely restart their anticoagulation as soon as it is medically safe to do so」とするので <code>resumed</code>(処方項目に <code>reconciliation: "resumed"</code>、退院サマリーに記載)とする。退院時の規則で処方から外れた薬は <code>stopped</code> で、退院時の保留として記録する(他の規則が名指ししなければ「再開しない」)。血栓塞栓リスクが低い場合の中止(パスウェイのもう一方の分岐)はモデル化しない(CHA2DS2-VASc を持たない)。<code>IV_PPI</code>(消化管出血)は消化管出血プロトコルの静注 PPI の最初のエントリを <code>course_days</code>(3。レジメンの「x 72h」。ACG 2021: 内視鏡的止血後は高用量 PPI を 3 日間)だけ発注し、同じプロトコルの経口 PPI のエントリ(<code>step_down</code>, Issue #3896)を静注期間の終了から発症後 2 週間まで投与する(ACG 2021: 高リスクの潰瘍出血では「index endoscopy の 2 週後まで」1 日 2 回の PPI。用量はプロトコルの 1 日 1 回のエントリで、Rockall は保持しない)。残りは退院処方が継続する。開始した指示のスタッフ乱数は <code>complication_treatment_seed</code> を使い、滞在の乱数列は使わない。</td>
 <td><code>daily_loop.py::_stop_complication_drugs</code>, <code>_start_complication_treatment</code>; <code>modules/order/supersede.py::drop_doses_after_hold</code>; <code>seeding.py::complication_treatment_seed</code></td>
 <td><code>tests/unit/simulator/test_complication_treatment_3864.py</code></td>
