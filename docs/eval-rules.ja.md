@@ -150,7 +150,7 @@ invariant のみ。Kana (SYL) 表現 coverage の拡張は別途管理。full HL
 FHIR Validator 走行 (`jp-validate.yml`) は on-demand の authoritative
 compliance surface。`clinosim/eval/axes/jp_core_compliance.py` 参照。
 Check (全て MAJOR): `jp_core_patient_profile_declared`、
-`jp_core_patient_identifier_present`、`jp_core_patient_name_family_given`、
+`jp_core_patient_identifier_present`、`jp_core_patient_name_present`、
 `jp_core_patient_kanji_representation`、`jp_core_encounter_class_present`、
 `jp_core_encounter_period_present`、
 `jp_core_medicationrequest_medication_coding_present`。
@@ -163,7 +163,7 @@ US Core AllPatients / Encounter / Condition の must-support element
 Phase 3 の full validator 走行 (`us-validate.yml`) は on-demand の
 authoritative compliance surface。`clinosim/eval/axes/us_core_compliance.py` 参照。
 Check (全て MAJOR): `us_core_patient_identifier_present`、
-`us_core_patient_name_family_given`、`us_core_patient_birthsex_extension_valid`、
+`us_core_patient_name_present`、`us_core_patient_birthsex_extension_valid`、
 `us_core_patient_race_extension_shape`、`us_core_patient_ethnicity_extension_shape`、
 `us_core_encounter_class_v3_actcode`、`us_core_condition_category_system`。
 

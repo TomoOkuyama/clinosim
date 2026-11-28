@@ -22,8 +22,10 @@ Checks
 ------
 1. **us_core_patient_identifier_present** — every US Patient carries
    at least one identifier (must-support on US Core AllPatients).
-2. **us_core_patient_name_family_given** — every US Patient has at
-   least one name with both ``family`` and ``given`` set.
+2. **us_core_patient_name_present** — every US Patient has a name
+   that satisfies US Core us-core-6: ``given`` and/or ``family``, or
+   the Data Absent Reason extension (an unnamed newborn has the family
+   name only, Issue #3954).
 3. **us_core_patient_birthsex_extension_valid** — every US Patient
    carries the ``us-core-birthsex`` extension with a valid valueCode
    (M / F / UNK / OTH / ASKU per HL7 v3 AdministrativeGender).
@@ -114,7 +116,7 @@ def run(cohort: Cohort, country: str) -> list[EvalCheck]:
     conditions = list(cohort.ndjson(country, "Condition", skip_malformed=True))
     return [
         _check_patient_identifier(patients),
-        _check_patient_name_family_given(patients),
+        _check_patient_name_present(patients),
         _check_patient_birthsex_extension(patients),
         _check_patient_race_extension_shape(patients),
         _check_patient_ethnicity_extension_shape(patients),
@@ -141,23 +143,28 @@ def _check_patient_identifier(patients: list[dict]) -> EvalCheck:
     )
 
 
-def _check_patient_name_family_given(patients: list[dict]) -> EvalCheck:
-    name = "us_core_patient_name_family_given"
+_DATA_ABSENT_REASON_URL = "http://hl7.org/fhir/StructureDefinition/data-absent-reason"
+
+
+def _name_satisfies_us_core_6(name: dict) -> bool:
+    """US Core 9.0.0 us-core-6: at least name.given and/or name.family are
+    present or, if neither is available, the Data Absent Reason extension."""
+    if name.get("family") or any(g for g in name.get("given") or []):
+        return True
+    return any(ext.get("url") == _DATA_ABSENT_REASON_URL for ext in name.get("extension") or [])
+
+
+def _check_patient_name_present(patients: list[dict]) -> EvalCheck:
+    name = "us_core_patient_name_present"
     total = len(patients)
     if total == 0:
         return _na(name, "No US Patients found.")
-    ok = 0
-    for p in patients:
-        names = p.get("name") or []
-        has_family = any(n.get("family") for n in names)
-        has_given = any(n.get("given") for n in names)
-        if has_family and has_given:
-            ok += 1
+    ok = sum(1 for p in patients if any(_name_satisfies_us_core_6(n) for n in p.get("name") or []))
     return _ratio(
         name=name,
         numerator=ok,
         denominator=total,
-        message_template="{hits}/{total} US Patients have name.family + name.given",
+        message_template="{hits}/{total} US Patients have a name with family and/or given (us-core-6)",
     )
 
 

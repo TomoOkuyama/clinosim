@@ -19,7 +19,7 @@ from clinosim.eval.axes.jp_core_compliance import (
     _check_medicationrequest_medication_coding,
     _check_patient_identifier,
     _check_patient_kanji_representation,
-    _check_patient_name_family_given,
+    _check_patient_name_present,
     _check_patient_profile_declared,
 )
 from clinosim.eval.engine import Outcome
@@ -78,22 +78,27 @@ class TestPatientIdentifier:
 
 
 # --------------------------------------------------------------------------- #
-# Patient name.family + name.given check
+# Patient name check (JP Core requires neither family nor given)
 
 
 @pytest.mark.unit
-class TestPatientNameFamilyGiven:
+class TestPatientNamePresent:
     def test_pass(self):
         patients = [{"name": [{"family": "山田", "given": ["太郎"]}]}]
-        assert _check_patient_name_family_given(patients).outcome is Outcome.PASS
+        assert _check_patient_name_present(patients).outcome is Outcome.PASS
 
-    def test_family_only_fail(self):
+    def test_family_only_pass(self):
+        # An unnamed newborn carries the family name only (Issue #3954).
         patients = [{"name": [{"family": "山田"}]}]
-        assert _check_patient_name_family_given(patients).outcome is Outcome.FAIL
+        assert _check_patient_name_present(patients).outcome is Outcome.PASS
 
-    def test_given_only_fail(self):
+    def test_given_only_pass(self):
         patients = [{"name": [{"given": ["太郎"]}]}]
-        assert _check_patient_name_family_given(patients).outcome is Outcome.FAIL
+        assert _check_patient_name_present(patients).outcome is Outcome.PASS
+
+    def test_neither_fail(self):
+        patients = [{"name": [{"text": "山田"}]}]
+        assert _check_patient_name_present(patients).outcome is Outcome.FAIL
 
 
 # --------------------------------------------------------------------------- #
