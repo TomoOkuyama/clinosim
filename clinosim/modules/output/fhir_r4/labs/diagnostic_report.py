@@ -22,6 +22,7 @@ Panel YAML + canonical loader live in ``clinosim.modules.order.panel_grouping``
 from __future__ import annotations
 
 from collections import defaultdict
+from datetime import datetime
 from functools import cache
 from pathlib import Path
 from typing import Any, NamedTuple
@@ -69,6 +70,7 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     is_procedure_result,
     system_coding,
 )
+from clinosim.modules.output.fhir_r4.lib.ed_reattribution import ed_window_of_record, time_in_ed_window
 from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
@@ -208,7 +210,11 @@ class _GroupedPanel(NamedTuple):
     effective_datetime: str = ""
 
 
-def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel]:
+def group_lab_orders(
+    orders: list[Any],
+    encounter_id: str,
+    ed_window: tuple[datetime, datetime] | None = None,
+) -> list[_GroupedPanel]:
     """Group lab orders into panel DiagnosticReport candidates.
 
     For each lab order with a result, derive (analyte_name, bucket, obs_id).
@@ -230,7 +236,14 @@ def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel
     Accepts both Order dataclass instances and JSON-deserialized dicts
     (production CIF path). Uses _o() for dual dict/dataclass field access.
 
-    Returns groups sorted by (bucket ascending, panel-priority order).
+    ``ed_window`` is the ED window of a via-ED admission (``ed_window_of_record``):
+    the bucket is then the day and the FHIR Encounter the order belongs to (ED
+    bridge or inpatient stay, decided by the one ED-window predicate that routes
+    the resources), so a report never holds the results of both Encounters
+    (Issue #3958). Without a window the grouping is by day alone.
+
+    Returns groups sorted by (bucket ascending, ED phase before the stay,
+    panel-priority order).
     """
     panels = load_panel_definitions()
 
@@ -239,7 +252,7 @@ def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel
     # first unconsumed idx per panel-component is used (see consume loop
     # below). Issue #854 Bucket A row 4: switched from pre-computed obs_id
     # strings to raw indices so the id-emit format lives at one point.
-    by_bucket: dict[str, dict[str, list[int]]] = defaultdict(lambda: defaultdict(list))
+    by_bucket: dict[tuple[str, int], dict[str, list[int]]] = defaultdict(lambda: defaultdict(list))
     # Issue #2634: each order's effective time, so a report is effective at
     # its own components' draw, not at another order placed later that day.
     effective_by_idx: dict[int, str] = {}
@@ -253,7 +266,7 @@ def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel
     # on `issued`, which the DR builder sets separately from
     # `latest_issued`. Late-ED lab results were producing DRs dated after
     # the parent encounter's period.end because result_datetime > enc end.
-    bucket_max_dt: dict[str, str] = {}
+    bucket_max_dt: dict[tuple[str, int], str] = {}
     for idx, order in enumerate(orders):
         ot = _o(order, "order_type")
         if ot not in (OrderType.LAB, "lab"):
@@ -276,17 +289,20 @@ def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel
         lab_name = _o(result, "lab_name") or _o(order, "display_name") or ""
         if not lab_name:
             continue
-        by_bucket[when][lab_name].append(idx)
+        # Issue #3958: the Encounter of the order, by its effective time (ED = 0).
+        key = (when, 0 if time_in_ed_window(ed_window, effective_raw) else 1)
+        by_bucket[key][lab_name].append(idx)
         effective_by_idx[idx] = dt_full
         # Track max full datetime per bucket. String compare is safe here since
         # `dt_full` is a normalized ISO-8601 form (both dataclass str() and
         # JSON-dict str values sort chronologically as strings).
-        prev = bucket_max_dt.get(when, "")
+        prev = bucket_max_dt.get(key, "")
         if dt_full > prev:
-            bucket_max_dt[when] = dt_full
+            bucket_max_dt[key] = dt_full
 
     groups: list[_GroupedPanel] = []
-    for bucket in sorted(by_bucket.keys()):
+    for bucket_key in sorted(by_bucket.keys()):
+        bucket = bucket_key[0]
         consumed: set[int] = set()
         for panel_name, panel in panels.items():
             components: list[str] = panel["components"]
@@ -296,7 +312,7 @@ def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel
             present_count = 0
             obs_idxs: list[int] = []
             for comp in components:
-                idxs = by_bucket[bucket].get(comp, [])
+                idxs = by_bucket[bucket_key].get(comp, [])
                 for _idx in idxs:
                     if _idx in consumed:
                         continue
@@ -317,7 +333,7 @@ def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel
                     bucket=bucket,
                     obs_idxs=obs_idxs,
                     effective_datetime=max((effective_by_idx[i] for i in obs_idxs), default="")
-                    or bucket_max_dt.get(bucket, ""),
+                    or bucket_max_dt.get(bucket_key, ""),
                 )
             )
     return groups
@@ -970,7 +986,7 @@ def build_lab_panel_reports(ctx) -> list[dict]:
     if _att_for_enc:
         _lab_performer_ref = f"Practitioner/{_att_for_enc}"
 
-    groups = group_lab_orders(orders, enc_id)
+    groups = group_lab_orders(orders, enc_id, ed_window_of_record(ctx.record))
     seq_by_panel: dict[str, int] = defaultdict(int)
     out: list[dict] = []
     for g in groups:

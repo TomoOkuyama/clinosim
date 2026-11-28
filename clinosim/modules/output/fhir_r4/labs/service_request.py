@@ -371,6 +371,7 @@ def _build_earliest_issued_by_sr(record: dict, primary_enc_id: str) -> dict[str,
         radiology_report_issued,
         single_test_report_groups,
     )
+    from clinosim.modules.output.fhir_r4.lib.ed_reattribution import ed_window_of_record
 
     out: dict[str, str] = {}
     orders = record.get("orders", []) or []
@@ -380,7 +381,7 @@ def _build_earliest_issued_by_sr(record: dict, primary_enc_id: str) -> dict[str,
         lab_orders = [o for o in orders if _o(o, "order_type") in (OrderType.LAB, "lab")]
         if lab_orders:
             panel_counter = build_panel_counter(lab_orders)
-            groups = group_lab_orders(orders, primary_enc_id)
+            groups = group_lab_orders(orders, primary_enc_id, ed_window_of_record(record))
             for g in groups:
                 if not g.bucket or len(g.bucket) < 10:
                     continue

@@ -58,6 +58,7 @@ from __future__ import annotations
 
 import re
 from datetime import datetime
+from types import SimpleNamespace
 from typing import Any
 
 from clinosim.modules._shared import ED_TRIAGE_DATA_SOURCE, admitted_via_ed, get_attr_or_key
@@ -259,6 +260,19 @@ def _ed_window(ctx: Any) -> tuple[datetime, datetime] | None:
     return window
 
 
+def ed_window_of_record(record: Any) -> tuple[datetime, datetime] | None:
+    """The ED window of a record's via-ED admission (None when not via ED), for
+    callers that hold the record and not the bundle context (Issue #3958)."""
+    return _ed_window(SimpleNamespace(record=record))
+
+
+def time_in_ed_window(window: tuple[datetime, datetime] | None, value: Any) -> bool:
+    """Whether ``value`` (a datetime or an ISO string) lies in the ED window
+    ``[start, end)``; the one predicate that routes a resource to the bridge."""
+    at = _as_datetime(value)
+    return window is not None and at is not None and window[0] <= at < window[1]
+
+
 def _clinical_time(resource: dict) -> datetime | None:
     for field, sub in _CLINICAL_TIME_FIELDS:
         v = resource.get(field)
@@ -333,7 +347,7 @@ def reattribute_ed_phase_by_time(resource: dict, ctx: Any) -> None:
     if window is None:
         return
     t = imaging_report_at if imaging_report_at is not None else _clinical_time(resource)
-    if t is None or not (window[0] <= t < window[1]):
+    if not time_in_ed_window(window, t):
         return
     enc_ref["reference"] = f"Encounter/{resolve_encounter_id(f'{imp_id}-ED')}"
     _name_ed_physician_as_requester(resource, ctx)
