@@ -2083,6 +2083,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#refactoring-proof-scriptsrefactor-diffsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring proof (scripts/refactor-diff.sh)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2431,6 +2442,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#refactoring-proof-scriptsrefactor-diffsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring proof (scripts/refactor-diff.sh)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2493,6 +2515,46 @@ the diff. Environment variables <code>CLINOSIM_REPRO_COUNTRIES</code>,
 <code>tests/integration/test_full_reproducibility.py</code> (integration job), and
 the <code>reproducibility</code> job in <code>nightly.yml</code> runs it daily, so a
 regression trips the merge gate before code lands.</p>
+<h3 id="refactoring-proof-scriptsrefactor-diffsh">Refactoring proof (<code>scripts/refactor-diff.sh</code>)<a class="headerlink" href="#refactoring-proof-scriptsrefactor-diffsh" title="Permanent link">&para;</a></h3>
+<p>A refactoring must not change any output, and it is proven only on a run in
+which the moved code executed: a cohort of a few hundred patients can be
+byte-identical without ever reaching a path that fires once per thousand
+stays. Three pieces work together (Issue #3976):</p>
+<ul>
+<li><strong>Forced-scenario corpus</strong> — <code>tests/refactor_corpus/scenarios.yaml</code>: one
+  forced stay per path a refactoring may move (each complication action kind,
+  the vasopressor start, the DKA transition, the hyperkalemia / AKI /
+  renal-replacement / lactate responses, each discharge criterion, a
+  hospital-acquired infection, the delivery modes, an ED admission), US and
+  JP. It is built on <code>run_forced</code>; a complication is forced on a stated day
+  with the test-only <code>ForcedScenario.force_complications</code>, which only
+  <code>run_forced</code> reads. <code>tests/refactor_corpus/run_corpus.py</code> generates it (CIF,
+  template narratives, FHIR R4, one directory per scenario).</li>
+<li><strong>Fired counters</strong> — <code>clinosim/fired_counters.py</code>: one <code>count("&lt;path&gt;")</code>
+  call where each such path acts. The counters draw no random number, are not
+  written into CIF or FHIR, and are reset at the start of every run; the
+  runner writes them to a JSON sidecar outside the output tree. Each scenario
+  lists the paths it must fire (<code>expect</code>), and <code>run_corpus.py check</code> fails
+  when one did not.</li>
+<li><strong>The comparison</strong> — <code>scripts/refactor-diff.sh &lt;base&gt; &lt;head&gt;</code> checks out
+  both commits in detached worktrees, generates the corpus and a US and a JP
+  cohort (seed 42, population 200 by default and at most 300,
+  2025-07-01..2026-06-30, CIF and FHIR) on each, compares every file (logs,
+  <code>_generator_metadata.json</code> and the wall-clock keys of the metadata files
+  excepted), prints the differences and the fired counters of both commits,
+  and exits non-zero on any difference or on an expected path that did not
+  fire on <code>&lt;head&gt;</code>.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>scripts/refactor-diff.sh<span class="w"> </span>origin/master<span class="w"> </span>HEAD<span class="w">   </span><span class="c1"># about 3 minutes on a laptop</span>
+</span></code></pre></div>
+<p>The corpus definition and runner of <code>&lt;head&gt;</code> are run against both commits, so
+both generate the same scenarios; <code>&lt;base&gt;</code> must contain the corpus (a base
+without fired counters shows <code>-</code> in its counter columns). The CI workflow
+<code>refactor-diff.yml</code> runs the script for every pull request labelled
+<code>refactoring</code>, against the merge base. A refactoring PR names the paths it
+moves and quotes their counts ("path X fired N times in the corpus, M in the
+US cohort, K in the JP cohort, identical on both commits"); a path that fires
+0 times is not proven, so add a scenario that fires it first.</p>
 <hr />
 
 

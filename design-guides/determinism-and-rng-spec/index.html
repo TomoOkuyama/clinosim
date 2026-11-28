@@ -2576,6 +2576,7 @@
 <ul>
 <li><code>bash scripts/reproduce.sh</code> reproduces a run and compares sha256 of every output file.</li>
 <li>A change that should be output-neutral shows a CIF and FHIR byte-diff of 0 against master built from the same base commit (US and JP).</li>
+<li>A refactoring is shown with <code>scripts/refactor-diff.sh &lt;base&gt; &lt;head&gt;</code>, which adds the forced-scenario corpus (<code>tests/refactor_corpus/</code>) to the US and JP cohorts and prints how often each moved path fired (<code>docs/development/testing.md</code>). The fired counters (<code>clinosim/fired_counters.py</code> <code>count</code>) draw nothing and are written into neither CIF nor FHIR, so a counter call is always RNG-neutral; guard: <code>tests/unit/test_fired_counters_3976.py</code>. <code>ForcedScenario.force_complications</code> is read by <code>run_forced</code> only, never by a population run (<code>tests/unit/simulator/test_forced_complications_3976.py</code>).</li>
 <li>A change that alters outcomes compares cohorts from the same base commit. The PR lists the changed paths (e.g. <code>orders[].result</code>, <code>microbiology</code>) and the number of patients that differ, so an unexpected stream shift is visible.</li>
 </ul>
 <h2 id="7-iteration-order-and-caches">7. Iteration order and caches<a class="headerlink" href="#7-iteration-order-and-caches" title="Permanent link">&para;</a></h2>

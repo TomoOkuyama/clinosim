@@ -2709,6 +2709,10 @@
 <td><code>clinosim/modules/order/placed_order_mar.py</code> <code>stable_nurse(roster, key, ward=, department=)</code></td>
 <td>The giving nurse on an administration row, picked by stable hash (no draw).</td>
 </tr>
+<tr>
+<td><code>clinosim/fired_counters.py</code> <code>count(path, n, when=)</code> / <code>count_each(prefix, names)</code></td>
+<td>Record that a named code path ran (Issue #3976). Draws nothing and is not written into CIF or FHIR; <code>scripts/refactor-diff.sh</code> prints the counts. Add one call at each path a refactoring moves.</td>
+</tr>
 </tbody>
 </table>
 <h2 id="2-reference-data-configuration-and-age-bands">2. Reference data, configuration and age bands<a class="headerlink" href="#2-reference-data-configuration-and-age-bands" title="Permanent link">&para;</a></h2>

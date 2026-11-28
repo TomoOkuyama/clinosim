@@ -2583,6 +2583,11 @@
 <td><code>modules/facility/hospital_state.py</code> (<code>calculate_delay</code>); data <code>config/hospital_small.yaml</code>, <code>config/hospital_large.yaml</code>, <code>config/hospital_operations.yaml</code></td>
 <td><code>tests/unit/test_lab_turnaround_3287.py</code></td>
 </tr>
+<tr>
+<td>A lab panel DiagnosticReport reports the results of one Encounter: panel members are grouped by panel, day and the Encounter of the order (the ED bridge when the order's time lies in the ED window of a via-ED admission, else the stay), through the same ED-window predicate that routes the resources, so <code>result</code>, <code>basedOn</code>, <code>encounter</code> and <code>effective[x]</code> of a report agree (Issue #3958).</td>
+<td><code>fhir_r4/labs/diagnostic_report.py::group_lab_orders</code> (<code>ed_window</code>), <code>fhir_r4/lib/ed_reattribution.py</code> (<code>ed_window_of_record</code>, <code>time_in_ed_window</code>)</td>
+<td><code>tests/unit/output/test_fhir_panel_report_one_encounter_3958.py</code></td>
+</tr>
 </tbody>
 </table>
 <h2 id="5-eval-bounds">5. Eval bounds<a class="headerlink" href="#5-eval-bounds" title="Permanent link">&para;</a></h2>

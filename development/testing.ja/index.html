@@ -2364,6 +2364,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#リファクタリングの検証-scriptsrefactor-diffsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        リファクタリングの検証 (scripts/refactor-diff.sh)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2428,6 +2439,42 @@ diff します。exit 0 = byte-identical、exit 1 = 決定性回帰 (該当
 (integration ジョブ) 経由で実行し、<code>nightly.yml</code> の <code>reproducibility</code>
 job も毎日実行するので、回帰がコードのランド前に merge gate を trip
 します。</p>
+<h3 id="リファクタリングの検証-scriptsrefactor-diffsh">リファクタリングの検証 (<code>scripts/refactor-diff.sh</code>)<a class="headerlink" href="#リファクタリングの検証-scriptsrefactor-diffsh" title="Permanent link">&para;</a></h3>
+<p>リファクタリングは出力を一切変えてはならず、その証明は移したコードが実際に
+実行された実行結果でしか成り立ちません。数百人のコホートは、1000 入院に 1 回
+しか通らない経路に一度も到達しないまま byte-identical になり得ます。次の 3 つで
+検証します (Issue #3976)。</p>
+<ul>
+<li><strong>強制シナリオのコーパス</strong> — <code>tests/refactor_corpus/scenarios.yaml</code>: リファクタ
+  リングで移しうる経路ごとに 1 つの強制入院 (合併症アクションの各種別、昇圧薬の
+  開始、DKA の皮下注への移行、高カリウム血症 / AKI / 腎代替療法 / 乳酸への対応、
+  各退院基準、院内感染、分娩様式、救急外来経由の入院) を US と JP で生成します。
+  <code>run_forced</code> の上に作られ、合併症はテスト専用の
+  <code>ForcedScenario.force_complications</code> で指定日に発症させます (これを読むのは
+  <code>run_forced</code> だけです)。<code>tests/refactor_corpus/run_corpus.py</code> が生成します
+  (CIF、テンプレート narrative、FHIR R4。シナリオごとに 1 ディレクトリ)。</li>
+<li><strong>発火カウンタ</strong> — <code>clinosim/fired_counters.py</code>: 各経路が作用する箇所に
+  <code>count("&lt;path&gt;")</code> を 1 つ置きます。カウンタは乱数を消費せず、CIF にも FHIR に
+  も書かれず、実行の開始ごとにリセットされます。ランナーが出力ツリーの外の JSON
+  サイドカーに書き出します。各シナリオは発火すべき経路を <code>expect</code> に列挙し、
+  1 つでも発火しなければ <code>run_corpus.py check</code> が失敗します。</li>
+<li><strong>比較</strong> — <code>scripts/refactor-diff.sh &lt;base&gt; &lt;head&gt;</code> は 2 つのコミットを
+  detached worktree に展開し、それぞれでコーパスと US / JP コホート (seed 42、
+  人口は既定 200・上限 300、2025-07-01..2026-06-30、CIF と FHIR) を生成し、全
+  ファイルを比較し (ログ、<code>_generator_metadata.json</code>、メタデータファイルの壁時計
+  キーを除く)、差分と両コミットの発火カウンタを表示します。差分があるか、
+  <code>&lt;head&gt;</code> で期待された経路が発火しなければ非ゼロで終了します。</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>scripts/refactor-diff.sh<span class="w"> </span>origin/master<span class="w"> </span>HEAD<span class="w">   </span><span class="c1"># ノート PC で約 3 分</span>
+</span></code></pre></div>
+<p>コーパス定義とランナーは <code>&lt;head&gt;</code> のものを両方のコミットに対して実行するので、
+両者は同じシナリオを生成します。<code>&lt;base&gt;</code> はコーパスを含んでいる必要があります
+(発火カウンタの無い base はカウンタ列に <code>-</code> を表示します)。CI ワークフロー
+<code>refactor-diff.yml</code> は <code>refactoring</code> ラベルの付いたプルリクエストごとに、merge
+base に対してこのスクリプトを実行します。リファクタリング PR は移す経路を挙げ、
+その回数を引用します (「経路 X はコーパスで N 回、US コホートで M 回、JP コホート
+で K 回発火し、両コミットで同一」)。0 回の経路は証明されていないので、先にそれ
+を発火させるシナリオを追加します。</p>
 <hr />
 
 

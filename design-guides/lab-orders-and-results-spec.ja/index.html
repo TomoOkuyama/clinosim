@@ -2583,6 +2583,11 @@
 <td><code>modules/facility/hospital_state.py</code> (<code>calculate_delay</code>)。データは <code>config/hospital_small.yaml</code>, <code>config/hospital_large.yaml</code>, <code>config/hospital_operations.yaml</code></td>
 <td><code>tests/unit/test_lab_turnaround_3287.py</code></td>
 </tr>
+<tr>
+<td>検査パネルの DiagnosticReport は一つの Encounter の結果を報告する: パネルの構成検査は、パネル・日・オーダーの Encounter (経由 ED 入院でオーダー時刻が ED 窓にあれば ED bridge、そうでなければ入院) で束ね、リソースを振り分けるのと同じ ED 窓の判定を使うので、報告の <code>result</code>・<code>basedOn</code>・<code>encounter</code>・<code>effective[x]</code> は一致する (Issue #3958)。</td>
+<td><code>fhir_r4/labs/diagnostic_report.py::group_lab_orders</code> (<code>ed_window</code>)、<code>fhir_r4/lib/ed_reattribution.py</code> (<code>ed_window_of_record</code>, <code>time_in_ed_window</code>)</td>
+<td><code>tests/unit/output/test_fhir_panel_report_one_encounter_3958.py</code></td>
+</tr>
 </tbody>
 </table>
 <h2 id="5-評価の範囲">5. 評価の範囲<a class="headerlink" href="#5-評価の範囲" title="Permanent link">&para;</a></h2>

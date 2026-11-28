@@ -2554,6 +2554,10 @@
 <td><code>clinosim/modules/order/placed_order_mar.py</code> <code>stable_nurse(roster, key, ward=, department=)</code></td>
 <td>投与記録の実施看護師を安定ハッシュで選ぶ (乱数を消費しない)。</td>
 </tr>
+<tr>
+<td><code>clinosim/fired_counters.py</code> <code>count(path, n, when=)</code> / <code>count_each(prefix, names)</code></td>
+<td>名前を付けたコード経路が実行されたことを数える (Issue #3976)。乱数を消費せず、CIF にも FHIR にも書かれない。<code>scripts/refactor-diff.sh</code> が回数を表示する。リファクタリングで移す経路ごとに 1 呼び出しを置く。</td>
+</tr>
 </tbody>
 </table>
 <h2 id="2-参照データ設定年齢帯">2. 参照データ・設定・年齢帯<a class="headerlink" href="#2-参照データ設定年齢帯" title="Permanent link">&para;</a></h2>

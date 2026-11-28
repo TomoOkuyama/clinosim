@@ -2576,6 +2576,7 @@
 <ul>
 <li><code>bash scripts/reproduce.sh</code> は実行を再現し、全出力ファイルの sha256 を比べる。</li>
 <li>出力不変のはずの変更は、同じ基点コミットから作った master に対して CIF・FHIR のバイト差分 0 を示す(US と JP)。</li>
+<li>リファクタリングは <code>scripts/refactor-diff.sh &lt;base&gt; &lt;head&gt;</code> で示す。US・JP コホートに強制シナリオのコーパス(<code>tests/refactor_corpus/</code>)を加え、移した経路ごとの発火回数を表示する(<code>docs/development/testing.ja.md</code>)。発火カウンタ(<code>clinosim/fired_counters.py</code> の <code>count</code>)は乱数を消費せず CIF にも FHIR にも書かれないので、カウンタ呼び出しは常に RNG 中立。ガード: <code>tests/unit/test_fired_counters_3976.py</code>。<code>ForcedScenario.force_complications</code> を読むのは <code>run_forced</code> だけで、人口ベースの実行は読まない(<code>tests/unit/simulator/test_forced_complications_3976.py</code>)。</li>
 <li>結果を変える変更は、同じ基点コミットのコホートを比べ、変わったパス(例 <code>orders[].result</code>, <code>microbiology</code>)と差分のある患者数を PR に書く。意図しないストリームのずれが見えるようにするため。</li>
 </ul>
 <h2 id="7-反復順とキャッシュ">7. 反復順とキャッシュ<a class="headerlink" href="#7-反復順とキャッシュ" title="Permanent link">&para;</a></h2>
