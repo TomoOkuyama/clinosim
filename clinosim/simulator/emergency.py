@@ -68,7 +68,7 @@ from clinosim.simulator._ed_thresholds import (
     ED_VITALS_OFFSET_MIN,
     ED_WARD_ID,
 )
-from clinosim.simulator.encounter_setup import attach_orders, encounter_diagnosis, finalize_encounter
+from clinosim.simulator.encounter_setup import attach_orders, clamp_to_window, encounter_diagnosis, finalize_encounter
 from clinosim.simulator.lab_pipeline import patient_true_labs, relate_egfr_to_creatinine
 from clinosim.simulator.vitals_pipeline import _loc_for, ed_arrival_vitals
 from clinosim.types.clinical import ConditionEvent, PhysiologicalState
@@ -738,8 +738,12 @@ def _simulate_ed_visit(
             clinical_intent=t("encounter_intent.ed_workup", "en", test=test),
             # Issue #871: JA display for JP SR reasonCode.text.
             clinical_intent_ja=t("encounter_intent.ed_workup", "ja", test=order_test_display(test, "ja")),
-            ordered_datetime=visit_time
-            + timedelta(minutes=int(lab_rng.normal(ED_LAB_ORDER_OFFSET_MEAN_MIN, ED_LAB_ORDER_OFFSET_STD_MIN))),
+            # Issue #3957: a negative draw does not place the order before the arrival.
+            ordered_datetime=clamp_to_window(
+                visit_time
+                + timedelta(minutes=int(lab_rng.normal(ED_LAB_ORDER_OFFSET_MEAN_MIN, ED_LAB_ORDER_OFFSET_STD_MIN))),
+                visit_time,
+            ),
             ordered_by=encounter.attending_physician_id,
             status=OrderStatus.PLACED,
         )
@@ -814,7 +818,7 @@ def _simulate_ed_visit(
                 clinical_intent=t("encounter_intent.ed_imaging", "en", test=test),
                 # Issue #871: JA display for JP SR reasonCode.text.
                 clinical_intent_ja=t("encounter_intent.ed_imaging", "ja", test=order_test_display(test, "ja")),
-                ordered_datetime=visit_time + timedelta(minutes=int(order_offset)),
+                ordered_datetime=clamp_to_window(visit_time + timedelta(minutes=int(order_offset)), visit_time),
                 ordered_by=encounter.attending_physician_id,
                 status=OrderStatus.PLACED,
                 # Issue #3294: the share of reads abnormal, by severity.
@@ -905,9 +909,12 @@ def _simulate_ed_visit(
                     if tx.get("intent")
                     else localize_free_text(_tx_name, "ja"),
                 ),
-                ordered_datetime=visit_time
-                + timedelta(
-                    minutes=int(rng.normal(ED_TREATMENT_ORDER_OFFSET_MEAN_MIN, ED_TREATMENT_ORDER_OFFSET_STD_MIN))
+                ordered_datetime=clamp_to_window(
+                    visit_time
+                    + timedelta(
+                        minutes=int(rng.normal(ED_TREATMENT_ORDER_OFFSET_MEAN_MIN, ED_TREATMENT_ORDER_OFFSET_STD_MIN))
+                    ),
+                    visit_time,
                 ),
                 ordered_by=encounter.attending_physician_id,
                 status=OrderStatus.PLACED,

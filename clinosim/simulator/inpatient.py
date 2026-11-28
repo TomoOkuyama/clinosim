@@ -92,6 +92,7 @@ from clinosim.simulator.discharge_rx import build_discharge_rx
 from clinosim.simulator.encounter_setup import (
     align_echo_procedures_to_imaging,
     attach_orders,
+    clamp_to_window,
     encounter_diagnosis,
     fit_procedures_in_stay,
     fit_rehab_sessions_in_stay,
@@ -867,6 +868,10 @@ def _simulate_patient(
     # body part (placed above, so the stay's RNG stream is unchanged).
     admission_orders = drop_legacy_duplicate_imaging(admission_orders, adm_imaging)
     admission_orders.extend(adm_imaging)
+    # Issue #3957: a negative placement draw does not date a work-up order
+    # before the stay (or, through the ED, before the ED arrival).
+    for _o in admission_orders:
+        _o.ordered_datetime = clamp_to_window(_o.ordered_datetime, ed_period[0] if ed_period else admission_time)
 
     # Issue #3392: the co-disease of a mixed admission is worked up and
     # treated by its own protocol's admission orders, from the admission or,

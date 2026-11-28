@@ -24,6 +24,22 @@ from clinosim.types.procedure import ProcedureRecord, RehabSession
 _AMBULATORY_TYPES = frozenset({EncounterType.OUTPATIENT, EncounterType.PRENATAL_VISIT})
 
 
+def clamp_to_window(when: datetime, start: datetime, end: datetime | None = None) -> datetime:
+    """``when`` held inside ``[start, end]`` (``end`` open when ``None``).
+
+    An order, specimen or result of an encounter lies in its period (Issue
+    #3957): a placement time drawn as the anchor plus a normal offset can fall
+    before the anchor, so it is clamped after the draw and the random stream
+    does not change. One rule for every site that places a time in a window
+    (the encounter-window design replaces it with ``place_in_window``).
+    """
+    if when < start:
+        return start
+    if end is not None and when > end:
+        return end
+    return when
+
+
 def attach_orders(orders: Iterable[Order], encounter: Encounter) -> None:
     """Give every order that has no encounter yet this encounter's id."""
     for o in orders:
