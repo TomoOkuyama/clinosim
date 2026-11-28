@@ -243,7 +243,7 @@ clinosim/modules/document/narrative/
   _patient_info_renderers.py               Patient demographics / biometrics / health-literacy renderers + _localize_token enum lookup (META #1633 P6 replacement slice 3)
   _extra_context_builder.py                _build_extra_context + _writing_day_of — composes every renderer into the LLM-prompt context dict (META #1633 P6 replacement slice 4)
   _prescription_line.py                    prescription_bits — 処方行の用量・経路・頻度・日数を ED 持ち帰り処方・退院サマリ・外来 SOAP で共有 (Issue #3389)
-  _safety_skips.py                         safety_skip_line — 薬剤安全 skip event の文言を template / LLM path で共通化 (Issue #2519)。progress_note_safety_skips — 日々の経過記録が書く入院中の事象 (保留は薬剤ごとに 1 回、回避は薬剤の同一性ごとに 1 回、禁忌未満の相互作用は「相互作用リスク」と表現、記録日より後に起きる薬剤切替は書かない (`known_by_hospital_day`。LLM プロンプトにも各文書の記載日で適用、全経過文書は全イベントを保持)、Issues #3411 / #3458 / #3914 / #3943)
+  _safety_skips.py                         safety_skip_line — 薬剤安全 skip event の文言を template / LLM path で共通化 (Issue #2519)。progress_note_safety_skips — 日々の経過記録が書く入院中の事象 (保留は薬剤ごとに 1 回、回避は薬剤の同一性ごとに 1 回、禁忌未満の相互作用は「相互作用リスク」と表現、記録日より後に起きる薬剤切替は書かない (`known_by_hospital_day`。中止はその中止指示を期間に含む記録だけが `drug_stop_status` で書く (Issue #3963)。LLM プロンプトにも各文書の記載日で適用、全経過文書は全イベントを保持)、Issues #3411 / #3458 / #3914 / #3943)
   _vitals_line.py                          format_vitals_line — narrative 各 style のバイタル 1 行要約を 1 つの formatter に集約 (Issue #2523)
   _as_of.py                                in_force_at / recorded_by / results_known_at / results_after / procedures_started_by / procedures_after — 記録を文書作成時刻までに絞る (Issues #3236, #3241, #3396, #3468)
   cache.py                                 NarrativeCache (layer-1 in-memory, seed_hash keyed)
@@ -251,7 +251,7 @@ clinosim/modules/document/narrative/
   _hedging.py                              hedging phrase pool
   _chronic_soap.py                         chronic-disease SOAP resolver (v9 density fix)
   _visit_reason.py                         visit_kind / kind_lines / vital_findings / next_visit_line / join_sentences / known_conditions_tail — 受診理由別の外来 SOAP (Issue #3249、#3251、#3252)。join_sentences は文末記号を重ねずに文を連結する (Issue #3410)
-  _medication_plan.py                      note_medications / ranked_medication_names / cap_names — 日々の記録の計画が挙げる薬剤を階層別に選ぶ (Issue #3247)
+  _medication_plan.py                      note_medications / drug_stop_status / ranked_medication_names / cap_names — 日々の記録の計画が挙げる薬剤を階層別に選ぶ (Issue #3247)。記録時刻における中止指示を一つの源とし、継続・中止の一覧と中止の行が共用する (Issue #3963)
   _nursing_shift_items.py                  nursing_shift_item_lines — 看護勤務帯記録の項目を順序付きレジストリから作る (Issues #3478 以降)
   _progress_course.py                      post_procedure_line / lab_course_lines / diet_line / rehab_line / discharge_planning_line — 日々の記録の入院経過
   _progress_state.py                       finding_states — 日々の記録の各バイタル所見を 1 つの状態 (新規/持続/改善/消失) にする

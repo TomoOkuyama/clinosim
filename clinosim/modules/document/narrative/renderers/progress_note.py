@@ -249,7 +249,7 @@ def render_progress_note(
     # entries. Same content flows into the LLM prompt via Task 10/11.
     # Issue #3411: the in-stay events, one hold per drug, none of a drug the
     # day's medication record already lists as held.
-    from clinosim.modules.document.narrative._medication_plan import note_medications
+    from clinosim.modules.document.narrative._medication_plan import drug_stop_status, note_medications
     from clinosim.modules.document.narrative._safety_skips import progress_note_safety_skips
 
     skips_addendum = _render_safety_skips_line(
@@ -257,6 +257,7 @@ def render_progress_note(
             getattr(ctx, "safety_skips", None) or [],
             note_medications(ctx).held_refs,
             hospital_day=int(ctx.day_index) + 1,
+            stops=drug_stop_status(ctx),
         ),
         lang,
     )
