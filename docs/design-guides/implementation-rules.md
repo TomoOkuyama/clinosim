@@ -143,6 +143,43 @@ and [configuration-and-reference-data-spec](configuration-and-reference-data-spe
 | AD-55 / AD-56 | Modules write into `CIFPatientRecord.extensions[<module>]` (new typed fields on core types are Base-only). Extension goes through three registries (`register_bundle_builder` / `register_output_adapter` / `register_enricher`); the dispatch body itself is never edited. |
 | AD-11 | **LLM calls go through `llm_service` only.** From the narrative layer, `LLMService.complete_prompt()` is the sole seam. Directly importing a provider SDK is forbidden. |
 
+## 2.1 Module boundaries
+
+Dependencies point downwards: foundation → domain modules → the simulator
+(orchestration); output adapters, QA (`clinosim/eval/`, `clinosim/audit/`) and
+country packages read the foundation and the public names of modules, never
+the simulator. Six rules hold, over every import statement in
+`clinosim/` (function-local and `TYPE_CHECKING` imports included) and every
+path built into a `reference_data` directory:
+
+| # | Rule |
+|---|---|
+| 1 | Foundation packages — `datafiles`, `determinism`, `seeding`, `age_bands`, `timeutil`, `reference_data`, `countries/__init__`, `country_profile`, `codes`, `locale`, `types`, `modules/_shared` — do not import `clinosim.modules` (other than `modules/_shared`), `clinosim.simulator`, `clinosim.eval` or `clinosim.audit`. |
+| 2 | A domain module `clinosim/modules/<m>/` (every `m` except `output`) does not import `clinosim.simulator`. |
+| 3 | No package imports a `_`-prefixed module or name of another package. A package is `clinosim/modules/<m>/`, `clinosim/countries/<cc>/`, or any other top-level directory or file of `clinosim/`. |
+| 4 | `clinosim/modules/output/` does not import `clinosim.simulator` (AD-17, AD-58). |
+| 5 | `clinosim/eval/` and `clinosim/audit/` do not import `clinosim.simulator`. |
+| 6 | No package builds a path into another package's `reference_data` directory; read it through the owner's accessor (§5). |
+
+Written exceptions to rule 3: the formula-constant modules
+`_<topic>_thresholds` / `_<topic>_defaults` (policy §5.1); `_bb_*` bundle
+builders imported by `clinosim/modules/output/fhir_r4/builder.py` or by an
+`audit.py`; and `clinosim/modules/_shared.py` (its own `_`-prefixed names
+stay private).
+
+A ratchet test (`tests/unit/test_module_boundaries.py`, counter
+`tests/unit/module_boundaries.py`) holds each rule's total at the stored total
+in `tests/unit/module_boundaries_baseline.json`. It counts one finding per
+imported name (relative imports resolved to absolute names) and one per path
+expression; a path whose owner cannot be resolved from the file alone counts.
+The baseline has the rename-aware format of the code/data ratchet: a rise
+fails, a fall passes without a baseline edit, and a move or rename of a file is
+not a raise. New content keys are reported in the test output. Do not edit
+the baseline in a feature change; the stored totals are lowered by
+`python -m tests.unit.module_boundaries --write`, which refuses to raise a
+total. `python -m tests.unit.module_boundaries --clusters 10` prints the
+totals and the ten largest `<importing package> -> <target>` clusters per rule.
+
 ## 3. Determinism (AD-16 / AD-59) — absolute rules
 
 **Normative spec:** [`determinism-and-rng-spec.md`](determinism-and-rng-spec.md) defines the generator factory, seed derivation, RNG-neutral changes and clock rules, with their guards. Below is a summary.
