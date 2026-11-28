@@ -261,7 +261,7 @@ falls back to returning the code itself.
 metadata:
   name: "ICD-10-CM"                              # human-readable name
   uri: "http://hl7.org/fhir/sid/icd-10-cm"       # FHIR canonical URI
-  version: "2024"                                # edition / year
+  version: "FY2027"                              # edition of the snapshot it is verified against
   description: "International Classification..." # description
 
 codes:

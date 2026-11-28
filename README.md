@@ -107,7 +107,7 @@ InterSystems support channels.
 
 ## License
 
-MIT — see [`LICENSE`](LICENSE). The repository also bundles codes and code-system text from third-party terminologies (ICD-10, LOINC, SNOMED CT, RxNorm, YJ / MEDIS, JLAC10 and others); [`THIRD_PARTY_TERMINOLOGIES.md`](THIRD_PARTY_TERMINOLOGIES.md) lists each one with its files, source and the license page its owner publishes.
+MIT — see [`LICENSE`](LICENSE). The repository also bundles codes and code-system text from third-party terminologies (ICD-10, LOINC, SNOMED CT, RxNorm, YJ / MEDIS, JLAC10 and others); [`THIRD_PARTY_TERMINOLOGIES.md`](THIRD_PARTY_TERMINOLOGIES.md) lists each one with its files, source and the license page its owner publishes, and [`NOTICE`](NOTICE) names the owners and the statements they publish.
 
 ---
 

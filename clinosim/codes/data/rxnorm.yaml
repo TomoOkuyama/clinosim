@@ -8,7 +8,7 @@ metadata:
   kind: code-system
   name: RxNorm
   uri: http://www.nlm.nih.gov/research/umls/rxnorm
-  version: '2024'
+  version: RxNav 2026-10-28  # edition of codes/authoritative/rxnorm_rxnav_snapshot.json; the date RxNav was read, no RxNorm release is recorded (Issue #4027)
   source: "NLM RxNorm; RXCUIs verifiable via NLM RxNav API"
   description: RxNorm (US NLM)
 codes:

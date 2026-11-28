@@ -1,0 +1,211 @@
+clinosim
+Copyright (c) 2026 clinosim contributors. Licensed under the MIT License (see LICENSE).
+
+The MIT License covers clinosim's own code and data. clinosim also bundles codes
+and code-system text taken from the third-party terminologies listed below,
+which belong to their owners. This file names, for each terminology, the
+owner, the edition bundled and the page the owner publishes about use of its
+content. Statements are quoted verbatim from those pages, with the URL, as
+read on 2026-11-28. A page that could not be read, or that states no terms
+for this content, is marked "not confirmed". This file states facts only: it
+does not grant, describe or interpret any licence on behalf of an owner, and
+it is not legal advice. The files, the counts and what each one copies are
+listed in THIRD_PARTY_TERMINOLOGIES.md.
+
+
+MEDIS-DC 医薬品HOTコードマスター and 標準病名マスター
+-------------------------------------------------------
+Owner: 一般財団法人医療情報システム開発センター (MEDIS-DC)
+Bundled: YJ codes and product names (販売名) of the 医薬品HOTコードマスター,
+  editions 2026-08-31 (clinosim/codes/authoritative/yj_medis_hot_used.json)
+  and 2026-10-31 (yj_medis_hot_20261031.json; clinosim/codes/data/yj.yaml);
+  2 disease names of the 標準病名マスター 5.18 as packaged in jpfhir-terminology
+  2.2606.0 (clinosim/codes/data/medis-disease-keyno.yaml).
+Statement of use (written for clinosim; MEDIS-DC asks that use of its
+standard masters be stated, see the sentence quoted below):
+  clinosim uses the MEDIS-DC standard masters 医薬品HOTコードマスター and
+  ICD10対応標準病名マスター of 一般財団法人医療情報システム開発センター
+  (MEDIS-DC); the codes and names listed above are extracts of them.
+  clinosim は MEDIS-DC の標準マスター（医薬品HOTコードマスター、
+  ICD10対応標準病名マスター）を利用しています。
+Page read: 「MEDIS 標準マスター総合サイト」
+  https://www.medis.or.jp/4_hyojyun/medis-master/riyou/index.html
+  「どなたでも自由にダウンロードして使用できます。」
+  「ただし、医療機関以外での使用若しくは配布目的で利用する場合は、「使用許諾申請書（pdf; 97KB）」を提出し、許可を得る必要があります。」
+  「使用許諾を必要とするマスター種は次の通りです。」 「医薬品HOTコードマスター、病名マスター、歯科病名マスター、手術・処置マスター、看護実践用語標準マスター、症状所見マスター」
+  「ダウンロードしたマスターを改変し配布する場合は、MEDIS-DCの標準マスターを利用したことを必ず明記してください。」
+  「なお、改変したものについての責任はMEDIS-DCでは一切負いませんので、ご注意ください。」
+Also read: 「医薬品HOTコードマスター」 https://www2.medis.or.jp/hcode/ (no terms
+  of use on the page); 「ICD10対応標準病名マスター トップページ」
+  https://www2.medis.or.jp/stdcd/byomei/ (repeats the 使用許諾申請書 and 明記
+  sentences above).
+The repository records no 使用許諾申請書 or permission.
+
+
+RxNorm
+------
+Owner: U.S. National Library of Medicine (NLM)
+Bundled: RxCUIs with drug names (clinosim/codes/data/rxnorm.yaml,
+  rxnorm_scd.yaml, drugs.yaml), checked against RxNav as read on 2026-10-28
+  and 2026-11-09 (clinosim/codes/authoritative/rxnorm_rxnav_snapshot.json).
+Statement NLM requests:
+  "This product uses publicly available data courtesy of the U.S. National
+  Library of Medicine (NLM), National Institutes of Health, Department of
+  Health and Human Services; NLM is not responsible for the product and does
+  not endorse or recommend this or any other product."
+Page read: "RxNorm Terms of Service"
+  https://www.nlm.nih.gov/research/umls/rxnorm/docs/termsofservice.html
+  "We request that any product that makes use of RxNorm data include the following statement:" (the statement above)
+  "The RxNorm terminology normalized names and codes (e.g. RXCUI) within the RxNorm dataset is created by the National Library of Medicine (NLM) and is in the public domain as it is created by the U.S. government. Public domain information may be freely distributed and copied within and outside the U.S., but it is requested that in any subsequent use, NLM be given appropriate acknowledgement."
+  "Users who republish or redistribute the data (services, products or raw data) agree to: maintain the most current version of all distributed data, or make known in a clear and conspicuous manner that the products/services/applications do not reflect the most current/accurate data available from NLM."
+The RxNorm codes and names bundled with clinosim were checked against RxNav on
+the dates above; they do not necessarily reflect the most current data
+available from NLM.
+
+
+SNOMED CT
+---------
+Owner: SNOMED International
+Bundled: concept ids with preferred terms, synonyms and fully specified names,
+  SNOMED CT International Edition 2025-02-01 (some concepts from 20260701)
+  as served by tx.fhir.org (clinosim/codes/authoritative/snomed_ct_tx.json,
+  snomed_allergy_tx.json; clinosim/codes/data/snomed-ct.yaml).
+Page read: "Get SNOMED CT | SNOMED International" https://www.snomed.org/get-snomed
+  "SNOMED International does not charge for Affiliate Licensing or for use of SNOMED CT in Member countries."
+  "If you are using and/or deploying SNOMED CT in a non-Member country/territory, you are required to apply for a license through the Member Licensing & Distribution Service (MLDS) on an annual basis."
+  The page links "Download the Affiliate License Agreement"; the agreement was not read.
+
+
+ICD-10 (WHO)
+------------
+Owner: World Health Organization
+Bundled: codes, displays, definitions and inclusion terms of 427 codes from
+  fhir.tx.support.r4 0.37.0 and tx.fhir.org (ICD-10-EN 2019-covid-expanded)
+  (clinosim/codes/authoritative/icd10_who_tx.json; clinosim/codes/data/icd-10.yaml).
+Pages read: https://www.who.int/standards/classifications/classification-of-diseases
+  "ICD-11 is distributed under Creative Commons Attribution-NoDerivs 3.0 IGO license."
+  https://www.who.int/about/policies/publishing/copyright , section "Licensing of WHO Classifications":
+  "the International Statistical Classification of Diseases and Related Health Problems (ICD), the International Classification of Functioning, Disability and Health (ICF), and the International Classification of Health Interventions (ICHI). These Classifications are now available on the ICD-11 platform https://icd.who.int . They are licensed under the Creative Commons Attribution-NoDerivs 3.0 IGO (CC BY-ND 3.0 IGO) license and may be used for commercial and non-commercial purposes, provided there is no adaptation of the codes and the work is appropriately cited."
+  Whether these statements apply to ICD-10 is not stated on the pages read.
+  Terms for ICD-10: not confirmed.
+
+
+ICD-10 Japanese names, drug-price list (厚生労働省)
+--------------------------------------------------
+Owner: 厚生労働省 (MHLW)
+Bundled: official Japanese names of 475 ICD-10 codes from 基本分類表 (ICD-10
+  2013年版準拠), kihon2013.xlsx (clinosim/codes/authoritative/
+  icd10_mhlw_2013_ja.json; clinosim/codes/data/icd-10.yaml); ingredient and
+  product names from 薬価基準収載品目リスト (令和8年6月12日適用)
+  (clinosim/codes/authoritative/yj_mhlw_snapshot.json).
+Page read: 「利用規約・リンク・著作権等｜厚生労働省」 https://www.mhlw.go.jp/chosakuken/index.html
+  「当ホームページで公開している情報（以下「コンテンツ」といいます。）は、特記されていない限り厚生労働省に帰属し、権利表記の記載がない限り「公共データ利用規約（第1.0版）」（PDL1.0）に準拠した利用条件の下で、利用することができます。」
+  Whether the two Excel files carry their own rights notice was not checked.
+
+
+ICD-10-CM
+---------
+Owner: Centers for Medicare & Medicaid Services (CMS) / National Center for Health Statistics (NCHS)
+Bundled: FY2027 code descriptions (icd10cm_order_2027.txt)
+  (clinosim/codes/authoritative/icd10cm_2027_cms.json; clinosim/codes/data/icd-10-cm.yaml).
+Page read: "ICD-10 | CMS" https://www.cms.gov/medicare/coding-billing/icd-10-codes
+  The page has no copyright or licence statement for the files. Not confirmed.
+
+
+LOINC
+-----
+Owner: Regenstrief Institute
+Bundled: LOINC 2.83 codes with LONG_COMMON_NAME, SHORTNAME and other
+  designations as served by tx.fhir.org (clinosim/codes/authoritative/
+  loinc_2_83_tx.json; clinosim/codes/data/loinc.yaml).
+Pages: https://loinc.org/license/ and https://loinc.org/kb/license/ returned
+  HTTP 403. Not confirmed.
+
+
+CPT
+---
+Owner: American Medical Association
+Bundled: 95 CPT codes with English and Japanese labels (clinosim/codes/data/cpt.yaml;
+  no edition verified, the file says 2024; whether the labels are AMA descriptor
+  text is not recorded).
+Page: https://www.ama-assn.org/practice-management/cpt/cpt-licensing returned
+  HTTP 403. Not confirmed.
+
+
+CVX
+---
+Owner: Centers for Disease Control and Prevention (CDC)
+Bundled: 39 CVX codes with English names (clinosim/codes/data/cvx.yaml, 2026-06).
+Pages: "IIS | Code Sets | CVX | Vaccines | CDC"
+  https://www2.cdc.gov/vaccines/iis/iisstandards/vaccines.asp?rpt=cvx (no
+  licence statement on the page); https://www.cdc.gov/other/agencymaterials.html
+  returned HTTP 403. Not confirmed.
+
+
+医科診療行為マスター
+--------------------
+Owner: 医療情報基盤・診療報酬審査支払機構 (formerly 社会保険診療報酬支払基金)
+Bundled: master names of 49 codes from s_ALL20261013.csv and s_ALL20261102.csv
+  (clinosim/codes/authoritative/shinryo_koui_ssk_20261013_ja.json;
+  clinosim/codes/data/k-codes.yaml).
+Page read: https://www.ssk.or.jp/seikyushiharai/tensuhyo/kihonmasta/kihonmasta_01.html
+  redirects to 「医科診療行為マスター｜医療情報基盤・診療報酬審査支払機構」
+  https://www.hpdx.or.jp/seikyushiharai/tensuhyo/kihonmasta/kihonmasta_01.html
+  No terms for the master files on the page; the site-wide terms page was not
+  read. Not confirmed.
+
+
+JLAC10
+------
+Owner: 日本臨床検査医学会 (JSLM) 検査項目コード委員会
+Bundled: 53 analyte codes with the master's names, abbreviations and English
+  names, 「JLAC10コード表_臨床検査」 version 137 (2026-06)
+  (clinosim/codes/authoritative/jlac10_jslm_137.json; clinosim/codes/data/jlac10.yaml).
+Page read: 「検査項目コード委員会」 https://www.jslm.org/committees/code/
+  「JLAC10コードについては、従来どおりJLAC10コード表およびJLAC10適用細則に基づき、各利用主体における運用に応じてご利用ください。」
+  No licence is named. Not confirmed.
+
+
+JP Core, JP-CLINS, JP-eCheckup, jpfhir-terminology (including JFAGY)
+--------------------------------------------------------------------
+Owner: 日本医療情報学会 (JAMI) FHIR 日本実装検討 WG
+Bundled: codes with displays from JP Core, JP-CLINS 1.13.0, JP-eCheckup 1.7.0
+  and jpfhir-terminology 2.2606.0 CodeSystems (clinosim/codes/data/jpfhir-*.yaml,
+  jp-*.yaml, mhlw-*.yaml, medication-nocoded.yaml;
+  clinosim/codes/authoritative/jfagy_jpfhir_terminology.json, yj_tx_fragment.json).
+Page read: https://jpfhir.jp/fhir/core/
+  "IG © 2022+ FHIR Japanese implementation research working group in Japan Association of Medical Informatics (JAMI)"
+  No licence is named; the licence files inside the packages were not read.
+  Not confirmed.
+
+
+HL7 Terminology (THO)
+---------------------
+Owner: HL7 International
+Bundled: 126 codes with displays in 25 clinosim/codes/data/hl7-*.yaml files.
+Page: https://terminology.hl7.org/license.html served a page titled "Redirect
+  File" with no licence text. Not confirmed.
+
+
+UCUM
+----
+Owner: Regenstrief Institute (UCUM Organization)
+Bundled: 10 unit codes (clinosim/codes/data/ucum-aliases.yaml).
+Page read: "UCUM / License" https://ucum.org/license
+  "UCUM Copyright Notice and License" "Version 1.1, June 2024"
+  "The Unified Code for Units of Measure (UCUM), also known as the “UCUM Specification,” is copyright ©1999-2024, Regenstrief Institute, Inc. All rights reserved."
+
+
+DICOM
+-----
+Owner: National Electrical Manufacturers Association (NEMA)
+Bundled: 8 modality codes with English names (clinosim/codes/data/dicom-modality.yaml).
+Page read: "Current Edition" https://www.dicomstandard.org/current
+  "Publications and DICOMWeb™ Publications are published by and copyright owned by the National Electrical Manufacturers Association."
+  No licence is named. Not confirmed.
+
+
+CDC race and ethnicity codes, IETF BCP 47, JIS X 0401
+-----------------------------------------------------
+Bundled: 8 race and ethnicity codes, 2 language tags, 47 prefecture codes.
+Pages: not read. Not confirmed.

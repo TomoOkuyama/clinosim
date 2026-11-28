@@ -132,6 +132,9 @@ include = [
     "README.ja.md",
     "CHANGELOG.md",
     "LICENSE",
+    "NOTICE",
+    "THIRD_PARTY_TERMINOLOGIES.md",
+    "THIRD_PARTY_TERMINOLOGIES.ja.md",
     "pyproject.toml",
 ]
 

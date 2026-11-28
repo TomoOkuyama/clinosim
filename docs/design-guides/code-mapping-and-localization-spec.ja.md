@@ -124,6 +124,7 @@ codes:
   - **データ alias** (`_SYSTEM_DATA_ALIASES`): 同じデータを別の URI で使う。例: `icd-10-mhlw` → `icd-10`。
   - **参照の兄弟体系** (`_SYSTEM_LOOKUP_SIBLINGS`): 表示名の参照を別の体系にフォールバックさせる。例: `yj` → `hot7`、ICD-10-CM のコードが同じ WHO コードの MHLW 日本語名を使う。
 - 生成器がコードでなく slug で指す体系 (OMB の人種・民族) は、同じファイルに `slug_to_code` ブロックを置き、`slug_to_code` で読む。
+- `metadata.version` は、そのファイルを照合した `codes/authoritative/` のスナップショットの版を、スナップショットの記録どおりに書く (例: `loinc.yaml` は `loinc_2_83_tx.json` に対して `2.83`)。出力には出ない。`tests/unit/codes/test_code_file_versions_4027.py` が組み合わせを列挙し、版とスナップショットが食い違うと失敗する。スナップショットのないファイルは出典が示す版のままとする。
 
 ### 3.4 国別コード対応
 

@@ -2,7 +2,7 @@ metadata:
   kind: code-system
   name: YJ Code
   uri: http://capstandard.jp/iyaku.info/CodeSystem/YJ-code
-  version: '2024'
+  version: '2026-10-31'  # edition of codes/authoritative/yj_medis_hot_20261031.json (MEDIS HOT master) (Issue #4027)
   source: JP Core NamingSystem preferred fixedUri / MHLW 薬価基準 YJ / MEDIS HOT-YJ master
   description: 'Japanese YJ12 medication codes (7-digit + 1 alpha + 4-digit). MHLW 薬価基準 YJ / MEDIS HOT-YJ master. Session 81 split from combined HOT7+YJ12 registry (Issue #415); HOT7 7-digit codes now live in hot7.yaml. JP Core NamingSystem JP_MedicationCodeYJ_NamingSystem preferred=True fixedUri = http://capstandard.jp/iyaku.info/CodeSystem/YJ-code.'
 codes:
