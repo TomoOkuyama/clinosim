@@ -14,8 +14,54 @@ The path under `tests/` mirrors the path under `clinosim/`.
 | `tests/integration/test_baz_chain.py`    | multi-module chain in `clinosim/`     |
 
 Top-level `tests/unit/*.py` is a legacy area (see Issue #567 layout sweep).
-New tests go under the mirrored subdirectory. Do not add new files to
-`tests/unit/` directly.
+**New tests go under the mirrored subdirectory**: `tests/unit/modules/<module>/`
+for `clinosim/modules/<module>/`, `tests/unit/<package>/` for the other
+packages, `tests/integration/` for a multi-module chain. Do not add new files
+to `tests/unit/` directly.
+
+The guard `tests/unit/docs/test_test_layout_guard.py` enforces this. It
+freezes today's number of flat `tests/unit/test_*.py` files and of local
+`_patient`, `_stay` and `_record` builders (the totals and their content keys
+are in `tests/unit/layout_ratchet_baseline.json`, the shared ratchet format of
+`tests/unit/ratchet_baseline.py`). A new flat file or a new local builder fails
+the test with the directory or fixture to use; moving a file to its mirrored
+directory is not a new file; deleting one needs no baseline edit. The totals are
+lowered by `python -m tests.unit.layout_ratchet --write` (a nightly job or the
+maintainer, never inside a feature change).
+
+## Run the tests of one module
+
+The tests of one module live in several places: `tests/unit/<m>/`,
+`tests/unit/modules/<m>/`, `tests/modules/<m>/`, flat `tests/unit/test_*<m>*.py`
+files, `tests/simulator/` and `tests/integration/`. One command covers all of
+them, so you do not need to know which exist:
+
+```bash
+python -m pytest tests/unit tests/modules tests/simulator tests/integration -k <m> -q -n 3
+```
+
+`<m>` is the module directory name under `clinosim/modules/` (for example
+`drug_safety`). `-k` matches a test's file, directory, class and function names
+as a case-insensitive substring, so a short name also selects other tests that
+contain it (`hai` matches more than the `hai` module) and a test of the module
+whose name never mentions it is not selected; combine keywords with
+`-k "<m> or <related>"` where needed. Collecting the whole tree costs about
+16 s before the first test runs. To skip that, list only the directories that
+exist for the module (`ls -d tests/unit/<m> tests/unit/modules/<m> tests/modules/<m>`)
+and pass them to `python -m pytest`.
+
+Measured on a 14-core Mac with `-n 3` (the thread variables set to 1):
+
+| Module | Directories that hold its tests | Command | Tests | Wall time |
+| --- | --- | --- | --- | --- |
+| `drug_safety` | `tests/unit/drug_safety/`, `tests/unit/modules/drug_safety/`, `tests/modules/drug_safety/`, flat files, `tests/integration/` | the command above, `-k drug_safety` | 328 | 20.9 s |
+| `drug_safety` | the three directories only | `python -m pytest tests/unit/drug_safety tests/unit/modules/drug_safety tests/modules/drug_safety -q -n 3` | 242 | 3.6 s |
+| `immunization` | `tests/unit/modules/immunization/`, flat files, `tests/integration/` | the command above, `-k immunization` | 343 | 23.7 s |
+| `immunization` | the one directory only | `python -m pytest tests/unit/modules/immunization -q -n 3` | 248 | 4.8 s |
+
+The directory-only forms are faster and skip the flat and integration tests, so
+run the full command before you open a pull request. CI is unchanged: it runs
+every directory.
 
 ## Marker policy — path is authoritative
 
@@ -53,8 +99,9 @@ cases under `tests/integration/`.
   instances in new tests. Use `load_patient_profile(profile_id)` for the six
   YAML profiles under `tests/fixtures/patient_profiles/` — loader still
   scoped to `tests/regression/` (unit-scope exposure pending Issue #567
-  follow-up). Do NOT add a new local `_patient()` helper; the existing
-  duplicates will be migrated in follow-up PRs.
+  follow-up). Do NOT add a new local `_patient()`, `_stay()` or `_record()` helper (the
+  layout guard above fails a new one); the existing duplicates will be migrated
+  in follow-up PRs.
 - **Bundle-context**: use the shared `BundleContext` builder from
   `tests/integration/_sr_helpers.py` for integration tests that need one.
 - **Country/locale**: default is US (per `AGENTS.md § Country / locale
