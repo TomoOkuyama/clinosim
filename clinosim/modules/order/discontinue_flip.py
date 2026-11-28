@@ -181,7 +181,11 @@ def enrich_discontinue_flip(ctx: EnricherContext) -> None:
                 # Log once per stopped drug (avoid duplicate skip_log
                 # entries when the same drug had multiple parallel
                 # orders — clinically all-stop, one narrative bullet).
-                if patient is not None and key not in logged_keys:
+                if (
+                    patient is not None
+                    and key not in logged_keys
+                    and not _stop_already_stated(patient, encounter_id, key)
+                ):
                     _marker_drug, stop_day = stop_drug_info[key]
                     replacement = _find_replacement_agent(orders, key, stop_day)
                     # Extract archetype from the marker's clinical_intent
@@ -219,6 +223,19 @@ def enrich_discontinue_flip(ctx: EnricherContext) -> None:
                         timestamp=getattr(o, "ordered_datetime", None) or adm_dt,
                     )
                     logged_keys.add(key)
+
+
+def _stop_already_stated(patient, encounter_id: str, stopped_key: str) -> bool:
+    """True when the stay's safety log already states the stop of this drug with
+    its own reason (Issue #3960: the NSAID a therapeutic anticoagulant stopped),
+    so the generic "treatment plan change" line is not added beside it."""
+    return any(
+        getattr(e, "encounter_id", "") == encounter_id
+        and getattr(e, "event_type", "") == "switch"
+        and _drug_key(str(getattr(e, "candidate_drug", "") or "")) == stopped_key
+        and getattr(getattr(e, "verdict", None), "rule_id", "") != "treatment-modification-switch"
+        for e in getattr(patient, "safety_skip_log", None) or []
+    )
 
 
 def _find_replacement_agent(orders, stopped_key: str, stop_day: int | None) -> str | None:

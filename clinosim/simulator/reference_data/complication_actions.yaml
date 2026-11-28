@@ -158,12 +158,18 @@ treatment_actions:
     intent: complication_anticoagulation
     discharge_block: discharge_oral
     lead_in_days: 5
+    # Issue #3960: an active NSAID is stopped when the anticoagulant is ordered
+    # (`stop_actions.stop_interacting_nsaid`), not the anticoagulant skipped.
+    stops_interacting: stop_interacting_nsaid
     blocked_by:
       - gi_bleeding
       - bleeding_on_anticoagulation
       - major_bleeding
       - bleeding_complication
       - bleeding_uremic_platelet_dysfunction
+      # Issue #3960: the antithrombotic plan already withholds its agents for this
+      # intracranial bleed (`antithrombotic_plan.steps_for_day`, `hemorrhage=`).
+      - hemorrhagic_transformation
   start_oral_vancomycin:
     # The C. difficile regimen (Issue #3896): chosen by country and severity.
     drug_class: antibiotic
@@ -243,11 +249,37 @@ treatment_actions:
 #                              difficile); no replacement is ordered (the
 #                              regimen of the underlying infection is not
 #                              re-planned).
+#   stop_interacting_nsaid     (Issue #3960) a therapeutic anticoagulant ordered for a
+#                              venous thromboembolism stops the running NSAID (aspirin,
+#                              an antiplatelet, is spared): the `anticoagulant-plus-nsaid`
+#                              rule (drug_safety) names the NSAID as the drug that leaves.
+#                              Sources read 2026-11-28. US enoxaparin label (openFDA,
+#                              section 7): "Whenever possible, agents which may enhance
+#                              the risk of hemorrhage should be discontinued prior to
+#                              initiation of enoxaparin sodium therapy. These agents
+#                              include medications such as: anticoagulants, platelet
+#                              inhibitors including acetylsalicylic acid, salicylates,
+#                              NSAIDs (including ketorolac tromethamine), ...". US
+#                              heparin label (openFDA, 7.2): NSAIDs (including
+#                              ibuprofen and celecoxib) "may induce bleeding and
+#                              should be used with caution". JP edoxaban insert (the
+#                              2025-11 revision as reproduced by JAPIC/KEGG, 10.2
+#                              併用注意): 非ステロイド性消炎鎮痛剤 "出血の危険性を増大させる
+#                              おそれがある" (mechanism 相互に抗血栓作用を増強); for
+#                              VTE treatment "治療上の有益性と危険性を考慮して慎重に判断
+#                              すること". The JP heparin insert (2024-12 revision, same
+#                              source) names aspirin among the platelet-aggregation
+#                              inhibitors but not NSAIDs as such.
 stop_actions:
   hold_anticoagulation:
     classes: [anticoagulant]
     intent: complication_anticoagulant_hold
     planned_prophylaxis: true
+  stop_interacting_nsaid:
+    classes: [nsaid]
+    spared_classes: [antiplatelet]
+    intent: complication_nsaid_stop
+    reason: nsaid_stopped_for_anticoagulation
   stop_offending_antibiotic:
     classes: [antibiotic]
     spared_classes: [antibiotic.nitroimidazole]

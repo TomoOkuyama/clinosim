@@ -139,6 +139,10 @@ class TreatmentAction(BaseModel):
     lead_in_days: int | None = Field(default=None, gt=0)
     step_down: StepDown | None = None
     blocked_by: tuple[_Slug, ...] = ()
+    # Issue #3960: the ``stop_actions`` entry that stops the drugs the started
+    # regimen interacts with (an NSAID beside a therapeutic anticoagulant); it
+    # is applied when the regimen is ordered, never when nothing is.
+    stops_interacting: _Slug | None = None
 
     @model_validator(mode="after")
     def _one_regimen_source(self) -> TreatmentAction:
@@ -178,6 +182,10 @@ class StopAction(BaseModel):
     # Issue #3896: the protocol ``drugs`` block that authors a replacement for
     # the stopped drug; no block, no replacement (the marker says so).
     replacement_block: _Slug | None = None
+    # Issue #3960: the reason the stop is documented with, as two phrases of
+    # ``safety_text`` (``{complication}`` is the complication that started the
+    # regimen); empty for a stop whose note is the generic plan change.
+    reason: _Slug | None = None
 
 
 class ComplicationActionRules(BaseModel):
@@ -196,6 +204,13 @@ class ComplicationActionRules(BaseModel):
     stop_actions: dict[_Slug, StopAction] = Field(min_length=1)
     not_executed_treatment_actions: tuple[_Slug, ...]
     dose_reductions: dict[_Slug, DoseReduction] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def _interacting_stops_exist(self) -> ComplicationActionRules:
+        for name, action in self.treatment_actions.items():
+            if action.stops_interacting is not None and action.stops_interacting not in self.stop_actions:
+                raise ValueError(f"treatment action {name!r} stops_interacting names no stop action")
+        return self
 
 
 @functools.cache
@@ -598,3 +613,53 @@ def candidates_in(block: Any, country_key: str) -> list[dict[str, Any]]:
     if isinstance(entries, dict):
         entries = [entries]
     return [e for e in entries if isinstance(e, dict)]
+
+
+def complication_note_entry(
+    *,
+    event_type: str,
+    rule_id: str,
+    matched_classes: tuple[str, str],
+    encounter_id: str,
+    drug: str,
+    drug_ja: str,
+    reason_key: str,
+    complication: dict[str, str],
+    stopped_on_day: int | None,
+    timestamp: datetime,
+    matched_active_drug: str | None = None,
+) -> Any:
+    """The safety-skip entry that states a complication decision in the notes
+    (Issue #3960): an NSAID stopped because a therapeutic anticoagulant started
+    (``event_type="switch"``, "X was discontinued on day N (reason)"), or the
+    anticoagulant withheld for an active bleed (``event_type="hold"``). The
+    reason is the ``safety_text`` phrase ``reason_key`` in both languages;
+    ``complication`` maps ``en`` / ``ja`` to the complication's name."""
+    from clinosim.locale.i18n import t
+    from clinosim.types.drug_safety import SafetySkipEntry, SafetyVerdict
+
+    reason_en = t(f"safety_text.{reason_key}", "en", complication=complication["en"])
+    reason_ja = t(f"safety_text.{reason_key}", "ja", complication=complication["ja"])
+    verdict = SafetyVerdict(
+        severity="contraindicated",
+        rule_id=rule_id,
+        matched_classes=matched_classes,
+        matched_active_drug=matched_active_drug,
+        rationale_en=reason_en,
+        rationale_ja=reason_ja,
+        substitution_hint=None,
+    )
+    return SafetySkipEntry(
+        encounter_id=encounter_id,
+        candidate_drug=drug,
+        candidate_drug_ja=drug_ja,
+        active_conflict=reason_en,
+        active_conflict_ja=reason_ja,
+        verdict=verdict,
+        substituted_with=None,
+        substituted_with_ja=None,
+        context_hint=reason_en,
+        timestamp=timestamp.isoformat(),
+        event_type=event_type,  # type: ignore[arg-type]
+        stopped_on_day=stopped_on_day,
+    )

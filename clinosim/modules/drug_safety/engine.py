@@ -210,6 +210,9 @@ def check_pair(drug_a: str, drug_b: str) -> SafetyVerdict:
     return _match_rule(classes_a, classes_b)
 
 
+_STOP_MARKER_PREFIX = "DISCONTINUE:"
+
+
 def check_candidate_against_active(
     candidate: str,
     active_meds: Sequence[str],
@@ -231,9 +234,13 @@ def check_candidate_against_active(
     Interaction rules between different drugs of a class (heparin and
     enoxaparin) fire either way.
     """
+    if candidate.startswith(_STOP_MARKER_PREFIX):
+        return []  # a stop marker gives no drug: nothing to check it against
     own = canonical_name(candidate) if same_drug_reorder else None
     out: list[SafetyVerdict] = []
     for active in active_meds:
+        if active.startswith(_STOP_MARKER_PREFIX):
+            continue  # Issue #3960: a stopped drug's marker names it, but it is not active
         if own is not None and canonical_name(active) == own:
             continue
         v = check_pair(candidate, active)
