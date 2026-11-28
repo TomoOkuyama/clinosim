@@ -22,7 +22,8 @@ Companion documentation: [`docs/design-guides/code-display-authoritative-sync.md
 | `shinryo_koui_ssk_20261013_ja.json` | 社会保険診療報酬支払基金 基本マスター 医科診療行為マスター (`s_ALL20261013.csv`), `https://www.ssk.or.jp/seikyushiharai/tensuhyo/kihonmasta/kihonmasta_01.html` | 2026-11-01 | Master names of the codes registered in `k-codes.yaml` (keyed by 点数表区分番号 or 区分番号-枝番); each `ja` display must be one of them, or the 区分 name they start with (Issue #2340). |
 | `rxnorm_rxnav_snapshot.json` | RxNav (NLM) `/REST/rxcui/{code}/historystatus` | 2026-10-28 | Status / name / term type for every RxCUI clinosim ships (`rxnorm.yaml`, `drugs.yaml`, US drug mapping); read offline by `tests/unit/codes/test_rxnorm_codes_name_their_drug.py`. |
 | `yj_mhlw_snapshot.json` | MHLW drug-price list (薬価基準収載品目リスト, applied 2026-06-12), `https://www.mhlw.go.jp/topics/2026/04/xls/tp20260612-01_05.xlsx` | 2026-10-31 | MHLW ingredient and product names for the YJ codes of the drug catalog (`drugs.yaml` `codes.yj`); read offline by the JP drug-code tests (e.g. `tests/unit/codes/test_jp_yj_class_codes_name_their_drug.py`) (Issue #2347). A product the list carries under a generic-name (統一名収載) code is keyed by its MEDIS product code with the list's code in `mhlw_code` (Issue #3013). |
-| `JP_MedicationCodeYJ_CS_full.json` | Full YJ-code CodeSystem (`http://capstandard.jp/iyaku.info/CodeSystem/YJ-code`, version `2026.8.31`, content `complete`) | — | 23,923 concepts; used by the YJ full-CS tests (e.g. `tests/unit/output/test_fhir_yj_full_cs_gate_1220.py`). The `ja` display of every `yj.yaml` code must equal its display here, verbatim (full-width digits included; Issue #3127). |
+| `yj_medis_hot_used.json` | MEDIS-DC 医薬品HOTコードマスター `MEDIS20260831.TXT` (edition `2026.8.31`), filtered from the complete YJ CodeSystem formerly shipped as `JP_MedicationCodeYJ_CS_full.json` (23,923 concepts, removed in Issue #4026) | not recorded (the removed file recorded no fetch date); filtered 2026-11-28 | The YJ codes clinosim uses: the 272 codes of `yj.yaml`, each with the `ja` name `yj.yaml` curates (no other master text). Read at run time by `clinosim.codes.yj.is_verified_yj` (YJ slice or eCS `nocoded`); `tests/unit/codes/test_yj_used_subset_4026.py` fails when a catalog or registry code is missing. See "Verifying a new YJ code" below. |
+| `yj_medis_hot_20261031.json` | MEDIS-DC 医薬品HOTコードマスター (2026-10-31), `https://www2.medis.or.jp/hcode/moto_data/h20261031.zip` (`MEDIS20261031.TXT`), and the jpfhir-terminology 2.2606.0 YJ CodeSystem fragments | 2026-11-10 | The YJ codes of `yj.yaml` with their product name (販売名); the `ja` display of every `yj.yaml` code must be one of them (`tests/unit/codes/test_display_matches_authoritative.py`, Issue #3127). |
 | `snomed_allergy_tx.json` | tx.fhir.org R4 `CodeSystem/$lookup`, SNOMED CT International Edition 2025-02-01 | 2026-11-10 | The allergen substance, No Known Allergy and reaction manifestation codes of `allergens.yaml`, with display, FSN and `inactive`; read offline by `tests/unit/modules/allergy/test_allergen_codes_3128.py` (Issue #3128). |
 | `jfagy_jpfhir_terminology.json` | `jpfhir-terminology 2.2606.0` (the JFAGY allergen CodeSystems in `JP_AllergyIntolerance_VS`; medication CodeSystems are fragments) | 2026-11-10 | The JFAGY codes JP AllergyIntolerance emits (`allergens.yaml` `country_codes.JP`), with the CodeSystem display each `ja` must equal (Issue #3128). |
 | `jlac10_jslm_137.json` | JSLM 検査項目コード委員会「JLAC10コード表_臨床検査」v137 (2026-06), `https://www.jslm.org/committees/code/137jlac10_1.xlsx` (sheet 分析物コード) | 2026-11-10 | The analyte codes registered in `jlac10.yaml`, with the master's name, abbreviation and English name; read offline by `tests/unit/codes/test_jlac10_master_3164.py` (Issue #3164). |
@@ -34,6 +35,25 @@ are not listed above; count a snapshot's entries with
 Follow-on snapshots (SNOMED / MEDIS / BCP-47 etc.) are
 tracked in the design guide and land in subsequent PRs as each Chain migrates
 to the framework.
+
+## Verifying a new YJ code
+
+A YJ code that clinosim emits must be listed in the MEDIS 医薬品HOTコードマスター;
+an unlisted code is emitted in the JP-CLINS eCS `nocoded` slice. The master is
+not bundled; to add a code:
+
+1. Download the current master from the MEDIS download page
+   (`https://www2.medis.or.jp/hcode/`, archive `h<YYYYMMDD>.zip`) and extract
+   `MEDIS<YYYYMMDD>.TXT`.
+2. Find the code in the `個別医薬品コード` column, and the product the drug
+   catalog means (form and strength) in the same row.
+3. Add the code to `clinosim/codes/data/yj.yaml` (and to `drugs.yaml`
+   `codes.yj` when a drug uses it), then run
+   `python scripts/refresh_authoritative_yj_used.py --source h<YYYYMMDD>/MEDIS<YYYYMMDD>.TXT --fetched <YYYY-MM-DD>`.
+   It writes `yj_medis_hot_used.json` with the master edition and fetch date,
+   and stops without writing when any `yj.yaml` code is not in the master.
+4. Record the edition and fetch date in the table above and in
+   [`THIRD_PARTY_TERMINOLOGIES.md`](../../../THIRD_PARTY_TERMINOLOGIES.md).
 
 ## Content mode: `fragment`
 
@@ -63,7 +83,7 @@ This is the 5th layer of the silent-no-op defense.
 1. Pull the latest `../fhir-jp-validator/tx-server-build/` (or the upstream
    terminology package).
 2. Re-run the extraction script (per-code-system script in `scripts/`,
-   TBD as each system migrates in).
+   TBD as each system migrates in; YJ: see "Verifying a new YJ code").
 3. Inspect the diff in the snapshot files.
 4. For every changed entry:
    - Match now → curated data was already correct, no clinosim change needed.

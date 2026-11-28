@@ -460,32 +460,28 @@ _JP_MEDICATION_CODE_NOCODED_CS = get_system_uri("medication-nocoded")
 _JP_MEDICATION_CODE_NOCODED_CODE = "NOCODED"
 _JP_MEDICATION_CODE_NOCODED_DISPLAY = registry_display("medication-nocoded", "NOCODED", "ja") or ""
 
-# Issue #1220 (2026-09-10): JP national YJ CodeSystem shipped as clinosim
-# artifact (``codes/authoritative/JP_MedicationCodeYJ_CS_full.json``,
-# ``content=complete``, 23,923 concepts sourced from MEDIS 医薬品HOTコード
-# マスター). Replaces the tx-server-fragment-based gate (Issue #283) which
+# Issue #1220 (2026-09-10): YJ codes are checked against the MEDIS
+# 医薬品HOTコードマスター (since Issue #4026 only the codes clinosim uses are
+# shipped: ``codes/authoritative/yj_medis_hot_used.json``; the complete
+# CodeSystem is not). Replaces the tx-server-fragment-based gate (Issue #283) which
 # downgraded 41.8 % of MedicationRequest / 25.1 % of MedicationAdministration
 # to the JP-CLINS eCS ``nocoded`` slice because the tx-server-shipped
 # ``jpfhir-terminology 2.2606.0`` CodeSystem is content=fragment (2000/25542,
 # psychiatric/neurological only) and cannot verify cardiovascular /
 # respiratory / oncology YJ codes clinosim emits.
 #
-# The clinosim-shipped CS is honest — same canonical URL as tx-server's
-# (``http://capstandard.jp/iyaku.info/CodeSystem/YJ-code``), full concept
-# set, MEDIS attribution in copyright. Downstream FHIR validators should
-# load clinosim's CS ahead of the tx-server fragment (IG package
-# precedence) so the ``required`` binding on
-# ``codingYJ.code -> JP_MedicationCodeYJ_VS|1.1.0a`` resolves against the
-# complete concept set — spec-clean rather than defensive-downgrade.
+# A validator that resolves the ``required`` binding on
+# ``codingYJ.code -> JP_MedicationCodeYJ_VS|1.1.0a`` needs the complete YJ
+# CodeSystem from the MEDIS master, loaded ahead of the tx-server fragment.
 #
-# Refresh from upstream MEDIS master:
-#     python scripts/refresh_authoritative_yj_full.py \\
-#         --source h<YYYYMMDD>/MEDIS<YYYYMMDD>.TXT
+# Check the registry against the MEDIS master and refresh the shipped codes:
+#     python scripts/refresh_authoritative_yj_used.py \\
+#         --source h<YYYYMMDD>/MEDIS<YYYYMMDD>.TXT --fetched <YYYY-MM-DD>
 
 
 def _is_yj_code_valid(code: str) -> bool:
-    """Return True when ``code`` is in the JP national YJ CodeSystem
-    (``clinosim.codes.drugs.is_verified_yj``, Issues #1220 / #2262)."""
+    """Return True when ``code`` is a YJ code verified against the MEDIS
+    master (``clinosim.codes.drugs.is_verified_yj``, Issues #1220 / #2262 / #4026)."""
     return is_verified_yj(code)
 
 

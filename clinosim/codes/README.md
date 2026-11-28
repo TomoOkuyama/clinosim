@@ -148,7 +148,9 @@ clinosim/codes/
   snomed_concepts.py              named SNOMED CT concept constants
   ucum.py                         UCUM units for FHIR Quantities
   yj.py                           YJ / HOT JP drug code formats and the
-                                  YJ master
+                                  YJ codes verified against the MEDIS
+                                  master (only the codes clinosim uses
+                                  are shipped, Issue #4026)
   data/                           85 YAMLs: code systems (see
                                   "Supported code systems" below) plus
                                   curated catalogs (drugs, frequency
@@ -360,7 +362,9 @@ simulator-internal test names (e.g. `"WBC"`) to standard codes (e.g.
 Every bundled terminology — the files, the edition, what is copied, the source and the license page its owner publishes — is listed in [`THIRD_PARTY_TERMINOLOGIES.md`](../../THIRD_PARTY_TERMINOLOGIES.md), together with the open licensing questions and the rule for contributors who add codes or code-system text.
 
 `codes/data/` extracts only the subset needed to drive clinosim's
-synthetic-data generation. For commercial EHR integration, pull the
+synthetic-data generation. The same holds for `authoritative/`: for
+example the YJ gate ships only the YJ codes of `data/yj.yaml` that the
+MEDIS 医薬品HOTコードマスター lists, not the complete code system (Issue #4026). For commercial EHR integration, pull the
 full current release from the upstream authority.
 
 **The subset must exhaustively cover "codes that can appear in the

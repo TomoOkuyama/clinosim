@@ -2,8 +2,9 @@
 spec §2.2, Issue #2463).
 
 A JP drug code's system follows its format (JP Core NamingSystem), and a YJ
-code is checked against the national YJ CodeSystem snapshot
-(``codes/authoritative/JP_MedicationCodeYJ_CS_full.json``). The drug catalog
+code is checked against the codes of the MEDIS 医薬品HOTコードマスター that
+clinosim uses (``codes/authoritative/yj_medis_hot_used.json``,
+Issue #4026; the complete code system is not shipped). The drug catalog
 (``clinosim.codes.drugs``) holds which product a drug has per route class and
 calls this module for these authority rules.
 """
@@ -18,7 +19,7 @@ from pathlib import Path
 __all__ = ["is_verified_yj", "jp_drug_system_key"]
 
 _YJ12_PATTERN = re.compile(r"^\d{7}[A-Z]\d{4}$")
-_YJ_FULL_CS = Path(__file__).parent / "authoritative" / "JP_MedicationCodeYJ_CS_full.json"
+_YJ_USED_CODES = Path(__file__).parent / "authoritative" / "yj_medis_hot_used.json"
 
 
 def jp_drug_system_key(code: str) -> str:
@@ -35,14 +36,16 @@ def jp_drug_system_key(code: str) -> str:
 
 @cache
 def _verified_yj_codes() -> frozenset[str]:
-    if not _YJ_FULL_CS.is_file():
-        return frozenset()
-    data = json.loads(_YJ_FULL_CS.read_text(encoding="utf-8"))
-    return frozenset(c.get("code", "") for c in data.get("concept", []) if c.get("code"))
+    """The YJ codes verified against the MEDIS master. Fails loud when the
+    file is missing: an empty set would silently downgrade every JP YJ
+    coding to the eCS ``nocoded`` slice."""
+    data = json.loads(_YJ_USED_CODES.read_text(encoding="utf-8"))
+    return frozenset(c["code"] for c in data["concept"])
 
 
 def is_verified_yj(code: str) -> bool:
-    """True when ``code`` is in the JP national YJ CodeSystem shipped as
-    ``codes/authoritative/JP_MedicationCodeYJ_CS_full.json`` (MEDIS-sourced,
-    content=complete; Issue #1220)."""
+    """True when ``code`` is a YJ code verified against the MEDIS
+    医薬品HOTコードマスター: one of the codes clinosim uses, listed in
+    ``codes/authoritative/yj_medis_hot_used.json`` (Issues #1220,
+    #4026)."""
     return code in _verified_yj_codes()

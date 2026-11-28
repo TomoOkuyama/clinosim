@@ -556,7 +556,7 @@ F32:  # Depressive episode (single)
     - {drug_id: sertraline, dose: "50mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.32}
     - {drug_id: escitalopram, dose: "10mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.22}
     # Issue #1314: Fluoxetine is NOT PMDA-approved for Japan (0 hits
-    # in the bundled JP_MedicationCodeYJ_CS_full.json master under
+    # in the MEDIS HOT master clinosim then bundled, under
     # フルオキセチン / プロザック). ``locale_exclude`` filters this
     # entry out of the sampler on JP so no unfilled "標準コードなし"
     # placeholder MR emits; residual probability grows the "no ssri"
