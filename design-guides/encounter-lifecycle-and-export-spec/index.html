@@ -2540,6 +2540,11 @@
 <td><code>fhir_r4/conditions/conditions.py::_condition_skeleton</code></td>
 <td><code>tests/unit/test_encounter_export_spec_guards.py::test_condition_resources_start_from_the_skeleton</code></td>
 </tr>
+<tr>
+<td>A vital-sign Observation lies inside the Encounter it references: the per-field time offsets of a set (temperature +30 s, respiratory rate +60 s, SpO2 +5 s) never carry an Observation past the end of that Encounter (the end of the ED window for the ED bridge, the discharge time otherwise), and never move it earlier than the set itself (Issue #3959).</td>
+<td><code>fhir_r4/labs/observations.py::_shifted_vital_time</code>, <code>fhir_r4/lib/ed_reattribution.py::vital_sign_encounter_end</code></td>
+<td><code>tests/unit/output/test_fhir_vitals_inside_short_visit_3959.py</code></td>
+</tr>
 </tbody>
 </table>
 <h2 id="5-reading-a-cohort">5. Reading a cohort<a class="headerlink" href="#5-reading-a-cohort" title="Permanent link">&para;</a></h2>

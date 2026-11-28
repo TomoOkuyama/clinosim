@@ -2540,6 +2540,11 @@
 <td><code>fhir_r4/conditions/conditions.py::_condition_skeleton</code></td>
 <td><code>tests/unit/test_encounter_export_spec_guards.py::test_condition_resources_start_from_the_skeleton</code></td>
 </tr>
+<tr>
+<td>バイタルサインの Observation は参照する Encounter の内側にある: セットの項目別の時刻オフセット(体温 +30 秒、呼吸数 +60 秒、SpO2 +5 秒)は、Observation をその Encounter の終了(ED bridge では ED 期間の終了、それ以外では退院時刻)より後へ動かさず、セット自身の時刻より前にも動かさない (Issue #3959)。</td>
+<td><code>fhir_r4/labs/observations.py::_shifted_vital_time</code>, <code>fhir_r4/lib/ed_reattribution.py::vital_sign_encounter_end</code></td>
+<td><code>tests/unit/output/test_fhir_vitals_inside_short_visit_3959.py</code></td>
+</tr>
 </tbody>
 </table>
 <h2 id="5-コホートの読み取り">5. コホートの読み取り<a class="headerlink" href="#5-コホートの読み取り" title="Permanent link">&para;</a></h2>
