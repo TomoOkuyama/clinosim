@@ -2843,8 +2843,8 @@
 <td>記録が挙げる異常検査値 (作成時刻までに既知、項目ごとに一つ、優先順、所見付き) とその言い表し。</td>
 </tr>
 <tr>
-<td><code>clinosim/modules/document/narrative/_medication_plan.py</code> <code>note_medications(ctx)</code> / <code>ranked_medication_names(ctx, day)</code> / <code>cap_names(names, lang)</code></td>
-<td>日々の記録の計画が挙げる薬剤 (開始・継続・単回投与・休薬・再開・中止) の臨床的優先順の並びと、上限付きの一覧。</td>
+<td><code>clinosim/modules/document/narrative/_medication_plan.py</code> <code>note_medications(ctx)</code> / <code>drug_stop_status(ctx)</code> / <code>ranked_medication_names(ctx, day)</code> / <code>cap_names(names, lang)</code></td>
+<td>日々の記録の計画が挙げる薬剤 (開始・継続・単回投与・休薬・再開・中止) の臨床的優先順の並びと、上限付きの一覧。<code>drug_stop_status</code> は記録の作成時刻における中止指示の唯一の読み方で、一覧と中止の行が共用する。</td>
 </tr>
 <tr>
 <td><code>clinosim/modules/observation/engine.py</code> <code>medications_in_effect(home_medications, medication_orders, admission_date, current_day)</code></td>
