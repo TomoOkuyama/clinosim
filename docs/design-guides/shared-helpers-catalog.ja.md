@@ -33,6 +33,7 @@ Governing spec: [`determinism-and-rng-spec.ja.md`](determinism-and-rng-spec.ja.m
 | `clinosim/modules/_shared.py` `random_day_of_month(rng, year, month)` | 月内の一様な日付 (閏年対応)。 |
 | `clinosim/modules/_shared.py` `select_with_exclusive_classes(drug_specs, exclusive_classes, rng)` | 排他クラスごとに最大 1 剤を選ぶ薬剤選択。 |
 | `clinosim/modules/order/placed_order_mar.py` `stable_nurse(roster, key, ward=, department=)` | 投与記録の実施看護師を安定ハッシュで選ぶ (乱数を消費しない)。 |
+| `clinosim/fired_counters.py` `count(path, n, when=)` / `count_each(prefix, names)` | 名前を付けたコード経路が実行されたことを数える (Issue #3976)。乱数を消費せず、CIF にも FHIR にも書かれない。`scripts/refactor-diff.sh` が回数を表示する。リファクタリングで移す経路ごとに 1 呼び出しを置く。 |
 
 ## 2. 参照データ・設定・年齢帯
 

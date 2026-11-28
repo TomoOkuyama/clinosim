@@ -37,6 +37,7 @@ from clinosim import determinism
 from clinosim.codes.drugs import all_drug_ids, drug_classes, drug_key, drug_ref, get_drug, same_drug
 from clinosim.countries import country_slot, lang_for
 from clinosim.datafiles import load_data_yaml
+from clinosim.fired_counters import count
 from clinosim.locale.free_text import localize_drug_name
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import hold_reason_display, load_medication_hold_reasons, order_test_display
@@ -1232,6 +1233,7 @@ def _generate_mar(
             # Issue #3233: held while a vasopressor / inotrope infusion runs.
             vasoactive_hold = vasoactive_hold_reason(order.drug_id or drug_name, scheduled, infusions)
             if vasoactive_hold:
+                count("mar_hold.vasoactive")
                 status, hold_reason = "held", vasoactive_hold
             # Issue #2981: held for hyperkalemia from the potassium result on;
             # Issue #3232: digoxin only while the latest potassium is high, and
@@ -1240,12 +1242,15 @@ def _generate_mar(
                 (k_held and scheduled >= potassium_hold.since)
                 or (k_held_while_high and potassium_hold.high_at(scheduled))
             ):
+                count("mar_hold.potassium")
                 status, hold_reason = "held", potassium_hold.reason_at(scheduled)
             # Issue #3281: held while the creatinine meets the AKI definition.
             if aki_held and aki is not None and aki.active_at(scheduled):
+                count("mar_hold.aki")
                 status, hold_reason = "held", aki_response_rules().reason
             # Issue #3539: metformin held while the latest lactate is high.
             if lactate_held and lactate is not None and lactate.active_at(scheduled):
+                count("mar_hold.lactate")
                 status, hold_reason = "held", aki_response_rules().lactate_hold.reason
 
             # The early side of the jitter does not move a dose before its order.

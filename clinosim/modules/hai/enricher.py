@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 import numpy as np
 
 from clinosim import determinism
+from clinosim.fired_counters import count
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import get_or_create_container, normalize_probabilities
 from clinosim.modules.antibiotic import ANTIBIOTIC_LOINC_LOOKUP
@@ -185,6 +186,7 @@ def enrich_hai(ctx) -> None:
                 organism_snomed=organism,
                 culture_specimen_id=f"spec-hai-{hai_id}",
             )
+            count(f"hai.event.{hai_type}")
             hai_events.append(ev)
             _append_hai_culture(rec, ev, specimens_cfg[hai_type], onset_date, antibiogram_cfg, rng)
         if hai_events:

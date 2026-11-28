@@ -117,6 +117,7 @@ from clinosim.modules.hai.lab_lift import (
 - `clinosim.audit.registry` (via `audit.py`) — AD-60 audit
   registration.
 - `clinosim.determinism` — `default_rng` for the per-patient sub-RNG.
+- `clinosim.fired_counters` — `count` (the `hai.event.<type>` fired counter of the refactoring proof, Issue #3976; draws nothing).
 - `clinosim.codes` — `code_exists` (code validation in the YAML
   models).
 - `clinosim.datafiles` — `load_data_yaml`, `load_validated_yaml`.

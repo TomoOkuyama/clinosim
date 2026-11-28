@@ -45,4 +45,48 @@ CI runs it on every push and PR through
 the `reproducibility` job in `nightly.yml` runs it daily, so a
 regression trips the merge gate before code lands.
 
+### Refactoring proof (`scripts/refactor-diff.sh`)
+
+A refactoring must not change any output, and it is proven only on a run in
+which the moved code executed: a cohort of a few hundred patients can be
+byte-identical without ever reaching a path that fires once per thousand
+stays. Three pieces work together (Issue #3976):
+
+- **Forced-scenario corpus** — `tests/refactor_corpus/scenarios.yaml`: one
+  forced stay per path a refactoring may move (each complication action kind,
+  the vasopressor start, the DKA transition, the hyperkalemia / AKI /
+  renal-replacement / lactate responses, each discharge criterion, a
+  hospital-acquired infection, the delivery modes, an ED admission), US and
+  JP. It is built on `run_forced`; a complication is forced on a stated day
+  with the test-only `ForcedScenario.force_complications`, which only
+  `run_forced` reads. `tests/refactor_corpus/run_corpus.py` generates it (CIF,
+  template narratives, FHIR R4, one directory per scenario).
+- **Fired counters** — `clinosim/fired_counters.py`: one `count("<path>")`
+  call where each such path acts. The counters draw no random number, are not
+  written into CIF or FHIR, and are reset at the start of every run; the
+  runner writes them to a JSON sidecar outside the output tree. Each scenario
+  lists the paths it must fire (`expect`), and `run_corpus.py check` fails
+  when one did not.
+- **The comparison** — `scripts/refactor-diff.sh <base> <head>` checks out
+  both commits in detached worktrees, generates the corpus and a US and a JP
+  cohort (seed 42, population 200 by default and at most 300,
+  2025-07-01..2026-06-30, CIF and FHIR) on each, compares every file (logs,
+  `_generator_metadata.json` and the wall-clock keys of the metadata files
+  excepted), prints the differences and the fired counters of both commits,
+  and exits non-zero on any difference or on an expected path that did not
+  fire on `<head>`.
+
+```bash
+scripts/refactor-diff.sh origin/master HEAD   # about 3 minutes on a laptop
+```
+
+The corpus definition and runner of `<head>` are run against both commits, so
+both generate the same scenarios; `<base>` must contain the corpus (a base
+without fired counters shows `-` in its counter columns). The CI workflow
+`refactor-diff.yml` runs the script for every pull request labelled
+`refactoring`, against the merge base. A refactoring PR names the paths it
+moves and quotes their counts ("path X fired N times in the corpus, M in the
+US cohort, K in the JP cohort, identical on both commits"); a path that fires
+0 times is not proven, so add a scenario that fires it first.
+
 ---

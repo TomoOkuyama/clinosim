@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from clinosim.country_profile import SupportedCountry
 
@@ -15,6 +15,7 @@ from clinosim.country_profile import SupportedCountry
 # config import PatientProfile` sites (cli.py + tests) keep working — only
 # the star-import in `types/__init__.py` is intercepted.
 __all__ = [
+    "ForcedComplication",
     "ForcedScenario",
     "HealthcareSystemConfig",
     "LLMProviderConfig",
@@ -78,6 +79,18 @@ class LLMServiceConfig(BaseModel):
     cache_persist_to_disk: bool = True
 
 
+class ForcedComplication(BaseModel):
+    """A complication of the disease protocol made to fire on one hospital day
+    of a forced stay (Issue #3976). Test-only: read by ``run_forced`` alone
+    (``simulator/forced_complications.py``), never by a population run."""
+
+    model_config = {"extra": "forbid"}
+
+    name: str  # a complication ``name`` of the forced disease's protocol
+    # Hospital day of the onset; the daily loop evaluates complications from day 1 (day 0 is the admission day).
+    day: int = Field(ge=1)
+
+
 class ForcedScenario(BaseModel):
     """Force generation of a specific clinical scenario."""
 
@@ -95,6 +108,9 @@ class ForcedScenario(BaseModel):
     #         "organism_snomed": "112283007"}. None = use stochastic Poisson sampling.
     # hai_type must be in HAI_TYPES (validated by enrich_hai at consume time).
     force_hai_event: dict | None = None
+    # Issue #3976: complications that fire on a stated day (the refactoring
+    # corpus, tests/refactor_corpus/). Empty = the protocol's own draws only.
+    force_complications: list[ForcedComplication] = []
 
 
 # --- AD-66 α-min-2c: Canonical Patient Profile fixture library ---

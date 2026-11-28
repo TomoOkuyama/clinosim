@@ -52,6 +52,7 @@ When a change must alter outcomes (a model change), the PR states which streams 
 
 - `bash scripts/reproduce.sh` reproduces a run and compares sha256 of every output file.
 - A change that should be output-neutral shows a CIF and FHIR byte-diff of 0 against master built from the same base commit (US and JP).
+- A refactoring is shown with `scripts/refactor-diff.sh <base> <head>`, which adds the forced-scenario corpus (`tests/refactor_corpus/`) to the US and JP cohorts and prints how often each moved path fired (`docs/development/testing.md`). The fired counters (`clinosim/fired_counters.py` `count`) draw nothing and are written into neither CIF nor FHIR, so a counter call is always RNG-neutral; guard: `tests/unit/test_fired_counters_3976.py`. `ForcedScenario.force_complications` is read by `run_forced` only, never by a population run (`tests/unit/simulator/test_forced_complications_3976.py`).
 - A change that alters outcomes compares cohorts from the same base commit. The PR lists the changed paths (e.g. `orders[].result`, `microbiology`) and the number of patients that differ, so an unexpected stream shift is visible.
 
 ## 7. Iteration order and caches

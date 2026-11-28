@@ -22,6 +22,7 @@ import numpy as np
 from clinosim import determinism
 from clinosim.codes.drugs import drug_classes, has_drug, protocol_drug_name, same_drug
 from clinosim.countries import country_code
+from clinosim.fired_counters import count, count_each
 from clinosim.locale.free_text import localize_drug_name
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_care_practice, load_diet_type_display, narrative_label
@@ -857,6 +858,7 @@ def _respond_to_hyperkalemia(stay: _Stay, run: _Run, day: int, day_results_start
     run.hyperkalemia_last_day = day
     if run.potassium_hold is None:
         run.potassium_hold = replace(today, history=history)
+    count("response.hyperkalemia.order_set")
     run.orders.extend(
         hyperkalemia_treatment_orders(
             today,
@@ -886,6 +888,7 @@ def _renal_replacement(stay: _Stay, run: _Run, day: int, day_results_start: int)
     if not renal_replacement_due(today, run.state, day=day, first_indication_day=run.rrt_first_indication_day):
         return
     rules = renal_replacement_rules()
+    count("response.renal_replacement.session")
     start_session(run.state)
     run.rrt_last_session_day = day
     run.escalation_procedures.append(
@@ -1184,6 +1187,7 @@ def _start_vasopressor_for_hypotension(stay: _Stay, run: _Run, day: int, vitals_
         dose_text_ja=language_slot(entry.get("dose_text"), "ja"),
         dose_text_en=language_slot(entry.get("dose_text"), "en"),
     )
+    count("response.vasopressor.started")
     run.orders.append(order)
     run.mars.extend(
         _generate_mar(
@@ -1561,6 +1565,7 @@ def _apply_complications(stay: _Stay, run: _Run, day: int, comp_list: list) -> N
     )
     for comp in triggered:
         comp_name = comp.get("name", "unknown")
+        count_each("complication.action", comp.get("actions", []))
         own_holds = comp.get("sustained_state") or {}
         for var, delta in comp.get("state_impact", {}).items():
             if var == "inflammation_level" and delta > 0 and var not in own_holds:
@@ -1604,8 +1609,10 @@ def _apply_complications(stay: _Stay, run: _Run, day: int, comp_list: list) -> N
         # the patient is already intubated or has declined intubation.
         intubate = bool(airway_actions_of(comp))
         if intubate and not run.intubated and _airway_escalation_allowed(stay, run):
+            count("complication.airway.secured")
             _secure_airway(stay, run, day, onset_dt)
         if "icu_transfer" in comp.get("actions", []) or (intubate and run.intubated):
+            count("complication.icu_transfer")
             run.icu_trigger_days.add(day)
             if not run.icu_transferred:
                 # C5-22: capture day of transfer for
@@ -1620,6 +1627,7 @@ def _apply_complications(stay: _Stay, run: _Run, day: int, comp_list: list) -> N
             for o in run.orders:
                 if o.order_type == OrderType.MEDICATION and o.status == OrderStatus.PLACED:
                     if has_drug([o], "metformin"):
+                        count("complication.aki.metformin_cancelled")
                         o.status = OrderStatus.CANCELLED
 
 
@@ -1699,6 +1707,7 @@ def _start_complication_antibiotic(
             break
     if not gated:
         return
+    count("complication.antibiotic.ordered")
     run.orders.extend(gated)
     run.mars.extend(
         _generate_mar(
@@ -1800,6 +1809,7 @@ def _complication_stop_orders(
                 status=OrderStatus.PLACED,
             )
         )
+    count(f"complication.stop_markers.{action}", len(markers))
     return markers
 
 
@@ -1856,6 +1866,7 @@ def _start_complication_treatment(
         if first is not None:
             held_name = protocol_drug_name(first)
             bleed = sorted(blocked)[0]
+            count("complication.treatment.withheld_for_bleeding")
             stay.patient.safety_skip_log.append(
                 complication_note_entry(
                     event_type="hold",
@@ -1972,6 +1983,7 @@ def _start_complication_treatment(
         return
     if nsaid_stops:
         # Issue #3960: the NSAID is stopped from the anticoagulant's order time, with the reason.
+        count("complication.stop.nsaid_for_anticoagulation", len(nsaid_stops))
         run.orders.extend(nsaid_stops)
         for marker in nsaid_stops:
             name = marker.display_name.removeprefix("DISCONTINUE:").strip()
@@ -2045,6 +2057,7 @@ def _start_complication_treatment(
                 for order in gated:
                     if not order.single_dose:
                         order.duration_days = spec.lead_in_days
+                count("complication.treatment.lead_in_to_oral")
                 gated.extend(accepted_oral)
             break
     if spec.step_down is not None and spec.course_days:
@@ -2080,6 +2093,7 @@ def _start_complication_treatment(
                 order.clinical_intent_ja = t(f"{intent_key}_step_down", "ja", day=day, complication=complication["ja"])
                 if crcl is not None:
                     order.renal_crcl_ml_min = round(crcl, 1)
+            count("complication.treatment.step_down_built")
             iv_names = {o.display_name for o in gated}
             gated.extend(
                 apply_drug_safety_gate_to_orders(
@@ -2096,6 +2110,7 @@ def _start_complication_treatment(
                     ],
                 )
             )
+    count(f"complication.treatment.{action}")
     run.orders.extend(gated)
     run.mars.extend(
         _generate_mar(
@@ -2131,6 +2146,7 @@ def _start_niv(stay: _Stay, run: _Run, day: int, started_at: datetime) -> None:
     when the patient is already ventilated or on NIV. Draws nothing."""
     if run.oxygen.ventilated_at(started_at) or run.oxygen.niv_at(started_at):
         return
+    count("complication.niv.started")
     run.oxygen.start_niv(started_at)
     put_on_niv(run.vitals, started_at, run.state, stay.disease_id)
     niv = oxygen_course_rules().niv
@@ -2338,6 +2354,7 @@ def _transition_ketoacidosis_to_subcutaneous(stay: _Stay, run: _Run, day: int) -
     day_start = hospital_day_start(stay.admission_time, day)
     if not ketoacidosis_transition_due(run.orders, run.lab_results, day_start):
         return
+    count("response.ketoacidosis.subcutaneous_transition")
     from clinosim.modules.order.engine import protocol_medication_orders
     from clinosim.simulator.discharge_rx import _resolve_item_dose
 
@@ -2619,15 +2636,19 @@ def _run_daily_loop(
         _update_niv(stay, run, day, last_day=day + 1 >= loop_days)
         day_start_dt = hospital_day_start(stay.admission_time, day)
         ventilated = run.oxygen.ventilated_during(day_start_dt) or run.oxygen.niv_during(day_start_dt)
+        count("discharge.held.ventilation", when=ventilated)
         # Issue #3270: no discharge on or within the observation day after
         # vasopressor / inotrope support.
         on_support = _on_vasoactive_support(stay, run, day)
+        count("discharge.held.vasoactive_support", when=on_support)
         # Issue #3274: an arrhythmia stay stays until its rate is controlled.
         rate_uncontrolled = _ventricular_rate_uncontrolled(stay, run, day)
+        count("discharge.held.ventricular_rate", when=rate_uncontrolled)
         # Issue #3281: nor while AKI is not recovering or a fever persists.
         unresolved = discharge_findings_unresolved(
             run.aki, run.vitals, run.lab_results, dialysis_recent=_renal_replacement_recent(run, day)
         )
+        count("discharge.held.findings_unresolved", when=unresolved)
         # Early discharge: if state-based criteria met before target_los
         # (not for protocols whose recovery the physiology does not model,
         # e.g. psychiatric admissions, Issue #2132).
@@ -2666,6 +2687,7 @@ def _run_daily_loop(
                     )
                 ):
                     break
+            count("discharge.ceiling_extended")
             los_ceiling += 1
 
     # Issue #3642: the diagnosis is made from the creatinine, so the AKI is
