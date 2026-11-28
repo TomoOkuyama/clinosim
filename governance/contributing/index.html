@@ -2444,8 +2444,9 @@ properties the project relies on:</p>
 <h2 id="workflow">Workflow<a class="headerlink" href="#workflow" title="Permanent link">&para;</a></h2>
 <ol>
 <li><strong>Open an issue first</strong> for non-trivial changes so scope and approach
-   can be agreed before you spend time. Bug reports and feature requests
-   have dedicated templates.</li>
+   can be agreed before you spend time. Bug reports, feature requests,
+   clinical-data corrections (a source you have read is required) and
+   refactorings have dedicated issue forms.</li>
 <li><strong>Fork + branch</strong> from <code>master</code>. Use a descriptive branch name
    (<code>fix/…</code> / <code>feat/…</code> / <code>docs/…</code>).</li>
 <li><strong>Small, focused commits.</strong> One logical change per PR is much easier
@@ -2453,7 +2454,7 @@ properties the project relies on:</p>
 <li><strong>Sign your commits (DCO — required).</strong> See <a href="#dco--signed-off-by-required">DCO</a> below.</li>
 <li><strong>Run the tests locally</strong> before opening the PR:</li>
 </ol>
-<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>pytest<span class="w"> </span>tests/unit<span class="w"> </span>-q<span class="w">                       </span><span class="c1"># required, ~1 min</span>
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>pytest<span class="w"> </span>tests/unit<span class="w"> </span>tests/modules<span class="w"> </span>tests/simulator<span class="w"> </span>-q<span class="w">   </span><span class="c1"># required; the set CI runs</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>pytest<span class="w"> </span>tests/integration<span class="w"> </span>-q<span class="w">                </span><span class="c1"># recommended when touching</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">                                           </span><span class="c1"># simulator / output / FHIR</span>
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">                                           </span><span class="c1"># code paths (~18 min local,</span>
@@ -2467,7 +2468,7 @@ properties the project relies on:</p>
 <ol>
 <li><strong>Update <code>CHANGELOG.md</code></strong> — add a bullet under <code>[Unreleased]</code>
    describing user-facing behaviour changes. Skip only for docs-only PRs.</li>
-<li><strong>Open the PR</strong> — the PR template walks you through the checklist.</li>
+<li><strong>Open the PR</strong> — the PR template walks you through the checklist: the issue line, whether it is a refactoring (byte-identity evidence, goldens unchanged) or a behavior change (<code>CIF changes:</code> paragraph, before and after numbers, golden diff per profile), sources for every clinical number, code or dose, and the checks run. <a href="https://github.com/TomoOkuyama/clinosim/blob/master/.github/CODEOWNERS"><code>.github/CODEOWNERS</code></a> maps paths to domains; a maintainer adds the matching domain label, <code>refactoring</code> / <code>behavior-change</code>, and <code>needs-source</code> when a source is missing. Required approvals stay at 0 and code-owner review stays off while there is one maintainer; code-owner review is turned on for a path when a second maintainer or a named domain owner exists for it.</li>
 <li><strong>CI must be green</strong> before the PR merges. The master ruleset requires two checks:</li>
 <li><code>CI result</code> — passes only when every gating job of
      <a href="https://github.com/TomoOkuyama/clinosim/blob/master/.github/workflows/ci.yml"><code>ci.yml</code></a> succeeded: the unit and
