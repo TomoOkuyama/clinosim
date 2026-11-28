@@ -905,3 +905,92 @@ AD-18 (runtime-only 型は dataclass) / AD-56 (adapter 単一責任)
   META #957 close-out)。
 - META Issue: #957 (Full oncology + obstetric service line deepening)
   — この ADR chain で close。
+
+---
+
+### AD-72 · Stay の拡張ポイント: complication action handler registry と discharge criteria list。それ以外の在院中の応答は所有モジュール内の固定順呼び出し
+
+**Date:** 2026-11-28
+
+**Status:** Accepted
+
+**Context:**
+
+`clinosim/simulator/` の入院日次ループは、シーケンス制御とドメインロジック (合併症への応答、退院可否、投薬 hold、検査結果後の応答) が混在している。モジュール化リファクタリングはこのドメインコードを所有モジュールへ移す。問題は、一日のどの部分に拡張機構を置き、どの部分を素の code のままにするかである。registry が元を取るのは貢献者が時間をかけて entry を追加する場所だけで、それ以外では実行順序を隠してしまう。byte-identical な出力はこの実行順序に依存する (AD-16 / AD-59)。既存の根拠: 合併症への応答 (抗菌薬、治療または中止、非侵襲換気、気道確保、ICU 転棟、AKI 時の薬剤キャンセル) と退院を阻む条件が、新しい entry の追加が見込まれる 2 箇所であり、検査結果後の応答 (`drug_safety.respond_to_hyperkalemia`、`renal.aki_course`、`renal.renal_replacement`、`critical_care.lactate_course`) は 4 つの固定ステップである。
+
+**Decision:**
+
+1. **Stay 内の拡張ポイントは 2 つだけ。**
+   - **Complication action handler** (registry): `ComplicationActionHandler(kind, order, applies(entry), run(event, ctx))` を `clinical_course/complication_actions/__init__.py` に列挙する。handler は simulator を import しない。simulator は `clinical_course` で定義された小さな `ComplicationActionContext` Protocol (live な orders と results、gate 経由の投薬開始、MAR 記録、safety skip の記録、ICU 転棟、酸素投与開始、気道確保) を渡す。呼び出し位置は、状態影響・持続 hold・記録・意識レベル低下の後にある、ループ内の合併症ステップのまま。
+   - **Discharge criteria** (名前付き criterion の list): `DischargeCriterion(name, blocks_release(args), keeps_at_ceiling(args, los_ceiling))` を `clinical_course/discharge_criteria.py` に列挙し、各関数は所有モジュール (critical_care、observation、renal) に置く。ループは `any(blocks_release)` と `any(keeps_at_ceiling)` を計算する。criterion は副作用なし・乱数消費なしなので評価順は結果に影響しない。状態ベースの gate チェックは gate 自身のロジックであり criterion にはしない。
+2. **それ以外は所有モジュール内の固定順呼び出し**とし、引数は絞って明示し、日次ループから見える順序で呼ぶ。対象は検査結果後の応答 (`respond_to_hyperkalemia`、`aki_course`、`renal_replacement`、`lactate_course`) と MAR hold (`drug_safety.mar_hold_reason(order, scheduled, holds)`、4 つのチェックは現状の順序、結果は同じ「最後に当てはまったもの」)。型付き view / sink / tracker のフレームワークは作らず、`_Stay` と `_Run` は現状のまま。両方の入院ループ (`_run_daily_loop`、`unknown_condition`) が `mar_hold_reason` と `apply_vital_holds` を呼ぶことを guard test で確認する。
+3. **Stay RNG 禁止ルール。** Stay 内の新規コードは `stay.rng` から draw しない。新しい乱数は `clinosim/seeding.py` の形式の名前付き digest seed (`_digest_int(f"<name>:...")`) を使い、中央テーブルは不要。新しい complication action の kind は `_digest_int(f"complication-action:{kind}:...")` を導出する。既存の seed (`complication_antibiotic_seed`、`complication_treatment_seed`) は変更せず、`evaluate_complications` は `stay.rng` のまま。
+4. **中央の順序。** registry の order は byte-identity の条件であり、現状の順序に一致させる: 抗菌薬 10、治療または中止 20、非侵襲換気 30、気道確保 40、ICU 転棟 50、AKI 時の薬剤キャンセル 60。AKI 時の薬剤キャンセルは、behavior-changing な issue で YAML 宣言されるまで handler 内のリテラルのまま (`CANCELLED` を設定するもので、stop marker ではない)。新しい kind は `order` の値を選び、handler は `order` 順に実行される。
+5. **まず characterization。** 抽出 PR はそれぞれ、移動する経路を明記し、リファクタリング証明用 corpus で各経路が発火することを示す。discharge criteria には、criterion の組合せ、`on_support`、`max_los` に対する `los_ceiling`、発熱と AKI の延長上限、`day` と `first_release_day` を網羅する table test を置く。
+
+**Deferred and why:**
+
+- 検査結果後の応答の registry: 5 つ目の応答者が現れた時点で追加する。現状は 4 つの固定呼び出しの方が registry より分かりやすい。
+- MAR hold の registry: 新しい hold 源が必要とし、byte-identity が示せた場合にのみ追加する。
+- `day_start` と `bedside_activity` の hook: 候補が `stay.rng` の draw に対して異なる位置にあり、hook の順序を決めると出力が変わる。
+- Enricher 登録: 中央のまま。新しい enricher は `ENRICHER_SEED_OFFSETS` に entry を足す代わりに名前から seed を導出してよく、`seeding.py` は編集不要になる (既存 offset は不変)。
+- Python entry points: 今は導入しない。AD-58 に書かれた発展経路 (setuptools entry-point discovery) を先送りする。外部の plug-in 作者はおらず、環境依存の discovery は実行順序をインストール済みパッケージに依存させてしまう (AD-16 / AD-59)。
+- Hold 中にのみ発火する合併症モニタリング検査と、合併症薬の退院時継続は、maintainer ペアで行う core 編集のまま。後続の behavior-changing issue で handler の出力として追加しうる。
+
+**Consequences:**
+
+Positive:
+
+- 貢献者は `clinical_course` に関数 1 つと list entry 1 つを書くだけで、`simulator/` を編集せずに合併症応答や退院 criterion を追加できる。
+- それ以外の在院中ステップの順序が 1 箇所で読める。
+- 抽出の前後で出力は byte-identical のまま。
+
+Negative/neutral:
+
+- 小さな機構が 2 つ増え、handler が使う capability をちょうど公開する `Protocol` を保守する必要がある。
+- 日次開始やベッドサイドの hook、entry-point の plug-in はまだ登録できない。
+
+**Related ADRs:** AD-16 (階層 seed 管理による reproducibility) / AD-55 / AD-56 / AD-58 (拡張ポイント、adapter 登録) / AD-59 (determinism)
+
+**Related documents:**
+
+- 設計 (英語のみ): [`docs/superpowers/specs/2026-11-28-modular-hooks-design.md`](../superpowers/specs/2026-11-28-modular-hooks-design.md) §4 と §11。
+
+---
+
+### AD-73 · Course clock は作成する day-keyed 項目ごとに宣言し、既定は calendar
+
+**Date:** 2026-11-28
+
+**Status:** Accepted
+
+**Context:**
+
+疾患 YAML の作成者は、入院日で key を付けた day-keyed 項目 (例: `order_modifications` と `treatment_modifications`) を書く。このうち一部のステップは病状の経過に依存し (de-escalation、点滴から経口への切替)、別のものは暦の経過時間に依存する。Stay には `target_los` から導出した course-time scale があるが、どの key がそれに従うべきかが定まっておらず、key は code がたまたま使う時計に暗黙に乗っている。全てを 1 つの時計に変換すると、全疾患の在院日数、治療期間、発症日が一度に動く。
+
+**Decision:**
+
+- 作成者は day-keyed 項目ごとに `clock: calendar | course` を宣言する。**既定は `calendar`、すなわち現状の挙動**であり、既定では何も動かない。
+- **Course clock を使ってよいのは経過応答型のステップのみ:** de-escalation、点滴から経口への切替、臨床応答に連動した step-down、経過依存の note milestone。
+- **暦日のまま残すもの:** 経過時間で決まる事象 (VTE、院内感染、せん妄、C. difficile の発症ウィンドウ)、固定長の治療コース、予定された検査。
+- 既存 key の分類 (設計書の報告値で `order_modifications` 170 件、`treatment_modifications` 120 件の day key) は、疾患ごとにレビューする behavior-changing な変更とし、各 PR で在院日数、治療期間、ステップのタイミング、発症日の分布、同日重複オーダー数を前後比較で示す。
+- Key の衝突はループ既存の day key の first-wins 規則を使う。
+- `target_los` から読み込み時に `course_time_scale` を計算する案は、先の決定どおり維持するが、早期ではなく後の Stage に予定する。
+
+**Objection recorded:** 既存の guard test が既に表と比率の一致を保っており、読み込み時計算は疾患から `clinical_course` への load-time 結合を増やすため、この変更の価値は小さい。
+
+**Consequences:**
+
+Positive:
+
+- 作成者が項目ごとに意図を明示でき、レビューアはどのステップが臨床経過に従うかを確認できる。
+- 疾患を分類するまでは byte-neutral で、段階的に導入できる。
+
+Negative/neutral:
+
+- 既存 key の分類は実作業であり、疾患ごとに挙動が変わる。
+- 作成者が覚える key が 1 つ増える (既定は安全側)。
+
+**Related documents:**
+
+- 設計 (英語のみ): [`docs/superpowers/specs/2026-11-28-modular-hooks-design.md`](../superpowers/specs/2026-11-28-modular-hooks-design.md) §7.1 と §11。

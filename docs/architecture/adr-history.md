@@ -771,3 +771,92 @@ concerns across every consumer of the chronic list.
   close-out).
 - META Issue: #957 (Full oncology + obstetric service line deepening) — closed by this ADR
   chain.
+
+---
+
+### AD-72 · Stay extension points: a complication action handler registry and a discharge criteria list; other in-stay responses are fixed-order calls in their owning modules
+
+**Date:** 2026-11-28
+
+**Status:** Accepted
+
+**Context:**
+
+The inpatient day loop in `clinosim/simulator/` mixes sequencing with domain logic (complication responses, discharge readiness, medication holds, after-results responders). The modular refactoring moves that domain code into its owner modules. The question is which parts of the day deserve an extension mechanism and which should stay plain code. A registry only pays for itself where contributors add entries over time; elsewhere it hides the execution order, and the order is what byte-identical output depends on (AD-16 / AD-59). Existing evidence: the complication responses (antibiotic, treatment or stop, non-invasive ventilation, airway, ICU transfer, AKI drug cancellation) and the discharge-blocking conditions are the two places where new entries are expected; the after-results responders (`drug_safety.respond_to_hyperkalemia`, `renal.aki_course`, `renal.renal_replacement`, `critical_care.lactate_course`) are four fixed steps.
+
+**Decision:**
+
+1. **Two extension points inside the stay, no more.**
+   - **Complication action handlers** (registry): `ComplicationActionHandler(kind, order, applies(entry), run(event, ctx))`, listed in `clinical_course/complication_actions/__init__.py`. Handlers do not import the simulator; the simulator passes a small `ComplicationActionContext` Protocol defined in `clinical_course` (live orders and results, start medications through the gate, chart, log a safety skip, trigger ICU, start oxygen support, secure the airway). The call site stays in the loop's complication step, after state impact, sustained holds, record and consciousness lowering.
+   - **Discharge criteria** (list of named criteria): `DischargeCriterion(name, blocks_release(args), keeps_at_ceiling(args, los_ceiling))`, listed in `clinical_course/discharge_criteria.py`, each function living in its owner module (critical care, observation, renal). The loop computes `any(blocks_release)` and `any(keeps_at_ceiling)`. Criteria are side-effect free and draw free, so evaluation order does not matter. The state-based gate checks stay the gate's own logic, not criteria.
+2. **Everything else is a fixed-order call in the owning module**, with narrow explicit arguments, called from the day loop in a visible order: the after-results responders (`respond_to_hyperkalemia`, `aki_course`, `renal_replacement`, `lactate_course`) and the MAR holds (`drug_safety.mar_hold_reason(order, scheduled, holds)` with the four checks in today's order and the same "last applies" result). No typed view / sink / tracker framework; `_Stay` and `_Run` stay as they are. A guard test checks that both inpatient loops (`_run_daily_loop`, `unknown_condition`) call `mar_hold_reason` and `apply_vital_holds`.
+3. **No-stay-RNG rule.** New in-stay code never draws from `stay.rng`. New randomness uses a named digest seed in the style of `clinosim/seeding.py` (`_digest_int(f"<name>:...")`), which needs no central table; a new complication action kind derives `_digest_int(f"complication-action:{kind}:...")`. Existing seeds (`complication_antibiotic_seed`, `complication_treatment_seed`) are unchanged, and `evaluate_complications` stays on `stay.rng`.
+4. **Central order.** The registry order is the byte-identity condition and equals today's sequence: antibiotic 10, treatment or stop 20, non-invasive ventilation 30, airway 40, ICU transfer 50, AKI drug cancellation 60. The AKI drug cancellation stays a literal inside its handler until a behavior-changing issue declares it in YAML (it sets `CANCELLED`, not a stop marker). A new kind picks an `order` value; handlers run in `order`.
+5. **Characterization first.** Every extraction PR names the paths it moves and shows each one fired in the refactoring proof corpus; the discharge criteria get a table test over criterion combinations, `on_support`, `los_ceiling` relative to `max_los`, the fever and AKI extension caps, and `day` versus `first_release_day`.
+
+**Deferred and why:**
+
+- A registry for the after-results responders: added when a fifth responder appears; today four fixed calls are clearer than a registry.
+- A registry for MAR holds: added only when a new hold source needs it and byte-identity has been shown.
+- `day_start` and `bedside_activity` hooks: their candidates sit at different positions relative to `stay.rng` draws, so a hook order would change output.
+- Enricher registration: left central; a new enricher may derive its seed by name instead of adding an `ENRICHER_SEED_OFFSETS` entry, so `seeding.py` is no longer edited (existing offsets unchanged).
+- Python entry points: not now. This defers the evolution path stated in AD-58 (setuptools entry-point discovery). There is no external plug-in author, and environment-dependent discovery would make execution order depend on installed packages (AD-16 / AD-59).
+- Complication monitoring labs while a hold is active and discharge continuation of complication drugs stay maintainer-paired core edits; a later behavior-changing issue may add them as handler outputs.
+
+**Consequences:**
+
+Positive:
+
+- Contributors add a complication response or a discharge criterion by writing one function and one list entry in `clinical_course`, without editing `simulator/`.
+- The order of every other in-stay step stays readable in one place.
+- Output stays byte-identical across the extractions.
+
+Negative/neutral:
+
+- Two small mechanisms to maintain, and a `Protocol` that must expose exactly the capabilities handlers use.
+- Contributors cannot yet register a day-start or bedside hook, or an entry-point plug-in.
+
+**Related ADRs:** AD-16 (reproducibility via hierarchical seed management) / AD-55 / AD-56 / AD-58 (extension points; adapter registration) / AD-59 (determinism)
+
+**Related documents:**
+
+- Design: [`docs/superpowers/specs/2026-11-28-modular-hooks-design.md`](../superpowers/specs/2026-11-28-modular-hooks-design.md) §4 and §11.
+
+---
+
+### AD-73 · Course clock declared per authored day-keyed item, default calendar
+
+**Date:** 2026-11-28
+
+**Status:** Accepted
+
+**Context:**
+
+Disease YAML authors write day-keyed items (for example `order_modifications` and `treatment_modifications` keyed by hospital day). Some of these steps depend on how the illness is going (de-escalation, IV-to-oral switch), others on elapsed calendar time. The stay has a course-time scale derived from `target_los`, but nothing says which authored keys should follow it, so a key is silently on whichever clock the code happens to use. Converting everything to one clock would change length of stay, treatment duration and onset days for every disease at once.
+
+**Decision:**
+
+- Each authored day-keyed item declares `clock: calendar | course`. **The default is `calendar`, i.e. today's behavior**, so nothing moves by default.
+- **The course clock may be used only for response-driven steps:** de-escalation, IV-to-oral switch, step-down tied to clinical response, and course-dependent note milestones.
+- **Stays on calendar days:** elapsed-time phenomena (VTE, hospital-acquired infection, delirium and C. difficile onset windows), fixed-length therapy courses and scheduled workups.
+- Classifying the existing keys (170 `order_modifications` and 120 `treatment_modifications` day keys, as reported in the design) is a reviewed, per-disease behavior-changing change; each PR shows length of stay, treatment duration, step timing, onset-day distributions and same-day duplicate-order counts before and after.
+- Collisions use the loop's existing first-wins rule for day keys.
+- Computing `course_time_scale` at load from `target_los` is kept per the earlier decision but scheduled in a later stage, not early.
+
+**Objection recorded:** the existing guard test already keeps the table equal to the ratio, and computing at load adds a disease to `clinical_course` load-time coupling, so that change has little value.
+
+**Consequences:**
+
+Positive:
+
+- Authors state intent per item; reviewers can see which steps follow the clinical course.
+- Adoption is incremental and byte-neutral until a disease is classified.
+
+Negative/neutral:
+
+- Classification of the existing keys is real work with a behavior change per disease.
+- One more key for authors to learn, with a safe default.
+
+**Related documents:**
+
+- Design: [`docs/superpowers/specs/2026-11-28-modular-hooks-design.md`](../superpowers/specs/2026-11-28-modular-hooks-design.md) §7.1 and §11.
