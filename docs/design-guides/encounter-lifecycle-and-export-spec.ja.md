@@ -38,6 +38,7 @@
 |---|---|---|
 | 施設バンドルと各患者バンドルのあらゆるリソースは、一つの関数が決まった順序で仕上げる: JP Core / JP-CLINS または US Core のプロファイル、JP の Observation カテゴリ、英語のみの体系での表示の除去、eCS の用法項目、Observation の識別子、参照範囲の拡張の除去、付随する Specimen …。これらの処理を builder の他の場所から呼ばない。 | `fhir_r4/builder.py::_finalize_resource` | `tests/unit/test_encounter_export_spec_guards.py::test_finishing_passes_run_only_in_finalize_resource` |
 | あらゆる Condition リソースは一つの骨組みから始まる: 識別子、JP 出力では JP Core プロファイルと JP eCS の診断種別、状態、カテゴリ、コード、対象者。 | `fhir_r4/conditions/conditions.py::_condition_skeleton` | `tests/unit/test_encounter_export_spec_guards.py::test_condition_resources_start_from_the_skeleton` |
+| バイタルサインの Observation は参照する Encounter の内側にある: セットの項目別の時刻オフセット(体温 +30 秒、呼吸数 +60 秒、SpO2 +5 秒)は、Observation をその Encounter の終了(ED bridge では ED 期間の終了、それ以外では退院時刻)より後へ動かさず、セット自身の時刻より前にも動かさない (Issue #3959)。 | `fhir_r4/labs/observations.py::_shifted_vital_time`, `fhir_r4/lib/ed_reattribution.py::vital_sign_encounter_end` | `tests/unit/output/test_fhir_vitals_inside_short_visit_3959.py` |
 
 ## 5. コホートの読み取り
 

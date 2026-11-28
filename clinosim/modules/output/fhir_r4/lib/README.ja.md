@@ -94,7 +94,7 @@ module から直接 import する (Issue #545 rename)。
     ED 来院時バイタルセット (`data_source == "ed_triage"`) とその
     NEWS2 / GCS を bridge に載せる `vital_sign_encounter_id(vs, ctx)`
     (Issue #3243)。主 encounter の期間外のセットは、その時刻を期間に含む
-    レコード内の別の外来 encounter (予防接種受診) に付ける (Issue #3656)。
+    レコード内の別の外来 encounter (予防接種受診) に付ける (Issue #3656)。`vital_sign_encounter_end(vs, ctx)` はその Encounter の終了 (bridge では ED 窓の終了) を返し、バイタルの時刻オフセットはそれを越えない (Issue #3959)。
   - `ids.py` — opaque Resource.id 導出 (Issue #349):
     `CLINOSIM_IDENTIFIER_SYSTEM_PREFIX = "urn:clinosim:identifier:"`、
     `structural_key_system(kind)` (`urn:clinosim:identifier:<kind>`

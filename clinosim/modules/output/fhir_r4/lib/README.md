@@ -99,7 +99,7 @@ rename).
     procedures dated in the ED window `[admission - admitted_ed_stay(), admission)` go to the bridge; Issue #3866: a MedicationAdministration is read through its `context`, an ImagingStudy by `started`, and the imaging-report Composition by the start of the ImagingStudy it describes; Issue #3888: a MedicationRequest or ServiceRequest moved to the bridge is requested by the stay's `ed_physician_id`, with the recorder / performer that repeated the requester following it, and is left unchanged when the stay has no ED physician),
     and `vital_sign_encounter_id(vs, ctx)`, which
     places the ED arrival vital-sign set (`data_source == "ed_triage"`)
-    and its NEWS2 / GCS on that bridge (Issue #3243), and a set taken outside the primary encounter's period on the record's other outpatient encounter whose period holds it (the companion vaccination visit, Issue #3656).
+    and its NEWS2 / GCS on that bridge (Issue #3243), and a set taken outside the primary encounter's period on the record's other outpatient encounter whose period holds it (the companion vaccination visit, Issue #3656); `vital_sign_encounter_end(vs, ctx)` gives the end of that Encounter (the ED window end for the bridge), which the vital-sign time offsets do not pass (Issue #3959).
   - `ids.py` — opaque Resource.id derivation (Issue #349):
     `CLINOSIM_IDENTIFIER_SYSTEM_PREFIX = "urn:clinosim:identifier:"`,
     `structural_key_system(kind)` (returns
